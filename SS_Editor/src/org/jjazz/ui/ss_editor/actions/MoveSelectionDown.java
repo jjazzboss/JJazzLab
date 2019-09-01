@@ -1,0 +1,72 @@
+/*
+ *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ * 
+ *  Copyright @2019 Jerome Lelasseux. All rights reserved.
+ *
+ *  This file is part of the JJazzLabX software.
+ *   
+ *  JJazzLabX is free software: you can redistribute it and/or modify
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
+ *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  or (at your option) any later version.
+ *
+ *  JJazzLabX is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
+ * 
+ *  Contributor(s): 
+ */
+package org.jjazz.ui.ss_editor.actions;
+
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.ActionEvent;
+import java.util.List;
+import javax.swing.AbstractAction;
+import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.ui.ss_editor.api.SS_Editor;
+import org.jjazz.ui.ss_editor.api.RL_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.sptviewer.api.SptViewer;
+import org.jjazz.ui.rpviewer.api.RpViewer;
+import org.jjazz.songstructure.api.SongPart;
+
+public class MoveSelectionDown extends AbstractAction
+{
+
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+        SS_Editor editor = RL_EditorTopComponent.getActive().getRL_Editor();
+        Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        if (c instanceof RpViewer)
+        {
+            RpViewer rpv = ((RpViewer) c);
+            SongPart spt = rpv.getSptModel();
+            List<RhythmParameter<?>> rps = rpv.getSptModel().getRhythm().getRhythmParameters();
+            int rpIndex = rps.indexOf(rpv.getRpModel());
+            assert rpIndex >= 0;
+            if (rpIndex < rps.size() - 1)
+            {
+                // Go to RhythmParameter below
+                RL_SelectionUtilities selection = new RL_SelectionUtilities(editor.getLookup());
+                selection.unselectAll(editor);
+                editor.selectRhythmParameter(spt, rps.get(rpIndex + 1), true);
+                editor.setFocusOnRhythmParameter(spt, rps.get(rpIndex + 1));
+            }
+        } else if (c instanceof SptViewer)
+        {
+            SptViewer rpv = ((SptViewer) c);
+            SongPart spt = rpv.getModel();
+            RhythmParameter<?> firstRp = spt.getRhythm().getRhythmParameters().get(0);
+            RL_SelectionUtilities selection = new RL_SelectionUtilities(editor.getLookup());
+            selection.unselectAll(editor);
+            editor.selectRhythmParameter(spt, firstRp, true);
+            editor.setFocusOnRhythmParameter(spt, firstRp);
+        }
+    }
+}

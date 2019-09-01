@@ -1,0 +1,72 @@
+/*
+ *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ * 
+ *  Copyright @2019 Jerome Lelasseux. All rights reserved.
+ *
+ *  This file is part of the JJazzLabX software.
+ *   
+ *  JJazzLabX is free software: you can redistribute it and/or modify
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
+ *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  or (at your option) any later version.
+ *
+ *  JJazzLabX is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
+ * 
+ *  Contributor(s): 
+ */
+package org.jjazz.ui.cl_editor;
+
+import java.awt.Color;
+import java.beans.PropertyChangeListener;
+import java.util.prefs.Preferences;
+import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.ui.cl_editor.api.CL_EditorSettings;
+import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
+import org.openide.util.NbPreferences;
+import org.openide.util.lookup.ServiceProvider;
+
+@ServiceProvider(service = CL_EditorSettings.class)
+public class CL_EditorSettingsImpl extends CL_EditorSettings
+{
+
+    /**
+     * The Preferences of this object.
+     */
+    private static Preferences prefs = NbPreferences.forModule(CL_EditorSettingsImpl.class);
+    /**
+     * The listeners for changes of this object.
+     */
+    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+
+    @Override
+    public void setBackgroundColor(Color color)
+    {
+        Color old = getBackgroundColor();
+        prefs.putInt(PROP_BACKGROUND_COLOR, color.getRGB());
+        pcs.firePropertyChange(PROP_BACKGROUND_COLOR, old, color);
+    }
+
+    @Override
+    public Color getBackgroundColor()
+    {
+        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR, ColorSetManager.Utilities.getDefault().getWhite().getRGB()));
+    }
+
+    @Override
+    public synchronized void addPropertyChangeListener(PropertyChangeListener listener)
+    {
+        pcs.addPropertyChangeListener(listener);
+    }
+
+    @Override
+    public synchronized void removePropertyChangeListener(PropertyChangeListener listener)
+    {
+        pcs.removePropertyChangeListener(listener);
+    }
+}

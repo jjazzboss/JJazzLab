@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.jjazz.instrumentsoptions
+OpenIDE-Module-Localizing-Bundle: org/jjazz/instrumentsoptions/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

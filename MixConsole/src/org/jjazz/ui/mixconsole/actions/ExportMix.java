@@ -1,0 +1,139 @@
+/*
+ *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ * 
+ *  Copyright @2019 Jerome Lelasseux. All rights reserved.
+ *
+ *  This file is part of the JJazzLabX software.
+ *   
+ *  JJazzLabX is free software: you can redistribute it and/or modify
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
+ *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  or (at your option) any later version.
+ *
+ *  JJazzLabX is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
+ * 
+ *  Contributor(s): 
+ */
+package org.jjazz.ui.mixconsole.actions;
+
+import org.jjazz.midimix.MidiMix;
+import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import static javax.swing.Action.NAME;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import org.jjazz.filedirectorymanager.FileDirectoryManager;
+import static org.jjazz.ui.mixconsole.actions.Bundle.*;
+import org.jjazz.ui.utilities.Utilities;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
+import org.openide.awt.ActionRegistration;
+import org.openide.awt.StatusDisplayer;
+import org.openide.util.NbBundle;
+import org.openide.windows.WindowManager;
+
+//@ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.exportmix")
+//@ActionRegistration(displayName = "#CTL_ExportMix", lazy = true)
+//@ActionReferences(
+//        {
+//            // @ActionReference(path = "Actions/MixConsole/File", position = 300, separatorBefore = 290)
+//        })
+@NbBundle.Messages(
+        {
+            "CTL_ExportMix=Export Mix...",
+            "CTL_MixFiles=Mix Files",
+            "CTL_ConfirmFileReplace=File already exits. Confirm overwrite ?",
+            "CTL_FileSaved=Mix exported to :"
+        })
+public class ExportMix extends AbstractAction
+{
+
+    private MidiMix songMidiMix;
+    private String undoText = CTL_ExportMix();
+    private static final Logger LOGGER = Logger.getLogger(ExportMix.class.getSimpleName());
+
+    public ExportMix(MidiMix context)
+    {
+        songMidiMix = context;
+        putValue(NAME, undoText);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+        File oldFile = songMidiMix.getFile();
+        File copyFile = showSaveMixFileChooser(null);
+        if (copyFile == null)
+        {
+            return;
+        }
+        songMidiMix.saveToFileNotify(copyFile, true);
+
+    }
+
+    /**
+     * Prepare the JFileChooser to save specified file. Add extension to selected file if required.
+     * <p>
+     * Ask for confirmation if file overwrite.
+     *
+     * @param presetFile If null JFileChooser is not preset.
+     * @return The actual save file selected by user. Null if cancelled.
+     */
+    static protected File showSaveMixFileChooser(File presetFile)
+    {
+        JFileChooser chooser = Utilities.getFileChooserInstance();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(CTL_MixFiles() + " (" + "." + FileDirectoryManager.MIX_FILE_EXTENSION + ")", FileDirectoryManager.MIX_FILE_EXTENSION);
+        chooser.resetChoosableFileFilters();
+        chooser.setMultiSelectionEnabled(false);
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        chooser.setFileFilter(filter);
+
+        if (presetFile != null)
+        {
+            chooser.setCurrentDirectory(presetFile.getParentFile()); // required because if defaultSongFile does not yet exist, setSelectedFile does not set the current directory
+        }
+        chooser.setSelectedFile(presetFile);
+
+        // Show the dialog !
+        int returnCode = chooser.showSaveDialog(WindowManager.getDefault().getMainWindow());
+        File mixFile = null;
+        if (returnCode == JFileChooser.APPROVE_OPTION)
+        {
+            mixFile = chooser.getSelectedFile();
+            String mixFileName = mixFile.getName();
+
+            // Add extension if required
+            if (!org.jjazz.util.Utilities.endsWithIgnoreCase(mixFileName, "." + FileDirectoryManager.MIX_FILE_EXTENSION))
+            {
+                mixFile = new File(mixFile.getParent(), mixFileName + "." + FileDirectoryManager.MIX_FILE_EXTENSION);
+            }
+
+            if (mixFile.exists())
+            {
+                // Confirm overwrite
+                NotifyDescriptor nd = new NotifyDescriptor.Confirmation(mixFile.getName() + " - " + CTL_ConfirmFileReplace(), NotifyDescriptor.OK_CANCEL_OPTION);
+                Object result = DialogDisplayer.getDefault().notify(nd);
+                if (result != NotifyDescriptor.OK_OPTION)
+                {
+                    // Cancel
+                    mixFile = null;
+                }
+            }
+        }
+        return mixFile;
+    }
+
+}

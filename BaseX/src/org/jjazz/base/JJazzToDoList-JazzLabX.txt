@@ -1,0 +1,46 @@
+BUG LIST/TODO JJAZZLABX
+
+- BUG: drag & drop copy le 1er spt à position 0 => non reproduit
+- BUG: check MOXF send wrong patchs ?  Default Instrument selection box test wrong patch ? => non reproduit
+- BUG: freeze app en resizant l'app au début (juste avant loading rhythm db) ? => non reproduit
+- BUG: zoom arrière sur chordleadsheet, certains accords n'étaient pas réduits ? => non reproduit
+- BUG: check open recent file, marche pas toujours 
+- BUG: jjazrock rhythm => change samba, channels pas dans l'ordre habituel=> NON REPRODUIT
+- TODO: import songs - musicXML (export BIAB) ou improvisor (ls)
+- TODO: RP_ValueSet pour permettre des dépendances de valeur/enabled entre les paramètres d'un même rhythme.
+- TODO: propose automatic scales for chords
+- TODO: context-sensitive quantize button in toolbar au lieu du popupmenu ?
+- TODO: Améliorer l'ajustement taux de crash CrashRandomizer, algo actuel diminue proba crash en fin de série de peches,pas toujours musical (plutot crash sur derniere peche?)
+- TODO: import cubase instrument definition files (ou autres ?)
+- TODO: show RP parameters: select on/off each RP and also set ORDER
+- TODO: action "extend/compress rhythm parts"
+- TODO: chord edit action enabled with multi-chords selection
+- TODO: use @StaticResource on resource paths
+- TODO: add VST-hosting ! => useless if using midiloop or beloop1 virtualmidi port...
+- TODO: reduce chord width if too many chords in a bar
+- TODO: faire la toolbar de la mixconsole dynamique à partir de layer file (ajd en dur)
+- TODO: remove customize right-click menu toolbar => no solution but to patch Netbeans !
+- TODO: add more INFO log messages pour aider au futur debug
+- TODO: add more StatusDisplayer messages on some actions: file export, play, etc.
+- TODO: clean package structure
+  - eg MixConsole has api, useless ? (not public), inverse mymodule.api => api.mymodule  comme dans Netbeans apparemment ? Plus facile pour packager ?
+  - vérifier le OpenIDE-Module qui ne devra pas bouger dans le temps (voir modules avec package ou rien dedans?)
+- TODO: crash catch/bug submitter ? Use Netbeans exceptions ?
+- TODO: print leadsheet !
+- TODO: replace BooleanStateAction Presenter.Popup see SectionAtNewLine
+- TODO: internationalize en français 
+- TODO: passer sur Git
+- TODO: test robustesse avec import/load songs ? limiter le nombre max de songs ouvertes (stack overflow avec 100+ songs ouvertes lors du close all)
+- TODO: embed some song files in JJazzLab distribution
+- TODO: new rhythms: swing 4/4 ? pop funk simple ? 3/4 ? a 4/4 demo rhythm with no percussion track
+- TODO: investigate redesign of RP_State to use enum (Rp_StringSet =>enumset) instead of always strings ? => more robuste, better for multi-language ?
+- TODO: update javadoc for immutable classes
+- TODO: terminante adding all standard JJazz chords as YamChord aliases
+- TODO: update manager, see  Add UpdateManager Netbeans Wizard used on "JJazz Base" module mais non configuré see XML Layer Services
+http://wiki.netbeans.org/FaqPluginManagerCustomization,
+http://wiki.netbeans.org/DevFaqCustomUpdateCenter, also
+http://bits.netbeans.org/dev/javadoc/org-netbeans-modules-autoupdate-services/architecture-summary.html
+http://wiki.netbeans.org/DevFaqSignNbm
+- TODO exception handling => Log(Level.INFO, "msg", EXCPETION) => log + automatic popup window
+  https://bugzilla-attachments-35067.netbeans.org/bugzilla/attachment.cgi?id=28782
+  http://wiki.netbeans.org/DevFaqUnexpectedExceptionDialog

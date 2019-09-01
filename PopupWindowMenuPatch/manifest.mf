@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.jjazz.popupmenuwindowmenupatch
+OpenIDE-Module-Localizing-Bundle: org/jjazz/popupmenuwindowmenupatch/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

@@ -1,0 +1,289 @@
+/*
+ *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ * 
+ *  Copyright @2019 Jerome Lelasseux. All rights reserved.
+ *
+ *  This file is part of the JJazzLabX software.
+ *   
+ *  JJazzLabX is free software: you can redistribute it and/or modify
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
+ *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  or (at your option) any later version.
+ *
+ *  JJazzLabX is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
+ * 
+ *  Contributor(s): 
+ */
+package org.jjazz.songeditormanager;
+
+import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.sound.midi.MetaMessage;
+import javax.sound.midi.MidiEvent;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Sequence;
+import javax.sound.midi.Track;
+import javax.swing.AbstractAction;
+import javax.swing.JFileChooser;
+import org.jjazz.filedirectorymanager.FileDirectoryManager;
+import org.jjazz.harmony.TimeSignature;
+import org.jjazz.midi.InstrumentMix;
+import org.jjazz.midi.MidiConst;
+import org.jjazz.midi.MidiUtilities;
+import org.jjazz.midimix.MidiMix;
+import org.jjazz.midimix.MidiMixManager;
+import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException;
+import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongManager;
+import org.jjazz.ui.utilities.Utilities;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
+import org.openide.awt.ActionRegistration;
+import org.openide.awt.StatusDisplayer;
+import org.openide.util.NbBundle;
+import org.openide.windows.WindowManager;
+
+/**
+ * Export song to a midi file.
+ */
+@ActionID(category = "MusicControls", id = "org.jjazz.ui.musiccontrolactions.exporttomidifile")
+@ActionRegistration(displayName = "#CTL_ExportToMidiFile", lazy = true)
+@ActionReferences(
+        {
+            @ActionReference(path = "Menu/File", position = 1610)
+        })
+@NbBundle.Messages(
+        {
+            "CTL_ExportToMidiFile=Export to Midi file..."
+        })
+public class ExportToMidiFile extends AbstractAction
+{
+
+    private Song song;
+
+    private static final Logger LOGGER = Logger.getLogger(ExportToMidiFile.class.getSimpleName());
+
+    public ExportToMidiFile(Song context)
+    {
+        song = context;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+        assert song != null;
+
+        // Get the target midi file
+        File midiFile = getMidiFile(song);
+        JFileChooser chooser = Utilities.getFileChooserInstance();
+        chooser.resetChoosableFileFilters();
+        chooser.setMultiSelectionEnabled(false);
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        chooser.setSelectedFile(midiFile);
+        int res = chooser.showSaveDialog(WindowManager.getDefault().getMainWindow());
+        if (res != JFileChooser.APPROVE_OPTION)
+        {
+            return;
+        }
+        midiFile = chooser.getSelectedFile();
+
+        if (midiFile.exists())
+        {
+            // File overwrite confirm dialog
+            String msg = "File " + midiFile + " already exists. Confirm overwrite ?";
+            NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
+            Object result = DialogDisplayer.getDefault().notify(nd);
+            if (result != NotifyDescriptor.OK_OPTION)
+            {
+                return;
+            }
+        }
+
+        // Generate the sequence    
+        MidiMix midiMix = null;
+        try
+        {
+            midiMix = MidiMixManager.getInstance().findMix(song);
+        } catch (MidiUnavailableException ex)
+        {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return;
+        }
+
+        // Work on a copy
+        SongManager sf = SongManager.getInstance();
+        Song songCopy = sf.getCopy(song);
+
+        // Build the sequence
+        MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(new MusicGenerationContext(songCopy, midiMix));
+        HashMap<RhythmVoice, Integer> mapRvTrackId = seqBuilder.getRvTrackIdMap();
+        Sequence sequence = null;
+        try
+        {
+            sequence = seqBuilder.buildSequence();
+            mapRvTrackId = seqBuilder.getRvTrackIdMap();
+        } catch (MusicGenerationException ex)
+        {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return;
+        } finally
+        {
+            songCopy.close(false);
+        }
+
+        // Apply Drums channel rerouting        
+        List<Integer> toBeRerouted = midiMix.getDrumsReroutedChannels();
+        MidiUtilities.rerouteShortMessages(sequence, toBeRerouted, MidiConst.CHANNEL_DRUMS);
+
+        // Check Midi export capabilities
+        int[] fileTypes = MidiSystem.getMidiFileTypes(sequence);
+        boolean fileTypeOK = false;
+        for (int fileType : fileTypes)
+        {
+            if (fileType == 1)
+            {
+                fileTypeOK = true;
+                break;
+            }
+        }
+        if (!fileTypeOK)
+        {
+            String msg = "Can't export to Midi file: MidiSystem does not support Midi file 1 format";
+            LOGGER.warning(msg);
+            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(nd);
+            return;
+        }
+
+        // Modify sequence so that Midi file can be as portable as possible
+        prepareForMidiFile(sequence, mapRvTrackId, midiMix);
+
+        // Finally write to file
+        LOGGER.info("actionPerformed() writing sequence to Midi file: " + midiFile.getAbsolutePath());
+        try
+        {
+            MidiSystem.write(sequence, 1, midiFile);
+            StatusDisplayer.getDefault().setStatusText("Midi sequence written to " + midiFile.getAbsolutePath());
+        } catch (IOException ex)
+        {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+        }
+    }
+
+    /**
+     * Prepare the sequence for Midi file export.
+     * <p>
+     * Shift all events 1 bar to leave time to apply config changes.<br>
+     * Add prog/bank changes messages, initialization messages (ex tempo), reset controllers, etc...
+     *
+     * @param sequence
+     * @throws ArrayIndexOutOfBoundsException
+     * @todo Should we convert tempo Midi message depending on TimeSignature (eg 4/4 or 6/8 don't have the same natural beat...) ?
+     */
+    private void prepareForMidiFile(Sequence sequence, HashMap<RhythmVoice, Integer> mapRvTrackId, MidiMix midiMix) throws ArrayIndexOutOfBoundsException
+    {
+        Track[] tracks = sequence.getTracks();
+        if (tracks.length == 0)
+        {
+            LOGGER.warning("prepareForMidiFile() no track found in sequence ! mapRvTrackId=" + mapRvTrackId);
+            return;
+        }
+        TimeSignature ts0 = song.getSongStructure().getSongPart(0).getRhythm().getTimeSignature();
+        long oneBarInTicks = ts0.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION;
+        // Shift one bar except track names/tempo/time signature        
+        for (Track track : tracks)
+        {
+            for (int i = track.size() - 1; i >= 0; i--)
+            {
+                MidiEvent me = track.get(i);
+                MidiMessage mm = me.getMessage();
+                if (mm instanceof MetaMessage)
+                {
+                    int type = ((MetaMessage) mm).getType();
+                    // Track name=3, tempo=81, time signature=88                    
+                    if (type == 3 || type == 81 || type == 88)
+                    {
+                        continue;
+                    }
+                }
+                me.setTick(me.getTick() + oneBarInTicks);
+            }
+        }
+
+        Track firstTrack = tracks[0];
+
+        // Add initialization messages
+        MidiMessage mmCopyright = MidiUtilities.getCopyrightMetaMessage("File automatically generated by JJAZZLAB");
+        MidiEvent me = new MidiEvent(mmCopyright, 0);
+        firstTrack.add(me);
+        me = new MidiEvent(MidiUtilities.getTimeSignatureMessage(0, ts0), 0);
+        firstTrack.add(me);
+        // Should we convert tempo Midi message depending on TimeSignature (eg 4/4 or 6/8 don't have the same natural beat...) ?
+        me = new MidiEvent(MidiUtilities.getTempoMessage(0, song.getTempo()), 0);
+        firstTrack.add(me);
+
+        // Add reset all controllers + instruments initialization messages for each track
+        for (RhythmVoice rv : mapRvTrackId.keySet())
+        {
+            Track track = tracks[mapRvTrackId.get(rv)];
+            int channel = midiMix.getChannel(rv);
+
+            // Reset all controllers
+            MidiMessage mmReset = MidiUtilities.getResetAllControllersMessage(channel);
+            me = new MidiEvent(mmReset, 0);
+            track.add(me);
+
+            // Instrument + volume + pan etc.
+            InstrumentMix insMix = midiMix.getInstrumentMixFromKey(rv);
+            for (MidiMessage mm : insMix.getAllMidiMessages(channel))
+            {
+                me = new MidiEvent(mm, 0);
+                track.add(me);
+            }
+        }
+
+    }
+
+    // ======================================================================
+    // Private methods
+    // ======================================================================   
+    private File getMidiFile(Song sg)
+    {
+        File f;
+        File dir;
+        String midiFilename;
+        File songFile = sg.getFile();
+        if (songFile == null)
+        {
+            midiFilename = sg.getName() + ".mid";
+            FileDirectoryManager fdm = FileDirectoryManager.getInstance();
+            dir = fdm.getLastSongDirectory();       // Can be null         
+        } else
+        {
+            midiFilename = org.jjazz.util.Utilities.replaceExtension(songFile.getName(), ".mid");
+            dir = songFile.getParentFile();
+        }
+        f = new File(dir, midiFilename);
+        return f;
+    }
+
+}

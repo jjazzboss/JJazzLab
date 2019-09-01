@@ -1,0 +1,162 @@
+/*
+ *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ * 
+ *  Copyright @2019 Jerome Lelasseux. All rights reserved.
+ *
+ *  This file is part of the JJazzLabX software.
+ *   
+ *  JJazzLabX is free software: you can redistribute it and/or modify
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
+ *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  or (at your option) any later version.
+ *
+ *  JJazzLabX is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
+ * 
+ *  Contributor(s): 
+ */
+package org.jjazz.instrumentchooser;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.jjazz.defaultinstruments.FavoriteInstruments;
+import static org.jjazz.instrumentchooser.Bundle.CTL_Favorites;
+import org.jjazz.midi.AbstractInstrumentBank;
+import org.jjazz.midi.Instrument;
+import org.jjazz.midi.MidiSynth;
+import org.openide.util.NbBundle;
+
+/**
+ * A special synth that just mirrors the favorite instruments in a bank.
+ * <p>
+ * Fire a stateChanged event upon added/removed favorite instrument.
+ */
+@NbBundle.Messages(
+        {
+            "CTL_Favorites=Favorites"
+        })
+public class FavoriteMidiSynth extends MidiSynth implements PropertyChangeListener
+{
+
+    private static FavoriteMidiSynth INSTANCE;
+    private FavoriteBank bank;
+    private ArrayList<ChangeListener> listeners = new ArrayList<>();
+
+    public static FavoriteMidiSynth getInstance()
+    {
+        synchronized (FavoriteMidiSynth.class)
+        {
+            if (INSTANCE == null)
+            {
+                INSTANCE = new FavoriteMidiSynth();
+            }
+        }
+        return INSTANCE;
+    }
+
+    private FavoriteMidiSynth()
+    {
+        super(CTL_Favorites(), "JJazz");
+        bank = new FavoriteBank(this);
+        addBank(bank);
+        FavoriteInstruments fi = FavoriteInstruments.getInstance();
+        for (Instrument ins : fi.getInstruments())
+        {
+            bank.addInstrument(ins);
+        }
+        fi.addPropertyListener(this);
+    }
+
+    public void addChangeListener(ChangeListener l)
+    {
+        if (l == null)
+        {
+            throw new NullPointerException("l");
+        }
+        listeners.add(l);
+    }
+
+    public void removeChangeListener(ChangeListener l)
+    {
+        listeners.remove(l);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        FavoriteInstruments fi = FavoriteInstruments.getInstance();
+        if (evt.getSource() == fi)
+        {
+            if (evt.getPropertyName().equals(FavoriteInstruments.PROP_FAVORITE_INSTRUMENT))
+            {
+                if (evt.getNewValue() != null && evt.getOldValue() == null)
+                {
+                    // Favorite added
+                    bank.addInstrument((Instrument) evt.getNewValue());
+                    fireChanged();
+                } else if (evt.getNewValue() == null && evt.getOldValue() != null)
+                {
+                    // Favorite removed
+                    bank.removeInstrument((Instrument) evt.getOldValue());
+                    fireChanged();
+                }
+            }
+        }
+    }
+
+    private void fireChanged()
+    {
+        ChangeEvent e = new ChangeEvent(this);
+        for (ChangeListener l : listeners)
+        {
+            l.stateChanged(e);
+        }
+    }
+
+    private static class FavoriteBank extends AbstractInstrumentBank<Instrument>
+    {
+
+        public FavoriteBank(MidiSynth synth)
+        {
+            super("Favorites", null, 0, 0);
+        }
+
+        /**
+         * Overridden to not set the Bank !
+         *
+         * @param ins
+         */
+        @Override
+        public void addInstrument(Instrument instrument)
+        {
+            if (instrument == null)
+            {
+                throw new IllegalArgumentException("instrument=" + instrument);
+            }
+            if (!instruments.contains(instrument))
+            {
+                instruments.add(instrument);
+            }
+        }
+
+        /**
+         * Make the protected method accessible from enclosing class.
+         *
+         * @param ins
+         */
+        @Override
+        public void removeInstrument(Instrument ins)
+        {
+            super.removeInstrument(ins);
+        }
+
+    }
+}

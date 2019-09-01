@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.jjazz.leadsheet.chordleadsheet
+OpenIDE-Module-Localizing-Bundle: org/jjazz/leadsheet/chordleadsheet/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+
