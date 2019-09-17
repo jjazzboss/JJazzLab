@@ -248,7 +248,6 @@ public class Instrument implements Serializable
      * exists on the system which performs loadFromString().
      *
      * @return A string "MidiSynthName, BankName, PatchName"
-     * @see loadFromString()
      */
     public String saveAsString()
     {

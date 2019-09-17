@@ -137,7 +137,7 @@ public class MidiConst
     /**
      * A String array (size=82) with percussion name for each note pitch.
      * <p>
-     * Names start at pitch 35 until 81, so for index < 35 array contains null values. E.g. getGMPercussionMap()[35] = "Acoustic
+     * Names start at pitch 35 until 81, so for index &lt; 35 array contains null values. E.g. getGMPercussionMap()[35] = "Acoustic
      * Bass Drum" @return
      */
     static public String[] getGMPercussionMap()

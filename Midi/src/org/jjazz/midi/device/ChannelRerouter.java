@@ -40,7 +40,6 @@ public class ChannelRerouter extends JJazzMidiDevice
     /**
      * By default does not reroute any message.
      *
-     * @param s String
      */
     public ChannelRerouter()
     {

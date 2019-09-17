@@ -50,7 +50,6 @@ public interface InstrumentBank<T extends Instrument>
      * Set the MidiSynth this bank belongs to. Can be called only once.
      *
      * @param synth A non-null value.
-     * @return
      */
     void setMidiSynth(MidiSynth synth);
 
@@ -85,14 +84,13 @@ public interface InstrumentBank<T extends Instrument>
      *
      * @param index
      * @return
-     * @exception If index out of bounds
      */
     T getInstrument(int index);
 
     /**
      * Get the instrument which has the specified Program Change.
      *
-     * @param Program Change value [0-127]
+     * @param progChange Change value [0-127]
      * @return Null if not found.
      */
     T getInstrumentFromPC(int progChange);
@@ -112,8 +110,8 @@ public interface InstrumentBank<T extends Instrument>
     String getName();
 
     /**
-     * The next instrument in the database after the specified instrument. Return the 1st element of the database if ins is the
-     * last element.
+     * The next instrument in the database after the specified instrument. Return the 1st element of the database if ins is the last
+     * element.
      *
      * @param ins
      * @return
@@ -121,8 +119,8 @@ public interface InstrumentBank<T extends Instrument>
     T getNextInstrument(Instrument ins);
 
     /**
-     * The previous instrument in the database after the specified instrument. Return the 1st element of the database if ins is
-     * the last element.
+     * The previous instrument in the database after the specified instrument. Return the 1st element of the database if ins is the last
+     * element.
      *
      * @param ins
      * @return

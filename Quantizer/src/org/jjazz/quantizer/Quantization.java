@@ -35,7 +35,7 @@ public enum Quantization
 
     /**
      *
-     * @param value1
+     * @param value
      * @return If true, using Quantization.valueOf(value) will not throw an exception.
      */
     static public boolean isValidStringValue(String value)

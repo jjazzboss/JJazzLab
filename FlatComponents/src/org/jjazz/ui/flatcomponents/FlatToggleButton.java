@@ -104,8 +104,8 @@ public class FlatToggleButton extends FlatButton
      * BooleanStateAction.PROP_BOOLEAN_STATE action's property changes.
      * <p>
      * Reuse the following properties:<br>
-     * - "LARGE_ICON_KEY" property => setSelectedIcon() <br>
-     * - BooleanStateAction.PROP_BOOLEAN_STATE => setSelected()
+     * - "LARGE_ICON_KEY" property =&gt; setSelectedIcon() <br>
+     * - BooleanStateAction.PROP_BOOLEAN_STATE =&gt; setSelected()
      *
      * @param bsa A non-null BooleanStateAction.
      */

@@ -36,7 +36,6 @@ import org.openide.util.Lookup;
  * The framework will call the rhythm's loadResources() before accessing the MidiMusicGenerator object(s). This allow to save
  * memory usage when rhythm object is only used in catalogs... (and not in an actual song to be played).
  *
- * @see MusicGenerator
  */
 public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
 {
@@ -59,7 +58,7 @@ public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
     /**
      * Ask the rhythm to release any memory-heavy resources.
      *
-     * @ee loadResources()
+     * @see loadResources()
      */
     public void releaseResources();
 

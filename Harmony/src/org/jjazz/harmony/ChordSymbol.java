@@ -290,7 +290,7 @@ public class ChordSymbol implements Serializable, Cloneable
     /**
      * Get the equivalent of relPitch but for the specified destination chord symbol.
      * <p>
-     * Ex: this=Dbm7, destCs=F, relPitch=4=E => return 8=Ab
+     * Ex: this=Dbm7, destCs=F, relPitch=4=E =&gt; return 8=Ab
      *
      * @param relPitch A relative pitch
      * @param destCs

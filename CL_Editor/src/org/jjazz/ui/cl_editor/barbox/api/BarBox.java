@@ -130,7 +130,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     /**
      * Set the model for this BarBox.
      *
-     * @param modelBarIndex If &lt 0, it means this BarBox does not represent a valid bar for model.
+     * @param modelBarIndex If &lt; 0, it means this BarBox does not represent a valid bar for model.
      * @param model
      */
     public final void setModel(int modelBarIndex, ChordLeadSheet model)
@@ -154,7 +154,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     /**
      * Add an item in the BarBox. The operation requests each BarRenderer to create ItemRenderers if appropriate.
      *
-     * @return List<ItemRenderer> The created ItemRenderers.
+     * @return List The created ItemRenderers.
      */
     public List<ItemRenderer> addItem(ChordLeadSheetItem<?> item)
     {
@@ -176,7 +176,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     /**
      * Remove an item from the BarBox. The operation requests each BarRenderer to remove the ItemRenderer if appropriate.
      *
-     * @return List<ItemRenderer> The removed ItemRenderers. Can be an empty list.
+     * @return List The removed ItemRenderers. Can be an empty list.
      */
     public List<ItemRenderer> removeItem(ChordLeadSheetItem<?> item)
     {
@@ -361,9 +361,9 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     /**
      * Set the barIndex within the model. Forward to BarRenderers.
      *
-     * @param bar If &lt 0, it means information from model is not available (for example because the barIndex is past the end of
+     * @param bar If &lt; 0, it means information from model is not available (for example because the barIndex is past the end of
      * the model.)
-     * @throw IllegalArgumentException If bar is &gt or equals to model's size.
+     * @throws IllegalArgumentException If bar is &gt; or equals to model's size.
      */
     public void setModelBarIndex(int bar)
     {
@@ -431,7 +431,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     /**
      * Request BarRenderers to update if the section they belong to has changed.
      *
-     * @param item
+     * @param section
      */
     public void setSection(CLI_Section section)
     {

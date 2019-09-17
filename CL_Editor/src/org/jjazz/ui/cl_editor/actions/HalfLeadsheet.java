@@ -42,6 +42,8 @@ import org.openide.util.NbBundle.Messages;
 
 /**
  * Half the distance by 2 between chords, so chordleadsheet size is also divided by 2.
+ *
+ * @see DoubleLeadsheet
  */
 @ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.halfleadsheet")
 @ActionRegistration(displayName = "#CTL_HalfLeadsheet", lazy = true)

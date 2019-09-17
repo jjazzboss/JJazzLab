@@ -423,16 +423,16 @@ final public class ChordType
      * The list of "most important Degrees" indexes for this chord type, in the descending order.
      * <p>
      * If some notes need to be omitted, it's better to remove the less important ones first. <br>
-     * Ex: C7=> [THIRD_OR_FOURTH, SIXTH_OR_SEVENTH, FIFTH, ROOT] (ROOT is the less important).<br>
-     * Ex: C6=> [THIRD_OR_FOURTH, SIXTH_OR_SEVENTH, ROOT, FIFTH] (ROOT-SIXTH interval is important).<br>
-     * Ex: C7b5=> [THIRD_OR_FOURTH, FIFTH, SEVENTH, ROOT] <br>
-     * Ex: C9M=> [THIRD_OR_FOURTH, SEVENTH, EXTENSION1, FIFTH, ROOT] <br>
-     * Ex: C9M#11=> [THIRD_OR_FOURTH, SEVENTH, EXTENSION1, FIFTH, ROOT, EXTENSION2]<br>
-     * Ex: C13#11(9)=> [THIRD_OR_FOURTH, SEVENTH, EXTENSION1, FIFTH, ROOT, EXTENSION2, EXTENSION3]<br>
+     * Ex: C7=&gt; [THIRD_OR_FOURTH, SIXTH_OR_SEVENTH, FIFTH, ROOT] (ROOT is the less important).<br>
+     * Ex: C6=&gt; [THIRD_OR_FOURTH, SIXTH_OR_SEVENTH, ROOT, FIFTH] (ROOT-SIXTH interval is important).<br>
+     * Ex: C7b5=&gt; [THIRD_OR_FOURTH, FIFTH, SEVENTH, ROOT] <br>
+     * Ex: C9M=&gt; [THIRD_OR_FOURTH, SEVENTH, EXTENSION1, FIFTH, ROOT] <br>
+     * Ex: C9M#11=&gt; [THIRD_OR_FOURTH, SEVENTH, EXTENSION1, FIFTH, ROOT, EXTENSION2]<br>
+     * Ex: C13#11(9)=&gt; [THIRD_OR_FOURTH, SEVENTH, EXTENSION1, FIFTH, ROOT, EXTENSION2, EXTENSION3]<br>
      *
      * @return
      *
-     * should be getMostImportantDegreeIndexes(int nbDegrees) => si seulement 3 notes choix différent de si 4 degrees
+     * should be getMostImportantDegreeIndexes(int nbDegrees) =&gt; si seulement 3 notes choix différent de si 4 degrees
      */
     public List<DegreeIndex> getMostImportantDegreeIndexes()
     {
@@ -483,10 +483,10 @@ final public class ChordType
     /**
      * Try to fit harmonically degree d to this chord type.
      * <p>
-     * ex: d=THIRD, this=m7 => return THIRD_FLAT <br>
-     * ex: d=ELEVENTH_SHARP, this=m7b5 => return FIFTH_FLAT <br>
-     * ex: d=ELEVENTH_SHARP, this=7M => return null<br>
-     * ex: d=SEVENTH, this 6 => return SIXTH_OR_THIRTEENTH
+     * ex: d=THIRD, this=m7 =&gt; return THIRD_FLAT <br>
+     * ex: d=ELEVENTH_SHARP, this=m7b5 =&gt; return FIFTH_FLAT <br>
+     * ex: d=ELEVENTH_SHARP, this=7M =&gt; return null<br>
+     * ex: d=SEVENTH, this 6 =&gt; return SIXTH_OR_THIRTEENTH
      *
      * @param d
      * @return A Degree representing the harmonic conversion of d for this chord type. Can be null if no match.
@@ -521,12 +521,12 @@ final public class ChordType
      * <p>
      * 1/ Try natural degree match using fitDegree().<br>
      * 2/ If no natural match is possible, fitDegree() on provided optScale (if non null).<br>
-     * ex: d=NINTH_SHARP, scale=DORIAN => return NINTH<br>
-     * ex: d=NINTH, scale=LOCRIAN => return NINTH_FLAT<p>
+     * ex: d=NINTH_SHARP, scale=DORIAN =&gt; return NINTH<br>
+     * ex: d=NINTH, scale=LOCRIAN =&gt; return NINTH_FLAT<p>
      * 3/ If scale did not help :<br>
      * Make some assumptions: use the "most common" scale usually associated to a chord type, or just try "best guess"<br>
-     * ex: d=NINTH_FLAT, this=m7, assume scale=DORIAN => return NINTH<br>
-     * ex: d=THIRTEENTH_FLAT, this=m7, assume scale=DORIAN => return SIXTH_OR_THIRTEENTH<br>
+     * ex: d=NINTH_FLAT, this=m7, assume scale=DORIAN =&gt; return NINTH<br>
+     * ex: d=THIRTEENTH_FLAT, this=m7, assume scale=DORIAN =&gt; return SIXTH_OR_THIRTEENTH<br>
      *
      * @param d
      * @param optScale Optional scale instance. Can be null.

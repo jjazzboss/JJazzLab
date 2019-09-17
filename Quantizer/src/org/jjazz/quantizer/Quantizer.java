@@ -84,7 +84,6 @@ public class Quantizer
      * @param ts The TimeSignature for the original position.
      * @param maxBarIndex The quantized position can not exceed this maximum bar index.
      * @return
-     * @setQuantizationValue()
      */
     public Position quantize(Position pos, TimeSignature ts, int maxBarIndex)
     {

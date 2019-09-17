@@ -46,7 +46,7 @@ public interface ChordLeadSheetItem<T> extends Item<T>, Transferable
 
     /**
      * Get a copy of this item at a specified position.
-     * <p/>
+     * <p>
      * @param newCls If null, the copy will have the same container that this object.
      * @param newPos If null, the copy will have the same position that this object.
      * @return
@@ -55,7 +55,7 @@ public interface ChordLeadSheetItem<T> extends Item<T>, Transferable
 
     /**
      * Return true if there can be only one single item perbar, like a time signature.
-     * <p/>
+     * <p>
      * @return
      */
     public boolean isBarSingleItem();

@@ -122,7 +122,7 @@ public final class TempoRange implements Cloneable, Serializable
 
     /**
      * @param o
-     * @return True if both TempoRanges share same min & max values (name is not used).
+     * @return True if both TempoRanges share same min and max values (name is not used).
      */
     @Override
     public boolean equals(Object o)
@@ -138,7 +138,7 @@ public final class TempoRange implements Cloneable, Serializable
     }
 
     /**
-     * Use only min & max values, name is not used.
+     * Use only min and max values, name is not used.
      *
      * @return
      */
@@ -158,10 +158,11 @@ public final class TempoRange implements Cloneable, Serializable
     }
 
     /**
-     * Compute a percentage that say how similar are this object's tempo bounds with tr's tempo bounds. Return value = (tempo
-     * range of the intersection of both objects)/(tempo range of the union of both objects) Examples: this = [60,80], tr=[90,100]
-     * => return value = 0 this = [60,80], tr=[70,90] => return value = 10/30 = 0.33 this = [60,80], tr=[58,85] => return value =
-     * 20/27 = 0.74 this = [60,80], tr=[60,80] => return value = 20/20 = 1
+     * Compute a percentage that say how similar are this object's tempo bounds with tr's tempo bounds.
+     * <p>
+     * Return value = (tempo range of the intersection of both objects)/(tempo range of the union of both objects) <br>
+     * Examples: this = [60,80], tr=[90,100] =&gt; return value = 0 this = [60,80], tr=[70,90] =&gt; return value = 10/30 = 0.33 this =
+     * [60,80], tr=[58,85] =&gt; return value = 20/27 = 0.74 this = [60,80], tr=[60,80] =&gt; return value = 20/20 = 1
      *
      * @param tr TempoRange
      * @return A value between 0 and 1.

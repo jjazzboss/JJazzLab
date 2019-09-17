@@ -51,7 +51,7 @@ public interface ChordLeadSheet
      *
      * @param <T>
      * @param item The ChordLeadSheetItem to add.
-     * @throw IllegalArgumentException If item's position out of leadsheet bounds or item is a section.
+     * @throws IllegalArgumentException If item's position out of leadsheet bounds or item is a section.
      */
     public <T> void addItem(ChordLeadSheetItem<T> item);
 
@@ -60,7 +60,7 @@ public interface ChordLeadSheet
      *
      * @param <T>
      * @param item The item to be removed.
-     * @throw IllegalArgumentException If no such item or item is a section.
+     * @throws IllegalArgumentException If no such item or item is a section.
      */
     public <T> void removeItem(ChordLeadSheetItem<T> item);
 
@@ -71,8 +71,8 @@ public interface ChordLeadSheet
      *
      * @param section
      * @throws org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException
-     * @throw IllegalArgumentException If section already exists at specified position or invalid section.
-     * @throw UnsupportedEditException If a ChordLeadSheet change listener veto this edit.
+     * @throws IllegalArgumentException If section already exists at specified position or invalid section.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener veto this edit.
      */
     public void addSection(CLI_Section section) throws UnsupportedEditException;
 
@@ -91,7 +91,8 @@ public interface ChordLeadSheet
      *
      * @param section The section to be changed.
      * @param name
-     * @throw IllegalArgumentException If name already exist, is a reserved name, or section does not belong to this leadsheet.
+     * @throws UnsupportedEditException
+     * @throws IllegalArgumentException If name already exist, is a reserved name, or section does not belong to this leadsheet.
      */
     public void setSectionName(CLI_Section section, String name) throws UnsupportedEditException;
 
@@ -102,9 +103,8 @@ public interface ChordLeadSheet
      *
      * @param section The section to be changed.
      * @param ts
-     * @throws org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException
-     * @throw IllegalArgumentException If section does not belong to this leadsheet.
-     * @throw UnsupportedEditException If a ChordLeadSheet change listener veto this edit.
+     * @throws IllegalArgumentException If section does not belong to this leadsheet.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener veto this edit.
      */
     public void setSectionTimeSignature(CLI_Section section, TimeSignature ts) throws UnsupportedEditException;
 
@@ -116,7 +116,7 @@ public interface ChordLeadSheet
      *
      * @param section The section to be moved
      * @param newBarIndex The bar index section will be moved to
-     * @throw IllegalArgumentException If new position is not valid.
+     * @throws IllegalArgumentException If new position is not valid.
      */
     public void moveSection(CLI_Section section, int newBarIndex);
 
@@ -128,7 +128,7 @@ public interface ChordLeadSheet
      * @param <T>
      * @param item The item to be moved
      * @param pos The new position.
-     * @throw IllegalArgumentException If new position is not valid.
+     * @throws IllegalArgumentException If new position is not valid.
      */
     public <T> void moveItem(ChordLeadSheetItem<T> item, Position pos);
 
@@ -150,7 +150,7 @@ public interface ChordLeadSheet
      *
      * @param barIndex The bar index from which to insert the new bars.
      * @param nbBars The number of bars to insert.
-     * @throw IllegalArgumentException If barIndex < 0 or barIndex > size()
+     * @throws IllegalArgumentException If barIndex &lt; 0 or barIndex &gt; size()
      */
     public void insertBars(int barIndex, int nbBars);
 
@@ -246,7 +246,7 @@ public interface ChordLeadSheet
     /**
      * Set the size of the ChordLeadSheet.
      *
-     * @param size The numbers of bars, must be >= 1 and < MAX_SIZE.
+     * @param size The numbers of bars, must be &gt;= 1 and &lt; MAX_SIZE.
      */
     public void setSize(int size);
 

@@ -89,7 +89,6 @@ public interface SongStructure
          * @param sgs
          * @param tick
          * @return Null if tick position is not valid for the songStructure
-         * @see MidiConst.PPQ_RESOLUTION
          */
         static public Position getPosition(SongStructure sgs, long tick)
         {
@@ -154,7 +153,6 @@ public interface SongStructure
 
     /**
      * @return The total size in "natural" beats.
-     * @see TimeSignature.getNbNaturalBeats()
      */
     public int getSizeInBeats();
 

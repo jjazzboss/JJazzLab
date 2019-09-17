@@ -41,7 +41,7 @@ public interface FontColorUserSettingsProvider
     List<FCSetting> getFCSettings();
 
     /**
-     * One Font & Color setting.
+     * One Font and Color setting.
      */
     public interface FCSetting
     {

@@ -1,13 +1,3 @@
-@OptionsPanelController.ContainerRegistration(id = "Instruments",
-        categoryName = "#OptionsCategory_Name_Instruments",
-        iconBase = "org/jjazz/instrumentsoptions/resources/keyboard-icon32x32.gif",
-        keywords = "#OptionsCategory_Keywords_Instruments",
-        keywordsCategory = "Instruments", position = 200)
-@NbBundle.Messages(value =
-{
-    "OptionsCategory_Name_Instruments=Instruments",
-    "OptionsCategory_Keywords_Instruments=instrument synth"
-})
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
@@ -26,11 +16,24 @@
  *  GNU Lesser General Public License for more details.
  * 
  *  You should have received a copy of the GNU Lesser General Public License
- *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
+ *  along with JJazzLabX.  If not, see https://www.gnu.org/licenses/
  * 
  *  Contributor(s): 
  */
+
+@OptionsPanelController.ContainerRegistration(id = "Instruments",
+        categoryName = "#OptionsCategory_Name_Instruments",
+        iconBase = "org/jjazz/instrumentsoptions/resources/keyboard-icon32x32.gif",
+        keywords = "#OptionsCategory_Keywords_Instruments",
+        keywordsCategory = "Instruments", position = 200)
+@NbBundle.Messages(value =
+{
+    "OptionsCategory_Name_Instruments=Instruments",
+    "OptionsCategory_Keywords_Instruments=instrument synth"
+})
+
 package org.jjazz.instrumentsoptions;
 
 import org.netbeans.spi.options.OptionsPanelController;
 import org.openide.util.NbBundle;
+

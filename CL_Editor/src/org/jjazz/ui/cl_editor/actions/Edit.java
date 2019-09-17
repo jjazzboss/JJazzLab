@@ -116,7 +116,6 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
 
     /**
      * @param e If action triggered by a key press, e.getActionCommand() provide the key pressed.
-     * @param selection
      */
     @Override
     public void actionPerformed(ActionEvent e)

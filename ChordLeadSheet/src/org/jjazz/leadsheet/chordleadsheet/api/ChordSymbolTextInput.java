@@ -56,10 +56,10 @@ public class ChordSymbolTextInput
      * Return a new CLI_ChordSymbol built from specified string.
      * <p>
      * Recognized strings:<br>
-     * "C7" => C7 at pos=defaultPos<br>
-     * "C7[2]" => C7 at pos=defaultPos.getBar()/beat 2<br>
-     * "C7[1:2]" => C7 at pos=bar 1/beat 2
-     * <p/>
+     * "C7" =&gt; C7 at pos=defaultPos<br>
+     * "C7[2]" =&gt; C7 at pos=defaultPos.getBar()/beat 2<br>
+     * "C7[1:2]" =&gt; C7 at pos=bar 1/beat 2
+     * <p>
      * @param str As produced by ChordSymboInput.toString(CLI_ChordSymbol).
      * @param defaultPos Used when position data is missing in str.
      * @param cls The container for this CLI_ChordSymbol.
@@ -282,7 +282,6 @@ public class ChordSymbolTextInput
      *
      * @return
      *
-     * @see toCLI_ChordSymbols()
      */
     public static String toBarString(TimeSignature ts, List<? extends CLI_ChordSymbol> items)
     {
@@ -362,7 +361,7 @@ public class ChordSymbolTextInput
 
     /**
      * Return a CLI_ChordSymbol as a string. Returned String can be used as an input for toCLI_ChordSymbol().
-     * <p/>
+     * <p>
      * @param cli
      * @param pDisplay Define how position is represented.
      * @return

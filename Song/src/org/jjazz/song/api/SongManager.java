@@ -83,7 +83,6 @@ public class SongManager implements PropertyChangeListener
      *
      *
      * @return A list of the songs registered by this object.
-     * @see registerSong()
      */
     public List<Song> getRegisteredSongs()
     {
@@ -129,7 +128,6 @@ public class SongManager implements PropertyChangeListener
      *
      * @param f
      * @return Null if problem.
-     * @See saveToFile()
      */
     public Song loadFromFile(File f)
     {

@@ -32,8 +32,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.song.api.Song;
 import static org.jjazz.ui.cl_editor.actions.Bundle.CTL_DoubleLeadsheet;
-import org.jjazz.ui.cl_editor.api.CL_Editor;
-import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -43,8 +41,8 @@ import org.openide.util.NbBundle.Messages;
 
 /**
  * Double the distance by 2 between chords, so chordleadsheet size is also multiplied by 2.
- *
- * @see CompressLeadsheet
+ * <p>
+ * @see HalfLeadsheet
  */
 @ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.doubleleadsheet")
 @ActionRegistration(displayName = "#CTL_DoubleLeadsheet", lazy = true)

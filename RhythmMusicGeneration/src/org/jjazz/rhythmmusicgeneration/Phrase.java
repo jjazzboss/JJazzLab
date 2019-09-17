@@ -50,8 +50,6 @@ public class Phrase implements Cloneable
 
     /**
      * Class used as return value type by getCrossingNotes().
-     *
-     * @see getCrossingNotes()
      */
     public class NoteAndIndex
     {
@@ -475,7 +473,7 @@ public class Phrase implements Cloneable
      * Replace all events by the same events but with position shifted.
      *
      * @param shiftInBeats The value added to each event's position.
-     * @throw IllegalArgumentException If an event's position become negative.
+     * @throws IllegalArgumentException If an event's position become negative.
      */
     public void shiftEvents(float shiftInBeats)
     {

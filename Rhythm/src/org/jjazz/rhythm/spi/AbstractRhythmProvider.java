@@ -91,7 +91,6 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
      *
      * @param prevList A list of non-builtin rhythms
      * @return
-     * @see readFast()
      */
     @Override
     public List<Rhythm> getFileRhythms(List<Rhythm> prevList)

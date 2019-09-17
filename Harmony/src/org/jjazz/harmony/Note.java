@@ -119,7 +119,7 @@ public class Note implements Comparable<Note>, Cloneable
      *
      * @param p
      * @param bd
-     * @param alt
+     * @param v
      */
     public Note(int p, float bd, int v)
     {
@@ -130,7 +130,7 @@ public class Note implements Comparable<Note>, Cloneable
      * Create a Note with a pitch, a duration in beat, a velocity and an alteration if any.
      *
      * @param p
-     * @param bd Must be &gt 0
+     * @param bd Must be &gt; 0
      * @param v velocity
      * @param alt
      */
@@ -167,7 +167,6 @@ public class Note implements Comparable<Note>, Cloneable
      * @param s A string
      *
      * @throws ParseException If syntax error in string specification.
-     * @See toAbsoluteNoteString()
      *
      */
     public Note(String s) throws ParseException
@@ -397,7 +396,7 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * Change the octave of this note so that pitch is within the pitch limits (included).
      *
-     * @param lowPitch Must be &lt (highPitch-12)
+     * @param lowPitch Must be &lt; (highPitch-12)
      * @param highPitch
      * @return The new note with correct ed pitch.
      */
@@ -423,8 +422,8 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * Get a new transposed note.
      * <p>
-     * If the new note is beyond pitchLimit, the note's octave is changed to remain below (pitchShift &gt 0) or above (pitchSshift
-     * &lt 0) pitchLimit.
+     * If the new note is beyond pitchLimit, the note's octave is changed to remain below (pitchShift &gt; 0) or above (pitchSshift
+     * &lt; 0) pitchLimit.
      * <p>
      * @param pitchShift A negative or positive value i semi-tons.
      * @param pitchLimit Authorized values are [13, 119]
@@ -477,12 +476,12 @@ public class Note implements Comparable<Note>, Cloneable
      * <p>
      * If this note's relative pitch is less than relativePitch, return this note's absolute pitch-12.<br>
      * Ex: this=G3. If relativePitch=F return value=F3, if relativePitch=A return value=A2<p>
-     * If resulting pitch &lt 0, return resulting pitch+12
+     * If resulting pitch &lt; 0, return resulting pitch+12
      *
      * @param relPitch
      * @param acceptEquals
      * @return An absolute note pitch
-     * @throw IllegalArgumentException If there is no lower pitch possible.
+     * @throws IllegalArgumentException If there is no lower pitch possible.
      */
     public int getLowerPitch(int relPitch, boolean acceptEquals)
     {
@@ -507,12 +506,12 @@ public class Note implements Comparable<Note>, Cloneable
      * <p>
      * Ex: this=G3. If relativePitch=F return value=F4, if relativePitch=A return value=A3
      * <p>
-     * If resulting pitch &gt 127, return resulting pitch-12.
+     * If resulting pitch &gt;127, return resulting pitch-12.
      *
      * @param relPitch
      * @param acceptEquals
      * @return
-     * @throw IllegalArgumentException If there is no lower pitch possible.
+     * @throws IllegalArgumentException If there is no lower pitch possible.
      */
     public int getUpperPitch(int relPitch, boolean acceptEquals)
     {
@@ -783,8 +782,8 @@ public class Note implements Comparable<Note>, Cloneable
      * until we're within the limits.
      *
      * @param pitch
-     * @param lowPitch Constraint: highPitch-lowPitch must be > 11.
-     * @param highPitch Constraint: highPitch-lowPitch must be > 11.
+     * @param lowPitch Constraint: highPitch-lowPitch must be &gt; 11.
+     * @param highPitch Constraint: highPitch-lowPitch must be &gt; 11.
      * @return A pitch between lowPitch and highPitch
      */
     static public int limitPitch(int pitch, int lowPitch, int highPitch)

@@ -56,17 +56,15 @@ public interface RhythmParameter<E>
     /**
      * @param value
      * @return A percentage between 0 and 1 representing value in the range of the possible values.
-     * @see calculateValue()
      */
     double calculatePercentage(E value);
 
     /**
      * Calculate the RhythmParameter value corresponding to a percentage of the value range. For example if RhythmParameter is an
-     * integer between 0 and 4: percentage=0 -> value=0 percentage=0.5 -> value=2 percentage=1 -> value=4.
+     * integer between 0 and 4: percentage=0 -&gt; value=0 percentage=0.5 -&gt; value=2 percentage=1 -&gt; value=4.
      *
      * @param percentage A float between 0 and 1.
      * @return A RhythmParameter value.
-     * @see calculatePercentage()
      */
     E calculateValue(double percentage);
 
@@ -83,7 +81,6 @@ public interface RhythmParameter<E>
      *
      * @param s A string produced by valueToString().
      * @return Can be null if conversion failed.
-     * @see valueToString()
      */
     E stringToValue(String s);
 

@@ -77,7 +77,7 @@ public class SgsChordSequence extends ChordSequence
      * @param sgs
      * @param absoluteStartBar Include chords from this bar.
      * @param absoluteEndBar Include chords until this bar (included).
-     * @IllegalArgumentException If no chord found to be the 1st chord of the ChordSequence.
+     * @throws IllegalArgumentException If no chord found to be the 1st chord of the ChordSequence.
      */
     public SgsChordSequence(SongStructure sgs, int absoluteStartBar, int absoluteEndBar)
     {

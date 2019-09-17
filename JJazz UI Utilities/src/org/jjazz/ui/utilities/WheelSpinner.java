@@ -50,7 +50,7 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
     private static final Logger LOGGER = Logger.getLogger(WheelSpinner.class.getSimpleName());
 
     /**
-     * @todo Replace the hack...
+     * Todo: Need to replace the hack...
      */
     public WheelSpinner()
     {

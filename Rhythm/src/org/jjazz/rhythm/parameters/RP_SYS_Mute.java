@@ -84,7 +84,6 @@ public class RP_SYS_Mute extends RP_StringSet
      * @param r
      * @param value
      * @return
-     * @see createMuteRp()
      */
     static public List<RhythmVoice> getMutedRhythmVoices(Rhythm r, Set<String> value)
     {

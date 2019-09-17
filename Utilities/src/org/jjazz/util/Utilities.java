@@ -87,7 +87,7 @@ public class Utilities
      * Replace the path extension (the trailing ".something") of filename by ext. If filename has no path extension just add ext.
      *
      * @param filename
-     * @param ext A string without spaces in it. If ext does not start with "." it will be added.
+     * @param ext      A string without spaces in it. If ext does not start with "." it will be added.
      * @return The new filename with extension replaced.
      */
     public static String replaceExtension(String filename, String ext)
@@ -113,8 +113,10 @@ public class Utilities
      * <p>
      *
      * @param <T>
-     * @param smallArray Size must be <= 8, otherwise use too much memory (result size grow like N!). @param size @param n @param
-     * result The li s t o f all smallArray permutations.
+     * @param smallArray Size must be &lt;= 8, otherwise use too much memory (result size grow like N!).
+     * @param size
+     * @param n
+     * @param result     The li s t o f all smallArray permutations.
      */
     public static <T> void heapPermutation(T smallArray[], int size, int n, List<T[]> result)
     {
@@ -241,7 +243,7 @@ public class Utilities
     /**
      * Get the index of an object reference in a List. The search uses direct equality '==', NOT the 'equals' function.
      *
-     * @param o The Object to search.
+     * @param o     The Object to search.
      * @param array The List of Objects to be searched.
      * @return The index of object o, -1 if not found.
      */
@@ -261,7 +263,7 @@ public class Utilities
      * Return the index of the first object whose toString() function match str (ignoring case).
      *
      * @param list A list of object.
-     * @param str The string to search (ignoring case)
+     * @param str  The string to search (ignoring case)
      * @return The index of matching string, -1 if not found.
      */
     public static int indexOfStringIgnoreCase(List<? extends Object> list, String str)
@@ -284,9 +286,9 @@ public class Utilities
      * Overwrite existing files.
      *
      * @param <T>
-     * @param myClass The class used to find the zipResource.
+     * @param myClass     The class used to find the zipResource.
      * @param zipResource Must end with ".zip".
-     * @param destDir The path of the destination directory, which must exist.
+     * @param destDir     The path of the destination directory, which must exist.
      * @return The list of created files in the destination directory.
      */
     public static <T> List<File> extractZipResource(Class<T> myClass, String zipResource, Path destDir)
@@ -398,16 +400,15 @@ public class Utilities
     /**
      * Gets the base location of the given class. Manage all OS variations and possible problems in characters...
      * <p>
-     * If the class is directly on the file system (e.g., "/path/to/my/package/MyClass.class") then it will return the base
-     * directory (e.g., "file:/path/to").
+     * If the class is directly on the file system (e.g., "/path/to/my/package/MyClass.class") then it will return the base directory (e.g.,
+     * "file:/path/to").
      * </p>
      * <p>
-     * If the class is within a JAR file (e.g., "/path/to/my-jar.jar!/my/package/MyClass.class") then it will return the path to
-     * the JAR (e.g., "file:/path/to/my-jar.jar").
+     * If the class is within a JAR file (e.g., "/path/to/my-jar.jar!/my/package/MyClass.class") then it will return the path to the JAR
+     * (e.g., "file:/path/to/my-jar.jar").
      * </p>
      *
      * @param c The class whose location is desired.
-     * @see FileUtils#urlToFile(URL) to convert the result to a {@link File}.
      */
     public static URL getLocation(final Class<?> c)
     {
@@ -470,8 +471,8 @@ public class Utilities
     /**
      * Converts the given {@link URL} to its corresponding {@link File}.
      * <p>
-     * This method is similar to calling {@code new File(url.toURI())} except that it also handles "jar:file:" U Sgs, returning
-     * the path to the JAR file.
+     * This method is similar to calling {@code new File(url.toURI())} except that it also handles "jar:file:" U Sgs, returning the path to
+     * the JAR file.
      * </p>
      *
      * @param url The URL to convert.

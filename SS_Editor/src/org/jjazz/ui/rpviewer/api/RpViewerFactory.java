@@ -55,7 +55,7 @@ public abstract class RpViewerFactory
      * Automatically create a RpViewer adapted to the RhyhtmParameter type.
      *
      * @param spt
-     * @param model
+     * @param rp
      * @return
      */
     abstract public RpViewer createRpViewer(SongPart spt, RhythmParameter<?> rp);

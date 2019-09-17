@@ -202,7 +202,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     /**
      * Get the last chord (with absolute position) whose bar position is before absoluteBarIndex
      *
-     * @param absoluteBarIndex Must be >= 1.
+     * @param absoluteBarIndex Must be &gt;= 1.
      * @return -1 if no chord found before absoluteBarIndex.
      */
     public int indexOfLastBeforeBar(int absoluteBarIndex)

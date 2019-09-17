@@ -29,8 +29,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequence;
-import javax.swing.SwingUtilities;
-import org.jjazz.*;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.MidiMix;

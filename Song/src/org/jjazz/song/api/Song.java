@@ -73,7 +73,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      */
     public static final String PROP_CLOSED = "PROP_CLOSED";
     /**
-     * This property changes each time the song is modified (false->true) or saved (true->false).
+     * This property changes each time the song is modified (false&gt;true) or saved (true&gt;false).
      */
     public static final String PROP_MODIFIED_OR_SAVED = "PROP_MODIFIED_OR_SAVED";
     private SongStructure songStructure;
@@ -112,7 +112,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      *
      * @param name
      * @param cls
-     * @param sgs Must be a LinkedRhythmL linked to cls !
+     * @param sgs  Must be a LinkedRhythmL linked to cls !
      */
     private Song(String name, ChordLeadSheet cls, SongStructure sgs)
     {
@@ -133,7 +133,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      * @param key
      * @param defaultValue
      * @return the property associated to key, or defaultValue if the property was not found.
-     * @putClientProperty()
      */
     public String getClientProperty(String key, String defaultValue)
     {
@@ -398,7 +397,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      * Set the file from which the song can be read/written.
      *
      * @param f Can be null.
-     * @see loafFromFile()
      */
     public void setFile(File f)
     {
@@ -453,8 +451,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      * newValue=false.
      *
      * @param songFile
-     * @param isCopy Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song
-     * name is not set, etc.)
+     * @param isCopy   Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song name is
+     *                 not set, etc.)
      * @throws java.io.IOException
      * @see getFile()
      */
@@ -508,7 +506,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     /**
      * Reset the need save property.
      * <p>
-     * Fire the PROP_MODIFIED_OR_SAVED true->false
+     * Fire the PROP_MODIFIED_OR_SAVED true-&gt;false
      */
     public void resetNeedSave()
     {
@@ -628,8 +626,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     }
 
     /**
-     * RhythmVoices must be stored in a simplified way in order to avoid storing rhythm stuff which depend on InstrumentBanks
-     * which are themselves system dependent.
+     * RhythmVoices must be stored in a simplified way in order to avoid storing rhythm stuff which depend on InstrumentBanks which are
+     * themselves system dependent.
      * <p>
      * Also need to do some cleaning: mapInstruments can contain useless entries if some songparts have been removed .
      */

@@ -839,7 +839,6 @@ public final class JJazzMidiSystem
     /**
      *
      * @return True if Midi out filtering is ON.
-     * @see setMidiOutFiltering()
      */
     public boolean isMidiOutFilteringOn()
     {

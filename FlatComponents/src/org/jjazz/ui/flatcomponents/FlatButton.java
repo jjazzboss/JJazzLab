@@ -111,10 +111,10 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
     /**
      * Configure the button to use the below properties and listen to their changes.
      * <p>
-     * - NAME => setText()<br>
-     * - SHORT_DESCRIPTION => setTooltipText()<br>
-     * - SMALL_ICON => setIcon()<br>
-     * - enabled => setEnabled()
+     * - NAME &gt; setText()<br>
+     * - SHORT_DESCRIPTION &gt; setTooltipText()<br>
+     * - SMALL_ICON &gt; setIcon()<br>
+     * - enabled &gt; setEnabled()
      * <p>
      * If button is pressed it calls action's actionPerformed() (in addition to the ChangeListeners).
      * <p>
@@ -147,7 +147,6 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
      * The Action associated to this button.
      *
      * @return Null if no action associated.
-     * @see setAction()
      */
     public Action getAction()
     {

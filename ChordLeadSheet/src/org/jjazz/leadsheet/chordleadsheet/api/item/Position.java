@@ -94,7 +94,7 @@ public final class Position implements Comparable<Position>, Serializable
     }
 
     /**
-     * @param bar The index of the bar (>=0).
+     * @param bar The index of the bar (&gt;=0).
      * @param beat The beat within this bar.
      */
     public Position(int bar, float beat)
@@ -132,7 +132,7 @@ public final class Position implements Comparable<Position>, Serializable
 
     /**
      * Set the position from another position.
-     * <p/>
+     * <p>
      * @param p A Position.
      */
     public void set(Position p)
@@ -223,7 +223,7 @@ public final class Position implements Comparable<Position>, Serializable
     /**
      * True if position is equals or after the last logical beat of a bar.
      * <p>
-     * Ex: ts=4/4 => return true if beat=3 or 3.3, false if beat &lt 3.
+     * Ex: ts=4/4 =&gt; return true if beat=3 or 3.3, false if beat &lt; 3.
      *
      * @param ts The TimeSignature of the bar.
      *
@@ -353,7 +353,7 @@ public final class Position implements Comparable<Position>, Serializable
 
     /**
      * Return the position as a double value = bar + beat/10
-     * <p/>
+     * <p>
      * @return double
      */
     public double toDouble()

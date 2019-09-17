@@ -36,8 +36,8 @@ import org.openide.util.NbBundle;
  * How to use:
  * <p>
  * - Create the Savable<br>
- * - Add it to the ToBeSavedList => will be used saved by SaveAll, and to confirm exit with unsaved changes<br>
- * - Add it in the TopComponent's lookup => Save action will be enabled if TopComponent is active<br>
+ * - Add it to the ToBeSavedList =&gt; will be used saved by SaveAll, and to confirm exit with unsaved changes<br>
+ * - Add it in the TopComponent's lookup =&gt; Save action will be enabled if TopComponent is active<br>
  * - When save is done (e.g. end of save() method), remove the Savable from the ToBeSavedList and the TopComponent's lookup.<br>
  * <p>
  */

@@ -110,7 +110,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      */
     public static final String PROP_INSTRUMENT_VELOCITY_SHIFT = "InstrumentVelocityShift";
     /**
-     * This property changes when the MidiMix is modified (false->true) or saved (true->false).
+     * This property changes when the MidiMix is modified (false-&gt;true) or saved (true-&gt;false).
      */
     public static final String PROP_MODIFIED_OR_SAVED = "PROP_MODIFIED_OR_SAVED";
     public static final int NB_AVAILABLE_CHANNELS = MidiConst.CHANNEL_MAX - MidiConst.CHANNEL_MIN + 1;
@@ -312,7 +312,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * @param channel A valid midi channel number.
      * @param rvKey   Can be null if insMix is also null. If a song is set, must be a RhythmVoice of song's rhythms.
      * @param insMix  Can be null if rvKey is also null.
-     * @throw IllegalArgumentException if insMix is already part of this MidiMix for a different channel
+     * @throws IllegalArgumentException if insMix is already part of this MidiMix for a different channel
      */
     public void setInstrumentMix(int channel, RhythmVoice rvKey, InstrumentMix insMix)
     {
@@ -778,7 +778,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     /**
      * Save this MidiMix to a file.
      * <p>
-     * This will fire a PROP_MODIFIED_OR_SAVED change event (true=>false).
+     * This will fire a PROP_MODIFIED_OR_SAVED change event (true=&gt;false).
      *
      * @param f
      * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no PROP_MODIFIED_OR_SAVED state change)

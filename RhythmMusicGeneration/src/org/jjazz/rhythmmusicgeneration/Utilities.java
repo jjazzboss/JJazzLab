@@ -53,7 +53,6 @@ public class Utilities
      *
      * @param spt
      * @return
-     * @see MidiConst.PPQ_RESOLUTION
      */
     static public long getTickLength(SongPart spt)
     {

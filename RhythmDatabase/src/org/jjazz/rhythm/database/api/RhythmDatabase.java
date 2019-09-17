@@ -80,7 +80,7 @@ public interface RhythmDatabase
      * Tags are compared to rhythm's name and rhythm's tags (ignoring case).
      *
      * @param tags
-     * @param optRhythms List<Rhythm> If not null perform the search on optRhythms, otherwise search the database.
+     * @param optRhythms List If not null perform the search on optRhythms, otherwise search the database.
      * @return
      */
     public List<Rhythm> getRhythms(List<String> tags, List<Rhythm> optRhythms);
@@ -89,7 +89,7 @@ public interface RhythmDatabase
      * Get the rhythms which match the specified time signature.
      *
      * @param ts TimeSignature
-     * @param optRhythms List<Rhythm> If not null perform the search on optRhythms, otherwise search the database.
+     * @param optRhythms List If not null perform the search on optRhythms, otherwise search the database.
      * @return All rhythms corresponding to TimeSignature ts.
      */
     public List<Rhythm> getRhythms(TimeSignature ts, List<Rhythm> optRhythms);
@@ -98,7 +98,7 @@ public interface RhythmDatabase
      * Get the rhythms whose temporange match the specified tempo.
      *
      * @param tempo int
-     * @param optRhythms List<Rhythm> If not null perform the search on optRhythms, otherwise search the database.
+     * @param optRhythms List If not null perform the search on optRhythms, otherwise search the database.
      * @return All rhythm corresponding to tempo.
      */
     public List<Rhythm> getRhythms(int tempo, List<Rhythm> optRhythms);

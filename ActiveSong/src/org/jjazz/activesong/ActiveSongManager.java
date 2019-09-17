@@ -42,8 +42,7 @@ import org.openide.util.NbBundle;
 /**
  * Manage the active song and MidiMix, and the related Midi messages (sent to JJazz Midi out device).
  * <p>
- * Midi messages are sent upon MidiMix changes depending on getSendMessagePolicy(). If song is closed, active song is reset to
- * null.
+ * Midi messages are sent upon MidiMix changes depending on getSendMessagePolicy(). If song is closed, active song is reset to null.
  */
 @NbBundle.Messages(
         {
@@ -110,7 +109,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     }
 
     /**
-     * @param s
+     * @param sg
      * @return Null if song can be activated, otherwise a string explaining the reason why it can not be activated.
      */
     public String isActivable(Song sg)
@@ -125,15 +124,14 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     }
 
     /**
-     * Set the specified song and MidiMix as active: <br/>
-     * - send MidiMessages for all MidiMix parameters at activation <br/>
-     * - listen to MidiMix changes and send the related Midi messages according to the SendPolicy <br/>
-     * - Fire a PROP_ACTIVE_SONG change event (oldValue=mm, newValue=sg) <br/>
+     * Set the specified song and MidiMix as active: <br>
+     * - send MidiMessages for all MidiMix parameters at activation <br>
+     * - listen to MidiMix changes and send the related Midi messages according to the SendPolicy <br>
+     * - Fire a PROP_ACTIVE_SONG change event (oldValue=mm, newValue=sg) <br>
      *
      * @param sg If null, mm will be set to null as well.
      * @param mm
      * @return False is mm could not be activated.
-     * @see isActivable()
      */
     public boolean setActive(Song sg, MidiMix mm)
     {

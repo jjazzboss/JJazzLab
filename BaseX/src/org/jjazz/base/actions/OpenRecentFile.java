@@ -177,7 +177,7 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
     }
 
     /**
-     * We should use a Runnable, but then Preferences are not saved ! (probably too late ?) Use a Callable<> as workaround: if
+     * We should use a Runnable, but then Preferences are not saved ! (probably too late ?) Use a Callable as workaround: if
      * another Callable vetoes the shutdown, we'll have updated the recent list anyway...
      */
     @OnStop

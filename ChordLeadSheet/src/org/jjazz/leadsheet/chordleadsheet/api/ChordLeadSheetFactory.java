@@ -44,7 +44,7 @@ public abstract class ChordLeadSheetFactory
      *
      * @param sectionName The name of the initial section.
      * @param ts The time signature of the initial section
-     * @param size The size in bars (must be > 0)
+     * @param size The size in bars (must be &gt; 0)
      * @return
      */
     abstract public ChordLeadSheet createEmptyLeadSheet(String sectionName, TimeSignature ts, int size);
@@ -53,7 +53,7 @@ public abstract class ChordLeadSheetFactory
      * Create a 12 bars (or more) leadsheet which contains sample sections and chords.
      *
      * @param sectionName The name of the initial section.
-     * @param size The size in bars must be >= 12.
+     * @param size The size in bars must be &gt;= 12.
      * @return
      */
     abstract public ChordLeadSheet createSampleLeadSheet12bars(String sectionName, int size);
@@ -63,7 +63,7 @@ public abstract class ChordLeadSheetFactory
      *
      * @param sectionName the value of sectionName
      * @param ts The time signature of the initial section
-     * @param size The size in bars must be > 0.
+     * @param size The size in bars must be &gt; 0.
      * @return
      */
     abstract public ChordLeadSheet createRamdomLeadSheet(String sectionName, TimeSignature ts, int size);

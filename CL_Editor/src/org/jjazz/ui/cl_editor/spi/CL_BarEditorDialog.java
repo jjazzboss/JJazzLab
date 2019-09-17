@@ -107,7 +107,6 @@ public abstract class CL_BarEditorDialog extends JDialog
     /**
      * Cleanup references to preset data and dialog results.
      *
-     * @see preset()
      */
     abstract public void cleanup();
 }

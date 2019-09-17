@@ -262,7 +262,6 @@ public class MidiUtilities
      *
      * @param pitchDelta In semitons, can be negative or positive.
      * @return
-     * @todo Validate !
      */
     static public ShortMessage[] getPitchBendMessages(int channel, int pitchDelta)
     {
@@ -456,7 +455,6 @@ public class MidiUtilities
      * @param srcTick
      * @param srcPPQresolution
      * @return A tick with MidiConst.PPQ_RESOLUTION
-     * @see MidiConst.PPQ_RESOLUTION
      */
     static public long convertTick(long srcTick, long srcPPQresolution)
     {

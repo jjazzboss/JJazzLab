@@ -88,7 +88,6 @@ public class DefaultInstruments
      *
      * @param type
      * @return Can't be null. Use getBuiltinDefaultInstrument() if preference not set or invalid.
-     * @see getBuiltinDefaultInstrument()
      */
     public Instrument getInstrument(RvType type)
     {

@@ -63,7 +63,7 @@ public final class SampleSong implements ActionListener
      * Create a sample song of 12 bars (or more).
      *
      * @param name The name of the song
-     * @param clsSize The number of bars of the song, must be >=12.
+     * @param clsSize The number of bars of the song, must be &gt;=12.
      * @param tempo
      * @return
      */

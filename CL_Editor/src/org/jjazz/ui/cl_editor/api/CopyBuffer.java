@@ -185,7 +185,7 @@ public class CopyBuffer
      * match targetBarIndex.
      *
      * @param targetCls The container of the new items. If null container is not changed.
-     * @param targetBarIndex The barIndex where items are copied to. If barIndex<0, positions are not changed. @return
+     * @param targetBarIndex The barIndex where items are copied to. If barIndex&lt;0, positions are not changed. @return
      */
     public List<ChordLeadSheetItem<?>> getItemsCopy(ChordLeadSheet targetCls, int targetBarIndex)
     {

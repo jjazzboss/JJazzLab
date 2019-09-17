@@ -301,7 +301,6 @@ public class FileDirectoryManager
      * Set the last song directory.
      *
      * @param dir
-     * @exception If argument is not a directory
      */
     public void setLastSongDirectory(File dir)
     {

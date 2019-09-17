@@ -143,7 +143,7 @@ public class RL_EditorImpl extends SS_Editor implements PropertyChangeListener, 
      */
     private int insertionMarkSptIndex;
     /**
-     * Our Drag & Drop handler for this editor and SptViewers.
+     * Our Drag and Drop handler for this editor and SptViewers.
      */
     private RL_EditorTransferHandler transferHandler;
     /**

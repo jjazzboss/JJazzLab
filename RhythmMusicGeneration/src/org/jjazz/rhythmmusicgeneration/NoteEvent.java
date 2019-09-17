@@ -155,7 +155,6 @@ public class NoteEvent extends Note implements Cloneable
      *
      * @param propertyName
      * @return Can be null.
-     * @see putClientProperty()
      */
     public Object getClientProperty(String propertyName)
     {

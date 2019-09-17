@@ -99,7 +99,6 @@ public class PitchBendEvent extends NoteEvent
      *
      * @param channel
      * @return
-     * @todo Validate !
      */
     @Override
     public MidiEvent[] toMidiEvents(int channel)

@@ -64,7 +64,6 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      * <p>
      * No alternate data and no filter set.
      *
-     * @param sectionName
      * @param cs
      * @param pos
      */

@@ -74,8 +74,9 @@ public class MidiChannelDispatcher extends JJazzMidiDevice
     /**
      * Return a transmitter for a specific channel only.
      *
-     * @param channel The channel associated to this transmitter. 0 <= channel <= 16. Channel 16 is used to transmit MidiMessages
-     * not bound to a channel (SysExMessage, MetaMessage...). @return
+     * @param channel The channel associated to this transmitter. 0 &lt;= channel &lt;= 16. Channel 16 is used to transmit MidiMessages not
+     *                bound to a channel (SysExMessage, MetaMessage...).
+     * @return
      */
     public Transmitter getTransmitter(int channel)
     {
@@ -117,8 +118,7 @@ public class MidiChannelDispatcher extends JJazzMidiDevice
         boolean isReceiverOpen = true;
 
         /**
-         * Operation called each time a MidiMessage arrives. Dispatch the message on transmitters associated to the message
-         * channel.
+         * Operation called each time a MidiMessage arrives. Dispatch the message on transmitters associated to the message channel.
          */
         @Override
         public void send(MidiMessage msg, long timeStamp)

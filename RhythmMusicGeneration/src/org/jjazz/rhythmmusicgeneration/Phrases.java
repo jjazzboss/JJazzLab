@@ -212,8 +212,8 @@ public class Phrases
      * Adapt the notes from a chord-oriented source phrase to a destination chord symbol.
      * <p>
      * Same as fitMelodyPhrase2ChordSymbol() except:<br>
-     * - we must select which destination degrees are used if destination chord is more complex than source chord (eg C=>C7b9)<br>
-     * - if destination chord is less complex than source chord (eg C7M=>C), which dest degree should be reused ?<br>
+     * - we must select which destination degrees are used if destination chord is more complex than source chord (eg C=&gt;C7b9)<br>
+     * - if destination chord is less complex than source chord (eg C7M=&gt;C), which dest degree should be reused ?<br>
      * - we search all the possible chord inversions to find the best matching destination (eg which minimize top voice motion).
      * <p>
      * Ex: if pSrc=C3,G3,B3,E4 and ecsSrc=C7M and ecsDest=F7b5, then destination phrase=F3,B3,Eb4,Ab4<p>
@@ -365,7 +365,7 @@ public class Phrases
     /**
      * Get the relative pitches corresponding to the degrees for a chord symbol whose root=rootPitch.
      * <p>
-     * Ex: rootPitch=0, degrees=ROOT,FIFTH => return [0,7]=[C,G]
+     * Ex: rootPitch=0, degrees=ROOT,FIFTH =&gt; return [0,7]=[C,G]
      *
      * @param rootPitch
      * @param degrees

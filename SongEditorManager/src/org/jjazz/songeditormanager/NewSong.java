@@ -67,8 +67,7 @@ public final class NewSong implements ActionListener
      * <p>
      * Created song will have its file property set to null.
      *
-     * @return
-     * @see saveSongTemplate(), getNewSongName()
+     * @return     
      */
     static public Song createSongFromTemplate()
     {

@@ -190,7 +190,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * Before playing the song vetoable listeners are notified with a PROPVETO_PRE_PLAYBACK property change.
      *
      * @param sg           The song to play
-     * @param fromBarIndex Play the song from this SongStructure's barIndex. If fromBarIndex &lt 0 then play the song from the last current
+     * @param fromBarIndex Play the song from this SongStructure's barIndex. If fromBarIndex &lt; 0 then play the song from the last current
      *                     position.
      *
      * @throws java.beans.PropertyVetoException If a vetoable listener vetoed the playback start. A listener who has already notified user
@@ -378,7 +378,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * When playback is started using start(), a copy of the song is performed. This method allows to get access to this copy.
      *
      * @return Can be null.
-     * @see start()
      */
     public Song getPlayingSongCopy()
     {
@@ -495,12 +494,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Send a short sequence of notes on specified channel.
      * <p>
-     * If fixPitch &lt 0 then fixPitch is ignored: play a series of notes starting at 60+transpose. If fixPitch&gt=0 then play a series of
+     * If fixPitch &lt; 0 then fixPitch is ignored: play a series of notes starting at 60+transpose. If fixPitch&gt;=0 then play a series of
      * notes with same pitch=fixPitch.
      *
      * @param channel
      * @param fixPitch  -1 means not used.
-     * @param transpose Transposition value in semi-tons to be added. Ignored if fixPitch>=0.
+     * @param transpose Transposition value in semi-tons to be added. Ignored if fixPitch&gt;=0.
      * @param endAction Called when sequence is over. Can be null.
      * @throws org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException If a problem occurred. endAction.run() is called before throwing
      *                                                                      the exception.
@@ -636,7 +635,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      *
      * @param e
-     * @todo Update insMix mute handling when it's for a User Channel.
      */
     @SuppressWarnings(
             {
@@ -709,7 +707,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * <p>
      * Take into account precount bars.
      * <p>
-     * @param fromBar Must be &gt 0
+     * @param fromBar Must be &gt;0
      */
     private void resetPosition(int fromBar)
     {

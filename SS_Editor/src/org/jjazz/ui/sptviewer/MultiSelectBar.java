@@ -109,7 +109,6 @@ public class MultiSelectBar extends JComponent implements MouseListener
     /**
      *
      * @param on If true make the component "active"
-     * @param multiSelectFirst If true this component is the first of a multi-selection.
      */
     public void setOn(boolean on)
     {

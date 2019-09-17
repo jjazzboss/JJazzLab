@@ -150,7 +150,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
      *
      * @param rhythm
      * @return
-     * @todo Use JDK8 lambda to simplify code and have a smarter similarity calculation
      */
     @Override
     public Rhythm getSimilarRhythm(final Rhythm rhythm)

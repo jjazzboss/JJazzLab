@@ -37,7 +37,7 @@ import org.openide.windows.WindowManager;
  * Only to fix a Netbeans bug ! Soma actions like Move Group, Size Group, actions which appear in window tabs context menus, are
  * hardcoded in Netbeans, and can not be disabled by using the branding settings for window system
  *
- * @see https://blogs.oracle.com/geertjan/entry/removing_menu_items_from_window
+ * See https://blogs.oracle.com/geertjan/entry/removing_menu_items_from_window
  *
  * Reuse implementation code from the core.windows module : ActionsUtils.java Warning it's not official API !!
  *
@@ -47,23 +47,23 @@ import org.openide.windows.WindowManager;
  *
  *
  *
- * @todo Implementation dependency, check if problem is fixed in future Netbeans RCP releases
+ * Todo: Implementation dependency, check if problem is fixed in future Netbeans RCP releases
  *
  * For popup menus on the tab bar outside of a TopComponent, remove:
  *
  *
- * The action[] we receive for right click on the editor mode bar: a=&Close class=DisabledAction a=Close &All
- * class=CloseAllDocumentsAction a=Close &Other class=DisabledAction a=null a=null a=Maximi&ze class=DisabledAction a=&Float
- * class=DisabledAction a=Doc&k class=DisabledAction a=null a=C&lone Document class=DisabledAction a=New Document Ta&b Group
- * class=DisabledAction a=&Collapse Document Tab Group class=CollapseTabGroupAction
+ * The action[] we receive for right click on the editor mode bar: a=Close class=DisabledAction a=Close All
+ * class=CloseAllDocumentsAction a=Close Other class=DisabledAction a=null a=null a=Maximize class=DisabledAction a=Float
+ * class=DisabledAction a=Dock class=DisabledAction a=null a=Clone Document class=DisabledAction a=New Document Tab Group
+ * class=DisabledAction a=Collapse Document Tab Group class=CollapseTabGroupAction
  *
  *
  *
  *
- * The action[] we receive for right click on the explorer mode bar (right to SptEditor): a=&Close class=DisabledAction a=null
- * a=Maximi&ze class=DisabledAction a=M&inimize class=DisabledAction a=Minimize Grou&p class=MinimizeModeAction a=&Float
- * class=DisabledAction a=Doc&k class=DisabledAction a=null a=&Move class=DisabledAction a=Mo&ve Group class=MoveModeAction
- * a=&Size Group class=ResizeModeAction
+ * The action[] we receive for right click on the explorer mode bar (right to SptEditor): a=Close class=DisabledAction a=null
+ * a=Maximize class=DisabledAction a=Minimize class=DisabledAction a=Minimize Group class=MinimizeModeAction a=Float
+ * class=DisabledAction a=Dock class=DisabledAction a=null a=Move class=DisabledAction a=Move Group class=MoveModeAction
+ * a=Size Group class=ResizeModeAction
  */
 @ServiceProvider(service = ActionsFactory.class)
 public class JJazzActionsFactory extends ActionsFactory
@@ -193,7 +193,7 @@ public class JJazzActionsFactory extends ActionsFactory
      * TopComponent tab).
      *
      * @param mode
-     * @param defaultActions
+     * @param actions
      * @return
      */
     @Override

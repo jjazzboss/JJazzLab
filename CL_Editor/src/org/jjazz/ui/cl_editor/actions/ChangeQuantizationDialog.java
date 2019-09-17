@@ -82,7 +82,6 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
      * Last section used by initialiaze()
      *
      * @return
-     * @ee initialize()
      */
     public CLI_Section getSection()
     {

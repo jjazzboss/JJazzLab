@@ -275,7 +275,6 @@ public class ChordTypeDatabase
      *
      * @param s The String, e.g. "m7".
      * @return A ChordType, null if no ChordType correspond to s.
-     * @see addAlias()
      */
     public ChordType getChordType(String s)
     {

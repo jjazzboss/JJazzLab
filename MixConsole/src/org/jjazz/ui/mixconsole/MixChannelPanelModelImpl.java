@@ -44,7 +44,6 @@ import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
  * Listen to InstrumentMix model changes and notify listeners. UI updates are propagated on the InstrumentMix model and possibly to the
  * enclosing MidiMix.
  *
- * @see setVolume()
  */
 public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyChangeListener
 {

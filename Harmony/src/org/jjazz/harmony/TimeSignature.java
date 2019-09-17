@@ -52,7 +52,7 @@ public enum TimeSignature
      */
     private final int lower;
     /**
-     * The "natural" beat unit expressed in terms of lower value (e.g. for bars 4/4=>1, 12/8=>3).
+     * The "natural" beat unit expressed in terms of lower value (e.g. for bars 4/4=&gt;1, 12/8=&gt;3).
      */
     private final int naturalBeat;
     private static final Logger LOGGER = Logger.getLogger(TimeSignature.class.getSimpleName());
@@ -60,7 +60,7 @@ public enum TimeSignature
     /**
      * @param upp The number of lower units that make a bar.
      * @param low The lower unit.
-     * @param nBeat The "natural" beat unit expressed in terms of lower value (e.g. for bars 4/4=>1, 12/8=>3)
+     * @param nBeat The "natural" beat unit expressed in terms of lower value (e.g. for bars 4/4=&gt;1, 12/8=&gt;3)
      */
     private TimeSignature(int upp, int low, int nBeat)
     {
@@ -130,7 +130,7 @@ public enum TimeSignature
     }
 
     /**
-     * The "natural" beat unit expressed in terms of the lower value. Examples : 4/4=>1, 12/8=>3
+     * The "natural" beat unit expressed in terms of the lower value. Examples : 4/4=&gt;1, 12/8=&gt;3
      *
      * @return
      */
@@ -156,7 +156,7 @@ public enum TimeSignature
     }
 
     /**
-     * @return how many logical beats is there in a bar (e.g. 4/4=>4, 7/4=>7 12/8=>4).
+     * @return how many logical beats is there in a bar (e.g. 4/4=&gt;4, 7/4=&gt;7 12/8=&gt;4).
      */
     public int getNbNaturalBeats()
     {
@@ -186,10 +186,9 @@ public enum TimeSignature
     }
 
     /**
-     * The next TimeSignature if increased of 1 unit. For instance 4/4 => 5/4.
+     * The next TimeSignature if increased of 1 unit. For instance 4/4 =&gt; 5/4.
      *
      * @return
-     * @todo Fix the naturalBeat calculation.
      */
     public TimeSignature getNextTimeSignature()
     {
@@ -212,9 +211,8 @@ public enum TimeSignature
     }
 
     /**
-     * The previous TimeSignature if decreased by 1 unit. For instance 4/4 => 3/4.
+     * The previous TimeSignature if decreased by 1 unit. For instance 4/4 =&gt; 3/4.
      *
-     * @todo Fix the naturalBeat calculation.
      */
     public TimeSignature getPreviousTimeSignature()
     {

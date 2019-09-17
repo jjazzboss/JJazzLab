@@ -43,7 +43,7 @@ public class Grid
 {
 
     /**
-     * Notes whose relative position is &gt -PRE_CELL_BEAT_WINDOW will be included in the current cell.
+     * Notes whose relative position is &gt; -PRE_CELL_BEAT_WINDOW will be included in the current cell.
      */
     public static float PRE_CELL_BEAT_WINDOW = 0.1f;     // This is just below 1/8=0.125f (thirteenth notes)
     private float preCellBeatWindow;
@@ -65,7 +65,7 @@ public class Grid
      * @param p Time signature must not change in the phrase.
      * @param startPosInBeats Grid will contain notes from this position in beats (included).
      * @param endPosInBeats Grid will contain notes until this position in beats (excluded).
-     * @param cellsPerBeat Must be &gt 0.
+     * @param cellsPerBeat Must be &gt; 0.
      * @param filter If null this grid will consider all Phrase notes
      */
     public Grid(Phrase p, int startPosInBeats, int endPosInBeats, int cellsPerBeat, Filter<NoteEvent> filter)
@@ -146,7 +146,7 @@ public class Grid
      *
      * @param posInBeats
      * @return -1 if posInBeats is after the last cell of this grid
-     * @throws IllegalArgumentException If posInBeats (&lt 0 or &lt grid's start position - getPreCellBeatWindow())
+     * @throws IllegalArgumentException If posInBeats (&lt; 0 or &lt; grid's start position - getPreCellBeatWindow())
      */
     public int getCellIndex(float posInBeats)
     {
@@ -468,7 +468,7 @@ public class Grid
      *
      * @param cellIndexFrom The index of the cell containing the notes to be moved.
      * @param cellIndexDest The index of the destination cell
-     * @param keepNoteOffPosition If true AND notes are moved earlier (cellIndexFrom &gt cellIndexDest), extend the duration of
+     * @param keepNoteOffPosition If true AND notes are moved earlier (cellIndexFrom &gt; cellIndexDest), extend the duration of
      * the moved notes so they keep the same NOTE_OFF position.
      * @return The number of moved notes
      */
@@ -511,7 +511,7 @@ public class Grid
      *
      * @param cellIndexFrom The index of the cell containing the note to be moved.
      * @param cellIndexDest The index of the destination cell
-     * @param keepNoteOffPosition If true AND note is moved earlier (cellIndexFrom &gt cellIndexDest), extend the duration of the
+     * @param keepNoteOffPosition If true AND note is moved earlier (cellIndexFrom &gt; cellIndexDest), extend the duration of the
      * moved note so it keeps the same NOTE_OFF position.
      * @return True if a note was moved.
      */
@@ -596,7 +596,7 @@ public class Grid
 
     /**
      *
-     * @return A value &gt 0
+     * @return A value &gt; 0
      */
     public int getCellsPerBeat()
     {

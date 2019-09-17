@@ -152,10 +152,10 @@ public class Scale
 
     /**
      * Get the scale degrees corresponding to a natural degree.<p>
-     * Ex: n=NINTH, scale=MAJOR/IONIAN => return NINTH<br>
-     * Ex: n=NINTH, scale=PHRYGIAN => return NINTH_FLAT<br>
-     * Ex: n=NINTH, scale=ALTERED => return NINTH_FLAT and NINTH_SHARP<br>
-     * Ex: n=THIRTEENH, scale=PENTATONIC_MINOR => return an empty list<br>
+     * Ex: n=NINTH, scale=MAJOR/IONIAN =&gt; return NINTH<br>
+     * Ex: n=NINTH, scale=PHRYGIAN =&gt; return NINTH_FLAT<br>
+     * Ex: n=NINTH, scale=ALTERED =&gt; return NINTH_FLAT and NINTH_SHARP<br>
+     * Ex: n=THIRTEENH, scale=PENTATONIC_MINOR =&gt; return an empty list<br>
      *
      * @param n A natural degree
      * @return A list of degrees. List size is usually 1, possibly 2 or 0.

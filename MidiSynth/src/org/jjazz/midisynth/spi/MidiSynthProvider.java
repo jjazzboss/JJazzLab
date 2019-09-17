@@ -95,7 +95,6 @@ public interface MidiSynthProvider
      * Get the list of file types accepted by this provider.
      *
      * @return Can be en empty list if this provider can't read files.
-     * @see getSynthsFromFile()
      */
     public List<FileNameExtensionFilter> getSupportedFileTypes();
 
@@ -119,7 +118,6 @@ public interface MidiSynthProvider
      * @param synth Must be a synth obtained from this provider.
      * @return A string allowing this object to retrieve the synth later (e.g. recreating it or reading it from a file). Return
      * null if synth could not be saved as string.
-     * @see getSynthFromString()
      */
     public String saveSynthAsString(MidiSynth synth);
 
@@ -129,7 +127,6 @@ public interface MidiSynthProvider
      *
      * @param s A string produced by saveSynthAsString()
      * @return Possibly null if this provider was not able to create a MidiSynth from s.
-     * @see saveSynthAsString()
      */
     public MidiSynth getSynthFromString(String s);
 

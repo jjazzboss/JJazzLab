@@ -169,7 +169,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private CL_EditorMouseListener editorMouseListener;
     /**
-     * Our Drag & Drop handler.
+     * Our Drag and Drop handler.
      */
     private CL_EditorTransferHandler transferHandler;
     /**

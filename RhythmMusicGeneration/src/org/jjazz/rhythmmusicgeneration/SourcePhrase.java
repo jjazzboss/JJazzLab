@@ -124,7 +124,6 @@ public class SourcePhrase extends Phrase
      * Get all the source chord symbol degrees used in this source phrase.
      *
      * @return An ordered list of Degrees.
-     * @see ChordType.getDegreeMostProbable(int relPitch)
      */
     public List<Degree> getUsedDegrees()
     {
@@ -152,7 +151,7 @@ public class SourcePhrase extends Phrase
      * <p>
      * If chordMode==true:<br>
      * Destination degrees are the first most important notes of the destination chord symbol. <br>
-     * If destination chord symbol is less complex than the source chord symbol(eg C7M=>C) then one or more destination degrees
+     * If destination chord symbol is less complex than the source chord symbol(eg C7M=&gt;C) then one or more destination degrees
      * are reused.<br>
      *
      * @param ecsDest The destination chord symbol.

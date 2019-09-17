@@ -31,7 +31,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
  * <p>
  * Items are stored ordered by position. We guarantee that CLI_Section is always the first item for a bar.
  *
- * @todo If required optimize by caching sections indexes etc.
  */
 public class ItemArray extends ArrayList<ChordLeadSheetItem<?>>
 {

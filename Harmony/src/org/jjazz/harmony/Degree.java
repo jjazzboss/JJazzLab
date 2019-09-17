@@ -181,11 +181,10 @@ public enum Degree
     }
 
     /**
-     * The degrees who match the relative pitch. Ex. relPitch=4 => THIRD Ex. relPitch=3 => NINTH_SHARP and THIRD_FLAT
+     * The degrees who match the relative pitch. Ex. relPitch=4 =&gt; THIRD Ex. relPitch=3 =&gt; NINTH_SHARP and THIRD_FLAT
      *
      * @param relPitch
      * @return A Degree list with 1 or 2 degrees.
-     * @see getMostProbableDegree()
      */
     static public List<Degree> getDegrees(int relPitch)
     {
@@ -207,7 +206,7 @@ public enum Degree
     /**
      * Provide the "most probable" degree for the specified relpitch.
      * <p>
-     * Ex: relPitch=3 (Eb) => return THIRD_MINOR rather than NINTH_SHARP.
+     * Ex: relPitch=3 (Eb) =&gt; return THIRD_MINOR rather than NINTH_SHARP.
      *
      * @param relPitch 0-11
      * @return A Degree. Can't be null.
