@@ -6,9 +6,9 @@
     <description>Builds the module suite JJazzLabX.</description>
     <import file="nbproject/build-impl.xml"/>
     
-    <target name="build-jjazzlabx-javadoc" depends="-check-jjazzlabx-javadoc, -init, -jdk-init" unless="jjazzlabx.javadoc.exists">
-        <mkdir dir="${suite.build.dir}/jjazzlabx-javadoc/"/>
-        <javadoc destdir="${suite.build.dir}/jjazzlabx-javadoc/" useexternalfile="yes" access="public" encoding="UTF-8" charset="UTF-8">
+    <target name="build-javadoc" depends="-check-javadoc, -init, -jdk-init" unless="jjazzlabx.javadoc.exists">
+        <mkdir dir="${suite.build.dir}/javadoc/"/>
+        <javadoc destdir="${suite.build.dir}/javadoc/" useexternalfile="yes" access="public" encoding="UTF-8" charset="UTF-8">
             <sourcefiles>
                 <fileset dir="${basedir}">
                     <include name="**/src/**/*.java" />
@@ -16,21 +16,21 @@
                 </fileset>
             </sourcefiles>         
             <classpath>
-                <fileset dir="C:\Users\Administrateur.000\Desktop\Netbeans11\platform" />
+                <fileset dir="${nbplatform.active.dir}" />
                 <fileset dir="${basedir}/build/cluster/modules/" />
             </classpath>
             <link href="https://docs.oracle.com/javase/8/docs/api/"/>
         </javadoc>
-        <zip destfile="${suite.build.dir}/cluster/docs/jjazzlabx-javadoc.zip" basedir="${suite.build.dir}/jjazzlabx-javadoc/" />
+        <zip destfile="${suite.build.dir}/javadoc.zip" basedir="${suite.build.dir}/javadoc/" />
     </target>
     
-    <target name="-check-jjazzlabx-javadoc" >
-        <available file="${suite.build.dir}/cluster/docs/jjazzlabx-javadoc.zip" property="jjazzlabx.javadoc.exists" />
-        <echo message="JJazzLabX JavaDoc already build : ${jjazzlabx.javadoc.exists}" />
+    <target name="-check-javadoc" >
+        <available file="${suite.build.dir}/javadoc.zip" property="jjazzlabx.javadoc.exists" />
+        <echo message="JJazzLabX JavaDoc already built : ${jjazzlabx.javadoc.exists}" />
     </target>
     
-    <target name="view-jjazzlabx-javadoc" depends="build-jjazzlabx-javadoc">
-        <nbbrowse file="${suite.build.dir}/jjazzlabx-javadoc/index.html" />
+    <target name="view-javadoc" depends="build-javadoc">
+        <nbbrowse file="${suite.build.dir}/javadoc/index.html" />
     </target>    
     
 </project>
