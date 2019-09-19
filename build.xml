@@ -33,4 +33,3 @@
         <nbbrowse file="${suite.build.dir}/javadoc/index.html" />
     </target>    
     
-</project>
