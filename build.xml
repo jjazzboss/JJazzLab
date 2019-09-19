@@ -32,4 +32,4 @@
     <target name="javadoc-view-jjazzlabx" depends="javadoc-build-jjazzlabx">
         <nbbrowse file="${suite.build.dir}/javadoc/index.html" />
     </target>    
-    
+</project>
