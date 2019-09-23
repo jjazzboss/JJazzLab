@@ -221,8 +221,8 @@ public class FileDirectoryManager
      * Get the user specific JJazz configuration directory.
      * <p>
      * <p>
-     * Use the ".jjazz" subdir of the Netbeans user directory, or if not set of the user.home system property. Create the directory if it
-     * does not exist.
+     * Use the ".jjazz" subdir of the Netbeans user directory, or if not set of the user.home system property. Create the
+     * directory if it does not exist.
      *
      * @param subDirName An optional extra subdirectory name (".jjazz/subDir"). Ignored if null or empty.
      * @return Could be null if no user directory found.
@@ -278,11 +278,17 @@ public class FileDirectoryManager
 
     /**
      * The last directory used for song open or song save.
+     * <p>
+     * If property is not set yet, or if the set directory does not exist anymore then :<br>
+     * - return [System.getProperty("user.dir")]/examples if this directory exists. With Netbeans applications user.dir normally
+     * points to the application's installation directory.<br>
+     * - or return null
      *
-     * @return Can be null if not set yet, or if the saved directory is not a directory anymore.
+     * @return Can be null
      */
     public File getLastSongDirectory()
     {
+
         String s = prefs.get(PROP_LAST_SONG_DIRECTORY, null);
         File f = null;
         if (s != null)
@@ -290,7 +296,21 @@ public class FileDirectoryManager
             f = new File(s);
             if (!f.isDirectory())
             {
+                // A directory was set but does not exist anymore, reset to null
                 f = null;
+            }
+        }
+        if (f == null)
+        {
+            // If it exists use the Examples subdir in the installation directory
+            String ud = System.getProperty("user.dir");
+            if (ud != null)
+            {
+                f = new File(ud + "/examples");
+                if (!f.isDirectory())
+                {
+                    f = null;
+                }
             }
         }
         LOGGER.fine("getLastSongDirectory() f=" + f);
