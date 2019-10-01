@@ -36,12 +36,12 @@ import org.openide.awt.ActionRegistration;
 /**
  * For debug purposes...
  */
-@ActionID(category = "JJazz", id = "org.jjazz.test.dumpRdbAction")
-@ActionRegistration(displayName = "Dump rhythms DB")
-@ActionReferences(
-        {
-            @ActionReference(path = "Menu/Edit", position = 50100),
-        })
+//@ActionID(category = "JJazz", id = "org.jjazz.test.dumpRdbAction")
+//@ActionRegistration(displayName = "Dump rhythms DB")
+//@ActionReferences(
+//        {
+//            @ActionReference(path = "Menu/Edit", position = 50100),
+//        })
 public final class DumpRdbAction implements ActionListener
 {
 

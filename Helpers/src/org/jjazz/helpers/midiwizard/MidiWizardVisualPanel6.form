@@ -65,6 +65,7 @@
       <SubComponents>
         <Component class="org.jjazz.helpers.midiwizard.WizardTextArea" name="ta_changes">
           <Properties>
+            <Property name="editable" type="boolean" value="false"/>
             <Property name="columns" type="int" value="20"/>
             <Property name="rows" type="int" value="5"/>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
