@@ -84,7 +84,8 @@ public class FileDirectoryManager
      * SongMix file will be located in the same directory than songFile.
      *
      * @param songFile
-     * @return Return a new file identical to songFile except the extension. If songFile is null returns null.
+     * @return Return a new file identical to songFile except the extension. If
+     * songFile is null returns null.
      */
     public File getSongMixFile(File songFile)
     {
@@ -100,7 +101,8 @@ public class FileDirectoryManager
      * Get the rhythm mix File object for the specified rhythm.
      * <p>
      *
-     * @param rhythm A non-null object. Note that the actual file on the file system might not exist yet.
+     * @param rhythm A non-null object. Note that the actual file on the file
+     * system might not exist yet.
      * @return
      */
     public File getRhythmMixFile(Rhythm rhythm)
@@ -221,10 +223,11 @@ public class FileDirectoryManager
      * Get the user specific JJazz configuration directory.
      * <p>
      * <p>
-     * Use the ".jjazz" subdir of the Netbeans user directory, or if not set of the user.home system property. Create the
-     * directory if it does not exist.
+     * Use the ".jjazz" subdir of the Netbeans user directory, or if not set of
+     * the user.home system property. Create the directory if it does not exist.
      *
-     * @param subDirName An optional extra subdirectory name (".jjazz/subDir"). Ignored if null or empty.
+     * @param subDirName An optional extra subdirectory name (".jjazz/subDir").
+     * Ignored if null or empty.
      * @return Could be null if no user directory found.
      */
     public File getAppConfigDirectory(String subDirName)
@@ -279,16 +282,12 @@ public class FileDirectoryManager
     /**
      * The last directory used for song open or song save.
      * <p>
-     * If property is not set yet, or if the set directory does not exist anymore then :<br>
-     * - return [System.getProperty("user.dir")]/examples if this directory exists. With Netbeans applications user.dir normally
-     * points to the application's installation directory.<br>
-     * - or return null
+     * If not set return the file for System.getProperty("user.dir").
      *
      * @return Can be null
      */
     public File getLastSongDirectory()
     {
-
         String s = prefs.get(PROP_LAST_SONG_DIRECTORY, null);
         File f = null;
         if (s != null)
@@ -302,11 +301,10 @@ public class FileDirectoryManager
         }
         if (f == null)
         {
-            // If it exists use the Examples subdir in the installation directory
             String ud = System.getProperty("user.dir");
             if (ud != null)
             {
-                f = new File(ud + "/examples");
+                f = new File(ud);
                 if (!f.isDirectory())
                 {
                     f = null;
