@@ -23,7 +23,6 @@
 package org.jjazz.ui.flatcomponents;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Point;
@@ -66,6 +65,7 @@ public class FlatTextEditDialog extends javax.swing.JDialog
     {
         super(parent, modal);
         initComponents();
+        setFont(textField.getFont());   // To make sure getFont() is inline with textField's font
         setOpaque(true);
     }
 
@@ -139,8 +139,8 @@ public class FlatTextEditDialog extends javax.swing.JDialog
     @Override
     public void setFont(Font f)
     {
-        textField.setFont(f);
-        pack();
+        super.setFont(f);
+        textField.setFont(f);    
     }
 
     @Override
