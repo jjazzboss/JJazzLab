@@ -31,14 +31,14 @@
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="jScrollPane2" min="-2" pref="154" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jScrollPane1" pref="0" max="32767" attributes="0"/>
+                      <Component id="jScrollPane1" max="32767" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
                       <Component id="lbl_timeSignature" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="89" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="lbl_defaultRhythm" min="-2" max="-2" attributes="0"/>
-                          <Component id="tf_defaultRhythm" pref="376" max="32767" attributes="0"/>
+                          <Component id="tf_defaultRhythm" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="btn_setDefaultRhythm" min="-2" max="-2" attributes="0"/>
@@ -61,9 +61,9 @@
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="tf_rhythmUserDir" max="32767" attributes="0"/>
-                          <Component id="tf_rhythmMixDir" max="32767" attributes="0"/>
+                          <Component id="tf_rhythmMixDir" min="-2" pref="198" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="btn_rhythmDir" min="-2" max="-2" attributes="0"/>
@@ -100,7 +100,7 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="tf_rhythmMixDir" alignment="3" min="-2" pref="18" max="-2" attributes="0"/>
+                          <Component id="tf_rhythmMixDir" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="btn_rhythmMixDir" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace pref="38" max="32767" attributes="0"/>
@@ -353,6 +353,7 @@
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="null"/>
         </Property>
+        <Property name="opaque" type="boolean" value="false"/>
       </Properties>
       <AuxValues>
         <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
@@ -362,7 +363,6 @@
       <SubComponents>
         <Component class="org.jjazz.ui.utilities.HelpTextArea" name="hlp_rhythmMixDir">
           <Properties>
-            <Property name="editable" type="boolean" value="true"/>
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color type="null"/>
             </Property>

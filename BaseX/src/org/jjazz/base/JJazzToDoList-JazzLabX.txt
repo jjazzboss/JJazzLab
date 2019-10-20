@@ -29,9 +29,7 @@ BUG LIST/TODO JJAZZLABX
 - TODO: print leadsheet !
 - TODO: replace BooleanStateAction Presenter.Popup see SectionAtNewLine
 - TODO: internationalize en français 
-- TODO: passer sur Git
 - TODO: test robustesse avec import/load songs ? limiter le nombre max de songs ouvertes (stack overflow avec 100+ songs ouvertes lors du close all)
-- TODO: embed some song files in JJazzLab distribution
 - TODO: new rhythms: swing 4/4 ? pop funk simple ? 3/4 ? a 4/4 demo rhythm with no percussion track
 - TODO: investigate redesign of RP_State to use enum (Rp_StringSet =>enumset) instead of always strings ? => more robuste, better for multi-language ?
 - TODO: update javadoc for immutable classes
