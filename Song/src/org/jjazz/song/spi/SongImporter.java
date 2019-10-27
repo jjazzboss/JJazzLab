@@ -24,6 +24,7 @@ package org.jjazz.song.spi;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.song.api.Song;
@@ -33,6 +34,22 @@ import org.jjazz.song.api.Song;
  */
 public interface SongImporter
 {
+
+    public interface PostProcessor
+    {
+
+        /**
+         * Post-process a Song object created by a SongImporter (see importFromFile()).
+         *
+         * This should be used for example to adjust the selected rhythm or add/modify SongParts.
+         *
+         * @param importer The caller of this method
+         * @param song The passed song will have its ChordLeadSheet initialized and a SongStructure with only 1 default SongPart.
+         * @param parameters Keys are the parameters names, e.g. "TITLE" or "COMMENTS" and the value are the parameters values.
+         * See the importer documentation.
+         */
+        void postProcessImportedSong(SongImporter importer, Song song, HashMap<String, Object> parameters);
+    }
 
     /**
      * A unique id or name for the importer.
@@ -50,6 +67,13 @@ public interface SongImporter
 
     /**
      * Try to build a Song object from the specified file.
+     *
+     * If a service provider implementing the PostProcessor interface is found in the global lookup, then this method must use it
+     * on the imported song. If several service providers are found, only the first one must be used.
+     *
+     * @param f
+     * @return
+     * @throws java.io.IOException
      */
     public Song importFromFile(File f) throws IOException;
 

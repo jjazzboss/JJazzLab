@@ -139,7 +139,7 @@ public class ImportMix extends AbstractAction
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setFileFilter(filter);
-        chooser.setSelectedFile(null);
+        chooser.setSelectedFile(new File(""));
 
         int returnCode = chooser.showOpenDialog(WindowManager.getDefault().getMainWindow());
 

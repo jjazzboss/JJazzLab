@@ -54,6 +54,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongManager;
 import org.jjazz.song.spi.SongImporter;
+import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -63,6 +64,11 @@ import org.openide.util.lookup.ServiceProvider;
 public class ImprovisorImporter implements SongImporter
 {
 
+    public static final String ID = "Impro-visor leadsheet (.ls) importer";
+    // Parameters for the SongImporter.PostProcessor interface
+    public static final String PARAM_STYLE = "Style";
+    public static final String PARAM_TEMPO = "Tempo";
+    public static final String PARAM_COMPOSER = "Composer";
     private final FileNameExtensionFilter FILTER = new FileNameExtensionFilter("Impro-visor files (.ls)", "ls");
     private final ChordSymbol REPEAT_CHORD_SYMBOL = new ChordSymbol();            // Used to represent the '/' or 'NC' symbol
     private final HashMap<String, String> mapChordTypeConversion = new HashMap<>(); // Map special improvisor chordtypes to JJazz ChordTypes
@@ -71,7 +77,7 @@ public class ImprovisorImporter implements SongImporter
     @Override
     public String getId()
     {
-        return "Impro-visor leadsheet (.ls) importer";
+        return ID;
     }
 
     @Override
@@ -87,7 +93,9 @@ public class ImprovisorImporter implements SongImporter
         {
             throw new NullPointerException("f");
         }
-        String title = "No Title", composer = null;
+        String title = "No Title";
+        String composer = null;
+        String style = null;
         int tempo = 120;
         TimeSignature ts = TimeSignature.FOUR_FOUR;
         ChordLeadSheet cls = null;
@@ -103,6 +111,7 @@ public class ImprovisorImporter implements SongImporter
             Pattern pMeter = Pattern.compile("^\\(meter\\s+(\\d+)\\s+(\\d+)");
             Pattern pSection = Pattern.compile("^\\(section");
             Pattern pChord = Pattern.compile("^\\s*[A-GN].*");      // N for NC
+            Pattern pStyle = Pattern.compile("style\\s+([a-ZA-Z0-9-]+)");
 
             while ((line = reader.readLine()) != null)
             {
@@ -117,6 +126,7 @@ public class ImprovisorImporter implements SongImporter
                 Matcher mMeter = pMeter.matcher(line);
                 Matcher mSection = pSection.matcher(line);
                 Matcher mChord = pChord.matcher(line);
+                Matcher mStyle = pStyle.matcher(line);
                 // if (mTitle.matches())
                 if (mTitle.find())
                 {
@@ -192,6 +202,9 @@ public class ImprovisorImporter implements SongImporter
                     }
                     barIndex = fillInChordLeadSheet(cls, ts, barIndex, line, f, lineCount);
                     // LOGGER.severe("importFromFile() chord line=" + line);
+                } else if (mStyle.find())
+                {
+                    style = mStyle.group(1);
                 }
             } // End while
         } // End try
@@ -201,16 +214,30 @@ public class ImprovisorImporter implements SongImporter
         Song song = null;
         try
         {
-            song = sf.createSong(title, cls);  // Throw exception
-            song.setName(title);
+            song = sf.createSong(title, cls);  // Throw exception        
+        } catch (UnsupportedEditException ex)
+        {
+            LOGGER.log(Level.WARNING, null, ex);        // Log + user notification
+        }
+
+        assert song != null;
+
+        // Post process
+        SongImporter.PostProcessor postProcessor = Lookup.getDefault().lookup(SongImporter.PostProcessor.class);
+        if (postProcessor != null)
+        {
+            HashMap<String, Object> params = new HashMap<>();
+            params.put(PARAM_STYLE, style);
+            params.put(PARAM_TEMPO, tempo);
+            params.put(PARAM_COMPOSER, composer);
+            postProcessor.postProcessImportedSong(this, song, params);
+        } else
+        {
             song.setTempo(tempo);
             if (composer != null && composer.isEmpty())
             {
                 song.setComments("Composer: " + composer);
             }
-        } catch (UnsupportedEditException ex)
-        {
-            LOGGER.log(Level.WARNING, null, ex);        // Log + user notification
         }
 
         return song;

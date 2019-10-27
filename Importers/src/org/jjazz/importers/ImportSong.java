@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.songeditormanager;
+package org.jjazz.importers;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,12 +31,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongManager;
 import org.jjazz.song.spi.SongImporter;
+import org.jjazz.songeditormanager.SongEditorManager;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -45,6 +46,7 @@ import org.openide.util.NbBundle.Messages;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Lookup;
+import org.openide.util.NbPreferences;
 import org.openide.windows.WindowManager;
 
 @ActionID(category = "File", id = "org.jjazz.songeditormanager.ImportSong")
@@ -60,6 +62,8 @@ import org.openide.windows.WindowManager;
 public final class ImportSong implements ActionListener
 {
 
+    public static final String PREF_LAST_IMPORT_DIRECTORY = "LastImportDirectory";
+    private static Preferences prefs = NbPreferences.forModule(ImportSong.class);
     private static final Logger LOGGER = Logger.getLogger(ImportSong.class.getSimpleName());
 
     @Override
@@ -74,7 +78,7 @@ public final class ImportSong implements ActionListener
         }
 
         // Collect supported file extensions
-        // First collect all file extensions managed by the MidiSynthProviders
+        // First collect all file extensions managed by the SongImporters
         final HashMap<String, SongImporter> mapExtImporter = new HashMap<>();
         List<FileNameExtensionFilter> allFilters = new ArrayList<>();
         for (SongImporter p : Lookup.getDefault().lookupAll(SongImporter.class))
@@ -99,9 +103,9 @@ public final class ImportSong implements ActionListener
         }
         chooser.setAcceptAllFileFilterUsed(false);
         chooser.setMultiSelectionEnabled(true);
-        chooser.setSelectedFile(null);
+        chooser.setSelectedFile(new File(""));
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setCurrentDirectory(FileDirectoryManager.getInstance().getLastSongDirectory());
+        chooser.setCurrentDirectory(getLastImportDirectory());
         chooser.setDialogTitle("Import song from file");
         if (chooser.showOpenDialog(WindowManager.getDefault().getMainWindow()) != JFileChooser.APPROVE_OPTION)
         {
@@ -111,6 +115,14 @@ public final class ImportSong implements ActionListener
 
         // Use thread because possible import of many files
         final File[] files = chooser.getSelectedFiles();
+        if (files.length > 0)
+        {
+            File dir = files[0].getParentFile();
+            if (dir != null)
+            {
+                prefs.put(PREF_LAST_IMPORT_DIRECTORY, dir.getAbsolutePath());
+            }
+        }
         Runnable r = new Runnable()
         {
             @Override
@@ -176,6 +188,25 @@ public final class ImportSong implements ActionListener
             providers.add(p);
         }
         return providers;
+    }
+
+    /**
+     *
+     * @return Can be null.
+     */
+    private File getLastImportDirectory()
+    {
+        String s = prefs.get(PREF_LAST_IMPORT_DIRECTORY, null);
+        if (s == null)
+        {
+            return null;
+        }
+        File f = new File(s);
+        if (!f.isDirectory())
+        {
+            f = null;
+        }
+        return f;
     }
 
 }
