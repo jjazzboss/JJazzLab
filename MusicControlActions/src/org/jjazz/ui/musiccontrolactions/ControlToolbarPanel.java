@@ -290,11 +290,13 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         add(fbtn_PlaybackPoint);
         add(filler5);
 
+        panel_Tempo.setOpaque(false);
         panel_Tempo.setLayout(new javax.swing.BoxLayout(panel_Tempo, javax.swing.BoxLayout.Y_AXIS));
         panel_Tempo.add(filler6);
 
         spn_Tempo.setModel(new javax.swing.SpinnerNumberModel(120, 30, 350, 1));
         spn_Tempo.setToolTipText(org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.spn_Tempo.toolTipText")); // NOI18N
+        spn_Tempo.setMaximumSize(new java.awt.Dimension(69, 26));
         spn_Tempo.addChangeListener(new javax.swing.event.ChangeListener()
         {
             public void stateChanged(javax.swing.event.ChangeEvent evt)

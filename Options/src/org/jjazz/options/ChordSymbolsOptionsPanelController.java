@@ -41,10 +41,10 @@ import org.openide.util.Lookup;
         {
             "OptionsCategory_Name_chordsymbols=Chord Symbols", "OptionsCategory_Keywords_chordsymbols=chord symbols"
         })
-public final class chordsymbolsOptionsPanelController extends OptionsPanelController
+public final class ChordSymbolsOptionsPanelController extends OptionsPanelController
 {
 
-    private chordsymbolsPanel panel;
+    private ChordSymbolsPanel panel;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private boolean changed;
 
@@ -102,11 +102,11 @@ public final class chordsymbolsOptionsPanelController extends OptionsPanelContro
         pcs.removePropertyChangeListener(l);
     }
 
-    private chordsymbolsPanel getPanel()
+    private ChordSymbolsPanel getPanel()
     {
         if (panel == null)
         {
-            panel = new chordsymbolsPanel(this);
+            panel = new ChordSymbolsPanel(this);
         }
         return panel;
     }

@@ -217,7 +217,8 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
                 "rawtypes" // For the JTable init
             })
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents()
+    {
 
         jLabel3 = new javax.swing.JLabel();
         lbl_rhythmDir = new javax.swing.JLabel();
@@ -247,41 +248,46 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         org.openide.awt.Mnemonics.setLocalizedText(lbl_rhythmDir, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.lbl_rhythmDir.text")); // NOI18N
 
         tf_rhythmUserDir.setEditable(false);
-        tf_rhythmUserDir.setText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.tf_rhythmUserDir.text")); // NOI18N
         tf_rhythmUserDir.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.tf_rhythmUserDir.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_rhythmDir, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_rhythmDir.text")); // NOI18N
         btn_rhythmDir.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_rhythmDir.toolTipText")); // NOI18N
-        btn_rhythmDir.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btn_rhythmDir.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 btn_rhythmDirActionPerformed(evt);
             }
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_rescan, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_rescan.text")); // NOI18N
         btn_rescan.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_rescan.toolTipText")); // NOI18N
-        btn_rescan.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btn_rescan.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 btn_rescanActionPerformed(evt);
             }
         });
 
         tf_defaultRhythm.setEditable(false);
-        tf_defaultRhythm.setText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.tf_defaultRhythm.text")); // NOI18N
         tf_defaultRhythm.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.tf_defaultRhythm.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_setDefaultRhythm, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_setDefaultRhythm.text")); // NOI18N
         btn_setDefaultRhythm.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_setDefaultRhythm.toolTipText")); // NOI18N
         btn_setDefaultRhythm.setEnabled(false);
-        btn_setDefaultRhythm.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btn_setDefaultRhythm.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 btn_setDefaultRhythmActionPerformed(evt);
             }
         });
 
         tbl_rhythms.setAutoCreateRowSorter(true);
         tbl_rhythms.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
+            new Object [][]
+            {
                 {null, null, null, null, null, null},
                 {null, null, null, null, null, null},
                 {null, null, null, null, null, null},
@@ -297,22 +303,28 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
                 {null, null, null, null, null, null},
                 {null, null, null, null, null, null}
             },
-            new String [] {
+            new String []
+            {
                 "Title 1", "Title 2", "Title 3", "Title 4", "Title 5", "Title 6"
             }
-        ) {
-            Class[] types = new Class [] {
+        )
+        {
+            Class[] types = new Class []
+            {
                 java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
-            boolean[] canEdit = new boolean [] {
+            boolean[] canEdit = new boolean []
+            {
                 false, false, false, false, false, false
             };
 
-            public Class getColumnClass(int columnIndex) {
+            public Class getColumnClass(int columnIndex)
+            {
                 return types [columnIndex];
             }
 
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
+            public boolean isCellEditable(int rowIndex, int columnIndex)
+            {
                 return canEdit [columnIndex];
             }
         });
@@ -336,8 +348,10 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_rhythmProviderSettings, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_rhythmProviderSettings.text")); // NOI18N
         btn_rhythmProviderSettings.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_rhythmProviderSettings.toolTipText")); // NOI18N
-        btn_rhythmProviderSettings.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btn_rhythmProviderSettings.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 btn_rhythmProviderSettingsActionPerformed(evt);
             }
         });
@@ -347,22 +361,21 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         org.openide.awt.Mnemonics.setLocalizedText(jLabel4, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.jLabel4.text")); // NOI18N
 
         tf_rhythmMixDir.setEditable(false);
-        tf_rhythmMixDir.setText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.tf_rhythmMixDir.text")); // NOI18N
         tf_rhythmMixDir.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.tf_rhythmMixDir.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_rhythmMixDir, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_rhythmMixDir.text")); // NOI18N
         btn_rhythmMixDir.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_rhythmMixDir.toolTipText")); // NOI18N
-        btn_rhythmMixDir.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btn_rhythmMixDir.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 btn_rhythmMixDirActionPerformed(evt);
             }
         });
 
-        jScrollPane3.setBackground(null);
         jScrollPane3.setBorder(null);
         jScrollPane3.setOpaque(false);
 
-        hlp_rhythmMixDir.setBackground(null);
         hlp_rhythmMixDir.setColumns(20);
         hlp_rhythmMixDir.setRows(5);
         hlp_rhythmMixDir.setText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.hlp_rhythmMixDir.text")); // NOI18N
