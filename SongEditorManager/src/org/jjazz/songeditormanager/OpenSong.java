@@ -66,6 +66,7 @@ public final class OpenSong implements ActionListener
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setMultiSelectionEnabled(true);
         chooser.setCurrentDirectory(FileDirectoryManager.getInstance().getLastSongDirectory());
+        chooser.setSelectedFile(new File(""));
         chooser.setDialogTitle(CTL_JJazzOpenSongs());
         chooser.showOpenDialog(WindowManager.getDefault().getMainWindow());
 

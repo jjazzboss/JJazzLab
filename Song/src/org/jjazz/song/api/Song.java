@@ -34,6 +34,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -81,7 +82,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     private String name;
     private String comments = "";
     private int tempo = 120;
-    private final ArrayList<String> tags = new ArrayList<>();
+    private ArrayList<String> tags = new ArrayList<>();
     private final Properties clientProperties = new Properties();
     private transient File file;
     private transient boolean needSave = false;
@@ -112,7 +113,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      *
      * @param name
      * @param cls
-     * @param sgs  Must be a LinkedRhythmL linked to cls !
+     * @param sgs Must be a LinkedRhythmL linked to cls !
      */
     private Song(String name, ChordLeadSheet cls, SongStructure sgs)
     {
@@ -233,20 +234,47 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      * <p>
      * Fire a PROP_TAGS property change events.
      *
-     * @param tags can be null (same as providing an empty list). Tags are space-trimmed and converted to lower case.
+     * @param newTags Must not be null but can be an empty list. Tags are space-trimmed and converted to lower case.
      */
-    public void setTags(List<String> tags)
+    public void setTags(List<String> newTags)
     {
-        ArrayList<String> old = new ArrayList<>(this.tags);
-        this.tags.clear();
-        if (tags != null)
+        if (newTags == null)
         {
-            for (String s : tags)
-            {
-                this.tags.add(s.trim().toLowerCase());
-            }
+            throw new NullPointerException("newTags");
         }
-        pcs.firePropertyChange(PROP_TAGS, old, this.tags);
+
+        final ArrayList<String> oldTags = new ArrayList<>(tags);
+        final ArrayList<String> newTagsLowerCase = new ArrayList<>();
+        for (String s : newTags)
+        {
+            newTagsLowerCase.add(s.trim().toLowerCase());
+        }
+        if (tags.equals(newTagsLowerCase))
+        {
+            return;
+        }
+        tags = newTagsLowerCase;
+
+        // Create the undoable event
+        UndoableEdit edit = new SimpleEdit("Set tags")
+        {
+            @Override
+            public void undoBody()
+            {
+                tags = oldTags;
+                pcs.firePropertyChange(PROP_TAGS, newTagsLowerCase, tags);
+            }
+
+            @Override
+            public void redoBody()
+            {
+                tags = newTagsLowerCase;
+                pcs.firePropertyChange(PROP_TAGS, oldTags, tags);
+            }
+        };
+        fireUndoableEditHappened(edit);
+
+        pcs.firePropertyChange(PROP_TAGS, oldTags, tags);
         fireIsModified();
     }
 
@@ -360,7 +388,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             comments = newComments;
 
             // Create the undoable event
-            UndoableEdit edit = new SimpleEdit("Set comments " + newComments)
+            UndoableEdit edit = new SimpleEdit("Set comments")
             {
                 @Override
                 public void undoBody()
@@ -451,8 +479,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      * newValue=false.
      *
      * @param songFile
-     * @param isCopy   Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song name is
-     *                 not set, etc.)
+     * @param isCopy Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song
+     * name is not set, etc.)
      * @throws java.io.IOException
      * @see getFile()
      */
@@ -470,7 +498,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         try (FileOutputStream fos = new FileOutputStream(songFile))
         {
             XStream xstream = new XStream();
-            xstream.alias("Song", Song.class);
+            xstream.alias("Song", Song.class
+            );
             xstream.toXML(this, fos);
             if (!isCopy)
             {
@@ -626,8 +655,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     }
 
     /**
-     * RhythmVoices must be stored in a simplified way in order to avoid storing rhythm stuff which depend on InstrumentBanks which are
-     * themselves system dependent.
+     * RhythmVoices must be stored in a simplified way in order to avoid storing rhythm stuff which depend on InstrumentBanks
+     * which are themselves system dependent.
      * <p>
      * Also need to do some cleaning: mapInstruments can contain useless entries if some songparts have been removed .
      */
