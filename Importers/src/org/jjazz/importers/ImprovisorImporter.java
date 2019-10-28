@@ -111,7 +111,7 @@ public class ImprovisorImporter implements SongImporter
             Pattern pMeter = Pattern.compile("^\\(meter\\s+(\\d+)\\s+(\\d+)");
             Pattern pSection = Pattern.compile("^\\(section");
             Pattern pChord = Pattern.compile("^\\s*[A-GN].*");      // N for NC
-            Pattern pStyle = Pattern.compile("style\\s+([a-ZA-Z0-9-]+)");
+            Pattern pStyle = Pattern.compile("style\\s+([a-zA-Z0-9-]+)");
 
             while ((line = reader.readLine()) != null)
             {
@@ -233,6 +233,7 @@ public class ImprovisorImporter implements SongImporter
             postProcessor.postProcessImportedSong(this, song, params);
         } else
         {
+            // Default
             song.setTempo(tempo);
             if (composer != null && composer.isEmpty())
             {
