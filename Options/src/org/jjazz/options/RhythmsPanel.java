@@ -220,7 +220,6 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     private void initComponents()
     {
 
-        jLabel3 = new javax.swing.JLabel();
         lbl_rhythmDir = new javax.swing.JLabel();
         tf_rhythmUserDir = new javax.swing.JTextField();
         btn_rhythmDir = new javax.swing.JButton();
@@ -243,12 +242,9 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         jScrollPane3 = new javax.swing.JScrollPane();
         hlp_rhythmMixDir = new org.jjazz.ui.utilities.HelpTextArea();
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.jLabel3.text")); // NOI18N
-
         org.openide.awt.Mnemonics.setLocalizedText(lbl_rhythmDir, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.lbl_rhythmDir.text")); // NOI18N
 
         tf_rhythmUserDir.setEditable(false);
-        tf_rhythmUserDir.setText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.tf_rhythmUserDir.text")); // NOI18N
         tf_rhythmUserDir.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.tf_rhythmUserDir.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_rhythmDir, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_rhythmDir.text")); // NOI18N
@@ -272,7 +268,6 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         });
 
         tf_defaultRhythm.setEditable(false);
-        tf_defaultRhythm.setText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.tf_defaultRhythm.text")); // NOI18N
         tf_defaultRhythm.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.tf_defaultRhythm.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_setDefaultRhythm, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_setDefaultRhythm.text")); // NOI18N
@@ -363,7 +358,6 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         org.openide.awt.Mnemonics.setLocalizedText(jLabel4, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.jLabel4.text")); // NOI18N
 
         tf_rhythmMixDir.setEditable(false);
-        tf_rhythmMixDir.setText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.tf_rhythmMixDir.text")); // NOI18N
         tf_rhythmMixDir.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.tf_rhythmMixDir.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_rhythmMixDir, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_rhythmMixDir.text")); // NOI18N
@@ -685,7 +679,6 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     private org.jjazz.ui.utilities.HelpTextArea hlp_rhythmMixDir;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;

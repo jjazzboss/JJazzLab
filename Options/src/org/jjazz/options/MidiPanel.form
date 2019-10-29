@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <Form version="1.5" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
-  <NonVisualComponents>
-    <Component class="javax.swing.JButton" name="jButton1">
-      <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/options/Bundle.properties" key="MidiPanel.jButton1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
-      </Properties>
-    </Component>
-  </NonVisualComponents>
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="1"/>
     <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
@@ -48,8 +39,8 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="cb_sendGmOnUponStartup" min="-2" max="-2" attributes="0"/>
                           <Component id="btn_test" min="-2" max="-2" attributes="0"/>
-                          <Component id="pnl_soundbankFile" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="cb_midiThru" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="pnl_soundbankFile" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
@@ -169,9 +160,9 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="txtf_soundbankFile" pref="240" max="32767" attributes="0"/>
+                  <Component id="txtf_soundbankFile" pref="251" max="32767" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="btn_changeSoundbankFile" min="-2" pref="69" max="-2" attributes="0"/>
+                  <Component id="btn_changeSoundbankFile" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="btn_resetSoundbank" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
@@ -196,9 +187,6 @@
         <Component class="javax.swing.JTextField" name="txtf_soundbankFile">
           <Properties>
             <Property name="editable" type="boolean" value="false"/>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/options/Bundle.properties" key="MidiPanel.txtf_soundbankFile.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-            </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="org/jjazz/options/Bundle.properties" key="MidiPanel.txtf_soundbankFile.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>

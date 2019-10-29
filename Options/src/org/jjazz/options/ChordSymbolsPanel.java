@@ -33,15 +33,15 @@ import org.jjazz.harmony.Note;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
-final class chordsymbolsPanel extends javax.swing.JPanel implements ListSelectionListener
+final class ChordSymbolsPanel extends javax.swing.JPanel implements ListSelectionListener
 {
 
     boolean firstShow = true;
-    private final chordsymbolsOptionsPanelController controller;
+    private final ChordSymbolsOptionsPanelController controller;
     private ChordSymbolTableModel tableModel = new ChordSymbolTableModel();
-    private static final Logger LOGGER = Logger.getLogger(chordsymbolsPanel.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(ChordSymbolsPanel.class.getSimpleName());
 
-    chordsymbolsPanel(chordsymbolsOptionsPanelController controller)
+    ChordSymbolsPanel(ChordSymbolsOptionsPanelController controller)
     {
         this.controller = controller;
         initComponents();
@@ -68,8 +68,8 @@ final class chordsymbolsPanel extends javax.swing.JPanel implements ListSelectio
         tbl_chordSymbols.getTableHeader().setReorderingAllowed(false);
         jScrollPane1.setViewportView(tbl_chordSymbols);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_add, org.openide.util.NbBundle.getMessage(chordsymbolsPanel.class, "chordsymbolsPanel.btn_add.text")); // NOI18N
-        btn_add.setToolTipText(org.openide.util.NbBundle.getMessage(chordsymbolsPanel.class, "chordsymbolsPanel.btn_add.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_add, org.openide.util.NbBundle.getMessage(ChordSymbolsPanel.class, "ChordSymbolsPanel.btn_add.text")); // NOI18N
+        btn_add.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolsPanel.class, "ChordSymbolsPanel.btn_add.toolTipText")); // NOI18N
         btn_add.setEnabled(false);
         btn_add.addActionListener(new java.awt.event.ActionListener()
         {
@@ -79,8 +79,8 @@ final class chordsymbolsPanel extends javax.swing.JPanel implements ListSelectio
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_reset, org.openide.util.NbBundle.getMessage(chordsymbolsPanel.class, "chordsymbolsPanel.btn_reset.text")); // NOI18N
-        btn_reset.setToolTipText(org.openide.util.NbBundle.getMessage(chordsymbolsPanel.class, "chordsymbolsPanel.btn_reset.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_reset, org.openide.util.NbBundle.getMessage(ChordSymbolsPanel.class, "ChordSymbolsPanel.btn_reset.text")); // NOI18N
+        btn_reset.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolsPanel.class, "ChordSymbolsPanel.btn_reset.toolTipText")); // NOI18N
         btn_reset.setEnabled(false);
         btn_reset.addActionListener(new java.awt.event.ActionListener()
         {
@@ -90,8 +90,8 @@ final class chordsymbolsPanel extends javax.swing.JPanel implements ListSelectio
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_resetAll, org.openide.util.NbBundle.getMessage(chordsymbolsPanel.class, "chordsymbolsPanel.btn_resetAll.text")); // NOI18N
-        btn_resetAll.setToolTipText(org.openide.util.NbBundle.getMessage(chordsymbolsPanel.class, "chordsymbolsPanel.btn_resetAll.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_resetAll, org.openide.util.NbBundle.getMessage(ChordSymbolsPanel.class, "ChordSymbolsPanel.btn_resetAll.text")); // NOI18N
+        btn_resetAll.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolsPanel.class, "ChordSymbolsPanel.btn_resetAll.toolTipText")); // NOI18N
         btn_resetAll.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)

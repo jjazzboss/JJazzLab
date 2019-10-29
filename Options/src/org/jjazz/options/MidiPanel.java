@@ -73,7 +73,6 @@ final class MidiPanel extends javax.swing.JPanel
     private void initComponents()
     {
 
-        jButton1 = new javax.swing.JButton();
         lbl_OutDevices = new javax.swing.JLabel();
         cb_midiThru = new javax.swing.JCheckBox();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -88,8 +87,6 @@ final class MidiPanel extends javax.swing.JPanel
         list_OutDevices = new org.jjazz.midi.ui.MidiOutDeviceList();
         btn_refresh = new javax.swing.JButton();
         cb_sendGmOnUponStartup = new javax.swing.JCheckBox();
-
-        org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.jButton1.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_OutDevices, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.lbl_OutDevices.text")); // NOI18N
 
@@ -130,7 +127,6 @@ final class MidiPanel extends javax.swing.JPanel
         pnl_soundbankFile.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.pnl_soundbankFile.border.title"))); // NOI18N
 
         txtf_soundbankFile.setEditable(false);
-        txtf_soundbankFile.setText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.txtf_soundbankFile.text")); // NOI18N
         txtf_soundbankFile.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.txtf_soundbankFile.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_changeSoundbankFile, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_changeSoundbankFile.text")); // NOI18N
@@ -157,9 +153,9 @@ final class MidiPanel extends javax.swing.JPanel
             pnl_soundbankFileLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_soundbankFileLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(txtf_soundbankFile, javax.swing.GroupLayout.DEFAULT_SIZE, 240, Short.MAX_VALUE)
+                .addComponent(txtf_soundbankFile, javax.swing.GroupLayout.DEFAULT_SIZE, 251, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btn_changeSoundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btn_changeSoundbankFile)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btn_resetSoundbank)
                 .addContainerGap())
@@ -220,8 +216,8 @@ final class MidiPanel extends javax.swing.JPanel
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(cb_sendGmOnUponStartup)
                             .addComponent(btn_test)
-                            .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(cb_midiThru))
+                            .addComponent(cb_midiThru)
+                            .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -474,7 +470,6 @@ final class MidiPanel extends javax.swing.JPanel
     private javax.swing.JButton btn_test;
     private javax.swing.JCheckBox cb_midiThru;
     private javax.swing.JCheckBox cb_sendGmOnUponStartup;
-    private javax.swing.JButton jButton1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JLabel lbl_InDevices;
