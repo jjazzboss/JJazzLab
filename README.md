@@ -41,7 +41,9 @@ From Netbeans IDE:
 
 Contributions welcome ! 
 
-You can:
+[Guide to first contributions](https://github.com/firstcontributions/first-contributions/blob/master/README.md)
+
+Contributing does not necessarily mean coding. You can:
 
 - provide feedback: what features you like/you don't like/you'd like to see
 - submit bug reports as GitHub issues
