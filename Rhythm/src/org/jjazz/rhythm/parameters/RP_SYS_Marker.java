@@ -87,8 +87,8 @@ public class RP_SYS_Marker extends RP_State
 //            return s;
 //        }
 //    }
-    public static final String THEME = "Theme";
-    public static final String SOLO = "Solo";
+    public static final String THEME = "theme";
+    public static final String SOLO = "solo";
 
     public static RP_SYS_Marker getInstance()
     {

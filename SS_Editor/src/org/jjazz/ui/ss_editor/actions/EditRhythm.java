@@ -37,7 +37,7 @@ import javax.swing.SwingUtilities;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongManager;
+import org.jjazz.song.api.SongFactory;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
@@ -148,7 +148,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         // Change tempo if required
         if (dlg.isUseRhythmTempo())
         {
-            Song song = SongManager.getInstance().findSong(sgs);
+            Song song = SongFactory.getInstance().findSong(sgs);
             assert song != null : "selSpts=" + selSpts;
             int tempo = newRhythm.getPreferredTempo();
             song.setTempo(tempo);

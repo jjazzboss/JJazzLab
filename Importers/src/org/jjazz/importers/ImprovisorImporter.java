@@ -52,7 +52,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongManager;
+import org.jjazz.song.api.SongFactory;
 import org.jjazz.song.spi.SongImporter;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
@@ -210,7 +210,7 @@ public class ImprovisorImporter implements SongImporter
         } // End try
 
         // Create the song object from the collected data
-        SongManager sf = SongManager.getInstance();
+        SongFactory sf = SongFactory.getInstance();
         Song song = null;
         try
         {
@@ -432,8 +432,12 @@ public class ImprovisorImporter implements SongImporter
         mapChordTypeConversion.put("M#5add9", "M7#5");
         mapChordTypeConversion.put("M7+", "7M");
         mapChordTypeConversion.put("M9#5", "M7#5");
+        mapChordTypeConversion.put("M69#11", "M9#11");
+        mapChordTypeConversion.put("M7#9#11", "M9#11");
+        mapChordTypeConversion.put("6#11", "M7#11");        
         mapChordTypeConversion.put("+add9", "+");
         mapChordTypeConversion.put("add9no3", "2");
+        mapChordTypeConversion.put("addb9", "7b9b5");        
         mapChordTypeConversion.put("7b13", "7");
         mapChordTypeConversion.put("7b5#9", "7alt");
         mapChordTypeConversion.put("7b5b13", "7b5");

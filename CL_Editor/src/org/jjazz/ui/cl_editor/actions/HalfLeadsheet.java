@@ -25,14 +25,9 @@ package org.jjazz.ui.cl_editor.actions;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Logger;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongUtils;
 import static org.jjazz.ui.cl_editor.actions.Bundle.CTL_HalfLeadsheet;
-import org.jjazz.ui.cl_editor.api.CL_Editor;
-import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -68,39 +63,8 @@ public class HalfLeadsheet implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
         assert song != null;
-        ChordLeadSheet cls = song.getChordLeadSheet();
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-        for (ChordLeadSheetItem<?> cli : cls.getItems())
-        {
-            int bar = cli.getPosition().getBar();
-            float beat = cli.getPosition().getBeat();
-            int nbBeats = cls.getSection(bar).getData().getTimeSignature().getNbNaturalBeats();
-            int newBar = bar / 2;
-            float newBeat = (bar % 2 == 0) ? beat / 2f : (nbBeats + beat) / 2f;
-            if (cli instanceof CLI_Section)
-            {
-                if (bar > 0)
-                {
-                    CLI_Section destSection = cls.getSection(newBar);
-                    CLI_Section section = (CLI_Section) cli;
-                    if (destSection.getPosition().getBar() == newBar)
-                    {
-                        // There is already a section at destination bar, just remove the section
-                        cls.removeSection(section);
-                    } else
-                    {
-                        cls.moveSection(section, newBar);
-                    }
-                }
-            } else
-            {
-                cls.moveItem(cli, new Position(newBar, newBeat));
-            }
-        }
-
-        // Update size as well
-        int size = cls.getSize();
-        cls.setSize(size / 2 + size % 2);
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(song.getChordLeadSheet()).startCEdit(undoText);
+        SongUtils.halfChordLeadsheet(song);
+        JJazzUndoManagerFinder.getDefault().get(song.getChordLeadSheet()).endCEdit(undoText);
     }
 }

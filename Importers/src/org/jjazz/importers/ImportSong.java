@@ -35,7 +35,7 @@ import java.util.prefs.Preferences;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongManager;
+import org.jjazz.song.api.SongFactory;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.SongEditorManager;
 import org.openide.awt.ActionID;
@@ -63,7 +63,7 @@ import org.openide.windows.WindowManager;
         })
 @Messages(
         {
-            "CTL_ImportSong=Import Song..."
+            "CTL_ImportSong=Import Songs..."
         })
 public final class ImportSong implements ActionListener
 {
@@ -177,7 +177,7 @@ public final class ImportSong implements ActionListener
             {
                 // Ok we got the new song show it !
                 song.setFile(null);     // Make sure song is not associated with the import file
-                SongManager.getInstance().registerSong(song);
+                SongFactory.getInstance().registerSong(song);
                 SongEditorManager.getInstance().showSong(song);
             }
         }

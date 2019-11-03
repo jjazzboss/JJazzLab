@@ -50,7 +50,7 @@ import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationContext;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongManager;
+import org.jjazz.song.api.SongFactory;
 import org.jjazz.ui.utilities.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -130,7 +130,7 @@ public class ExportToMidiFile extends AbstractAction
         }
 
         // Work on a copy
-        SongManager sf = SongManager.getInstance();
+        SongFactory sf = SongFactory.getInstance();
         Song songCopy = sf.getCopy(song);
 
         // Build the sequence

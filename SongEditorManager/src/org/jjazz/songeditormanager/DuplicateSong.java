@@ -25,7 +25,7 @@ package org.jjazz.songeditormanager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongManager;
+import org.jjazz.song.api.SongFactory;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -62,7 +62,7 @@ public final class DuplicateSong implements ActionListener
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        SongManager sf = SongManager.getInstance();
+        SongFactory sf = SongFactory.getInstance();
         Song newSong = sf.getCopy(song);
         newSong.setName(song.getName() + " Copy" + counter);
         newSong.resetNeedSave();;

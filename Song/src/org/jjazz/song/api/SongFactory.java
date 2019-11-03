@@ -44,14 +44,14 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * Manage the creation ad the registration of the songs.
+ * Manage the creation and the registration of the songs.
  * <p>
  * All songs created by this factory are automatically registered. Registered songs are unregistered when song is closed.
  */
-public class SongManager implements PropertyChangeListener
+public class SongFactory implements PropertyChangeListener
 {
 
-    static private SongManager INSTANCE;
+    static private SongFactory INSTANCE;
     // Use WeakReference to avoid a memory leak if for some reason a closed song was not unregistered. Integer value is not used. 
     private WeakHashMap<Song, Integer> songs;
     /**
@@ -59,21 +59,21 @@ public class SongManager implements PropertyChangeListener
      */
     private static int counter = 1;
 
-    private static final Logger LOGGER = Logger.getLogger(SongManager.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(SongFactory.class.getSimpleName());
 
-    static public SongManager getInstance()
+    static public SongFactory getInstance()
     {
-        synchronized (SongManager.class)
+        synchronized (SongFactory.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new SongManager();
+                INSTANCE = new SongFactory();
             }
         }
         return INSTANCE;
     }
 
-    private SongManager()
+    private SongFactory()
     {
         songs = new WeakHashMap<>();
     }
@@ -129,7 +129,7 @@ public class SongManager implements PropertyChangeListener
      * @param f
      * @return Null if problem.
      */
-    public Song loadFromFile(File f)
+    public Song createFromFile(File f)
     {
         if (f == null)
         {

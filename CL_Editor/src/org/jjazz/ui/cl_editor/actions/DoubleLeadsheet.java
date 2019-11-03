@@ -24,13 +24,10 @@ package org.jjazz.ui.cl_editor.actions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongUtils;
 import static org.jjazz.ui.cl_editor.actions.Bundle.CTL_DoubleLeadsheet;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
@@ -68,40 +65,8 @@ public class DoubleLeadsheet implements ActionListener
     {
         assert song != null;
         ChordLeadSheet cls = song.getChordLeadSheet();
-
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-
-        // Update size     
-        cls.setSize(cls.getSize() * 2);
-
-        // Move items
-        List<ChordLeadSheetItem<?>> items = cls.getItems();
-        for (int i = items.size() - 1; i >= 0; i--)
-        {
-            ChordLeadSheetItem<?> cli = items.get(i);
-            int bar = cli.getPosition().getBar();
-            float beat = cli.getPosition().getBeat();
-            int nbBeats = cls.getSection(bar).getData().getTimeSignature().getNbNaturalBeats();
-            int newBar = bar * 2;
-            float newBeat = beat * 2;
-            if (newBeat >= nbBeats)
-            {
-                newBar++;
-                newBeat -= nbBeats;
-            }
-            if (cli instanceof CLI_Section)
-            {
-                CLI_Section section = (CLI_Section) cli;
-                if (bar > 0)
-                {
-                    cls.moveSection(section, newBar);
-                }
-            } else
-            {
-                cls.moveItem(cli, new Position(newBar, newBeat));
-            }
-        }
-
+        SongUtils.doubleChordLeadsheet(song);
         JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
     }
 }

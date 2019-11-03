@@ -36,7 +36,7 @@ import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongManager;
+import org.jjazz.song.api.SongFactory;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.undomanager.JJazzUndoManager;
@@ -170,8 +170,8 @@ public class SongEditorManager implements PropertyChangeListener
                 return s;
             }
         }
-        SongManager sf = SongManager.getInstance();
-        Song song = sf.loadFromFile(f);
+        SongFactory sf = SongFactory.getInstance();
+        Song song = sf.createFromFile(f);
         if (song != null)
         {
             showSong(song);

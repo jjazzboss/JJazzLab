@@ -31,7 +31,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongManager;
+import org.jjazz.song.api.SongFactory;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -54,7 +54,7 @@ public final class SampleSong implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
         // Create the song
-        SongManager sf = SongManager.getInstance();
+        SongFactory sf = SongFactory.getInstance();
         Song song = createSample12BarsSong(sf.getNewSongName(), 32, 120);
         SongEditorManager.getInstance().showSong(song);
     }
@@ -75,7 +75,7 @@ public final class SampleSong implements ActionListener
         }
         ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
         ChordLeadSheet cls = clsf.createSampleLeadSheet12bars("A", clsSize);
-        SongManager sf = SongManager.getInstance();
+        SongFactory sf = SongFactory.getInstance();
         Song song = null;
         try
         {

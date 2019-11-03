@@ -32,7 +32,7 @@ import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongManager;
+import org.jjazz.song.api.SongFactory;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -71,13 +71,13 @@ public final class NewSong implements ActionListener
      */
     static public Song createSongFromTemplate()
     {
-        SongManager sf = SongManager.getInstance();
+        SongFactory sf = SongFactory.getInstance();
         Song song = null;
         String name = sf.getNewSongName();
         File songTemplateFile = FileDirectoryManager.getInstance().getNewSongTemplateSongFile();
         if (songTemplateFile.exists())
         {
-            song = sf.loadFromFile(songTemplateFile);
+            song = sf.createFromFile(songTemplateFile);
             if (song != null)
             {
                 MidiMixManager mmm = MidiMixManager.getInstance();

@@ -32,7 +32,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongManager;
+import org.jjazz.song.api.SongFactory;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -55,7 +55,7 @@ public final class RandomSong implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
         // Create the song
-        SongManager sf = SongManager.getInstance();
+        SongFactory sf = SongFactory.getInstance();
         Song song = createRandomSong(sf.getNewSongName(), 16, 120);
         SongEditorManager.getInstance().showSong(song);
     }
@@ -74,7 +74,7 @@ public final class RandomSong implements ActionListener
         {
             throw new IllegalArgumentException("name=" + name + " clsSize=" + clsSize + " tempo=" + tempo);
         }
-        SongManager sf = SongManager.getInstance();
+        SongFactory sf = SongFactory.getInstance();
         ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
         Song song = null;
         int robustness = 10;

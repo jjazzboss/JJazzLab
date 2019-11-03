@@ -61,7 +61,7 @@ import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationContext;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongManager;
+import org.jjazz.song.api.SongFactory;
 import org.openide.util.NbBundle.Messages;
 import org.jjazz.songstructure.api.SongStructure;
 
@@ -251,7 +251,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             try
             {
                 // Work on a copy
-                SongManager sf = SongManager.getInstance();
+                SongFactory sf = SongFactory.getInstance();
                 if (songCopy != null)
                 {
                     songCopy.close(false);          // Don't release rhythm resources since it's a working copy
