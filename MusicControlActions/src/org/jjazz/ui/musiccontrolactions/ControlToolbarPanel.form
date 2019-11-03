@@ -231,6 +231,12 @@
       </AuxValues>
     </Component>
     <Container class="javax.swing.JPanel" name="panel_Tempo">
+      <Properties>
+        <Property name="opaque" type="boolean" value="false"/>
+      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JPanel() {&#xa;    @Override&#xa;    public java.awt.Dimension getMaximumSize() {&#xa;        return getMinimumSize();&#xa;    }&#xa;};"/>
+      </AuxValues>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout">
         <Property name="axis" type="int" value="1"/>

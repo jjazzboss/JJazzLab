@@ -113,7 +113,6 @@ final class EditorPanel extends javax.swing.JPanel
         lbl_color.setEnabled(false);
 
         tf_font.setEditable(false);
-        tf_font.setText(org.openide.util.NbBundle.getMessage(EditorPanel.class, "EditorPanel.tf_font.text")); // NOI18N
         tf_font.setEnabled(false);
 
         cb_color.setEnabled(false);

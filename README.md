@@ -41,10 +41,12 @@ From Netbeans IDE:
 
 Contributions welcome ! 
 
-You can:
+[Guide to first contributions](https://github.com/firstcontributions/first-contributions/blob/master/README.md)
 
-- provide feedback: what features you like/you don't like/you'd like to see
-- submit bug reports as GitHub issues
+Contributing does not necessarily mean coding. You can:
+
+- submit bug reports or feature requests as GitHub issues
+- write docs, html or video tutorials
 - update the code: as a starting point you can browse the issues labelled as *good first issue*
 - develop your own rhythm generation engine: see the Developer's documentation below
 
