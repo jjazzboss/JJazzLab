@@ -228,7 +228,14 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         fbtn_Loop = new org.jjazz.ui.flatcomponents.FlatToggleButton();
         fbtn_PlaybackPoint = new org.jjazz.ui.flatcomponents.FlatToggleButton();
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(15, 0), new java.awt.Dimension(15, 0), new java.awt.Dimension(15, 32767));
-        panel_Tempo = new javax.swing.JPanel();
+        panel_Tempo = new javax.swing.JPanel()
+        {
+            @Override
+            public java.awt.Dimension getMaximumSize()
+            {
+                return getMinimumSize();
+            }
+        };
         filler6 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
         spn_Tempo = new org.jjazz.ui.utilities.WheelSpinner();
         filler7 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
@@ -290,6 +297,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         add(fbtn_PlaybackPoint);
         add(filler5);
 
+        panel_Tempo.setOpaque(false);
         panel_Tempo.setLayout(new javax.swing.BoxLayout(panel_Tempo, javax.swing.BoxLayout.Y_AXIS));
         panel_Tempo.add(filler6);
 
