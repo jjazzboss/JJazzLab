@@ -144,7 +144,7 @@ public class PlayFromHere extends AbstractAction implements LookupListener
 
         if (playFromBar == -1)
         {
-            String msg = "Can't play from here. Click first on a bar in the chord leadsheet editor, or on a song part in the song structure editor.";
+            String msg = "Can't play from here. Click first on a valid bar in the chord leadsheet editor, or on a song part in the song structure editor.";
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;

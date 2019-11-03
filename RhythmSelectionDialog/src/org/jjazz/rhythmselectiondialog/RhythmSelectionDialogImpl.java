@@ -152,6 +152,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             rhythmDatabaseChanged();
             assert rhythmProvidersListContains(presetRhythmProvider) : "presetRhythmProvider=" + presetRhythmProvider;
         }
+        list_RhythmProviders.clearSelection();      // Make sure the rhythm table will be updated by next line
         list_RhythmProviders.setSelectedValue(presetRhythmProvider, true);  // This will update the rhythm table        
 
         // Select the preset rhythm and make it visible
