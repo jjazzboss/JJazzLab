@@ -22,10 +22,11 @@
  */
 package org.jjazz.ui.ss_editor;
 
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.dnd.DropTargetDragEvent;
@@ -63,8 +64,7 @@ import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.ui.sptviewer.api.SptViewer;
 import org.jjazz.ui.sptviewer.api.SptViewerFactory;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.api.RL_EditorMouseListener;
-import org.jjazz.ui.ss_editor.api.RL_EditorSettings;
+import org.jjazz.ui.ss_editor.api.SS_EditorSettings;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.ui.utilities.Zoomable;
@@ -84,6 +84,7 @@ import org.openide.util.NbBundle;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.ss_editor.api.SS_EditorMouseListener;
 
 /**
  * An implementation of the SongStructure editor.
@@ -92,7 +93,7 @@ import org.jjazz.songstructure.api.SongPart;
         {
             "CTL_SaveCancelled=Save cancelled by user"
         })
-public class RL_EditorImpl extends SS_Editor implements PropertyChangeListener, SgsChangeListener, MouseListener, MouseWheelListener
+public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, SgsChangeListener, MouseListener, MouseWheelListener
 {
 
     // UI variables
@@ -109,7 +110,7 @@ public class RL_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     /**
      * Our controller.
      */
-    private RL_EditorMouseListener controller;
+    private SS_EditorMouseListener controller;
     /**
      * Our UndoManager.
      */
@@ -145,7 +146,7 @@ public class RL_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     /**
      * Our Drag and Drop handler for this editor and SptViewers.
      */
-    private RL_EditorTransferHandler transferHandler;
+    private SS_EditorTransferHandler transferHandler;
     /**
      * Our listener to manager the drops disturbed with a focus change.
      */
@@ -166,13 +167,13 @@ public class RL_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     /**
      * Editor settings.
      */
-    private RL_EditorSettings settings;
-    private static final Logger LOGGER = Logger.getLogger(RL_EditorImpl.class.getSimpleName());
+    private SS_EditorSettings settings;
+    private static final Logger LOGGER = Logger.getLogger(SS_EditorImpl.class.getSimpleName());
 
     /**
      * Creates new form RL_EditorImpl
      */
-    public RL_EditorImpl(Song song)
+    public SS_EditorImpl(Song song)
     {
         if (song == null)
         {
@@ -206,7 +207,7 @@ public class RL_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         insertionMarkSptIndex = -1;
 
         // Our drag & drop handler for this editor 
-        transferHandler = new RL_EditorTransferHandler(this);
+        transferHandler = new SS_EditorTransferHandler(this);
         setTransferHandler(transferHandler);
         dropTargetListener = new DTListener();
 
@@ -225,7 +226,7 @@ public class RL_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         mapRhythmVisibleRps = new SmallMap<>();
 
         // Listen to settings changes
-        settings = RL_EditorSettings.getDefault();
+        settings = SS_EditorSettings.getDefault();
         settings.addPropertyChangeListener(this);
 
         // Graphical init
@@ -315,7 +316,7 @@ public class RL_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     }
 
     @Override
-    public void setController(RL_EditorMouseListener controller)
+    public void setController(SS_EditorMouseListener controller)
     {
         this.controller = controller;
         for (SptViewer sptv : this.getSptViewers())
@@ -328,7 +329,7 @@ public class RL_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     public void cleanup()
     {
         // Unselect everything
-        RL_SelectionUtilities selection = new RL_SelectionUtilities(selectionLookup);
+        SS_SelectionUtilities selection = new SS_SelectionUtilities(selectionLookup);
         selection.unselectAll(this);
 
         settings.removePropertyChangeListener(this);
@@ -634,6 +635,20 @@ public class RL_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     }
 
     @Override
+    public void setZoomHFactorToFitWidth(int width)
+    {
+        if (width < 0)
+        {
+            throw new IllegalArgumentException("width=" + width);
+        }
+        setZoomHFactor(100);
+        while (getZoomHFactor() > 0 && getPreferredSize().width > width)
+        {
+            setZoomHFactor(Math.max(0, getZoomHFactor() - 2));
+        }
+    }
+
+    @Override
     public void setZoomHFactor(int factor)
     {
         if (factor < 0 || factor > 100)
@@ -687,6 +702,21 @@ public class RL_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     public int getZoomVFactor()
     {
         return zoomVFactor;
+    }
+
+    @Override
+    public SongPart getFocusedSongPart(boolean includeFocusedRhythmParameter)
+    {
+        SongPart spt = null;
+        Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        if (c instanceof SptViewer)
+        {
+            spt = ((SptViewer) c).getModel();
+        } else if (includeFocusedRhythmParameter && (c instanceof RpViewer))
+        {
+            spt = ((RpViewer) c).getSptModel();
+        }
+        return spt;
     }
 
     //------------------------------------------------------------------------------
@@ -775,7 +805,7 @@ public class RL_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                     List<SongPart> newSpts = re.getNewSpts();
 
                     // Save selection so we can restore it the best we can after replacing
-                    RL_SelectionUtilities previousSelection = new RL_SelectionUtilities(selectionLookup);
+                    SS_SelectionUtilities previousSelection = new SS_SelectionUtilities(selectionLookup);
 
                     // Update the viewers
                     for (int i = 0; i < oldSpts.size(); i++)

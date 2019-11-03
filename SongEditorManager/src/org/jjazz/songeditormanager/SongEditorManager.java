@@ -38,7 +38,7 @@ import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongManager;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.ui.ss_editor.api.RL_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.windows.Mode;
@@ -131,18 +131,18 @@ public class SongEditorManager implements PropertyChangeListener
                 Mode mode = WindowManager.getDefault().findMode("editor");
                 mode.dockInto(clTC);
                 clTC.open();
-
-                RL_EditorTopComponent rlTC = new RL_EditorTopComponent(song);
+                
+                SS_EditorTopComponent ssTC = new SS_EditorTopComponent(song);
                 mode = WindowManager.getDefault().findMode("output");
-                mode.dockInto(rlTC);
-                rlTC.open();
+                mode.dockInto(ssTC);
+                ssTC.open();
 
                 // Bind the editors together
-                clTC.setPairedTopComponent(rlTC);
-                rlTC.setPairedTopComponent(clTC);
+                clTC.setPairedTopComponent(ssTC);
+                ssTC.setPairedTopComponent(clTC);
                 clTC.requestActive();
                 song.addPropertyChangeListener(SongEditorManager.this);
-                mapSongEditors.put(song, new Editors(clTC, rlTC));
+                mapSongEditors.put(song, new Editors(clTC, ssTC));
                 pcs.firePropertyChange(PROP_SONG_OPENED, false, song);
 
                 updateActiveSong();
@@ -311,9 +311,9 @@ public class SongEditorManager implements PropertyChangeListener
     {
 
         private CL_EditorTopComponent tcCle;
-        private RL_EditorTopComponent tcRle;
+        private SS_EditorTopComponent tcRle;
 
-        protected Editors(CL_EditorTopComponent tcCle, RL_EditorTopComponent tcRle)
+        protected Editors(CL_EditorTopComponent tcCle, SS_EditorTopComponent tcRle)
         {
             this.tcCle = tcCle;
             this.tcRle = tcRle;
@@ -324,7 +324,7 @@ public class SongEditorManager implements PropertyChangeListener
             return tcCle;
         }
 
-        public RL_EditorTopComponent getTcRle()
+        public SS_EditorTopComponent getTcRle()
         {
             return tcRle;
         }

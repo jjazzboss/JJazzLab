@@ -33,22 +33,22 @@ import org.openide.util.WeakListeners;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * A helper class to write RL_Editor context aware actions.
+ * A helper class to write SS_Editor context aware actions.
  * <p>
  * Listen to RhyhmPart or SongPartParameter presence in the lookup. Fire the corresponding events to listeners.
  */
-public class RL_ContextActionSupport
+public class SS_ContextActionSupport
 {
 
-    static private RL_ContextActionSupport INSTANCE;
+    static private SS_ContextActionSupport INSTANCE;
     private Lookup context;
     private Lookup.Result<SongPartParameter> sptpLkpResult;
     private LookupListener sptpLkpListener;
     private Lookup.Result<SongPart> sptLkpResult;
     private LookupListener sptLkpListener;
-    private RL_SelectionUtilities selection;
-    private ArrayList<RL_ContextActionListener> listeners;
-    private static final Logger LOGGER = Logger.getLogger(RL_ContextActionSupport.class.getSimpleName());
+    private SS_SelectionUtilities selection;
+    private ArrayList<SS_ContextActionListener> listeners;
+    private static final Logger LOGGER = Logger.getLogger(SS_ContextActionSupport.class.getSimpleName());
 
     /**
      * If context == Utilities.actionsGlobalContext() return a shared instance. Otherwise return a new specific object.
@@ -56,27 +56,27 @@ public class RL_ContextActionSupport
      * @param context
      * @return
      */
-    static public RL_ContextActionSupport getInstance(Lookup context)
+    static public SS_ContextActionSupport getInstance(Lookup context)
     {
-        RL_ContextActionSupport o;
-        synchronized (RL_ContextActionSupport.class)
+        SS_ContextActionSupport o;
+        synchronized (SS_ContextActionSupport.class)
         {
             if (context == Utilities.actionsGlobalContext())
             {
                 if (INSTANCE == null)
                 {
-                    INSTANCE = new RL_ContextActionSupport(context);
+                    INSTANCE = new SS_ContextActionSupport(context);
                 }
                 o = INSTANCE;
             } else
             {
-                o = new RL_ContextActionSupport(context);
+                o = new SS_ContextActionSupport(context);
             }
         }
         return o;
     }
 
-    private RL_ContextActionSupport(Lookup context)
+    private SS_ContextActionSupport(Lookup context)
     {
         if (context == null)
         {
@@ -133,12 +133,12 @@ public class RL_ContextActionSupport
     /**
      * @return The latest selection.
      */
-    public final RL_SelectionUtilities getSelection()
+    public final SS_SelectionUtilities getSelection()
     {
         return selection;
     }
 
-    public void addListener(RL_ContextActionListener l)
+    public void addListener(SS_ContextActionListener l)
     {
         if (!listeners.contains(l))
         {
@@ -146,7 +146,7 @@ public class RL_ContextActionSupport
         }
     }
 
-    public void removeListener(RL_ContextActionListener l)
+    public void removeListener(SS_ContextActionListener l)
     {
         listeners.remove(l);
     }
@@ -164,7 +164,7 @@ public class RL_ContextActionSupport
             })
     private void sptpPresenceChanged()
     {
-        selection = new RL_SelectionUtilities(context);
+        selection = new SS_SelectionUtilities(context);
         fireSelectionChanged(selection);
     }
 
@@ -178,13 +178,13 @@ public class RL_ContextActionSupport
             })
     private void sptPresenceChanged()
     {
-        selection = new RL_SelectionUtilities(context);
+        selection = new SS_SelectionUtilities(context);
         fireSelectionChanged(selection);
     }
 
-    private void fireSelectionChanged(RL_SelectionUtilities selection)
+    private void fireSelectionChanged(SS_SelectionUtilities selection)
     {
-        for (RL_ContextActionListener l : listeners)
+        for (SS_ContextActionListener l : listeners)
         {
             l.selectionChange(selection);
         }

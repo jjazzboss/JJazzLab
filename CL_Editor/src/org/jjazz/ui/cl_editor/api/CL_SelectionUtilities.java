@@ -201,7 +201,11 @@ final public class CL_SelectionUtilities
             res = items.get(0).getPosition().getBar();
         } else if (isBarSelected())
         {
-            res = selectedBars.get(0).getModelBarIndex();
+            int barIndex = selectedBars.get(0).getModelBarIndex();
+            if (barIndex != SelectedBar.POST_END_BAR_MODEL_BAR_INDEX)
+            {
+                res = barIndex;
+            }
         }
         return res;
     }
@@ -336,7 +340,7 @@ final public class CL_SelectionUtilities
     /**
      * Get the selected bars sorted by position.
      *
-     * @return Can be empty if isBarboxSelected() returns true.
+     * @return Can be empty if isItemSelected() returns true.
      */
     public List<SelectedBar> getSelectedBars()
     {
@@ -363,7 +367,7 @@ final public class CL_SelectionUtilities
     /**
      * Same as getSelectedBars() but limited to bars within the chordleadsheet's range.
      *
-     * @return Can be empty if isBarboxSelected() returns true.
+     * @return Can be empty if isItemSelected() returns true.
      */
     public List<SelectedBar> getSelectedBarsWithinCls()
     {

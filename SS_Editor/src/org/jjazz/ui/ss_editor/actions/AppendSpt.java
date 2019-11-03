@@ -34,7 +34,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
-import org.jjazz.ui.ss_editor.api.RL_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -69,12 +69,12 @@ public class AppendSpt extends AbstractAction
     public void actionPerformed(ActionEvent e)
     {
         // LOGGER.log(Level.FINE, "actionPerformed()");
-        RL_EditorTopComponent tc = RL_EditorTopComponent.getActive();
+        SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
         if (tc == null)
         {
             return;
         }
-        SongStructure sgs = tc.getRL_Editor().getModel();
+        SongStructure sgs = tc.getSS_Editor().getModel();
         List<SongPart> spts = sgs.getSongParts();
         ChordLeadSheet cls = sgs.getParentChordLeadSheet();
         if (cls == null)

@@ -22,8 +22,7 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
-import org.jjazz.ui.ss_editor.api.RL_ContextActionSupport;
-import org.jjazz.ui.ss_editor.api.RL_ContextActionListener;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +33,7 @@ import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
@@ -47,6 +46,7 @@ import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.nextrpvalue")
 @ActionRegistration(displayName = "#CTL_NextRpValue", lazy = false)
@@ -55,11 +55,11 @@ import org.jjazz.songstructure.api.SongPart;
             @ActionReference(path = "Actions/RhythmParameter", position = 400),
         })
 @Messages("CTL_NextRpValue=Next Value")
-public final class NextRpValue extends AbstractAction implements ContextAwareAction, RL_ContextActionListener
+public final class NextRpValue extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
-    private RL_ContextActionSupport cap;
+    private SS_ContextActionSupport cap;
     private String undoText = CTL_NextRpValue();
     private static final Logger LOGGER = Logger.getLogger(NextRpValue.class.getSimpleName());
 
@@ -71,7 +71,7 @@ public final class NextRpValue extends AbstractAction implements ContextAwareAct
     public NextRpValue(Lookup context)
     {
         this.context = context;
-        cap = RL_ContextActionSupport.getInstance(this.context);
+        cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, CTL_NextRpValue());                          // For popupmenu display only
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control UP"));    // For popupmenu display only
@@ -84,7 +84,7 @@ public final class NextRpValue extends AbstractAction implements ContextAwareAct
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        RL_SelectionUtilities selection = cap.getSelection();
+        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         LOGGER.log(Level.FINE, "actionPerformed() sgs=" + sgs + " selection=" + selection);
         JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
@@ -99,7 +99,7 @@ public final class NextRpValue extends AbstractAction implements ContextAwareAct
     }
 
     @Override
-    public void selectionChange(RL_SelectionUtilities selection)
+    public void selectionChange(SS_SelectionUtilities selection)
     {
         boolean b = selection.isRhythmParameterSelected();
         setEnabled(b);

@@ -27,18 +27,18 @@ import java.beans.PropertyChangeListener;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
-import org.jjazz.ui.ss_editor.api.RL_EditorSettings;
+import org.jjazz.ui.ss_editor.api.SS_EditorSettings;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
-@ServiceProvider(service = RL_EditorSettings.class)
-public class RL_EditorSettingsImpl extends RL_EditorSettings
+@ServiceProvider(service = SS_EditorSettings.class)
+public class SS_EditorSettingsImpl extends SS_EditorSettings
 {
 
     /**
      * The Preferences of this object.
      */
-    private static Preferences prefs = NbPreferences.forModule(RL_EditorSettingsImpl.class);
+    private static Preferences prefs = NbPreferences.forModule(SS_EditorSettingsImpl.class);
 
     /**
      * The listeners for changes of this object.

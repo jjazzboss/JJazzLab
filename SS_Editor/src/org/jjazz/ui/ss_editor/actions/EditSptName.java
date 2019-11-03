@@ -22,8 +22,7 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
-import org.jjazz.ui.ss_editor.api.RL_ContextActionSupport;
-import org.jjazz.ui.ss_editor.api.RL_ContextActionListener;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -39,8 +38,8 @@ import javax.swing.JDialog;
 import javax.swing.KeyStroke;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.api.RL_EditorTopComponent;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.ui.flatcomponents.FlatTextEditDialog;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
@@ -53,6 +52,7 @@ import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.editsptname")
 @ActionRegistration(displayName = "#CTL_EditSptName", lazy = false)
@@ -61,11 +61,11 @@ import org.jjazz.songstructure.api.SongPart;
             @ActionReference(path = "Actions/SongPart", position = 50)
         })
 @NbBundle.Messages("CTL_EditSptName=Rename...")
-public class EditSptName extends AbstractAction implements ContextAwareAction, RL_ContextActionListener
+public class EditSptName extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
-    private RL_ContextActionSupport cap;
+    private SS_ContextActionSupport cap;
     private String undoText = CTL_EditSptName();
     private static final Logger LOGGER = Logger.getLogger(EditSptName.class.getSimpleName());
 
@@ -77,7 +77,7 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, R
     public EditSptName(Lookup context)
     {
         this.context = context;
-        cap = RL_ContextActionSupport.getInstance(this.context);
+        cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("ENTER"));
@@ -88,7 +88,7 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, R
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        RL_SelectionUtilities selection = cap.getSelection();
+        SS_SelectionUtilities selection = cap.getSelection();
         LOGGER.log(Level.FINE, "actionPerformed() selection=" + selection.toString());
         List<SongPart> spts = selection.getIndirectlySelectedSongParts();
         SongPart spt0 = spts.get(0);
@@ -112,7 +112,7 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, R
     }
 
     @Override
-    public void selectionChange(RL_SelectionUtilities selection)
+    public void selectionChange(SS_SelectionUtilities selection)
     {
         boolean b = selection.isOneSectionSptSelection();
         LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
@@ -127,7 +127,7 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, R
 
     private void adjustDialogPosition(JDialog dialog, SongPart spt)
     {
-        SS_Editor editor = RL_EditorTopComponent.getActive().getRL_Editor();
+        SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
         Rectangle r = editor.getSptViewerRectangle(spt);
         Point p = r.getLocation();
         //int x = p.x - ((dialog.getWidth() - r.width) / 2);

@@ -23,19 +23,18 @@
 package org.jjazz.ui.ss_editor.api;
 
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.ss_editor.RL_EditorFactoryImpl;
-import org.jjazz.undomanager.JJazzUndoManager;
+import org.jjazz.ui.ss_editor.SS_EditorFactoryImpl;
 import org.openide.util.Lookup;
 
-public abstract class RL_EditorFactory
+public abstract class SS_EditorFactory
 {
 
-    public static RL_EditorFactory getDefault()
+    public static SS_EditorFactory getDefault()
     {
-        RL_EditorFactory rlef = Lookup.getDefault().lookup(RL_EditorFactory.class);
+        SS_EditorFactory rlef = Lookup.getDefault().lookup(SS_EditorFactory.class);
         if (rlef == null)
         {
-            rlef = RL_EditorFactoryImpl.getInstance();
+            rlef = SS_EditorFactoryImpl.getInstance();
         }
         return rlef;
     }

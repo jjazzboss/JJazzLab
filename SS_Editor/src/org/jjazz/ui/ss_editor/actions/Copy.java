@@ -22,8 +22,7 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
-import org.jjazz.ui.ss_editor.api.RL_ContextActionSupport;
-import org.jjazz.ui.ss_editor.api.RL_ContextActionListener;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import javax.swing.AbstractAction;
@@ -34,8 +33,8 @@ import javax.swing.KeyStroke;
 import org.jjazz.ui.ss_editor.api.CopyBuffer;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.api.RL_EditorTopComponent;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -45,6 +44,7 @@ import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.copy")
 @ActionRegistration(displayName = "#CTL_Copy", lazy = false)
@@ -53,11 +53,11 @@ import org.jjazz.songstructure.api.SongPart;
             @ActionReference(path = "Actions/SongPart", position = 1100),
         })
 @NbBundle.Messages("CTL_Copy=Copy")
-public class Copy extends AbstractAction implements ContextAwareAction, RL_ContextActionListener
+public class Copy extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
-    private RL_ContextActionSupport cap;
+    private SS_ContextActionSupport cap;
     private String undoText = CTL_Copy();
 
     public Copy()
@@ -68,7 +68,7 @@ public class Copy extends AbstractAction implements ContextAwareAction, RL_Conte
     private Copy(Lookup context)
     {
         this.context = context;
-        cap = RL_ContextActionSupport.getInstance(this.context);
+        cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control C"));
@@ -84,13 +84,13 @@ public class Copy extends AbstractAction implements ContextAwareAction, RL_Conte
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        RL_SelectionUtilities selection = cap.getSelection();
+        SS_SelectionUtilities selection = cap.getSelection();
         CopyBuffer buffer = CopyBuffer.getInstance();
         List<SongPart> spts = selection.getSelectedSongParts();
         buffer.put(spts);
         // Force a selection change so that the Paste action enabled status can be updated 
         // (otherwise Paste action will not see that CopyBuffer is no more empty)
-        SS_Editor editor = RL_EditorTopComponent.getActive().getRL_Editor();
+        SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
         selection.unselectAll(editor);
         for (SongPart spt : spts)
         {
@@ -99,7 +99,7 @@ public class Copy extends AbstractAction implements ContextAwareAction, RL_Conte
     }
 
     @Override
-    public void selectionChange(RL_SelectionUtilities selection)
+    public void selectionChange(SS_SelectionUtilities selection)
     {
         setEnabled(selection.isSongPartSelected() && selection.isOneSectionSptSelection());
     }

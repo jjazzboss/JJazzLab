@@ -29,8 +29,8 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.api.RL_EditorTopComponent;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.ui.sptviewer.api.SptViewer;
 import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.songstructure.api.SongPart;
@@ -41,7 +41,7 @@ public class MoveSelectionDown extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        SS_Editor editor = RL_EditorTopComponent.getActive().getRL_Editor();
+        SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
         Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
         if (c instanceof RpViewer)
         {
@@ -53,7 +53,7 @@ public class MoveSelectionDown extends AbstractAction
             if (rpIndex < rps.size() - 1)
             {
                 // Go to RhythmParameter below
-                RL_SelectionUtilities selection = new RL_SelectionUtilities(editor.getLookup());
+                SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
                 selection.unselectAll(editor);
                 editor.selectRhythmParameter(spt, rps.get(rpIndex + 1), true);
                 editor.setFocusOnRhythmParameter(spt, rps.get(rpIndex + 1));
@@ -63,7 +63,7 @@ public class MoveSelectionDown extends AbstractAction
             SptViewer rpv = ((SptViewer) c);
             SongPart spt = rpv.getModel();
             RhythmParameter<?> firstRp = spt.getRhythm().getRhythmParameters().get(0);
-            RL_SelectionUtilities selection = new RL_SelectionUtilities(editor.getLookup());
+            SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
             selection.unselectAll(editor);
             editor.selectRhythmParameter(spt, firstRp, true);
             editor.setFocusOnRhythmParameter(spt, firstRp);

@@ -26,15 +26,15 @@ import java.awt.Color;
 import java.beans.PropertyChangeListener;
 import org.openide.util.Lookup;
 
-public abstract class RL_EditorSettings
+public abstract class SS_EditorSettings
 {
 
     public static String PROP_BACKGROUND_COLOR = "BackgroundColor";
     public static String PROP_TOP_BACKGROUND_COLOR = "TopBackgroundColor";
 
-    public static RL_EditorSettings getDefault()
+    public static SS_EditorSettings getDefault()
     {
-        RL_EditorSettings result = Lookup.getDefault().lookup(RL_EditorSettings.class);
+        SS_EditorSettings result = Lookup.getDefault().lookup(SS_EditorSettings.class);
         if (result == null)
         {
             throw new NullPointerException("result=" + result);

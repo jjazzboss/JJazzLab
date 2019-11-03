@@ -49,6 +49,12 @@ import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
 import org.openide.windows.WindowManager;
 
+/**
+ * The import song action.
+ * 
+ * @todo If several SongImporter.PostProcessor instances are available in the lookup, the UI should ask the user which one should be used.
+ * 
+ */
 @ActionID(category = "File", id = "org.jjazz.songeditormanager.ImportSong")
 @ActionRegistration(displayName = "#CTL_ImportSong", lazy = true)
 @ActionReferences(

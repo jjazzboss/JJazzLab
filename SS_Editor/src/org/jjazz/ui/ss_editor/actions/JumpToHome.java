@@ -25,9 +25,9 @@ package org.jjazz.ui.ss_editor.actions;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import org.jjazz.rhythm.parameters.RhythmParameter;
-import org.jjazz.ui.ss_editor.api.RL_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.songstructure.api.SongPart;
 
@@ -37,8 +37,8 @@ public class JumpToHome extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        SS_Editor editor = RL_EditorTopComponent.getActive().getRL_Editor();
-        RL_SelectionUtilities selection = new RL_SelectionUtilities(editor.getLookup());
+        SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
+        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
         SongPart spt = editor.getModel().getSongParts().get(0);
         if (selection.isSongPartSelected() || selection.isEmpty())
         {

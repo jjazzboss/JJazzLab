@@ -22,7 +22,7 @@
  */
 package org.jjazz.ui.ss_editor;
 
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.KeyboardFocusManager;
@@ -51,10 +51,9 @@ import org.jjazz.ui.ss_editor.actions.MoveSelectionRight;
 import org.jjazz.ui.ss_editor.actions.MoveSelectionUp;
 import org.jjazz.ui.sptviewer.api.SptViewer;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.api.RL_EditorMouseListener;
 import org.jjazz.songstructure.api.SongPartParameter;
 import static org.jjazz.ui.ss_editor.Bundle.CTL_SetRpValue;
-import org.jjazz.ui.ss_editor.api.RL_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.Actions;
@@ -64,6 +63,7 @@ import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.ss_editor.api.SS_EditorMouseListener;
 
 /**
  * Controller implementation of a SS_Editor.
@@ -72,7 +72,7 @@ import org.jjazz.songstructure.api.SongPart;
         {
             "CTL_SetRpValue=Set Rhythm Parameter"
         })
-public class RL_EditorController implements RL_EditorMouseListener
+public class SS_EditorController implements SS_EditorMouseListener
 {
 
     /**
@@ -93,9 +93,9 @@ public class RL_EditorController implements RL_EditorMouseListener
      * The RhythmParameter on which a drag was started.
      */
     private RhythmParameter<?> dragStartRp;
-    private static final Logger LOGGER = Logger.getLogger(RL_EditorController.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(SS_EditorController.class.getSimpleName());
 
-    public RL_EditorController(SS_Editor ed)
+    public SS_EditorController(SS_Editor ed)
     {
         editor = ed;
         dragStartSpt = null;
@@ -128,6 +128,7 @@ public class RL_EditorController implements RL_EditorMouseListener
         editor.getActionMap().put("jjazz-delete", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.removespt"));
         editor.getActionMap().put("jjazz-selectall", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.selectall"));
         editor.getActionMap().put("jjazz-edit", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.editsptname"));
+        editor.getActionMap().put("jjazz-zoomfitwidth", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.zoomfitwidth"));
 
 //        // Add keybindings which would be otherwise consumed by enclosing JScrollPane or other enclosing components
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"), "MoveSelectionLeft");
@@ -153,7 +154,7 @@ public class RL_EditorController implements RL_EditorMouseListener
     @Override
     public void editSongPartRhythm(SongPart spt)
     {
-        RL_SelectionUtilities selection = new RL_SelectionUtilities(editor.getLookup());
+        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
         selection.unselectAll(editor);
         editor.selectSongPart(spt, true);
         editor.setFocusOnSongPart(spt);
@@ -170,7 +171,7 @@ public class RL_EditorController implements RL_EditorMouseListener
     @Override
     public void editSongPartName(SongPart spt)
     {
-        RL_SelectionUtilities selection = new RL_SelectionUtilities(editor.getLookup());
+        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
         selection.unselectAll(editor);
         editor.selectSongPart(spt, true);
         editor.setFocusOnSongPart(spt);
@@ -195,7 +196,7 @@ public class RL_EditorController implements RL_EditorMouseListener
             focusedSpt = ((SptViewer) c).getModel();
         }
 
-        RL_SelectionUtilities selection = new RL_SelectionUtilities(editor.getLookup());
+        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
 
         LOGGER.log(Level.FINE, "songPartClicked() spt=" + spt + " multiSelect=" + multiSelect);
 
@@ -371,8 +372,8 @@ public class RL_EditorController implements RL_EditorMouseListener
         // Because wheel action can be enabled even if the TopComponent is inactive, make sure to make our TopComponent active 
         // to avoid possible problems with the global selection 
         SongStructure sgs = editor.getModel();
-        RL_EditorTopComponent rltc = RL_EditorTopComponent.get(sgs);
-        rltc.requestActive();
+        SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(sgs);
+        ssTc.requestActive();
 
         int factor = editor.getZoomHFactor();
         if (e.getPreciseWheelRotation() < 0)
@@ -398,7 +399,7 @@ public class RL_EditorController implements RL_EditorMouseListener
             focusedSpt = ((RpViewer) c).getSptModel();
         }
 
-        RL_SelectionUtilities selection = new RL_SelectionUtilities(editor.getLookup());
+        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
 
         LOGGER.log(Level.FINE, "rhythmParameterClicked() spt=" + spt + " rp=" + rp);
 
@@ -507,7 +508,7 @@ public class RL_EditorController implements RL_EditorMouseListener
             return;
         }
 
-        RL_SelectionUtilities selection = new RL_SelectionUtilities(editor.getLookup());
+        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
         if (!selection.isRhythmParameterSelected(spt, rp))
         {
             return;
@@ -518,8 +519,8 @@ public class RL_EditorController implements RL_EditorMouseListener
         // the RL_ContextActionSupport which listens to selection via the global lookup will have missed the selection change, causing 
         // problems in actions.
         SongStructure sgs = editor.getModel();
-        RL_EditorTopComponent rltc = RL_EditorTopComponent.get(sgs);
-        rltc.requestActive();
+        SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(sgs);
+        ssTc.requestActive();
 
         if (shift)
         {
@@ -558,7 +559,7 @@ public class RL_EditorController implements RL_EditorMouseListener
             // Ctrl or Shift not allowed
             return;
         }
-        RL_SelectionUtilities selection = new RL_SelectionUtilities(editor.getLookup());
+        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
         List<SongPart> spts = editor.getModel().getSongParts();
         if (dragStartSpt == null)
         {

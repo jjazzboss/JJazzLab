@@ -24,42 +24,43 @@ package org.jjazz.ui.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
 import java.beans.PropertyVetoException;
+import java.util.Collection;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongManager;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
-import org.jjazz.ui.cl_editor.api.SelectedBar;
 import static org.jjazz.ui.musiccontrolactions.Bundle.*;
-import org.jjazz.ui.ss_editor.api.RL_EditorTopComponent;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
+import org.openide.util.NbBundle;
+import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.cl_editor.api.CL_Editor;
+import org.jjazz.ui.cl_editor.api.SelectedBar;
+import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
-import org.openide.util.WeakListeners;
-import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.songstructure.api.SongPart;
 
 /**
- * Play music from the 1st selected bar or the 1st song part present in the global lookup.
+ * Play music from the 1st focused bar and/or 1st focused song part.
+ *
+ * Action is enabled as long as there is a Song object in the global lookup.
  */
 @ActionID(category = "MusicControls", id = "org.jjazz.ui.musiccontrolactions.playfromhere")
 @ActionRegistration(displayName = "#CTL_PlayFromHere", lazy = false)
@@ -71,120 +72,79 @@ import org.jjazz.songstructure.api.SongPart;
         })
 @NbBundle.Messages(
         {
-            "CTL_PlayFromHere=Play from here",
+            "CTL_PlayFromHere=Play from Here",
             "CTL_PlayFromHereToolTip=Play from selected bar or song part (ctrl+space)",
-            "ERR_NotActive=Song is not active"
+            "ERR_NotActive=Can't play from here: song is not active"
         })
-public class PlayFromHere extends AbstractAction implements ContextAwareAction
+public class PlayFromHere extends AbstractAction implements LookupListener
 {
 
-    private Lookup context;
-    Lookup.Result<SelectedBar> lkpResultSelectedBar;
-    LookupListener lkpListenerSelectedBar;
-    Lookup.Result<SongPart> lkpResultSongPart;
-    LookupListener lkpListenerSongPart;
+    private final Lookup.Result<Song> lookupResult;
+    private Song song;
     private static final Logger LOGGER = Logger.getLogger(PlayFromHere.class.getSimpleName());
 
     public PlayFromHere()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    private PlayFromHere(Lookup context)
-    {
-        this.context = context;
-        putValue(NAME, CTL_PlayFromHere());
+        putValue(Action.NAME, CTL_PlayFromHere());
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control SPACE"));     // For popup display only     
-    }
 
-    /**
-     * Initialize the lookup listeners.
-     */
-    private void init()
-    {
-        assert SwingUtilities.isEventDispatchThread() : "this shall be called just from AWT thread";
-
-        if (lkpListenerSelectedBar != null)
-        {
-            return;
-        }
-
-        // For WeakReferences to work, we need to keep a strong reference on the listeners (see WeakListeners java doc).
-        lkpListenerSelectedBar = new LookupListener()
-        {
-            @Override
-            public void resultChanged(LookupEvent le)
-            {
-                resultChanged_SelectedBar();
-            }
-        };
-
-        // The things we want to listen for the presence or absence of on the global selection
-        lkpResultSelectedBar = context.lookupResult(SelectedBar.class);
-        // Need to use WeakListeners so than action can be GC'ed
-        // See http://forums.netbeans.org/viewtopic.php?t=35921
-        lkpResultSelectedBar.addLookupListener(WeakListeners.create(LookupListener.class, lkpListenerSelectedBar, lkpResultSelectedBar));
-
-        lkpListenerSongPart = new LookupListener()
-        {
-            @Override
-            public void resultChanged(LookupEvent le)
-            {
-                resultChanged_SongPart();
-            }
-        };
-        lkpResultSongPart = context.lookupResult(SongPart.class);
-        lkpResultSelectedBar.addLookupListener(WeakListeners.create(LookupListener.class, lkpListenerSongPart, lkpResultSongPart));
-
-        resultChanged_SelectedBar();
-        resultChanged_SongPart();
+        // Listen to the current Song changes
+        lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
+        lookupResult.addLookupListener(this);
+        resultChanged(null);
     }
 
     @Override
-    public boolean isEnabled()
+    public void resultChanged(LookupEvent ev)
     {
-        init();
-        return super.isEnabled();
+        Collection<? extends Song> songs = lookupResult.allInstances();
+        song = songs.isEmpty() ? null : songs.iterator().next();
+        setEnabled(song != null);
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        init();
-
-        SongManager sf = SongManager.getInstance();
-        ChordLeadSheet cls;
-        SongStructure sgs;
-        Song song;
-        int fromBar = -1;
-
-        RL_SelectionUtilities sgsSelection = new RL_SelectionUtilities(context);
-        CL_SelectionUtilities clSelection = new CL_SelectionUtilities(context);
-        if (sgsSelection.isSongPartSelected())
-        {
-            // SongPart selected, easy
-            sgs = sgsSelection.getModel();
-            song = sf.findSong(sgs);
-            assert song != null : "sgs=" + sgs;
-            SongPart spt = sgs.getSongParts().get(sgsSelection.getMinStartSptIndex());
-            fromBar = spt.getStartBarIndex() + getClsInSectionBarIndex(spt.getParentSection());
-        } else
-        {
-            // ChordLeadSheet bar selected, if a matching song part is selected use this one, otherwise choose first matching one
-            assert clSelection.isBarSelectedWithinCls() : "clSelection=" + clSelection + " sgsSelection=" + sgsSelection;
-            cls = clSelection.getChordLeadSheet();
-            song = sf.findSong(cls);
-            assert song != null : "cls=" + cls;
-            sgs = song.getSongStructure();
-            fromBar = getSgsBarIndex(clSelection.getMinBarIndexWithinCls(), cls, sgs);
-            assert fromBar != -1 : "clSelection=" + clSelection;
-        }
-
         // Song must be active !
         ActiveSongManager asm = ActiveSongManager.getInstance();
         if (asm.getActiveSong() != song)
         {
             String msg = ERR_NotActive();
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            return;
+        }
+
+        ChordLeadSheet cls = song.getChordLeadSheet();
+        CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
+        assert clTc != null;
+        CL_Editor clEditor = clTc.getCL_Editor();
+
+        SongStructure ss = song.getSongStructure();
+        SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
+        assert ssTc != null;
+        SS_Editor ssEditor = ssTc.getSS_Editor();
+
+        int playFromBar = -1;
+
+        // Where is the focus ?
+        SelectedBar focusedBar;
+        SongPart focusedSpt;
+        if (((focusedBar = clEditor.getFocusedBar(true)) != null) && focusedBar.getModelBarIndex() != SelectedBar.POST_END_BAR_MODEL_BAR_INDEX)
+        {
+            // Focus in the CL_Editor on a valid bar
+            // Try to find a bar in a matching SongPart
+            playFromBar = getSsBarIndex(focusedBar.getModelBarIndex(), cls, ss);            // Can return -1
+        } else if ((focusedSpt = ssEditor.getFocusedSongPart(true)) != null)
+        {
+            // Focus in the SS_Editor
+            CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clTc.getLookup());
+            playFromBar = focusedSpt.getStartBarIndex() + getSelectedBarIndexRelativeToSection(focusedSpt.getParentSection(), clSelection);
+        }
+
+        if (playFromBar == -1)
+        {
+            String msg = "Can't play from here. Click first on a bar in the chord leadsheet editor, or on a song part in the song structure editor.";
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -196,7 +156,7 @@ public class PlayFromHere extends AbstractAction implements ContextAwareAction
         // OK we can go
         try
         {
-            mc.start(song, fromBar);
+            mc.start(song, playFromBar);
         } catch (MusicGenerationException | PropertyVetoException ex)
         {
             if (ex.getMessage() != null)
@@ -207,60 +167,29 @@ public class PlayFromHere extends AbstractAction implements ContextAwareAction
         }
     }
 
-    private void resultChanged_SelectedBar()
-    {
-        // Update the enabled state 
-        boolean b = false;
-        CL_SelectionUtilities clSelection = new CL_SelectionUtilities(context);
-        if (clSelection.isBarSelectedWithinCls())
-        {
-            // Check also there is a corresponding songpart to the selected bar
-            SongManager sf = SongManager.getInstance();
-            SongStructure sgs = sf.findSong(clSelection.getChordLeadSheet()).getSongStructure();
-            b = getSgsBarIndex(clSelection.getMinBarIndexWithinCls(), clSelection.getChordLeadSheet(), sgs) != -1;
-        }
-        setEnabled(b);
-    }
-
-    private void resultChanged_SongPart()
-    {
-        // Update the enabled state 
-        boolean b = new RL_SelectionUtilities(context).isSongPartSelected();
-        setEnabled(b);
-    }
-
-    //=====================================================================================
-    // ContextAwareAction interface
-    //=====================================================================================
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new PlayFromHere(context);
-    }
-
     //=====================================================================================
     // Private methods
-    //=====================================================================================
+    //=====================================================================================     
     /**
-     * Find the corresponding SongStructure bar for a ChordLeadSheet bar.
+     * Find a SongStructure bar from a ChordLeadSheet bar.
      *
      * @param clsBarIndex
      * @param cls
-     * @param sgs
+     * @param ss
      * @return -1 if no corresponding bar.
      */
-    private int getSgsBarIndex(int clsBarIndex, ChordLeadSheet cls, SongStructure sgs)
+    private int getSsBarIndex(int clsBarIndex, ChordLeadSheet cls, SongStructure ss)
     {
         int sgsBarIndex = -1;
         CLI_Section section = cls.getSection(clsBarIndex);
 
-        // If there is a selected spt, try to match it first
-        RL_EditorTopComponent rlTc = RL_EditorTopComponent.get(sgs);
-        assert rlTc != null : "sgs=" + sgs;
-        RL_SelectionUtilities sgsSelection = new RL_SelectionUtilities(rlTc.getLookup());
-        if (sgsSelection.isSongPartSelected())
+        // If there some selected spts, try to match one of them
+        SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
+        assert ssTc != null : "sgs=" + ss;
+        SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssTc.getLookup());
+        if (ssSelection.isSongPartSelected())
         {
-            for (SongPart spt : sgsSelection.getSelectedSongParts())
+            for (SongPart spt : ssSelection.getSelectedSongParts())
             {
                 if (spt.getParentSection() == section)
                 {
@@ -273,8 +202,8 @@ public class PlayFromHere extends AbstractAction implements ContextAwareAction
 
         if (sgsBarIndex == -1)
         {
-            // It did not work, search in the rest of SongPart
-            for (SongPart spt : sgs.getSongParts())
+            // It did not work, search the first SongPart which matches
+            for (SongPart spt : ss.getSongParts())
             {
                 if (spt.getParentSection() == section)
                 {
@@ -293,17 +222,12 @@ public class PlayFromHere extends AbstractAction implements ContextAwareAction
      * @param cliSection The parent section of the selected song part.
      * @return 0 (=start of the section) if no selection in the section
      */
-    private int getClsInSectionBarIndex(CLI_Section cliSection)
+    private int getSelectedBarIndexRelativeToSection(CLI_Section cliSection, CL_SelectionUtilities clSelection)
     {
-        int clsInSectionBarIndex = -1;
-        ChordLeadSheet cls = cliSection.getContainer();
         int sectionStartBar = cliSection.getPosition().getBar();
-        int sectionEndBar = sectionStartBar + cls.getSectionSize(cliSection) - 1;
+        int sectionEndBar = sectionStartBar + cliSection.getContainer().getSectionSize(cliSection) - 1;
 
-        // If there is a selected bar in the parent section, use it
-        CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
-        assert clTc != null : "cliSection=" + cliSection + " cls=" + cls;
-        CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clTc.getLookup());
+        int clsInSectionBarIndex = -1;
         if (clSelection.isBarSelected())
         {
             int minBar = clSelection.getMinBarIndexWithinCls();

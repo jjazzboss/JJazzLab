@@ -26,13 +26,12 @@ import java.util.Objects;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 
 /**
- * An item to represent a selected bar in the chordleadsheet editor.
+ * A class to represent a selected bar in the chordleadsheet editor.
  * <p>
  * This is an immutable class.
  */
 final public class SelectedBar implements Comparable<SelectedBar>
 {
-
     /**
      * The modelBarIndex to use for a selectedBar after the end of the leadsheet.
      */

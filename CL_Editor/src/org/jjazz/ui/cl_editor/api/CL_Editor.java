@@ -94,6 +94,14 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     abstract public Quantization getDisplayQuantizationValue(CLI_Section section);
 
     /**
+     * Get the focused SelectedBar, if any.
+     *
+     * @param includeFocusedItem If true and focus is on a ChordLeadSheetItem, return the SelectedBar for this item.
+     * @return Can be null.
+     */
+    abstract public SelectedBar getFocusedBar(boolean includeFocusedItem);
+
+    /**
      * Set if the bar corresponding to specified section should start on a new line.
      *
      * @param section

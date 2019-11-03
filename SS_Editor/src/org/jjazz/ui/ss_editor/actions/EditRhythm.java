@@ -22,8 +22,7 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
-import org.jjazz.ui.ss_editor.api.RL_ContextActionSupport;
-import org.jjazz.ui.ss_editor.api.RL_ContextActionListener;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +39,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongManager;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
@@ -55,6 +54,7 @@ import org.openide.util.Utilities;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.editrhythm")
 @ActionRegistration(displayName = "#CTL_EditRhythm", lazy = false)
@@ -67,12 +67,12 @@ import org.jjazz.songstructure.api.SongPart;
             "CTL_EditRhythm=Change Rhythm...",
             "ERR_EditRhythm=Impossible to set rhythm"
         })
-public class EditRhythm extends AbstractAction implements ContextAwareAction, RL_ContextActionListener
+public class EditRhythm extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     static private boolean dialogShown = false;
     private Lookup context;
-    private RL_ContextActionSupport cap;
+    private SS_ContextActionSupport cap;
     private String undoText = CTL_EditRhythm();
     private static final Logger LOGGER = Logger.getLogger(EditRhythm.class.getSimpleName());
 
@@ -84,7 +84,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, RL
     private EditRhythm(Lookup context)
     {
         this.context = context;
-        cap = RL_ContextActionSupport.getInstance(this.context);
+        cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("R"));
@@ -210,7 +210,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, RL
     }
 
     @Override
-    public void selectionChange(RL_SelectionUtilities selection)
+    public void selectionChange(SS_SelectionUtilities selection)
     {
         boolean b;
         b = !selection.isEmpty();

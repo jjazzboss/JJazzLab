@@ -31,7 +31,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.api.RL_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.util.SmallMap;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -64,13 +64,13 @@ public class ShowHideRps extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        RL_EditorTopComponent tc = RL_EditorTopComponent.getActive();
+        SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
         if (tc == null)
         {
             return;
         }
         LOGGER.log(Level.FINE, "actionPerformed()");
-        SS_Editor editor = tc.getRL_Editor();
+        SS_Editor editor = tc.getSS_Editor();
         SongStructure sgs = editor.getModel();
         SmallMap<Rhythm, List<RhythmParameter<?>>> map = new SmallMap<>();
         for (SongPart spt : sgs.getSongParts())

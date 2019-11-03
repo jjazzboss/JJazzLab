@@ -22,8 +22,7 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
-import org.jjazz.ui.ss_editor.api.RL_ContextActionSupport;
-import org.jjazz.ui.ss_editor.api.RL_ContextActionListener;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import javax.swing.AbstractAction;
@@ -35,8 +34,8 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ui.ss_editor.api.CopyBuffer;
 import static org.jjazz.ui.ss_editor.actions.Bundle.CTL_PasteAppend;
 import static org.jjazz.ui.ss_editor.actions.Bundle.ERR_Paste;
-import org.jjazz.ui.ss_editor.api.RL_EditorTopComponent;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
@@ -44,12 +43,12 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.pasteappend")
 @ActionRegistration(displayName = "#CTL_PasteAppend", lazy = false)
@@ -58,11 +57,11 @@ import org.jjazz.songstructure.api.SongPart;
             @ActionReference(path = "Actions/RL_Editor", position = 900)
         })
 @NbBundle.Messages("CTL_PasteAppend=Paste At The End")
-public class PasteAppend extends AbstractAction implements ContextAwareAction, RL_ContextActionListener, ChangeListener
+public class PasteAppend extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, ChangeListener
 {
 
     private Lookup context;
-    private RL_ContextActionSupport cap;
+    private SS_ContextActionSupport cap;
     private String undoText = CTL_PasteAppend();
 
     public PasteAppend()
@@ -73,7 +72,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, R
     private PasteAppend(Lookup context)
     {
         this.context = context;
-        cap = RL_ContextActionSupport.getInstance(this.context);
+        cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, CTL_PasteAppend());
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control shift V"));
@@ -92,12 +91,12 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, R
     public void actionPerformed(ActionEvent e)
     {
         // Can not rely on selection to retrieve the model, selection can be empty !
-        RL_EditorTopComponent tc = RL_EditorTopComponent.getActive();
+        SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
         if (tc == null)
         {
             return;
         }
-        SongStructure targetSgs = tc.getRL_Editor().getModel();
+        SongStructure targetSgs = tc.getSS_Editor().getModel();
         CopyBuffer buffer = CopyBuffer.getInstance();
         List<SongPart> spts = targetSgs.getSongParts();
         int startBarIndex = 0;
@@ -126,7 +125,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, R
     }
 
     @Override
-    public void selectionChange(RL_SelectionUtilities selection)
+    public void selectionChange(SS_SelectionUtilities selection)
     {
         CopyBuffer buffer = CopyBuffer.getInstance();
         setEnabled(!buffer.isEmpty());
@@ -135,10 +134,10 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, R
     @Override
     public void stateChanged(ChangeEvent e)
     {
-        RL_EditorTopComponent tc = RL_EditorTopComponent.getActive();
+        SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
         if (tc != null)
         {
-            RL_SelectionUtilities selection = new RL_SelectionUtilities(tc.getRL_Editor().getLookup());
+            SS_SelectionUtilities selection = new SS_SelectionUtilities(tc.getSS_Editor().getLookup());
             selectionChange(selection);
         }
     }

@@ -29,7 +29,7 @@ import org.jjazz.ui.sptviewer.api.SptViewerMouseListener;
 /**
  * Listen to mouse input and edit operations from a SongStructure editor.
  */
-public interface RL_EditorMouseListener extends SptViewerMouseListener
+public interface SS_EditorMouseListener extends SptViewerMouseListener
 {
 
     void editorClicked(MouseEvent e);

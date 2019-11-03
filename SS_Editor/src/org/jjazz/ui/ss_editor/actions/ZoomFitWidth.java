@@ -22,31 +22,40 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
-import java.awt.Component;
-import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ui.sptviewer.api.SptViewer;
-import org.jjazz.ui.rpviewer.api.RpViewer;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionReferences;
+import org.openide.awt.ActionRegistration;
+import org.openide.util.NbBundle.Messages;
 
-public class ExtendSelectionLeft extends AbstractAction
+/**
+ * This the delegate action for the ZoomFitWidth action of the ZoomableSliders module.
+ */
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.zoomfitwidth")
+@ActionRegistration(displayName = "CTL_ZoomFitWidth()", lazy = true)
+@ActionReferences(
+        {
+            // @ActionReference(path = "Actions/SongPart", position = 100)
+            // @ActionReference(path = "Shortcuts", name = "C-F")
+        })
+@Messages("CTL_ZoomFitWidth=Zoom to Fit Width")
+public class ZoomFitWidth extends AbstractAction
 {
+
+    private static final Logger LOGGER = Logger.getLogger(ZoomFitWidth.class.getSimpleName());
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
-        Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-        if (c instanceof SptViewer)
+        LOGGER.fine("actionPerformed()");
+        SS_EditorTopComponent ssTc = SS_EditorTopComponent.getActive();
+        if (ssTc != null)
         {
-            SptViewer sptv = (SptViewer) c;
-            MoveSelectionLeft.moveSelectionLeftSpt(editor, sptv.getModel(), true);
-        } else if (c instanceof RpViewer)
-        {
-            RpViewer rpv = (RpViewer) c;
-            MoveSelectionLeft.moveSelectionLeftRp(editor, rpv.getSptModel(), rpv.getRpModel(), true);
+            ssTc.getSS_Editor().setZoomHFactorToFitWidth(ssTc.getWidth());
         }
     }
+
 }

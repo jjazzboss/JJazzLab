@@ -22,8 +22,7 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
-import org.jjazz.ui.ss_editor.api.RL_ContextActionSupport;
-import org.jjazz.ui.ss_editor.api.RL_ContextActionListener;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import javax.swing.AbstractAction;
@@ -36,8 +35,8 @@ import javax.swing.event.ChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ui.ss_editor.api.CopyBuffer;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
-import org.jjazz.ui.ss_editor.api.RL_EditorTopComponent;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
@@ -50,6 +49,7 @@ import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
 /**
  * Paste SongParts.
@@ -67,11 +67,11 @@ import org.jjazz.songstructure.api.SongPart;
             "CTL_Paste=Paste",
             "ERR_Paste=Impossible to paste song part"
         })
-public class Paste extends AbstractAction implements ContextAwareAction, RL_ContextActionListener, ChangeListener
+public class Paste extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, ChangeListener
 {
 
     private Lookup context;
-    private RL_ContextActionSupport cap;
+    private SS_ContextActionSupport cap;
     private String undoText = CTL_Paste();
 
     public Paste()
@@ -82,7 +82,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, RL_Cont
     private Paste(Lookup context)
     {
         this.context = context;
-        cap = RL_ContextActionSupport.getInstance(this.context);
+        cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, CTL_Paste());
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control V"));
@@ -101,7 +101,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, RL_Cont
     public void actionPerformed(ActionEvent e)
     {
         CopyBuffer buffer = CopyBuffer.getInstance();
-        RL_SelectionUtilities selection = cap.getSelection();
+        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure targetSgs = selection.getModel();
         List<SongPart> spts = targetSgs.getSongParts();
         // Paste before first selected spt
@@ -124,7 +124,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, RL_Cont
     }
 
     @Override
-    public void selectionChange(RL_SelectionUtilities selection)
+    public void selectionChange(SS_SelectionUtilities selection)
     {
         CopyBuffer buffer = CopyBuffer.getInstance();
         setEnabled(selection.isOneSectionSptSelection() && !buffer.isEmpty());
@@ -133,10 +133,10 @@ public class Paste extends AbstractAction implements ContextAwareAction, RL_Cont
     @Override
     public void stateChanged(ChangeEvent e)
     {
-        RL_EditorTopComponent tc = RL_EditorTopComponent.getActive();
+        SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
         if (tc != null)
         {
-            RL_SelectionUtilities selection = new RL_SelectionUtilities(tc.getRL_Editor().getLookup());
+            SS_SelectionUtilities selection = new SS_SelectionUtilities(tc.getSS_Editor().getLookup());
             selectionChange(selection);
         }
     }

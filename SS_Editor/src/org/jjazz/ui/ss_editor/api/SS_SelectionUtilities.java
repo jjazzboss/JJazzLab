@@ -41,7 +41,7 @@ import org.jjazz.songstructure.api.SongPart;
  * Selected items can be either SongPart or RhythmParameters, but not both in the same time. Returned SongParts or
  * SongPartParameters are ordered by startBarIndex.
  */
-final public class RL_SelectionUtilities
+final public class SS_SelectionUtilities
 {
 
     private List<SongPart> songParts = new ArrayList<>();
@@ -51,9 +51,9 @@ final public class RL_SelectionUtilities
     private boolean isOneSectionSptSelection;
     private boolean isRhythmParameterCompatible;
     private boolean isSameRhythm;
-    private static final Logger LOGGER = Logger.getLogger(RL_SelectionUtilities.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(SS_SelectionUtilities.class.getSimpleName());
 
-    public RL_SelectionUtilities(List<SongPart> spts)
+    public SS_SelectionUtilities(List<SongPart> spts)
     {
         refreshSongParts(spts);
     }
@@ -62,7 +62,7 @@ final public class RL_SelectionUtilities
      * @param sptps
      * @param not_used Not used, just to avoid name clash with other constructor !
      */
-    public RL_SelectionUtilities(List<SongPartParameter> sptps, Object not_used)
+    public SS_SelectionUtilities(List<SongPartParameter> sptps, Object not_used)
     {
         refreshRhythmParameters(sptps);
     }
@@ -73,7 +73,7 @@ final public class RL_SelectionUtilities
      * @param lookup
      * @throws IllegalStateException If lookup contains both SongParts and RhythmParameters
      */
-    public RL_SelectionUtilities(Lookup lookup)
+    public SS_SelectionUtilities(Lookup lookup)
     {
         if (lookup == null)
         {
@@ -264,7 +264,10 @@ final public class RL_SelectionUtilities
     }
 
     /**
-     * Get the selected SongPart the most at the beginning of the SongStructure.
+     * Get the first SongPart of the selection.
+     *
+     * Works independently of the selection mode (SongParts or RhythmParameters). Return a meaningful value only if selection is
+     * not empty.
      *
      * @return The index of the SongPart in the SongStructure.
      */
@@ -274,7 +277,10 @@ final public class RL_SelectionUtilities
     }
 
     /**
-     * Get the selected SongPart the most at the end of the SongStructure.
+     * Get the last SongPart of the selection.
+     *
+     * Works independently of the selection mode (SongParts or RhythmParameters). Return a meaningful value only if selection is
+     * not empty.
      *
      * @return The index of the SongPart in the SongStructure.
      */

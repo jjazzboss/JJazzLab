@@ -135,9 +135,10 @@ public class ZoomYWidget extends javax.swing.JPanel implements StatusLineElement
         slider.putClientProperty(PROP_NB_GRADUATION_MARKS, 0);
         slider.putClientProperty(PROP_HIDE_VALUE, 1);
 
-        setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 2, 0));
+        setLayout(new java.awt.FlowLayout(1, 0, 0));
 
-        org.openide.awt.Mnemonics.setLocalizedText(label, org.openide.util.NbBundle.getMessage(ZoomYWidget.class, "ZoomYWidget.label.text_1")); // NOI18N
+        label.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/zoomablesliders/resources/zoomYarrow.png"))); // NOI18N
+        label.setToolTipText(org.openide.util.NbBundle.getMessage(ZoomYWidget.class, "ZoomYWidget.label.toolTipText")); // NOI18N
         add(label);
 
         slider.setFaderHeight(4);

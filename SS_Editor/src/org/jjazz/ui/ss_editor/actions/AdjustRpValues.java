@@ -22,8 +22,7 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
-import org.jjazz.ui.ss_editor.api.RL_ContextActionSupport;
-import org.jjazz.ui.ss_editor.api.RL_ContextActionListener;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -37,7 +36,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.ui.ss_editor.api.RpCustomizeDialog;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
@@ -53,6 +52,7 @@ import org.openide.util.actions.Presenter;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.adjustrpvalues")
 @ActionRegistration(displayName = "#CTL_AdjustRpValues", lazy = false)
@@ -77,11 +77,11 @@ import org.jjazz.songstructure.api.SongPart;
         {
             "rawtypes", "unchecked"
         })
-public class AdjustRpValues extends AbstractAction implements ContextAwareAction, RL_ContextActionListener, Presenter.Popup
+public class AdjustRpValues extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, Presenter.Popup
 {
 
     private Lookup context;
-    private RL_ContextActionSupport cap;
+    private SS_ContextActionSupport cap;
     static private List<JMenuItem> goingUpItems;
     static private List<JMenuItem> goingDownItems;
     private JMenu subMenu;
@@ -95,7 +95,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
     public AdjustRpValues(Lookup context)
     {
         this.context = context;
-        cap = RL_ContextActionSupport.getInstance(this.context);
+        cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         buildMenus();
         selectionChange(cap.getSelection());        // Make sure menu is correctly intialized at creation
@@ -123,7 +123,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
     }
 
     @Override
-    public void selectionChange(RL_SelectionUtilities selection)
+    public void selectionChange(SS_SelectionUtilities selection)
     {
         List<SongPartParameter> sptps = selection.getSelectedSongPartParameters();
         if (sptps.size() <= 1)
@@ -158,7 +158,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
      */
     private void sameValue()
     {
-        RL_SelectionUtilities selection = cap.getSelection();
+        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         SongPart refSpt = selection.getSelectedSongPartParameters().get(0).getSpt(); // Spt with lowest startBarIndex
         RhythmParameter refRp = selection.getSelectedSongPartParameters().get(0).getRp();
@@ -175,7 +175,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
 
     private void rampDirect(String undoText)
     {
-        RL_SelectionUtilities selection = cap.getSelection();
+        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         SongPart spt0 = selection.getSelectedSongPartParameters().get(0).getSpt(); // Spt with lowest startBarIndex
         RhythmParameter rp0 = selection.getSelectedSongPartParameters().get(0).getRp();
@@ -203,7 +203,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
     private void upSlow()
     {
         // 1-((1+ln((10-x)*10+0.37))/5.7)
-        RL_SelectionUtilities selection = cap.getSelection();
+        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         SongPart spt0 = selection.getSelectedSongPartParameters().get(0).getSpt(); // Spt with lowest startBarIndex
         RhythmParameter rp0 = selection.getSelectedSongPartParameters().get(0).getRp();
@@ -234,7 +234,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
     private void upFast()
     {
         // (1+ln(x*10+0.37))/5.7  = function x[0-10] y[0-1]
-        RL_SelectionUtilities selection = cap.getSelection();
+        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         SongPart spt0 = selection.getSelectedSongPartParameters().get(0).getSpt(); // Spt with lowest startBarIndex
         RhythmParameter rp0 = selection.getSelectedSongPartParameters().get(0).getRp();
@@ -265,7 +265,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
     private void downSlow()
     {
         // ((1+ln((10-x)*10+0.37))/5.7)
-        RL_SelectionUtilities selection = cap.getSelection();
+        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         SongPart spt0 = selection.getSelectedSongPartParameters().get(0).getSpt(); // Spt with lowest startBarIndex
         RhythmParameter rp0 = selection.getSelectedSongPartParameters().get(0).getRp();
@@ -296,7 +296,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
     private void downFast()
     {
         // (1+ln(x*10+0.37))/5.7  = function x[0-10] y[0-1]
-        RL_SelectionUtilities selection = cap.getSelection();
+        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         SongPart spt0 = selection.getSelectedSongPartParameters().get(0).getSpt(); // Spt with lowest startBarIndex
         RhythmParameter rp0 = selection.getSelectedSongPartParameters().get(0).getRp();
@@ -326,7 +326,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
 
     private void customize()
     {
-        RL_SelectionUtilities selection = cap.getSelection();
+        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         List<SongPartParameter> sptps = selection.getSelectedSongPartParameters();
         RhythmParameter<?> rp0 = sptps.get(0).getRp();

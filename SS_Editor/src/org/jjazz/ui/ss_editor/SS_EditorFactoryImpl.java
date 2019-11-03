@@ -20,18 +20,36 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.ss_editor.api;
+package org.jjazz.ui.ss_editor;
 
-/**
- * Listener of events fired by RL_ContextActionSupport.
- */
-public interface RL_ContextActionListener
+import org.jjazz.song.api.Song;
+import org.jjazz.ui.ss_editor.api.SS_Editor;
+import org.jjazz.ui.ss_editor.api.SS_EditorFactory;
+
+public class SS_EditorFactoryImpl extends SS_EditorFactory
 {
 
-    /**
-     * SongPart or SongPartParameter presence has changed in RL_ContextActionSupport's context.
-     *
-     * @param selection
-     */
-    public void selectionChange(RL_SelectionUtilities selection);
+    static private SS_EditorFactoryImpl INSTANCE;
+
+    static public SS_EditorFactoryImpl getInstance()
+    {
+        synchronized (SS_EditorFactoryImpl.class)
+        {
+            if (INSTANCE == null)
+            {
+                INSTANCE = new SS_EditorFactoryImpl();
+            }
+        }
+        return INSTANCE;
+    }
+
+    private SS_EditorFactoryImpl()
+    {
+    }
+
+    @Override
+    public SS_Editor createEditor(Song song)
+    {
+        return new SS_EditorImpl(song);
+    }
 }

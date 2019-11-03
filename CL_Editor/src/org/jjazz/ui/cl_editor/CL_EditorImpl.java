@@ -368,6 +368,21 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
+    public SelectedBar getFocusedBar(boolean includeFocusedItem)
+    {
+        SelectedBar sb = null;
+        Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        if (c instanceof BarBox)
+        {
+            sb = new SelectedBar(((BarBox) c).getBarIndex(), this.clsModel);
+        } else if (includeFocusedItem && (c instanceof ItemRenderer))
+        {
+            sb = new SelectedBar(((ItemRenderer) c).getModel().getPosition().getBar(), this.clsModel);
+        }
+        return sb;
+    }
+
+    @Override
     public void setSectionStartOnNewLine(CLI_Section cliSection, boolean b)
     {
         int barIndex = cliSection.getPosition().getBar();

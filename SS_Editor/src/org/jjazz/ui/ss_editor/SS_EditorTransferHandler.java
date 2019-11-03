@@ -45,7 +45,7 @@ import static org.jjazz.ui.ss_editor.Bundle.CTL_CopySpt;
 import static org.jjazz.ui.ss_editor.Bundle.CTL_MoveSpt;
 import static org.jjazz.ui.ss_editor.Bundle.ERR_AddSpt;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.ui.sptviewer.api.SptViewer;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
@@ -65,13 +65,13 @@ import org.jjazz.songstructure.api.SongPart;
             "CTL_AddSpt=Add Song Part",
             "ERR_AddSpt=Impossible to add Song Part"
         })
-public class RL_EditorTransferHandler extends TransferHandler
+public class SS_EditorTransferHandler extends TransferHandler
 {
 
     private SS_Editor editor;
-    private static final Logger LOGGER = Logger.getLogger(RL_EditorTransferHandler.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(SS_EditorTransferHandler.class.getSimpleName());
 
-    public RL_EditorTransferHandler(SS_Editor ed)
+    public SS_EditorTransferHandler(SS_Editor ed)
     {
         if (ed == null)
         {
@@ -243,7 +243,7 @@ public class RL_EditorTransferHandler extends TransferHandler
         newSpt = spt.clone(spt.getRhythm(), newStartBarIndex, spt.getNbBars(), spt.getParentSection());
 
         // Unselect all, restore at the end
-        RL_SelectionUtilities selection = new RL_SelectionUtilities(editor.getLookup());
+        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
         selection.unselectAll(editor);
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
@@ -293,7 +293,7 @@ public class RL_EditorTransferHandler extends TransferHandler
         CLI_Section parentSection = getTransferredSection(info.getTransferable());
         assert parentSection != null;
 
-        RL_SelectionUtilities selection = new RL_SelectionUtilities(editor.getLookup());
+        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
         selection.unselectAll(editor);
 
         // Calculate insertion point

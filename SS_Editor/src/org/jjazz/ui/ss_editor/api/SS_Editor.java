@@ -64,7 +64,7 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
      */
     abstract public UndoRedo getUndoManager();
 
-    abstract public void setController(RL_EditorMouseListener controller);
+    abstract public void setController(SS_EditorMouseListener controller);
 
     /**
      * Clean up everything so component can be garbaged.
@@ -79,6 +79,13 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
     abstract public void setZoomHFactor(int hfactor);
 
     abstract public int getZoomHFactor();
+
+    /**
+     * Adjust the horizontal zoom factor to try to fit all the SongParts in the specified width.
+     *
+     * @param width
+     */
+    abstract public void setZoomHFactorToFitWidth(int width);
 
     /**
      * Set the vertical zoom factor.
@@ -173,5 +180,14 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
      * @return
      */
     abstract public List<RhythmParameter<?>> getVisibleRps(Rhythm r);
+
+    /**
+     * Get the focused SongPart, if any.
+     *
+     * @param includeFocusedRhythmParameter If true and focus is on a RhythmParameter editor, return the SongPart for this
+     * RhythmParameter editor.
+     * @return Can be null. The SongPart corresponding to the SongPart editor.
+     */
+    abstract public SongPart getFocusedSongPart(boolean includeFocusedRhythmParameter);
 
 }

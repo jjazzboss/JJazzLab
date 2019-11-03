@@ -22,8 +22,7 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
-import org.jjazz.ui.ss_editor.api.RL_ContextActionSupport;
-import org.jjazz.ui.ss_editor.api.RL_ContextActionListener;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.logging.Level;
@@ -38,7 +37,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
@@ -52,6 +51,7 @@ import org.openide.util.Utilities;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.insertspt")
 @ActionRegistration(displayName = "#CTL_InsertSpt", lazy = false)
@@ -65,11 +65,11 @@ import org.jjazz.songstructure.api.SongPart;
             "ERR_InsertSpt=Impossible to insert Song Part"
         })
 
-public class InsertSpt extends AbstractAction implements ContextAwareAction, RL_ContextActionListener
+public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
-    private RL_ContextActionSupport cap;
+    private SS_ContextActionSupport cap;
     private String undoText = CTL_InsertSpt();
     private static final Logger LOGGER = Logger.getLogger(InsertSpt.class.getSimpleName());
 
@@ -81,7 +81,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, RL_
     private InsertSpt(Lookup context)
     {
         this.context = context;
-        cap = RL_ContextActionSupport.getInstance(this.context);
+        cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("I"));
@@ -97,7 +97,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, RL_
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        RL_SelectionUtilities selection = cap.getSelection();
+        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         List<SongPart> spts = sgs.getSongParts();
         ChordLeadSheet cls = null;
@@ -135,7 +135,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, RL_
     }
 
     @Override
-    public void selectionChange(RL_SelectionUtilities selection)
+    public void selectionChange(SS_SelectionUtilities selection)
     {
         boolean b = selection.isOneSectionSptSelection();
         LOGGER.log(Level.FINE, "selectionChange() b=" + b);

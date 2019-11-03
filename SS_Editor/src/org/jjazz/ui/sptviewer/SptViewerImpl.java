@@ -61,7 +61,6 @@ import org.jjazz.songstructure.api.SongPart;
 public class SptViewerImpl extends SptViewer implements FocusListener, PropertyChangeListener, MouseListener, MouseMotionListener, MouseWheelListener
 {
 
-    // UI Variables
     private static final int ONE_BAR_EXTRA_SIZE = 60;
     private static final int MIN_WIDTH = 40;
 
@@ -212,7 +211,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     @Override
     public Dimension getPreferredSize()
     {
-        float nbBars = (sptModel == null) ? 0 : sptModel.getNbBars();
+        int nbBars = (sptModel == null) ? 0 : sptModel.getNbBars();
         float width = MIN_WIDTH + nbBars * ONE_BAR_EXTRA_SIZE * (zoomHFactor / 100f);
         Dimension pd = getLayout().preferredLayoutSize(this);
         return new Dimension((int) width, pd.height);

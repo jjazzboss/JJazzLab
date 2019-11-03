@@ -22,6 +22,8 @@
  */
 package org.jjazz.ui.ss_editor.api;
 
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -31,10 +33,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.Action;
+import javax.swing.SwingUtilities;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.base.actions.Savable;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.ss_editor.RL_EditorController;
+import org.jjazz.ui.ss_editor.SS_EditorController;
 import org.jjazz.savablesong.SavableSong;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
@@ -42,11 +45,12 @@ import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.ui.ss_editor.SS_EditorImpl;
 
 /**
  * Top component for the SongStructure editor.
  * <p>
- * TopComponent header's popupmenu actions can be added at path "Actions/RL_EditorTopComponent".<br>
+ * TopComponent header's popupmenu actions can be added at path "Actions/SS_EditorTopComponent".<br>
  * Accept a paired TopComponent which must be always be shown/closed in the same time.<br>
  * The TopComponent's lookup is the SS_Editor's lookup.
  */
@@ -55,7 +59,7 @@ import org.jjazz.songstructure.api.SongStructure;
             "HINT_RL_EditorTopComponent=This is a song structure editor window",
             "CTL_RL_ConfirmClose=OK to close this song without saving changes ?"
         })
-public final class RL_EditorTopComponent extends TopComponent implements PropertyChangeListener
+public final class SS_EditorTopComponent extends TopComponent implements PropertyChangeListener
 {
 
     /**
@@ -65,21 +69,23 @@ public final class RL_EditorTopComponent extends TopComponent implements Propert
     /**
      * The SongStructure editor.
      */
-    private SS_Editor rlEditor;
+    private SS_Editor ssEditor;
     /**
      * The editor's controller.
      */
-    private RL_EditorMouseListener rlEditorController;
+    private SS_EditorMouseListener ssEditorController;
     /**
      * The paired TopComponent.
      */
     private TopComponent pairedTc;
-    private static final Logger LOGGER = Logger.getLogger(RL_EditorTopComponent.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(SS_EditorTopComponent.class.getName());
 
     /**
      * Create an editor.
+     *
+     * @param song
      */
-    public RL_EditorTopComponent(Song song)
+    public SS_EditorTopComponent(Song song)
     {
         if (song == null || song.getSongStructure() == null)
         {
@@ -100,9 +106,9 @@ public final class RL_EditorTopComponent extends TopComponent implements Propert
         putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.TRUE);
 
         // Create our editor
-        rlEditor = RL_EditorFactory.getDefault().createEditor(songModel);
-        rlEditorController = new RL_EditorController(rlEditor);
-        rlEditor.setController(rlEditorController);
+        ssEditor = SS_EditorFactory.getDefault().createEditor(songModel);
+        ssEditorController = new SS_EditorController(ssEditor);
+        ssEditor.setController(ssEditorController);
 
         initComponents();
 
@@ -111,7 +117,7 @@ public final class RL_EditorTopComponent extends TopComponent implements Propert
     }
 
     /**
-     * Overridden to insert possible new actions from path "Actions/RL_EditorTopComponent".
+     * Overridden to insert possible new actions from path "Actions/SS_EditorTopComponent".
      *
      * @return The actions to be shown in the TopComponent popup menu.
      */
@@ -133,7 +139,7 @@ public final class RL_EditorTopComponent extends TopComponent implements Propert
     public Lookup getLookup()
     {
         // Use the editor's lookup as our lookup        
-        return rlEditor.getLookup();
+        return ssEditor.getLookup();
     }
 
     public Song getSongModel()
@@ -158,46 +164,46 @@ public final class RL_EditorTopComponent extends TopComponent implements Propert
         pairedTc = tc;
     }
 
-    public SS_Editor getRL_Editor()
+    public SS_Editor getSS_Editor()
     {
-        return rlEditor;
+        return ssEditor;
     }
 
     @Override
     public UndoRedo getUndoRedo()
     {
-        return rlEditor.getUndoManager();
+        return ssEditor.getUndoManager();
     }
 
     /**
-     * Return the active RL_EditorTopComponent.
+     * Return the active SS_EditorTopComponent.
      *
      * @return Null if no active CL_EditorTopComponent found.
      */
-    static public RL_EditorTopComponent getActive()
+    static public SS_EditorTopComponent getActive()
     {
         TopComponent tc = TopComponent.getRegistry().getActivated();
-        return (tc instanceof RL_EditorTopComponent) ? (RL_EditorTopComponent) tc : null;
+        return (tc instanceof SS_EditorTopComponent) ? (SS_EditorTopComponent) tc : null;
     }
 
     /**
      * Return the editor for a specific SongStructure.
      *
      * @param sgs
-     * @return Null if not found in the open RL_EditorTopComponent windows.
+     * @return Null if not found in the open SS_EditorTopComponent windows.
      */
-    static public RL_EditorTopComponent get(SongStructure sgs)
+    static public SS_EditorTopComponent get(SongStructure sgs)
     {
         Set<TopComponent> tcs = TopComponent.getRegistry().getOpened();
         for (Iterator<TopComponent> it = tcs.iterator(); it.hasNext();)
         {
             TopComponent tc = it.next();
-            if (tc instanceof RL_EditorTopComponent)
+            if (tc instanceof SS_EditorTopComponent)
             {
-                RL_EditorTopComponent rlTc = (RL_EditorTopComponent) tc;
-                if (rlTc.getRL_Editor().getModel() == sgs)
+                SS_EditorTopComponent ssTc = (SS_EditorTopComponent) tc;
+                if (ssTc.getSS_Editor().getModel() == sgs)
                 {
-                    return rlTc;
+                    return ssTc;
                 }
             }
         }
@@ -212,7 +218,7 @@ public final class RL_EditorTopComponent extends TopComponent implements Propert
     private void initComponents()
     {
 
-        scrollPane_RL_Editor = new javax.swing.JScrollPane(rlEditor);
+        scrollPane_RL_Editor = new javax.swing.JScrollPane(ssEditor);
 
         setLayout(new java.awt.BorderLayout());
         add(scrollPane_RL_Editor, java.awt.BorderLayout.CENTER);
@@ -224,6 +230,16 @@ public final class RL_EditorTopComponent extends TopComponent implements Propert
     @Override
     public void componentOpened()
     {
+        Runnable r = new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                ssEditor.setZoomHFactorToFitWidth(SS_EditorTopComponent.this.getWidth());
+            }
+        };
+        // If invokeLater is not used layout is not yet performed and components size are = 0 !
+        SwingUtilities.invokeLater(r);
     }
 
     /**
@@ -242,7 +258,7 @@ public final class RL_EditorTopComponent extends TopComponent implements Propert
             Savable.ToBeSavedList.remove(ss);
         }
         songModel.removePropertyChangeListener(this);
-        rlEditor.cleanup();
+        ssEditor.cleanup();
     }
 
     /**
@@ -257,6 +273,7 @@ public final class RL_EditorTopComponent extends TopComponent implements Propert
             pairedTc.requestVisible();
         }
     }
+
     //    void writeProperties(java.util.Properties p)
 //    {
 //        // better to version settings since initial version as advocated at
@@ -270,7 +287,6 @@ public final class RL_EditorTopComponent extends TopComponent implements Propert
 //        String version = p.getProperty("version");
 //        // TODO read your settings according to their version
 //    }
-
     @Override
     public void propertyChange(final PropertyChangeEvent evt)
     {

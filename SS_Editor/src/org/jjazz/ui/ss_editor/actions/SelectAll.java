@@ -22,8 +22,7 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
-import org.jjazz.ui.ss_editor.api.RL_ContextActionSupport;
-import org.jjazz.ui.ss_editor.api.RL_ContextActionListener;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -33,8 +32,8 @@ import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.api.RL_EditorTopComponent;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -44,6 +43,7 @@ import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.openide.util.*;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
 /**
  * SelectAll
@@ -56,11 +56,11 @@ import org.jjazz.songstructure.api.SongPart;
             @ActionReference(path = "Actions/RhythmParameter", position = 1300, separatorBefore = 1290),
         })
 @Messages("CTL_SelectAll=Select all")
-public class SelectAll extends AbstractAction implements ContextAwareAction, RL_ContextActionListener
+public class SelectAll extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
-    private RL_ContextActionSupport cap;
+    private SS_ContextActionSupport cap;
     private static final Logger LOGGER = Logger.getLogger(SelectAll.class.getSimpleName());
 
     public SelectAll()
@@ -71,7 +71,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, RL_
     private SelectAll(Lookup context)
     {
         this.context = context;
-        cap = RL_ContextActionSupport.getInstance(this.context);
+        cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, CTL_SelectAll());
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control A"));
@@ -81,14 +81,14 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, RL_
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        RL_EditorTopComponent tc = RL_EditorTopComponent.getActive();
+        SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
         if (tc == null)
         {
             return;
         }
-        SS_Editor editor = tc.getRL_Editor();
+        SS_Editor editor = tc.getSS_Editor();
         SongStructure sgs = editor.getModel();
-        RL_SelectionUtilities selection = cap.getSelection(); // Warning: selection can be empty ! 
+        SS_SelectionUtilities selection = cap.getSelection(); // Warning: selection can be empty ! 
         if (selection.isEmpty() || selection.isSongPartSelected())
         {
             // Select all SongParts
@@ -112,16 +112,16 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, RL_
     }
 
     @Override
-    public void selectionChange(RL_SelectionUtilities selection)
+    public void selectionChange(SS_SelectionUtilities selection)
     {
         // Can not rely on selection to retrieve the model, selection can be empty !
-        RL_EditorTopComponent tc = RL_EditorTopComponent.getActive();
+        SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
         if (tc == null)
         {
             setEnabled(false);
             return;
         }
-        SongStructure sgs = tc.getRL_Editor().getModel();
+        SongStructure sgs = tc.getSS_Editor().getModel();
         setEnabled(sgs != null && !sgs.getSongParts().isEmpty());
     }
 

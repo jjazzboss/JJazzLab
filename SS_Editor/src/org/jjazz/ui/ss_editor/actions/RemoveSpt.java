@@ -22,8 +22,7 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
-import org.jjazz.ui.ss_editor.api.RL_ContextActionSupport;
-import org.jjazz.ui.ss_editor.api.RL_ContextActionListener;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -32,7 +31,7 @@ import static javax.swing.Action.NAME;
 import static javax.swing.Action.SMALL_ICON;
 import javax.swing.Icon;
 import javax.swing.KeyStroke;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.actions.DeleteAction;
@@ -46,6 +45,7 @@ import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.openide.util.actions.SystemAction;
 import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.removespt")
 @ActionRegistration(displayName = "not_used", lazy = false)
@@ -54,11 +54,11 @@ import org.jjazz.songstructure.api.SongStructure;
             @ActionReference(path = "Actions/SongPart", position = 400),
         })
 @Messages("CTL_RemoveSpt=Remove")
-public class RemoveSpt extends AbstractAction implements ContextAwareAction, RL_ContextActionListener
+public class RemoveSpt extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
-    private RL_ContextActionSupport cap;
+    private SS_ContextActionSupport cap;
     private String undoText = CTL_RemoveSpt();
 
     public RemoveSpt()
@@ -69,7 +69,7 @@ public class RemoveSpt extends AbstractAction implements ContextAwareAction, RL_
     public RemoveSpt(Lookup context)
     {
         this.context = context;
-        cap = RL_ContextActionSupport.getInstance(this.context);
+        cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, CTL_RemoveSpt());
         Icon icon = SystemAction.get(DeleteAction.class).getIcon();
@@ -81,7 +81,7 @@ public class RemoveSpt extends AbstractAction implements ContextAwareAction, RL_
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        RL_SelectionUtilities selection = cap.getSelection();
+        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
         sgs.removeSongParts(selection.getSelectedSongParts());
@@ -89,7 +89,7 @@ public class RemoveSpt extends AbstractAction implements ContextAwareAction, RL_
     }
 
     @Override
-    public void selectionChange(RL_SelectionUtilities selection)
+    public void selectionChange(SS_SelectionUtilities selection)
     {
         setEnabled(selection.isSongPartSelected());
     }

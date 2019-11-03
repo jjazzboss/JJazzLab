@@ -54,7 +54,7 @@ import org.openide.util.Utilities;
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 450)
         })
-@Messages("CTL_NextPlayStyle=Next play style")
+@Messages("CTL_NextPlayStyle=Change Interpretation")
 public final class NextPlayStyle extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 

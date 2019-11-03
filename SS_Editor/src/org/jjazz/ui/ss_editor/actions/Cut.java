@@ -22,8 +22,7 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
-import org.jjazz.ui.ss_editor.api.RL_ContextActionSupport;
-import org.jjazz.ui.ss_editor.api.RL_ContextActionListener;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -32,7 +31,7 @@ import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
 import org.jjazz.ui.ss_editor.api.CopyBuffer;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
-import org.jjazz.ui.ss_editor.api.RL_SelectionUtilities;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -43,6 +42,7 @@ import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.cut")
 @ActionRegistration(displayName = "#CTL_Cut", lazy = false)
@@ -51,11 +51,11 @@ import org.jjazz.songstructure.api.SongStructure;
             @ActionReference(path = "Actions/SongPart", position = 1000, separatorBefore = 900),
         })
 @NbBundle.Messages("CTL_Cut=Cut")
-public class Cut extends AbstractAction implements ContextAwareAction, RL_ContextActionListener
+public class Cut extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
-    private RL_ContextActionSupport cap;
+    private SS_ContextActionSupport cap;
     private String undoText = CTL_Cut();
 
     public Cut()
@@ -66,7 +66,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, RL_Contex
     private Cut(Lookup context)
     {
         this.context = context;
-        cap = RL_ContextActionSupport.getInstance(this.context);
+        cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control X"));
@@ -82,7 +82,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, RL_Contex
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        RL_SelectionUtilities selection = cap.getSelection();
+        SS_SelectionUtilities selection = cap.getSelection();
         CopyBuffer buffer = CopyBuffer.getInstance();
         buffer.put(selection.getSelectedSongParts());
         SongStructure sgs = selection.getModel();
@@ -92,7 +92,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, RL_Contex
     }
 
     @Override
-    public void selectionChange(RL_SelectionUtilities selection)
+    public void selectionChange(SS_SelectionUtilities selection)
     {
         setEnabled(selection.isSongPartSelected() && selection.isOneSectionSptSelection());
     }

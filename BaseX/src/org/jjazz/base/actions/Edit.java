@@ -29,8 +29,10 @@ import org.openide.awt.ActionRegistration;
 
 /**
  * A dummy class just to use annotations in order to create a Netbeans callback action for our Edit action, which does different
- * things according we're on a ChordLeadSheet or a SongStructure. We don't reuse the default Netbeans EditAction because it is not
- * a callback action. See http://bits.netbeans.org/dev/javadoc/org-openide-awt/org/openide/awt/Actions.html
+ * things according we're on a ChordLeadSheet or a SongStructure.
+ *
+ * We don't reuse the default Netbeans EditAction because it is not a callback action. See
+ * http://bits.netbeans.org/dev/javadoc/org-openide-awt/org/openide/awt/Actions.html
  */
 public class Edit
 {
