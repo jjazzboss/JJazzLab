@@ -37,24 +37,14 @@ From Netbeans IDE:
 
 **Note**: JJazzLab-X only embeds a very basic music generation for debugging purpose. See [www.jjazzlab.com](https://www.jjazzlab.com) for an example with a more powerful rhythm generation engine.
 
-## Contribution
-
-Contributions welcome ! 
-
-[Guide to first contributions](https://github.com/firstcontributions/first-contributions/blob/master/README.md)
-
-Contributing does not necessarily mean coding. You can:
-
-- submit bug reports or feature requests as GitHub issues
-- write docs, html or video tutorials
-- update the code: as a starting point you can browse the issues labelled as *good first issue*
-- develop your own rhythm generation engine: see the Developer's documentation below
-
-Don't hesitate to contact jjazzboss user if you want additional infos.
-
 ## License
 
 Lesser GPL v3 (LGPL v3), see LICENCE file.
 
 ## Developer's documentation 
 See the project's [GitHub Wiki](https://github.com/jjazzboss/JJazzLab-X/wiki).
+
+## Contact
+
+For more information use the Contact page at [www.jjazzlab.com](https://www.jjazzlab.com)
+
