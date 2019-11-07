@@ -103,6 +103,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
      */
     private IR_ChordSymbolSettings settings;
     private int zoomFactor = 50;
+    private boolean isMacOS = false;
     private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbol.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
@@ -118,6 +119,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         settings.addPropertyChangeListener(this);
         setForeground(item.getData().getAlternateChordSymbol() == null ? settings.getColor() : settings.getAltColor());
         setFont(settings.getFont());
+        isMacOS = System.getProperty("os.name").toLowerCase().contains("mac");
     }
 
     @Override
@@ -191,21 +193,26 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 
         FontRenderContext frc = g2.getFontRenderContext();
 
+        LOGGER.fine("getPreferredSize() -- baseStrings=" + baseStrings + " bassStrings=" + bassStrings + " extStrings=" + extensionStrings);
+
         // Base of the ChordSymbol
+        GlyphVector gv;
         for (String s : baseStrings)
         {
             switch (s)
             {
                 case "b":
-                    baseGlyphVectors.add(flatBaseFont.createGlyphVector(frc, settings.getFlatGlyphCode()));
+                    gv = flatBaseFont.createGlyphVector(frc, settings.getFlatGlyphCode());
                     break;
                 case "#":
-                    baseGlyphVectors.add(sharpBaseFont.createGlyphVector(frc, settings.getSharpGlyphCode()));
+                    gv = sharpBaseFont.createGlyphVector(frc, settings.getSharpGlyphCode());
                     break;
                 default:
-                    baseGlyphVectors.add(zBaseFont.createGlyphVector(frc, s));
+                    gv = zBaseFont.createGlyphVector(frc, s);
                     break;
             }
+            baseGlyphVectors.add(gv);
+            LOGGER.fine("getPreferredSize()    base glyph bounds=" + gv.getPixelBounds(frc, 1, 0));
         }
 
         // Bass part of the base of the ChordSymbol
@@ -214,15 +221,17 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
             switch (s)
             {
                 case "b":
-                    bassGlyphVectors.add(flatBaseFont.createGlyphVector(frc, settings.getFlatGlyphCode()));
+                    gv = flatBaseFont.createGlyphVector(frc, settings.getFlatGlyphCode());
                     break;
                 case "#":
-                    bassGlyphVectors.add(sharpBaseFont.createGlyphVector(frc, settings.getSharpGlyphCode()));
+                    gv = sharpBaseFont.createGlyphVector(frc, settings.getSharpGlyphCode());
                     break;
                 default:
-                    bassGlyphVectors.add(zBaseFont.createGlyphVector(frc, s));
+                    gv = zBaseFont.createGlyphVector(frc, s);
                     break;
             }
+            bassGlyphVectors.add(gv);
+            LOGGER.fine("getPreferredSize()    bass glyph bounds=" + gv.getPixelBounds(frc, 1, 0));
         }
 
         // Extension of the ChordSymbol
@@ -231,23 +240,23 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
             switch (s)
             {
                 case "b":
-                    extensionGlyphVectors.add(
-                            flatExtensionFont.createGlyphVector(frc, settings.getFlatGlyphCode()));
+                    gv = flatExtensionFont.createGlyphVector(frc, settings.getFlatGlyphCode());
                     break;
                 case "#":
-                    extensionGlyphVectors.add(sharpExtensionFont.createGlyphVector(frc,
-                            settings.getSharpGlyphCode()));
+                    gv = sharpExtensionFont.createGlyphVector(frc, settings.getSharpGlyphCode());
                     break;
                 default:
-                    extensionGlyphVectors.add(extensionFont.createGlyphVector(frc, s));
+                    gv = extensionFont.createGlyphVector(frc, s);
                     break;
             }
+            extensionGlyphVectors.add(gv);
+            LOGGER.fine("getPreferredSize()    extension glyph bounds=" + gv.getPixelBounds(frc, 1, 0));
         }
 
         // Calculate width
-        for (GlyphVector gv : baseGlyphVectors)
+        for (GlyphVector gvi : baseGlyphVectors)
         {
-            Rectangle r = gv.getPixelBounds(frc, 1, 0);
+            Rectangle r = gvi.getPixelBounds(frc, 1, 0);
             int w = r.width + 1;
             int h = r.height + 1;
             height = Math.max(height, h);
@@ -255,9 +264,9 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
             baseGlyphVectorsWidths.add(new Float(w));
         }
 
-        for (GlyphVector gv : bassGlyphVectors)
+        for (GlyphVector gvi : bassGlyphVectors)
         {
-            Rectangle r = gv.getPixelBounds(frc, 1, 0);
+            Rectangle r = gvi.getPixelBounds(frc, 1, 0);
             int w = r.width + 1;
             int h = r.height + 1;
             height = Math.max(height, h);
@@ -265,10 +274,10 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
             bassGlyphVectorsWidths.add(new Float(w));
         }
 
-        for (GlyphVector gv : extensionGlyphVectors)
+        for (GlyphVector gvi : extensionGlyphVectors)
         {
-            Rectangle r = gv.getPixelBounds(frc, 1, 0);
-            int w = gv.getPixelBounds(frc, 1, 0).width;
+            Rectangle r = gvi.getPixelBounds(frc, 1, 0);
+            int w = gvi.getPixelBounds(frc, 1, 0).width;
             int h = (int) extensionOffset + r.height + 1;
             height = Math.max(height, h);
             width += w;
@@ -278,7 +287,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 
         Insets in = getInsets();
         Dimension d = new Dimension((int) width + 2 + in.left + in.right, (int) height + 2 + in.top + in.bottom);
-        LOGGER.fine("getPreferredSize() d=" + d);
+        LOGGER.fine("getPreferredSize()    result d=" + d + "   (insets=" + in + ")");
         return d;
     }
 
@@ -500,4 +509,5 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         }
         return v;
     }
+
 }

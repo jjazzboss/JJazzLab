@@ -59,7 +59,7 @@ import org.openide.util.Utilities;
 
 /**
  * Play music from the 1st focused bar and/or 1st focused song part.
- *
+ * <p>
  * Action is enabled as long as there is a Song object in the global lookup.
  */
 @ActionID(category = "MusicControls", id = "org.jjazz.ui.musiccontrolactions.playfromhere")
@@ -187,16 +187,13 @@ public class PlayFromHere extends AbstractAction implements LookupListener
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
         assert ssTc != null : "sgs=" + ss;
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssTc.getLookup());
-        if (ssSelection.isSongPartSelected())
+        for (SongPart spt : ssSelection.getIndirectlySelectedSongParts())
         {
-            for (SongPart spt : ssSelection.getSelectedSongParts())
+            if (spt.getParentSection() == section)
             {
-                if (spt.getParentSection() == section)
-                {
-                    sgsBarIndex = spt.getStartBarIndex();
-                    sgsBarIndex += clsBarIndex - section.getPosition().getBar();
-                    break;
-                }
+                sgsBarIndex = spt.getStartBarIndex();
+                sgsBarIndex += clsBarIndex - section.getPosition().getBar();
+                break;
             }
         }
 
