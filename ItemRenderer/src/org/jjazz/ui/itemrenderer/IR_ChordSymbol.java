@@ -119,7 +119,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         settings.addPropertyChangeListener(this);
         setForeground(item.getData().getAlternateChordSymbol() == null ? settings.getColor() : settings.getAltColor());
         setFont(settings.getFont());
-        isMacOS = System.getProperty("os.name").toLowerCase().contains("mac");
+        isMacOS = System.getProperty("os.name").toLowerCase().contains("mac");       
     }
 
     @Override
