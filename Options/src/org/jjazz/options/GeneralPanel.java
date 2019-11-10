@@ -34,6 +34,7 @@ import javax.swing.Action;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JList;
+import org.jjazz.base.actions.ShowLogWindow;
 import org.jjazz.base.actions.OpenRecentFile;
 import org.jjazz.midi.device.MidiFilter;
 import org.jjazz.midi.JJazzMidiSystem;
@@ -298,9 +299,7 @@ final class GeneralPanel extends javax.swing.JPanel
 
     private void btn_showLogActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_showLogActionPerformed
     {//GEN-HEADEREND:event_btn_showLogActionPerformed
-        Action a = Actions.forID("View", "org.netbeans.core.actions.LogAction");
-        assert a != null;
-        a.actionPerformed(null);
+        ShowLogWindow.actionPerformed();
     }//GEN-LAST:event_btn_showLogActionPerformed
 
     void load()
