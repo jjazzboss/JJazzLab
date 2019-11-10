@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import org.jjazz.rhythm.api.Rhythm;
+import org.openide.*;
 import org.openide.util.NbPreferences;
 
 /**
@@ -129,6 +130,7 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
 
         // Remove the black listed files from the directory list
         ArrayList<String> blackList = new ArrayList<>(getFileBlackList());
+        LOGGER.fine("getRhythms()   blackList BEFORE=" + blackList);
         for (String s : blackList.toArray(new String[0]))
         {
             int index = Collections.binarySearch(dirFilenames, s);
@@ -142,7 +144,10 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
                 blackList.remove(s);
             }
         }
-        LOGGER.fine("getRhythms()   dirFilenames minus BlackList=" + dirFilenames);
+        if (!blackList.isEmpty())
+        {
+            LOGGER.info("getRhythms() Ignoring previously blacklisted files: " + blackList);
+        }
 
         // Compare the previous list to what's in the directory: detect deleted files in the dir
         for (InfoFileName ifn : prevListWork)
@@ -164,6 +169,7 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
         LOGGER.fine("getRhythms()   dirFilenames AFTER=" + dirFilenames);
 
         // Now dirFilenames contains only new filenames, ie which are not in prevList
+        ArrayList<String> blackListUpdate = new ArrayList<>();
         for (String filename : dirFilenames)
         {
             // Read the file to create the appropriate Rhythm, then add to result
@@ -175,7 +181,29 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
             } else
             {
                 // Problem occured, black list file
-                blackList.add(filename);
+                blackListUpdate.add(filename);
+            }
+        }
+
+        if (!blackListUpdate.isEmpty())
+        {
+            String strFiles = blackListUpdate.toString();
+            LOGGER.warning("getRhythms() The following rhythm file(s) could not be read : " + strFiles);
+            String msg = "The following rhythm file(s) could not be read. Consult the log window for details.";
+            if (strFiles.length() > 120)
+            {
+                strFiles = strFiles.substring(0, 120) + "...]";
+            }
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg + "\n\n" + strFiles, NotifyDescriptor.WARNING_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+
+            // Update the blacklist
+            for (String fileName : blackListUpdate)
+            {
+                if (!blackList.contains(fileName))      // For robustness
+                {
+                    blackList.add(fileName);
+                }
             }
         }
 
@@ -211,8 +239,10 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
      */
     public List<String> getFileBlackList()
     {
-        String strs = prefs.get(PREF_FILES_BLACK_LIST, "").trim();
-        return Arrays.asList(strs.split("\\s*,\\s*"));
+        String strs = prefs.get(getBlackListPreferenceKey(), "").trim();
+        List<String> res = Arrays.asList(strs.split("\\s*,\\s*"));
+        LOGGER.fine("getFileBlackList() res=" + res);
+        return res;
     }
 
     @Override
@@ -263,7 +293,8 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
     {
         if (blackList.isEmpty())
         {
-            prefs.put(PREF_FILES_BLACK_LIST, "");
+            LOGGER.fine("storeFileBlackList() key=" + getBlackListPreferenceKey() + " => empty value");
+            prefs.put(getBlackListPreferenceKey(), "");
             return;
         }
         StringBuilder sb = new StringBuilder(blackList.get(0));
@@ -271,7 +302,13 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
         {
             sb.append(",").append(blackList.get(i));
         }
-        prefs.put(PREF_FILES_BLACK_LIST, sb.toString());
+        LOGGER.fine("storeFileBlackList() key=" + getBlackListPreferenceKey() + " value=" + sb.toString());
+        prefs.put(getBlackListPreferenceKey(), sb.toString());
+    }
+
+    private String getBlackListPreferenceKey()
+    {
+        return PREF_FILES_BLACK_LIST + "-" + getInfo().getUniqueId();
     }
 
     // ===================================================================================
