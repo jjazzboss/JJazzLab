@@ -123,7 +123,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         {
             Rhythm r = model.get(row);
             data[row][0] = r.getName();
-            data[row][1] = String.valueOf(r.getPreferredTempo());
+            data[row][1] = Integer.valueOf(r.getPreferredTempo());
             data[row][2] = r.getFeel().toString();
             data[row][3] = Arrays.toString(r.getTags());
             data[row][4] = getFileValue(r.getFile());
@@ -142,7 +142,24 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         }
 
         // Update the table content
-        DefaultTableModel tm = new DefaultTableModel(data, COL_NAMES);
+        DefaultTableModel tm = new DefaultTableModel(data, COL_NAMES)
+        {
+            @Override
+            public Class getColumnClass(int column)
+            {
+                switch (column)
+                {
+                    case 0:
+                        return String.class;
+                    case 1:
+                        return Integer.class;
+                    case 2:
+                        return String.class;
+                    default:
+                        return String.class;
+                }
+            }
+        };
         setModel(tm);
 
         // Refresh the column model
