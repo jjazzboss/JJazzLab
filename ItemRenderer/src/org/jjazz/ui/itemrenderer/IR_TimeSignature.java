@@ -28,13 +28,20 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.font.FontRenderContext;
+import java.awt.font.TextAttribute;
+import java.awt.font.TextLayout;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
+import java.text.AttributedString;
+import java.text.Bidi;
 import java.util.logging.Logger;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.ui.itemrenderer.api.*;
+import org.jjazz.ui.utilities.TextLayoutUtils;
 
 public class IR_TimeSignature extends ItemRenderer implements IR_Copiable
 {
@@ -74,9 +81,10 @@ public class IR_TimeSignature extends ItemRenderer implements IR_Copiable
     /**
      * Save the time signature between updates.
      */
+    private AttributedString attrStrUpper;
+    private AttributedString attrStrLower;
     TimeSignature timeSignature;
     private int zoomFactor = 50;
-    private Font zFont;
     private static final Logger LOGGER = Logger.getLogger(IR_TimeSignature.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
@@ -93,8 +101,7 @@ public class IR_TimeSignature extends ItemRenderer implements IR_Copiable
         settings.addPropertyChangeListener(this);
 
         // Init
-        zFont = settings.getFont();
-        setFont(zFont);
+        setFont(settings.getFont());
         setForeground(settings.getColor());
     }
 
@@ -150,40 +157,47 @@ public class IR_TimeSignature extends ItemRenderer implements IR_Copiable
     @Override
     public Dimension getPreferredSize()
     {
-        final int H_MARGIN = 2;
-        final int V_MARGIN = 1;
-        final int V_GAP = 0; // 0 because font height seems overestimated always
-        Font f = getFont();
-        int zFactor = getZoomFactor();
-        Graphics2D g2 = (Graphics2D) getGraphics();
-        assert g2 != null : "g2=" + g2 + " timeSignature=" + timeSignature + " f=" + f + " zFactor=" + zFactor;
+        final int PADDING = 1;
+        final int MIDDLE_HGAP = 2;
 
         Insets in = getInsets();
+        Font font = getFont();
+        Graphics2D g2 = (Graphics2D) getGraphics();
+        assert g2 != null;
+        FontRenderContext frc = g2.getFontRenderContext();
 
-        float factor = 0.5f + (zFactor / 100f);
+        // Font size depends on zoom factor
+        float factor = 0.5f + (getZoomFactor() / 100f);
         float zFontSize = factor * getFont().getSize2D();
         zFontSize = Math.max(zFontSize, 9);
-        zFont = getFont().deriveFont(zFontSize);
 
-        // Calculate bounds and strings position
-        FontMetrics fm = g2.getFontMetrics(zFont);
+        // Create the AttributedStrings
+        attrStrLower = new AttributedString(lowerString);
+        attrStrLower.addAttribute(TextAttribute.SIZE, zFontSize);
+        attrStrLower.addAttribute(TextAttribute.FAMILY, font.getFontName());
+        attrStrUpper = new AttributedString(upperString);
+        attrStrUpper.addAttribute(TextAttribute.SIZE, zFontSize);
+        attrStrUpper.addAttribute(TextAttribute.FAMILY, font.getFontName());
 
-        // Width and X
-        Rectangle2D rUpper = fm.getStringBounds(upperString, g2);
-        Rectangle2D rLower = fm.getStringBounds(lowerString, g2);
-        // LOGGER.fine("getPreferredSize() rUpper=" + rUpper + " rLower=" + rLower);
-        int upperWidth = (int) Math.round(rUpper.getWidth());
-        int lowerWidth = (int) Math.round(rLower.getWidth());
-        int pw = Math.max(upperWidth, lowerWidth) + 2 * H_MARGIN + in.left + in.right;
-        upperX = Math.round(pw / 2f - upperWidth / 2f);
-        lowerX = Math.round(pw / 2f - lowerWidth / 2f);
+        // Create the TextLayout to get its dimension       
+        TextLayout textLayoutUpper = new TextLayout(attrStrUpper.getIterator(), frc);
+        TextLayout textLayoutLower = new TextLayout(attrStrLower.getIterator(), frc);
+        int wUpper = (int) TextLayoutUtils.getWidth(textLayoutUpper, upperString, true);
+        int wLower = (int) TextLayoutUtils.getWidth(textLayoutLower, lowerString, true);
+        int hUpper = (int) TextLayoutUtils.getHeight(textLayoutUpper, frc);
+        int hLower = (int) TextLayoutUtils.getHeight(textLayoutLower, frc);
 
-        // Height and Y
-        int upperHeight = (int) Math.ceil(rUpper.getHeight()) - 4;
-        int lowerHeight = (int) Math.ceil(rLower.getHeight()) - 4;
-        int ph = upperHeight + V_GAP + lowerHeight + 2 * V_MARGIN + in.top + in.bottom;
-        upperY = in.top + V_MARGIN - (int) Math.round(rUpper.getY());          // getY() must be a negative value (relative to baseline)
-        lowerY = in.top + V_MARGIN + upperHeight - (int) Math.round(rLower.getY());   // getY() must be a negative value (relative to baseline)
+        // Set preferred size
+        int maxWidth = Math.max(wUpper, wLower);
+        int pw = in.left + PADDING + maxWidth + PADDING + in.right;
+        int ph = in.top + PADDING + hUpper + MIDDLE_HGAP + hLower + PADDING + in.bottom;
+
+        // Also set the position
+        upperX = in.left + PADDING;
+        lowerX = upperX;
+
+        lowerY = ph - 1 - in.bottom - PADDING + 1; //  - (int) Math.ceil(textLayoutLower.getDescent());
+        upperY = in.top + PADDING + hUpper;
 
         Dimension d = new Dimension(pw, ph);
         LOGGER.fine("getPreferredSize() d=" + d);
@@ -200,9 +214,11 @@ public class IR_TimeSignature extends ItemRenderer implements IR_Copiable
 
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g2.setFont(zFont);
-        g2.drawString(upperString, upperX, upperY);
-        g2.drawString(lowerString, lowerX, lowerY);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Draw the upper and lower string
+        g2.drawString(attrStrUpper.getIterator(), upperX, upperY);
+        g2.drawString(this.attrStrLower.getIterator(), lowerX, lowerY);
 
         if (copyMode)
         {

@@ -344,7 +344,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
             ChordLeadSheetItem<?> item1 = null, item2;
             try
             {
-                item1 = clif.createChordSymbol(null, new ExtChordSymbol("C7#9"), new Position(0, 0));
+                item1 = clif.createChordSymbol(null, new ExtChordSymbol("C#7#9b5"), new Position(0, 0));
             } catch (ParseException ex)
             {
                 Exceptions.printStackTrace(ex);
@@ -388,15 +388,21 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
                 }
             }
 
-            int V_MARGIN = 1;
+            int V_PADDING;
             if (zoomVFactor > 66)
             {
-                V_MARGIN = 2;
+                V_PADDING = 3;
+            } else if (zoomVFactor > 33)
+            {
+                V_PADDING = 2;
+            } else
+            {
+                V_PADDING = 1;
             }
 
             Insets in = getInsets();
             int pWidth = irWidthSum + irs.size() * 5 + in.left + in.right;
-            int pHeight = irMaxHeight + 2 * V_MARGIN + in.top + in.bottom;
+            int pHeight = irMaxHeight + V_PADDING + in.top + in.bottom;
 
             Dimension d = new Dimension(pWidth, pHeight);
             // LOGGER2.severe("PrefSizePanel.getPreferredSize() d=" + d);

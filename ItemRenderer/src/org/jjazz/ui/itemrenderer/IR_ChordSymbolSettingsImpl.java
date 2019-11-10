@@ -25,11 +25,11 @@ package org.jjazz.ui.itemrenderer;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
+import java.awt.GraphicsEnvironment;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,11 +48,10 @@ import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
     @ServiceProvider(service = FontColorUserSettingsProvider.class)
 }
 )
-
 public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implements FontColorUserSettingsProvider, FontColorUserSettingsProvider.FCSetting
 {
 
-    private static final String MUSIC_FONT_PATH = "resources/marl.ttf";
+    private static final String MUSIC_FONT_PATH = "resources/ScaleDegrees-Times.ttf";
     private static Font MUSIC_FONT;
     /**
      * The Preferences of this object.
@@ -72,6 +71,7 @@ public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implement
             {
                 InputStream is = IR_ChordSymbol.class.getResourceAsStream(MUSIC_FONT_PATH);
                 MUSIC_FONT = Font.createFont(Font.TRUETYPE_FONT, is);
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(MUSIC_FONT); // So it is available in getAvailableFontFamilyNames() etc.
             } catch (IOException | FontFormatException e)
             {
                 LOGGER.log(Level.SEVERE, "Can''t access " + MUSIC_FONT_PATH);
@@ -142,23 +142,15 @@ public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implement
     }
 
     @Override
-    public int[] getSharpGlyphCode()
+    public char getSharpCharInMusicFont()
     {
-        int[] code =
-        {
-            0x90
-        };
-        return code;
+        return '#';
     }
 
     @Override
-    public int[] getFlatGlyphCode()
+    public char getFlatCharInMusicFont()
     {
-        int[] code =
-        {
-            0x42
-        };
-        return code;
+        return 'b';
     }
 
     @Override

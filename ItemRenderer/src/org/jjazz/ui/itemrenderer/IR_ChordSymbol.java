@@ -24,8 +24,10 @@ package org.jjazz.ui.itemrenderer;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
+import java.awt.font.TextAttribute;
+import java.awt.font.TextLayout;
 import java.beans.PropertyChangeEvent;
+import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 import org.jjazz.harmony.StandardScaleInstance;
@@ -40,6 +42,7 @@ import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.ui.itemrenderer.api.IR_Copiable;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
+import org.jjazz.ui.utilities.TextLayoutUtils;
 
 /**
  * An ItemRenderer for ChordSymbols.
@@ -51,59 +54,11 @@ import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 {
 
-    private static final float EXT_FACTOR_SIZE = 0.8f;
-    private static final float EXT_FACTOR_OFFSET_HEIGHT = 0.3f;
-    private static final float SHARP_BASE_FACTOR_SIZE = (14f / 16);
-    private static final float SHARP_EXT_FACTOR_SIZE = (14f / 16);
-    private static final float FLAT_BASE_FACTOR_SIZE = (12f / 16);
-    private static final float FLAT_EXT_FACTOR_SIZE = (12f / 16);
-    // The fonts for the Sharp & Flat
-    private Font sharpBaseFont;
-    private Font sharpExtensionFont;
-    private Font flatBaseFont;
-    private Font flatExtensionFont;
-    /**
-     * List of the glyphVectors to draw the base of the ChordEvent.
-     */
-    private final ArrayList<GlyphVector> baseGlyphVectors = new ArrayList<>();
-    /**
-     * Width of each base GlyphVector.
-     */
-    private final ArrayList<Float> baseGlyphVectorsWidths = new ArrayList<>();
-    /**
-     * List of the glyphVectors to draw the bass part of the base of the ChordEvent.
-     */
-    private final ArrayList<GlyphVector> bassGlyphVectors = new ArrayList<>();
-    /**
-     * Width of each base bassGlyphVector.
-     */
-    private final ArrayList<Float> bassGlyphVectorsWidths = new ArrayList<>();
-    /**
-     * List of the glyphVectors to draw the extension of the ChordEvent.
-     */
-    private final ArrayList<GlyphVector> extensionGlyphVectors = new ArrayList<>();
-    /**
-     * Width of each extension GlyphVector.
-     */
-    private final ArrayList<Float> extensionGlyphVectorsWidths = new ArrayList<>();
-    /**
-     * Font used for the extension part.
-     */
-    private Font extensionFont;
-    /**
-     * Offset of the height of the extension part compared to the base.
-     */
-    private float extensionOffset;
-    /**
-     * Copy mode.
-     */
+    private static final float MUSIC_FONT_BASE_FACTOR_SIZE = (14f / 16);
+    private AttributedString attChordString;
     private boolean copyMode;
-    /**
-     * The settings for this object.
-     */
     private IR_ChordSymbolSettings settings;
     private int zoomFactor = 50;
-    private boolean isMacOS = false;
     private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbol.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
@@ -119,7 +74,6 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         settings.addPropertyChangeListener(this);
         setForeground(item.getData().getAlternateChordSymbol() == null ? settings.getColor() : settings.getAltColor());
         setFont(settings.getFont());
-        isMacOS = System.getProperty("os.name").toLowerCase().contains("mac");       
     }
 
     @Override
@@ -135,49 +89,30 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     /**
      * Calculate the preferredSize() depending on chord symbol, font and zoomFactor.
      * <p>
-     * Also precalculate data to speed it paintComponent().
-     * <p>
      */
     @Override
     public Dimension getPreferredSize()
     {
+        // The chord symbol to show
         ExtChordSymbol ecs = (ExtChordSymbol) getModel().getData();
-        Font f = getFont();
-        int zFactor = getZoomFactor();
-        Graphics2D g2 = (Graphics2D) getGraphics();
-        assert g2 != null : "g2=" + g2 + " ecs=" + ecs + " f=" + f + " zFactor=" + zFactor;
 
+        // Prepare the graphics context
+        Graphics2D g2 = (Graphics2D) getGraphics();
+        assert g2 != null;
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        float factor = 0.5f + (zFactor / 100f);
-        float zBaseFontSize = factor * f.getSize2D();
-        zBaseFontSize = Math.max(zBaseFontSize, 11);
-        Font zBaseFont = f.deriveFont(zBaseFontSize);
+        // The fonts to be used
+        FontRenderContext frc = g2.getFontRenderContext();
+        Font font = getFont();
+        Font musicFont = settings.getMusicFont();
 
-        // Update fonts
-        extensionFont = zBaseFont.deriveFont(zBaseFontSize * EXT_FACTOR_SIZE);
-        sharpBaseFont = settings.getMusicFont().deriveFont(zBaseFontSize * SHARP_BASE_FACTOR_SIZE);
-        sharpExtensionFont = settings.getMusicFont().deriveFont(zBaseFontSize * SHARP_EXT_FACTOR_SIZE);
-        flatBaseFont = settings.getMusicFont().deriveFont(zBaseFontSize * FLAT_BASE_FACTOR_SIZE);
-        flatExtensionFont = settings.getMusicFont().deriveFont(zBaseFontSize * FLAT_EXT_FACTOR_SIZE);
+        // Make font size depend on the zoom factor
+        float factor = 0.5f + (getZoomFactor() / 100f);
+        float zFontSize = factor * font.getSize2D();
+        zFontSize = Math.max(zFontSize, 12);
 
-        // Update extensionOffset
-        float baseHeight = g2.getFontMetrics(zBaseFont).getHeight();
-        extensionOffset = baseHeight * EXT_FACTOR_OFFSET_HEIGHT;
-
-        float width = 0;
-        float height = 0;
-
-        // Clear previous data
-        baseGlyphVectors.clear();
-        baseGlyphVectorsWidths.clear();
-        bassGlyphVectors.clear();
-        bassGlyphVectorsWidths.clear();
-        extensionGlyphVectors.clear();
-        extensionGlyphVectorsWidths.clear();
-
-        // Ok we can precalculate
+        // Get the strings making up the chord symbol : base [bass] extension
         String base = ecs.getRootNote().toRelativeNoteString() + ecs.getChordType().getBase();
         String bass = "";
         if (!ecs.getBassNote().equalsRelativePitch(ecs.getRootNote()))
@@ -186,107 +121,34 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         }
         String extension = ecs.getChordType().getExtension();
 
-        // Split out the flats and sharps...
-        java.util.List<String> baseStrings = splitStringAlt(base);
-        java.util.List<String> bassStrings = splitStringAlt(bass);
-        java.util.List<String> extensionStrings = splitStringAlt(extension);
-
-        FontRenderContext frc = g2.getFontRenderContext();
-
-        LOGGER.fine("getPreferredSize() -- baseStrings=" + baseStrings + " bassStrings=" + bassStrings + " extStrings=" + extensionStrings);
-
-        // Base of the ChordSymbol
-        GlyphVector gv;
-        for (String s : baseStrings)
+        // Create the AttributedString from the strings
+        String strChord = base + bass + extension;
+        String strChord2 = strChord.replace('#', settings.getSharpCharInMusicFont()).replace('b', settings.getFlatCharInMusicFont());
+        attChordString = new AttributedString(strChord2);
+        attChordString.addAttribute(TextAttribute.SIZE, zFontSize);                 // Default attribute
+        attChordString.addAttribute(TextAttribute.FAMILY, font.getFontName());      // Default attribute
+        // Use the music font for all the # and b symbols
+        for (int i = 0; i < strChord.length(); i++)
         {
-            switch (s)
+            if (strChord.charAt(i) == '#' || strChord.charAt(i) == 'b')
             {
-                case "b":
-                    gv = flatBaseFont.createGlyphVector(frc, settings.getFlatGlyphCode());
-                    break;
-                case "#":
-                    gv = sharpBaseFont.createGlyphVector(frc, settings.getSharpGlyphCode());
-                    break;
-                default:
-                    gv = zBaseFont.createGlyphVector(frc, s);
-                    break;
+                attChordString.addAttribute(TextAttribute.FAMILY, musicFont.getFontName(), i, i + 1);
             }
-            baseGlyphVectors.add(gv);
-            LOGGER.fine("getPreferredSize()    base glyph bounds=" + gv.getPixelBounds(frc, 1, 0));
+        }
+        // Superscript for the extension
+        if (!extension.isEmpty())
+        {
+            attChordString.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, base.length() + bass.length(), strChord.length());
         }
 
-        // Bass part of the base of the ChordSymbol
-        for (String s : bassStrings)
-        {
-            switch (s)
-            {
-                case "b":
-                    gv = flatBaseFont.createGlyphVector(frc, settings.getFlatGlyphCode());
-                    break;
-                case "#":
-                    gv = sharpBaseFont.createGlyphVector(frc, settings.getSharpGlyphCode());
-                    break;
-                default:
-                    gv = zBaseFont.createGlyphVector(frc, s);
-                    break;
-            }
-            bassGlyphVectors.add(gv);
-            LOGGER.fine("getPreferredSize()    bass glyph bounds=" + gv.getPixelBounds(frc, 1, 0));
-        }
-
-        // Extension of the ChordSymbol
-        for (String s : extensionStrings)
-        {
-            switch (s)
-            {
-                case "b":
-                    gv = flatExtensionFont.createGlyphVector(frc, settings.getFlatGlyphCode());
-                    break;
-                case "#":
-                    gv = sharpExtensionFont.createGlyphVector(frc, settings.getSharpGlyphCode());
-                    break;
-                default:
-                    gv = extensionFont.createGlyphVector(frc, s);
-                    break;
-            }
-            extensionGlyphVectors.add(gv);
-            LOGGER.fine("getPreferredSize()    extension glyph bounds=" + gv.getPixelBounds(frc, 1, 0));
-        }
-
-        // Calculate width
-        for (GlyphVector gvi : baseGlyphVectors)
-        {
-            Rectangle r = gvi.getPixelBounds(frc, 1, 0);
-            int w = r.width + 1;
-            int h = r.height + 1;
-            height = Math.max(height, h);
-            width += w;
-            baseGlyphVectorsWidths.add(new Float(w));
-        }
-
-        for (GlyphVector gvi : bassGlyphVectors)
-        {
-            Rectangle r = gvi.getPixelBounds(frc, 1, 0);
-            int w = r.width + 1;
-            int h = r.height + 1;
-            height = Math.max(height, h);
-            width += w;
-            bassGlyphVectorsWidths.add(new Float(w));
-        }
-
-        for (GlyphVector gvi : extensionGlyphVectors)
-        {
-            Rectangle r = gvi.getPixelBounds(frc, 1, 0);
-            int w = gvi.getPixelBounds(frc, 1, 0).width;
-            int h = (int) extensionOffset + r.height + 1;
-            height = Math.max(height, h);
-            width += w;
-            extensionGlyphVectorsWidths.add(new Float(w));
-        }
-        g2.dispose();
+        // Create the TextLayout to get its dimension       
+        TextLayout textLayout = new TextLayout(attChordString.getIterator(), frc);
+        int w = (int) TextLayoutUtils.getWidth(textLayout, strChord2, false);
+        int h = (int) TextLayoutUtils.getHeight(textLayout, frc);
 
         Insets in = getInsets();
-        Dimension d = new Dimension((int) width + 2 + in.left + in.right, (int) height + 2 + in.top + in.bottom);
+        final int PADDING = 1;
+        Dimension d = new Dimension((int) w + 2 * PADDING + in.left + in.right, h + 2 * PADDING + in.top + in.bottom);
         LOGGER.fine("getPreferredSize()    result d=" + d + "   (insets=" + in + ")");
         return d;
     }
@@ -381,40 +243,16 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         // Paint background
         super.paintComponent(g);
 
+        Insets in = this.getInsets();
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // LOGGER.severe("paintComponent() model=" + chordSymbol + " prefSize=" + getPreferredSize() + "  g2=" + g2);
-        float x = 2;
-        float y = getHeight() - 3;
+        float x = in.left;
+        float y = getHeight() - 1 - in.bottom;
 
-        // Draw base
-        for (int i = 0; i < baseGlyphVectors.size(); i++)
-        {
-            GlyphVector gv = baseGlyphVectors.get(i);
-            g2.drawGlyphVector(gv, x, y);
-            x += baseGlyphVectorsWidths.get(i);
-        }
-
-        // Draw extension
-        y = y - extensionOffset;
-
-        for (int i = 0; i < extensionGlyphVectors.size(); i++)
-        {
-            GlyphVector gv = extensionGlyphVectors.get(i);
-            g2.drawGlyphVector(gv, x, y);
-            x += extensionGlyphVectorsWidths.get(i);
-        }
-
-        // Draw bass part if any
-        y = y + extensionOffset;
-        for (int i = 0; i < bassGlyphVectors.size(); i++)
-        {
-            GlyphVector gv = bassGlyphVectors.get(i);
-            g2.drawGlyphVector(gv, x, y);
-            x += bassGlyphVectorsWidths.get(i);
-        }
+        g2.drawString(attChordString.getIterator(), x, y);
 
         // Draw the scale presence indicator
         ExtChordSymbol ecs = (ExtChordSymbol) getModel().getData();
@@ -473,10 +311,12 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     }
 
     /**
+     * Split the string around b or # chars.
+     * <p>
      * Example : s=F7b9 will return list v[0] = F7, v1[1]=b v[2]=9
      */
     @SuppressWarnings("empty-statement")
-    private java.util.List<String> splitStringAlt(String str)
+    private java.util.List<String> splitStringSharpOrFlat(String str)
     {
         StringBuilder sb = new StringBuilder();
         ArrayList<String> v = new ArrayList<>();

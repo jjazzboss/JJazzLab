@@ -92,14 +92,14 @@ public abstract class IR_ChordSymbolSettings
     abstract public Font getMusicFont();
 
     /**
-     * @return The glyph code for the Sharp symbol in the music font.
+     * @return The char representing the Sharp symbol in the music font.
      */
-    abstract public int[] getSharpGlyphCode();
+    abstract public char getSharpCharInMusicFont();
 
     /**
-     * @return The glyph code for the Sharp symbol in the music font.
+     * @return The char representing the Flat symbol in the music font.
      */
-    abstract public int[] getFlatGlyphCode();
+    abstract public char getFlatCharInMusicFont();
 
     abstract public void addPropertyChangeListener(PropertyChangeListener listener);
 
