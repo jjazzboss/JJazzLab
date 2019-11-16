@@ -9,14 +9,14 @@ Note than contributing does not necessarily mean coding, you can also:
 - improve the docs
 - create html or video tutorials
 
-Unsure where to begin contributing with code? Go to the [JJazzLab-X Issues](https://github.com/jjazzboss/JJazzLab-X) page and 
+Unsure where to begin contributing with code? Go to the [JJazzLab-X Issues](https://github.com/jjazzboss/JJazzLab-X/issues) page and 
 start by looking through the issues marked as **good first issue**.
 
 [Guide to first contributions](https://github.com/firstcontributions/first-contributions/blob/master/README.md)
 
 ## Did you find a bug?
 
-Ensure the bug was not already reported by searching the [JJazzLab-X Issues](https://github.com/jjazzboss/JJazzLab-X).
+Ensure the bug was not already reported by searching the [JJazzLab-X Issues](https://github.com/jjazzboss/JJazzLab-X/issues).
 
 If you're unable to find an open issue addressing the problem, open a new one. Be sure to include a title and clear description, 
 as much relevant information as possible in order to reproduce the unexpected behaviour.
