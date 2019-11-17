@@ -23,8 +23,9 @@
 package org.jjazz.ui.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
-import java.util.Collection;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -50,17 +51,13 @@ import org.openide.util.NbBundle;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
-import org.jjazz.ui.cl_editor.api.SelectedBar;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.openide.util.Lookup;
-import org.openide.util.LookupEvent;
-import org.openide.util.LookupListener;
-import org.openide.util.Utilities;
+import org.openide.windows.TopComponent;
 
 /**
- * Play music from the 1st focused bar and/or 1st focused song part.
+ * Play music from the 1st selected bar and/or 1st selected song part.
  * <p>
- * Action is enabled as long as there is a Song object in the global lookup.
+ * Action is enabled when the active TopComponent is a CL_Editor or a SS_Editor.
  */
 @ActionID(category = "MusicControls", id = "org.jjazz.ui.musiccontrolactions.playfromhere")
 @ActionRegistration(displayName = "#CTL_PlayFromHere", lazy = false)
@@ -76,10 +73,9 @@ import org.openide.util.Utilities;
             "CTL_PlayFromHereToolTip=Play from selected bar or song part (ctrl+space)",
             "ERR_NotActive=Can't play from here: song is not active"
         })
-public class PlayFromHere extends AbstractAction implements LookupListener
+public class PlayFromHere extends AbstractAction
 {
 
-    private final Lookup.Result<Song> lookupResult;
     private Song song;
     private static final Logger LOGGER = Logger.getLogger(PlayFromHere.class.getSimpleName());
 
@@ -88,18 +84,21 @@ public class PlayFromHere extends AbstractAction implements LookupListener
         putValue(Action.NAME, CTL_PlayFromHere());
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control SPACE"));     // For popup display only     
 
-        // Listen to the current Song changes
-        lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
-        lookupResult.addLookupListener(this);
-        resultChanged(null);
-    }
-
-    @Override
-    public void resultChanged(LookupEvent ev)
-    {
-        Collection<? extends Song> songs = lookupResult.allInstances();
-        song = songs.isEmpty() ? null : songs.iterator().next();
-        setEnabled(song != null);
+        // Listen to TopComponent activation changes
+        TopComponent.getRegistry().addPropertyChangeListener(new PropertyChangeListener()
+        {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt)
+            {
+                if (evt.getPropertyName().equals(TopComponent.Registry.PROP_ACTIVATED)
+                        || evt.getPropertyName().equals(TopComponent.Registry.PROP_TC_CLOSED))
+                {
+                    updateEnabledStatus();
+                }
+            }
+        }
+        );
+        updateEnabledStatus();
     }
 
     @Override
@@ -119,32 +118,36 @@ public class PlayFromHere extends AbstractAction implements LookupListener
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
         assert clTc != null;
         CL_Editor clEditor = clTc.getCL_Editor();
+        CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clEditor.getLookup());
 
         SongStructure ss = song.getSongStructure();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
         assert ssTc != null;
         SS_Editor ssEditor = ssTc.getSS_Editor();
+        SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
 
         int playFromBar = -1;
 
-        // Where is the focus ?
-        SelectedBar focusedBar;
-        SongPart focusedSpt;
-        if (((focusedBar = clEditor.getFocusedBar(true)) != null) && focusedBar.getModelBarIndex() != SelectedBar.POST_END_BAR_MODEL_BAR_INDEX)
+        TopComponent activeTc = TopComponent.getRegistry().getActivated();
+        if (clTc == activeTc && !clSelection.isEmpty())
         {
-            // Focus in the CL_Editor on a valid bar
-            // Try to find a bar in a matching SongPart
-            playFromBar = getSsBarIndex(focusedBar.getModelBarIndex(), cls, ss);            // Can return -1
-        } else if ((focusedSpt = ssEditor.getFocusedSongPart(true)) != null)
+            // Focus in the CL_Editor            
+            int clsBarIndex = clSelection.getMinBarIndexWithinCls();
+            if (clsBarIndex != -1)
+            {
+                // Try to find a bar in a matching SongPart
+                playFromBar = getSsBarIndex(clsBarIndex, cls, ss);            // Can return -1
+            }
+        } else if (ssTc == activeTc && !ssSelection.isEmpty())
         {
             // Focus in the SS_Editor
-            CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clTc.getLookup());
-            playFromBar = focusedSpt.getStartBarIndex() + getSelectedBarIndexRelativeToSection(focusedSpt.getParentSection(), clSelection);
+            SongPart firstSpt = ssSelection.getIndirectlySelectedSongParts().get(0);
+            playFromBar = firstSpt.getStartBarIndex() + getSelectedBarIndexRelativeToSection(firstSpt.getParentSection(), clSelection);
         }
 
         if (playFromBar == -1)
         {
-            String msg = "Can't play from here. Click first on a valid bar in the chord leadsheet editor, or on a song part in the song structure editor.";
+            String msg = "Can't play from here. Select first on a valid bar in the chord leadsheet editor, or a song part in the song structure editor.";
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -170,6 +173,26 @@ public class PlayFromHere extends AbstractAction implements LookupListener
     //=====================================================================================
     // Private methods
     //=====================================================================================     
+    private void updateEnabledStatus()
+    {
+        CL_EditorTopComponent clTc = CL_EditorTopComponent.getActive();
+        SS_EditorTopComponent ssTc = SS_EditorTopComponent.getActive();
+        boolean b = false;
+        song = null;
+        if (clTc != null)
+        {
+            b = true;
+            song = clTc.getSongModel();
+        } else if (ssTc != null)
+        {
+            b = true;
+            song = ssTc.getSongModel();
+        }
+
+        LOGGER.fine("updateEnabledStatus() b=" + b);
+        setEnabled(b);
+    }
+
     /**
      * Find a SongStructure bar from a ChordLeadSheet bar.
      *
@@ -182,8 +205,9 @@ public class PlayFromHere extends AbstractAction implements LookupListener
     {
         int sgsBarIndex = -1;
         CLI_Section section = cls.getSection(clsBarIndex);
+        LOGGER.fine("getSsBarIndex() section=" + section);
 
-        // If there some selected spts, try to match one of them
+        // If there are some selected spts, try to match one of them
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
         assert ssTc != null : "sgs=" + ss;
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssTc.getLookup());
@@ -200,6 +224,7 @@ public class PlayFromHere extends AbstractAction implements LookupListener
         if (sgsBarIndex == -1)
         {
             // It did not work, search the first SongPart which matches
+            LOGGER.fine("getSsBarIndex() no matching in selected spt, test all spts");
             for (SongPart spt : ss.getSongParts())
             {
                 if (spt.getParentSection() == section)
@@ -210,6 +235,7 @@ public class PlayFromHere extends AbstractAction implements LookupListener
                 }
             }
         }
+        LOGGER.fine("getSsBarIndex() sgsBarIndex=" + sgsBarIndex);
         return sgsBarIndex;
     }
 
