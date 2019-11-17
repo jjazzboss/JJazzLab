@@ -1,8 +1,11 @@
 # JJazzLab-X
 
-JJazzLab-X is a Midi-based framework dedicated to backing tracks generation -some people talk about "play-along songs" or “auto-accompaniment applications”. JJazzLab-X can be used to develop desktop applications similar to (and hopefully better than :wink:) Band In A Box or ChordPulse.
+JJazzLab-X is a Midi-based framework dedicated to backing tracks generation -some people talk about "play-along songs" or “auto-accompaniment applications”. You type in chord symbols, select a rhythm, then the application generates a complete backing track with drums, bass, guitar, piano, strings, etc. 
 
 The ultimate objective is to develop a jam buddy able to quickly generate intelligent and interesting backing tracks: realistic and non-boring backing tracks which you can easily adjust to song specificities.
+
+*The JJazzLab-X UI:* 
+![JJazzLab-X screenshot](https://github.com/jjazzboss/JJazzLab-X/blob/master/Graphics/JJazzLab%20-%20v1.0%20BETA.png)
 
 ## Example
 
@@ -19,6 +22,10 @@ JJazzLab-X can host any number of music generation engines as plugins. What happ
 3. When user press Play, the framework sends the song data to the music generation engine
 4. The music engine uses the song data to generate the Midi data for the backing tracks
 5. The framework retrieves the Midi data and plays it
+
+## Architecture
+
+![JJazzLab-X architecture](https://github.com/jjazzboss/JJazzLab-X/blob/master/Graphics/JJazzLab-X-architecture.jpg)
 
 ## Based on the Apache Netbeans Platform 
 
