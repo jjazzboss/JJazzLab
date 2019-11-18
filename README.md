@@ -40,7 +40,7 @@ If you're looking for a binary distribution visit [www.jjazzlab.com](https://www
 The current version is an Ant-based Netbeans IDE project (Netbeans 11, JDK>=8).
 
 From Netbeans IDE:
-- menu Team/Git/Clone, enter repository address: https://github.com/jjazzboss/JJazzLabWebSite.git
+- menu Team/Git/Clone, enter repository address: https://github.com/jjazzboss/JJazzLab-X.git
 - let Netbeans create a new project from the cloned files
 - select the created project then right-click Build
 
