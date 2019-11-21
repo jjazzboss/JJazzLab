@@ -29,7 +29,6 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -351,9 +350,9 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
             chooser.addChoosableFileFilter(filter);
         }
         chooser.setAcceptAllFileFilterUsed(false);
-        chooser.setMultiSelectionEnabled(true);
+        chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setDialogTitle("Add Midi synth description files");
+        chooser.setDialogTitle("Add a Midi synth description file");
         chooser.setCurrentDirectory(MidiSynthManager.getInstance().getMidiSynthFilesDir());
 
         if (chooser.showOpenDialog(WindowManager.getDefault().getMainWindow()) != JFileChooser.APPROVE_OPTION)
@@ -363,7 +362,10 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
         }
 
         // Process selected files
-        File[] synthFiles = chooser.getSelectedFiles();
+        File[] synthFiles = new File[]
+        {
+            chooser.getSelectedFile()           // We don't allow multi file selection anymore...
+        };
         for (File f : synthFiles)
         {
             String ext = org.jjazz.util.Utilities.getExtension(f.getAbsolutePath());
