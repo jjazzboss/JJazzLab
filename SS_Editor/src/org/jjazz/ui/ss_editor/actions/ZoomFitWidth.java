@@ -23,9 +23,12 @@
 package org.jjazz.ui.ss_editor.actions;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
+import static javax.swing.Action.ACCELERATOR_KEY;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
+import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
@@ -39,13 +42,18 @@ import org.openide.util.NbBundle.Messages;
 @ActionReferences(
         {
             // @ActionReference(path = "Actions/SongPart", position = 100)
-            // @ActionReference(path = "Shortcuts", name = "C-F")
+            // @ActionReference(path = "Shortcuts", name = "D-F")
         })
 @Messages("CTL_ZoomFitWidth=Zoom to Fit Width")
 public class ZoomFitWidth extends AbstractAction
 {
 
     private static final Logger LOGGER = Logger.getLogger(ZoomFitWidth.class.getSimpleName());
+    
+    public ZoomFitWidth()
+    {
+        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_F));    // For popupmenu display only
+    }
 
     @Override
     public void actionPerformed(ActionEvent e)

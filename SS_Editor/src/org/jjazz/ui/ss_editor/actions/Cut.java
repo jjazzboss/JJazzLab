@@ -24,11 +24,11 @@ package org.jjazz.ui.ss_editor.actions;
 
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
-import javax.swing.KeyStroke;
 import org.jjazz.ui.ss_editor.api.CopyBuffer;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
@@ -43,6 +43,7 @@ import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.cut")
 @ActionRegistration(displayName = "#CTL_Cut", lazy = false)
@@ -69,7 +70,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, SS_Contex
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control X"));
+        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_X));
         selectionChange(cap.getSelection());
     }
 

@@ -25,9 +25,11 @@ package org.jjazz.ui.utilities;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.Toolkit;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.openide.awt.MenuBar;
 
@@ -67,7 +69,7 @@ public class Utilities
     /**
      * Recursively enable/disable a JComponent and its JComponent children.
      *
-     * @param b boolean
+     * @param b  boolean
      * @param jc JComponent
      */
     public static void setRecursiveEnabled(boolean b, JComponent jc)
@@ -93,6 +95,17 @@ public class Utilities
         float b = hsb[2] * 256;
         nc = (b < 50) ? Color.WHITE : Color.BLACK;
         return nc;
+    }
+
+    /**
+     * Get a control-key KeyStroke which works on all OSes: Win, Linux AND Mac OSX.
+     *
+     * @param keyEventCode A KeyEvent constant like KeyEvent.VK_M (for ctrl-M)
+     * @return
+     */
+    public static KeyStroke getGenericControlKeyStroke(int keyEventCode)
+    {
+        return KeyStroke.getKeyStroke(keyEventCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
     }
 
     public static Color calculateDisabledColor(Color c)

@@ -24,12 +24,12 @@ package org.jjazz.ui.ss_editor.actions;
 
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
-import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -50,6 +50,7 @@ import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 
 /**
  * Paste SongParts.
@@ -85,7 +86,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, CTL_Paste());
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control V"));
+        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_V));
         CopyBuffer buffer = CopyBuffer.getInstance();
         buffer.addChangeListener(this);
         selectionChange(cap.getSelection());

@@ -24,12 +24,12 @@ package org.jjazz.ui.ss_editor.actions;
 
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
-import javax.swing.KeyStroke;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
@@ -44,6 +44,7 @@ import org.openide.util.*;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 
 /**
  * SelectAll
@@ -74,7 +75,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, SS_
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, CTL_SelectAll());
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control A"));
+        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_A));
         selectionChange(cap.getSelection());
     }
 

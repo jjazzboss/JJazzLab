@@ -23,6 +23,7 @@
 package org.jjazz.ui.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
@@ -52,6 +53,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
+import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.openide.windows.TopComponent;
 
 /**
@@ -65,7 +67,7 @@ import org.openide.windows.TopComponent;
         {
             @ActionReference(path = "Actions/Bar", position = 830, separatorBefore = 829, separatorAfter = 831),
             @ActionReference(path = "Actions/SongPart", position = 830, separatorBefore = 829, separatorAfter = 831),
-            @ActionReference(path = "Shortcuts", name = "C-SPACE")
+            @ActionReference(path = "Shortcuts", name = "D-SPACE")
         })
 @NbBundle.Messages(
         {
@@ -82,7 +84,7 @@ public class PlayFromHere extends AbstractAction
     public PlayFromHere()
     {
         putValue(Action.NAME, CTL_PlayFromHere());
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control SPACE"));     // For popup display only     
+        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_SPACE));     // For popup display only     
 
         // Listen to TopComponent activation changes
         TopComponent.getRegistry().addPropertyChangeListener(new PropertyChangeListener()

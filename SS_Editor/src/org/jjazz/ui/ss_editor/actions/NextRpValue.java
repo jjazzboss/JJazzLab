@@ -24,6 +24,7 @@ package org.jjazz.ui.ss_editor.actions;
 
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -47,6 +48,7 @@ import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.nextrpvalue")
 @ActionRegistration(displayName = "#CTL_NextRpValue", lazy = false)
@@ -74,7 +76,7 @@ public final class NextRpValue extends AbstractAction implements ContextAwareAct
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, CTL_NextRpValue());                          // For popupmenu display only
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control UP"));    // For popupmenu display only
+        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_UP));    // For popupmenu display only
     }
 
     @SuppressWarnings(

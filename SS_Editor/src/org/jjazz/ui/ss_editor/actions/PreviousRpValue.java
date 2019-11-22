@@ -24,6 +24,7 @@ package org.jjazz.ui.ss_editor.actions;
 
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
@@ -45,6 +46,7 @@ import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.previousrpvalue")
 @ActionRegistration(displayName = "#CTL_PreviousRpValue", lazy = false)
@@ -71,7 +73,7 @@ public final class PreviousRpValue extends AbstractAction implements ContextAwar
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, CTL_PreviousRpValue());                          // For popupmenu 
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control DOWN"));    // For popupmenu
+        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_DOWN));    // For popupmenu
     }
 
     @SuppressWarnings(

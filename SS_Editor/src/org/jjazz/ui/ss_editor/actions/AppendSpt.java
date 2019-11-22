@@ -23,6 +23,7 @@
 package org.jjazz.ui.ss_editor.actions;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -45,6 +46,7 @@ import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.appendspt")
 @ActionRegistration(displayName = "#CTL_AppendSpt", lazy = false)
@@ -62,7 +64,7 @@ public class AppendSpt extends AbstractAction
     public AppendSpt()
     {
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control I"));
+        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_I));
     }
 
     @Override

@@ -45,21 +45,4 @@
             </file>          -->
         </folder>         
     </folder>           
-    <folder name="Shortcuts">
-        <file name="C-Z.shadow">
-            <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-UndoAction.instance"/>
-        </file>
-        <file name="C-Y.shadow">
-            <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-RedoAction.instance"/>
-        </file>
-        <file name="C-C.shadow">
-            <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-CopyAction.instance"/>
-        </file>        
-        <file name="C-X.shadow">
-            <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-CutAction.instance"/>
-        </file>     
-        <file name="C-V.shadow">
-            <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-PasteAction.instance"/>
-        </file>         
-    </folder>    
 </filesystem>

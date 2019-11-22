@@ -39,7 +39,7 @@ import org.openide.util.NbBundle.Messages;
             @ActionReference(path = "Menu/Tools", position = 10),
             @ActionReference(path = "Actions/CL_EditorTopComponent", position = 110),
             @ActionReference(path = "Actions/RL_EditorTopComponent", position = 110),
-            @ActionReference(path = "Shortcuts", name = "C-D")
+            @ActionReference(path = "Shortcuts", name = "D-D")
         })
 @Messages(
         {

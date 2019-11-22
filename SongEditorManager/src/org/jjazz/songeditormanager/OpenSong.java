@@ -44,7 +44,7 @@ import org.openide.windows.WindowManager;
         {
             @ActionReference(path = "Menu/File", position = 5),
             @ActionReference(path = "Toolbars/File", position = 10),
-            @ActionReference(path = "Shortcuts", name = "C-O")
+            @ActionReference(path = "Shortcuts", name = "D-O")
         })
 @Messages(
         {

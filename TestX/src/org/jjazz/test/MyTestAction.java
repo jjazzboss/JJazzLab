@@ -43,7 +43,7 @@ import org.openide.awt.ActionRegistration;
 //@ActionReferences(
 //        {
 //           @ActionReference(path = "Menu/Edit", position = 870012),
-//           @ActionReference(path = "Shortcuts", name = "C-T")
+//           @ActionReference(path = "Shortcuts", name = "D-T")
 //        })
 public final class MyTestAction implements ActionListener
 {

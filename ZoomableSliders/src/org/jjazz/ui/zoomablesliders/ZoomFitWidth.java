@@ -41,7 +41,7 @@ public class ZoomFitWidth
     @ActionReferences(
             {
                 @ActionReference(path = "Actions/RL_Editor", position = 3100),
-                @ActionReference(path = "Shortcuts", name = "C-F")
+                @ActionReference(path = "Shortcuts", name = "D-F")
             })
     // The below key will be searched in the TopComponent's active ActionMap in order to get the action to use.
     public static final String ACTION_MAP_KEY = "jjazz-zoomfitwidth";

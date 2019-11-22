@@ -27,7 +27,9 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
@@ -64,6 +66,7 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_EditorMouseListener;
+import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 
 /**
  * Controller implementation of a SS_Editor.
@@ -102,15 +105,16 @@ public class SS_EditorController implements SS_EditorMouseListener
         dragStartRp = null;
 
         // Actions created by annotations (equivalent to org.openide.awt.Actions.context())
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control DOWN"), "PreviousRpValue");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_DOWN), "PreviousRpValue");
         editor.getActionMap().put("PreviousRpValue", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.previousrpvalue"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control UP"), "NextRpValue");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_UP), "NextRpValue");
         editor.getActionMap().put("NextRpValue", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.nextrpvalue"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("I"), "InsertSpt");
         editor.getActionMap().put("InsertSpt", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.insertspt"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control I"), "AppendSpt");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_I), "AppendSpt");
         editor.getActionMap().put("AppendSpt", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.appendspt"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control shift V"), "PasteAppend");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_I,
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | InputEvent.SHIFT_DOWN_MASK), "PasteAppend");
         editor.getActionMap().put("PasteAppend", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.pasteappend"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("R"), "EditRhythm");
         editor.getActionMap().put("EditRhythm", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editrhythm"));

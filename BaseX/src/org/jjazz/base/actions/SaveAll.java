@@ -46,7 +46,7 @@ import org.openide.util.NbBundle;
         {
             @ActionReference(path = "Menu/File", position = 1540),
             @ActionReference(path = "Toolbars/File", position = 20),
-            @ActionReference(path = "Shortcuts", name = "C-S")
+            @ActionReference(path = "Shortcuts", name = "D-S")
         })
 @NbBundle.Messages(
         {

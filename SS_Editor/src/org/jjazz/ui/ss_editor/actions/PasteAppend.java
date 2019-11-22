@@ -22,8 +22,11 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
+import java.awt.Toolkit;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -75,7 +78,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, CTL_PasteAppend());
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control shift V"));
+        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | InputEvent.SHIFT_DOWN_MASK));
         setEnabled(false);
         CopyBuffer buffer = CopyBuffer.getInstance();
         buffer.addChangeListener(this);

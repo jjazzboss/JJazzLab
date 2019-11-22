@@ -44,7 +44,7 @@ import org.openide.util.NbBundle.Messages;
 @ActionReferences(
         {
             @ActionReference(path = "Menu/File", position = 0, separatorAfter = 2),
-            @ActionReference(path = "Shortcuts", name = "C-N")
+            @ActionReference(path = "Shortcuts", name = "D-N")
         })
 @Messages("CTL_NewSong=New Song")
 public final class NewSong implements ActionListener

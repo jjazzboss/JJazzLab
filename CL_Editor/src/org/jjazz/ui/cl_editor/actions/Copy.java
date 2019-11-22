@@ -25,6 +25,7 @@ package org.jjazz.ui.cl_editor.actions;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.swing.AbstractAction;
@@ -39,6 +40,7 @@ import org.jjazz.ui.cl_editor.api.CopyBuffer;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
+import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.actions.CopyAction;
 import org.openide.awt.ActionID;
@@ -80,7 +82,7 @@ public class Copy extends AbstractAction implements ContextAwareAction, CL_Conte
         putValue(NAME, undoText);
         Icon icon = SystemAction.get(CopyAction.class).getIcon();
         putValue(SMALL_ICON, icon);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control C"));
+        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_C));
         selectionChange(cap.getSelection());
     }
 
