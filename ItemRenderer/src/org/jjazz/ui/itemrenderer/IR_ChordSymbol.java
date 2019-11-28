@@ -47,14 +47,10 @@ import org.jjazz.ui.utilities.TextLayoutUtils;
 /**
  * An ItemRenderer for ChordSymbols.
  * <p>
- * The base and the extension of a ChordSymbol are rendered with different sizes and height using the extensionFactorSize and
- * extensionOffset. e.g. for "C7b9" C7=base b9=extension. The rendering is stored in vectors of GlyphVector so that it can be
- * rendered quickly.
  */
 public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 {
 
-    private static final float MUSIC_FONT_BASE_FACTOR_SIZE = (14f / 16);
     private AttributedString attChordString;
     private boolean copyMode;
     private IR_ChordSymbolSettings settings;
@@ -122,7 +118,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         String extension = ecs.getChordType().getExtension();
 
         // Create the AttributedString from the strings
-        String strChord = base + bass + extension;
+        String strChord = base + extension + bass;
         String strChord2 = strChord.replace('#', settings.getSharpCharInMusicFont()).replace('b', settings.getFlatCharInMusicFont());
         attChordString = new AttributedString(strChord2);
         attChordString.addAttribute(TextAttribute.SIZE, zFontSize);                 // Default attribute
@@ -138,7 +134,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         // Superscript for the extension
         if (!extension.isEmpty())
         {
-            attChordString.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, base.length() + bass.length(), strChord.length());
+            attChordString.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, base.length(), base.length() + extension.length());
         }
 
         // Create the TextLayout to get its dimension       
