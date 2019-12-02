@@ -79,6 +79,7 @@ public class ExportToMidiFile extends AbstractAction
 {
 
     private Song song;
+    private static File saveExportDir = null;
 
     private static final Logger LOGGER = Logger.getLogger(ExportToMidiFile.class.getSimpleName());
 
@@ -94,6 +95,13 @@ public class ExportToMidiFile extends AbstractAction
 
         // Get the target midi file
         File midiFile = getMidiFile(song);
+        if (midiFile == null)
+        {
+            String msg = "Can't build destination Midi file for song " + song.getName();
+            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(nd);
+            return;
+        }
         JFileChooser chooser = Utilities.getFileChooserInstance();
         chooser.resetChoosableFileFilters();
         chooser.setMultiSelectionEnabled(false);
@@ -104,7 +112,9 @@ public class ExportToMidiFile extends AbstractAction
         {
             return;
         }
+        
         midiFile = chooser.getSelectedFile();
+        saveExportDir = midiFile.getParentFile();
 
         if (midiFile.exists())
         {
@@ -266,23 +276,38 @@ public class ExportToMidiFile extends AbstractAction
     // ======================================================================
     // Private methods
     // ======================================================================   
+    
+    /**
+     *
+     * @param sg
+     * @return Can be null
+     */
     private File getMidiFile(Song sg)
     {
-        File f;
-        File dir;
-        String midiFilename;
+        File f = null;
         File songFile = sg.getFile();
-        if (songFile == null)
+        String midiFilename = (songFile == null) ? sg.getName() + ".mid" : org.jjazz.util.Utilities.replaceExtension(songFile.getName(), ".mid");
+        if (saveExportDir != null && !saveExportDir.isDirectory())
         {
-            midiFilename = sg.getName() + ".mid";
-            FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-            dir = fdm.getLastSongDirectory();       // Can be null         
-        } else
-        {
-            midiFilename = org.jjazz.util.Utilities.replaceExtension(songFile.getName(), ".mid");
-            dir = songFile.getParentFile();
+            saveExportDir = null;
         }
-        f = new File(dir, midiFilename);
+        File dir = saveExportDir;
+        if (dir == null)
+        {
+            if (songFile != null)
+            {
+                dir = songFile.getParentFile();         // Can be null
+            }
+            if (dir == null)
+            {
+                FileDirectoryManager fdm = FileDirectoryManager.getInstance();
+                dir = fdm.getLastSongDirectory();       // Can be null                       
+            }
+        }
+        if (dir != null)
+        {
+            f = new File(dir, midiFilename);
+        }
         return f;
     }
 
