@@ -31,6 +31,7 @@ import org.openide.windows.TopComponent;
 import static org.jjazz.ui.spteditor.api.Bundle.*;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
+import org.openide.windows.WindowManager;
 
 @ConvertAsProperties(
         dtd = "-//org.jjazz.ui.spteditor.api//SptEditorTopComponent//EN",
@@ -82,6 +83,16 @@ public final class SptEditorTopComponent extends TopComponent
         sptEditor.setPreferredSize(new Dimension(80, 100));
         add(sptEditor);
 
+    }
+
+    /**
+     * When UI is ready there is normally one unique instance of this TopComponent, which is not closable.
+     *
+     * @return
+     */
+    static public SptEditorTopComponent getInstance()
+    {
+        return (SptEditorTopComponent) WindowManager.getDefault().findTopComponent("SptEditorTopComponent");
     }
 
     @Override

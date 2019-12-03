@@ -22,8 +22,6 @@
  */
 package org.jjazz.ui.ss_editor.api;
 
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -45,7 +43,6 @@ import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.ui.ss_editor.SS_EditorImpl;
 
 /**
  * Top component for the SongStructure editor.

@@ -61,6 +61,7 @@ import org.openide.util.NbBundle.Messages;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.spteditor.api.SptEditorTopComponent;
 
 /**
  * Edit one or more selected SongParts.
@@ -394,6 +395,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         {
             // No good, just disable the editor
             setEditorEnabled(false);
+            updateTabName(songParts);
         } else
         {
             // Ok, register the songparts and update the editor
@@ -439,8 +441,9 @@ public class SptEditor extends JPanel implements PropertyChangeListener
     }
 
     /**
-     * Called when SongStructure presence changed in the lookup. If a new song is detected, listen to the SS_Editor lookup
-     * selection changes.
+     * Called when SongStructure presence changed in the lookup.
+     * <p>
+     * If a new song is detected, listen to the SS_Editor lookup selection changes.
      */
     private void songPresenceChanged()
     {
@@ -488,6 +491,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
 
         // SongParts can have different rhythms
         // Reference is SongPart(0), initialize UI with its values
+        updateTabName(songParts);
         SongPart spt0 = songParts.get(0);
         Rhythm rhythm0 = spt0.getRhythm();
         btn_Rhythm.setText(rhythm0.getName().toLowerCase());
@@ -622,6 +626,37 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         Section section = spt.getParentSection().getData();
         return CTL_LinkedTo() + section.getName() + " [" + section.getTimeSignature() + "] "
                 + CTL_Start() + spt.getStartBarIndex() + " " + CTL_Size() + spt.getNbBars();
+    }
+
+    /**
+     * Update the TopComponent tab name depending on the specified song parts.
+     * <p>
+     * @param spts The song parts
+     */
+    private void updateTabName(List<SongPart> spts)
+    {
+        SptEditorTopComponent tc = SptEditorTopComponent.getInstance();
+        if (tc != null)
+        {
+            String tabName = "Song Part";
+            if (!spts.isEmpty())
+            {
+                SongPart spt0 = spts.get(0);
+                int spt0Index = songModel.getSongStructure().getSongParts().indexOf(spts.get(0));
+                if (spts.size() > 1)
+                {
+                    String spt0Name = org.jjazz.util.Utilities.truncate(spt0.getName(), 4) + "(" + (spt0Index + 1) + ")";
+                    SongPart lastSpt = spts.get(spts.size() - 1);
+                    int lastSptIndex = songModel.getSongStructure().getSongParts().indexOf(lastSpt);
+                    String lastSptName = org.jjazz.util.Utilities.truncate(lastSpt.getName(), 4) + "(" + (lastSptIndex + 1) + ")";
+                    tabName += "s: " + spt0Name + "..." + lastSptName;
+                } else
+                {
+                    tabName += ": " + org.jjazz.util.Utilities.truncateWithDots(spt0.getName(), 10) + "(" + (spt0Index + 1) + ")";
+                }
+            }
+            tc.setDisplayName(tabName);
+        }
     }
 
     private List<RpEditor> getRpEditors()
