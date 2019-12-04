@@ -27,11 +27,10 @@ import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.util.Range;
 
 /*
  * A convenience class to manipulate chord symbols sequences.
- *
- * It is assumed that the time signature does not change within one chord sequence.
  *
  * User is responsible to ensure CLI_ChordSymbols are added in the right position order and in the startBar/nbBars range.
  */
@@ -80,6 +79,11 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
         return startBar;
     }
 
+    public final Range getRange()
+    {
+        return new Range(startBar, startBar + nbBars - 1);
+    }
+
     /**
      * Override hashCode to use a constant for each object, ie it does not depend on ChordSequence contents.
      * <p>
@@ -110,6 +114,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
      * This is the duration until next chord or the end of the chordsequence.
      *
      * @param chordIndex
+     * @param ts
      * @return
      */
     public float getChordDuration(int chordIndex, TimeSignature ts)
@@ -159,7 +164,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
      * A new sub-sequence from this sequence.
      *
      * @param startBar Chords from startBar are included
-     * @param endBar Chords until endBar (included) are included
+     * @param endBar   Chords until endBar (included) are included
      * @return
      */
     public ChordSequence subSequence(int startBar, int endBar)

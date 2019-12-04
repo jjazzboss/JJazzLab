@@ -46,6 +46,7 @@ import org.openide.NotifyDescriptor;
 import org.openide.util.NbBundle.Messages;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.util.Range;
 
 public class SongPartImpl implements SongPart, Serializable
 {
@@ -219,6 +220,12 @@ public class SongPartImpl implements SongPart, Serializable
     public int getStartBarIndex()
     {
         return startBarIndex;
+    }
+
+    @Override
+    public Range getRange()
+    {
+        return new Range(startBarIndex, startBarIndex + nbBars - 1);
     }
 
     @Override

@@ -34,6 +34,7 @@ import org.jjazz.midi.MidiConst;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.util.Range;
 import org.jjazz.util.SmallMap;
 
 /**
@@ -147,14 +148,21 @@ public interface SongStructure
     public SongPart getSongPart(int absoluteBarIndex);
 
     /**
+     * Get the size in bars of the song.
+     *
      * @return The total size in bars.
      */
     public int getSizeInBars();
 
     /**
-     * @return The total size in "natural" beats.
+     * Get the size in beats of the song range.
+     * <p>
+     * The method must take into account song with possibly different time signatures.
+     *
+     * @param r If null use whole song structure.
+     * @return The total size in beats.
      */
-    public int getSizeInBeats();
+    public int getSizeInBeats(Range r);
 
     /**
      * The position of the specified bar in natural beats: take into account the possible different time signatures before
@@ -175,7 +183,7 @@ public interface SongStructure
      *
      * @param spt the value of spt
      * @throws org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException If new rhythm could not be accepted and no
-     * replacement done.
+     *                                                                         replacement done.
      */
     public void addSongPart(SongPart spt) throws UnsupportedEditException;
 
@@ -206,7 +214,7 @@ public interface SongStructure
      * @param oldSpts
      * @param newSpts size must match oldSpts
      * @throws UnsupportedEditException If replacement was impossible, typically because not enough Midi channels for a new
-     * rhythm.
+     *                                  rhythm.
      */
     public void replaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException;
 
@@ -222,8 +230,8 @@ public interface SongStructure
      * Change the value of a specific RhythmParameter.
      *
      * @param <T>
-     * @param spt The SongPart rp belongs to.
-     * @param rp The RhythmParameter.
+     * @param spt   The SongPart rp belongs to.
+     * @param rp    The RhythmParameter.
      * @param value The new value to apply for rp.
      */
     public <T> void setRhythmParameterValue(SongPart spt, RhythmParameter<T> rp, T value);

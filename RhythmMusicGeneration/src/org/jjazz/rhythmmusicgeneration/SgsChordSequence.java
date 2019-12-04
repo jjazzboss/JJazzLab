@@ -22,14 +22,11 @@
  */
 package org.jjazz.rhythmmusicgeneration;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.item.AltExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
@@ -43,6 +40,7 @@ import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.util.Range;
 
 /**
  * A special ChordSequence built from a SongStructure and its parent ChordLeadSheet.
@@ -76,7 +74,7 @@ public class SgsChordSequence extends ChordSequence
      *
      * @param sgs
      * @param absoluteStartBar Include chords from this bar.
-     * @param absoluteEndBar Include chords until this bar (included).
+     * @param absoluteEndBar   Include chords until this bar (included).
      * @throws IllegalArgumentException If no chord found to be the 1st chord of the ChordSequence.
      */
     public SgsChordSequence(SongStructure sgs, int absoluteStartBar, int absoluteEndBar)
@@ -173,40 +171,10 @@ public class SgsChordSequence extends ChordSequence
     }
 
     /**
-     * Split in one or more chord sequences which share the same time signature.
-     *
-     * @return
-     */
-    public List<ChordSequence> splitByTimeSignature()
-    {
-        List<ChordSequence> res = new ArrayList<>();
-        TimeSignature ts = null;
-        int startBar = -1;
-        for (SongPart spt : sgs.getSongParts())
-        {
-            if (!spt.getRhythm().getTimeSignature().equals(ts))
-            {
-                if (startBar != -1)
-                {
-                    // Add a subsequence
-                    ChordSequence cSeq = subSequence(startBar, spt.getStartBarIndex() - 1);
-                    res.add(cSeq);
-                }
-                startBar = spt.getStartBarIndex();
-                ts = spt.getRhythm().getTimeSignature();
-            }
-        }
-        // Add the last sequence
-        ChordSequence cSeq = subSequence(startBar, sgs.getSizeInBars() - 1);
-        res.add(cSeq);
-        return res;
-    }
-
-    /**
      * Make sure that the specified ChordSequence starts with a chord symbol on beat 0.
      * <p>
-     * If not, try to add a copy of the last chord before the start of the chord sequence. If no chord before, try to move the
-     * first chord of the sequence on beat 0.
+     * If not, try to add a copy of the last chord before the start of the chord sequence in the song structure. If no chord
+     * before, try to move the first chord of the sequence on beat 0.
      *
      * @param cSeq A ChordSequence extracted from this SgsChordSequence.
      */
@@ -267,7 +235,7 @@ public class SgsChordSequence extends ChordSequence
     }
 
     /**
-     * Split this SgsChordSequence in ChordSequences for contiguous Rhythm's SongParts which have the same specified
+     * Split this SgsChordSequence in ChordSequences for each contiguous Rhythm's SongParts which have the same specified
      * RhythmParameter value.
      * <p>
      * Example: <br>
@@ -278,56 +246,59 @@ public class SgsChordSequence extends ChordSequence
      *
      * @param <T> The type of the RhythmParameter value
      * @param r
-     * @param rp The Rhythm's RhythmParameter for which we will check the value
+     * @param rp  The Rhythm's RhythmParameter for which we will check the value
      * @return The list of ChordSequences with their respective common rpValue.
-     */
+     */ 
     public <T> HashMap<ChordSequence, T> split(Rhythm r, RhythmParameter<T> rp)
     {
         LOGGER.fine("split() --");
         HashMap<ChordSequence, T> mapCsRpValue = new HashMap<>();
-        int startBar = 0;
-        int endBar = 0;
+        int seqStartBar = getStartBar();
+        int seqEndBar = seqStartBar;
         T lastRpValue = null;
         for (SongPart spt : sgs.getSongParts())
         {
-            if (spt.getRhythm() == r)
+            Range sptCsRange = getRange().getIntersectRange(spt.getRange());  
+            if (!sptCsRange.isEmpty() && spt.getRhythm() == r)
             {
+                // Song part is covered by this ChordSequence and it's our rhythm
                 T rpValue = spt.getRPValue(rp);
                 if (lastRpValue == null)
                 {
                     // Start a new chord sequence
-                    startBar = spt.getStartBarIndex();
-                    endBar = startBar + spt.getNbBars() - 1;
+                    seqStartBar = sptCsRange.from;
+                    seqEndBar = sptCsRange.to;
                     lastRpValue = rpValue;
                 } else if (lastRpValue == rpValue)
                 {
                     // Different song parts with same rpValues: we continue the current chord sequence                    
-                    endBar += spt.getNbBars();
+                    seqEndBar += sptCsRange.size();
                 } else
                 {
                     // Different song parts with different rpValues: complete the chord sequence and start a new one
-                    ChordSequence cSeq = subSequence(startBar, endBar);
+                    ChordSequence cSeq = subSequence(seqStartBar, seqEndBar);
                     mapCsRpValue.put(cSeq, lastRpValue);
-                    startBar = spt.getStartBarIndex();
-                    endBar = startBar + spt.getNbBars() - 1;
+                    seqStartBar = sptCsRange.from;
+                    seqEndBar = sptCsRange.to;
                     lastRpValue = rpValue;
                 }
             } else
             {
-                // Not our rhythm !
+                // Not in the chord sequence or it's not our rhythm
                 if (lastRpValue != null)
                 {
                     // We have one chord sequence pending, save it
-                    ChordSequence cSeq = subSequence(startBar, endBar);
+                    ChordSequence cSeq = subSequence(seqStartBar, seqEndBar);
                     mapCsRpValue.put(cSeq, lastRpValue);
                     lastRpValue = null;
                 }
             }
         }
+        
         if (lastRpValue != null)
         {
             // Complete the last chord sequence 
-            ChordSequence cSeq = subSequence(startBar, endBar);
+            ChordSequence cSeq = subSequence(seqStartBar, seqEndBar);
             mapCsRpValue.put(cSeq, lastRpValue);
         }
         LOGGER.log(Level.FINE, "buildChordSequences()   mapCsSp={0}", mapCsRpValue.toString());

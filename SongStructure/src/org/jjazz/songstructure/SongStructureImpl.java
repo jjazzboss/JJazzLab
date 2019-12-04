@@ -53,6 +53,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.util.Range;
 
 public class SongStructureImpl implements SongStructure, Serializable
 {
@@ -92,7 +93,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     /**
      *
-     * @param cls The parent chordleadsheet
+     * @param cls         The parent chordleadsheet
      * @param keepUpdated If true listen to cls changes to remain uptodate
      */
     public SongStructureImpl(ChordLeadSheet cls, boolean keepUpdated)
@@ -133,16 +134,22 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public int getSizeInBars()
     {
-        return songParts.isEmpty() ? 0 : getSptLastBarIndex(songParts.size() - 1) + 1;
+        int res = songParts.isEmpty() ? 0 : getSptLastBarIndex(songParts.size() - 1) + 1;
+        return res;
     }
 
     @Override
-    public int getSizeInBeats()
+    public int getSizeInBeats(Range r)
     {
+        if (r == null)
+        {
+            r = new Range(0, getSizeInBars() - 1);
+        }
         int size = 0;
         for (SongPart spt : songParts)
         {
-            size += spt.getNbBars() * spt.getRhythm().getTimeSignature().getNbNaturalBeats();
+            int nbBars = r.getIntersectRange(spt.getRange()).size();
+            size += nbBars * spt.getRhythm().getTimeSignature().getNbNaturalBeats();
         }
         return size;
     }

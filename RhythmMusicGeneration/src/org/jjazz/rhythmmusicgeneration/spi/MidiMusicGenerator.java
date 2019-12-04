@@ -41,14 +41,18 @@ public interface MidiMusicGenerator
     /**
      * Fill the specified Midi tracks with Midi events to produce a rhythm accompaniment.
      * <p>
-     * The service provider must compute Midi music data for the specified context. Resulting Midi messages must be stored in the
-     * tracks provided by the mapRvTracks map, one track per RhythmVoice/Midi channel. The authorized Midi events are note on/off
-     * and pitch wheel changes. Midi events timing must be based on a PPQ resolution=MidiConst.PPQ_RESOLUTION.
+     * The service provider must compute Midi music data (notes) for the specified context. Resulting Midi messages must be stored
+     * in the tracks provided by the mapRvTracks map, one track per RhythmVoice/Midi channel.
      * <p>
-     * Practically this method should essentially use the context Song (ChordLeadSheet and SongStructure). The context MidiMix is
-     * used to retrieve the unique Midi channel associated to each RhythmVoice (see method MidiMix.getChannel(RhythmVoice)). If
-     * the context song contains several rhythms, the method must add Midi events ONLY for bars which use this
-     * MidiMusicGenerator's rhythm.
+     * The authorized Midi events are note on/off and pitch wheel changes. Midi events timing must be based on a PPQ
+     * resolution=MidiConst.PPQ_RESOLUTION. The first note of the first bar (usually on beat 0) should start at tick 0, even if
+     * the context specifies a first bar (fromBar) which is greater than 0.
+     * <p>
+     * The MidiMix from the context is used to retrieve the unique Midi channel associated to each RhythmVoice (see method
+     * MidiMix.getChannel(RhythmVoice)). If the context song contains several rhythms, the method must add Midi events ONLY for
+     * bars which use this MidiMusicGenerator's rhythm.
+     * <p>
+     * If context bar range
      * <p>
      * Some features are directly managed by the framework (for example by post-processing the generated Midi tracks), so the
      * method shall NOT implement them:<br>
@@ -58,11 +62,11 @@ public interface MidiMusicGenerator
      * - Handling of the channel's specific velocity shift<br>
      * - Handling of the instrument's specific transposition<br>
      *
-     * @param context The information to be used for music generation
+     * @param context     The information to be used for music generation
      * @param mapRvTracks The tracks ready to be filled, one track per rhythm voice/channel.
      *
      * @throws MusicGenerationException If generator could not produce the expected music. The framework is responsible for
-     * notifying the user of the error message associated to the exception.
+     *                                  notifying the user of the error message associated to the exception.
      *
      */
     void generateMusic(MusicGenerationContext context, HashMap<RhythmVoice, Track> mapRvTracks) throws MusicGenerationException;

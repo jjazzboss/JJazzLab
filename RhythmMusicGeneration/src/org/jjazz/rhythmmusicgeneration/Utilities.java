@@ -22,7 +22,6 @@
  */
 package org.jjazz.rhythmmusicgeneration;
 
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
@@ -32,16 +31,12 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.Note;
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.midi.MidiConst;
-import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.song.api.Song;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * Convenient class for Midi tracks generation.
+ * Convenient methods for Midi tracks generation.
  */
 public class Utilities
 {
@@ -49,15 +44,18 @@ public class Utilities
     protected static final Logger LOGGER = Logger.getLogger(org.jjazz.rhythmmusicgeneration.Utilities.class.getName());
 
     /**
-     * Get the length of specified song part in Midi ticks.
+     * Get the length in Midi ticks of nbBars of the specified song part.
+     * <p>
+     * Use MidiConst.PPQ_RESOLUTION per natural beat.
      *
      * @param spt
+     * @param nbBars If -1 return the length of the whole song part.
      * @return
      */
-    static public long getTickLength(SongPart spt)
+    static public long getTickLength(SongPart spt, int nbBars)
     {
         int nbNaturalBeatsPerBar = spt.getRhythm().getTimeSignature().getNbNaturalBeats();
-        int nbNaturalBeats = spt.getNbBars() * nbNaturalBeatsPerBar;
+        int nbNaturalBeats = nbBars < 0 ? spt.getNbBars() * nbNaturalBeatsPerBar : nbBars * nbNaturalBeatsPerBar;
         long l = nbNaturalBeats * MidiConst.PPQ_RESOLUTION;
         return l;
     }
@@ -93,63 +91,31 @@ public class Utilities
     }
 
     /**
-     * Add chords root notes (or bass note for slash chords) to the specified track.
+     * Add chord root notes (or bass note for slash chords) to the specified track based.
+     * <p>
+     * Note remains on until next chord.
      *
      * @param track
      * @param channel
-     * @param song
-     * @param r Add notes for this rhythm.
-     * @return The tick position right after the entire song.
+     * @param tickOffset The start of the first beat of first bar
+     * @param cSeq       Add notes for this chord sequence
+     * @param ts
+     * @return The tick position corresponding to the end of the track or start of next section.
      */
-    static public long addBassNoteEvents(Track track, int channel, Song song, Rhythm r)
+    static public long addBassNoteEvents(Track track, int channel, long tickOffset, ChordSequence cSeq, TimeSignature ts)
     {
-        if (track == null || song == null)
+        if (track == null || !MidiConst.checkMidiChannel(channel) || tickOffset < 0 || cSeq == null || ts == null)
         {
-            throw new IllegalArgumentException("track=" + track + " song=" + song);
+            throw new IllegalArgumentException("track=" + track + " channel=" + channel + " tickOffset=" + tickOffset + " cSeq=" + cSeq + " ts=" + ts);
         }
-        SongStructure sgs = song.getSongStructure();
-        long tick = 0;
-        // Scan all SongParts
-        for (SongPart spt : sgs.getSongParts())
-        {
-            if (spt.getRhythm().equals(r))
-            {
-                CLI_Section section = spt.getParentSection();
-                tick = addBassNoteEvents(track, channel, tick, section);
-            } else
-            {
-                TimeSignature ts = spt.getRhythm().getTimeSignature();
-                tick += spt.getNbBars() * MidiConst.PPQ_RESOLUTION * ts.getNbNaturalBeats();
-            }
-        }
-        return tick;
-    }
-
-    /**
-     * Add chord root notes (or bass note for slash chords) to the specified track based. Note remains on until next chord.
-     *
-     * @param track
-     * @param channel
-     * @param tickOffset
-     * @param section Take chords from this section.
-     * @return The tick position corresponding to the start of next section.
-     */
-    static public long addBassNoteEvents(Track track, int channel, long tickOffset, CLI_Section section)
-    {
-        if (track == null || !MidiConst.checkMidiChannel(channel) || tickOffset < 0 || section == null)
-        {
-            throw new IllegalArgumentException("track=" + track + " channel=" + channel + " tickOffset=" + tickOffset + " section=" + section);
-        }
-        TimeSignature ts = section.getData().getTimeSignature();
-        int startBar = section.getPosition().getBar();
-        List<? extends CLI_ChordSymbol> clis = section.getContainer().getItems(section, CLI_ChordSymbol.class);
+        int startBar = cSeq.getStartBar();
         ShortMessage noteOn = null;
         ShortMessage noteOff;
         int lastNotePitch = 0;
         long tick = tickOffset;
         try
         {
-            for (CLI_ChordSymbol cli : clis)
+            for (CLI_ChordSymbol cli : cSeq)
             {
                 Note bassNote = cli.getData().getBassNote();
                 int bassPitch = 3 * 12 + bassNote.getRelativePitch(); // stay on the 3rd octave
@@ -172,7 +138,7 @@ public class Utilities
                 lastNotePitch = bassPitch;
             }
             // Set the tick to start of next section
-            tick = section.getContainer().getSectionSize(section) * ts.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION + tickOffset;
+            tick = cSeq.getNbBars() * ts.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION + tickOffset;
             if (noteOn != null)
             {
                 // Need to stop last note
@@ -188,46 +154,14 @@ public class Utilities
     }
 
     /**
-     * Add drums notes to the specified track.
+     * Add dummy drums notes to the specified track.
      *
      * @param track
      * @param channel
-     * @param song
-     * @param r Add notes for this rhythm.
-     * @return The tick position right after the entire song.
-     */
-    static public long addDrumsNoteEvents(Track track, int channel, Song song, Rhythm r)
-    {
-        if (track == null || song == null)
-        {
-            throw new IllegalArgumentException("track=" + track + " song=" + song);
-        }
-        SongStructure sgs = song.getSongStructure();
-        long tick = 0;
-        // Scan all SongParts
-        for (SongPart spt : sgs.getSongParts())
-        {
-            TimeSignature ts = spt.getRhythm().getTimeSignature();
-            if (spt.getRhythm().equals(r))
-            {
-                tick = addDrumsNoteEvents(track, channel, tick, spt.getNbBars(), ts);
-            } else
-            {
-                tick += spt.getNbBars() * MidiConst.PPQ_RESOLUTION * ts.getNbNaturalBeats();
-            }
-        }
-        return tick;
-    }
-
-    /**
-     * Add drums to the specified track based.
-     *
-     * @param track
-     * @param channel
-     * @param tickOffset
+     * @param tickOffset Tick position of the first beat of first bar.
      * @param nbBars
      * @param ts
-     * @return The tick position corresponding to the start of next section.
+     * @return The tick position corresponding to the end of the track or start of next section.
      */
     static public long addDrumsNoteEvents(Track track, int channel, long tickOffset, int nbBars, TimeSignature ts)
     {

@@ -81,18 +81,18 @@ public class MidiSequenceBuilder
     }
 
     /**
-     * Build the complete rhythm sequence from the context.
+     * Build the music accompaniment sequence for the defined context.
      * <p>
      * 1/ Create a first empty track with song name.<br>
      * 2/ Ask each used rhythm in the song to produce tracks.<br>
      * 3/ Perform some checks and cleanup on produced tracks: check for possible errors in the context, adjust end of track, check
      * that generator produces music only for the relevant bars, set each track's name.
      *
-     *
-     * @return A Sequence containing accompaniment tracks for the song.
+     * @param silent If true do not show a progress dialog
+     * @return A Sequence containing accompaniment tracks for the context.
      * @throws org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException
      */
-    public Sequence buildSequence() throws MusicGenerationException
+    public Sequence buildSequence(boolean silent) throws MusicGenerationException
     {
 
         // Check that there is a valid starting chord on bar 0 beat 0
@@ -102,7 +102,13 @@ public class MidiSequenceBuilder
         checkChordsAtSamePosition();            // throws MusicGenerationException
 
         SequenceBuilderTask task = new SequenceBuilderTask();
-        BaseProgressUtils.showProgressDialogAndRun(task, "Preparing Music...");
+        if (silent)
+        {
+            task.run();
+        } else
+        {
+            BaseProgressUtils.showProgressDialogAndRun(task, "Preparing Music...");
+        }
 
         if (task.musicException != null)
         {
@@ -164,6 +170,9 @@ public class MidiSequenceBuilder
         return b;
     }
 
+    /**
+     * @throws MusicGenerationException
+     */
     private void checkStartChordPresence() throws MusicGenerationException
     {
         ChordLeadSheet cls = context.getSong().getChordLeadSheet();
@@ -171,12 +180,12 @@ public class MidiSequenceBuilder
         List<? extends CLI_ChordSymbol> clis = cls.getItems(0, 0, CLI_ChordSymbol.class);
         if (clis.isEmpty() || !clis.get(0).getPosition().equals(new Position(0, 0)))
         {
-            throw new MusicGenerationException("No starting chord on first bar/first beat.");
+            throw new MusicGenerationException("There is no starting chord on first beat of first bar.");
         }
     }
 
     /**
-     * Check if ChordLeadSheet contains 2 chord symbols at the same position.
+     * Check if the ChordLeadSheet contains 2 chord symbols at the same position.
      */
     private void checkChordsAtSamePosition() throws MusicGenerationException
     {
@@ -207,7 +216,7 @@ public class MidiSequenceBuilder
      *
      * @param sequence
      */
-    private void updateNotes(Sequence sequence)
+    private void updatePitchAndVelocity(Sequence sequence)
     {
         MidiMix midiMix = context.getMidiMix();
 
@@ -267,16 +276,7 @@ public class MidiSequenceBuilder
      */
     private void muteNotes(Sequence sequence)
     {
-        SongStructure sgs = context.getSong().getSongStructure();
-        List<SongPart> spts = sgs.getSongParts();
-        MidiMix midiMix = context.getMidiMix();
-
-        ArrayList<SongPart> mutedSpts = new ArrayList<>();
-        ArrayList<List<Integer>> mutedChannelList = new ArrayList<>();
-
-        // Prepare data
-        // For each SongParts where RP_SYS_Mute is used, store the spt and the mutedChannels      
-        for (SongPart spt : spts)
+        for (SongPart spt : context.getSongParts())
         {
             Rhythm r = spt.getRhythm();
             RP_SYS_Mute rpMute = RP_SYS_Mute.getMuteRp(r);
@@ -291,83 +291,66 @@ public class MidiSequenceBuilder
                 continue;
             }
 
-            // There is at least a muted track, save data
-            mutedSpts.add(spt);
+            // At least one RhythmVoice/Track is muted
             List<RhythmVoice> mutedRvs = RP_SYS_Mute.getMutedRhythmVoices(r, muteValues);
-            ArrayList<Integer> mutedChannels = new ArrayList<>();
             for (RhythmVoice rv : mutedRvs)
             {
-                mutedChannels.add(midiMix.getChannel(rv));
+                removeSptEvents(sequence, spt, rv);
             }
-            assert !mutedChannels.isEmpty() : "muteValues=" + muteValues + " mutedRvs=" + mutedRvs + " r=" + r;
-            mutedChannelList.add(mutedChannels);
         }
+    }
 
-        if (mutedSpts.isEmpty())
+    /**
+     * Remove all the MidiEvents corresponding to the specified spt and rhythm voice.
+     *
+     * @param sequence
+     * @param spt
+     * @param rv
+     */
+    private void removeSptEvents(Sequence sequence, SongPart spt, RhythmVoice rv)
+    {
+        long sptTickStart = context.getSptStartTick(spt);
+        int nbBars = context.getContainedSptBars(spt).size();
+        long sptTickEnd = sptTickStart + Utilities.getTickLength(spt, nbBars) - 1;
+
+        int trackId = mapRvTrackId.get(rv);
+        Track track = sequence.getTracks()[trackId];
+
+        ArrayList<MidiEvent> needRemove = new ArrayList<>(20);
+
+        // Loop on each MidiEvent of the track
+        for (int i = 0; i < track.size(); i++)
         {
-            return;
-        }
-
-        // Parse the tracks of the sequence to remove NoteON/OFF when relevant
-        for (Track track : sequence.getTracks())
-        {
-            ArrayList<MidiEvent> needRemove = new ArrayList<>();
-            int sptIndex = 0;
-            SongPart spt = mutedSpts.get(sptIndex);
-            long sptTickStart = Math.round(sgs.getPositionInNaturalBeats(spt.getStartBarIndex()) * MidiConst.PPQ_RESOLUTION);
-            long sptTickEnd = sptTickStart + Utilities.getTickLength(spt) - 1;
-            List<Integer> sptMutedChannels = mutedChannelList.get(sptIndex);
-
-            // Loop on each MidiEvent
-            for (int i = 0; i < track.size(); i++)
+            MidiEvent me = track.get(i);
+            long tick = me.getTick();
+            if (tick < sptTickStart)
             {
-                MidiEvent me = track.get(i);
-                long tick = me.getTick();
-                if (tick < sptTickStart)
+                // We're not yet in the spt tick range
+                // Nothing
+            } else if (tick <= sptTickEnd)
+            {
+                // We're in the current spt tick range, is it a NoteOn or NoteOff on mutedChannels ?
+                MidiMessage mm = me.getMessage();
+                if (!(mm instanceof ShortMessage))
                 {
-                    // We're not yet in the spt tick range
                     continue;
-                } else if (tick <= sptTickEnd)
-                {
-                    // We're in the current spt tick range, is it a NoteOn or NoteOff on mutedChannels ?
-                    MidiMessage mm = me.getMessage();
-                    if (!(mm instanceof ShortMessage))
-                    {
-                        continue;
-                    }
-                    ShortMessage sm = (ShortMessage) mm;
-                    if (sptMutedChannels.indexOf(sm.getChannel()) == -1
-                            || (sm.getCommand() != ShortMessage.NOTE_ON && sm.getCommand() != ShortMessage.NOTE_OFF))
-                    {
-                        continue;
-                    }
-                    // Found one, mark it to be removed
-                    needRemove.add(me);
-                } else
-                {
-                    // We're after the current spt, switch to next spt if there is one
-                    sptIndex++;
-                    if (sptIndex < mutedSpts.size())
-                    {
-                        spt = mutedSpts.get(sptIndex);
-                        sptTickStart = Math.round(sgs.getPositionInNaturalBeats(spt.getStartBarIndex()) * MidiConst.PPQ_RESOLUTION);
-                        sptTickEnd = sptTickStart + Utilities.getTickLength(spt) - 1;
-                        sptMutedChannels = mutedChannelList.get(sptIndex);
-                        i--;     // Trick to restart the current loop
-                        continue;
-                    } else
-                    {
-                        // No more spt, go to next track
-                        break;
-                    }
                 }
-            }
-
-            // Finally remove what needs to be removed
-            for (MidiEvent me : needRemove)
+                ShortMessage sm = (ShortMessage) mm;
+                if (sm.getCommand() == ShortMessage.NOTE_ON || sm.getCommand() == ShortMessage.NOTE_OFF)
+                {
+                    needRemove.add(me);
+                }
+            } else
             {
-                track.remove(me);
+                // We past the end
+                break;
             }
+        }
+
+        // Finally remove what needs to be removed
+        for (MidiEvent me : needRemove)
+        {
+            track.remove(me);
         }
     }
 
@@ -377,7 +360,7 @@ public class MidiSequenceBuilder
      * @param seq
      * @throws MusicGenerationException
      */
-    private void checkRhythmSlices(Sequence seq) throws MusicGenerationException
+    private void checkRhythmSlicesTODO(Sequence seq) throws MusicGenerationException
     {
         SongStructure sgs = context.getSong().getSongStructure();
         HashMap<Rhythm, TickRanges> mapRhythmTr = new HashMap<>();
@@ -454,7 +437,7 @@ public class MidiSequenceBuilder
     private void fixEndOfTracks(Sequence seq)
     {
         SongStructure sgs = context.getSong().getSongStructure();
-        long lastTick = (sgs.getSizeInBeats() * MidiConst.PPQ_RESOLUTION) + 1;
+        long lastTick = (sgs.getSizeInBeats(context.getRange()) * MidiConst.PPQ_RESOLUTION) + 1;
         for (RhythmVoice rv : mapRvTrackId.keySet())
         {
             int trackId = mapRvTrackId.get(rv);
@@ -623,8 +606,8 @@ public class MidiSequenceBuilder
             // Main loop on each song's rhythm
             int trackId = 1;
             mapRvTrackId.clear();
-            List<Rhythm> uniqueRhythms = SongStructure.Util.getUniqueRhythms(context.getSong().getSongStructure());
-            for (Rhythm r : uniqueRhythms)
+            List<Rhythm> uniqueContextRhythms = context.getUniqueRhythms();    // Only the rhythms used in the context
+            for (Rhythm r : uniqueContextRhythms)
             {
                 // Create the empty tracks
                 HashMap<RhythmVoice, Track> mapRvTrack = new HashMap<>();
@@ -653,7 +636,7 @@ public class MidiSequenceBuilder
             // Post-process operations
             fixEndOfTracks(sequence);
             muteNotes(sequence);
-            updateNotes(sequence);
+            updatePitchAndVelocity(sequence);
 
             // Finally perform some consistency checks
             try

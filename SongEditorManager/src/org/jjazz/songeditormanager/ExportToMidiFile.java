@@ -149,7 +149,7 @@ public class ExportToMidiFile extends AbstractAction
         Sequence sequence = null;
         try
         {
-            sequence = seqBuilder.buildSequence();
+            sequence = seqBuilder.buildSequence(false);
             mapRvTrackId = seqBuilder.getRvTrackIdMap();
         } catch (MusicGenerationException ex)
         {

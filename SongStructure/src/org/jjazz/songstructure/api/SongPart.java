@@ -28,6 +28,7 @@ import java.beans.PropertyChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.util.Range;
 
 /**
  * A song part defines how a rhythm is played for a number of bars starting at startBarIndex.
@@ -49,7 +50,19 @@ public interface SongPart extends Transferable
 
     public int getStartBarIndex();
 
+    /**
+     * The size of the song part in bars (same as the parentSection size).
+     *
+     * @return
+     */
     public int getNbBars();
+
+    /**
+     * Convenience method.
+     *
+     * @return The range [getStartBarIndex(); getStartBarIndex()+getNbBars()-1]
+     */
+    public Range getRange();
 
     /**
      * By default set to the parentSection's name
@@ -87,9 +100,9 @@ public interface SongPart extends Transferable
      * Parameters of the new SongPart can be adjusted.<br>
      * If using a different rhythm, try to adapt the value of compatible RhythmParameters.
      *
-     * @param r The new Rhythm to be used. If null Rhythm is unchanged.
+     * @param r             The new Rhythm to be used. If null Rhythm is unchanged.
      * @param startBarIndex The startBarIndex of the new SongPart
-     * @param nbBars The nbBars of the new SongPart
+     * @param nbBars        The nbBars of the new SongPart
      * @param parentSection The parentSection of the new SongPart. TimeSignature must match the specified rhythm. Can be null.
      * @return A new SongPart.
      */

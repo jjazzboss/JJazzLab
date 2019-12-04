@@ -27,10 +27,13 @@ import org.jjazz.rhythmmusicgeneration.spi.MidiMusicGenerator;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationContext;
 import java.util.logging.Logger;
 import javax.sound.midi.Track;
-import org.jjazz.midimix.MidiMix;
+import org.jjazz.harmony.TimeSignature;
+import org.jjazz.midi.MidiConst;
 import org.jjazz.rhythm.api.*;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException;
-import org.jjazz.song.api.Song;
+import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.util.Range;
 
 /**
  * A dummy generator that generate simple tracks for test purposes.
@@ -59,26 +62,48 @@ public class DummyGenerator implements MidiMusicGenerator
     @Override
     public void generateMusic(MusicGenerationContext context, HashMap<RhythmVoice, Track> mapRvTracks) throws MusicGenerationException
     {
-        Song song = context.getSong();
-        MidiMix mix = context.getMidiMix();
-
-        for (RhythmVoice rv : rhythm.getRhythmVoices())
+        long tick = 0;
+        SongStructure sgs = context.getSong().getSongStructure();
+        
+        // Loop only on song parts belonging to context
+        for (SongPart spt : context.getSongParts())
         {
-            Rhythm r = rv.getContainer();
-            Track track = mapRvTracks.get(rv);
-            int channel = mix.getChannel(rv);
-            if (rv.getType() == RvType.Bass)
+            Rhythm r = spt.getRhythm();
+            TimeSignature ts = r.getTimeSignature();
+            Range sptRange = context.getContainedSptBars(spt); // Context bars can start/end in the middle of a song part
+            if (r.equals(rhythm))
             {
-                Utilities.addBassNoteEvents(track, channel, song, r);
-                LOGGER.fine("generateMusic() generate dummy bass track for RhythmVoice: " + rv.getName() + " size=" + track.size());
-            } else if (rv.getType() == RvType.Drums)
-            {
-                Utilities.addDrumsNoteEvents(track, channel, song, r);
-                LOGGER.fine("generateMusic() generate dummy drums track for RhythmVoice: " + rv.getName() + " size=" + track.size());
+                // This is our rhythm         
+                // Get the ChordSequence corresponding to the song part
+                SgsChordSequence cSeq = new SgsChordSequence(sgs, sptRange.from, sptRange.to);
+                for (RhythmVoice rv : rhythm.getRhythmVoices())
+                {
+                    // Fill the track for each supported RhythmVoice
+                    Track track = mapRvTracks.get(rv);
+                    int channel = context.getMidiMix().getChannel(rv);
+                    switch (rv.getType())
+                    {
+                        case Bass:
+                            LOGGER.fine("generateMusic() generate dummy bass track for RhythmVoice: " + rv.getName() + " size=" + track.size());
+                            tick = Utilities.addBassNoteEvents(track, channel, tick, cSeq, ts);
+                            break;
+                        case Drums:
+                            LOGGER.fine("generateMusic() generate dummy drums track for RhythmVoice: " + rv.getName() + " size=" + track.size());
+                            tick = Utilities.addDrumsNoteEvents(track, channel, tick, sptRange.size(), ts);
+                            break;
+                        default:
+                            LOGGER.fine("generateMusic() music generation not supported for this RhythmVoice: " + rv.getName());
+                    }
+                }
             } else
             {
-                LOGGER.info("generateMusic() music generation not supported for this RhythmVoice: " + rv.getName());
+                // Not our rhythm, skip but update the tick
+                tick += sptRange.size() * MidiConst.PPQ_RESOLUTION * ts.getNbNaturalBeats();
             }
         }
     }
+
+    // ====================================================================================================
+    // Private methods
+    // ====================================================================================================
 }
