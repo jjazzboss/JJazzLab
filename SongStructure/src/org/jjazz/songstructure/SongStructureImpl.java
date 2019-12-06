@@ -93,7 +93,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     /**
      *
-     * @param cls         The parent chordleadsheet
+     * @param cls The parent chordleadsheet
      * @param keepUpdated If true listen to cls changes to remain uptodate
      */
     public SongStructureImpl(ChordLeadSheet cls, boolean keepUpdated)
@@ -623,6 +623,20 @@ public class SongStructureImpl implements SongStructure, Serializable
             }
         }
         return null;
+    }
+
+    @Override
+    public List<SongPart> getSongParts(CLI_Section parentSection)
+    {
+        ArrayList<SongPart> res = new ArrayList<>();
+        for (SongPart spt : songParts)
+        {
+            if (spt.getParentSection().equals(parentSection))
+            {
+                res.add(spt);
+            }
+        }
+        return res;
     }
 
     @Override

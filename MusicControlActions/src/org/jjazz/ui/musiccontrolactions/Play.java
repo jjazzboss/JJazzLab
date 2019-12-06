@@ -123,7 +123,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                     assert currentSong != null; // Otherwise button should be disabled
                     try
                     {
-                        mc.start(currentSong, fromBarIndex);
+                        mc.play(currentSong, fromBarIndex);
                     } catch (MusicGenerationException | PropertyVetoException ex)
                     {
                         if (ex.getLocalizedMessage() != null)

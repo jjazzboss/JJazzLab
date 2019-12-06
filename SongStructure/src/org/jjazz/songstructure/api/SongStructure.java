@@ -29,8 +29,6 @@ import javax.swing.event.UndoableEditListener;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.midi.MidiConst;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.parameters.RhythmParameter;
@@ -82,7 +80,8 @@ public interface SongStructure
                 rvs.addAll(r.getRhythmVoices());
             }
             return rvs;
-        }    
+        }
+
     }
 
     /**
@@ -109,6 +108,14 @@ public interface SongStructure
      * @return A copy of the list of SongParts ordered according to their getStartBarIndex().
      */
     public List<SongPart> getSongParts();
+
+    /**
+     * Get all the SongParts which share the specified parent CLI_Section, sorted by their getStartBarIndex().
+     *
+     * @param parentSection
+     * @return Can be empty.
+     */
+    public List<SongPart> getSongParts(CLI_Section parentSection);
 
     /**
      * Get the SongPart which contains a specific bar.
@@ -154,7 +161,7 @@ public interface SongStructure
      *
      * @param spt the value of spt
      * @throws org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException If new rhythm could not be accepted and no
-     *                                                                         replacement done.
+     * replacement done.
      */
     public void addSongPart(SongPart spt) throws UnsupportedEditException;
 
@@ -185,7 +192,7 @@ public interface SongStructure
      * @param oldSpts
      * @param newSpts size must match oldSpts
      * @throws UnsupportedEditException If replacement was impossible, typically because not enough Midi channels for a new
-     *                                  rhythm.
+     * rhythm.
      */
     public void replaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException;
 
@@ -201,8 +208,8 @@ public interface SongStructure
      * Change the value of a specific RhythmParameter.
      *
      * @param <T>
-     * @param spt   The SongPart rp belongs to.
-     * @param rp    The RhythmParameter.
+     * @param spt The SongPart rp belongs to.
+     * @param rp The RhythmParameter.
      * @param value The new value to apply for rp.
      */
     public <T> void setRhythmParameterValue(SongPart spt, RhythmParameter<T> rp, T value);

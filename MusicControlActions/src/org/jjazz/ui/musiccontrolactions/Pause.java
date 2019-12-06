@@ -132,7 +132,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
                     assert currentSong != null; // Otherwise button should be disabled
                     try
                     {
-                        mc.start(currentSong, -1);
+                        mc.play(currentSong, -1);
                     } catch (MusicGenerationException | PropertyVetoException ex)
                     {
                         if (ex.getLocalizedMessage() != null)

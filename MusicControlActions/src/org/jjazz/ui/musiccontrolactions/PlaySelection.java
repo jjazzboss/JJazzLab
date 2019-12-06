@@ -23,10 +23,10 @@
 package org.jjazz.ui.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -53,10 +53,11 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
+import org.jjazz.util.Range;
 import org.openide.windows.TopComponent;
 
 /**
- * Play music corresponding to the contiguous selection of bars/songParts.
+ * Play music corresponding to the contiguous selection of bars or songParts.
  * <p>
  * Action is enabled when the active TopComponent is a CL_Editor or a SS_Editor.
  */
@@ -64,7 +65,7 @@ import org.openide.windows.TopComponent;
 @ActionRegistration(displayName = "#CTL_PlaySelection", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/Bar", position = 831,  separatorAfter = 832),
+            @ActionReference(path = "Actions/Bar", position = 831, separatorAfter = 832),
             @ActionReference(path = "Actions/SongPart", position = 831, separatorAfter = 832),
             @ActionReference(path = "Shortcuts", name = "O-SPACE")
         })
@@ -75,6 +76,7 @@ import org.openide.windows.TopComponent;
         })
 public class PlaySelection extends AbstractAction
 {
+
     private Song song;
     private static final Logger LOGGER = Logger.getLogger(PlaySelection.class.getSimpleName());
 
@@ -125,28 +127,25 @@ public class PlaySelection extends AbstractAction
         SS_Editor ssEditor = ssTc.getSS_Editor();
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
 
-        int playFromBar = -1;
+        Range r = null;
 
         TopComponent activeTc = TopComponent.getRegistry().getActivated();
-        if (clTc == activeTc && !clSelection.isEmpty())
+        if (clTc == activeTc && clSelection.isContiguousBarboxSelectionWithinCls())
         {
             // Focus in the CL_Editor            
-            int clsBarIndex = clSelection.getMinBarIndexWithinCls();
-            if (clsBarIndex != -1)
-            {
-                // Try to find a bar in a matching SongPart
-                playFromBar = getSsBarIndex(clsBarIndex, cls, ss);            // Can return -1
-            }
-        } else if (ssTc == activeTc && !ssSelection.isEmpty())
+            r = toSgsRange(ss, cls, new Range(clSelection.getMinBarIndexWithinCls(), clSelection.getMaxBarIndexWithinCls()));   // Can be null
+        } else if (ssTc == activeTc && ssSelection.isOneSectionSptSelection())
         {
             // Focus in the SS_Editor
-            SongPart firstSpt = ssSelection.getIndirectlySelectedSongParts().get(0);
-            playFromBar = firstSpt.getStartBarIndex() + getSelectedBarIndexRelativeToSection(firstSpt.getParentSection(), clSelection);
+            List<SongPart> spts = ssSelection.getIndirectlySelectedSongParts();
+            SongPart firstSpt = spts.get(0);
+            SongPart lastSpt = spts.get(spts.size() - 1);
+            r = new Range(firstSpt.getStartBarIndex(), lastSpt.getRange().to);
         }
 
-        if (playFromBar == -1)
+        if (r == null)
         {
-            String msg = "Can't play from here. Select first on a valid bar in the chord leadsheet editor, or a song part in the song structure editor.";
+            String msg = "Can't play this selection.";
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -158,7 +157,7 @@ public class PlaySelection extends AbstractAction
         // OK we can go
         try
         {
-            mc.start(song, playFromBar);
+            mc.start(song, r);
         } catch (MusicGenerationException | PropertyVetoException ex)
         {
             if (ex.getMessage() != null)
@@ -193,78 +192,47 @@ public class PlaySelection extends AbstractAction
     }
 
     /**
-     * Find a SongStructure bar from a ChordLeadSheet bar.
+     * Convert a ChordLeadSheet range into a range within a SongStructure.
+     * <p>
      *
-     * @param clsBarIndex
+     * Example:<br>
+     * - bar0=C7 (section=S1), bar1=Em (section=S2), bar2=D (section=S3)<br>
+     * - SongStructure=S1 S1 S3 S2<br>
+     * If cls range=bar0+bar1, then sgs range=[0;3]<br>
+     *
+     * @param sgs The parent sections of the song parts must be in cls.
      * @param cls
-     * @param ss
-     * @return -1 if no corresponding bar.
+     * @param clsRange
+     * @return Null if no valid range could be constructed
      */
-    private int getSsBarIndex(int clsBarIndex, ChordLeadSheet cls, SongStructure ss)
+    private Range toSgsRange(SongStructure ss, ChordLeadSheet cls, Range clsRange)
     {
-        int sgsBarIndex = -1;
-        CLI_Section section = cls.getSection(clsBarIndex);
-        LOGGER.fine("getSsBarIndex() section=" + section);
-
-        // If there are some selected spts, try to match one of them
-        SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
-        assert ssTc != null : "sgs=" + ss;
-        SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssTc.getLookup());
-        for (SongPart spt : ssSelection.getIndirectlySelectedSongParts())
+        if (ss == null || cls == null || clsRange.to > cls.getSize() - 1)
         {
-            if (spt.getParentSection() == section)
+            throw new IllegalArgumentException("cls=" + cls + ", ss=" + ss + ", clsRange=" + clsRange);
+        }
+        CLI_Section fromSection = cls.getSection(clsRange.from);
+        int fromBar = -1;
+        CLI_Section toSection = cls.getSection(clsRange.to);
+        int toBar = -1;
+        Range r = null;
+        for (SongPart spt : ss.getSongParts())
+        {
+            if (fromBar == -1 && spt.getParentSection() == fromSection)
             {
-                sgsBarIndex = spt.getStartBarIndex();
-                sgsBarIndex += clsBarIndex - section.getPosition().getBar();
+                fromBar = spt.getStartBarIndex() + clsRange.from - fromSection.getPosition().getBar();
+            }
+            if (toBar == -1 && spt.getParentSection() == toSection)
+            {
+                toBar = spt.getStartBarIndex() + clsRange.to - toSection.getPosition().getBar();
+            }
+            if (toBar != -1 && fromBar != -1)
+            {
+                r = new Range(fromBar, toBar);
                 break;
             }
         }
-
-        if (sgsBarIndex == -1)
-        {
-            // It did not work, search the first SongPart which matches
-            LOGGER.fine("getSsBarIndex() no matching in selected spt, test all spts");
-            for (SongPart spt : ss.getSongParts())
-            {
-                if (spt.getParentSection() == section)
-                {
-                    sgsBarIndex = spt.getStartBarIndex();
-                    sgsBarIndex += clsBarIndex - section.getPosition().getBar();
-                    break;
-                }
-            }
-        }
-        LOGGER.fine("getSsBarIndex() sgsBarIndex=" + sgsBarIndex);
-        return sgsBarIndex;
-    }
-
-    /**
-     * Find the section-relative bar index from where to start when a song part is selected.
-     *
-     * @param cliSection The parent section of the selected song part.
-     * @return 0 (=start of the section) if no selection in the section
-     */
-    private int getSelectedBarIndexRelativeToSection(CLI_Section cliSection, CL_SelectionUtilities clSelection)
-    {
-        int sectionStartBar = cliSection.getPosition().getBar();
-        int sectionEndBar = sectionStartBar + cliSection.getContainer().getSectionSize(cliSection) - 1;
-
-        int clsInSectionBarIndex = -1;
-        if (clSelection.isBarSelected())
-        {
-            int minBar = clSelection.getMinBarIndexWithinCls();
-            if (minBar >= sectionStartBar && minBar <= sectionEndBar)
-            {
-                clsInSectionBarIndex = minBar - sectionStartBar;
-            }
-        }
-
-        if (clsInSectionBarIndex == -1)
-        {
-            // No matching selection, start from start of the section
-            clsInSectionBarIndex = 0;
-        }
-        return clsInSectionBarIndex;
+        return r;
     }
 
 }

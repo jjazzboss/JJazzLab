@@ -160,7 +160,7 @@ public class PlayFromHere extends AbstractAction
         // OK we can go
         try
         {
-            mc.start(song, playFromBar);
+            mc.play(song, playFromBar);
         } catch (MusicGenerationException | PropertyVetoException ex)
         {
             if (ex.getMessage() != null)

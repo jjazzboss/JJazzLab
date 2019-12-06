@@ -200,7 +200,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * rhythm music generation problem, etc.
      * @see #getPlayingSongCopy()
      */
-    public void start(Song sg, int fromBarIndex) throws MusicGenerationException, PropertyVetoException
+    public void play(Song sg, MusicGenerationContext context, int fromBarIndex) throws MusicGenerationException, PropertyVetoException
     {
         if (sg == null)
         {
@@ -327,6 +327,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         playbackState = State.PLAYBACK_STARTED;
 
         pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, playbackState);
+    }
+
+    /**
+     * Restart playback when we were in the pause state.
+     */
+    public void restart()
+    {
+        
     }
 
     /**

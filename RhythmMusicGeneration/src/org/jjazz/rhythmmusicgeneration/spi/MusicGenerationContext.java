@@ -30,7 +30,6 @@ import org.jjazz.midi.MidiConst;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmmusicgeneration.Utilities;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.Range;
