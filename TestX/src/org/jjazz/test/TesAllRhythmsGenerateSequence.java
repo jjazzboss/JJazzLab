@@ -127,7 +127,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
                     // Build the sequence
                     try
                     {
-                        Sequence sequence = seqBuilder.buildSequence();       // Can raise MusicGenerationException               
+                        Sequence sequence = seqBuilder.buildSequence(false);       // Can raise MusicGenerationException               
                         LOGGER.severe("sequence resolution=" + sequence.getResolution());
                     } catch (MusicGenerationException ex)
                     {

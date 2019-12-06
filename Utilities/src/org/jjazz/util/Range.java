@@ -145,7 +145,7 @@ public class Range
 
         private VoidRange()
         {
-            super(-1, -1);
+            super(Integer.MAX_VALUE, Integer.MAX_VALUE);
         }
 
         @Override

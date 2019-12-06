@@ -36,12 +36,11 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationContext;
 import org.jjazz.song.api.Song;
 import org.openide.util.NbPreferences;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
@@ -230,14 +229,14 @@ public class ClickManager
      * <p>
      *
      * @param sequence The sequence for which we add the control track.
-     * @param song The song for which we add control events.
+     * @param context
      * @return the index of the track in the sequence.
      */
-    public int addClickTrack(Sequence sequence, Song song)
+    public int addClickTrack(Sequence sequence, MusicGenerationContext context)
     {
-        if (sequence == null || song == null)
+        if (sequence == null || context == null)
         {
-            throw new IllegalArgumentException("seq=" + sequence + " song=" + song);
+            throw new IllegalArgumentException("seq=" + sequence + " context=" + context);
         }
         Track track = sequence.createTrack();
 
@@ -245,20 +244,17 @@ public class ClickManager
         MidiEvent me = new MidiEvent(MidiUtilities.getTrackNameMetaMessage(CLICK_TRACK_NAME), 0);
         track.add(me);
 
-        SongStructure sgs = song.getSongStructure();
         long tick = 0;
-        // Scan all SongParts
-        for (SongPart spt : sgs.getSongParts())
+        // Scan all SongParts in the context
+        for (SongPart spt : context.getSongParts())
         {
-            CLI_Section section = spt.getParentSection();
-            int sectionSize = sgs.getParentChordLeadSheet().getSectionSize(section);
-            TimeSignature ts = section.getData().getTimeSignature();
-            tick = addClickEvents(track, getChannel(), tick, sectionSize, ts);
+            TimeSignature ts = spt.getRhythm().getTimeSignature();
+            int nbBars = context.getSptRange(spt).size();
+            tick = addClickEvents(track, getChannel(), tick, nbBars, ts);
         }
 
         // Set EndOfTrack
-        long lastTick = (song.getSongStructure().getSizeInBeats() * MidiConst.PPQ_RESOLUTION) + 1;
-        MidiUtilities.setEndOfTrackPosition(track, lastTick);
+        MidiUtilities.setEndOfTrackPosition(track, tick);
 
         return Arrays.asList(sequence.getTracks()).indexOf(track);
     }
@@ -267,21 +263,23 @@ public class ClickManager
      * Add a precount click track to the sequence for the specified song.
      * <p>
      * Except for the cases below, all existing sequence MidiEvents are shifted 1 or 2 bars later in order to leave room for the
-     * precount bars. Meta events Track name, Tempo and Time signature are not moved.
+     * precount bars.
+     * <p>
+     * Not moved Meta events: Track name, Tempo and Time signature.
      *
      * @param sequence The sequence for which we add the precount click track.
-     * @param song
+     * @param context
      * @return The tick position of the start of the song.
      */
-    public long addPreCountClickTrack(Sequence sequence, Song song)
+    public long addPreCountClickTrack(Sequence sequence, MusicGenerationContext context)
     {
-        if (sequence == null || song == null)
+        if (sequence == null || context == null)
         {
-            throw new IllegalArgumentException("seq=" + sequence + " song=" + song);
+            throw new IllegalArgumentException("seq=" + sequence + " context=" + context);
         }
 
-        TimeSignature ts = song.getSongStructure().getSongPart(0).getParentSection().getData().getTimeSignature();
-        int nbPrecountBars = getClickPrecountNbBars(ts, song.getTempo());
+        TimeSignature ts = context.getSongParts().get(0).getParentSection().getData().getTimeSignature();
+        int nbPrecountBars = getClickPrecountNbBars(ts, context.getSong().getTempo());
         long songStartTick = (nbPrecountBars * ts.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION);
 
         // Shift all existing MidiEvents except some meta events
@@ -332,7 +330,7 @@ public class ClickManager
      * @param track
      * @param channel
      * @param tickOffset
-     * @return The tick position corresponding to the start of next section.
+     * @return The tick position corresponding to the start of bar (nbBars+1).
      */
     private long addClickEvents(Track track, int channel, long tickOffset, int nbBars, TimeSignature ts)
     {

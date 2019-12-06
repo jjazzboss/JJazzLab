@@ -70,7 +70,7 @@ public class DummyGenerator implements MidiMusicGenerator
         {
             Rhythm r = spt.getRhythm();
             TimeSignature ts = r.getTimeSignature();
-            Range sptRange = context.getContainedSptBars(spt); // Context bars can start/end in the middle of a song part
+            Range sptRange = context.getSptRange(spt); // Context bars can start/end in the middle of a song part
             if (r.equals(rhythm))
             {
                 // This is our rhythm         

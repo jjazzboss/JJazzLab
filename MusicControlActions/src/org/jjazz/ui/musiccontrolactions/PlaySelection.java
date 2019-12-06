@@ -30,6 +30,7 @@ import java.beans.PropertyVetoException;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.KeyStroke;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
@@ -52,38 +53,35 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.openide.windows.TopComponent;
 
 /**
- * Play music from the 1st selected bar and/or 1st selected song part.
+ * Play music corresponding to the contiguous selection of bars/songParts.
  * <p>
  * Action is enabled when the active TopComponent is a CL_Editor or a SS_Editor.
  */
-@ActionID(category = "MusicControls", id = "org.jjazz.ui.musiccontrolactions.playfromhere")
-@ActionRegistration(displayName = "#CTL_PlayFromHere", lazy = false)
+@ActionID(category = "MusicControls", id = "org.jjazz.ui.musiccontrolactions.playselection")
+@ActionRegistration(displayName = "#CTL_PlaySelection", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/Bar", position = 830, separatorBefore = 829),
-            @ActionReference(path = "Actions/SongPart", position = 830, separatorBefore = 829),
-            @ActionReference(path = "Shortcuts", name = "D-SPACE")
+            @ActionReference(path = "Actions/Bar", position = 831,  separatorAfter = 832),
+            @ActionReference(path = "Actions/SongPart", position = 831, separatorAfter = 832),
+            @ActionReference(path = "Shortcuts", name = "O-SPACE")
         })
 @NbBundle.Messages(
         {
-            "CTL_PlayFromHere=Play from Here",
-            "CTL_PlayFromHereToolTip=Play from selected bar or song part (ctrl+space)",
-            "ERR_NotActive=Can't play from here: song is not active"
+            "CTL_PlaySelection=Play Selection",
+            "CTL_PlaySelectionToolTip=Play selected bars/song parts"
         })
-public class PlayFromHere extends AbstractAction
+public class PlaySelection extends AbstractAction
 {
-
     private Song song;
-    private static final Logger LOGGER = Logger.getLogger(PlayFromHere.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(PlaySelection.class.getSimpleName());
 
-    public PlayFromHere()
+    public PlaySelection()
     {
-        putValue(Action.NAME, CTL_PlayFromHere());
-        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_SPACE));     // For popup display only     
+        putValue(Action.NAME, CTL_PlaySelection());
+        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("alt SPACE"));     // For popup display only     
 
         // Listen to TopComponent activation changes
         TopComponent.getRegistry().addPropertyChangeListener(new PropertyChangeListener()

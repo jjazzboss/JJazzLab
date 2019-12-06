@@ -43,24 +43,7 @@ public class Utilities
 
     protected static final Logger LOGGER = Logger.getLogger(org.jjazz.rhythmmusicgeneration.Utilities.class.getName());
 
-    /**
-     * Get the length in Midi ticks of nbBars of the specified song part.
-     * <p>
-     * Use MidiConst.PPQ_RESOLUTION per natural beat.
-     *
-     * @param spt
-     * @param nbBars If -1 return the length of the whole song part.
-     * @return
-     */
-    static public long getTickLength(SongPart spt, int nbBars)
-    {
-        int nbNaturalBeatsPerBar = spt.getRhythm().getTimeSignature().getNbNaturalBeats();
-        int nbNaturalBeats = nbBars < 0 ? spt.getNbBars() * nbNaturalBeatsPerBar : nbBars * nbNaturalBeatsPerBar;
-        long l = nbNaturalBeats * MidiConst.PPQ_RESOLUTION;
-        return l;
-    }
-
-    /**
+     /**
      * Search a NOTE_ON MidiMessage event whose tick position is NOT between tickFrom and tickTo.
      *
      * @param t

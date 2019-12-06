@@ -24,6 +24,9 @@ package org.jjazz.rhythmmusicgeneration.spi;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.jjazz.harmony.TimeSignature;
+import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.midi.MidiConst;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -35,7 +38,7 @@ import org.jjazz.util.Range;
 /**
  * Information to be used by a Rhythm to generate music.
  * <p>
- * The class also provides some convenient methods to extract song data (e.g. song parts) relevant to the context defined by this
+ * The class also provides convenient methods to extract song data (e.g. song parts) relevant to the context defined by this
  * object.
  */
 public class MusicGenerationContext
@@ -61,7 +64,7 @@ public class MusicGenerationContext
      *
      * @param s
      * @param mix
-     * @param r   If null, the range will represent the whole song from first to last bar.
+     * @param r If null, the range will represent the whole song from first to last bar.
      */
     public MusicGenerationContext(Song s, MidiMix mix, Range r)
     {
@@ -105,13 +108,25 @@ public class MusicGenerationContext
     }
 
     /**
-     * Music should be produced for this range of bars
+     * Music should be produced only for this range of bars.
+     *
+     * The range can start/end anywhere in the song (including in the middle of a song part).
      *
      * @return
      */
     public Range getRange()
     {
         return range;
+    }
+
+    /**
+     * The size in natural beats of the song in this context.
+     *
+     * @return
+     */
+    public int getSizeInBeats()
+    {
+        return song.getSongStructure().getSizeInBeats(range);
     }
 
     /**
@@ -140,15 +155,16 @@ public class MusicGenerationContext
      * @param spt
      * @return Can be the VOID_RANGE if spt is not part of this context.
      */
-    public Range getContainedSptBars(SongPart spt)
+    public Range getSptRange(SongPart spt)
     {
         return spt.getRange().getIntersectRange(range);
     }
 
     /**
+     * Check is the specified spt has at least one bar in the range of this context.
      *
      * @param spt
-     * @return True if at least one bar of spt is in this context range.
+     * @return
      */
     public boolean contains(SongPart spt)
     {
@@ -189,9 +205,9 @@ public class MusicGenerationContext
     }
 
     /**
-     * The starting tick for the first bar of this SontPart which is in this context range.
+     * The starting tick for the first bar of this SongPart which is in this context range.
      * <p>
-     * Use MidiConst.PPQ_RESOLUTION ticks.
+     * The returned value might be different than the first bar of the SongPart. Use MidiConst.PPQ_RESOLUTION ticks.
      *
      * @param spt
      * @return
@@ -211,11 +227,59 @@ public class MusicGenerationContext
                 break;
             } else
             {
-                int nbBars = range.getIntersectRange(spti.getRange()).size();
-                tick += Utilities.getTickLength(spti, nbBars);
+                tick += getSptTickLength(spti);
             }
         }
         return tick;
+    }
+
+    /**
+     * Get Midi ticks length of the song part in this context.
+     * <p>
+     * Use MidiConst.PPQ_RESOLUTION per natural beat.
+     *
+     * @param spt
+     * @return
+     */
+    public long getSptTickLength(SongPart spt)
+    {
+        int nbNaturalBeatsPerBar = spt.getRhythm().getTimeSignature().getNbNaturalBeats();
+        int nbNaturalBeats = getSptRange(spt).size() * nbNaturalBeatsPerBar;
+        long l = nbNaturalBeats * MidiConst.PPQ_RESOLUTION;
+        return l;
+    }
+
+    /**
+     * Compute the position in the songStructure corresponding to the specified Midi tick position in this context.
+     *
+     * @param tick
+     * @return Null if tick position is not valid for the songStructure
+     */
+    public Position getPosition(long tick)
+    {
+        if (tick < 0)
+        {
+            throw new IllegalArgumentException("tick=" + tick);
+        }
+        long sptTickStart = 0;
+        long sptTickEnd = 0;
+        Position pos = null;
+        for (SongPart spti : getSongParts())
+        {
+            sptTickEnd = sptTickStart + getSptTickLength(spti) - 1;
+            if (tick >= sptTickStart && tick <= sptTickEnd)
+            {
+                TimeSignature ts = spti.getRhythm().getTimeSignature();
+                long tickInSpt = tick - sptTickStart;
+                float beatInSpt = (float) tickInSpt / MidiConst.PPQ_RESOLUTION;
+                int barInSpt = (int) (beatInSpt / ts.getNbNaturalBeats());
+                float beatInBar = beatInSpt - (barInSpt * ts.getNbNaturalBeats());
+                pos = new Position(spti.getStartBarIndex() + barInSpt, beatInBar);
+                break;
+            }
+            sptTickStart = sptTickEnd + 1;
+        }
+        return pos;
     }
 
     @Override

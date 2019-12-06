@@ -310,8 +310,7 @@ public class MidiSequenceBuilder
     private void removeSptEvents(Sequence sequence, SongPart spt, RhythmVoice rv)
     {
         long sptTickStart = context.getSptStartTick(spt);
-        int nbBars = context.getContainedSptBars(spt).size();
-        long sptTickEnd = sptTickStart + Utilities.getTickLength(spt, nbBars) - 1;
+        long sptTickEnd = sptTickStart + context.getSptTickLength(spt) - 1;
 
         int trackId = mapRvTrackId.get(rv);
         Track track = sequence.getTracks()[trackId];
@@ -355,20 +354,25 @@ public class MidiSequenceBuilder
     }
 
     /**
-     * If sequences uses more than 1 rhythm, check that each generator produced music only for the relevant bars.
+     * If sequence uses more than 1 rhythm, check that each generator produced music only for the relevant bars.
      *
      * @param seq
      * @throws MusicGenerationException
      */
-    private void checkRhythmSlicesTODO(Sequence seq) throws MusicGenerationException
+    private void checkRhythmSlices(Sequence seq) throws MusicGenerationException
     {
-        SongStructure sgs = context.getSong().getSongStructure();
-        HashMap<Rhythm, TickRanges> mapRhythmTr = new HashMap<>();
-        long tickStart = 0;
-        for (SongPart spt : sgs.getSongParts())
+        if (context.getUniqueRhythms().size() == 1)
         {
-            // Build the valid tick ranges per rhythm
-            long tickEnd = tickStart + Utilities.getTickLength(spt) - 1;
+            // Only 1 rhythm, nothing to check
+            return;
+        }
+
+        // Get the tick ranges used by each rhythm        
+        HashMap<Rhythm, TickRanges> mapRhythmTr = new HashMap<>();
+        for (SongPart spt : context.getSongParts())
+        {
+            long sptTickStart = context.getSptStartTick(spt);
+            long sptTickEnd = sptTickStart + context.getSptTickLength(spt) - 1;
             Rhythm r = spt.getRhythm();
             TickRanges tr = mapRhythmTr.get(r);
             if (tr == null)
@@ -376,27 +380,21 @@ public class MidiSequenceBuilder
                 tr = new TickRanges();
                 mapRhythmTr.put(r, tr);
             }
-            tr.addRange(tickStart, tickEnd);
-            tickStart = tickEnd + 1;
+            tr.addRange(sptTickStart, sptTickEnd);
         }
 
-        if (mapRhythmTr.size() > 1)
+        // Check the notes Vs tick ranges
+        for (Rhythm r : mapRhythmTr.keySet())
         {
-            // Apply check only when multi rhythms
-            for (int trackId = 0; trackId < seq.getTracks().length; trackId++)
+            TickRanges tRanges = mapRhythmTr.get(r);
+            for (RhythmVoice rv : r.getRhythmVoices())
             {
+                int trackId = mapRvTrackId.get(rv);
+                assert trackId != -1 : "rv=" + rv;
                 Track track = seq.getTracks()[trackId];
-                RhythmVoice rv = (RhythmVoice) org.jjazz.util.Utilities.reverseGet(mapRvTrackId, trackId);
-                if (rv == null)
-                {
-                    // This can happen for example for first track used for song name, tempo, time signature...
-                    continue;
-                }
-                Rhythm r = rv.getContainer();
-                TickRanges tRanges = mapRhythmTr.get(r);
                 for (int eventId = 0; eventId < track.size(); eventId++)
                 {
-                    // For each track check that each NOTE_ON event is within the track's rhythm tick ranges
+                    // Check that each NOTE_ON event is within the track's rhythm tick ranges
                     MidiEvent me = track.get(eventId);
                     long tick = me.getTick();
                     MidiMessage mm = me.getMessage();
@@ -405,8 +403,9 @@ public class MidiSequenceBuilder
                         ShortMessage sm = (ShortMessage) mm;
                         if (sm.getCommand() == ShortMessage.NOTE_ON && !tRanges.isIn(tick))
                         {
-                            Position pos = SongStructure.Util.getPosition(sgs, tick);
-                            Rhythm expectedRhythmAtPos = sgs.getSongPart(pos.getBar()).getRhythm();
+                            // Position pos = SongStructure.Util.getPosition(sgs, tick);
+                            Position pos = context.getPosition(tick);
+                            Rhythm expectedRhythmAtPos = context.getSong().getSongStructure().getSongPart(pos.getBar()).getRhythm();
                             String msg = "There was a problem in the generated Midi data. Consult log for more details.";
                             LOGGER.warning(msg);
                             LOGGER.log(Level.WARNING, "checkSequence() Unexpected NOTE_ON Midi event: {0}", MidiUtilities.toString(mm, tick));

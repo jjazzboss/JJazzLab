@@ -69,7 +69,7 @@ public class Utilities
     /**
      * Recursively enable/disable a JComponent and its JComponent children.
      *
-     * @param b  boolean
+     * @param b boolean
      * @param jc JComponent
      */
     public static void setRecursiveEnabled(boolean b, JComponent jc)
@@ -104,6 +104,17 @@ public class Utilities
      * @return
      */
     public static KeyStroke getGenericControlKeyStroke(int keyEventCode)
+    {
+        return KeyStroke.getKeyStroke(keyEventCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    }
+
+    /**
+     * Get a control-shift key KeyStroke which works on all OSes: Win, Linux AND Mac OSX.
+     *
+     * @param keyEventCode A KeyEvent constant like KeyEvent.VK_M (for ctrl-shift-M)
+     * @return
+     */
+    public static KeyStroke getGenericAltKeyStroke(int keyEventCode)
     {
         return KeyStroke.getKeyStroke(keyEventCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
     }

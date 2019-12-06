@@ -82,36 +82,7 @@ public interface SongStructure
                 rvs.addAll(r.getRhythmVoices());
             }
             return rvs;
-        }
-
-        /**
-         * Compute the position in the songStructure corresponding to the specified Midi tick position.
-         *
-         * @param sgs
-         * @param tick
-         * @return Null if tick position is not valid for the songStructure
-         */
-        static public Position getPosition(SongStructure sgs, long tick)
-        {
-            long tickStart = 0;
-            for (SongPart spt : sgs.getSongParts())
-            {
-                TimeSignature ts = spt.getRhythm().getTimeSignature();
-                int nbNaturalBeats = ts.getNbNaturalBeats() * spt.getNbBars();
-                long tickEnd = tickStart + nbNaturalBeats * MidiConst.PPQ_RESOLUTION - 1;
-                if (tick >= tickStart && tick <= tickEnd)
-                {
-                    long tickInSpt = tick - tickStart;
-                    float beatInSpt = (float) tickInSpt / MidiConst.PPQ_RESOLUTION;
-                    int barInSpt = (int) (beatInSpt / ts.getNbNaturalBeats());
-                    float beatInBar = beatInSpt - (barInSpt * ts.getNbNaturalBeats());
-                    Position pos = new Position(spt.getStartBarIndex() + barInSpt, beatInBar);
-                    return pos;
-                }
-                tickStart = tickEnd + 1;
-            }
-            return null;
-        }
+        }    
     }
 
     /**
@@ -159,7 +130,7 @@ public interface SongStructure
      * <p>
      * The method must take into account song with possibly different time signatures.
      *
-     * @param r If null use whole song structure.
+     * @param r If null use the whole song structure.
      * @return The total size in beats.
      */
     public int getSizeInBeats(Range r);
