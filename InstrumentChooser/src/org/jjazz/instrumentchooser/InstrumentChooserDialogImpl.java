@@ -50,7 +50,7 @@ import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.jjazz.ui.utilities.HelpTextArea;
 import org.jjazz.util.Filter;
 import org.openide.*;

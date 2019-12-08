@@ -116,7 +116,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     {
         String err = null;
         MusicController mc = MusicController.getInstance();
-        if (mc.getPlaybackState() == MusicController.State.PLAYBACK_STARTED && sg != mc.getSong())
+        if (mc.getPlaybackState() == MusicController.State.PLAYBACK_STARTED && sg != mc.getContext().getSong())
         {
             err = ERR_OtherSongPlaying();
         }

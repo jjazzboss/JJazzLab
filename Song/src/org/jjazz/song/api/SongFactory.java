@@ -42,6 +42,8 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.SongStructureFactory;
+import org.openide.util.Exceptions;
 
 /**
  * Manage the creation and the registration of the songs.
@@ -220,7 +222,7 @@ public class SongFactory implements PropertyChangeListener
      * @param cls
      * @return
      * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the
-     * various rhythms.
+     *                                  various rhythms.
      */
     public Song createSong(String name, ChordLeadSheet cls) throws UnsupportedEditException
     {
@@ -247,7 +249,7 @@ public class SongFactory implements PropertyChangeListener
     /**
      * Create an empty song of specified length.
      *
-     * @param name The name of the song
+     * @param name    The name of the song
      * @param clsSize The number of bars of the song.
      * @return
      */
@@ -293,7 +295,7 @@ public class SongFactory implements PropertyChangeListener
      * Return a deep copy of the specified song.
      * <p>
      * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags<br>
-     * Listeners or file are NOT copied.
+     * Listeners or file are NOT copied. Created song is registered.
      *
      * @param song
      * @return
@@ -310,7 +312,7 @@ public class SongFactory implements PropertyChangeListener
         Song s = null;
         try
         {
-            s = new Song(song.getName(), newCls);
+            s = new Song(song.getName(), newCls);       // SongStructure and ChordLeadsheet will be linked
         } catch (UnsupportedEditException ex)
         {
             // Should not occur since it's a clone, ie already accepted edits
@@ -328,23 +330,64 @@ public class SongFactory implements PropertyChangeListener
         for (SongPart spt : song.getSongStructure().getSongParts())
         {
             CLI_Section newParentSection = newCls.getSection(spt.getParentSection().getData().getName());
-            SongPart newSpt = newSgs.createSongPart(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
+            assert newParentSection != null : "spt=" + spt;
+            SongPart sptCopy = spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
             try
             {
-                newSgs.addSongPart(newSpt);
+                newSgs.addSongPart(sptCopy);        // Can raise UnsupportedEditException
             } catch (UnsupportedEditException ex)
             {
                 // Should not occur since it's a clone, ie already accepted edits
-                throw new IllegalArgumentException("getClone() failed. Song's name=" + song.getName() + " newSpt=" + newSpt, ex);
-            }
-
-            for (RhythmParameter<?> rp : spt.getRhythm().getRhythmParameters())
-            {
-                // Update the RP values
-                Object value = spt.getRPValue(rp);
-                newSgs.setRhythmParameterValue(newSpt, (RhythmParameter) rp, value);        // unchecked warning
+                throw new IllegalArgumentException("getCopy() failed. Song's name=" + song.getName() + " newSgs=" + newSgs + " sptCopy=" + sptCopy, ex);
             }
         }
+        s.resetNeedSave();
+        registerSong(s);
+        return s;
+    }
+
+    /**
+     * Return a copy of the song where the SongStructure does NOT listen to the ChordLeadsheet changes.
+     * <p>
+     * WARNING: Because SongStructure and ChordLeadsheet are not linked, changing them might result in inconsistent states. This
+     * should be used only in special cases.<p>
+     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags. Listeners or file are NOT copied.
+     * Created song is registered.
+     *
+     * @param song
+     * @return
+     */
+    @SuppressWarnings(
+            {
+                "unchecked"
+            })
+    public Song getCopyUnlinked(Song song)
+    {
+        ChordLeadSheet cls = ChordLeadSheetFactory.getDefault().getCopy(song.getChordLeadSheet());
+        SongStructure ss = null;
+        try
+        {
+            ss = SongStructureFactory.getDefault().createSgs(cls, false);     // Don't link sgs to cls.  Can raise UnsupportedEditException
+            ss.removeSongParts(ss.getSongParts());
+            for (SongPart spt : song.getSongStructure().getSongParts())
+            {
+                String parentSectionName = spt.getParentSection().getData().getName();
+                CLI_Section parentSectionCopy = cls.getSection(parentSectionName);
+                SongPart sptCopy = spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), parentSectionCopy);
+                ss.addSongPart(sptCopy);        // Can raise UnsupportedEditException
+            }
+        } catch (UnsupportedEditException ex)
+        {
+            // Should not occur since it's a copy, ie already accepted edits
+            throw new IllegalArgumentException("getCopyUnlinked() failed. Song's name=" + song.getName() + " ss=" + ss, ex);
+        }
+
+        // Now create the song copy
+        Song s = new Song(song.getName(), cls, ss);
+        s.setComments(song.getComments());
+        s.setTempo(song.getTempo());
+        s.setTags(song.getTags());
+
         s.resetNeedSave();
         registerSong(s);
         return s;

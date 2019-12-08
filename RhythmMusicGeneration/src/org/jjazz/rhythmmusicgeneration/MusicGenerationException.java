@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.rhythmmusicgeneration.spi;
+package org.jjazz.rhythmmusicgeneration;
 
 /**
  * An exception to be used by MusicGenerators.

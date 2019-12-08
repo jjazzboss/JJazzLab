@@ -38,7 +38,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.Range;
 

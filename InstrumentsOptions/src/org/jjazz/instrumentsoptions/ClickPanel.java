@@ -29,7 +29,7 @@ import javax.swing.SpinnerListModel;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.musiccontrol.ClickManager;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;

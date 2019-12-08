@@ -38,7 +38,7 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.jjazz.song.api.Song;
 import org.openide.util.NbPreferences;
 import org.jjazz.songstructure.api.SongPart;

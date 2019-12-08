@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import org.jjazz.defaultinstruments.Delegate2DefaultInstrument;
 import org.jjazz.defaultinstruments.JJazzSynth;
 import org.jjazz.helpers.DrumsReroutingDialog.ReroutingChoice;
@@ -37,10 +36,9 @@ import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.song.api.Song;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.openide.modules.OnStart;
 
 /**
@@ -86,19 +84,9 @@ public class DrumsReroutingAction implements VetoableChangeListener, Runnable
             return;
         }
 
-        Song song = (Song) evt.getNewValue();
-        assert song != null : "evt=" + evt;
-
-        MidiMixManager mmm = MidiMixManager.getInstance();
-        MidiMix midiMix = null;
-        try
-        {
-            midiMix = mmm.findMix(song);
-        } catch (MidiUnavailableException ex)
-        {
-            LOGGER.severe("vetoableChange() unexpected exception song=" + song.getName() + " ex=" + ex.getLocalizedMessage());
-            return;
-        }
+        MusicGenerationContext context = (MusicGenerationContext) evt.getNewValue();
+        assert context != null : "evt=" + evt;        
+        MidiMix midiMix = context.getMidiMix();
 
         List<Integer> toBeReroutedChannels = new ArrayList<>();
         List<Integer> reroutableChannels = getChannelsToBeRerouted(midiMix);

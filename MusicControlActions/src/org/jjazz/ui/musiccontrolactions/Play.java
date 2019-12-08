@@ -28,12 +28,15 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.util.logging.Logger;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.SwingUtilities;
 import org.jjazz.activesong.ActiveSongManager;
+import org.jjazz.midimix.MidiMix;
+import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.FlatToggleButton;
 import org.openide.DialogDisplayer;
@@ -42,6 +45,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
@@ -111,20 +115,43 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
         MusicController mc = MusicController.getInstance();
         MusicController.State playBackState = mc.getPlaybackState();
         LOGGER.fine("setSelected() newState=" + newState + " playBackState=" + playBackState);
-        int fromBarIndex = 0;         // By default start playback from the beginning
         switch (playBackState)
         {
             case PLAYBACK_PAUSED:
-                fromBarIndex = -1;        // Start from last position
-            case PLAYBACK_STOPPED:
                 if (newState)
                 {
-                    // Start or restart playback
+                    // Start from last position
                     assert currentSong != null; // Otherwise button should be disabled
                     try
                     {
-                        mc.play(currentSong, fromBarIndex);
+                        mc.resume();
                     } catch (MusicGenerationException | PropertyVetoException ex)
+                    {
+                        if (ex.getLocalizedMessage() != null)
+                        {
+                            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                            DialogDisplayer.getDefault().notify(d);
+                        }
+                        setBooleanState(!newState);
+                        return;
+                    }
+                } else
+                {
+                    // Nothing
+                }
+                break;
+            case PLAYBACK_STOPPED:
+                if (newState)
+                {
+                    // Start playback from initial position
+                    assert currentSong != null; // Otherwise button should be disabled
+                    try
+                    {
+                        MidiMix midiMix = MidiMixManager.getInstance().findMix(currentSong);      // Can raise MidiUnavailableException
+                        MusicGenerationContext context = new MusicGenerationContext(currentSong, midiMix);
+                        mc.setContext(context);
+                        mc.play(0);
+                    } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
                     {
                         if (ex.getLocalizedMessage() != null)
                         {

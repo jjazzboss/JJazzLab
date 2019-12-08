@@ -22,6 +22,8 @@
  */
 package org.jjazz.rhythmmusicgeneration.spi;
 
+import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import java.util.HashMap;
 import javax.sound.midi.Track;
 import org.jjazz.rhythm.api.Rhythm;

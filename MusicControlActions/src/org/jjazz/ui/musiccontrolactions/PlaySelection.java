@@ -28,14 +28,18 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.midimix.MidiMix;
+import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
@@ -157,8 +161,11 @@ public class PlaySelection extends AbstractAction
         // OK we can go
         try
         {
-            mc.start(song, r);
-        } catch (MusicGenerationException | PropertyVetoException ex)
+            MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
+            MusicGenerationContext context = new MusicGenerationContext(song, midiMix, r);
+            mc.setContext(context);
+            mc.play(r.from);
+        } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
         {
             if (ex.getMessage() != null)
             {
@@ -194,13 +201,13 @@ public class PlaySelection extends AbstractAction
     /**
      * Convert a ChordLeadSheet range into a range within a SongStructure.
      * <p>
-     *
+     * <p>
      * Example:<br>
      * - bar0=C7 (section=S1), bar1=Em (section=S2), bar2=D (section=S3)<br>
      * - SongStructure=S1 S1 S3 S2<br>
      * If cls range=bar0+bar1, then sgs range=[0;3]<br>
      *
-     * @param sgs The parent sections of the song parts must be in cls.
+     * @param sgs      The parent sections of the song parts must be in cls.
      * @param cls
      * @param clsRange
      * @return Null if no valid range could be constructed

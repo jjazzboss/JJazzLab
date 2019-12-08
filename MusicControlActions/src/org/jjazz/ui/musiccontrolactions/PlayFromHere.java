@@ -28,13 +28,17 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.util.logging.Logger;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.midimix.MidiMix;
+import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
@@ -160,8 +164,11 @@ public class PlayFromHere extends AbstractAction
         // OK we can go
         try
         {
-            mc.play(song, playFromBar);
-        } catch (MusicGenerationException | PropertyVetoException ex)
+            MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
+            MusicGenerationContext context = new MusicGenerationContext(song, midiMix);
+            mc.setContext(context);
+            mc.play(playFromBar);
+        } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
         {
             if (ex.getMessage() != null)
             {

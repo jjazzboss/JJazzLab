@@ -23,8 +23,12 @@
 package org.jjazz.rhythmmusicgeneration;
 
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.util.Range;
@@ -41,6 +45,8 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     private int hashCode;
     private int startBar;
     private int nbBars;
+
+    protected static final Logger LOGGER = Logger.getLogger(ChordSequence.class.getSimpleName());
 
     public ChordSequence(int startBar, int nbBars)
     {
@@ -163,25 +169,43 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     /**
      * A new sub-sequence from this sequence.
      *
-     * @param startBar Chords from startBar are included
-     * @param endBar   Chords until endBar (included) are included
+     * @param subStartBar        Chords from startBar are included
+     * @param subEndBar          Chords until endBar (included) are included
+     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the
+     *                           last chord symbol before subStartBar.
      * @return
      */
-    public ChordSequence subSequence(int startBar, int endBar)
+    public ChordSequence subSequence(int subStartBar, int subEndBar, boolean addInitChordSymbol)
     {
-        ChordSequence cSeq = new ChordSequence(startBar, endBar - startBar + 1);
+        // LOGGER.severe("subSequence() -- subStartBar=" + subStartBar + ", subEndBar=" + subEndBar + ", addInitChordSymbol=" + addInitChordSymbol + ", this=" + this);
+        if (subStartBar < startBar || subEndBar > (startBar + nbBars - 1))
+        {
+            throw new IllegalArgumentException("subStartBar=" + subStartBar + " subEndBar=" + subEndBar + " this=" + this);
+        }
+        ChordSequence cSeq = new ChordSequence(subStartBar, subEndBar - subStartBar + 1);
         for (CLI_ChordSymbol cs : this)
         {
             int bar = cs.getPosition().getBar();
-            if (bar < startBar)
+            if (bar < subStartBar)
             {
                 continue;
             }
-            if (bar > endBar)
+            if (bar > subEndBar)
             {
                 break;
             }
             cSeq.add(cs);
+        }
+        // LOGGER.severe("subSequence()   cSeq=" + cSeq);
+        if (subStartBar > startBar && (cSeq.isEmpty() || !cSeq.get(0).getPosition().equals(new Position(subStartBar, 0))))
+        {
+            int index = indexOfLastBeforeBar(subStartBar);
+            // LOGGER.severe("subSequence()   index=" + index);
+            if (index != -1)
+            {
+                CLI_ChordSymbol newCs = cSeq.getInitCopy(get(index));
+                cSeq.add(0, newCs);
+            }
         }
         return cSeq;
     }
@@ -266,6 +290,28 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
         StringBuilder sb = new StringBuilder();
         sb.append("cSeq<start=").append(startBar).append(", nbBars=").append(nbBars).append(":").append(super.toString()).append(">");
         return sb.toString();
+    }
+
+    // ====================================================================================
+    // Private methods
+    // ====================================================================================
+    /**
+     * Prepare a copy of the specified CLI_ChordSymbol to be put at first bar/beat of this chord sequence.
+     * <p>
+     * As it is a copy, reset the ChordRenderingInfo PlayStyle and OffBeatStyle, and the alternate chord symbol.
+     *
+     * @param cliCs
+     * @return
+     */
+    protected CLI_ChordSymbol getInitCopy(CLI_ChordSymbol cliCs)
+    {
+        // Add a copy of the chord symbol
+        ExtChordSymbol ecs = cliCs.getData();
+        Position newPos = new Position(startBar, 0);
+        ChordRenderingInfo newCri = new ChordRenderingInfo(ChordRenderingInfo.PlayStyle.NORMAL, true, ecs.getRenderingInfo().getScaleInstance());
+        ExtChordSymbol newEcs = new ExtChordSymbol(ecs, newCri, null, null);
+        CLI_ChordSymbol res = CLI_Factory.getDefault().createChordSymbol(cliCs.getContainer(), newEcs, newPos);
+        return res;
     }
 
 }

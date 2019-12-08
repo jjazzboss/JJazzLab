@@ -24,15 +24,12 @@ package org.jjazz.rhythmmusicgeneration;
 
 import java.util.HashMap;
 import org.jjazz.rhythmmusicgeneration.spi.MidiMusicGenerator;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationContext;
 import java.util.logging.Logger;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.rhythm.api.*;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.util.Range;
 
 /**
@@ -63,7 +60,6 @@ public class DummyGenerator implements MidiMusicGenerator
     public void generateMusic(MusicGenerationContext context, HashMap<RhythmVoice, Track> mapRvTracks) throws MusicGenerationException
     {
         long tick = 0;
-        SongStructure sgs = context.getSong().getSongStructure();
         
         // Loop only on song parts belonging to context
         for (SongPart spt : context.getSongParts())
@@ -75,7 +71,8 @@ public class DummyGenerator implements MidiMusicGenerator
             {
                 // This is our rhythm         
                 // Get the ChordSequence corresponding to the song part
-                SgsChordSequence cSeq = new SgsChordSequence(sgs, sptRange.from, sptRange.to);
+                MusicGenerationContext rContext = new MusicGenerationContext(context, sptRange);
+                ContextChordSequence cSeq = new ContextChordSequence(rContext);
                 for (RhythmVoice rv : rhythm.getRhythmVoices())
                 {
                     // Fill the track for each supported RhythmVoice

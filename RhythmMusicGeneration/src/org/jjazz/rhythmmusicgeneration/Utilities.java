@@ -26,14 +26,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
-import javax.sound.midi.MidiMessage;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.Note;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.midi.MidiConst;
-import org.jjazz.songstructure.api.SongPart;
 
 /**
  * Convenient methods for Midi tracks generation.
@@ -42,36 +40,6 @@ public class Utilities
 {
 
     protected static final Logger LOGGER = Logger.getLogger(org.jjazz.rhythmmusicgeneration.Utilities.class.getName());
-
-     /**
-     * Search a NOTE_ON MidiMessage event whose tick position is NOT between tickFrom and tickTo.
-     *
-     * @param t
-     * @param tickFrom
-     * @param tickTo
-     * @return The first found MidiEvent or null.
-     */
-    static public MidiEvent findOutOfRangeNoteOn(Track t, long tickFrom, long tickTo)
-    {
-        if (tickFrom > tickTo || t == null)
-        {
-            throw new IllegalArgumentException("t=" + t + " tickFrom=" + tickFrom + " tickTo=" + tickTo);
-        }
-        for (int i = 0; i < t.size(); i++)
-        {
-            MidiEvent me = t.get(i);
-            long tick = me.getTick();
-            MidiMessage mm = me.getMessage();
-            if ((mm instanceof ShortMessage) && ((ShortMessage) mm).getCommand() == ShortMessage.NOTE_ON)
-            {
-                if (tick < tickFrom || tick > tickTo)
-                {
-                    return me;
-                }
-            }
-        }
-        return null;
-    }
 
     /**
      * Add chord root notes (or bass note for slash chords) to the specified track based.

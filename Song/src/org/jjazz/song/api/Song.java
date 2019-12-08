@@ -34,7 +34,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -109,13 +108,12 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     /**
      * Constructor for the SerializationProxy only.
      * <p>
-     * (can't be public because need to ensure consistency between cls and sgs)
      *
      * @param name
      * @param cls
-     * @param sgs Must be a LinkedRhythmL linked to cls !
+     * @param sgs Must be kep consistent with cls changes !
      */
-    private Song(String name, ChordLeadSheet cls, SongStructure sgs)
+    protected Song(String name, ChordLeadSheet cls, SongStructure sgs)
     {
         if (name == null || name.trim().isEmpty() || cls == null || sgs == null)
         {

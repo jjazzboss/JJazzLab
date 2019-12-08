@@ -20,10 +20,11 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.rhythmmusicgeneration.spi;
+package org.jjazz.rhythmmusicgeneration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.MidiConst;
@@ -42,7 +43,6 @@ import org.jjazz.util.Range;
  */
 public class MusicGenerationContext
 {
-
     private Song song;
     private MidiMix mix;
     private Range range;
@@ -59,11 +59,22 @@ public class MusicGenerationContext
     }
 
     /**
+     * Create a MusicGenerationContext which reuse mgc's Song and MidiMix, but with the specified range.
+     *
+     * @param mgc
+     * @param newRange
+     */
+    public MusicGenerationContext(MusicGenerationContext mgc, Range newRange)
+    {
+        this(mgc.getSong(), mgc.getMidiMix(), newRange);
+    }
+
+    /**
      * Create a MusicGenerationContext object for a whole or a part of the song.
      *
      * @param s
      * @param mix
-     * @param r If null, the range will represent the whole song from first to last bar.
+     * @param r   If null, the range will represent the whole song from first to last bar.
      */
     public MusicGenerationContext(Song s, MidiMix mix, Range r)
     {
@@ -73,17 +84,61 @@ public class MusicGenerationContext
         }
         song = s;
         this.mix = mix;
-        int lastBar = s.getSongStructure().getSizeInBars() - 1;
-        if (r == null)
+        int sizeInBars = s.getSongStructure().getSizeInBars();
+        if (sizeInBars == 0)
         {
-            this.range = new Range(0, lastBar);
-        } else if (r.from > lastBar || r.to > lastBar)
+            this.range = Range.EMPTY_RANGE;
+        } else if (r == null)
+        {
+            this.range = new Range(0, sizeInBars - 1);
+        } else if (r.from > sizeInBars - 1 || r.to > sizeInBars - 1)
         {
             throw new IllegalArgumentException("s=" + s + " mix=" + mix + "r=" + r);
         } else
         {
             this.range = r;
         }
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = 5;
+        hash = 97 * hash + Objects.hashCode(this.song);
+        hash = 97 * hash + Objects.hashCode(this.mix);
+        hash = 97 * hash + Objects.hashCode(this.range);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final MusicGenerationContext other = (MusicGenerationContext) obj;
+        if (!Objects.equals(this.song, other.song))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.mix, other.mix))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.range, other.range))
+        {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -108,7 +163,7 @@ public class MusicGenerationContext
 
     /**
      * Music should be produced only for this range of bars.
-     *
+     * <p>
      * The range can start/end anywhere in the song (including in the middle of a song part).
      *
      * @return
@@ -249,7 +304,37 @@ public class MusicGenerationContext
     }
 
     /**
+     * Compute the tick in this context for the given position.
+     * <p>
+     * Use MidiConst.PPQ_RESOLUTION per natural beat.
+     *
+     * @param pos
+     * @return -1 if pos is outside this context range.
+     */
+    public long getTick(Position pos)
+    {
+        if (pos == null)
+        {
+            throw new NullPointerException("pos");
+        }
+        long tick = -1;
+        int bar = pos.getBar();
+        float beat = pos.getBeat();
+        if (range.isIn(bar))
+        {
+            SongPart spt = song.getSongStructure().getSongPart(bar);
+            int relativeBar = bar - spt.getStartBarIndex();
+            TimeSignature ts = spt.getRhythm().getTimeSignature();
+            float nbBeats = (relativeBar + beat) * ts.getNbNaturalBeats();
+            tick = getSptStartTick(spt) + (long) (nbBeats * MidiConst.PPQ_RESOLUTION);
+        }
+        return tick;
+    }
+
+    /**
      * Compute the position in the songStructure corresponding to the specified Midi tick position in this context.
+     * <p>
+     * Use MidiConst.PPQ_RESOLUTION per natural beat.
      *
      * @param tick
      * @return Null if tick position is not valid for the songStructure

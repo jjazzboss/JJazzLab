@@ -37,6 +37,7 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.MidiConst;
@@ -46,8 +47,6 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.parameters.RP_SYS_Mute;
 import org.jjazz.rhythmmusicgeneration.spi.MidiMusicGenerator;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationContext;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
@@ -90,12 +89,12 @@ public class MidiSequenceBuilder
      *
      * @param silent If true do not show a progress dialog
      * @return A Sequence containing accompaniment tracks for the context.
-     * @throws org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException
+     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException
      */
     public Sequence buildSequence(boolean silent) throws MusicGenerationException
     {
 
-        // Check that there is a valid starting chord on bar 0 beat 0
+        // Check that there is a valid starting chord at the beginning on each section
         checkStartChordPresence();      // throws MusicGenerationException
 
         // Check there is no 2 chords at same position
@@ -171,16 +170,21 @@ public class MidiSequenceBuilder
     }
 
     /**
+     * Check that there is a starting chord symbol for each section.
+     *
      * @throws MusicGenerationException
      */
     private void checkStartChordPresence() throws MusicGenerationException
     {
         ChordLeadSheet cls = context.getSong().getChordLeadSheet();
-        SongStructure sgs = context.getSong().getSongStructure();
-        List<? extends CLI_ChordSymbol> clis = cls.getItems(0, 0, CLI_ChordSymbol.class);
-        if (clis.isEmpty() || !clis.get(0).getPosition().equals(new Position(0, 0)))
+        for (CLI_Section section : cls.getItems(CLI_Section.class))
         {
-            throw new MusicGenerationException("There is no starting chord on first beat of first bar.");
+            Position pos = section.getPosition();
+            List<? extends CLI_ChordSymbol> clis = cls.getItems(section, CLI_ChordSymbol.class);
+            if (clis.isEmpty() || !clis.get(0).getPosition().equals(pos))
+            {
+                throw new MusicGenerationException("Starting chord symbol missing for section " + section.getData().getName() + " at bar " + (pos.getBar() + 1) + ".");
+            }
         }
     }
 

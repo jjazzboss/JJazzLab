@@ -28,12 +28,14 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.util.logging.Logger;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.SwingUtilities;
 import org.jjazz.activesong.ActiveSongManager;
+import org.jjazz.midimix.MidiMix;
+import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerationException;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.FlatToggleButton;
 import org.openide.DialogDisplayer;
@@ -41,7 +43,6 @@ import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
@@ -132,7 +133,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
                     assert currentSong != null; // Otherwise button should be disabled
                     try
                     {
-                        mc.play(currentSong, -1);
+                        mc.resume();
                     } catch (MusicGenerationException | PropertyVetoException ex)
                     {
                         if (ex.getLocalizedMessage() != null)
