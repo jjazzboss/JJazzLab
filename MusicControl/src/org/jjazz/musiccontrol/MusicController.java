@@ -104,9 +104,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         PLAYBACK_STARTED
     }
     private static MusicController INSTANCE;
-    /** The context for which we will play music. */
+    /**
+     * The context for which we will play music.
+     */
     private MusicGenerationContext mgContext;
-    /** The playback context for one version of a song. */
+    /**
+     * The playback context for one version of a song.
+     */
     private PlaybackContext playbackContext;
     private State playbackState;
     /**
@@ -209,10 +213,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * @param fromBarIndex Play the song from this bar. Bar must be within the context's range.
      *
      * @throws java.beans.PropertyVetoException If a vetoable listener vetoed the playback start. A listener who has already
-     *                                          notified user should throw an exception with a null message.
-     * @throws MusicGenerationException         If a problem occurred which prevents song playing: no Midi out, song is already
-     *                                          playing, rhythm music generation problem, etc.
-     * @throws IllegalStateException            If context is null.
+     * notified user should throw an exception with a null message.
+     * @throws MusicGenerationException If a problem occurred which prevents song playing: no Midi out, song is already playing,
+     * rhythm music generation problem, etc.
+     * @throws IllegalStateException If context is null.
      *
      * @see #getPlayingSongCopy()
      */
@@ -311,8 +315,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         State old = this.getPlaybackState();
         playbackState = State.PLAYBACK_STOPPED;
         pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, playbackState);
-        // Position must be set to 0 after the stop so that playback beat change tracking listeners are not reset to position 0 upon stop
-        setPosition(0);
+        // Position must be reset after the stop so that playback beat change tracking listeners are not reset upon stop
+        int bar = mgContext != null ? mgContext.getRange().from : 0;
+        setPosition(bar);
     }
 
     /**
@@ -464,11 +469,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * series of notes with same pitch=fixPitch.
      *
      * @param channel
-     * @param fixPitch  -1 means not used.
+     * @param fixPitch -1 means not used.
      * @param transpose Transposition value in semi-tons to be added. Ignored if fixPitch&gt;=0.
      * @param endAction Called when sequence is over. Can be null.
-     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException If a problem occurred. endAction.run() is called
-     *                                                                      before throwing the exception.
+     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException If a problem occurred. endAction.run() is called before
+     * throwing the exception.
      */
     public void playTestNotes(int channel, int fixPitch, int transpose, final Runnable endAction) throws MusicGenerationException
     {
@@ -677,17 +682,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private void setPosition(int fromBar)
     {
-        if (fromBar < 0)
-        {
-            throw new IllegalArgumentException("fromBar=" + fromBar);
-        }
         long tick = 0;       // Default when fromBar==0 and click precount is true
         if (mgContext != null)
         {
-            if (fromBar > mgContext.getRange().from || !ClickManager.getInstance().isClickPrecount())
+            int relativeBar = fromBar - mgContext.getRange().from;
+            if (relativeBar > 0 || !ClickManager.getInstance().isClickPrecount())
             {
                 // No precount
-                tick = playbackContext.songTickStart + mgContext.getTick(new Position(fromBar, 0));
+                tick = playbackContext.songTickStart + mgContext.getTick(new Position(relativeBar, 0));
             }
         }
         sequencer.setTickPosition(tick);
@@ -788,8 +790,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private class PlaybackContext
     {
+
         MusicGenerationContext context;
-        /** The generated sequence. */
+        /**
+         * The generated sequence.
+         */
         Sequence sequence;
         /**
          * The position of each natural beat.
@@ -954,9 +959,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         void close()
         {
             Track[] tracks = sequence.getTracks();
-            for (Track track : tracks)
+            if (tracks != null)
             {
-                sequence.deleteTrack(track);
+                for (Track track : tracks)
+                {
+                    sequence.deleteTrack(track);
+                }
             }
         }
 

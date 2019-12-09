@@ -59,14 +59,13 @@ public class DummyGenerator implements MidiMusicGenerator
     @Override
     public void generateMusic(MusicGenerationContext context, HashMap<RhythmVoice, Track> mapRvTracks) throws MusicGenerationException
     {
-        long tick = 0;
-        
         // Loop only on song parts belonging to context
         for (SongPart spt : context.getSongParts())
         {
             Rhythm r = spt.getRhythm();
             TimeSignature ts = r.getTimeSignature();
             Range sptRange = context.getSptRange(spt); // Context bars can start/end in the middle of a song part
+            long tick = context.getSptStartTick(spt);
             if (r.equals(rhythm))
             {
                 // This is our rhythm         
@@ -82,20 +81,16 @@ public class DummyGenerator implements MidiMusicGenerator
                     {
                         case Bass:
                             LOGGER.fine("generateMusic() generate dummy bass track for RhythmVoice: " + rv.getName() + " size=" + track.size());
-                            tick = Utilities.addBassNoteEvents(track, channel, tick, cSeq, ts);
+                            Utilities.addBassNoteEvents(track, channel, tick, cSeq, ts);
                             break;
                         case Drums:
                             LOGGER.fine("generateMusic() generate dummy drums track for RhythmVoice: " + rv.getName() + " size=" + track.size());
-                            tick = Utilities.addDrumsNoteEvents(track, channel, tick, sptRange.size(), ts);
+                            Utilities.addDrumsNoteEvents(track, channel, tick, sptRange.size(), ts);
                             break;
                         default:
                             LOGGER.fine("generateMusic() music generation not supported for this RhythmVoice: " + rv.getName());
                     }
                 }
-            } else
-            {
-                // Not our rhythm, skip but update the tick
-                tick += sptRange.size() * MidiConst.PPQ_RESOLUTION * ts.getNbNaturalBeats();
             }
         }
     }

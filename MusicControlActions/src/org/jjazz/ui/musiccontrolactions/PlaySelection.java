@@ -132,12 +132,16 @@ public class PlaySelection extends AbstractAction
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
 
         Range r = null;
-
+        String errMsg = "Selected bars/songs parts need to be contiguous.";     // By default
         TopComponent activeTc = TopComponent.getRegistry().getActivated();
         if (clTc == activeTc && clSelection.isContiguousBarboxSelectionWithinCls())
         {
             // Focus in the CL_Editor            
             r = toSgsRange(ss, cls, new Range(clSelection.getMinBarIndexWithinCls(), clSelection.getMaxBarIndexWithinCls()));   // Can be null
+            if (r == null)
+            {
+                errMsg = "Corresponding song part not found for the first or last selected bar.";
+            }
         } else if (ssTc == activeTc && ssSelection.isOneSectionSptSelection())
         {
             // Focus in the SS_Editor
@@ -149,7 +153,7 @@ public class PlaySelection extends AbstractAction
 
         if (r == null)
         {
-            String msg = "Can't play this selection.";
+            String msg = "Can't play this selection. " + errMsg;
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -207,7 +211,7 @@ public class PlaySelection extends AbstractAction
      * - SongStructure=S1 S1 S3 S2<br>
      * If cls range=bar0+bar1, then sgs range=[0;3]<br>
      *
-     * @param sgs      The parent sections of the song parts must be in cls.
+     * @param sgs The parent sections of the song parts must be in cls.
      * @param cls
      * @param clsRange
      * @return Null if no valid range could be constructed
