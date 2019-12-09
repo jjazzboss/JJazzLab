@@ -723,12 +723,6 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             }
         });
 
-        list_markerValues.setModel(new javax.swing.AbstractListModel<String>()
-        {
-            String[] strings = { "Theme", "Solo", "Theme2", "Theme3", "Theme4", "Solo2", "Solo3", "Solo4", " " };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
         jScrollPane4.setViewportView(list_markerValues);
 
         javax.swing.GroupLayout pnl_altConditionLayout = new javax.swing.GroupLayout(pnl_altCondition);
