@@ -213,10 +213,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * @param fromBarIndex Play the song from this bar. Bar must be within the context's range.
      *
      * @throws java.beans.PropertyVetoException If a vetoable listener vetoed the playback start. A listener who has already
-     * notified user should throw an exception with a null message.
-     * @throws MusicGenerationException If a problem occurred which prevents song playing: no Midi out, song is already playing,
-     * rhythm music generation problem, etc.
-     * @throws IllegalStateException If context is null.
+     *                                          notified user should throw an exception with a null message.
+     * @throws MusicGenerationException         If a problem occurred which prevents song playing: no Midi out, song is already
+     *                                          playing, rhythm music generation problem, etc.
+     * @throws IllegalStateException            If context is null.
      *
      * @see #getPlayingSongCopy()
      */
@@ -469,11 +469,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * series of notes with same pitch=fixPitch.
      *
      * @param channel
-     * @param fixPitch -1 means not used.
+     * @param fixPitch  -1 means not used.
      * @param transpose Transposition value in semi-tons to be added. Ignored if fixPitch&gt;=0.
      * @param endAction Called when sequence is over. Can be null.
      * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException If a problem occurred. endAction.run() is called before
-     * throwing the exception.
+     *                                                                  throwing the exception.
      */
     public void playTestNotes(int channel, int fixPitch, int transpose, final Runnable endAction) throws MusicGenerationException
     {
@@ -486,7 +486,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             endAction.run();
             throw ex;
         }
-        playbackContext.setDirty(); // Make sure song sequence is recalculated if there was a song playing before
+        if (playbackContext != null)
+        {
+            playbackContext.setDirty(); // Make sure song sequence is recalculated if there was a song playing before
+        }
         stop();
         try
         {
@@ -844,7 +847,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(context);
                 sequence = seqBuilder.buildSequence(false);                  // Can raise MusicGenerationException
                 mapRvTrackId = seqBuilder.getRvTrackIdMap();                 // Used to identify a RhythmVoice's track
-
+                
                 // Add the control track
                 ControlTrackBuilder ctm = new ControlTrackBuilder(context);
                 controlTrackId = ctm.addControlTrack(sequence);
@@ -862,7 +865,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
                 if (debugBuiltSequence)
                 {
-                    LOGGER.info("start() song=" + context.getSong().getName() + " sequence :");
+                    LOGGER.info("update() song=" + context.getSong().getName() + " sequence :");
                     LOGGER.info(MidiUtilities.toString(sequence));
                 }
                 // Can raise InvalidMidiDataException                                               

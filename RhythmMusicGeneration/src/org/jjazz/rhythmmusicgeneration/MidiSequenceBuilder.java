@@ -439,13 +439,9 @@ public class MidiSequenceBuilder
      */
     private void fixEndOfTracks(Sequence seq)
     {
-        SongStructure sgs = context.getSong().getSongStructure();
-        long lastTick = (sgs.getSizeInBeats(context.getRange()) * MidiConst.PPQ_RESOLUTION) + 1;
-        for (RhythmVoice rv : mapRvTrackId.keySet())
+        long lastTick = context.getSizeInBeats() * MidiConst.PPQ_RESOLUTION;
+        for (Track t : seq.getTracks())
         {
-            int trackId = mapRvTrackId.get(rv);
-            Track t = seq.getTracks()[trackId];
-
             // Make sure all tracks have the same EndOfTrack
             if (!MidiUtilities.setEndOfTrackPosition(t, lastTick))
             {

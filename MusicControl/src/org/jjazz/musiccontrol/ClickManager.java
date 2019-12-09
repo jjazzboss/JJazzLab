@@ -278,7 +278,7 @@ public class ClickManager
             throw new IllegalArgumentException("seq=" + sequence + " context=" + context);
         }
 
-        TimeSignature ts = context.getSongParts().get(0).getParentSection().getData().getTimeSignature();
+        TimeSignature ts = context.getSongParts().get(0).getRhythm().getTimeSignature();
         int nbPrecountBars = getClickPrecountNbBars(ts, context.getSong().getTempo());
         long songStartTick = (nbPrecountBars * ts.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION);
 

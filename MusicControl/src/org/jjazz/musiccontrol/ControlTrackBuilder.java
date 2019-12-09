@@ -59,15 +59,15 @@ public class ControlTrackBuilder
 
     public ControlTrackBuilder(MusicGenerationContext context)
     {
-        if (context==null)
+        if (context == null)
         {
-            throw new IllegalArgumentException("context="+context);
+            throw new IllegalArgumentException("context=" + context);
         }
         this.context = context;
     }
-    
+
     /**
-     * Add a control track with the following events:
+     * Add a control track for the given context with the following events:
      * <p>
      * - a CTRL_CHG_JJAZZ_CHORD_CHANGE Midi Event at every chord change<br>
      * - a CTRL_CHG_JJAZZ_BEAT_CHANGE Midi Event at every beat change<br>
@@ -126,7 +126,7 @@ public class ControlTrackBuilder
      * @param track
      * @param tickOffset
      * @param spt
-     * @param sptRange The actual bar range for which to add control messages
+     * @param sptRange   The actual bar range for which to add control messages
      * @return The tick position corresponding to the start of next spt.
      */
     private long fillControlTrack(Track track, long tickOffset, SongPart spt, Range sptRange)
@@ -137,7 +137,6 @@ public class ControlTrackBuilder
         int sptStartBar = sptRange.from;
         int nbNaturalBeatsPerBar = spt.getRhythm().getTimeSignature().getNbNaturalBeats();
         int nbNaturalBeats = sptRange.size() * nbNaturalBeatsPerBar;
-        long nextTick = tickOffset + nbNaturalBeats * MidiConst.PPQ_RESOLUTION;
 
         // Add CTRL_CHG_JJAZZ_BEAT_CHANGE events every beat change
         for (int beat = 0; beat < nbNaturalBeats; beat++)
@@ -161,7 +160,7 @@ public class ControlTrackBuilder
         {
             int relativeBarIndex = cli.getPosition().getBar() - sectionStartBar;
             if (sptRange.isIn(spt.getStartBarIndex() + relativeBarIndex))
-            {                
+            {
                 float beat = cli.getPosition().getBeat();
                 long tick = tickOffset + relativeBarIndex * barTickSize + (long) (beat * MidiConst.PPQ_RESOLUTION);
                 ShortMessage sm = MidiUtilities.getJJazzChordChangeControllerMessage(MidiConst.CHANNEL_MIN);
@@ -169,7 +168,7 @@ public class ControlTrackBuilder
             }
         }
 
-        return nextTick;
+        return tickOffset + nbNaturalBeats * MidiConst.PPQ_RESOLUTION;
     }
 
     /**
@@ -178,7 +177,7 @@ public class ControlTrackBuilder
      * For a given channel add a single CTRL_CHG_JJAZZ_ACTIVITY message if several NOTE_ONs start within the same
      * ACTIVITY_MIN_PERIOD.
      *
-     * @param sequence The track to analyze
+     * @param sequence  The track to analyze
      * @param ctrlTrack Where CTRL_CHG_JJAZZ_ACTIVITY messages will be added
      */
     private void addActivityMessages(Sequence sequence, Track ctrlTrack)

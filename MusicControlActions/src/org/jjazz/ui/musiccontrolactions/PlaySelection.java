@@ -140,7 +140,7 @@ public class PlaySelection extends AbstractAction
             r = toSgsRange(ss, cls, new Range(clSelection.getMinBarIndexWithinCls(), clSelection.getMaxBarIndexWithinCls()));   // Can be null
             if (r == null)
             {
-                errMsg = "Corresponding song part not found for the first or last selected bar.";
+                errMsg = "First and last selected bars don't correctly match song parts.";
             }
         } else if (ssTc == activeTc && ssSelection.isOneSectionSptSelection())
         {
@@ -211,7 +211,7 @@ public class PlaySelection extends AbstractAction
      * - SongStructure=S1 S1 S3 S2<br>
      * If cls range=bar0+bar1, then sgs range=[0;3]<br>
      *
-     * @param sgs The parent sections of the song parts must be in cls.
+     * @param sgs      The parent sections of the song parts must be in cls.
      * @param cls
      * @param clsRange
      * @return Null if no valid range could be constructed
@@ -236,6 +236,10 @@ public class PlaySelection extends AbstractAction
             if (toBar == -1 && spt.getParentSection() == toSection)
             {
                 toBar = spt.getStartBarIndex() + clsRange.to - toSection.getPosition().getBar();
+            }
+            if (toBar != -1 && fromBar != -1 && fromBar > toBar)
+            {
+                break;
             }
             if (toBar != -1 && fromBar != -1)
             {
