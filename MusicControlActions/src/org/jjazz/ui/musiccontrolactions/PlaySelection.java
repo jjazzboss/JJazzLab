@@ -71,7 +71,7 @@ import org.openide.windows.TopComponent;
         {
             @ActionReference(path = "Actions/Bar", position = 831, separatorAfter = 832),
             @ActionReference(path = "Actions/SongPart", position = 831, separatorAfter = 832),
-            @ActionReference(path = "Shortcuts", name = "O-SPACE")
+            @ActionReference(path = "Shortcuts", name = "DS-SPACE")
         })
 @NbBundle.Messages(
         {
@@ -87,7 +87,7 @@ public class PlaySelection extends AbstractAction
     public PlaySelection()
     {
         putValue(Action.NAME, CTL_PlaySelection());
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("alt SPACE"));     // For popup display only     
+        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control shift SPACE"));     // For popup display only     
 
         // Listen to TopComponent activation changes
         TopComponent.getRegistry().addPropertyChangeListener(new PropertyChangeListener()

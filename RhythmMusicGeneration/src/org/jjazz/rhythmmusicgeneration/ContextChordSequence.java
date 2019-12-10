@@ -89,11 +89,15 @@ public class ContextChordSequence extends ChordSequence
                 Position newPos = new Position(absoluteBar, pos.getBeat());
                 ExtChordSymbol newEcs = ecs.getChordSymbol(sptMarker);      // Use alternate chord symbol if relevant      
 
-                // Add the ChordSymbol to this ChordSequence
-                if (newEcs == VoidAltExtChordSymbol.getInstance())
+                // Don't allow Void chordsymbol if it's the init chord symbol
+                if (newEcs == VoidAltExtChordSymbol.getInstance() && newPos.equals(new Position(0, 0)))
                 {
-                    // Don't add a chord symbol
-                } else
+                    LOGGER.info("ContextChordSequence() Can't use the void alternate chord symbol of " + ecs.getName() + " at initial position.");
+                    newEcs = ecs;
+                }
+
+                // Add the ChordSymbol to this ChordSequence
+                if (newEcs != VoidAltExtChordSymbol.getInstance())
                 {
                     CLI_ChordSymbol newCliCs = clif.createChordSymbol(cls, newEcs, newPos);
                     add(newCliCs);
@@ -134,7 +138,7 @@ public class ContextChordSequence extends ChordSequence
      *
      * @param <T> The type of the RhythmParameter value
      * @param r
-     * @param rp  The Rhythm's RhythmParameter for which we will check the value
+     * @param rp The Rhythm's RhythmParameter for which we will check the value
      * @return The list of ChordSequences with their respective common rpValue.
      */
     public <T> HashMap<ChordSequence, T> split(Rhythm r, RhythmParameter<T> rp)
