@@ -38,22 +38,22 @@ import org.openide.util.NbBundle.Messages;
 /**
  * Top component which displays something.
  */
-@ConvertAsProperties(
-        dtd = "-//org.jjazz.test//TestOnTheFlySeqUpdate//EN",
-        autostore = false
-)
-@TopComponent.Description(
-        preferredID = "TestOnTheFlySeqUpdateTopComponent",
-        //iconBase="SET/PATH/TO/ICON/HERE",
-        persistenceType = TopComponent.PERSISTENCE_ALWAYS
-)
-@TopComponent.Registration(mode = "explorer", openAtStartup = true)
-@ActionID(category = "Window", id = "org.jjazz.test.TestOnTheFlySeqUpdateTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
-@TopComponent.OpenActionRegistration(
-        displayName = "#CTL_TestOnTheFlySeqUpdateAction",
-        preferredID = "TestOnTheFlySeqUpdateTopComponent"
-)
+//@ConvertAsProperties(
+//        dtd = "-//org.jjazz.test//TestOnTheFlySeqUpdate//EN",
+//        autostore = false
+//)
+//@TopComponent.Description(
+//        preferredID = "TestOnTheFlySeqUpdateTopComponent",
+//        //iconBase="SET/PATH/TO/ICON/HERE",
+//        persistenceType = TopComponent.PERSISTENCE_ALWAYS
+//)
+//@TopComponent.Registration(mode = "explorer", openAtStartup = true)
+//@ActionID(category = "Window", id = "org.jjazz.test.TestOnTheFlySeqUpdateTopComponent")
+//@ActionReference(path = "Menu/Window" /*, position = 333 */)
+//@TopComponent.OpenActionRegistration(
+//        displayName = "#CTL_TestOnTheFlySeqUpdateAction",
+//        preferredID = "TestOnTheFlySeqUpdateTopComponent"
+//)
 @Messages(
         {
             "CTL_TestOnTheFlySeqUpdateAction=TestOnTheFlySeqUpdate",
