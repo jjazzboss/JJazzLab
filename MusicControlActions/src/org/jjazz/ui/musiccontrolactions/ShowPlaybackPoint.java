@@ -265,7 +265,11 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                 if (currentCL_Editor != null)
                 {
                     newSgsPos.set(newPos);
-                    currentCL_Editor.showPlaybackPoint(true, convertToClsPosition(newSgsPos));
+                    Position newClsPos = convertToClsPosition(newSgsPos);
+                    if (newClsPos != null)
+                    {
+                        currentCL_Editor.showPlaybackPoint(true, newClsPos);
+                    }
                     currentRL_Editor.showPlaybackPoint(true, newSgsPos);
                 }
             }
@@ -323,12 +327,16 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
      * Positions will differ as soon as SongParts are duplicated or their order was changed.
      *
      * @param sgsPos
-     * @return
+     * @return Can be null if sgsPos is not a valid bar in the songstructure
      */
     private Position convertToClsPosition(Position sgsPos)
     {
         Position clsPos = new Position(sgsPos);
         SongPart spt = currentSong.getSongStructure().getSongPart(sgsPos.getBar());
+        if (spt == null)
+        {
+            return null;
+        }
         int sectionBarIndex = spt.getParentSection().getPosition().getBar();
         clsPos.setBar(sectionBarIndex + sgsPos.getBar() - spt.getStartBarIndex());
         return clsPos;
@@ -446,7 +454,11 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
             currentCL_Editor = SongEditorManager.getInstance().getEditors(currentSong).getTcCle().getCL_Editor();
             currentRL_Editor = SongEditorManager.getInstance().getEditors(currentSong).getTcRle().getSS_Editor();
             newSgsPos.set(mc.getBeatPosition());
-            currentCL_Editor.showPlaybackPoint(true, convertToClsPosition(newSgsPos));
+            Position newClsPos = convertToClsPosition(newSgsPos);
+            if (newClsPos != null)
+            {
+                currentCL_Editor.showPlaybackPoint(true, newClsPos);
+            }
             currentRL_Editor.showPlaybackPoint(true, newSgsPos);
         } else
         {
