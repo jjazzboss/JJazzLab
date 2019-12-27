@@ -84,6 +84,7 @@
             <public-packages>
                 <package>org.jjazz.midi</package>
                 <package>org.jjazz.midi.device</package>
+                <package>org.jjazz.midi.drumkit</package>
                 <package>org.jjazz.midi.parser</package>
                 <package>org.jjazz.midi.ui</package>
             </public-packages>

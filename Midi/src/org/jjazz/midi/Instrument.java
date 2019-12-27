@@ -26,9 +26,6 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiMessage;
@@ -98,8 +95,8 @@ public class Instrument implements Serializable
      * Constructor with bankLSB=-1, bankMSB=-1 and bankSelectMethod=null
      *
      * @param programChange The MIDI Program Change number 0-127
-     * @param patchName The patchName of the patch, e.g. "Grand Piano"
-     * @param bank The InstrumentBank this instruments belongs to. Can be null.
+     * @param patchName     The patchName of the patch, e.g. "Grand Piano"
+     * @param bank          The InstrumentBank this instruments belongs to. Can be null.
      */
     public Instrument(int programChange, String patchName, InstrumentBank<?> bank)
     {
@@ -109,11 +106,11 @@ public class Instrument implements Serializable
     /**
      *
      * @param programChange The MIDI Program Change number 0-127
-     * @param patchName The patchName of the patch, e.g. "Grand Piano"
-     * @param bank The InstrumentBank this instruments belongs to. Can be null.
-     * @param bankLSB Can be used to override the bank's bankSelectLSB. Use -1 if not used.
-     * @param bankMSB Can be used to override the bank's bankSelectMSB. Use -1 if not used.
-     * @param bsm Can be used to override the bank's bankSelectMethod. Use null if not used.
+     * @param patchName     The patchName of the patch, e.g. "Grand Piano"
+     * @param bank          The InstrumentBank this instruments belongs to. Can be null.
+     * @param bankLSB       Can be used to override the bank's bankSelectLSB. Use -1 if not used.
+     * @param bankMSB       Can be used to override the bank's bankSelectMSB. Use -1 if not used.
+     * @param bsm           Can be used to override the bank's bankSelectMethod. Use null if not used.
      */
     public Instrument(int programChange, String patchName, InstrumentBank<?> bank, int bankLSB, int bankMSB, BankSelectMethod bsm)
     {
@@ -133,7 +130,9 @@ public class Instrument implements Serializable
     }
 
     /**
-     * This function can be called only once. It is the responsibility of the specified bank to add the Instrument.
+     * This function can be called only once.
+     * <p>
+     * It is the responsibility of the specified bank to add the Instrument.
      *
      * @param bank A non null value, the InstrumentBank this Instrument belongs to, e.g. GM1Bank.
      */
@@ -169,8 +168,8 @@ public class Instrument implements Serializable
     }
 
     /**
-     * If a specific bankSelectMSB was set for this instrument, return it. Otherwise return getBank().getBankSelectMSB(). If no
-     * bank set for this instrument return -1.
+     * If a specific bankSelectMSB was set for this instrument, return it. Otherwise return getBank().getBankSelectMSB(). If no bank set for
+     * this instrument return -1.
      *
      * @return
      */
@@ -188,8 +187,8 @@ public class Instrument implements Serializable
     }
 
     /**
-     * If a specific bankSelectLSB was set for this instrument, return it. Otherwise return getBank().getBankSelectLSB(). If no
-     * bank set for this instrument return -1.
+     * If a specific bankSelectLSB was set for this instrument, return it. Otherwise return getBank().getBankSelectLSB(). If no bank set for
+     * this instrument return -1.
      *
      * @return
      */
@@ -219,8 +218,8 @@ public class Instrument implements Serializable
     }
 
     /**
-     * If a non-null bankSelectMethod was set for this instrument, return it. Otherwise return getBank().getBankSelectMethod(). If
-     * no bank set, return null.
+     * If a non-null bankSelectMethod was set for this instrument, return it. Otherwise return getBank().getBankSelectMethod(). If no bank
+     * set, return null.
      *
      * @return
      */
@@ -244,8 +243,8 @@ public class Instrument implements Serializable
     }
 
     /**
-     * Save this Instrument as a string so that it can be retrieved by loadFromString() if the MidiSynth and the related Bank
-     * exists on the system which performs loadFromString().
+     * Save this Instrument as a string so that it can be retrieved by loadFromString() if the MidiSynth and the related Bank exists on the
+     * system which performs loadFromString().
      *
      * @return A string "MidiSynthName, BankName, PatchName"
      */

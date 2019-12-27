@@ -32,7 +32,7 @@ public class MidiConst
     private static final String[] percussions = new String[47];
 
     /**
-     * Pulsation Per Quarter.
+     * Pulsation Per Quarter --
      */
     public static final int PPQ_RESOLUTION = 960;            // Some Midi file editors don't handle more than 960
 

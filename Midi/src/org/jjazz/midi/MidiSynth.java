@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Combine several InstrumentBanks.
+ * Define a MidiSynth: InstrumentBanks.
  * <p>
  * A MidiSynth can be loaded/saved from/to file.
  */
@@ -50,7 +50,9 @@ public class MidiSynth
     }
 
     /**
-     * Add a bank to this MidiSynth. Set the MidiSynth of bank to this object.
+     * Add a bank to this MidiSynth.
+     * <p>
+     * Set the MidiSynth of bank to this object.
      *
      * @param bank
      */

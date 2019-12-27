@@ -25,7 +25,9 @@ package org.jjazz.midi;
 import java.util.List;
 
 /**
- * A set of Instruments grouped in a bank. It must be guaranteed that Instruments have a unique patch name in the bank.
+ * A set of Instruments grouped in a bank.
+ * <p>
+ * It must be guaranteed that Instruments have a unique patch name in the bank.
  *
  * @param <T>
  */
