@@ -598,11 +598,11 @@ public class MidiParser
         }
     }
 
-    private void fireInstrumentParsed(byte instrument, float positionInBeats)
+    private void fireInstrumentParsed(byte progChange, float positionInBeats)
     {
         for (MidiParserListener listener : parserListeners)
         {
-            listener.onInstrumentParsed(instrument, positionInBeats);
+            listener.onInstrumentParsed(progChange, positionInBeats);
         }
     }
 

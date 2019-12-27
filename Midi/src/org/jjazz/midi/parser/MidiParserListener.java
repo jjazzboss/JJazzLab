@@ -82,9 +82,9 @@ public interface MidiParserListener
     /**
      * Called when the parser encounters a new instrument selection.
      *
-     * @param instrument the MIDI instrument value that has been parsed
+     * @param progChange the MIDI instrument (program change) value that has been parsed
      */
-    public void onInstrumentParsed(byte instrument, float positionInBeats);
+    public void onInstrumentParsed(byte progChange, float positionInBeats);
 
     /**
      * Called when the parser encounters a new tempo selection.

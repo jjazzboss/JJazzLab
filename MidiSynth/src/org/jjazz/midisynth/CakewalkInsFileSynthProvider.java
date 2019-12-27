@@ -26,12 +26,15 @@ import org.jjazz.midisynth.spi.AbstractMidiSynthProvider;
 import org.jjazz.midisynth.spi.MidiSynthProvider;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,20 +54,71 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
 
     private static final Logger LOGGER = Logger.getLogger(CakewalkInsFileSynthProvider.class.getSimpleName());
     private final FileNameExtensionFilter FILTER = new FileNameExtensionFilter("Cakewalk instrument files (.ins)", "ins");
+    private final static String SGM_SOUNDFONT_INS = "resources/SGM-v2.01.ins";
 
     public CakewalkInsFileSynthProvider()
     {
         super("InsFileSynthProvider");
-        // addBuiltinSynth(new Synth1());
-        // addBuiltinSynth(new Synth2());
+
+        // We have a builtin Synth which is read from a resource file
+        InputStream is = getClass().getResourceAsStream(SGM_SOUNDFONT_INS);
+        if (is != null)
+        {
+            try
+            {
+                List<MidiSynth> synths = readStream(is, SGM_SOUNDFONT_INS);
+                if (!synths.isEmpty())
+                {
+                    addBuiltinSynth(synths.get(0));
+                }
+            } catch (IOException ex)
+            {
+                LOGGER.warning("CakewalkInsFileSynthProvider() error reading resource " + SGM_SOUNDFONT_INS + ". ex= " + ex.getLocalizedMessage());
+            }
+        } else
+        {
+            LOGGER.warning("CakewalkInsFileSynthProvider() can't load resource " + SGM_SOUNDFONT_INS);
+        }
     }
 
     @Override
     protected List<MidiSynth> readFile(File f) throws IOException
     {
+        List<MidiSynth> synths = readStream(new FileInputStream(f), f.getAbsolutePath());
+
+        // In some cases we may have synths with no banks, don't keep them
+        // Example of such ins file : 
+        // .Instrument Definitions
+        // [Giga]
+        // Patch[*]=Giga      
+        // [MOXF]
+        // Patch[239]=PRE 1
+        // etc.
+        // Set the file for the others
+        for (MidiSynth synth : synths.toArray(new MidiSynth[0]))
+        {
+            if (synth.getBanks().isEmpty())
+            {
+                synths.remove(synth);
+            } else
+            {
+                synth.setFile(f);
+            }
+        }
+        LOGGER.fine("readFile() EXIT synths.size()=" + synths.size());
+        if (synths.isEmpty())
+        {
+            LOGGER.warning("No synth found in file " + f.getAbsolutePath());
+        }
+        return synths;
+    }
+
+    //========================================================================================
+    // Private methods
+    //========================================================================================
+    private List<MidiSynth> readStream(InputStream in, String fileName) throws IOException
+    {
         ArrayList<MidiSynth> synths = new ArrayList<>();
-//        FileReader fileReader = null;
-//        BufferedReader reader = null;
         // state=0: unknown or ignored section
         // state=1: within .Patch Names section
         // state=2: within .Instrument Definitions section
@@ -75,7 +129,8 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
         // The BankName and the InstrumentBank
         HashMap<String, InsBank> mapNameBank = new HashMap<>();
         // try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(f), 0X100000)))
-        try (BufferedReader reader = new BufferedReader(new FileReader(f)))
+        // try (BufferedReader reader = new BufferedReader(new FileReader(f)))
+        try ( BufferedReader reader = new BufferedReader(new InputStreamReader(in)))
         {
             int lineCount = 0;
             String line;
@@ -92,9 +147,12 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
             {
                 lineCount++;
                 String l = line.replaceFirst(";.*", "");  // remove comments
-                LOGGER.fine("readFile() l=" + lineCount + " state=" + state + " : " + l);
+                LOGGER.log(Level.FINE, "readFile() l={0} state={1} : {2}", new Object[]
+                {
+                    lineCount, state, l
+                });
 
-                if (l.matches("^\\s*\\..*"))    // ".something..."
+                if (l.matches("^\\s*\\..*")) // ".something..."
                 {
                     // It's a section change
                     if (l.contains("Patch Names"))
@@ -134,7 +192,7 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         // Add instrument to the current bank
                         if (currentBank == null)
                         {
-                            LOGGER.warning("Patch name found in file " + f.getAbsolutePath() + " at line " + lineCount + " but no bank set.");
+                            LOGGER.warning("Patch name found in file " + fileName + " at line " + lineCount + " but no bank set.");
                             continue;
                         }
                         String spc = mPatch.group(1);
@@ -145,12 +203,12 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         } catch (NumberFormatException e)
                         {
                             // Leave pc=0
-                            LOGGER.warning("Can't read program change value in file " + f.getAbsolutePath() + " at line " + lineCount);
+                            LOGGER.warning("Can't read program change value in file " + fileName + " at line " + lineCount);
                         }
                         String patchName = mPatch.group(2);
                         if (patchName == null || patchName.trim().isEmpty())
                         {
-                            LOGGER.warning("Can't read a valid patch name in file " + f.getAbsolutePath() + " at line " + lineCount);
+                            LOGGER.warning("Can't read a valid patch name in file " + fileName + " at line " + lineCount);
                             patchName = "not set";
                         }
                         Instrument ins = new Instrument(pc, patchName);
@@ -176,7 +234,7 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         // IMPORTANT: it will impact only lines after this line ! So should be the first line after Synth name
                         if (currentSynth == null)
                         {
-                            LOGGER.warning("BankSelectMethod found in file " + f.getAbsolutePath() + " at line " + lineCount + " but no instrument set.");
+                            LOGGER.warning("BankSelectMethod found in file " + fileName + " at line " + lineCount + " but no instrument set.");
                             continue;
                         }
                         String s = mBsm.group(1);
@@ -187,7 +245,7 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         } catch (NumberFormatException e)
                         {
                             // Leave bsm=0
-                            LOGGER.warning("Can't read BankSelectMethod in file " + f.getAbsolutePath() + " at line " + lineCount);
+                            LOGGER.warning("Can't read BankSelectMethod in file " + fileName + " at line " + lineCount);
                         }
                         currentBsm = getBsm(bsm);
                         continue;
@@ -197,17 +255,17 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         // Find the bank by its name, set the special BankSelectMethod, attach to the current MidiSynth
                         if (currentSynth == null)
                         {
-                            LOGGER.warning("Patch[*] found in file " + f.getAbsolutePath() + " at line " + lineCount + " but no instrument set.");
+                            LOGGER.warning("Patch[*] found in file " + fileName + " at line " + lineCount + " but no instrument set.");
                             continue;
                         }
                         String bankName = m2Patch.group(1).trim();
                         InsBank bank = mapNameBank.get(bankName);
                         if (bank == null)
                         {
-                            LOGGER.warning("Can't find bank " + bankName + " in file " + f.getAbsolutePath() + " at line " + lineCount);
+                            LOGGER.warning("Can't find bank " + bankName + " in file " + fileName + " at line " + lineCount);
                         } else if (bank.getMidiSynth() != null)
                         {
-                            LOGGER.warning("Bank " + bankName + " already assigned to a synth in file " + f.getAbsolutePath() + " at line " + lineCount);
+                            LOGGER.warning("Bank " + bankName + " already assigned to a synth in file " + fileName + " at line " + lineCount);
                         } else
                         {
                             // Update the bank 
@@ -224,7 +282,7 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         // Find the bank by its name, set the MSB and LSB, attach to the current MidiSynth
                         if (currentSynth == null)
                         {
-                            LOGGER.warning("Patch[] found in file " + f.getAbsolutePath() + " at line " + lineCount + " but no instrument set.");
+                            LOGGER.warning("Patch[] found in file " + fileName + " at line " + lineCount + " but no instrument set.");
                             continue;
                         }
                         String s = mPatch.group(1);
@@ -235,7 +293,7 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         } catch (NumberFormatException e)
                         {
                             // Leave i=0
-                            LOGGER.warning("Can't read Patch[] integer value in file " + f.getAbsolutePath() + " at line " + lineCount);
+                            LOGGER.warning("Can't read Patch[] integer value in file " + fileName + " at line " + lineCount);
                         }
                         int msb = value / 128;
                         int lsb = value - (msb * 128);
@@ -243,10 +301,10 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         InsBank bank = mapNameBank.get(bankName);
                         if (bank == null)
                         {
-                            LOGGER.warning("Can't find bank " + bankName + " in file " + f.getAbsolutePath() + " at line " + lineCount);
+                            LOGGER.warning("Can't find bank " + bankName + " in file " + fileName + " at line " + lineCount);
                         } else if (bank.getMidiSynth() != null)
                         {
-                            LOGGER.warning("Bank " + bankName + " already assigned to a synth in file " + f.getAbsolutePath() + " at line " + lineCount);
+                            LOGGER.warning("Bank " + bankName + " already assigned to a synth in file " + fileName + " at line " + lineCount);
                         } else
                         {
                             // Update the bank 
@@ -263,32 +321,8 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                 }
             }
             // We reached end of file
+        }
 
-            // In some cases we may have synths with no banks, don't keep them
-            // Example of such ins file : 
-            // .Instrument Definitions
-            // [Giga]
-            // Patch[*]=Giga      
-            // [MOXF]
-            // Patch[239]=PRE 1
-            // etc.
-            // Set the file for the others
-            for (MidiSynth synth : synths.toArray(new MidiSynth[0]))
-            {
-                if (synth.getBanks().isEmpty())
-                {
-                    synths.remove(synth);
-                } else
-                {
-                    synth.setFile(f);
-                }
-            }
-        }
-        LOGGER.fine("readFile() EXIT synths.size()=" + synths.size());
-        if (synths.isEmpty())
-        {
-            LOGGER.warning("No synth found in file " + f.getAbsolutePath());
-        }
         return synths;
     }
 
