@@ -23,14 +23,13 @@
 package org.jjazz.midimix;
 
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.midi.GM1Instrument;
+import org.jjazz.midi.GM1Bank;
 import org.jjazz.midi.GMSynth;
 import org.jjazz.midi.InstrumentSettings;
-import org.jjazz.rhythm.api.AbstractRhythm;
-import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.*;
+import org.jjazz.rhythm.api.DummyRhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RvType;
-import org.jjazz.rhythm.api.TempoRange;
 
 /**
  * A special RhythmVoice instance used by MidiMix as the RhythmVoice key for the special User channel.
@@ -54,19 +53,7 @@ public class UserChannelRhythmVoiceKey extends RhythmVoice
 
     private UserChannelRhythmVoiceKey()
     {
-        super(new DummyRhythm(), RvType.Other, "USER_CHANNEL", GMSynth.getInstance().getGM1Bank().getInstruments().get(0), new InstrumentSettings(), 0);
+        super(new DummyRhythm("UserChannelDummyRhythm", TimeSignature.FOUR_FOUR), RvType.Other, "USER_CHANNEL", GMSynth.getInstance().getGM1Bank().getDefaultInstrument(GM1Bank.Family.Piano), new InstrumentSettings(), 0);
     }
 
-    /**
-     * Used to create the special RhythmVoice for user channel.
-     */
-    private static class DummyRhythm extends AbstractRhythm
-    {
-
-        public DummyRhythm()
-        {
-            super("x", "name", "desc.", "author", "ver", Rhythm.Feel.BINARY, TimeSignature.FOUR_FOUR, 120, TempoRange.MEDIUM, null);
-        }
-
-    }
 }

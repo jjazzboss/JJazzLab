@@ -23,24 +23,27 @@
 package org.jjazz.instrumentchooser.api;
 
 import javax.swing.JDialog;
-import org.jjazz.instrumentchooser.InstrumentChooserDialogImpl;
+import org.jjazz.instrumentchooser.DrumsInstrumentChooserDialogImpl;
+import org.jjazz.midi.DrumKitType;
+import org.jjazz.midi.DrumsInstrument;
 import org.jjazz.midi.Instrument;
+import org.jjazz.midi.DrumMap;
 import org.jjazz.util.Filter;
 import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;
 
 /**
- * A dialog to select a non-drums instrument in the instrument banks available on the system.
+ * A dialog to select a drums instrument in the instrument banks available on the system.
  */
-public abstract class InstrumentChooserDialog extends JDialog
+public abstract class DrumsInstrumentChooserDialog extends JDialog
 {
 
-    public static InstrumentChooserDialog getDefault()
+    public static DrumsInstrumentChooserDialog getDefault()
     {
-        InstrumentChooserDialog result = Lookup.getDefault().lookup(InstrumentChooserDialog.class);
+        DrumsInstrumentChooserDialog result = Lookup.getDefault().lookup(DrumsInstrumentChooserDialog.class);
         if (result == null)
         {
-            return InstrumentChooserDialogImpl.getInstance();
+            return DrumsInstrumentChooserDialogImpl.getInstance();
         }
         return result;
     }
@@ -48,7 +51,7 @@ public abstract class InstrumentChooserDialog extends JDialog
     /**
      * Dialog is automatically owned by WindowManager.getDefault().getMainWindow()
      */
-    protected InstrumentChooserDialog()
+    protected DrumsInstrumentChooserDialog()
     {
         super(WindowManager.getDefault().getMainWindow());
     }
@@ -56,23 +59,18 @@ public abstract class InstrumentChooserDialog extends JDialog
     /**
      * Initialize the dialog.
      *
+     * @param kitType Expected DrumKitType
+     * @param drumMap Expected DrumMap
      * @param ins A default selected instrument. If null no selection is done.
-     * @param transpose The transposition in semitons.
      * @param channel Use this Midi channel to send the Midi patch changes. If -1 no midi messages sent.
      * @param title Dialog title.
      * @param filter Filtered instruments must not be shown by the dialog. If null accept all instruments
      */
-    public abstract void preset(Instrument ins, int transpose, int channel, String title, Filter<Instrument> filter);
+    public abstract void preset(DrumKitType kitType, DrumMap drumMap, DrumsInstrument ins, int channel, String title, Filter<Instrument> filter);
 
     /**
      * @return The selected instrument, or null if no selection or dialog cancelled.
      */
-    public abstract Instrument getSelectedInstrument();
-
-    /**
-     * The transposition for the seleced instrument.
-     *
-     * @return
-     */
-    public abstract int getTransposition();
+    public abstract DrumsInstrument getSelectedInstrument();
+ 
 }

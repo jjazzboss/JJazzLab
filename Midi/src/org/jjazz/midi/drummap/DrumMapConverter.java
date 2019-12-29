@@ -20,48 +20,41 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.midi.drumkit;
+package org.jjazz.midi.drummap;
 
-import java.util.List;
+import org.jjazz.midi.DrumMap;
 
 /**
- * Defines a drum kit.
- * <p>
+ * Map notes from a source DrumMap to a destination DrumMap.
  */
-public interface DrumKit
+public interface DrumMapConverter
 {
 
+    String getConverterId();
+
     /**
-     * The name of the DrumKit.
+     * Return true if this mapper accepts map as a source DrumMap.
      *
+     * @param dMap
      * @return
      */
-    public String getName();
+    boolean acceptSrcDrumMap(DrumMap dMap);
 
     /**
-     * The note name, e.g. "Kick" for the given pitch.
+     * Return true if this mapper accepts map as a destination DrumMap.
      *
-     * @param pitch
-     * @return Can be null if pitch is not used by this DrumKit.
+     * @param dMap
+     * @return
      */
-    public String getNoteName(int pitch);
+    boolean acceptDestDrumMap(DrumMap dMap);
 
     /**
-     * The pitch corresponding to the note name.
+     * Map srcPitch from srcMap into the corresponding note in destMap.
      *
-     * @param noteName
-     * @return -1 if noteName is not used by this DrumKit.
+     * @param srcMap
+     * @param srcPitch
+     * @param destMap
+     * @return -1 If srcPitch could not be mapped.
      */
-    public int getNotePitch(String noteName);
-
-    /**
-     * Get the typical notes used for a rhythmic accent with this DrumKit.
-     * <p>
-     * Usually contains at least kicks/snares/crash or splash cymbals etc.
-     *
-     * @return Can be an empty list.
-     */
-    public List<Integer> getAccentNotes();
-
-  
+    int mapNote(DrumMap srcMap, int srcPitch, DrumMap destMap);
 }

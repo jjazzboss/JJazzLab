@@ -1,54 +1,50 @@
 /*
- *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
- *  Copyright @2019 Jerome Lelasseux. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- *  This file is part of the JJazzLabX software.
- *   
- *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
- *  or (at your option) any later version.
+ * Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
- *  JJazzLabX is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
- * 
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ * This file is part of the JJazzLab-X software.
+ *
+ * JJazzLab-X is free software: you can redistribute it and/or modify
+ * it under the terms of the Lesser GNU General Public License (LGPLv3) 
+ * as published by the Free Software Foundation, either version 3 of the License, 
+ * or (at your option) any later version.
+ *
+ * JJazzLab-X is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with JJazzLab-X.  If not, see <https://www.gnu.org/licenses/>
+ *
+ * Contributor(s): 
+ *
  */
-package org.jjazz.rhythm.stubs;
+package org.jjazz.rhythm.api;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.midi.DrumKitType;
 import org.jjazz.midi.GM1Bank;
 import org.jjazz.midi.GMSynth;
-import org.jjazz.midi.drummap.DrumMapGM;
-import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.api.RvType;
-import org.jjazz.rhythm.api.TempoRange;
+import org.jjazz.midi.DrumMap;
 import org.jjazz.rhythm.parameters.RP_STD_Variation;
 import org.jjazz.rhythm.parameters.RhythmParameter;
-import org.jjazz.rhythmmusicgeneration.DummyGenerator;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.Lookups;
 
 /**
- * A rhythm stub whatever the time signature.
- * <p>
+ * A dummy rhythm which does nothing.
  */
-public class RhythmStub implements Rhythm
+public class DummyRhythm implements Rhythm
 {
-    protected String uniqueId;
+
+    protected String name;
     protected TimeSignature timeSignature;
     protected Lookup lookup;
 
@@ -60,44 +56,42 @@ public class RhythmStub implements Rhythm
      * The supported RhythmVoices.
      */
     protected ArrayList<RhythmVoice> rhythmVoices = new ArrayList<>();
-    private static final Logger LOGGER = Logger.getLogger(RhythmStub.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(DummyRhythm.class.getSimpleName());
 
     /**
      * Create a dummy rhythm for specified time signature.
      *
-     *
-     * @param uniqueId
+     * @param name
      * @param ts
      */
-    public RhythmStub(String uniqueId, TimeSignature ts)
+    public DummyRhythm(String name, TimeSignature ts)
     {
         if (ts == null)
         {
             throw new NullPointerException("ts");
         }
 
-        this.uniqueId = uniqueId;
+        this.name = name;
 
         // Our Rhythm Parameters
         rhythmParameters.add(new RP_STD_Variation());
 
         // Rhythm voices
         GM1Bank gmb = GMSynth.getInstance().getGM1Bank();
-        rhythmVoices.add(new RhythmVoice(DrumKitType.STANDARD, DrumMapGM.getInstance(), this, RvType.Drums, "Drums"));
         rhythmVoices.add(new RhythmVoice(this, RvType.Bass, "Bass", gmb.getDefaultInstrument(GM1Bank.Family.Bass)));
 
         // The music generator
-        lookup = Lookups.fixed(new DummyGenerator(this));
+        lookup = Lookups.fixed("dummy lookup");
     }
 
     @Override
     public boolean equals(Object o)
     {
         boolean res = false;
-        if (o instanceof RhythmStub)
+        if (o instanceof DummyRhythm)
         {
-            RhythmStub ar = (RhythmStub) o;
-            res = ar.uniqueId.equals(uniqueId);
+            DummyRhythm ar = (DummyRhythm) o;
+            res = ar.getUniqueId().equals(getUniqueId());
         }
         return res;
     }
@@ -106,7 +100,7 @@ public class RhythmStub implements Rhythm
     public int hashCode()
     {
         int hash = 5;
-        hash = 47 * hash + Objects.hashCode(this.uniqueId);
+        hash = 47 * hash + Objects.hashCode(this.getUniqueId());
         return hash;
     }
 
@@ -179,7 +173,7 @@ public class RhythmStub implements Rhythm
     @Override
     public String getUniqueId()
     {
-        return uniqueId;
+        return name + "-ID";
     }
 
     @Override
@@ -189,9 +183,9 @@ public class RhythmStub implements Rhythm
     }
 
     @Override
-    public Feel getFeel()
+    public Rhythm.Feel getFeel()
     {
-        return Feel.BINARY;
+        return Rhythm.Feel.BINARY;
     }
 
     @Override
@@ -209,7 +203,7 @@ public class RhythmStub implements Rhythm
     @Override
     public String getName()
     {
-        return "DummyName-" + getTimeSignature().toString();
+        return name;
     }
 
     @Override

@@ -27,7 +27,6 @@ import org.jjazz.rhythmmusicgeneration.spi.MidiMusicGenerator;
 import java.util.logging.Logger;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.midi.MidiConst;
 import org.jjazz.rhythm.api.*;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.Range;

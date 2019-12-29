@@ -27,43 +27,39 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import javax.sound.midi.MidiMessage;
-import static org.jjazz.defaultinstruments.Bundle.CTL_VoidInstrument;
-import org.jjazz.midi.Instrument;
-import org.openide.util.NbBundle;
+import org.jjazz.midi.DrumKitType;
+import org.jjazz.midi.DrumsInstrument;
+import org.jjazz.midi.drummap.DrumMapGM;
 
 /**
- * A special "void" instrument: no bank change or program change is associated to this instrument.
+ * A special "void" drums instrument: no bank change or program change is associated to this instrument.
  * <p>
  * When used the system should not send any Midi bank select or program change messages for this instument.
  */
-@NbBundle.Messages(
-        {
-            "CTL_VoidInstrument=!Not Set!"
-        })
-public class VoidInstrument extends Instrument implements Serializable
+public class VoidDrumsInstrument extends DrumsInstrument implements Serializable
 {
-    private static VoidInstrument INSTANCE;
+    private static VoidDrumsInstrument INSTANCE;
 
     /**
      * Should be only called by JazzSynth: this way the bank/synth are correctly set.
      *
      * @return
      */
-    static protected VoidInstrument getInstance()
+    static protected VoidDrumsInstrument getInstance()
     {
-        synchronized (VoidInstrument.class)
+        synchronized (VoidDrumsInstrument.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new VoidInstrument();
+                INSTANCE = new VoidDrumsInstrument();
             }
         }
         return INSTANCE;
     }
 
-    private VoidInstrument()
+    private VoidDrumsInstrument()
     {
-        super(0, CTL_VoidInstrument());
+        super(DrumKitType.STANDARD, DrumMapGM.getInstance(), 1, "!Not Set!");       // PC=0 for VoidInstrument
     }
 
     /**
@@ -92,23 +88,23 @@ public class VoidInstrument extends Instrument implements Serializable
     }
 
     /**
-     * Special serialization process to not use the default GM1Instrument one.
+     * Special serialization process to not use the default one.
      */
     private static class SerializationProxy implements Serializable
     {
 
-        private static final long serialVersionUID = -82099017429816L;
+        private static final long serialVersionUID = -21117429816L;
         private final int spVERSION = 1;
         int spProgChange;
 
-        private SerializationProxy(VoidInstrument ins)
+        private SerializationProxy(VoidDrumsInstrument ins)
         {
             spProgChange = ins.getProgramChange();       // Just to save something but useless...
         }
 
         private Object readResolve() throws ObjectStreamException
         {
-            return JJazzSynth.getVoidInstrument();
+            return JJazzSynth.getVoidDrumsInstrument();
         }
     }
 

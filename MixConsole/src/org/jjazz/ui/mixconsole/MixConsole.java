@@ -49,6 +49,7 @@ import javax.swing.JRootPane;
 import javax.swing.undo.UndoManager;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.base.actions.Savable;
+import org.jjazz.harmony.TimeSignature;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -58,7 +59,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.midimix.UserChannelRhythmVoiceKey;
-import org.jjazz.rhythm.api.AbstractRhythm;
+import org.jjazz.rhythm.api.DummyRhythm;
 import org.jjazz.songeditormanager.SongEditorManager;
 import static org.jjazz.ui.mixconsole.Bundle.CTL_AllRhythms;
 import org.openide.util.Lookup;
@@ -147,7 +148,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         SongEditorManager.getInstance().addPropertyChangeListener(this);
 
         // A dummy rhythm used by the visible rhythms combobox when all song rhythms are visible
-        RHYTHM_ALL = new AbstractRhythm("rhythmAllID", CTL_AllRhythms());
+        RHYTHM_ALL = new DummyRhythm(CTL_AllRhythms(), TimeSignature.FOUR_FOUR);
 
         mapVisibleRhythm = new WeakHashMap<>();
 

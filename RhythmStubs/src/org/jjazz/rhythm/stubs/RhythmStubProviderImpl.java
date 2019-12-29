@@ -49,7 +49,7 @@ public class RhythmStubProviderImpl implements StubRhythmProvider
         info = new Info("StubRhythmProviderID", "Dummy rhythms", "Provides a dummy rhythm for each time signature", "JL", "1.0");
         for (TimeSignature ts : TimeSignature.values())
         {
-            rhythms.add(new RhythmStub(ts));
+            rhythms.add(new RhythmStub("RhythmStubID-" + ts.toString(), ts));
         }
     }
 

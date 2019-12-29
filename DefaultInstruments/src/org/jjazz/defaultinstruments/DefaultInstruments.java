@@ -26,10 +26,13 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.midi.DrumKitType;
+import org.jjazz.midi.DrumsInstrument;
 import org.jjazz.midi.GM1Bank;
 import org.jjazz.midi.GM2Bank;
 import org.jjazz.midi.GMSynth;
 import org.jjazz.midi.Instrument;
+import org.jjazz.midi.DrumMap;
 import org.jjazz.rhythm.api.RvType;
 import org.openide.util.NbPreferences;
 
@@ -56,7 +59,6 @@ public class DefaultInstruments
      */
     public static final String PROP_USER_INSTRUMENT_TRANSPOSE = "PropUserChannelDefaultInstrumentTranspose";
     public static final String TRANSPOSE_EXT = "Transpose";
-    private static final String NOT_SET = "NotSet";
     private static DefaultInstruments INSTANCE;
 
     /**
@@ -84,13 +86,17 @@ public class DefaultInstruments
     }
 
     /**
-     * Get the default instrument for specified type.
+     * Get the default (non drums) instrument for specified type.
      *
-     * @param type
+     * @param type Must not be Drums or Percussion
      * @return Can't be null. Use getBuiltinDefaultInstrument() if preference not set or invalid.
      */
     public Instrument getInstrument(RvType type)
     {
+        if (type.equals(RvType.Drums) || type.equals(RvType.Percussion))
+        {
+            throw new IllegalArgumentException("type=" + type);
+        }
         Instrument defaultIns = getBuiltinDefaultInstrument(type);
         String s = prefs.get(type.name(), defaultIns.saveAsString());
         Instrument ins = Instrument.loadFromString(s);
@@ -102,18 +108,72 @@ public class DefaultInstruments
     }
 
     /**
-     * Set the default instrument for a specified type.
+     * Set the default (non-drums) instrument for the specified type.
      *
-     * @param type
-     * @param ins Can be null.
+     * @param type Can't be Drums or Percussion
+     * @param ins  Can't be null
      */
     public void setInstrument(RvType type, Instrument ins)
     {
+        if (type == null || ins == null || type.equals(RvType.Drums) || type.equals(RvType.Percussion) || (ins instanceof DrumsInstrument))
+        {
+            throw new IllegalArgumentException("type=" + type + " ins=" + ins);
+        }
         Instrument old = getInstrument(type);
         if (old != ins)
         {
-            prefs.put(type.name(), ins == null ? NOT_SET : ins.saveAsString());
+            prefs.put(type.name(), ins.saveAsString());
             pcs.firePropertyChange(PROP_INSTRUMENT, type, ins);
+        }
+    }
+
+    /**
+     * Get the default DrumsInstrument for drums or percussion.
+     *
+     * @param rvType Must be Drums or Percussion.
+     * @param dkType
+     * @param dMap
+     * @return Can't be null. By default return the VoidDrumsInstrument instance if no specific default DrumsInstrument could
+     *         be found.
+     */
+    public DrumsInstrument getDrumsInstrument(RvType rvType, DrumKitType dkType, DrumMap dMap)
+    {
+        if (rvType == null || (!rvType.equals(RvType.Drums) && !rvType.equals(RvType.Percussion)) || dkType == null || dMap == null)
+        {
+            throw new IllegalArgumentException("rvType=" + rvType + " dkType=" + dkType + " dMap=" + dMap);
+        }
+        DrumsInstrument ins = null;
+        String s = prefs.get(getDrumsPreferenceKey(rvType, dkType, dMap), null);
+        if (s != null)
+        {
+            ins = (DrumsInstrument) Instrument.loadFromString(s);
+        }
+        if (ins == null)
+        {
+            ins = VoidDrumsInstrument.getInstance();
+        }
+        return ins;
+    }
+
+    /**
+     * Set the default drums instrument for the specified type.
+     *
+     * @param rvType Must be Drums or Percussion.
+     * @param dkType
+     * @param dMap
+     * @param ins    Can't be null.
+     */
+    public void setDrumsInstrument(RvType rvType, DrumKitType dkType, DrumMap dMap, DrumsInstrument ins)
+    {
+        if (rvType == null || ins == null || (!rvType.equals(RvType.Drums) && !rvType.equals(RvType.Percussion)) || dkType == null || dMap == null)
+        {
+            throw new IllegalArgumentException("rvType=" + rvType + " dkType=" + dkType + " dMap=" + dMap + " ins=" + ins);
+        }
+        DrumsInstrument old = getDrumsInstrument(rvType, dkType, dMap);
+        if (old != ins)
+        {
+            prefs.put(getDrumsPreferenceKey(rvType, dkType, dMap), ins.saveAsString());
+            pcs.firePropertyChange(PROP_INSTRUMENT, rvType, ins);
         }
     }
 
@@ -168,32 +228,43 @@ public class DefaultInstruments
     /**
      * Get the default instrument for User Channels.
      *
-     * @return
+     * @return Can't be null.
      */
     public Instrument getUserInstrument()
     {
-        GM1Bank gmb = GMSynth.getInstance().getGM1Bank();
-        Instrument defaultIns = gmb.getDefaultInstrument(GM1Bank.Family.Piano);
+        Instrument defaultIns = getBuiltinDefaultInstrument(RvType.Keyboard);
         String s = prefs.get(PROP_USER_INSTRUMENT, defaultIns.saveAsString());
-        return s.equals(NOT_SET) ? null : Instrument.loadFromString(s);
+        Instrument ins = Instrument.loadFromString(s);
+        if (ins == null)
+        {
+            ins = defaultIns;
+        }
+        return ins;
     }
 
     /**
      * Set the default instrument for User Channels.
+     *
+     * @param ins Can't be null.
      */
     public void setUserInstrument(Instrument ins)
     {
+        if (ins == null)
+        {
+            throw new NullPointerException("ins");
+        }
         Instrument old = getUserInstrument();
         if (old != ins)
         {
-            prefs.put(PROP_USER_INSTRUMENT, ins == null ? NOT_SET : ins.saveAsString());
+            prefs.put(PROP_USER_INSTRUMENT, ins.saveAsString());
             pcs.firePropertyChange(PROP_USER_INSTRUMENT, old, ins);
         }
     }
 
     /**
-     * The application builtin default instruments. Delegates to the GM1 default instruments except for Drums type where we use
-     * GM2 standard kit since GM1 does not define a drums instrument.
+     * The application builtin default instruments.
+     * <p>
+     * Delegates to the GM1 default instruments, except for Drums where the VoidDrumsInstrument instance is returned.
      *
      * @param t
      * @return A non-null Instrument.
@@ -209,8 +280,7 @@ public class DefaultInstruments
             case Percussion:
                 // GM1 does not define a drums instrument
                 // If applications detects a GM2 compatible synth, the app should define a new default Drums instrument 
-                ins = JJazzSynth.getVoidInstrument();
-
+                ins = JJazzSynth.getVoidDrumsInstrument();
                 break;
             case Guitar:
                 ins = gm1bBank.getDefaultInstrument(GM1Bank.Family.Guitar);
@@ -246,4 +316,8 @@ public class DefaultInstruments
     // ----------------------------------------------------------------------------
     // Private methods
     // ----------------------------------------------------------------------------
+    private String getDrumsPreferenceKey(RvType rvType, DrumKitType dkType, DrumMap dMap)
+    {
+        return rvType.name() + "-" + dkType.name() + "-" + dMap.getName();
+    }
 }

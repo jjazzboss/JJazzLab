@@ -65,13 +65,23 @@ public class JJazzSynth extends MidiSynth
     }
 
     /**
-     * Convenience method.
+     * Convenience method to get the generic VoidInstrument.
      *
      * @return
      */
     static public VoidInstrument getVoidInstrument()
     {
         return getInstance().getNotSetBank().getVoidInstrument();
+    }
+    
+    /**
+     * Convenience method to get the generic VoidDrumsInstrument.
+     *
+     * @return
+     */
+    static public VoidDrumsInstrument getVoidDrumsInstrument()
+    {
+        return getInstance().getNotSetBank().getVoidDrumsInstrument();
     }
 
     /**

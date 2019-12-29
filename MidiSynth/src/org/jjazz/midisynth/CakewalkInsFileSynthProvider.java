@@ -40,9 +40,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.midi.AbstractInstrumentBank;
+import org.jjazz.midi.DrumKitType;
+import org.jjazz.midi.DrumsInstrument;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.DrumMap;
+import org.jjazz.midi.drummap.DrumMapGM;
+import org.jjazz.midi.drummap.DrumMapManager;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -128,18 +133,18 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
         InstrumentBank.BankSelectMethod currentBsm = InstrumentBank.BankSelectMethod.MSB_LSB;
         // The BankName and the InstrumentBank
         HashMap<String, InsBank> mapNameBank = new HashMap<>();
-        // try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(f), 0X100000)))
-        // try (BufferedReader reader = new BufferedReader(new FileReader(f)))
-        try ( BufferedReader reader = new BufferedReader(new InputStreamReader(in)))
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in)))
         {
             int lineCount = 0;
             String line;
-            Pattern pBank1 = Pattern.compile("^\\s*\\[(.+)\\]");  // [Bank PRE1]
+            Pattern pBank1 = Pattern.compile("^\\s*\\[(.+)\\]\\s*");  // [Bank PRE1]
             Pattern pPatch1 = Pattern.compile("^\\s*(\\d+)=(.*)");   // 1=Grand Piano
-            Pattern pSynth2 = Pattern.compile("^\\s*\\[(.+)\\]");  // [Motif XS]
-            Pattern pBsm2 = Pattern.compile("^\\s*BankSelMethod=([0-9])");  // BankSelMethod=2
+            Pattern pPatchDrums = Pattern.compile("\\{(.*),(.*)\\}");   // {KitType, DrumMap}             
+            Pattern pSynth2 = Pattern.compile("^\\s*\\[(.+)\\]\\s*");  // [Motif XS]
+            Pattern pBsm2 = Pattern.compile("^\\s*BankSelMethod=([0-9])\\s*");  // BankSelMethod=2
             Pattern pPatch2 = Pattern.compile("^\\s*Patch\\[(\\d+)\\]=(.*)");  // Patch[1232]=PRE 1
-            Pattern p2Patch2 = Pattern.compile("^\\s*Patch\\[\\*\\]=([^.]*)");  // Patch[*]=PRE 1, but not Patch[*]=1...128                                        
+            Pattern p2Patch2 = Pattern.compile("^\\s*Patch\\[\\*\\]=([^.]*)\\s*");  // Patch[*]=PRE 1, but not Patch[*]=1...128                                        
+
             // 
             // MAIN LOOP
             //
@@ -192,7 +197,7 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         // Add instrument to the current bank
                         if (currentBank == null)
                         {
-                            LOGGER.warning("Patch name found in file " + fileName + " at line " + lineCount + " but no bank set.");
+                            LOGGER.warning("readStream() Patch name found in file " + fileName + " at line " + lineCount + " but no bank set.");
                             continue;
                         }
                         String spc = mPatch.group(1);
@@ -203,12 +208,67 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         } catch (NumberFormatException e)
                         {
                             // Leave pc=0
-                            LOGGER.warning("Can't read program change value in file " + fileName + " at line " + lineCount);
+                            LOGGER.warning("readStream() Can't read program change value in file " + fileName + " at line " + lineCount);
+                        }
+                        DrumMap drumMap = null;
+                        DrumKitType kitType = null;
+                        String patchName = mPatch.group(2);
+                        if (patchName == null || patchName.trim().isEmpty())
+                        {
+                            LOGGER.warning("readStream() Can't read a valid patch name in file " + fileName + " at line " + lineCount);
+                            patchName = "not set";
+                        } else
+                        {
+                            // Got the patchName right
+                            // Check if a drummap is defined
+                            Matcher mPatchDrumMap = pPatchDrums.matcher(patchName);
+                            if (mPatchDrumMap.find())
+                            {
+                                // Yes, get the KitType and DrumMap and remove it from patchName
+                                String drumMapName = mPatchDrumMap.group(2);
+                                assert drumMapName != null;
+                                String kitTypeName = mPatchDrumMap.group(1);
+                                assert kitTypeName != null;
+                                drumMap = DrumMapManager.getInstance().getDrumMap(drumMapName.trim());
+                                if (drumMap == null)
+                                {
+                                    LOGGER.info("readStream() Unknown Drum Map " + drumMapName + " for instrument" + patchName + " in file " + fileName + " at line " + lineCount + ". Using the GM drum map instead.");
+                                    drumMap = DrumMapGM.getInstance();
+                                }
+                                kitType = DrumKitType.valueOf(kitTypeName.trim());
+                                if (kitType == null)
+                                {
+                                    LOGGER.info("readStream() Unknown DrumKit type " + kitTypeName + " for instrument" + patchName + " in file " + fileName + " at line " + lineCount + ". Using the STANDARD DrumKit type instead.");
+                                    kitType = DrumKitType.STANDARD;
+                                }
+                                patchName = patchName.substring(0, mPatchDrumMap.start());
+                            }
+                        }
+                        Instrument ins = (drumMap == null) ? new Instrument(pc, patchName) : new DrumsInstrument(kitType, drumMap, pc, patchName);
+                        currentBank.addInstrument(ins);
+                        continue;
+                    } else if (mPatch.matches())
+                    {
+                        // Add instrument to the current bank
+                        if (currentBank == null)
+                        {
+                            LOGGER.warning("readStream() Patch name found in file " + fileName + " at line " + lineCount + " but no bank set.");
+                            continue;
+                        }
+                        String spc = mPatch.group(1);
+                        int pc = 0;
+                        try
+                        {
+                            pc = Integer.valueOf(spc);
+                        } catch (NumberFormatException e)
+                        {
+                            // Leave pc=0
+                            LOGGER.warning("readStream() Can't read program change value in file " + fileName + " at line " + lineCount);
                         }
                         String patchName = mPatch.group(2);
                         if (patchName == null || patchName.trim().isEmpty())
                         {
-                            LOGGER.warning("Can't read a valid patch name in file " + fileName + " at line " + lineCount);
+                            LOGGER.warning("readStream() Can't read a valid patch name in file " + fileName + " at line " + lineCount);
                             patchName = "not set";
                         }
                         Instrument ins = new Instrument(pc, patchName);
@@ -234,7 +294,7 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         // IMPORTANT: it will impact only lines after this line ! So should be the first line after Synth name
                         if (currentSynth == null)
                         {
-                            LOGGER.warning("BankSelectMethod found in file " + fileName + " at line " + lineCount + " but no instrument set.");
+                            LOGGER.warning("readStream() BankSelectMethod found in file " + fileName + " at line " + lineCount + " but no instrument set.");
                             continue;
                         }
                         String s = mBsm.group(1);
@@ -245,7 +305,7 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         } catch (NumberFormatException e)
                         {
                             // Leave bsm=0
-                            LOGGER.warning("Can't read BankSelectMethod in file " + fileName + " at line " + lineCount);
+                            LOGGER.warning("readStream() Can't read BankSelectMethod in file " + fileName + " at line " + lineCount);
                         }
                         currentBsm = getBsm(bsm);
                         continue;
@@ -255,17 +315,17 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         // Find the bank by its name, set the special BankSelectMethod, attach to the current MidiSynth
                         if (currentSynth == null)
                         {
-                            LOGGER.warning("Patch[*] found in file " + fileName + " at line " + lineCount + " but no instrument set.");
+                            LOGGER.warning("readStream() Patch[*] found in file " + fileName + " at line " + lineCount + " but no instrument set.");
                             continue;
                         }
                         String bankName = m2Patch.group(1).trim();
                         InsBank bank = mapNameBank.get(bankName);
                         if (bank == null)
                         {
-                            LOGGER.warning("Can't find bank " + bankName + " in file " + fileName + " at line " + lineCount);
+                            LOGGER.warning("readStream() Can't find bank " + bankName + " in file " + fileName + " at line " + lineCount);
                         } else if (bank.getMidiSynth() != null)
                         {
-                            LOGGER.warning("Bank " + bankName + " already assigned to a synth in file " + fileName + " at line " + lineCount);
+                            LOGGER.warning("readStream() Bank " + bankName + " already assigned to a synth in file " + fileName + " at line " + lineCount);
                         } else
                         {
                             // Update the bank 
@@ -282,7 +342,7 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         // Find the bank by its name, set the MSB and LSB, attach to the current MidiSynth
                         if (currentSynth == null)
                         {
-                            LOGGER.warning("Patch[] found in file " + fileName + " at line " + lineCount + " but no instrument set.");
+                            LOGGER.warning("readStream() Patch[] found in file " + fileName + " at line " + lineCount + " but no instrument set.");
                             continue;
                         }
                         String s = mPatch.group(1);
@@ -293,7 +353,7 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         } catch (NumberFormatException e)
                         {
                             // Leave i=0
-                            LOGGER.warning("Can't read Patch[] integer value in file " + fileName + " at line " + lineCount);
+                            LOGGER.warning("readStream() Can't read Patch[] integer value in file " + fileName + " at line " + lineCount);
                         }
                         int msb = value / 128;
                         int lsb = value - (msb * 128);
@@ -301,10 +361,10 @@ public class CakewalkInsFileSynthProvider extends AbstractMidiSynthProvider
                         InsBank bank = mapNameBank.get(bankName);
                         if (bank == null)
                         {
-                            LOGGER.warning("Can't find bank " + bankName + " in file " + fileName + " at line " + lineCount);
+                            LOGGER.warning("readStream() Can't find bank " + bankName + " in file " + fileName + " at line " + lineCount);
                         } else if (bank.getMidiSynth() != null)
                         {
-                            LOGGER.warning("Bank " + bankName + " already assigned to a synth in file " + fileName + " at line " + lineCount);
+                            LOGGER.warning("readStream() Bank " + bankName + " already assigned to a synth in file " + fileName + " at line " + lineCount);
                         } else
                         {
                             // Update the bank 

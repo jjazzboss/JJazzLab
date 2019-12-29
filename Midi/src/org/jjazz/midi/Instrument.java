@@ -168,8 +168,8 @@ public class Instrument implements Serializable
     }
 
     /**
-     * If a specific bankSelectMSB was set for this instrument, return it. Otherwise return getBank().getBankSelectMSB(). If no bank set for
-     * this instrument return -1.
+     * If a specific bankSelectMSB was set for this instrument, return it. Otherwise return getBank().getBankSelectMSB(). If no
+     * bank set for this instrument return -1.
      *
      * @return
      */
@@ -187,8 +187,8 @@ public class Instrument implements Serializable
     }
 
     /**
-     * If a specific bankSelectLSB was set for this instrument, return it. Otherwise return getBank().getBankSelectLSB(). If no bank set for
-     * this instrument return -1.
+     * If a specific bankSelectLSB was set for this instrument, return it. Otherwise return getBank().getBankSelectLSB(). If no
+     * bank set for this instrument return -1.
      *
      * @return
      */
@@ -218,8 +218,8 @@ public class Instrument implements Serializable
     }
 
     /**
-     * If a non-null bankSelectMethod was set for this instrument, return it. Otherwise return getBank().getBankSelectMethod(). If no bank
-     * set, return null.
+     * If a non-null bankSelectMethod was set for this instrument, return it. Otherwise return getBank().getBankSelectMethod(). If
+     * no bank set, return null.
      *
      * @return
      */
@@ -243,8 +243,8 @@ public class Instrument implements Serializable
     }
 
     /**
-     * Save this Instrument as a string so that it can be retrieved by loadFromString() if the MidiSynth and the related Bank exists on the
-     * system which performs loadFromString().
+     * Save this Instrument as a string so that it can be retrieved by loadFromString() if the MidiSynth and the related Bank
+     * exists on the system which performs loadFromString().
      *
      * @return A string "MidiSynthName, BankName, PatchName"
      */
@@ -290,8 +290,9 @@ public class Instrument implements Serializable
         return bank.getInstrument(patchName);
     }
 
-    /* --------------------------------------------------------------------- Serialization
-    * --------------------------------------------------------------------- */
+    // --------------------------------------------------------------------- 
+    // Serialization
+    // --------------------------------------------------------------------- 
     private Object writeReplace()
     {
         return new SerializationProxy(this);
@@ -304,11 +305,11 @@ public class Instrument implements Serializable
     }
 
     /**
-     * If Instrument's bank is null serialization will fail. Do not dire
+     * If Instrument's bank is null serialization will fail.
      * <p>
-     * ctly serialize Instrument instances because we need to reuse instances provided by the local InstrumentBanks.
+     * Do not directly serialize Instrument instances because we need to reuse instances provided by the local InstrumentBanks.
      */
-    private static class SerializationProxy implements Serializable
+    protected static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 2792087126L;
@@ -316,7 +317,7 @@ public class Instrument implements Serializable
         private String spSaveString;
         private String spPatchname;
 
-        private SerializationProxy(Instrument ins)
+        protected SerializationProxy(Instrument ins)
         {
             if (ins.getBank() == null)
             {

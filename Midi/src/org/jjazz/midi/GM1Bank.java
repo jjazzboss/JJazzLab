@@ -302,8 +302,9 @@ public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
             case Ethnic:
                 return instruments.get(104);     // Sitar
             case Sound_Effects:
-            default:
                 return instruments.get(121);     // Breath noise
+            default:
+                return instruments.get(0);       // Piano         
         }
     }
 

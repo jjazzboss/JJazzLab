@@ -110,7 +110,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             @Override
             public void mouseClicked(MouseEvent e)
             {
-                handleRhythmTableMouseClicked(e);
+                handleTableMouseClicked(e);
             }
         });
 
@@ -342,7 +342,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         setVisible(false);
     }
 
-    private void handleRhythmTableMouseClicked(MouseEvent evt)
+    private void handleTableMouseClicked(MouseEvent evt)
     {
         boolean ctrl = (evt.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
         boolean shift = (evt.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK;

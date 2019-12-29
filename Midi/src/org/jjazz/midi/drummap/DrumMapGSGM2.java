@@ -20,61 +20,59 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.midi.drumkit;
+package org.jjazz.midi.drummap;
 
+import org.jjazz.midi.DrumMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 /**
- * The Yamaha XG Drum Kit.
+ * The GS/GM2 Midi Drum Map.
  */
-public class DrumKitXG implements DrumKit
+public class DrumMapGSGM2 implements DrumMap
 {
 
-    public static final String NAME = "XG Drum Kit";
-    private static DrumKitXG INSTANCE;
+    public static final String NAME = "GS_GM2";
+    private static DrumMapGSGM2 INSTANCE;
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
     private ArrayList<Integer> accentPitches = new ArrayList<>();
 
-    public static DrumKitXG getInstance()
+    public static DrumMapGSGM2 getInstance()
     {
-        synchronized (DrumKitXG.class)
+        synchronized (DrumMapGSGM2.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new DrumKitXG();
+                INSTANCE = new DrumMapGSGM2();
             }
         }
         return INSTANCE;
     }
 
-    private DrumKitXG()
+    @Override
+    public DrumMap getDefaultDrumMap()
     {
-        addNote("Surdo Mute", 13, false);
-        addNote("Surdo Open", 14, false);
-        addNote("HIGH Q", 15, false);
-        addNote("Whip Slap", 16, false);
-        addNote("SCRATCH PUSH", 17, false);
-        addNote("Scratch Pull", 18, false);
-        addNote("FINGER SNAP", 19, false);
-        addNote("CLICK Noise", 20, false);
-        addNote("Metronome Click", 21, false);
-        addNote("Metronome Bell", 22, false);
-        addNote("Seq Click Low", 23, false);
-        addNote("Seq Click High", 24, false);
-        addNote("Brush Tap", 25, false);
-        addNote("Brush Swirl Low", 26, false);
-        addNote("Brush Slap", 27, false);
-        addNote("Brush Tap Swirl", 28, false);
-        addNote("Snare Roll", 29, false);
-        addNote("Castanets", 30, false);
-        addNote("Snare Soft", 31, false);
-        addNote("Stick", 32, false);
-        addNote("Kick Soft", 33, true);
-        addNote("Rim Shot Open", 34, false);
-        addNote("Kick tight", 35, true);
+        return DrumMapGM.getInstance();
+    }
+
+    private DrumMapGSGM2()
+    {
+        addNote("Beep 1", 22, false);       // SC-88 pro only
+        addNote("Beep 2", 23, false);       // SC-88 pro only
+        addNote("Concert Snare", 24, false);    // SC-88 pro only
+        addNote("SNARE ROLL", 25, false);
+        addNote("FINGER SNAP", 26, false);
+        addNote("HIGH Q", 27, false);
+        addNote("SLAP", 28, false);
+        addNote("SCRATCH PUSH", 29, false);
+        addNote("Scratch Pull", 30, false);
+        addNote("Sticks", 31, false);
+        addNote("Square Click", 32, false);
+        addNote("Metronome Click", 33, false);
+        addNote("Metronome Bell", 34, false);
+        addNote("ACOUSTIC BASS DRUM", 35, true);
         addNote("BASS DRUM 1", 36, true);
         addNote("SIDE STICK", 37, true);
         addNote("ACOUSTIC SNARE", 38, true);
@@ -124,6 +122,9 @@ public class DrumKitXG implements DrumKit
         addNote("Shaker", 82, false);
         addNote("Jingle Bell", 83, false);
         addNote("Belltree", 84, false);
+        addNote("Castanets", 85, false);
+        addNote("Mute Surdo", 86, false);
+        addNote("Open Surdo", 87, false);
     }
 
     @Override
@@ -139,9 +140,9 @@ public class DrumKitXG implements DrumKit
     }
 
     @Override
-    public int getNotePitch(String name)
+    public int getNotePitch(String noteName)
     {
-        Integer res = mapNamePitch.get(name.toUpperCase());
+        Integer res = mapNamePitch.get(noteName.toUpperCase());
         return res != null ? res : -1;
     }
 
@@ -153,7 +154,7 @@ public class DrumKitXG implements DrumKit
 
     private void addNote(String name, int pitch, boolean isAccent)
     {
-        if (pitch < 0 || pitch > 127 || name == null || name.isBlank())
+        if (pitch < 0 || pitch > 127 || name == null || name.trim().isEmpty())
         {
             throw new IllegalArgumentException("pitch=" + pitch + " name=" + name);
         }

@@ -20,37 +20,44 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.midi.drumkit;
+package org.jjazz.midi.drummap;
 
+import org.jjazz.midi.DrumMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 /**
- * The General Midi Drum Kit.
+ * The General Midi Drum Map.
  */
-public class DrumKitGM implements DrumKit
+public class DrumMapGM implements DrumMap
 {
 
-    public static final String NAME = "GM Drum Kit";
-    private static DrumKitGM INSTANCE;
+    public static final String NAME = "GM";
+    private static DrumMapGM INSTANCE;
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
     private ArrayList<Integer> accentPitches = new ArrayList<>();
 
-    public static DrumKitGM getInstance()
+    public static DrumMapGM getInstance()
     {
-        synchronized (DrumKitGM.class)
+        synchronized (DrumMapGM.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new DrumKitGM();
+                INSTANCE = new DrumMapGM();
             }
         }
         return INSTANCE;
     }
 
-    private DrumKitGM()
+    @Override
+    public DrumMap getDefaultDrumMap()
+    {
+        return null;
+    }
+
+    private DrumMapGM()
     {
         addNote("ACOUSTIC BASS DRUM", 35, true);
         addNote("BASS DRUM 1", 36, true);
@@ -128,7 +135,7 @@ public class DrumKitGM implements DrumKit
 
     private void addNote(String name, int pitch, boolean isAccent)
     {
-        if (pitch < 0 || pitch > 127 || name == null || name.isBlank())
+        if (pitch < 0 || pitch > 127 || name == null || name.trim().isEmpty())
         {
             throw new IllegalArgumentException("pitch=" + pitch + " name=" + name);
         }

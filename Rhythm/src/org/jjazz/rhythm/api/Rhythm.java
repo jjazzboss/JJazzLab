@@ -26,6 +26,7 @@ import java.io.File;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import java.util.List;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.midi.DrumMap;
 import org.openide.util.Lookup;
 
 /**
@@ -34,8 +35,8 @@ import org.openide.util.Lookup;
  * The class is used as a descriptor of the rhythm, the actual rhythm's capabilites are MidiMusicGenerator object(s) which must be
  * put in the rhythm's lookup.<p>
  * The framework will call the rhythm's loadResources() before accessing the MidiMusicGenerator object(s). This allow to save
- * memory usage when rhythm object is only used in catalogs... (and not in an actual song to be played).
- *
+ * memory usage when rhythm object is only used in catalogs.
+ * <p>
  */
 public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
 {

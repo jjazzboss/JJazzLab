@@ -23,6 +23,7 @@
 package org.jjazz.midi;
 
 import java.util.logging.*;
+import org.jjazz.midi.drummap.DrumMapGSGM2;
 
 /**
  * General Midi 2 bank. Instance should be obtained from the GMSynth.
@@ -34,7 +35,7 @@ public class GM2Bank extends AbstractInstrumentBank<Instrument>
     public static final int DEFAULT_BANK_SELECT_LSB = 0;
     public static final int DEFAULT_BANK_SELECT_MSB = 121;
     public static final BankSelectMethod DEFAULT_BANK_SELECT_METHOD = BankSelectMethod.MSB_LSB;
-    private static Instrument DEFAULT_DRUMS_INSTRUMENT;
+    private static DrumsInstrument DEFAULT_DRUMS_INSTRUMENT;
     private static GM2Bank INSTANCE;
 
     private static final Logger LOGGER = Logger.getLogger(GM2Bank.class.getSimpleName());
@@ -59,7 +60,6 @@ public class GM2Bank extends AbstractInstrumentBank<Instrument>
     private GM2Bank()
     {
         super(GM2_BANKNAME, null, DEFAULT_BANK_SELECT_MSB, DEFAULT_BANK_SELECT_LSB, DEFAULT_BANK_SELECT_METHOD);
-        DEFAULT_DRUMS_INSTRUMENT = createInstrument(0, 120, 0, "Drum Kit Standard");
         addInstrument(createInstrument(0, 121, 2, "European Pf"));
         addInstrument(createInstrument(3, 121, 0, "Honky-tonk"));
         addInstrument(createInstrument(3, 121, 1, "Honky-tonk w"));
@@ -316,18 +316,19 @@ public class GM2Bank extends AbstractInstrumentBank<Instrument>
         addInstrument(createInstrument(125, 121, 6, "Train"));
         addInstrument(createInstrument(122, 121, 3, "Wind"));
         addInstrument(createInstrument(124, 121, 5, "Wind Chimes"));
+        DEFAULT_DRUMS_INSTRUMENT = createDrumsInstrument(DrumKitType.STANDARD, DrumMapGSGM2.getInstance(), 0, 120, 0, "Drum Kit Standard");
         addInstrument(DEFAULT_DRUMS_INSTRUMENT);
-        addInstrument(createInstrument(25, 120, 0, "Drum Kit Natural"));
-        addInstrument(createInstrument(40, 120, 0, "Drum Kit Brush"));
-        addInstrument(createInstrument(24, 120, 0, "Drum Kit Electric"));
-        addInstrument(createInstrument(32, 120, 0, "Drum Kit Jazz"));
-        addInstrument(createInstrument(48, 120, 0, "Drum Kit Orchestra"));
-        addInstrument(createInstrument(16, 120, 0, "Drum Kit Power"));
-        addInstrument(createInstrument(8, 120, 0, "Drum Kit Room"));
-        addInstrument(createInstrument(56, 120, 0, "Drum Kit SFX"));
+        addInstrument(createDrumsInstrument(DrumKitType.ROOM, DrumMapGSGM2.getInstance(), 8, 120, 0, "Drum Kit Room"));
+        addInstrument(createDrumsInstrument(DrumKitType.POWER, DrumMapGSGM2.getInstance(), 16, 120, 0, "Drum Kit Power"));
+        addInstrument(createDrumsInstrument(DrumKitType.ELECTRONIC, DrumMapGSGM2.getInstance(), 24, 120, 0, "Drum Kit Electronic"));
+        addInstrument(createDrumsInstrument(DrumKitType.ANALOG, DrumMapGSGM2.getInstance(), 25, 120, 0, "Drum Kit Analog"));
+        addInstrument(createDrumsInstrument(DrumKitType.JAZZ, DrumMapGSGM2.getInstance(), 32, 120, 0, "Drum Kit Jazz"));
+        addInstrument(createDrumsInstrument(DrumKitType.BRUSH, DrumMapGSGM2.getInstance(), 40, 120, 0, "Drum Kit Brush"));
+        addInstrument(createDrumsInstrument(DrumKitType.ORCHESTRA, DrumMapGSGM2.getInstance(), 48, 120, 0, "Drum Kit Orchestra"));
+        addInstrument(createDrumsInstrument(DrumKitType.SFX, DrumMapGSGM2.getInstance(), 56, 120, 0, "Drum Kit SFX"));
     }
 
-    public Instrument getDefaultDrumsInstrument()
+    public DrumsInstrument getDefaultDrumsInstrument()
     {
         return DEFAULT_DRUMS_INSTRUMENT;
     }
@@ -340,5 +341,15 @@ public class GM2Bank extends AbstractInstrumentBank<Instrument>
     private static Instrument createInstrument(int lsb, int msb, int pc, String name)
     {
         return new Instrument(pc, name, null, lsb, msb, DEFAULT_BANK_SELECT_METHOD);
+    }
+
+    /**
+     * Convenience method to reorder arguments.
+     *
+     * @return
+     */
+    private static DrumsInstrument createDrumsInstrument(DrumKitType type, DrumMap map, int lsb, int msb, int pc, String name)
+    {
+        return new DrumsInstrument(type, map, pc, name, null, lsb, msb, DEFAULT_BANK_SELECT_METHOD);
     }
 }
