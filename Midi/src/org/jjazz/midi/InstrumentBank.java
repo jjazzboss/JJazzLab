@@ -22,6 +22,7 @@
  */
 package org.jjazz.midi;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,6 +34,59 @@ import java.util.List;
  */
 public interface InstrumentBank<T extends Instrument>
 {
+
+    public static class Util
+    {
+
+        /**
+         * Find an instrument in the bank which matches the specified parameters.
+         *
+         * @param bank
+         * @param programChange
+         * @param bankMSB
+         * @param bankLSB
+         * @return Null if not found.
+         */
+        public Instrument findInstrument(InstrumentBank<? extends Instrument> bank, int programChange, int bankMSB, int bankLSB)
+        {
+            Instrument res = null;
+            for (Instrument ins : bank.getInstruments())
+            {
+                if (ins.getProgramChange() == programChange && ins.getBankSelectLSB() == bankLSB && ins.getBankSelectMSB() == bankMSB)
+                {
+                    res = ins;
+                    break;
+                }
+            }
+            return res;
+        }
+
+        public List<DrumKit.KeyMap> getKeyMaps(InstrumentBank<? extends Instrument> bank)
+        {
+            ArrayList<DrumKit.KeyMap> res = new ArrayList<>();
+            for (Instrument ins : bank.getDrumsInstruments())
+            {
+                if (ins.getDrumKit() != null)
+                {
+                    res.add(ins.getDrumKit().getKeyMap());
+                }
+            }
+            return res;
+        }
+
+        public List<DrumKit.Type> getTypes(InstrumentBank<? extends Instrument> bank)
+        {
+            ArrayList<DrumKit.Type> res = new ArrayList<>();
+            for (Instrument ins : bank.getDrumsInstruments())
+            {
+                if (ins.getDrumKit() != null)
+                {
+                    res.add(ins.getDrumKit().getType());
+                }
+            }
+            return res;
+        }
+    }
 
     public enum BankSelectMethod
     {
@@ -64,14 +118,22 @@ public interface InstrumentBank<T extends Instrument>
     List<T> findInstruments(String text);
 
     /**
-     * @return Bank Select Most Significant Byte (or control 0)
+     * The default BankSelect MSB (Midi control #0).
+     * <p>
+     * Note that individual instruments belonging to this bank can have a different BankSelect MSB.
+     *
+     * @return Bank Select Most Significant Byte (MIdi control #0)
      */
-    int getBankSelectMSB();
+    int getDefaultBankSelectMSB();
 
     /**
-     * @return Bank Select Least Significant Byte (or control 32)
+     * The default BankSelect LSB (Midi control #32).
+     * <p>
+     * Note that individual instruments belonging to this bank can have a different BankSelect LSB.
+     *
+     * @return Bank Select Most Significant Byte (Midi control #32)
      */
-    int getBankSelectLSB();
+    int getDefaultBankSelectLSB();
 
     /**
      * Get the instrument whose patchName matches (ignoring case) the specified name.
@@ -98,6 +160,13 @@ public interface InstrumentBank<T extends Instrument>
     T getInstrumentFromPC(int progChange);
 
     /**
+     * Get all the Drums/Percussion instruments.
+     *
+     * @return All the Instruments which have a DrumKit defined.
+     */
+    List<T> getDrumsInstruments();
+
+    /**
      * Get all the instruments of the bank.
      *
      * @return
@@ -112,8 +181,8 @@ public interface InstrumentBank<T extends Instrument>
     String getName();
 
     /**
-     * The next instrument in the database after the specified instrument. Return the 1st element of the database if ins is the last
-     * element.
+     * The next instrument in the database after the specified instrument. Return the 1st element of the database if ins is the
+     * last element.
      *
      * @param ins
      * @return
@@ -121,8 +190,8 @@ public interface InstrumentBank<T extends Instrument>
     T getNextInstrument(Instrument ins);
 
     /**
-     * The previous instrument in the database after the specified instrument. Return the 1st element of the database if ins is the last
-     * element.
+     * The previous instrument in the database after the specified instrument. Return the 1st element of the database if ins is
+     * the last element.
      *
      * @param ins
      * @return

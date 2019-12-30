@@ -78,10 +78,11 @@ public class Instrument implements Serializable
     private int bankSelectLSB;
     private int bankSelectMSB;
     private InstrumentBank.BankSelectMethod bankSelectMethod;
+    private DrumKit drumKit;   // Optional
     private static final Logger LOGGER = Logger.getLogger(Instrument.class.getSimpleName());
 
     /**
-     * Constructor with bank=null, bankLSB=-1, bankMSB=-1, bankSelectMethod=null
+     * Constructor with bank=null, bankLSB=-1, bankMSB=-1, bankSelectMethod=null, drumKit=null
      *
      * @param programChange
      * @param patchName
@@ -92,15 +93,28 @@ public class Instrument implements Serializable
     }
 
     /**
+     * Constructor with bank=null, bankLSB=-1, bankMSB=-1, bankSelectMethod=null
+     *
+     * @param programChange
+     * @param patchName
+     * @param kit           Must be null if instrument is not a drums/percussion kit
+     */
+    public Instrument(int programChange, String patchName, DrumKit kit)
+    {
+        this(programChange, patchName, null, kit);
+    }
+
+    /**
      * Constructor with bankLSB=-1, bankMSB=-1 and bankSelectMethod=null
      *
      * @param programChange The MIDI Program Change number 0-127
      * @param patchName     The patchName of the patch, e.g. "Grand Piano"
      * @param bank          The InstrumentBank this instruments belongs to. Can be null.
+     * @param kit           Must be null if instrument is not a drums/percussion kit
      */
-    public Instrument(int programChange, String patchName, InstrumentBank<?> bank)
+    public Instrument(int programChange, String patchName, InstrumentBank<?> bank, DrumKit kit)
     {
-        this(programChange, patchName, bank, -1, -1, null);
+        this(programChange, patchName, bank, -1, -1, null, kit);
     }
 
     /**
@@ -111,8 +125,9 @@ public class Instrument implements Serializable
      * @param bankLSB       Can be used to override the bank's bankSelectLSB. Use -1 if not used.
      * @param bankMSB       Can be used to override the bank's bankSelectMSB. Use -1 if not used.
      * @param bsm           Can be used to override the bank's bankSelectMethod. Use null if not used.
+     * @param kit           Must be null if instrument is not a drums/percussion kit
      */
-    public Instrument(int programChange, String patchName, InstrumentBank<?> bank, int bankLSB, int bankMSB, BankSelectMethod bsm)
+    public Instrument(int programChange, String patchName, InstrumentBank<?> bank, int bankLSB, int bankMSB, BankSelectMethod bsm, DrumKit kit)
     {
         if (patchName == null || patchName.trim().isEmpty()
                 || programChange < 0 || programChange > 127
@@ -127,6 +142,7 @@ public class Instrument implements Serializable
         this.bankSelectMSB = bankMSB;
         this.bankSelectLSB = bankLSB;
         this.bankSelectMethod = bsm;
+        this.drumKit = kit;
     }
 
     /**
@@ -150,6 +166,16 @@ public class Instrument implements Serializable
     }
 
     /**
+     * The optional DrumKit associated to this instrument.
+     *
+     * @return Null if instrument is not a drums/percussion kit
+     */
+    public DrumKit getDrumKit()
+    {
+        return drumKit;
+    }
+
+    /**
      * @return Can be null.
      */
     public InstrumentBank<?> getBank()
@@ -168,8 +194,10 @@ public class Instrument implements Serializable
     }
 
     /**
-     * If a specific bankSelectMSB was set for this instrument, return it. Otherwise return getBank().getBankSelectMSB(). If no
-     * bank set for this instrument return -1.
+     * Get the BankSelect Most Significant Byte to access this instrument.
+     * <p>
+ If a specific bankSelectMSB was set for this instrument, return it. Otherwise return getBank().getDefaultBankSelectMSB(). If no
+ bank set for this instrument return -1.
      *
      * @return
      */
@@ -181,14 +209,16 @@ public class Instrument implements Serializable
             r = bankSelectMSB;
         } else if (bank != null)
         {
-            r = bank.getBankSelectMSB();
+            r = bank.getDefaultBankSelectMSB();
         }
         return r;
     }
 
     /**
-     * If a specific bankSelectLSB was set for this instrument, return it. Otherwise return getBank().getBankSelectLSB(). If no
-     * bank set for this instrument return -1.
+     * Get the BankSelect Least Significant Byte to access this instrument.
+     * <p>
+ If a specific bankSelectMSB was set for this instrument, return it. Otherwise return getBank().getDefaultBankSelectMSB(). If no
+ bank set for this instrument return -1.
      *
      * @return
      */
@@ -200,7 +230,7 @@ public class Instrument implements Serializable
             r = bankSelectLSB;
         } else if (bank != null)
         {
-            r = bank.getBankSelectLSB();
+            r = bank.getDefaultBankSelectLSB();
         }
         return r;
     }

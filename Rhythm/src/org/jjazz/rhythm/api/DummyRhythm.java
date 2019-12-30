@@ -32,7 +32,6 @@ import java.util.logging.Logger;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.midi.GM1Bank;
 import org.jjazz.midi.GMSynth;
-import org.jjazz.midi.DrumMap;
 import org.jjazz.rhythm.parameters.RP_STD_Variation;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.openide.util.Lookup;

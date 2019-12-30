@@ -25,8 +25,6 @@ package org.jjazz.defaultinstruments;
 import java.util.logging.*;
 import static org.jjazz.defaultinstruments.Bundle.CTL_DefaultBank;
 import org.jjazz.midi.AbstractInstrumentBank;
-import org.jjazz.midi.DrumKitType;
-import org.jjazz.midi.DrumMap;
 import org.jjazz.midi.Instrument;
 import org.jjazz.rhythm.api.RvType;
 import org.openide.util.NbBundle;
@@ -86,18 +84,6 @@ public final class Delegate2DefaultBank<T extends Instrument> extends AbstractIn
         return Delegate2DefaultInstrument.getInstance(rvType);
     }
 
-    /**
-     * Get the delegate DrumInstrument to default instrument associated to the specified parameters.
-     *
-     * @param rvType
-     * @param kitType
-     * @param dMap
-     * @return
-     */
-    protected Delegate2DefaultInstrument getDelegateDrumsInstrument(RvType rvType, DrumKitType kitType, DrumMap dMap)
-    {
-        return Delegate2DefaultInstrument.getDrumsInstance(rvType, kitType, dMap);
-    }
 
     /**
      * Get the delegate instrument to default instrument User.

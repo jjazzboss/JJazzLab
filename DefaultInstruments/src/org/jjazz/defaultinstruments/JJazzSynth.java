@@ -74,15 +74,6 @@ public class JJazzSynth extends MidiSynth
         return getInstance().getNotSetBank().getVoidInstrument();
     }
     
-    /**
-     * Convenience method to get the generic VoidDrumsInstrument.
-     *
-     * @return
-     */
-    static public VoidDrumsInstrument getVoidDrumsInstrument()
-    {
-        return getInstance().getNotSetBank().getVoidDrumsInstrument();
-    }
 
     /**
      * Get the Delegate2DefaultInstrument to the default instrument for rvType.

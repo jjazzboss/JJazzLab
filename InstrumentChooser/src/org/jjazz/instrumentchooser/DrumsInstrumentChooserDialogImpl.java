@@ -42,20 +42,20 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.jjazz.instrumentchooser.api.DrumsInstrumentChooserDialog;
 import org.jjazz.midi.DrumKitType;
-import org.jjazz.midisynth.api.MidiSynthManager;
+import org.jjazz.synthmanager.api.MidiSynthManager;
 import org.jjazz.midi.DrumsInstrument;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiSynth;
-import org.jjazz.midi.DrumMap;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.jjazz.ui.utilities.HelpTextArea;
 import org.jjazz.util.Filter;
 import org.openide.*;
 import org.openide.windows.WindowManager;
+import org.jjazz.midi.DrumKitKeyMap;
 
 public class DrumsInstrumentChooserDialogImpl extends DrumsInstrumentChooserDialog implements ListSelectionListener
 {
@@ -65,7 +65,7 @@ public class DrumsInstrumentChooserDialogImpl extends DrumsInstrumentChooserDial
     private DrumsInstrument selectedInstrument;
     private int channel;
     private DrumKitType drumKitType;
-    private DrumMap drumMap;
+    private DrumKitKeyMap drumMap;
     private Filter<Instrument> insFilter;
     private Instrument initInstrument;
 
@@ -103,7 +103,7 @@ public class DrumsInstrumentChooserDialogImpl extends DrumsInstrumentChooserDial
     }
 
     @Override
-    public void preset(DrumKitType kitType, DrumMap drumMap, DrumsInstrument ins, int chan, String title, Filter<Instrument> filter)
+    public void preset(DrumKitType kitType, DrumKitKeyMap drumMap, DrumsInstrument ins, int chan, String title, Filter<Instrument> filter)
     {
         if (kitType == null || drumMap == null || MidiConst.checkMidiChannel(chan) || title == null)
         {

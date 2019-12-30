@@ -55,8 +55,8 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
      *
      * @param name
      * @param synth The container for this bank. Can be null.
-     * @param msb The default Most Significant Byte or "Control 0"
-     * @param lsb The default Least Significant Byte or "Control 32"
+     * @param msb   The default Most Significant Byte or "Control 0"
+     * @param lsb   The default Least Significant Byte or "Control 32"
      * @param m
      */
     public AbstractInstrumentBank(String name, MidiSynth synth, int msb, int lsb, BankSelectMethod m)
@@ -74,7 +74,9 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
     }
 
     /**
-     * This function can be called only once. It is the responsibility of the specified MidiSynth to add the bank.
+     * This function can be called only once.
+     * <p>
+     * It is the responsibility of the specified MidiSynth to add the bank.
      *
      * @param synth A non null value, the MidiSynth this InstrumentBank belongs to
      */
@@ -110,20 +112,22 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
     }
 
     @Override
-    public int getBankSelectMSB()
+    public int getDefaultBankSelectMSB()
     {
         return msb;
     }
 
     @Override
-    public int getBankSelectLSB()
+    public int getDefaultBankSelectLSB()
     {
         return lsb;
     }
 
     /**
-     * Add the instrument to the bank. If there is already an Instrument with same patchname, nothing is done. The function sets
-     * the instrument's bank to this bank.
+     * Add the instrument to the bank.
+     * <p>
+     * If there is already an Instrument with same patchname, nothing is done. The function sets the instrument's bank to this
+     * bank.
      *
      * @param instrument
      */
@@ -265,6 +269,20 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
             }
         }
         return null;
+    }
+
+    @Override
+    public List<T> getDrumsInstruments()
+    {
+        ArrayList<T> res = new ArrayList<>();
+        for (T ins : instruments)
+        {
+            if (ins.getDrumKit() != null)
+            {
+                res.add(ins);
+            }
+        }
+        return res;
     }
 
     /**

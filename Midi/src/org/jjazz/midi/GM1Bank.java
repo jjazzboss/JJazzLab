@@ -26,7 +26,9 @@ import java.util.List;
 import java.util.logging.*;
 
 /**
- * General Midi 1 bank. Instance should be obtained from the GMSynth.
+ * General Midi 1 bank.
+ * <p>
+ * Instance should be obtained from the GMSynth.
  */
 public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
 {

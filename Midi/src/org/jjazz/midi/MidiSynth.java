@@ -27,13 +27,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Define a MidiSynth: InstrumentBanks.
+ * A MidiSynth provides information to select via Midi a synthesizer sounds.
  * <p>
- * A MidiSynth can be loaded/saved from/to file.
  */
 public class MidiSynth
 {
-
     private File file;
     ArrayList<InstrumentBank<?>> banks = new ArrayList<>();
     private String name;

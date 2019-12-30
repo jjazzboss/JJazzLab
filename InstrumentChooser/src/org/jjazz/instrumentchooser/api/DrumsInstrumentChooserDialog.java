@@ -27,10 +27,10 @@ import org.jjazz.instrumentchooser.DrumsInstrumentChooserDialogImpl;
 import org.jjazz.midi.DrumKitType;
 import org.jjazz.midi.DrumsInstrument;
 import org.jjazz.midi.Instrument;
-import org.jjazz.midi.DrumMap;
 import org.jjazz.util.Filter;
 import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;
+import org.jjazz.midi.DrumKitKeyMap;
 
 /**
  * A dialog to select a drums instrument in the instrument banks available on the system.
@@ -60,13 +60,13 @@ public abstract class DrumsInstrumentChooserDialog extends JDialog
      * Initialize the dialog.
      *
      * @param kitType Expected DrumKitType
-     * @param drumMap Expected DrumMap
+     * @param drumMap Expected DrumKitKeyMap
      * @param ins A default selected instrument. If null no selection is done.
      * @param channel Use this Midi channel to send the Midi patch changes. If -1 no midi messages sent.
      * @param title Dialog title.
      * @param filter Filtered instruments must not be shown by the dialog. If null accept all instruments
      */
-    public abstract void preset(DrumKitType kitType, DrumMap drumMap, DrumsInstrument ins, int channel, String title, Filter<Instrument> filter);
+    public abstract void preset(DrumKitType kitType, DrumKitKeyMap drumMap, DrumsInstrument ins, int channel, String title, Filter<Instrument> filter);
 
     /**
      * @return The selected instrument, or null if no selection or dialog cancelled.

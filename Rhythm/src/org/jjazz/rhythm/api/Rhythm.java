@@ -26,7 +26,6 @@ import java.io.File;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import java.util.List;
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.midi.DrumMap;
 import org.openide.util.Lookup;
 
 /**

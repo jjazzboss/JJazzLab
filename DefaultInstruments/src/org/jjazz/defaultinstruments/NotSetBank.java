@@ -66,16 +66,10 @@ public final class NotSetBank<T extends Instrument> extends AbstractInstrumentBa
     {
         super(BANKNAME, null, 0, 0);
         addInstrument(getVoidInstrument());
-        addInstrument(getVoidDrumsInstrument());
     }
 
     public VoidInstrument getVoidInstrument()
     {
         return VoidInstrument.getInstance();
-    }
-
-    public VoidDrumsInstrument getVoidDrumsInstrument()
-    {
-        return VoidDrumsInstrument.getInstance();
     }
 }

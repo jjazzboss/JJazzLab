@@ -26,13 +26,11 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.midi.DrumKitType;
-import org.jjazz.midi.DrumsInstrument;
+import org.jjazz.midiconverters.DrumKit;
 import org.jjazz.midi.GM1Bank;
 import org.jjazz.midi.GM2Bank;
 import org.jjazz.midi.GMSynth;
 import org.jjazz.midi.Instrument;
-import org.jjazz.midi.DrumMap;
 import org.jjazz.rhythm.api.RvType;
 import org.openide.util.NbPreferences;
 
@@ -115,7 +113,7 @@ public class DefaultInstruments
      */
     public void setInstrument(RvType type, Instrument ins)
     {
-        if (type == null || ins == null || type.equals(RvType.Drums) || type.equals(RvType.Percussion) || (ins instanceof DrumsInstrument))
+        if (type == null || ins == null || type.equals(RvType.Drums) || type.equals(RvType.Percussion))
         {
             throw new IllegalArgumentException("type=" + type + " ins=" + ins);
         }
@@ -126,34 +124,34 @@ public class DefaultInstruments
             pcs.firePropertyChange(PROP_INSTRUMENT, type, ins);
         }
     }
-
-    /**
-     * Get the default DrumsInstrument for drums or percussion.
-     *
-     * @param rvType Must be Drums or Percussion.
-     * @param dkType
-     * @param dMap
-     * @return Can't be null. By default return the VoidDrumsInstrument instance if no specific default DrumsInstrument could
-     *         be found.
-     */
-    public DrumsInstrument getDrumsInstrument(RvType rvType, DrumKitType dkType, DrumMap dMap)
-    {
-        if (rvType == null || (!rvType.equals(RvType.Drums) && !rvType.equals(RvType.Percussion)) || dkType == null || dMap == null)
-        {
-            throw new IllegalArgumentException("rvType=" + rvType + " dkType=" + dkType + " dMap=" + dMap);
-        }
-        DrumsInstrument ins = null;
-        String s = prefs.get(getDrumsPreferenceKey(rvType, dkType, dMap), null);
-        if (s != null)
-        {
-            ins = (DrumsInstrument) Instrument.loadFromString(s);
-        }
-        if (ins == null)
-        {
-            ins = VoidDrumsInstrument.getInstance();
-        }
-        return ins;
-    }
+//
+//    /**
+//     * Get the default DrumsInstrument for drums or percussion.
+//     *
+//     * @param rvType Must be Drums or Percussion.
+//     * @param dkType
+//     * @param dMap
+//     * @return Can't be null. By default return the VoidDrumsInstrument instance if no specific default DrumsInstrument could
+//     *         be found.
+//     */
+//    public DrumsInstrument getDrumsInstrument(RvType rvType, DrumKitType dkType, DrumKitKeyMap dMap)
+//    {
+//        if (rvType == null || (!rvType.equals(RvType.Drums) && !rvType.equals(RvType.Percussion)) || dkType == null || dMap == null)
+//        {
+//            throw new IllegalArgumentException("rvType=" + rvType + " dkType=" + dkType + " dMap=" + dMap);
+//        }
+//        DrumsInstrument ins = null;
+//        String s = prefs.get(getDrumsPreferenceKey(rvType, dkType, dMap), null);
+//        if (s != null)
+//        {
+//            ins = (DrumsInstrument) Instrument.loadFromString(s);
+//        }
+//        if (ins == null)
+//        {
+//            ins = VoidDrumsInstrument.getInstance();
+//        }
+//        return ins;
+//    }
 
     /**
      * Set the default drums instrument for the specified type.
@@ -163,19 +161,19 @@ public class DefaultInstruments
      * @param dMap
      * @param ins    Can't be null.
      */
-    public void setDrumsInstrument(RvType rvType, DrumKitType dkType, DrumMap dMap, DrumsInstrument ins)
-    {
-        if (rvType == null || ins == null || (!rvType.equals(RvType.Drums) && !rvType.equals(RvType.Percussion)) || dkType == null || dMap == null)
-        {
-            throw new IllegalArgumentException("rvType=" + rvType + " dkType=" + dkType + " dMap=" + dMap + " ins=" + ins);
-        }
-        DrumsInstrument old = getDrumsInstrument(rvType, dkType, dMap);
-        if (old != ins)
-        {
-            prefs.put(getDrumsPreferenceKey(rvType, dkType, dMap), ins.saveAsString());
-            pcs.firePropertyChange(PROP_INSTRUMENT, rvType, ins);
-        }
-    }
+//    public void setDrumsInstrument(RvType rvType, DrumKitType dkType, DrumKitKeyMap dMap, DrumsInstrument ins)
+//    {
+//        if (rvType == null || ins == null || (!rvType.equals(RvType.Drums) && !rvType.equals(RvType.Percussion)) || dkType == null || dMap == null)
+//        {
+//            throw new IllegalArgumentException("rvType=" + rvType + " dkType=" + dkType + " dMap=" + dMap + " ins=" + ins);
+//        }
+//        DrumsInstrument old = getDrumsInstrument(rvType, dkType, dMap);
+//        if (old != ins)
+//        {
+//            prefs.put(getDrumsPreferenceKey(rvType, dkType, dMap), ins.saveAsString());
+//            pcs.firePropertyChange(PROP_INSTRUMENT, rvType, ins);
+//        }
+//    }
 
     /**
      * The transpose for the instrument associated to the specified rhythmvoice type.
@@ -264,7 +262,7 @@ public class DefaultInstruments
     /**
      * The application builtin default instruments.
      * <p>
-     * Delegates to the GM1 default instruments, except for Drums where the VoidDrumsInstrument instance is returned.
+     * Delegates to the GM1 default instruments, except for Drums where the VoidInstrument instance is returned.
      *
      * @param t
      * @return A non-null Instrument.
@@ -280,7 +278,7 @@ public class DefaultInstruments
             case Percussion:
                 // GM1 does not define a drums instrument
                 // If applications detects a GM2 compatible synth, the app should define a new default Drums instrument 
-                ins = JJazzSynth.getVoidDrumsInstrument();
+                ins = JJazzSynth.getVoidInstrument();
                 break;
             case Guitar:
                 ins = gm1bBank.getDefaultInstrument(GM1Bank.Family.Guitar);
@@ -316,8 +314,8 @@ public class DefaultInstruments
     // ----------------------------------------------------------------------------
     // Private methods
     // ----------------------------------------------------------------------------
-    private String getDrumsPreferenceKey(RvType rvType, DrumKitType dkType, DrumMap dMap)
+    private String getDrumsPreferenceKey(RvType rvType, DrumKit kit)
     {
-        return rvType.name() + "-" + dkType.name() + "-" + dMap.getName();
+        return rvType.name() + "-" + kit.getType().name() + "-" + kit.getKeyMap().getName();
     }
 }

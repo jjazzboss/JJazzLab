@@ -23,7 +23,8 @@
 package org.jjazz.midi;
 
 import java.util.logging.*;
-import org.jjazz.midi.drummap.DrumMapGSGM2;
+import org.jjazz.midi.keymap.KeyMapGSGM2;
+
 
 /**
  * General Midi 2 bank. Instance should be obtained from the GMSynth.
@@ -35,7 +36,7 @@ public class GM2Bank extends AbstractInstrumentBank<Instrument>
     public static final int DEFAULT_BANK_SELECT_LSB = 0;
     public static final int DEFAULT_BANK_SELECT_MSB = 121;
     public static final BankSelectMethod DEFAULT_BANK_SELECT_METHOD = BankSelectMethod.MSB_LSB;
-    private static DrumsInstrument DEFAULT_DRUMS_INSTRUMENT;
+    private static Instrument DEFAULT_DRUMS_INSTRUMENT;
     private static GM2Bank INSTANCE;
 
     private static final Logger LOGGER = Logger.getLogger(GM2Bank.class.getSimpleName());
@@ -316,19 +317,19 @@ public class GM2Bank extends AbstractInstrumentBank<Instrument>
         addInstrument(createInstrument(125, 121, 6, "Train"));
         addInstrument(createInstrument(122, 121, 3, "Wind"));
         addInstrument(createInstrument(124, 121, 5, "Wind Chimes"));
-        DEFAULT_DRUMS_INSTRUMENT = createDrumsInstrument(DrumKitType.STANDARD, DrumMapGSGM2.getInstance(), 0, 120, 0, "Drum Kit Standard");
+        DEFAULT_DRUMS_INSTRUMENT = createDrumsInstrument(DrumKit.Type.STANDARD, KeyMapGSGM2.getInstance(), 0, 120, 0, "Drum Kit Standard");
         addInstrument(DEFAULT_DRUMS_INSTRUMENT);
-        addInstrument(createDrumsInstrument(DrumKitType.ROOM, DrumMapGSGM2.getInstance(), 8, 120, 0, "Drum Kit Room"));
-        addInstrument(createDrumsInstrument(DrumKitType.POWER, DrumMapGSGM2.getInstance(), 16, 120, 0, "Drum Kit Power"));
-        addInstrument(createDrumsInstrument(DrumKitType.ELECTRONIC, DrumMapGSGM2.getInstance(), 24, 120, 0, "Drum Kit Electronic"));
-        addInstrument(createDrumsInstrument(DrumKitType.ANALOG, DrumMapGSGM2.getInstance(), 25, 120, 0, "Drum Kit Analog"));
-        addInstrument(createDrumsInstrument(DrumKitType.JAZZ, DrumMapGSGM2.getInstance(), 32, 120, 0, "Drum Kit Jazz"));
-        addInstrument(createDrumsInstrument(DrumKitType.BRUSH, DrumMapGSGM2.getInstance(), 40, 120, 0, "Drum Kit Brush"));
-        addInstrument(createDrumsInstrument(DrumKitType.ORCHESTRA, DrumMapGSGM2.getInstance(), 48, 120, 0, "Drum Kit Orchestra"));
-        addInstrument(createDrumsInstrument(DrumKitType.SFX, DrumMapGSGM2.getInstance(), 56, 120, 0, "Drum Kit SFX"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.ROOM, KeyMapGSGM2.getInstance(), 8, 120, 0, "Drum Kit Room"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.POWER, KeyMapGSGM2.getInstance(), 16, 120, 0, "Drum Kit Power"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.ELECTRONIC, KeyMapGSGM2.getInstance(), 24, 120, 0, "Drum Kit Electronic"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.ANALOG, KeyMapGSGM2.getInstance(), 25, 120, 0, "Drum Kit Analog"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.JAZZ, KeyMapGSGM2.getInstance(), 32, 120, 0, "Drum Kit Jazz"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.BRUSH, KeyMapGSGM2.getInstance(), 40, 120, 0, "Drum Kit Brush"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.ORCHESTRA, KeyMapGSGM2.getInstance(), 48, 120, 0, "Drum Kit Orchestra"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.SFX, KeyMapGSGM2.getInstance(), 56, 120, 0, "Drum Kit SFX"));
     }
 
-    public DrumsInstrument getDefaultDrumsInstrument()
+    public Instrument getDefaultDrumsInstrument()
     {
         return DEFAULT_DRUMS_INSTRUMENT;
     }
@@ -340,7 +341,7 @@ public class GM2Bank extends AbstractInstrumentBank<Instrument>
      */
     private static Instrument createInstrument(int lsb, int msb, int pc, String name)
     {
-        return new Instrument(pc, name, null, lsb, msb, DEFAULT_BANK_SELECT_METHOD);
+        return new Instrument(pc, name, null, lsb, msb, DEFAULT_BANK_SELECT_METHOD, null);
     }
 
     /**
@@ -348,8 +349,8 @@ public class GM2Bank extends AbstractInstrumentBank<Instrument>
      *
      * @return
      */
-    private static DrumsInstrument createDrumsInstrument(DrumKitType type, DrumMap map, int lsb, int msb, int pc, String name)
+    private static Instrument createDrumsInstrument(DrumKit.Type t, DrumKit.KeyMap map, int lsb, int msb, int pc, String name)
     {
-        return new DrumsInstrument(type, map, pc, name, null, lsb, msb, DEFAULT_BANK_SELECT_METHOD);
+        return new Instrument(pc, name, null, lsb, msb, DEFAULT_BANK_SELECT_METHOD, new DrumKit(t, map));
     }
 }

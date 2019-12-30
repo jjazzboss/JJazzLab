@@ -42,7 +42,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.defaultinstruments.FavoriteInstruments;
-import org.jjazz.midisynth.api.MidiSynthManager;
+import org.jjazz.synthmanager.api.MidiSynthManager;
 import org.jjazz.instrumentchooser.api.InstrumentChooserDialog;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;

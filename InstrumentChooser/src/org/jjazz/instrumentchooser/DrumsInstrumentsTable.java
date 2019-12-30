@@ -152,7 +152,7 @@ public class DrumsInstrumentsTable extends JTable
                 preferredWidth[1] = (int) (w * 0.2f);    // Bank
                 preferredWidth[2] = (int) (w * 0.4f);    // DrumsInstrument
                 preferredWidth[3] = (int) (w * 0.1f);     // DrumsKitType
-                preferredWidth[4] = (int) (w * 0.1f);     // DrumMap         
+                preferredWidth[4] = (int) (w * 0.1f);     // DrumKitKeyMap         
             }
         }
 
