@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JTextField;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.midi.GMSynth;
+import org.jjazz.midi.StdSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.musiccontrol.MusicController;
@@ -714,7 +714,7 @@ class BaseMixChannelPanelModel implements MixChannelPanelModel
     @Override
     public Instrument getInstrument()
     {
-        return GMSynth.getInstance().getGM1Bank().getInstruments().get(0);
+        return StdSynth.getInstance().getGM1Bank().getInstruments().get(0);
     }
 
     @Override

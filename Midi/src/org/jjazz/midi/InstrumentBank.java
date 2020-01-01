@@ -24,6 +24,7 @@ package org.jjazz.midi;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.jjazz.midi.MidiAddress.BankSelectMethod;
 
 /**
  * A set of Instruments grouped in a bank.
@@ -38,35 +39,12 @@ public interface InstrumentBank<T extends Instrument>
     public static class Util
     {
 
-        /**
-         * Find an instrument in the bank which matches the specified parameters.
-         *
-         * @param bank
-         * @param programChange
-         * @param bankMSB
-         * @param bankLSB
-         * @return Null if not found.
-         */
-        public Instrument findInstrument(InstrumentBank<? extends Instrument> bank, int programChange, int bankMSB, int bankLSB)
-        {
-            Instrument res = null;
-            for (Instrument ins : bank.getInstruments())
-            {
-                if (ins.getProgramChange() == programChange && ins.getBankSelectLSB() == bankLSB && ins.getBankSelectMSB() == bankMSB)
-                {
-                    res = ins;
-                    break;
-                }
-            }
-            return res;
-        }
-
         public List<DrumKit.KeyMap> getKeyMaps(InstrumentBank<? extends Instrument> bank)
         {
             ArrayList<DrumKit.KeyMap> res = new ArrayList<>();
             for (Instrument ins : bank.getDrumsInstruments())
             {
-                if (ins.getDrumKit() != null)
+                if (ins.isDrumKit())
                 {
                     res.add(ins.getDrumKit().getKeyMap());
                 }
@@ -79,7 +57,7 @@ public interface InstrumentBank<T extends Instrument>
             ArrayList<DrumKit.Type> res = new ArrayList<>();
             for (Instrument ins : bank.getDrumsInstruments())
             {
-                if (ins.getDrumKit() != null)
+                if (ins.isDrumKit())
                 {
                     res.add(ins.getDrumKit().getType());
                 }
@@ -87,13 +65,6 @@ public interface InstrumentBank<T extends Instrument>
             return res;
         }
     }
-
-    public enum BankSelectMethod
-    {
-        MSB_LSB, MSB_ONLY, LSB_ONLY, PC_ONLY
-    };
-
-    BankSelectMethod getBankSelectMethod();
 
     /**
      * The MidiSynth this bank belongs to.
@@ -103,26 +74,29 @@ public interface InstrumentBank<T extends Instrument>
     MidiSynth getMidiSynth();
 
     /**
-     * Set the MidiSynth this bank belongs to. Can be called only once.
+     * Set the MidiSynth this bank belongs to.
+     * <p>
+     * Can be called only once.
      *
      * @param synth A non-null value.
      */
     void setMidiSynth(MidiSynth synth);
 
     /**
-     * Find the instruments whose patchName contains specified text (ignoring case).
+     * The default BankSelect method.
+     * <p>
+     * Note that individual instruments belonging to this bank can have a different BankSelect method.
      *
-     * @param text
-     * @return
+     * @return Can't be null.
      */
-    List<T> findInstruments(String text);
+    BankSelectMethod getDefaultBankSelectMethod();
 
     /**
      * The default BankSelect MSB (Midi control #0).
      * <p>
      * Note that individual instruments belonging to this bank can have a different BankSelect MSB.
      *
-     * @return Bank Select Most Significant Byte (MIdi control #0)
+     * @return [0;127] Bank Select Most Significant Byte (MIdi control #0).
      */
     int getDefaultBankSelectMSB();
 
@@ -131,17 +105,16 @@ public interface InstrumentBank<T extends Instrument>
      * <p>
      * Note that individual instruments belonging to this bank can have a different BankSelect LSB.
      *
-     * @return Bank Select Most Significant Byte (Midi control #32)
+     * @return [0;127] Bank Select Most Significant Byte (Midi control #32)
      */
     int getDefaultBankSelectLSB();
 
     /**
-     * Get the instrument whose patchName matches (ignoring case) the specified name.
+     * Get all the instruments of the bank.
      *
-     * @param patchName
-     * @return null if not found
+     * @return
      */
-    T getInstrument(String patchName);
+    List<T> getInstruments();
 
     /**
      * Get the instrument which is specified index in the bank.
@@ -152,14 +125,6 @@ public interface InstrumentBank<T extends Instrument>
     T getInstrument(int index);
 
     /**
-     * Get the instrument which has the specified Program Change.
-     *
-     * @param progChange Change value [0-127]
-     * @return Null if not found.
-     */
-    T getInstrumentFromPC(int progChange);
-
-    /**
      * Get all the Drums/Percussion instruments.
      *
      * @return All the Instruments which have a DrumKit defined.
@@ -167,11 +132,28 @@ public interface InstrumentBank<T extends Instrument>
     List<T> getDrumsInstruments();
 
     /**
-     * Get all the instruments of the bank.
+     * Get the instrument whose patchName matches (ignoring case) the specified name.
      *
+     * @param patchName
+     * @return null if not found
+     */
+    T getInstrument(String patchName);
+
+    /**
+     * Get the instrument at the specified MidiAddress.
+     *
+     * @param address
+     * @return null if not found
+     */
+    T getInstrument(MidiAddress address);
+
+    /**
+     * Find the instruments whose patchName contains specified text (ignoring case).
+     *
+     * @param text
      * @return
      */
-    List<T> getInstruments();
+    List<T> findInstruments(String text);
 
     /**
      * The name of the bank.

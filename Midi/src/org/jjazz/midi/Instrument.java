@@ -29,7 +29,6 @@ import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiMessage;
-import org.jjazz.midi.InstrumentBank.BankSelectMethod;
 import org.openide.util.Lookup;
 
 /**
@@ -74,15 +73,14 @@ public class Instrument implements Serializable
 
     private InstrumentBank<?> bank;
     private String patchName;
-    private int programChange;
-    private int bankSelectLSB;
-    private int bankSelectMSB;
-    private InstrumentBank.BankSelectMethod bankSelectMethod;
+    private MidiAddress address;
     private DrumKit drumKit;   // Optional
+    private GM1Instrument substitute;   // Optional
     private static final Logger LOGGER = Logger.getLogger(Instrument.class.getSimpleName());
 
     /**
-     * Constructor with bank=null, bankLSB=-1, bankMSB=-1, bankSelectMethod=null, drumKit=null
+     * Constructor with bank=null, drumKit=null, and a MidiAddress(pc=programChange, bankLSB=-1, bankMSB=-1,
+     * bankSelectMethod=null).
      *
      * @param programChange
      * @param patchName
@@ -93,7 +91,8 @@ public class Instrument implements Serializable
     }
 
     /**
-     * Constructor with bank=null, bankLSB=-1, bankMSB=-1, bankSelectMethod=null
+     * Constructor with bank=null, drumKit=kit, a MidiAddress(pc=programChange, bankLSB=-1, bankMSB=-1, bankSelectMethod=null),
+     * and no GM1Instrument substitute.
      *
      * @param programChange
      * @param patchName
@@ -101,54 +100,46 @@ public class Instrument implements Serializable
      */
     public Instrument(int programChange, String patchName, DrumKit kit)
     {
-        this(programChange, patchName, null, kit);
+        this(patchName, null, new MidiAddress(programChange, -1, -1, null), kit, null);
     }
 
     /**
-     * Constructor with bankLSB=-1, bankMSB=-1 and bankSelectMethod=null
+     * Create an instrument.
+     * <p>
+     * If bank is non-null and ma is not fully defined (see MidiAddress.isFullyDefined()), then a new MidiAddress is created which
+     * replaces the undefined values by the bank default values.
      *
-     * @param programChange The MIDI Program Change number 0-127
-     * @param patchName     The patchName of the patch, e.g. "Grand Piano"
-     * @param bank          The InstrumentBank this instruments belongs to. Can be null.
-     * @param kit           Must be null if instrument is not a drums/percussion kit
-     */
-    public Instrument(int programChange, String patchName, InstrumentBank<?> bank, DrumKit kit)
-    {
-        this(programChange, patchName, bank, -1, -1, null, kit);
-    }
-
-    /**
      *
-     * @param programChange The MIDI Program Change number 0-127
-     * @param patchName     The patchName of the patch, e.g. "Grand Piano"
-     * @param bank          The InstrumentBank this instruments belongs to. Can be null.
-     * @param bankLSB       Can be used to override the bank's bankSelectLSB. Use -1 if not used.
-     * @param bankMSB       Can be used to override the bank's bankSelectMSB. Use -1 if not used.
-     * @param bsm           Can be used to override the bank's bankSelectMethod. Use null if not used.
-     * @param kit           Must be null if instrument is not a drums/percussion kit
+     * @param patchName  The patchName of the patch, e.g. "Grand Piano"
+     * @param bank       The InstrumentBank this instruments belongs to. Can be null if undefined.
+     * @param ma         The MidiAddress of the instrument. Can't be null.
+     * @param kit        Optional. Must be non-null for drums/percussion instruments.
+     * @param substitute Optional. Must be null for drums/percussion instruments.
      */
-    public Instrument(int programChange, String patchName, InstrumentBank<?> bank, int bankLSB, int bankMSB, BankSelectMethod bsm, DrumKit kit)
+    public Instrument(String patchName, InstrumentBank<?> bank, MidiAddress ma, DrumKit kit, GM1Instrument substitute)
     {
-        if (patchName == null || patchName.trim().isEmpty()
-                || programChange < 0 || programChange > 127
-                || bankLSB < -1 || bankLSB > 127
-                || bankMSB < -1 || bankMSB > 127)
+        if (patchName == null || patchName.trim().isEmpty() || ma == null || (kit != null && substitute != null))
         {
-            throw new IllegalArgumentException("pc=" + programChange + " name=" + patchName + " bankLSB=" + bankLSB + " bankMSB=" + bankMSB);
+            throw new IllegalArgumentException("patchName=" + patchName + " bank=" + bank + " ma=" + ma + " kit=" + kit + " substitute=" + substitute);
         }
         this.patchName = patchName;
-        this.programChange = programChange;
         this.bank = bank;
-        this.bankSelectMSB = bankMSB;
-        this.bankSelectLSB = bankLSB;
-        this.bankSelectMethod = bsm;
         this.drumKit = kit;
+        this.substitute = substitute;
+        address = new MidiAddress(ma.getProgramChange(),
+                (bank != null && ma.getBankMSB() == -1) ? this.bank.getDefaultBankSelectMSB() : ma.getBankMSB(),
+                (bank != null && ma.getBankLSB() == -1) ? this.bank.getDefaultBankSelectLSB() : ma.getBankLSB(),
+                (bank != null && ma.getBankSelectMethod() == null) ? this.bank.getDefaultBankSelectMethod() : ma.getBankSelectMethod()
+        );
     }
 
     /**
      * This function can be called only once.
      * <p>
      * It is the responsibility of the specified bank to add the Instrument.
+     * <p>
+     * If this object has an InstrumentBank defined and the MidiAddress set for this instrument has undefined bankMSB or bankLSB
+     * or bankSelectMethod, then a new MidiAddress is created which replaces the undefined values by the bank default values.
      *
      * @param bank A non null value, the InstrumentBank this Instrument belongs to, e.g. GM1Bank.
      */
@@ -163,16 +154,44 @@ public class Instrument implements Serializable
             throw new IllegalArgumentException("bank=" + bank);
         }
         this.bank = bank;
+        if (!address.isFullyDefined())
+        {
+            address = new MidiAddress(address.getProgramChange(),
+                    (address.getBankMSB() == -1) ? this.bank.getDefaultBankSelectMSB() : address.getBankMSB(),
+                    (address.getBankLSB() == -1) ? this.bank.getDefaultBankSelectLSB() : address.getBankLSB(),
+                    (address.getBankSelectMethod() == null) ? this.bank.getDefaultBankSelectMethod() : address.getBankSelectMethod()
+            );
+        }
     }
 
     /**
-     * The optional DrumKit associated to this instrument.
+     * True is this instrument represents a DrumKit (each note is a different percussion sound).
      *
-     * @return Null if instrument is not a drums/percussion kit
+     * @return
+     */
+    public boolean isDrumKit()
+    {
+        return getDrumKit() != null;
+    }
+
+    /**
+     * An optional DrumKit associated to this instrument.
+     *
+     * @return Can be null.
      */
     public DrumKit getDrumKit()
     {
         return drumKit;
+    }
+
+    /**
+     * An optional GM1Instrument that can be used as a GM1 replacement instrument.
+     *
+     * @return Can be null if not defined, or for drums instruments.
+     */
+    public GM1Instrument getSubstitute()
+    {
+        return this.substitute;
     }
 
     /**
@@ -188,51 +207,15 @@ public class Instrument implements Serializable
         return patchName;
     }
 
-    public int getProgramChange()
-    {
-        return programChange;
-    }
-
     /**
-     * Get the BankSelect Most Significant Byte to access this instrument.
+     * Get the MidiAddress for this instrument.
      * <p>
- If a specific bankSelectMSB was set for this instrument, return it. Otherwise return getBank().getDefaultBankSelectMSB(). If no
- bank set for this instrument return -1.
      *
      * @return
      */
-    public int getBankSelectMSB()
+    public MidiAddress getMidiAddress()
     {
-        int r = -1;
-        if (bankSelectMSB > 0)
-        {
-            r = bankSelectMSB;
-        } else if (bank != null)
-        {
-            r = bank.getDefaultBankSelectMSB();
-        }
-        return r;
-    }
-
-    /**
-     * Get the BankSelect Least Significant Byte to access this instrument.
-     * <p>
- If a specific bankSelectMSB was set for this instrument, return it. Otherwise return getBank().getDefaultBankSelectMSB(). If no
- bank set for this instrument return -1.
-     *
-     * @return
-     */
-    public int getBankSelectLSB()
-    {
-        int r = -1;
-        if (bankSelectLSB > 0)
-        {
-            r = bankSelectLSB;
-        } else if (bank != null)
-        {
-            r = bank.getDefaultBankSelectLSB();
-        }
-        return r;
+        return address;
     }
 
     /**
@@ -248,24 +231,9 @@ public class Instrument implements Serializable
     }
 
     /**
-     * If a non-null bankSelectMethod was set for this instrument, return it. Otherwise return getBank().getBankSelectMethod(). If
-     * no bank set, return null.
      *
-     * @return
+     * @return Same as getPatchName()
      */
-    public BankSelectMethod getBankSelectMethod()
-    {
-        BankSelectMethod r = null;
-        if (bankSelectMethod != null)
-        {
-            r = bankSelectMethod;
-        } else if (bank != null)
-        {
-            r = bank.getBankSelectMethod();
-        }
-        return r;
-    }
-
     @Override
     public String toString()
     {
@@ -273,10 +241,22 @@ public class Instrument implements Serializable
     }
 
     /**
+     *
+     * @return "patchname-bank" (if bank is non null)
+     */
+    public String toLongString()
+    {
+        return patchName + ((bank != null) ? "-" + bank.getName() : "");
+    }
+
+    /**
      * Save this Instrument as a string so that it can be retrieved by loadFromString() if the MidiSynth and the related Bank
      * exists on the system which performs loadFromString().
+     * <p>
+     * The instrument must have a bank defined.
      *
      * @return A string "MidiSynthName, BankName, PatchName"
+     * @throws IllegalStateException If instrument does not have an InstrumentBank defined.
      */
     public String saveAsString()
     {
@@ -284,6 +264,10 @@ public class Instrument implements Serializable
         {
             this, getBank().getName(), getBank().getMidiSynth().getName()
         });
+        if (getBank() == null)
+        {
+            throw new IllegalStateException("Can't use this method if bank is not defined. this=" + this);
+        }
         return getBank().getMidiSynth().getName() + ", " + getBank().getName() + ", " + getPatchName();
     }
 

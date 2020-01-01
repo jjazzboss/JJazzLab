@@ -27,15 +27,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A MidiSynth provides information to select via Midi a synthesizer sounds.
+ * A MidiSynth provides information how to select via Midi a synthesizer sounds.
  * <p>
  */
 public class MidiSynth
 {
+
     private File file;
     ArrayList<InstrumentBank<?>> banks = new ArrayList<>();
     private String name;
     private String manufacturer;
+    private boolean isGM, isGS, isGM2, isXG;
 
     public MidiSynth(String name, String manufacturer)
     {
@@ -87,6 +89,78 @@ public class MidiSynth
     }
 
     /**
+     * Make athe isXX() methods usable.
+     */
+    public void scanForStandardSupport()
+    {
+        for (InstrumentBank<?> bank : banks)
+        {
+            if (bank == StdSynth.getInstance().getGM1Bank())
+            {
+                isGM=true;
+            } else if (bank == StdSynth.getInstance().getGM2Bank())
+            {
+                isGM2=true;
+            } else if (bank == StdSynth.getInstance().getXGBank())
+            {
+                isXG=true;
+            } 
+            for (Instrument ins : bank.getInstruments())
+            {
+                
+            }
+        }
+    }
+
+    /**
+     * True if the MidiSynth is compatible with GM.
+     * <p>
+     * The method must be called after scanForStandardSupport() has been called once.
+     *
+     * @return
+     */
+    public boolean isGM()
+    {
+        return isGM;
+    }
+
+    /**
+     * True if the MidiSynth is compatible with GS.
+     * <p>
+     * The method must be called after scanForStandardSupport() has been called once.
+     *
+     * @return
+     */
+    public boolean isGS()
+    {
+        return isGS;
+    }
+
+    /**
+     * True if the MidiSynth is compatible with GM2.
+     * <p>
+     * The method must be called after scanForStandardSupport() has been called once.
+     *
+     * @return
+     */
+    public boolean isGM2()
+    {
+        return isGM2;
+    }
+
+    /**
+     * True if the MidiSynth is compatible with XG.
+     * <p>
+     * The method must be called after scanForStandardSupport() has been called once.
+     *
+     * @return
+     */
+    public boolean isXG()
+    {
+        return isXG;
+    }
+
+    /**
      * Find instruments in this object's banks which match the given string (ignoring case).
      *
      * @param text
@@ -103,6 +177,7 @@ public class MidiSynth
     }
 
     /**
+     * Find an instrument with the specified patchName.
      *
      * @param patchName
      * @return Null if instrument not found in the MidiSynth banks.
@@ -118,6 +193,50 @@ public class MidiSynth
             }
         }
         return null;
+    }
+
+    /**
+     * Find an instrument with the specified address.
+     *
+     * @param address
+     * @return Null if instrument not found in the MidiSynth banks.
+     */
+    public Instrument getInstrument(MidiAddress address)
+    {
+        for (InstrumentBank<?> bank : banks)
+        {
+            Instrument ins = bank.getInstrument(address);
+            if (ins != null)
+            {
+                return ins;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get the percentage of MidiAddresses from the specified bank which match an instrument in this MidiSynth.
+     *
+     * @param bank
+     * @return A value between 0 and 1.
+     */
+    public float getMidiAddressMatchingCoverage(InstrumentBank<?> bank)
+    {
+        if (bank == null)
+        {
+            throw new NullPointerException("bank");
+        }
+        float count = 0;
+        int nbInstruments = 0;
+        for (Instrument ins : bank.getInstruments())
+        {
+            if (getInstrument(ins.getMidiAddress()) != null)
+            {
+                count++;
+            }
+            nbInstruments++;
+        }
+        return (nbInstruments == 0) ? 0 : count / nbInstruments;
     }
 
     /**

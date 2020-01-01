@@ -28,23 +28,24 @@ import java.util.List;
 import org.jjazz.midi.DrumKit;
 
 /**
- * The Yamaha XG Drum Map.
+ * The Yamaha XG standard Drum Map.
+ * 
  */
-public class KeyMapXG implements DrumKit.KeyMap
+public class KeyMapXG_Std implements DrumKit.KeyMap
 {
-    public static final String NAME = "XG";
-    private static KeyMapXG INSTANCE;
+    public static final String NAME = "XG Standard";
+    private static KeyMapXG_Std INSTANCE;
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
     private ArrayList<Integer> accentPitches = new ArrayList<>();
 
-    public static KeyMapXG getInstance()
+    public static KeyMapXG_Std getInstance()
     {
-        synchronized (KeyMapXG.class)
+        synchronized (KeyMapXG_Std.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new KeyMapXG();
+                INSTANCE = new KeyMapXG_Std();
             }
         }
         return INSTANCE;
@@ -56,7 +57,7 @@ public class KeyMapXG implements DrumKit.KeyMap
         return KeyMapGM.getInstance();
     }
 
-    private KeyMapXG()
+    private KeyMapXG_Std()
     {
         addNote("Surdo Mute", 13, false);
         addNote("Surdo Open", 14, false);

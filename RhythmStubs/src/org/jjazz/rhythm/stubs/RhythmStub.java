@@ -31,7 +31,7 @@ import org.jjazz.harmony.TimeSignature;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.DrumKit.Type;
 import org.jjazz.midi.GM1Bank;
-import org.jjazz.midi.GMSynth;
+import org.jjazz.midi.StdSynth;
 import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -84,7 +84,7 @@ public class RhythmStub implements Rhythm
         rhythmParameters.add(new RP_STD_Variation());
 
         // Rhythm voices
-        GM1Bank gmb = GMSynth.getInstance().getGM1Bank();
+        GM1Bank gmb = StdSynth.getInstance().getGM1Bank();
         rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RvType.Drums, "Drums"));
         rhythmVoices.add(new RhythmVoice(this, RvType.Bass, "Bass", gmb.getDefaultInstrument(GM1Bank.Family.Bass)));
 

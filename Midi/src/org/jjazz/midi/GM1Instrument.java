@@ -99,18 +99,20 @@ public class GM1Instrument extends Instrument implements Serializable
             {
                 throw new IllegalStateException("ins=" + ins);
             }
-            spProgChange = ins.getProgramChange();
+            spProgChange = ins.getMidiAddress().getProgramChange();
         }
 
         private Object readResolve() throws ObjectStreamException
         {
             Instrument ins;
             GM1Bank gm1Bank = GM1Bank.getInstance();
-            ins = gm1Bank.getInstrumentFromPC(spProgChange);
-            if (ins == null)
+            if (spProgChange < 0 || spProgChange > 127)
             {
                 LOGGER.log(Level.WARNING, "readResolve() Can''t find GM1 instrument with PC={0}. Replacing with default instrument.", spProgChange);
                 ins = gm1Bank.getInstrument(0);
+            } else
+            {
+                ins = gm1Bank.getInstrument(spProgChange);
             }
             return ins;
         }

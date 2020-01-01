@@ -26,7 +26,7 @@ import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JPanel;
 import org.jjazz.midi.GM1Bank;
-import org.jjazz.midi.GMSynth;
+import org.jjazz.midi.StdSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.musiccontrol.MusicController;
@@ -285,7 +285,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
 
     private void btn_test1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_test1ActionPerformed
     {//GEN-HEADEREND:event_btn_test1ActionPerformed
-        sendTestNotes(2, GMSynth.getInstance().getGM1Bank().getDefaultInstrument(GM1Bank.Family.Organ), 0);
+        sendTestNotes(2, StdSynth.getInstance().getGM1Bank().getDefaultInstrument(GM1Bank.Family.Organ), 0);
     }//GEN-LAST:event_btn_test1ActionPerformed
 
     private void btn_testDrumsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_testDrumsActionPerformed
@@ -295,12 +295,12 @@ public final class MidiWizardVisualPanel5 extends JPanel
 
     private void btn_test2ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_test2ActionPerformed
     {//GEN-HEADEREND:event_btn_test2ActionPerformed
-        sendTestNotes(11, GMSynth.getInstance().getGM1Bank().getDefaultInstrument(GM1Bank.Family.Reed), -12);
+        sendTestNotes(11, StdSynth.getInstance().getGM1Bank().getDefaultInstrument(GM1Bank.Family.Reed), -12);
     }//GEN-LAST:event_btn_test2ActionPerformed
 
     private void btn_testDrumsOtherChannelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_testDrumsOtherChannelActionPerformed
     {//GEN-HEADEREND:event_btn_testDrumsOtherChannelActionPerformed
-        sendTestNotes(2, GMSynth.getInstance().getGM2Bank().getDefaultDrumsInstrument(), -12);
+        sendTestNotes(2, StdSynth.getInstance().getGM2Bank().getDefaultDrumsInstrument(), -12);
     }//GEN-LAST:event_btn_testDrumsOtherChannelActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

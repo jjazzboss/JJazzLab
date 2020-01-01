@@ -36,7 +36,7 @@ import javax.swing.JComponent;
 import org.jjazz.defaultinstruments.DefaultInstruments;
 import org.jjazz.defaultinstruments.JJazzSynth;
 import org.jjazz.helpers.midiwizard.MidiWizardSettings.SoundDevice;
-import org.jjazz.midi.GMSynth;
+import org.jjazz.midi.StdSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.rhythm.api.RvType;
@@ -120,7 +120,7 @@ public final class MidiWizardAction implements ActionListener, Runnable
             Instrument ins = JJazzSynth.getInstance().getNotSetBank().getVoidInstrument();
             if (gm2DrumsSupport)
             {
-                ins = GMSynth.getInstance().getGM2Bank().getDefaultDrumsInstrument();
+                ins = StdSynth.getInstance().getGM2Bank().getDefaultDrumsInstrument();
             }
             DefaultInstruments di = DefaultInstruments.getInstance();
             di.setInstrument(RvType.Drums, ins);

@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.synthmanager.spi;
+package org.jjazz.midi.spi;
 
 import java.io.File;
 import java.io.IOException;

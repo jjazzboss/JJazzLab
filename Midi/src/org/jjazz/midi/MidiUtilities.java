@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.*;
 import org.jjazz.harmony.Note;
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.midi.InstrumentBank.BankSelectMethod;
+import org.jjazz.midi.MidiAddress.BankSelectMethod;
 import org.jjazz.util.Utilities;
 import org.openide.util.Exceptions;
 
@@ -212,43 +212,45 @@ public class MidiUtilities
     static public ShortMessage[] getPatchMessages(int channel, Instrument ins)
     {
         ShortMessage[] sms = null;
-        BankSelectMethod bsm = ins.getBankSelectMethod();
-        int bankMSB = ins.getBankSelectMSB();
-        int bankLSB = ins.getBankSelectLSB();
+        BankSelectMethod bsm = ins.getMidiAddress().getBankSelectMethod();
+        int bankMSB = ins.getMidiAddress().getBankMSB();
+        int bankLSB = ins.getMidiAddress().getBankLSB();
         if (bsm == null || bankMSB < 0 || bankLSB < 0)
         {
             throw new IllegalArgumentException(
                     "bsm=" + bsm + " bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " channel=" + channel + " ins=" + ins + " ins.bank=" + ins.
                             getBank());
         }
-        if (bsm == InstrumentBank.BankSelectMethod.MSB_LSB)
+        switch (bsm)
         {
-            sms = new ShortMessage[3];
-            // Bank Select MSB
-            sms[0] = buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_BANK_SELECT_MSB, bankMSB);
-            // Bank Select LSB
-            sms[1] = buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_BANK_SELECT_LSB, bankLSB);
-            // Program Change
-            sms[2] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, ins.getProgramChange(), 0);
-        } else if (bsm == InstrumentBank.BankSelectMethod.MSB_ONLY)
-        {
-            sms = new ShortMessage[2];
-            // Bank Select MSB
-            sms[0] = buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_BANK_SELECT_MSB, bankMSB);
-            // Program Change
-            sms[1] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, ins.getProgramChange(), 0);
-        } else if (bsm == InstrumentBank.BankSelectMethod.LSB_ONLY)
-        {
-            sms = new ShortMessage[2];
-            // Bank Select LSB
-            sms[0] = buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_BANK_SELECT_LSB, bankLSB);
-            // Program Change
-            sms[1] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, ins.getProgramChange(), 0);
-        } else
-        {
-            // PC_ONLY
-            sms = new ShortMessage[1];
-            sms[0] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, ins.getProgramChange(), 0);
+            case MSB_LSB:
+                sms = new ShortMessage[3];
+                // Bank Select MSB
+                sms[0] = buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_BANK_SELECT_MSB, bankMSB);
+                // Bank Select LSB
+                sms[1] = buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_BANK_SELECT_LSB, bankLSB);
+                // Program Change
+                sms[2] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, ins.getMidiAddress().getProgramChange(), 0);
+                break;
+            case MSB_ONLY:
+                sms = new ShortMessage[2];
+                // Bank Select MSB
+                sms[0] = buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_BANK_SELECT_MSB, bankMSB);
+                // Program Change
+                sms[1] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, ins.getMidiAddress().getProgramChange(), 0);
+                break;
+            case LSB_ONLY:
+                sms = new ShortMessage[2];
+                // Bank Select LSB
+                sms[0] = buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_BANK_SELECT_LSB, bankLSB);
+                // Program Change
+                sms[1] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, ins.getMidiAddress().getProgramChange(), 0);
+                break;
+            default:
+                // PC_ONLY
+                sms = new ShortMessage[1];
+                sms[0] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, ins.getMidiAddress().getProgramChange(), 0);
+                break;
         }
         LOGGER.log(Level.FINE, "getPatchMessages() chan={0} ins={1} bsm={2}", new Object[]
         {

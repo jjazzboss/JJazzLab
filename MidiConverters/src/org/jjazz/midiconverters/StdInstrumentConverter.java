@@ -24,6 +24,7 @@
 package org.jjazz.midiconverters;
 
 import org.jjazz.midi.Instrument;
+import org.jjazz.midi.MidiAddress;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midiconverters.spi.InstrumentConverter;
 
@@ -32,7 +33,6 @@ import org.jjazz.midiconverters.spi.InstrumentConverter;
  */
 public class StdInstrumentConverter implements InstrumentConverter
 {
-
     @Override
     public String getConverterId()
     {
@@ -42,7 +42,7 @@ public class StdInstrumentConverter implements InstrumentConverter
     @Override
     public Instrument convertInstrument(Instrument srcIns, MidiSynth destSynth)
     {
-
+        MidiAddress adr = srcIns.getMidiAddress();                        
     }
 
     // =====================================================================================

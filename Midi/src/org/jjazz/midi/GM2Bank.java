@@ -23,11 +23,11 @@
 package org.jjazz.midi;
 
 import java.util.logging.*;
+import org.jjazz.midi.MidiAddress.BankSelectMethod;
 import org.jjazz.midi.keymap.KeyMapGSGM2;
 
-
 /**
- * General Midi 2 bank. Instance should be obtained from the GMSynth.
+ * General Midi 2 bank. Instance should be obtained from the StdSynth.
  */
 public class GM2Bank extends AbstractInstrumentBank<Instrument>
 {
@@ -339,9 +339,11 @@ public class GM2Bank extends AbstractInstrumentBank<Instrument>
      *
      * @return
      */
-    private static Instrument createInstrument(int lsb, int msb, int pc, String name)
+    private static Instrument createInstrument(int pc, int msb, int lsb, String name)
     {
-        return new Instrument(pc, name, null, lsb, msb, DEFAULT_BANK_SELECT_METHOD, null);
+        GM1Instrument gmIns = StdSynth.getInstance().getGM1Bank().getInstrument(pc); // GM2's PC is directly compatible with GM1
+        Instrument ins = new Instrument(name, null, new MidiAddress(pc, msb, lsb, DEFAULT_BANK_SELECT_METHOD), null, gmIns);
+        return ins;
     }
 
     /**
@@ -349,8 +351,8 @@ public class GM2Bank extends AbstractInstrumentBank<Instrument>
      *
      * @return
      */
-    private static Instrument createDrumsInstrument(DrumKit.Type t, DrumKit.KeyMap map, int lsb, int msb, int pc, String name)
+    private static Instrument createDrumsInstrument(DrumKit.Type t, DrumKit.KeyMap map, int pc, int msb, int lsb, String name)
     {
-        return new Instrument(pc, name, null, lsb, msb, DEFAULT_BANK_SELECT_METHOD, new DrumKit(t, map));
+        return new Instrument(name, null, new MidiAddress(pc, msb, lsb, DEFAULT_BANK_SELECT_METHOD), new DrumKit(t, map), null);
     }
 }

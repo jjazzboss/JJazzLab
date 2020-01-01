@@ -45,7 +45,7 @@ import static org.jjazz.instrumentsoptions.Bundle.CTL_BuiltinSynth;
 import static org.jjazz.instrumentsoptions.Bundle.ERR_BankNotGM1;
 import static org.jjazz.instrumentsoptions.Bundle.ERR_NotSupportedExtension;
 import org.jjazz.midi.GM1Bank;
-import org.jjazz.midi.GMSynth;
+import org.jjazz.midi.StdSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
@@ -307,7 +307,7 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
         InstrumentBank<?> gmBank = MidiSynthManager.getInstance().getGM1DelegateBank();
         if (gmBank == null)
         {
-            gmBank = GMSynth.getInstance().getGM1Bank();
+            gmBank = StdSynth.getInstance().getGM1Bank();
         }
         btn_SetAsGM1Bank.setEnabled(bank != null && bank != gmBank);
 
@@ -383,7 +383,7 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
             List<MidiSynth> synths = null;
             try
             {
-                synths = p.getSynthsFromFile(f);
+                synths = p.getSynthsFromStream(f);
             } catch (IOException ex)
             {
                 String msg = "Problem reading file : " + ex.getLocalizedMessage();
@@ -411,7 +411,7 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
             // Should not happen if button is correctly enabled
             return;
         }
-        if (bank == GMSynth.getInstance().getGM1Bank())
+        if (bank == StdSynth.getInstance().getGM1Bank())
         {
             // Easy, no need of delegate since we want to use the standard GM1Bank
             MidiSynthManager.getInstance().setGM1DelegateBank(null, null);
@@ -456,7 +456,7 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
         if (bank == null)
         {
             // It means we use the standard GM1 Bank
-            bank = GMSynth.getInstance().getGM1Bank();
+            bank = StdSynth.getInstance().getGM1Bank();
         }
         String s = bank.getMidiSynth().getName() + ":" + bank.getName();
         txt_CurrentGM1Bank.setText(s);
@@ -521,7 +521,7 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
             Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             InstrumentBank<?> bank = (InstrumentBank<?>) value;
             setText(bank.getName() + " (" + bank.getSize() + ")");
-            setToolTipText("Bank select method: " + bank.getBankSelectMethod().toString());
+            setToolTipText("Bank select method: " + bank.getDefaultBankSelectMethod().toString());
             return c;
         }
     }

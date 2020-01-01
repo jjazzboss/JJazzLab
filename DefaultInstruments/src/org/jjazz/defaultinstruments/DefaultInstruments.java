@@ -29,7 +29,7 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midiconverters.DrumKit;
 import org.jjazz.midi.GM1Bank;
 import org.jjazz.midi.GM2Bank;
-import org.jjazz.midi.GMSynth;
+import org.jjazz.midi.StdSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.rhythm.api.RvType;
 import org.openide.util.NbPreferences;
@@ -269,8 +269,8 @@ public class DefaultInstruments
      */
     static public Instrument getBuiltinDefaultInstrument(RvType t)
     {
-        GM1Bank gm1bBank = GMSynth.getInstance().getGM1Bank();
-        GM2Bank gm2Bank = GMSynth.getInstance().getGM2Bank();
+        GM1Bank gm1bBank = StdSynth.getInstance().getGM1Bank();
+        GM2Bank gm2Bank = StdSynth.getInstance().getGM2Bank();
         Instrument ins;
         switch (t)
         {

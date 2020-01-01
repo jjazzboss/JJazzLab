@@ -24,11 +24,12 @@ package org.jjazz.midi;
 
 import java.util.List;
 import java.util.logging.*;
+import org.jjazz.midi.MidiAddress.BankSelectMethod;
 
 /**
  * General Midi 1 bank.
  * <p>
- * Instance should be obtained from the GMSynth.
+ * Instance should be obtained from the StdSynth.
  */
 public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
 {
@@ -312,7 +313,7 @@ public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
 
     public void setBankSelectMethod(BankSelectMethod m)
     {
-        bsm = m;
+        defaultBsm = m;
     }
 
     public void setBankSelectLsb(int lsb)
@@ -321,7 +322,7 @@ public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
         {
             throw new IllegalArgumentException("lsb=" + lsb);
         }
-        this.lsb = lsb;
+        this.defaultLsb = lsb;
     }
 
     public void setBankSelectMsb(int msb)
@@ -330,7 +331,7 @@ public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
         {
             throw new IllegalArgumentException("msb=" + msb);
         }
-        this.msb = msb;
+        this.defaultMsb = msb;
     }
 
     /**

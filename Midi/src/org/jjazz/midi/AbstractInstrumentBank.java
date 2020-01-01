@@ -25,6 +25,7 @@ package org.jjazz.midi;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jjazz.midi.MidiAddress.BankSelectMethod;
 
 /**
  * A base class for your InstrumentBanks.
@@ -34,10 +35,10 @@ import java.util.logging.Logger;
 public class AbstractInstrumentBank<T extends Instrument> implements InstrumentBank<T>
 {
 
-    protected ArrayList<T> instruments;
-    protected int lsb, msb;
+    protected ArrayList<T> instruments = new ArrayList<>();
+    protected int defaultLsb, defaultMsb;
+    protected BankSelectMethod defaultBsm;
     private MidiSynth synth;
-    protected BankSelectMethod bsm;
     protected String name;
     private static final Logger LOGGER = Logger.getLogger(AbstractInstrumentBank.class.getSimpleName());
 
@@ -45,6 +46,9 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
      * Create an empty bank with BankSelectMethod.MSB_LSB.
      *
      * @param name
+     * @param synth
+     * @param msb
+     * @param lsb
      */
     public AbstractInstrumentBank(String name, MidiSynth synth, int msb, int lsb)
     {
@@ -55,22 +59,21 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
      *
      * @param name
      * @param synth The container for this bank. Can be null.
-     * @param msb   The default Most Significant Byte or "Control 0"
+     * @param msb   The default Most Significant Byte or "Control 0".
      * @param lsb   The default Least Significant Byte or "Control 32"
-     * @param m
+     * @param m     The default bank select method. Can't be null.
      */
     public AbstractInstrumentBank(String name, MidiSynth synth, int msb, int lsb, BankSelectMethod m)
     {
-        if (name == null || name.trim().isEmpty() || msb < 0 || msb > 127 || lsb < 0 || lsb > 127)
+        if (name == null || name.trim().isEmpty() || msb < 0 || msb > 127 || lsb < 0 || lsb > 127 || m == null)
         {
-            throw new IllegalArgumentException("name=" + name + " synth=" + synth + " msb=" + msb + " lsb=" + lsb);
+            throw new IllegalArgumentException("name=" + name + " synth=" + synth + " msb=" + msb + " lsb=" + lsb + " m=" + m);
         }
-        instruments = new ArrayList<>();
         this.synth = synth;
-        this.lsb = lsb;
-        this.msb = msb;
+        this.defaultLsb = lsb;
+        this.defaultMsb = msb;
         this.name = name;
-        bsm = m;
+        defaultBsm = m;
     }
 
     /**
@@ -106,21 +109,21 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
      * @return
      */
     @Override
-    public BankSelectMethod getBankSelectMethod()
+    public BankSelectMethod getDefaultBankSelectMethod()
     {
-        return bsm;
+        return defaultBsm;
     }
 
     @Override
     public int getDefaultBankSelectMSB()
     {
-        return msb;
+        return defaultMsb;
     }
 
     @Override
     public int getDefaultBankSelectLSB()
     {
-        return lsb;
+        return defaultLsb;
     }
 
     /**
@@ -245,6 +248,21 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
     }
 
     @Override
+    public T getInstrument(MidiAddress address)
+    {
+        T res = null;
+        for (T ins : instruments)
+        {
+            if (ins.getMidiAddress().equals(address))
+            {
+                res = ins;
+                break;
+            }
+        }
+        return res;
+    }
+
+    @Override
     public T getInstrument(int index)
     {
         if (index < 0 || index > instruments.size() - 1)
@@ -255,29 +273,12 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
     }
 
     @Override
-    public T getInstrumentFromPC(int progChange)
-    {
-        if (progChange < 0 || progChange > 127)
-        {
-            throw new IllegalArgumentException("progChange=" + progChange);
-        }
-        for (T i : instruments)
-        {
-            if (i.getProgramChange() == progChange)
-            {
-                return i;
-            }
-        }
-        return null;
-    }
-
-    @Override
     public List<T> getDrumsInstruments()
     {
         ArrayList<T> res = new ArrayList<>();
         for (T ins : instruments)
         {
-            if (ins.getDrumKit() != null)
+            if (ins.isDrumKit())
             {
                 res.add(ins);
             }
@@ -314,5 +315,4 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
     {
         return "InstrumentBank=" + getName() + "[" + instruments.size() + "]";
     }
-
 }

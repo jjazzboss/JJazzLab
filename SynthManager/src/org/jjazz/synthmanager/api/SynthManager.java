@@ -27,6 +27,8 @@ import org.jjazz.midi.InstrumentBank;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,25 +38,28 @@ import java.util.prefs.Preferences;
 import org.jjazz.defaultinstruments.JJazzSynth;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midi.GM1Bank;
-import org.jjazz.midi.GMSynth;
+import org.jjazz.midi.StdSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.util.Utilities;
+import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * A class to maintain the list of usable MidiSynths for the application, which includes the ConnectedSynth, i.e. the synth
- * actually connected to the output of JJazzLab via Midi.
+ * A class to maintain the available MidiSynths for the application.
  * <p>
- * By default the usable synths contain the GMSynth and all the builtin synths of the MidiSynthProvider instances found in the
- * global lookup. User can add MidiSynths. The list of user added synths is saved as properties.
+ * The list includes:<br>
+ - All the synths from the MidiSynthProviders instances found in the global lookup.
+ By default the usable synths contain the StdSynth and all the synths of the MidiSynthProvider instances found in
+ the global lookup. User can add MidiSynths. The list of user added synths is saved as properties.
  */
 public class SynthManager
 {
 
     public static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
-    public static final String MIDISYNTH_FILES_RESOURCE_ZIP = "/resources/MidiSynthFiles.zip";
+    public static final String MIDISYNTH_FILES_RESOURCE_ZIP = "resources/MidiSynthFiles.zip";
+    private final static String SGM_SOUNDFONT_INS = "resources/SGM-v2.01.ins";
 
     /**
      * If user synth is added, oldValue=null, newValue=synth, if synth is removed it is the opposite.
@@ -98,10 +103,35 @@ public class SynthManager
     {
         builtinSynths = new ArrayList<>();
         userSynths = new ArrayList<>();
-        builtinSynths.add(GMSynth.getInstance());
+        builtinSynths.add(StdSynth.getInstance());
         builtinSynths.add(JJazzSynth.getInstance());
 
-        for (MidiSynthProvider p : MidiSynthProvider.Utilities.getProviders())
+        // We have a builtin Synth which is read from a resource file
+        MidiSynthProvider msp = getProvider(CakewalkInsFileSynthProvider.NAME);
+        if (msp == null)
+        {
+            LOGGER.warning("SynthManager() Can't locate MidiSynthProvider with name " + CakewalkInsFileSynthProvider.NAME);
+        } else
+        {
+            InputStream is = getClass().getResourceAsStream(SGM_SOUNDFONT_INS);
+            if (is != null)
+            {
+                try
+                {
+                    List<MidiSynth> synths = msp.getSynthsFromStream(is, null);
+                    builtinSynths.addAll(synths);
+                } catch (IOException ex)
+                {
+                    LOGGER.warning("CakewalkInsFileSynthProvider() error reading resource " + SGM_SOUNDFONT_INS + ". ex= " + ex.getLocalizedMessage());
+                }
+            } else
+            {
+                LOGGER.warning("CakewalkInsFileSynthProvider() can't load resource " + SGM_SOUNDFONT_INS);
+            }
+        }
+
+        // Scan all MidiSynthProviders
+        for (MidiSynthProvider p : getProviders())
         {
             for (MidiSynth synth : p.getBuiltinMidiSynths())
             {
@@ -241,6 +271,43 @@ public class SynthManager
     }
 
     /**
+     * Search a MidiSynthProvider instance with specified name in the global lookup.
+     *
+     * @param providerName
+     * @return
+     */
+    public MidiSynthProvider getProvider(String providerName)
+    {
+        if (providerName == null)
+        {
+            throw new NullPointerException("providerName");
+        }
+        for (MidiSynthProvider p : getProviders())
+        {
+            if (p.getId().equals(providerName))
+            {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get all the MidiSynthProvider instances in the global lookup.
+     *
+     * @return
+     */
+    public List<MidiSynthProvider> getProviders()
+    {
+        ArrayList<MidiSynthProvider> providers = new ArrayList<>();
+        for (MidiSynthProvider p : Lookup.getDefault().lookupAll(MidiSynthProvider.class))
+        {
+            providers.add(p);
+        }
+        return providers;
+    }
+
+    /**
      * Set the InstrumentBank delegate of the default JJazz GM1Bank.
      * <p>
      * Practically keep using the GM1Bank but reuse the LSB/MSB/BANK_SELECT_METHOD of the specified bank.
@@ -250,7 +317,7 @@ public class SynthManager
      */
     public void setGM1DelegateBank(MidiSynthProvider provider, InstrumentBank<?> bank)
     {
-        if ((provider == null && bank != null) || bank == GMSynth.getInstance().getGM1Bank())
+        if ((provider == null && bank != null) || bank == StdSynth.getInstance().getGM1Bank())
         {
             throw new IllegalArgumentException("provider=" + provider + " bank=" + bank);
         }
@@ -258,7 +325,7 @@ public class SynthManager
         updateGM1Bank(bank);
         // Update the property
         InstrumentBank<?> old = getGM1DelegateBank();
-        String s = (bank == null) ? "NOT_SET" : provider.saveSynthAsString(bank.getMidiSynth()) + "##bankName=" + bank.getName();
+        String s = (bank == null) ? "NOT_SET" : saveSynthAsString(bank.getMidiSynth()) + "##bankName=" + bank.getName();
         prefs.put(PROP_GM1_DELEGATE_BANK, s);
         pcs.firePropertyChange(PROP_GM1_DELEGATE_BANK, old, bank);
     }
@@ -286,9 +353,9 @@ public class SynthManager
         String bankName = strs[1].trim();
         MidiSynth synth = null;
         // Try all the MidiSynthProviders until one can reuse the property string
-        for (MidiSynthProvider p : MidiSynthProvider.Utilities.getProviders())
+        for (MidiSynthProvider p : getProviders())
         {
-            synth = p.getSynthFromString(synthStringSave);
+            synth = getSynthFromString(synthStringSave);
             if (synth != null)
             {
                 break;
@@ -309,6 +376,85 @@ public class SynthManager
         return bank;
     }
 
+    /**
+     * Save a synth as a string.
+     * <p>
+     * See also getSynthFromString().
+     *
+     * @param synth
+     * @return
+     */
+    public String saveSynthAsString(MidiSynth synth)
+    {
+        if (synth == null)
+        {
+            throw new IllegalArgumentException("synth=" + synth);
+        }
+        MidiSynthProvider msp = this.getProvider(synth);
+        if (msp == null)
+        {
+            // It must be a builtin synth
+        }
+        String fileString = synth.getFile() == null ? "*NOFILE*" : synth.getFile().getAbsolutePath();
+        return getId() + ", " + synth.getName() + ", " + fileString;
+    }
+
+    /**
+     * Get a synth from a string.
+     * <p>
+     * See also saveSynthAsString()
+     *
+     * @param str
+     * @return Can be null.
+     */
+    public MidiSynth getSynthFromString(String str)
+    {
+        String[] strs = str.split(" *, *");
+        if (strs.length != 3 || !strs[0].trim().equals(getId()))
+        {
+            return null;
+        }
+        MidiSynth synth = null;
+        String synthName = strs[1].trim();
+        String fileName = strs[2].trim();
+        if (fileName.equals("*NOFILE*"))
+        {
+            // It's a defaultSynth
+            for (MidiSynth synthi : builtinSynths)
+            {
+                if (synthName.equals(synthi.getName()))
+                {
+                    synth = synthi;
+                    break;
+                }
+            }
+        } else
+        {
+            // It's a file synth
+            File f = new File(fileName);
+
+            // Get all the MidiSynth from that file
+            List<MidiSynth> synths = null;
+            try
+            {
+                synths = getSynthsFromStream(f);
+            } catch (IOException ex)
+            {
+                LOGGER.warning("getSynthFromString() error reading file: " + ex.getLocalizedMessage());
+                return null;
+            }
+            for (MidiSynth synthi : synths)
+            {
+                if (synthName.equals(synthi.getName()))
+                {
+                    synth = synthi;
+                    break;
+                }
+            }
+        }
+        return synth;
+    }
+
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
@@ -326,10 +472,10 @@ public class SynthManager
      */
     private void updateGM1Bank(InstrumentBank<?> bank)
     {
-        GM1Bank gm1bank = GMSynth.getInstance().getGM1Bank();
+        GM1Bank gm1bank = StdSynth.getInstance().getGM1Bank();
         gm1bank.setBankSelectLsb(bank == null ? GM1Bank.DEFAULT_BANK_SELECT_LSB : bank.getDefaultBankSelectLSB());
         gm1bank.setBankSelectMsb(bank == null ? GM1Bank.DEFAULT_BANK_SELECT_MSB : bank.getDefaultBankSelectMSB());
-        gm1bank.setBankSelectMethod(bank == null ? GM1Bank.DEFAULT_BANK_SELECT_METHOD : bank.getBankSelectMethod());
+        gm1bank.setBankSelectMethod(bank == null ? GM1Bank.DEFAULT_BANK_SELECT_METHOD : bank.getDefaultBankSelectMethod());
     }
 
     private void restoreGM1BankDelegateFromProperties()
@@ -353,7 +499,7 @@ public class SynthManager
         for (MidiSynth synth : userSynths)
         {
             MidiSynthProvider provider = mapSynthProvider.get(synth);
-            prefs.put(PROP_USER_SYNTH + i, provider.saveSynthAsString(synth));
+            prefs.put(PROP_USER_SYNTH + i, saveSynthAsString(synth));
             i++;
         }
     }
@@ -361,7 +507,7 @@ public class SynthManager
     private void restoreUserSynthsFromProperties()
     {
         int nbSynths = prefs.getInt(PROP_NB_USER_SYNTHS, 0);
-        List<MidiSynthProvider> providers = MidiSynthProvider.Utilities.getProviders();
+        List<MidiSynthProvider> providers = getProviders();
         for (int i = 0; i < nbSynths; i++)
         {
             // Loop on each saved synth
