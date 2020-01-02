@@ -103,7 +103,7 @@ public class VoidInstrument extends Instrument implements Serializable
 
         private SerializationProxy(VoidInstrument ins)
         {
-            spProgChange = ins.getProgramChange();       // Just to save something but useless...
+            spProgChange = ins.getMidiAddress().getProgramChange();       // Just to save something but useless...
         }
 
         private Object readResolve() throws ObjectStreamException

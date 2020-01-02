@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiMessage;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
+import org.jjazz.midi.MidiAddress;
 import org.jjazz.rhythm.api.RvType;
 
 /**
@@ -128,47 +129,12 @@ public class Delegate2DefaultInstrument extends Instrument implements Serializab
      * @return
      */
     @Override
-    public int getProgramChange()
+    public MidiAddress getMidiAddress()
     {
         Instrument ins = getTargetDefaultInstrument();
-        return ins.getProgramChange();
+        return ins.getMidiAddress();
     }
 
-    /**
-     * Delegate to default instrument's method.
-     *
-     * @return
-     */
-    @Override
-    public int getBankSelectMSB()
-    {
-        Instrument ins = getTargetDefaultInstrument();
-        return ins.getBankSelectMSB();
-    }
-
-    /**
-     * Delegate to default instrument's method.
-     *
-     * @return
-     */
-    @Override
-    public int getBankSelectLSB()
-    {
-        Instrument ins = getTargetDefaultInstrument();
-        return ins.getBankSelectLSB();
-    }
-
-    /**
-     * Delegate to default instrument's method.
-     *
-     * @return
-     */
-    @Override
-    public InstrumentBank.BankSelectMethod getBankSelectMethod()
-    {
-        Instrument ins = getTargetDefaultInstrument();
-        return ins.getBankSelectMethod();
-    }
 
     /**
      * Delegate to target instrument's method.

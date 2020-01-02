@@ -42,7 +42,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.defaultinstruments.FavoriteInstruments;
-import org.jjazz.synthmanager.api.MidiSynthManager;
 import org.jjazz.instrumentchooser.api.InstrumentChooserDialog;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
@@ -143,10 +142,10 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
     {
         this.midiSynths.clear();
         this.midiSynths.addElement(favoriteSynth);
-        for (MidiSynth synth : MidiSynthManager.getInstance().getSynths())
-        {
-            this.midiSynths.addElement(synth);
-        }
+//        for (MidiSynth synth : MidiSynthManager.getInstance().getSynths())
+//        {
+//            this.midiSynths.addElement(synth);
+//        }
     }
 
     @Override
@@ -772,7 +771,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
                 setFont(newFont);
             }
             setText(ins.getPatchName());
-            setToolTipText("Synth:" + bank.getMidiSynth().getName() + ", Bank:" + bank.getName() + ", Program Change:" + ins.getProgramChange());
+            setToolTipText("Synth:" + bank.getMidiSynth().getName() + ", Bank:" + bank.getName() + ", Program Change:" + ins.getMidiAddress().getProgramChange());
             setForeground(getSynthColor(ins.getBank().getMidiSynth(), ins));
             return c;
         }

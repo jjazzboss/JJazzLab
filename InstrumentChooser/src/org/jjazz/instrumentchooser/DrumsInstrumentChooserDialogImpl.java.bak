@@ -41,9 +41,6 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.jjazz.instrumentchooser.api.DrumsInstrumentChooserDialog;
-import org.jjazz.midi.DrumKitType;
-import org.jjazz.synthmanager.api.MidiSynthManager;
-import org.jjazz.midi.DrumsInstrument;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.JJazzMidiSystem;
@@ -55,7 +52,7 @@ import org.jjazz.ui.utilities.HelpTextArea;
 import org.jjazz.util.Filter;
 import org.openide.*;
 import org.openide.windows.WindowManager;
-import org.jjazz.midi.DrumKitKeyMap;
+
 
 public class DrumsInstrumentChooserDialogImpl extends DrumsInstrumentChooserDialog implements ListSelectionListener
 {
@@ -194,15 +191,15 @@ public class DrumsInstrumentChooserDialogImpl extends DrumsInstrumentChooserDial
     @Override
     public void valueChanged(ListSelectionEvent e)
     {
-        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);
-        if (e.getValueIsAdjusting())
-        {
-            return;
-        }
-        if (e.getSource() == drumsInstrumentsTable.getSelectionModel())
-        {
-            selectedInstrument = drumsInstrumentsTable.getSelectedInstrument();                 // may be null            
-        }
+//        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);
+//        if (e.getValueIsAdjusting())
+//        {
+//            return;
+//        }
+//        if (e.getSource() == drumsInstrumentsTable.getSelectionModel())
+//        {
+//            selectedInstrument = drumsInstrumentsTable.getSelectedInstrument();                 // may be null            
+//        }
     }
 
     // ============================================================================================

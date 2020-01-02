@@ -25,7 +25,10 @@ package org.jjazz.outputsynth;
 
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import org.jjazz.midi.Instrument;
+import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.StdSynth;
 import org.openide.util.NbPreferences;
 
 /**
@@ -33,18 +36,18 @@ import org.openide.util.NbPreferences;
  */
 public class OutputSynth
 {
+
     private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
     private static final String MIDISYNTH_FILES_RESOURCE_ZIP = "resources/MidiSynthFiles.zip";
     private final static String SGM_SOUNDFONT_INS = "resources/SGM-v2.01.ins";
 
     /* Compatibility with the standards. */
-
+    private boolean isGM, isGM2, isGS, isXG;
     private MidiSynth synth;
 
     private static Preferences prefs = NbPreferences.forModule(OutputSynth.class);
     private static final Logger LOGGER = Logger.getLogger(OutputSynth.class.getSimpleName());
 
-  
     /**
      * @param isGM the isGM to set
      */
@@ -124,9 +127,38 @@ public class OutputSynth
     {
         return synth;
     }
-    
+
     // ========================================================================================
     // Private methods
     // ========================================================================================
-
+    /**
+     * Make athe isXX() methods usable.
+     */
+    private void scanForStandardSupport(MidiSynth synth)
+    {
+        isGM = false;
+        isGM2 = false;
+        isGS = false;
+        isXG = false;
+        for (InstrumentBank<?> bank : synth.getBanks())
+        {
+            if (bank == StdSynth.getInstance().getGM1Bank())
+            {
+                isGM = true;
+            } else if (bank == StdSynth.getInstance().getGM2Bank())
+            {
+                isGM2 = true;
+            } else if (bank == StdSynth.getInstance().getXGBank())
+            {
+                isXG = true;
+            } else if (bank == StdSynth.getInstance().getGSBank())
+            {
+                isGS = true;
+            }
+            for (Instrument ins : bank.getInstruments())
+            {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
 }

@@ -23,6 +23,7 @@
 package org.jjazz.midi;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.midi.MidiAddress.BankSelectMethod;
@@ -35,6 +36,7 @@ import org.jjazz.midi.MidiAddress.BankSelectMethod;
 public class AbstractInstrumentBank<T extends Instrument> implements InstrumentBank<T>
 {
 
+    protected HashMap<MidiAddress, T> mapAddressInstrument = new HashMap<>();
     protected ArrayList<T> instruments = new ArrayList<>();
     protected int defaultLsb, defaultMsb;
     protected BankSelectMethod defaultBsm;
@@ -144,6 +146,14 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
         {
             instrument.setBank(this);
             instruments.add(instrument);
+            Instrument ins = mapAddressInstrument.get(instrument.getMidiAddress());
+            if (ins != null)
+            {
+                throw new IllegalArgumentException("Instrument " + instrument + " conflicts with instrument already in the bank:" + ins);
+            } else
+            {
+                mapAddressInstrument.put(instrument.getMidiAddress(), instrument);
+            }
         }
     }
 
@@ -154,6 +164,7 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
             throw new IllegalArgumentException("instrument=" + instrument);
         }
         instruments.remove(instrument);
+        mapAddressInstrument.remove(instrument.getMidiAddress());
     }
 
     /**
@@ -162,6 +173,7 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
     protected void clear()
     {
         instruments.clear();
+        mapAddressInstrument.clear();
     }
 
     /**
@@ -249,17 +261,8 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
 
     @Override
     public T getInstrument(MidiAddress address)
-    {
-        T res = null;
-        for (T ins : instruments)
-        {
-            if (ins.getMidiAddress().equals(address))
-            {
-                res = ins;
-                break;
-            }
-        }
-        return res;
+    {      
+        return mapAddressInstrument.get(address);
     }
 
     @Override

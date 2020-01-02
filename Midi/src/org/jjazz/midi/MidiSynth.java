@@ -37,7 +37,6 @@ public class MidiSynth
     ArrayList<InstrumentBank<?>> banks = new ArrayList<>();
     private String name;
     private String manufacturer;
-    private boolean isGM, isGS, isGM2, isXG;
 
     public MidiSynth(String name, String manufacturer)
     {
@@ -86,78 +85,6 @@ public class MidiSynth
             }
         }
         return null;
-    }
-
-    /**
-     * Make athe isXX() methods usable.
-     */
-    public void scanForStandardSupport()
-    {
-        for (InstrumentBank<?> bank : banks)
-        {
-            if (bank == StdSynth.getInstance().getGM1Bank())
-            {
-                isGM=true;
-            } else if (bank == StdSynth.getInstance().getGM2Bank())
-            {
-                isGM2=true;
-            } else if (bank == StdSynth.getInstance().getXGBank())
-            {
-                isXG=true;
-            } 
-            for (Instrument ins : bank.getInstruments())
-            {
-                
-            }
-        }
-    }
-
-    /**
-     * True if the MidiSynth is compatible with GM.
-     * <p>
-     * The method must be called after scanForStandardSupport() has been called once.
-     *
-     * @return
-     */
-    public boolean isGM()
-    {
-        return isGM;
-    }
-
-    /**
-     * True if the MidiSynth is compatible with GS.
-     * <p>
-     * The method must be called after scanForStandardSupport() has been called once.
-     *
-     * @return
-     */
-    public boolean isGS()
-    {
-        return isGS;
-    }
-
-    /**
-     * True if the MidiSynth is compatible with GM2.
-     * <p>
-     * The method must be called after scanForStandardSupport() has been called once.
-     *
-     * @return
-     */
-    public boolean isGM2()
-    {
-        return isGM2;
-    }
-
-    /**
-     * True if the MidiSynth is compatible with XG.
-     * <p>
-     * The method must be called after scanForStandardSupport() has been called once.
-     *
-     * @return
-     */
-    public boolean isXG()
-    {
-        return isXG;
     }
 
     /**

@@ -53,6 +53,7 @@ public class StdSynth extends MidiSynth
         addBank(getGM1Bank());
         addBank(getGM2Bank());
         addBank(getXGBank());
+        addBank(getGSBank());
     }
 
     public GM1Bank getGM1Bank()
@@ -68,6 +69,11 @@ public class StdSynth extends MidiSynth
     public XGBank getXGBank()
     {
         return XGBank.getInstance();
+    }
+
+    public GSBank getGSBank()
+    {
+        return GSBank.getInstance();
     }
 
     /**

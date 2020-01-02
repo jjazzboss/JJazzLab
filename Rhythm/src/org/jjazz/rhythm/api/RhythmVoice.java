@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.GM1Instrument;
+import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.MidiConst;
 
@@ -39,7 +40,7 @@ public class RhythmVoice
 
     private final RvType type;
     private final String name;
-    protected GM1Instrument instrument;
+    protected Instrument instrument;
     protected final InstrumentSettings instrumentSettings;
     private final int preferredChannel;
     private final Rhythm container;
@@ -47,21 +48,49 @@ public class RhythmVoice
     private static final Logger LOGGER = Logger.getLogger(RhythmVoice.class.getName());
 
     /**
-     * Create a non-drums/percussion RhythmVoice with no preferred instrument, a default InstrumentSettings and the default
-     * channel associated to specified type.
+     * Create a non-drums/percussion RhythmVoice with a default InstrumentSettings and the default channel associated to specified
+     * type.
      *
-     * @param container
-     * @param type      Must NOT be DRUMS or PERCUSSION
+     * @param container  The Rhythm this RhythmVoice belongs to.
+     * @param type       Must NOT be DRUMS or PERCUSSION
      * @param name
+     * @param instrument The instrument to be used by default. Can't be null. Must have getSubstitute() defined.
      */
-    public RhythmVoice(Rhythm container, RvType type, String name)
+    public RhythmVoice(Rhythm container, RvType type, String name, Instrument instrument)
     {
-        this(container, type, name, null);
+        this(container, type, name, instrument, new InstrumentSettings(), type.getPreferredChannel());
     }
 
     /**
-     * Create a drums/percussion RhythmVoice with no preferred instrument, a default InstrumentSettings and the default channel
-     * associated to specified type.
+     * Create a non-drums/percussion RhythmVoice for instruments which are not Drums/Percussion.
+     *
+     * @param container        The Rhythm this RhythmVoice belongs to.
+     * @param type             Can not be DRUMS or PERCUSSION.
+     * @param name             Name of the RhythmVoice
+     * @param ins              The recommended instrument. Can't be null. Must have getSubstitute() defined.
+     * @param is               The recommended InstrumentSettings.
+     * @param preferredChannel The preferred Midi channel for this voice.
+     */
+    public RhythmVoice(Rhythm container, RvType type, String name, Instrument ins, InstrumentSettings is, int preferredChannel)
+    {
+        if (container == null || type == null || ins == null || ins.getSubstitute() == null || type.equals(RvType.Drums)
+                || type.equals(RvType.Percussion) || name == null || is == null || !MidiConst.checkMidiChannel(preferredChannel))
+        {
+            throw new IllegalArgumentException(
+                    "container=" + container + " type=" + type + " name=" + name + " ins=" + ins.toLongString() + " is=" + is + " preferredChannel=" + preferredChannel);
+        }
+        this.container = container;
+        this.name = name;
+        this.type = type;
+        this.instrument = ins;
+        this.instrumentSettings = new InstrumentSettings(is);
+        this.preferredChannel = preferredChannel;
+        this.drumKit = null;
+    }
+
+    /**
+     * Create a drums/percussion RhythmVoice with a default InstrumentSettings and the default channel associated to specified
+     * type.
      *
      * @param drumKit
      * @param container
@@ -74,52 +103,12 @@ public class RhythmVoice
     }
 
     /**
-     * Create a non-drums/percussion RhythmVoice with a default InstrumentSettings and the default channel associated to specified type.
-     *
-     * @param container  The Rhythm this RhythmVoice belongs to.
-     * @param type       Must NOT be DRUMS or PERCUSSION
-     * @param name
-     * @param instrument The General Midi instrument to be used by default. Can't be null.
-     */
-    public RhythmVoice(Rhythm container, RvType type, String name, GM1Instrument instrument)
-    {
-        this(container, type, name, instrument, new InstrumentSettings(), type.getPreferredChannel());
-    }
-
-    /**
-     * Create a non-drums/percussion RhythmVoice for instruments which are NOT Drums/Percussion.
-     *
-     * @param container        The Rhythm this RhythmVoice belongs to.
-     * @param type             Can not be DRUMS or PERCUSSION.
-     * @param name
-     * @param instrument       The recommended General Midi instrument. Can't be null.
-     * @param is               The recommended InstrumentSettings.
-     * @param preferredChannel The preferred Midi channel for this voice.
-     */
-    public RhythmVoice(Rhythm container, RvType type, String name, GM1Instrument instrument, InstrumentSettings is, int preferredChannel)
-    {
-        if (container == null || type == null || instrument == null || type.equals(RvType.Drums)
-                || type.equals(RvType.Percussion) || name == null || is == null || !MidiConst.checkMidiChannel(preferredChannel))
-        {
-            throw new IllegalArgumentException(
-                    "container=" + container + " type=" + type + " name=" + name + " instrument=" + instrument + " is=" + is + " preferredChannel=" + preferredChannel);
-        }
-        this.container = container;
-        this.name = name;
-        this.type = type;
-        this.instrument = instrument;
-        this.instrumentSettings = new InstrumentSettings(is);
-        this.preferredChannel = preferredChannel;
-        this.drumKit = null;
-    }
-
-    /**
      * Create a RhythmVoice for Drums/Percussion instruments.
      *
      * @param kit
      * @param container        The Rhythm this RhythmVoice belongs to.
      * @param type             Must be DRUMS or PERCUSSION : use a RhythmVoiceDrums in this case.
-     * @param name
+     * @param name             Name of the RhythmVoice
      * @param is               The recommended InstrumentSettings.
      * @param preferredChannel The preferred Midi channel for this voice.
      */
@@ -130,7 +119,7 @@ public class RhythmVoice
         {
             throw new IllegalArgumentException(
                     "kit=" + kit + " container=" + container + " type=" + type + " name=" + name
-                    + " instrument=" + instrument + " is=" + is + " preferredChannel=" + preferredChannel);
+                    + " is=" + is + " preferredChannel=" + preferredChannel);
         }
         this.container = container;
         this.name = name;
@@ -189,11 +178,11 @@ public class RhythmVoice
     }
 
     /**
-     * Optional recommended General Midi midi patch program change to be used for this voice.
+     * The preferred Instrument for this voice.
      *
-     * @return Can be null for drums/percussion.
+     * @return Can be null for drums/percussion. Returned instrument has its method getSubstitute() defined.
      */
-    public GM1Instrument getPreferredInstrument()
+    public Instrument getPreferredInstrument()
     {
         return this.instrument;
     }

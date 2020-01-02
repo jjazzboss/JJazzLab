@@ -43,14 +43,11 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import static org.jjazz.instrumentsoptions.Bundle.CTL_BuiltinSynth;
 import static org.jjazz.instrumentsoptions.Bundle.ERR_BankNotGM1;
-import static org.jjazz.instrumentsoptions.Bundle.ERR_NotSupportedExtension;
 import org.jjazz.midi.GM1Bank;
 import org.jjazz.midi.StdSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
-import org.jjazz.synthmanager.api.MidiSynthManager;
-import org.jjazz.synthmanager.spi.MidiSynthProvider;
 import org.openide.*;
 import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
@@ -95,7 +92,7 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
         // TODO listen to changes in form fields and call controller.changed()
 
         // Listen to MidiSynthManager updates
-        MidiSynthManager.getInstance().addPropertyChangeListener(this);
+        // MidiSynthManager.getInstance().addPropertyChangeListener(this);
     }
 
     //-----------------------------------------------------------------------

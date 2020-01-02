@@ -28,10 +28,9 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import org.jjazz.defaultinstruments.DefaultInstruments;
 import org.jjazz.defaultinstruments.Delegate2DefaultInstrument;
-import org.jjazz.instrumentchooser.api.DrumsInstrumentChooserDialog;
+//import org.jjazz.instrumentchooser.api.InstrumentChooserDialog;
 import org.jjazz.midi.Instrument;
 import org.jjazz.instrumentchooser.api.InstrumentChooserDialog;
-import org.jjazz.midi.DrumsInstrument;
 import org.jjazz.rhythm.api.RvType;
 import org.jjazz.util.Filter;
 
@@ -40,9 +39,9 @@ final class DefaultInstrumentsPanel extends javax.swing.JPanel
 
     private final DefaultInstrumentsOptionsPanelController controller;
     private InstrumentChooserDialog chooserDlg = InstrumentChooserDialog.getDefault();
-    private DrumsInstrumentChooserDialog drumsChooserDlg = DrumsInstrumentChooserDialog.getDefault();
-    private DrumsInstrument ins1, ins5;
-    private Instrument  ins2, ins3, ins4, ins6, ins7, ins8, ins9;
+    //private InstrumentChooserDialog drumsChooserDlg = InstrumentChooserDialog.getDefault();
+    private Instrument ins1, ins5;
+    private Instrument ins2, ins3, ins4, ins6, ins7, ins8, ins9;
     private int transpose1, transpose2, transpose3, transpose4, transpose5, transpose6, transpose7, transpose8, transpose9;
     private NoDelegateFilter insFilter = new NoDelegateFilter();
 
@@ -70,12 +69,13 @@ final class DefaultInstrumentsPanel extends javax.swing.JPanel
         return chooserDlg.getSelectedInstrument();
     }
 
-    private DrumsInstrument showDrumsDialog(DrumsInstrument di, String typeName)
+    private Instrument showDrumsDialog(Instrument di, String typeName)
     {
         String title = "Choose default instrument for " + typeName;
-        drumsChooserDlg.preset(di.getDrumKitType(), di.getDrumMap(), di, 10, title, insFilter);           // Showing delegate instruments is a non-sense!
-        drumsChooserDlg.setVisible(true);
-        return drumsChooserDlg.getSelectedInstrument();
+//        drumsChooserDlg.preset(di.getDrumKitType(), di.getDrumMap(), di, 10, title, insFilter);           // Showing delegate instruments is a non-sense!
+//        drumsChooserDlg.setVisible(true);
+//        return drumsChooserDlg.getSelectedInstrument();
+        return null;
     }
 
     /**
@@ -313,7 +313,7 @@ final class DefaultInstrumentsPanel extends javax.swing.JPanel
 
     private void btn_ins1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_ins1ActionPerformed
     {//GEN-HEADEREND:event_btn_ins1ActionPerformed
-        DrumsInstrument ins = showDrumsDialog(ins1, lbl_ins1.getText());
+        Instrument ins = showDrumsDialog(ins1, lbl_ins1.getText());
         if (ins != null)
         {
             ins1 = ins;
@@ -356,7 +356,7 @@ final class DefaultInstrumentsPanel extends javax.swing.JPanel
 
     private void btn_ins5ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_ins5ActionPerformed
     {//GEN-HEADEREND:event_btn_ins5ActionPerformed
-        DrumsInstrument ins = showDrumsDialog(ins5, lbl_ins5.getText());
+        Instrument ins = showDrumsDialog(ins5, lbl_ins5.getText());
         if (ins != null)
         {
             ins5 = ins;
@@ -422,7 +422,7 @@ final class DefaultInstrumentsPanel extends javax.swing.JPanel
         DefaultInstruments di = DefaultInstruments.getInstance();
 
         RvType t = RvType.Drums;
-        ins1 = di.getDrumsInstrument();
+        // ins1 = di.getInstrument();
         transpose1 = di.getTranspose(t);
         updateButton(lbl_ins1, t, btn_ins1, ins1);
 
@@ -442,7 +442,7 @@ final class DefaultInstrumentsPanel extends javax.swing.JPanel
         updateButton(lbl_ins4, t, btn_ins4, ins4);
 
         t = RvType.Percussion;
-        ins5 = di.getPercussionInstrument();
+        //ins5 = di.getPercussionInstrument();
         transpose5 = di.getTranspose(t);
         updateButton(lbl_ins5, t, btn_ins5, ins5);
 

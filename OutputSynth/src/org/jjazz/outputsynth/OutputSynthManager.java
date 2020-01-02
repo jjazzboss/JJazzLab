@@ -21,28 +21,35 @@
  * Contributor(s): 
  *
  */
-package org.jjazz.synthmanager.api;
+package org.jjazz.outputsynth;
 
-import org.jjazz.midi.MidiSynth;
+import java.util.logging.Logger;
 
 /**
- * This represents the synth actually connected via Midi to the output of JJazzLab.
+ * Management of the OutputSynth.
+ * <p>
  */
-public class ConnectedSynth
+public class OutputSynthManager
 {
-    private MidiSynth midiSynth;
 
-    public ConnectedSynth(MidiSynth synth)
+    private static OutputSynthManager INSTANCE;
+
+    private static final Logger LOGGER = Logger.getLogger(OutputSynthManager.class.getSimpleName());
+
+    public static OutputSynthManager getInstance()
     {
-        if (synth == null)
+        synchronized (OutputSynthManager.class)
         {
-            throw new IllegalArgumentException("synth=" + synth);
+            if (INSTANCE == null)
+            {
+                INSTANCE = new OutputSynthManager();
+            }
         }
-        midiSynth = synth;
+        return INSTANCE;
     }
 
-    public MidiSynth getMidiSynth()
+    private OutputSynthManager()
     {
-        return midiSynth;
+
     }
 }

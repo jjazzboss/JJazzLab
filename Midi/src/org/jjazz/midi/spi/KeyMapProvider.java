@@ -21,7 +21,7 @@
  * Contributor(s): 
  *
  */
-package org.jjazz.midi.keymap;
+package org.jjazz.midi.spi;
 
 import java.util.ArrayList;
 import java.util.List;

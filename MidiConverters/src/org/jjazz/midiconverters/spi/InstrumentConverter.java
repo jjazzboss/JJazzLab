@@ -23,6 +23,7 @@
  */
 package org.jjazz.midiconverters.spi;
 
+import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiSynth;
 
@@ -33,7 +34,7 @@ public interface InstrumentConverter
 {
 
     String getConverterId();
-
+    
     /**
      * Try to find in destSynth an instrument corresponding to srcIns.
      *

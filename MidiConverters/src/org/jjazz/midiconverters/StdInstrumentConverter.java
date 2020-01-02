@@ -42,7 +42,8 @@ public class StdInstrumentConverter implements InstrumentConverter
     @Override
     public Instrument convertInstrument(Instrument srcIns, MidiSynth destSynth)
     {
-        MidiAddress adr = srcIns.getMidiAddress();                        
+        MidiAddress adr = srcIns.getMidiAddress();    
+        throw new UnsupportedOperationException();
     }
 
     // =====================================================================================

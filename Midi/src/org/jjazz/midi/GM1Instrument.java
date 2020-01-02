@@ -59,10 +59,16 @@ public class GM1Instrument extends Instrument implements Serializable
         super.setBank(bank);
     }
 
+    @Override
+    public GM1Instrument getSubstitute()
+    {
+        return this;
+    }
+
     /**
-     * The Family value for this instrument. Guaranteed to be non-null for all standard GM1Instruments in GM1Bank.
+     * The Family value for this instrument.
      *
-     * @return
+     * @return A non-null value.
      */
     public GM1Bank.Family getFamily()
     {

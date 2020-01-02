@@ -26,7 +26,6 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.midiconverters.DrumKit;
 import org.jjazz.midi.GM1Bank;
 import org.jjazz.midi.GM2Bank;
 import org.jjazz.midi.StdSynth;
@@ -314,8 +313,5 @@ public class DefaultInstruments
     // ----------------------------------------------------------------------------
     // Private methods
     // ----------------------------------------------------------------------------
-    private String getDrumsPreferenceKey(RvType rvType, DrumKit kit)
-    {
-        return rvType.name() + "-" + kit.getType().name() + "-" + kit.getKeyMap().getName();
-    }
+
 }

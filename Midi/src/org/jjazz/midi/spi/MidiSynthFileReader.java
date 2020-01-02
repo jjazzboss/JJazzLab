@@ -25,15 +25,45 @@ package org.jjazz.midi.spi;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.midi.MidiSynth;
+import org.openide.util.Lookup;
 
 /**
- * A provider of MidiSynths.
+ * A reader of MidiSynths.
  */
-public interface MidiSynthProvider
+public interface MidiSynthFileReader
 {
+
+    static public class Util
+    {
+
+        /**
+         * Get the first reader which can read the specified file extension.
+         *
+         * @param fileExtension For example "ins"
+         * @return
+         */
+        static public MidiSynthFileReader getReader(String fileExtension)
+        {
+            MidiSynthFileReader res = null;
+            for (MidiSynthFileReader reader : Lookup.getDefault().lookupAll(MidiSynthFileReader.class))
+            {
+                for (FileNameExtensionFilter f : reader.getSupportedFileTypes())
+                {
+                    if (Arrays.asList(f.getExtensions()).contains(fileExtension))
+                    {
+                        res = reader;
+                        break;
+                    }
+                }
+            }
+            return res;
+        }
+    }
+
     /**
      * Must be unique amongst MidiSynthProviders.
      *
@@ -44,20 +74,20 @@ public interface MidiSynthProvider
     /**
      * Get the list of file types accepted by this provider.
      *
-     * @return Can be en empty list if this provider can't read files.
+     * @return
      */
     public List<FileNameExtensionFilter> getSupportedFileTypes();
 
     /**
-     * Get synths from an input stream.
+     * Get synth(s) from an input stream.
      * <p>
      *
      * @param in
      * @param f  If f is non null, the created synths will be associated to this file.
      *
-     * @return An empty list if no synth could be created.
+     * @return Can be an empty list if no synth could be created.
      * @throws java.io.IOException
      */
-    public List<MidiSynth> getSynthsFromStream(InputStream in, File f) throws IOException;
+    public List<MidiSynth> readSynthsFromStream(InputStream in, File f) throws IOException;
 
 }
