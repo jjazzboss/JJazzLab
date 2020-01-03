@@ -25,6 +25,7 @@ package org.jjazz.midi;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * A MidiSynth provides information how to select via Midi a synthesizer sounds.
@@ -37,6 +38,7 @@ public class MidiSynth
     ArrayList<InstrumentBank<?>> banks = new ArrayList<>();
     private String name;
     private String manufacturer;
+    private static final Logger LOGGER = Logger.getLogger(MidiSynth.class.getSimpleName());
 
     public MidiSynth(String name, String manufacturer)
     {
@@ -167,6 +169,37 @@ public class MidiSynth
     }
 
     /**
+     * Scan the specified synth's banks to test which ones are considered as compatible with the banks of this synth.
+     * <p>
+     *
+     * @param synth
+     * @param threshold If the result of getMidiAddressMatchingCoverage() is &gt;= threshold for bank X, then bank X is considered
+     *                  as compatible.
+     * @return The list of standard banks considered as compatible
+     * @see MidiSynth#getMidiAddressMatchingCoverage(InstrumentBank)
+     */
+    public List<InstrumentBank<?>> scanCompatibleBanks(MidiSynth synth, float threshold)
+    {
+        if (synth == null || threshold < 0 || threshold > 1)
+        {
+            throw new IllegalArgumentException("synth=" + synth + " threshold=" + threshold);
+        }
+        if (synth == this)
+        {
+            return getBanks();
+        }
+        ArrayList<InstrumentBank<?>> res = new ArrayList<>();
+        for (InstrumentBank<?> bank : getBanks())
+        {
+            if (synth.getMidiAddressMatchingCoverage(bank) >= threshold)
+            {
+                res.add(bank);
+            }
+        }
+        return res;
+    }
+
+    /**
      * The total number of patches in the banks of this synth.
      *
      * @return
@@ -211,5 +244,18 @@ public class MidiSynth
     public String toString()
     {
         return getName();
+    }
+
+    public void dump()
+    {
+        LOGGER.severe("dump() Dumping synth: " + this.name + "(" + getNbPatches() + ") ================================================");
+        for (InstrumentBank<?> bank : banks)
+        {
+            LOGGER.severe("   Bank=" + bank.getName() + " (" + bank.getSize() + ") ---------");
+            for (Instrument ins : bank.getInstruments())
+            {
+                LOGGER.severe(ins.toLongString() + ", " + ins.getMidiAddress());
+            }
+        }
     }
 }

@@ -27,7 +27,6 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.defaultinstruments.FavoriteInstruments;
 import static org.jjazz.instrumentchooser.Bundle.CTL_Favorites;
 import org.jjazz.midi.AbstractInstrumentBank;
 import org.jjazz.midi.Instrument;
@@ -67,12 +66,12 @@ public class FavoriteMidiSynth extends MidiSynth implements PropertyChangeListen
         super(CTL_Favorites(), "JJazz");
         bank = new FavoriteBank(this);
         addBank(bank);
-        FavoriteInstruments fi = FavoriteInstruments.getInstance();
-        for (Instrument ins : fi.getInstruments())
-        {
-            bank.addInstrument(ins);
-        }
-        fi.addPropertyListener(this);
+//        FavoriteInstruments fi = FavoriteInstruments.getInstance();
+//        for (Instrument ins : fi.getInstruments())
+//        {
+//            bank.addInstrument(ins);
+//        }
+//        fi.addPropertyListener(this);
     }
 
     public void addChangeListener(ChangeListener l)
@@ -92,24 +91,24 @@ public class FavoriteMidiSynth extends MidiSynth implements PropertyChangeListen
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        FavoriteInstruments fi = FavoriteInstruments.getInstance();
-        if (evt.getSource() == fi)
-        {
-            if (evt.getPropertyName().equals(FavoriteInstruments.PROP_FAVORITE_INSTRUMENT))
-            {
-                if (evt.getNewValue() != null && evt.getOldValue() == null)
-                {
-                    // Favorite added
-                    bank.addInstrument((Instrument) evt.getNewValue());
-                    fireChanged();
-                } else if (evt.getNewValue() == null && evt.getOldValue() != null)
-                {
-                    // Favorite removed
-                    bank.removeInstrument((Instrument) evt.getOldValue());
-                    fireChanged();
-                }
-            }
-        }
+//        FavoriteInstruments fi = FavoriteInstruments.getInstance();
+//        if (evt.getSource() == fi)
+//        {
+//            if (evt.getPropertyName().equals(FavoriteInstruments.PROP_FAVORITE_INSTRUMENT))
+//            {
+//                if (evt.getNewValue() != null && evt.getOldValue() == null)
+//                {
+//                    // Favorite added
+//                    bank.addInstrument((Instrument) evt.getNewValue());
+//                    fireChanged();
+//                } else if (evt.getNewValue() == null && evt.getOldValue() != null)
+//                {
+//                    // Favorite removed
+//                    bank.removeInstrument((Instrument) evt.getOldValue());
+//                    fireChanged();
+//                }
+//            }
+//        }
     }
 
     private void fireChanged()

@@ -23,142 +23,217 @@
  */
 package org.jjazz.outputsynth;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.StdSynth;
+import org.jjazz.midiconverters.api.ConvertersManager;
+import org.jjazz.rhythm.api.RhythmVoice;
 import org.openide.util.NbPreferences;
 
 /**
  * The information about the MidiSynth connected to the Midi output of JJazzLab.
  */
-public class OutputSynth
+public class OutputSynth implements Serializable
 {
 
     private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
     private static final String MIDISYNTH_FILES_RESOURCE_ZIP = "resources/MidiSynthFiles.zip";
     private final static String SGM_SOUNDFONT_INS = "resources/SGM-v2.01.ins";
 
-    /* Compatibility with the standards. */
-    private boolean isGM, isGM2, isGS, isXG;
-    private MidiSynth synth;
-
+    private final List<InstrumentBank<?>> compatibleStdBanks = new ArrayList<>();
+    private final List<MidiSynth> customSynths = new ArrayList<>();
+    private GM1RemapTable remapTable = new GM1RemapTable();
     private static Preferences prefs = NbPreferences.forModule(OutputSynth.class);
     private static final Logger LOGGER = Logger.getLogger(OutputSynth.class.getSimpleName());
 
     /**
-     * @param isGM the isGM to set
+     * Construct a default OutputSynth compatible with the GM1 Bank and with no custom MidiSynth.
      */
-    public void setGM(boolean isGM)
+    public OutputSynth()
     {
-        this.isGM = isGM;
+        compatibleStdBanks.add(StdSynth.getGM1Bank());
+    }
+
+    public GM1RemapTable getGM1RemapTable()
+    {
+        return remapTable;
     }
 
     /**
-     * @return True if the MidiSynth is compatible with GM
+     * Get the list of InstrumentBanks from StdSynth which are compatible with this OutputSynth.
+     *
+     * @return Can be an empty list.
      */
-    public boolean isGM()
+    public List<InstrumentBank<?>> getCompatibleStdBanks()
     {
-        return isGM;
+        return new ArrayList<>(compatibleStdBanks);
     }
 
     /**
-     * @return True if the MidiSynth is compatible with GS
+     * Add a standard bank compatible with this OutputSynth.
+     *
+     * @param stdBank Must belong to the StdSynth instance.
      */
-    public boolean isGS()
+    public void addCompatibleStdBank(InstrumentBank<?> stdBank)
     {
-        return isGS;
+        if (stdBank == null || stdBank.getMidiSynth() != StdSynth.getInstance())
+        {
+            throw new IllegalArgumentException("stdBank=" + stdBank);
+        }
+
+        if (!compatibleStdBanks.contains(this))
+        {
+            compatibleStdBanks.add(stdBank);
+        }
     }
 
     /**
-     * @param isGS the isGS to set
+     * Remove a standard bank compatible with this OutputSynth.
+     *
+     * @param stdBank Must belong to the StdSynth instance.
      */
-    public void setGS(boolean isGS)
+    public void removeCompatibleStdBank(InstrumentBank<?> stdBank)
     {
-        this.isGS = isGS;
+        if (stdBank == null || stdBank.getMidiSynth() != StdSynth.getInstance())
+        {
+            throw new IllegalArgumentException("stdBank=" + stdBank);
+        }
+        compatibleStdBanks.remove(stdBank);
     }
 
     /**
-     * @return True if the MidiSynth is compatible with GM2
+     * Get the list of custom MidiSynths which are compatible with this OutputSynth.
+     *
+     * @return Can be an empty list.
      */
-    public boolean isGM2()
+    public List<MidiSynth> getCustomSynths()
     {
-        return isGM2;
+        return new ArrayList<>(customSynths);
     }
 
     /**
-     * @param isGM2 the isGM2 to set
+     * Add a custom MidiSynth compatible with this OutputSynth.
+     * <p>
+     * Scan the synth to possibly add compatible standard banks.
+     *
+     * @param synth
      */
-    public void setGM2(boolean isGM2)
+    public void addCustomSynth(MidiSynth synth)
     {
-        this.isGM2 = isGM2;
+        if (synth == null || synth == StdSynth.getInstance())
+        {
+            throw new IllegalArgumentException("stdBank=" + synth);
+        }
+
+        if (!customSynths.contains(synth))
+        {
+            customSynths.add(synth);
+            this.scanAndAddCompatibleStdBanks(synth);
+        }
     }
 
     /**
-     * @return True if the MidiSynth is compatible with XG
+     * Remove a standard bank compatible with this OutputSynth.
+     * <p>
+     * This might remove some compatible standard banks.
+     *
+     * @param stdBank Must belong to the StdSynth instance.
      */
-    public boolean isXG()
+    public void removeCustomSynth(MidiSynth synth)
     {
-        return isXG;
+        if (synth == null || synth == StdSynth.getInstance())
+        {
+            throw new IllegalArgumentException("stdBank=" + synth);
+        }
+        customSynths.remove(synth);
+        resetCompatibleStdBanksFromCustomSynths();
     }
 
     /**
-     * @param isXG the isXG to set
+     * Get an instrument compatible with this OutputSynth for the specified rhythm voice.
+     * <p>
+     * Start with the instruments from the custom synths then from the compatible standard banks.
+     *
+     * @param rv
+     * @return Can't be null. It may be the VoidInstrument for drums/percussion.
      */
-    public void setIsXG(boolean isXG)
+    public Instrument getInstrument(RhythmVoice rv)
     {
-        this.isXG = isXG;
+        Instrument rvIns = rv.getPreferredInstrument();
+        ConvertersManager cm = ConvertersManager.getInstance();
+        Instrument ins = null;
+        // Try with custom synths first
+        for (MidiSynth synth : customSynths)
+        {
+            ins = cm.convertInstrument(rvIns, synth);
+            if (ins != null)
+            {
+                break;
+            }
+        }
+        if (ins == null)
+        {
+            // Try with the standard banks
+            ins = cm.convertInstrument(rvIns, StdSynth.getInstance());
+        }
+        if (ins == null)
+        {
+            // Use the GM1Substitute or its remaps
+            switch (rv.getType())
+            {
+                case DRUMS:
+                    ins = remapTable.getDrumsInstrument();
+                    if (ins == null)
+                    {
+                        ins = StdSynth.getInstance().getVoidInstrument();
+                    }
+                    break;
+                case PERCUSSION:
+                    ins = remapTable.getPercussionInstrument();
+                    if (ins == null)
+                    {
+                        ins = StdSynth.getInstance().getVoidInstrument();
+                    }
+                    break;
+                default:
+                    // Use the default GM1 instrument
+                    ins = remapTable.getInstrument(rvIns.getSubstitute());
+                    if (ins == null)
+                    {
+                        // No remap: use the substitute
+                        ins = rvIns.getSubstitute();
+                    }
+                    break;
+            }
+        }
+        assert ins != null : "rv=" + rv;
+        return ins;
     }
-
-    /**
-     * @param synth the synth to set
-     */
-    public void setSynth(MidiSynth synth)
-    {
-        this.synth = synth;
-    }
-
-    /**
-     * @return the synth
-     */
-    public MidiSynth getMidiSynth()
-    {
-        return synth;
-    }
-
     // ========================================================================================
     // Private methods
     // ========================================================================================
-    /**
-     * Make athe isXX() methods usable.
-     */
-    private void scanForStandardSupport(MidiSynth synth)
+
+    private void resetCompatibleStdBanksFromCustomSynths()
     {
-        isGM = false;
-        isGM2 = false;
-        isGS = false;
-        isXG = false;
-        for (InstrumentBank<?> bank : synth.getBanks())
+        compatibleStdBanks.clear();
+        for (MidiSynth synth : customSynths)
         {
-            if (bank == StdSynth.getInstance().getGM1Bank())
-            {
-                isGM = true;
-            } else if (bank == StdSynth.getInstance().getGM2Bank())
-            {
-                isGM2 = true;
-            } else if (bank == StdSynth.getInstance().getXGBank())
-            {
-                isXG = true;
-            } else if (bank == StdSynth.getInstance().getGSBank())
-            {
-                isGS = true;
-            }
-            for (Instrument ins : bank.getInstruments())
-            {
-                throw new UnsupportedOperationException();
-            }
+            scanAndAddCompatibleStdBanks(synth);
+        }
+    }
+
+    private void scanAndAddCompatibleStdBanks(MidiSynth synth)
+    {
+        List<InstrumentBank<?>> stdBanks = StdSynth.getInstance().scanCompatibleBanks(synth, 0.8f);
+        for (InstrumentBank<?> stdBank : stdBanks)
+        {
+            addCompatibleStdBank(stdBank);
         }
     }
 }

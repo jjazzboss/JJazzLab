@@ -190,17 +190,16 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             if (mPatchDrumMap.find())
                             {
                                 // Yes, get the KitType and KeyMap
-                                String keyMapName = mPatchDrumMap.group(2);
-                                assert keyMapName != null : "patchName=" + patchName;
-                                String typeName = mPatchDrumMap.group(1);
+                                String keyMapName = mPatchDrumMap.group(2).trim();
+                                String typeName = mPatchDrumMap.group(1).trim();
                                 assert typeName != null : "patchName=" + patchName;
-                                DrumKit.KeyMap kitKeyMap = KeyMapProvider.Util.getKeyMap(keyMapName.trim());
+                                DrumKit.KeyMap kitKeyMap = KeyMapProvider.Util.getKeyMap(keyMapName);
                                 if (kitKeyMap == null)
                                 {
                                     LOGGER.warning("readSynthsFromStream() Unknown KeyMap " + keyMapName + " for instrument" + patchName + " in file " + fileName + " at line " + lineCount + ". Using the GM drum map instead.");
                                     kitKeyMap = KeyMapGM.getInstance();
                                 }
-                                DrumKit.Type kitType = DrumKit.Type.valueOf(typeName.trim());
+                                DrumKit.Type kitType = DrumKit.Type.valueOf(typeName);
                                 if (kitType == null)
                                 {
                                     LOGGER.warning("readSynthsFromStream() Unknown DrumKit type " + typeName + " for instrument" + patchName + " in file " + fileName + " at line " + lineCount + ". Using the STANDARD DrumKit type instead.");
@@ -229,11 +228,14 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                             + " in file " + fileName + " at line " + lineCount + ". Using value SubGM1 PC=0 instead.");
                                     pcGM1 = 0;
                                 }
-                                insGM1 = StdSynth.getInstance().getGM1Bank().getInstrument(pcGM1);
+                                insGM1 = StdSynth.getGM1Bank().getInstrument(pcGM1);
                             }
 
-                            // Get rid of the extensions
-                            patchName = patchName.substring(0, patchName.indexOf("{{"));
+                            // Get rid of the extensions if any
+                            if (kit != null || insGM1 != null)
+                            {
+                                patchName = patchName.substring(0, patchName.indexOf("{{"));
+                            }
                         }
 
                         // Build the instrument with the optional parameters
@@ -436,13 +438,7 @@ class InsBank extends AbstractInstrumentBank<Instrument>
     public InsBank(String name)
     {
         super(name, null, 0, 0);
-    }
-
-    @Override
-    public void addInstrument(Instrument ins)
-    {
-        super.addInstrument(ins);
-    }
+    }    
 
     public void setBankSelectMethod(BankSelectMethod m)
     {
@@ -455,6 +451,7 @@ class InsBank extends AbstractInstrumentBank<Instrument>
         {
             throw new IllegalArgumentException("lsb=" + lsb);
         }
+        aze
         this.defaultLsb = lsb;
     }
 

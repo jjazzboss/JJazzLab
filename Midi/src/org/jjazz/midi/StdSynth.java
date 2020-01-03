@@ -53,35 +53,36 @@ public class StdSynth extends MidiSynth
         addBank(getGM1Bank());
         addBank(getGM2Bank());
         addBank(getXGBank());
-        addBank(getGSBank());
+        addBank(NotSetBank.getInstance());
     }
 
-    public GM1Bank getGM1Bank()
+    static public GM1Bank getGM1Bank()
     {
         return GM1Bank.getInstance();
     }
 
-    public GM2Bank getGM2Bank()
+    static public GM2Bank getGM2Bank()
     {
         return GM2Bank.getInstance();
     }
 
-    public XGBank getXGBank()
+    static public XGBank getXGBank()
     {
         return XGBank.getInstance();
     }
 
-    public GSBank getGSBank()
+    public VoidInstrument getVoidInstrument()
     {
-        return GSBank.getInstance();
+        return NotSetBank.getInstance().getVoidInstrument();
     }
 
     /**
-     * Try to get an instrument matching the specified address in the InstrumentBanks of this synth.
+     * Overridden to be clever in the instrument search.
      *
      * @param address
      * @return Can be null.
      */
+    @Override
     public Instrument getInstrument(MidiAddress address)
     {
         Instrument ins = null;

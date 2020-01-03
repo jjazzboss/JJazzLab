@@ -29,8 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.defaultinstruments.Delegate2DefaultInstrument;
-import org.jjazz.defaultinstruments.JJazzSynth;
 import org.jjazz.helpers.DrumsReroutingDialog.ReroutingChoice;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
@@ -85,7 +83,7 @@ public class DrumsReroutingAction implements VetoableChangeListener, Runnable
         }
 
         MusicGenerationContext context = (MusicGenerationContext) evt.getNewValue();
-        assert context != null : "evt=" + evt;        
+        assert context != null : "evt=" + evt;
         MidiMix midiMix = context.getMidiMix();
 
         List<Integer> toBeReroutedChannels = new ArrayList<>();
@@ -159,21 +157,21 @@ public class DrumsReroutingAction implements VetoableChangeListener, Runnable
             int channel = midiMix.getChannel(rv);
             InstrumentMix insMix = midiMix.getInstrumentMixFromKey(rv);
             Instrument ins = insMix.getInstrument();
-            if (ins instanceof Delegate2DefaultInstrument)
-            {
-                // Special case : test the target instrument
-                Delegate2DefaultInstrument dIns = (Delegate2DefaultInstrument) ins;
-                ins = dIns.getTargetDefaultInstrument();
-            }
+//            if (ins instanceof Delegate2DefaultInstrument)
+//            {
+//                // Special case : test the target instrument
+//                Delegate2DefaultInstrument dIns = (Delegate2DefaultInstrument) ins;
+//                ins = dIns.getTargetDefaultInstrument();
+//            }
 
-            LOGGER.fine("getChannelsToBeRerouted() rv=" + rv + " channel=" + channel + " ins=" + ins);
-            if (channel != MidiConst.CHANNEL_DRUMS
-                    && rv.isDrums()
-                    && !midiMix.getDrumsReroutedChannels().contains(channel)
-                    && ins == JJazzSynth.getVoidInstrument())
-            {
-                res.add(channel);
-            }
+//            LOGGER.fine("getChannelsToBeRerouted() rv=" + rv + " channel=" + channel + " ins=" + ins);
+//            if (channel != MidiConst.CHANNEL_DRUMS
+//                    && rv.isDrums()
+//                    && !midiMix.getDrumsReroutedChannels().contains(channel)
+//                    && ins == JJazzSynth.getVoidInstrument())
+//            {
+//                res.add(channel);
+//            }
         }
         LOGGER.fine("getChannelsToBeRerouted() res=" + res);
         return res;

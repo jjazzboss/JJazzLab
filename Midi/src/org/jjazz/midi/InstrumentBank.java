@@ -39,6 +39,12 @@ public interface InstrumentBank<T extends Instrument>
     public static class Util
     {
 
+        /**
+         * Get all the DrumKit.KeyMaps used by this bank.
+         *
+         * @param bank
+         * @return
+         */
         public List<DrumKit.KeyMap> getKeyMaps(InstrumentBank<? extends Instrument> bank)
         {
             ArrayList<DrumKit.KeyMap> res = new ArrayList<>();
@@ -51,6 +57,13 @@ public interface InstrumentBank<T extends Instrument>
             }
             return res;
         }
+
+        /**
+         * Get all the DrumKit.Types used by this bank.
+         *
+         * @param bank
+         * @return
+         */
 
         public List<DrumKit.Type> getTypes(InstrumentBank<? extends Instrument> bank)
         {
@@ -127,7 +140,7 @@ public interface InstrumentBank<T extends Instrument>
     /**
      * Get all the Drums/Percussion instruments.
      *
-     * @return All the Instruments which have a DrumKit defined.
+     * @return Returned instruments must have isDrumKit() set to true.
      */
     List<T> getDrumsInstruments();
 

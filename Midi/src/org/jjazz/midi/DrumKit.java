@@ -33,6 +33,7 @@ import java.util.Objects;
  */
 public class DrumKit
 {
+
     /**
      * Defines a key map for a drumkit: associate a percussion name to a note pitch.
      * <p>
@@ -117,6 +118,12 @@ public class DrumKit
     public KeyMap getKeyMap()
     {
         return map;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "[type=" + type + ",map=" + map.getName() + "]";
     }
 
     @Override

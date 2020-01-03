@@ -33,13 +33,8 @@ import java.util.prefs.Preferences;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JComponent;
-import org.jjazz.defaultinstruments.DefaultInstruments;
-import org.jjazz.defaultinstruments.JJazzSynth;
 import org.jjazz.helpers.midiwizard.MidiWizardSettings.SoundDevice;
-import org.jjazz.midi.StdSynth;
-import org.jjazz.midi.Instrument;
 import org.jjazz.midi.JJazzMidiSystem;
-import org.jjazz.rhythm.api.RvType;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.WizardDescriptor;
@@ -117,14 +112,14 @@ public final class MidiWizardAction implements ActionListener, Runnable
             }
 
             // Default Drums instruments
-            Instrument ins = JJazzSynth.getInstance().getNotSetBank().getVoidInstrument();
-            if (gm2DrumsSupport)
-            {
-                ins = StdSynth.getInstance().getGM2Bank().getDefaultDrumsInstrument();
-            }
-            DefaultInstruments di = DefaultInstruments.getInstance();
-            di.setInstrument(RvType.Drums, ins);
-            di.setInstrument(RvType.Percussion, ins);
+//            Instrument ins = JJazzSynth.getInstance().getNotSetBank().getVoidInstrument();
+//            if (gm2DrumsSupport)
+//            {
+//                ins = StdSynth.getGM2Bank().getDefaultDrumsInstrument();
+//            }
+//            DefaultInstruments di = DefaultInstruments.getInstance();
+//            di.setInstrument(RvType.Drums, ins);
+//            di.setInstrument(RvType.Percussion, ins);
         }
     }
 

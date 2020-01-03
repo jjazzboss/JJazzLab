@@ -27,7 +27,6 @@ import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
-import org.jjazz.defaultinstruments.JJazzSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
@@ -110,19 +109,19 @@ public class ResetChannels extends AbstractAction
     static public void resetInstrument(InstrumentMix insMix, RhythmVoice rv)
     {
         Instrument ins;
-        if (!(rv instanceof UserChannelRhythmVoiceKey))
-        {
-            ins = rv.getPreferredInstrument();
-            if (ins == null)
-            {
-                ins = JJazzSynth.getDelegate2DefaultInstrument(rv.getType());
-            }
-        } else
-        {
-            ins = JJazzSynth.getDelegate2DefaultInstrumentUser();
-        }
-        insMix.setInstrument(ins);
-        insMix.getSettings().setTransposition(0);
+//        if (!(rv instanceof UserChannelRhythmVoiceKey))
+//        {
+//            ins = rv.getPreferredInstrument();
+//            if (ins == null)
+//            {
+//                ins = JJazzSynth.getDelegate2DefaultInstrument(rv.getType());
+//            }
+//        } else
+//        {
+//            ins = JJazzSynth.getDelegate2DefaultInstrumentUser();
+//        }
+//        insMix.setInstrument(ins);
+//        insMix.getSettings().setTransposition(0);
     }
 
 }

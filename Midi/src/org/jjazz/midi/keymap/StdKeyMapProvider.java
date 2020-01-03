@@ -21,46 +21,36 @@
  * Contributor(s): 
  *
  */
-package org.jjazz.outputsynth;
+package org.jjazz.midi.keymap;
 
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import org.jjazz.midi.DrumKit;
+import org.jjazz.midi.spi.KeyMapProvider;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Management of the OutputSynth.
- * <p>
+ * Provide the standard KeyMaps.
  */
-public class OutputSynthManager
+@ServiceProvider(service = KeyMapProvider.class)
+public class StdKeyMapProvider implements KeyMapProvider
 {
 
-    private static OutputSynthManager INSTANCE;
-    private OutputSynth outputSynth;
+    private ArrayList<DrumKit.KeyMap> keyMaps = new ArrayList<>();
 
-    private static final Logger LOGGER = Logger.getLogger(OutputSynthManager.class.getSimpleName());
-
-    public static OutputSynthManager getInstance()
+    public StdKeyMapProvider()
     {
-        synchronized (OutputSynthManager.class)
-        {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new OutputSynthManager();
-            }
-        }
-        return INSTANCE;
+        keyMaps.add(KeyMapGM.getInstance());
+        keyMaps.add(KeyMapGSGM2.getInstance());
+        keyMaps.add(KeyMapXG_Std.getInstance());
+        keyMaps.add(KeyMapXG_PopLatin.getInstance());
     }
 
-    private OutputSynthManager()
+    @Override
+    public List<DrumKit.KeyMap> getKeyMaps()
     {
-        outputSynth = new OutputSynth();
+        return Collections.unmodifiableList(keyMaps);
     }
 
-    /**
-     * The current OutputSynth.
-     *
-     * @return Can't be null.
-     */
-    public OutputSynth getOutputSynth()
-    {
-        return outputSynth;
-    }
 }

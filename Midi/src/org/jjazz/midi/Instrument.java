@@ -241,14 +241,17 @@ public class Instrument implements Serializable
     }
 
     /**
+     * Longer version.
      *
-     * @return "patchname-bank-substitute" (if bank/substitute non null)
+     * @return "[patchname, bank, substitute, drumkit]" (null values are skipped)
      */
     public String toLongString()
     {
-        return patchName
-                + ((bank != null) ? ",Bank=" + bank.getName() : "")
-                + ((substitute != null) ? ",Substitute=" + this.substitute.getPatchName() : "");
+        return "[" + patchName
+                + ((bank != null) ? ", Bank=" + bank.getName() : "")
+                + ((substitute != null) ? ", Substitute=" + this.substitute.getPatchName() : "")
+                + ((this.drumKit != null) ? ", DrumKit=" + this.drumKit : "")
+                + "]";
     }
 
     /**

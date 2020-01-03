@@ -270,7 +270,7 @@ public class GM2Bank extends AbstractInstrumentBank<Instrument>
         addInstrument(createInstrument(118, 121, 1, "808 Tom"));
         addInstrument(createInstrument(113, 121, 0, "Agogo"));
         addInstrument(createInstrument(114, 121, 0, "Steel Drums"));
-        addInstrument(createInstrument(115, 121, 0, "Castanets"));
+        addInstrument(createInstrument(115, 121, 1, "Castanets"));
         addInstrument(createInstrument(116, 121, 1, "Concert BD"));
         addInstrument(createInstrument(118, 121, 2, "Elec Perc"));
         addInstrument(createInstrument(117, 121, 0, "Melo Tom 1"));
@@ -341,7 +341,7 @@ public class GM2Bank extends AbstractInstrumentBank<Instrument>
      */
     private static Instrument createInstrument(int pc, int msb, int lsb, String name)
     {
-        GM1Instrument gmIns = StdSynth.getInstance().getGM1Bank().getInstrument(pc); // GM2's PC is directly compatible with GM1
+        GM1Instrument gmIns = GM1Bank.getInstance().getInstrument(pc); // GM2's PC is directly compatible with GM1
         Instrument ins = new Instrument(name, null, new MidiAddress(pc, msb, lsb, DEFAULT_BANK_SELECT_METHOD), null, gmIns);
         return ins;
     }

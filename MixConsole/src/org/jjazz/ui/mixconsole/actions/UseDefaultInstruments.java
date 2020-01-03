@@ -27,8 +27,6 @@ import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JMenuItem;
-import org.jjazz.defaultinstruments.DefaultInstruments;
-import org.jjazz.defaultinstruments.JJazzSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midimix.UserChannelRhythmVoiceKey;
@@ -110,21 +108,21 @@ public class UseDefaultInstruments extends AbstractAction implements Presenter.M
     {
         Instrument ins;
         int transpose;
-        DefaultInstruments di = DefaultInstruments.getInstance();
-        if (rv instanceof UserChannelRhythmVoiceKey)
-        {
-            ins = JJazzSynth.getDelegate2DefaultInstrumentUser();
-            transpose = di.getUserInstrumentTranspose();
-        } else
-        {
-            ins = JJazzSynth.getDelegate2DefaultInstrument(rv.getType());
-            transpose = di.getTranspose(rv.getType());
-        }
-        if (ins != null)
-        {
-            insMix.setInstrument(ins);
-            insMix.getSettings().setTransposition(transpose);
-        }
+//        DefaultInstruments di = DefaultInstruments.getInstance();
+//        if (rv instanceof UserChannelRhythmVoiceKey)
+//        {
+//            ins = JJazzSynth.getDelegate2DefaultInstrumentUser();
+//            transpose = di.getUserInstrumentTranspose();
+//        } else
+//        {
+//            ins = JJazzSynth.getDelegate2DefaultInstrument(rv.getType());
+//            transpose = di.getTranspose(rv.getType());
+//        }
+//        if (ins != null)
+//        {
+//            insMix.setInstrument(ins);
+//            insMix.getSettings().setTransposition(transpose);
+//        }
     }
 
     @Override

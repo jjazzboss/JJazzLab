@@ -24,7 +24,7 @@ package org.jjazz.midi;
 
 import java.util.logging.*;
 import org.jjazz.midi.MidiAddress.BankSelectMethod;
-import org.jjazz.midi.keymap.KeyMapXG_Latin;
+import org.jjazz.midi.keymap.KeyMapXG_PopLatin;
 import org.jjazz.midi.keymap.KeyMapXG_Std;
 
 /**
@@ -590,11 +590,11 @@ public class XGBank extends AbstractInstrumentBank<Instrument>
         addInstrument(createDrumsInstrument("SAKURA", 126, 32, DrumKit.Type.STANDARD, KeyMapXG_Std.getInstance()));
         addInstrument(createDrumsInstrument("SMALL_LATIN", 126, 33, DrumKit.Type.STANDARD, KeyMapXG_Std.getInstance()));
         addInstrument(createDrumsInstrument("CHINA", 126, 34, DrumKit.Type.STANDARD, KeyMapXG_Std.getInstance()));
-        addInstrument(createDrumsInstrument("CUBAN", 126, 40, DrumKit.Type.STANDARD, KeyMapXG_Latin.getInstance()));
-        addInstrument(createDrumsInstrument("CUBAN2", 126, 41, DrumKit.Type.STANDARD, KeyMapXG_Latin.getInstance()));
-        addInstrument(createDrumsInstrument("BRAZILIAN", 126, 42, DrumKit.Type.STANDARD, KeyMapXG_Latin.getInstance()));
-        addInstrument(createDrumsInstrument("POPLATIN1", 126, 43, DrumKit.Type.STANDARD, KeyMapXG_Latin.getInstance()));
-        addInstrument(createDrumsInstrument("POPLATIN2", 126, 44, DrumKit.Type.STANDARD, KeyMapXG_Latin.getInstance()));
+        addInstrument(createDrumsInstrument("CUBAN", 126, 40, DrumKit.Type.STANDARD, KeyMapXG_PopLatin.getInstance()));
+        addInstrument(createDrumsInstrument("CUBAN2", 126, 41, DrumKit.Type.STANDARD, KeyMapXG_PopLatin.getInstance()));
+        addInstrument(createDrumsInstrument("BRAZILIAN", 126, 42, DrumKit.Type.STANDARD, KeyMapXG_PopLatin.getInstance()));
+        addInstrument(createDrumsInstrument("POPLATIN1", 126, 43, DrumKit.Type.STANDARD, KeyMapXG_PopLatin.getInstance()));
+        addInstrument(createDrumsInstrument("POPLATIN2", 126, 44, DrumKit.Type.STANDARD, KeyMapXG_PopLatin.getInstance()));
     }
 
     public Instrument getDefaultDrumsInstrument()
@@ -609,7 +609,7 @@ public class XGBank extends AbstractInstrumentBank<Instrument>
      */
     private static Instrument createInstrument(String name, int msb, int lsb, int pc)
     {
-        GM1Instrument gmIns = StdSynth.getInstance().getGM1Bank().getInstrument(pc); // XG's PC is directly compatible with GM1
+        GM1Instrument gmIns = GM1Bank.getInstance().getInstrument(pc); // XG's PC is directly compatible with GM1
         Instrument ins = new Instrument(name, null, new MidiAddress(pc, msb, lsb, DEFAULT_BANK_SELECT_METHOD), null, gmIns);
         return ins;
     }

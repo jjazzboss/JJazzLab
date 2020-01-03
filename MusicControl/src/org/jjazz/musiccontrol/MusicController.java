@@ -43,9 +43,7 @@ import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import javax.swing.SwingUtilities;
-import org.jjazz.defaultinstruments.DefaultInstruments;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
@@ -54,12 +52,10 @@ import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.UserChannelRhythmVoiceKey;
 import static org.jjazz.musiccontrol.Bundle.*;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.api.RvType;
 import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -650,6 +646,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX:
                     playbackContext.mapRvTrackId.clear();       // Mapping between RhythmVoice and Sequence tracks is no longer valid
                     playbackContext.setDirty();    // Make sure sequence is rebuilt
+                    break;
                 default:
                     // eg MidiMix.PROP_USER_CHANNEL: do nothing
                     break;
@@ -919,9 +916,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             int clickChannel = ClickManager.getInstance().getChannel();
             if (context.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
             {
-                Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
-                JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-                jms.sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(clickChannel));  // Might not send anything if default instrument is Void Instrument
+//                Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
+//                JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
+//                jms.sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(clickChannel));  // Might not send anything if default instrument is Void Instrument
             }
             return trackId;
         }
@@ -943,9 +940,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             int clickChannel = ClickManager.getInstance().getChannel();
             if (context.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
             {
-                Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
-                JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-                jms.sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(clickChannel));  // Might not send anything if default instrument is Void Instrument                            
+//                Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
+//                JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
+//                jms.sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(clickChannel));  // Might not send anything if default instrument is Void Instrument                            
             }
             return tickPos;
         }

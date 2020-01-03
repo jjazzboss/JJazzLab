@@ -90,7 +90,7 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
     {
         if (this.synth != null)
         {
-            throw new IllegalStateException("synth already set!");
+            throw new IllegalStateException("synth already set! this.synth=" + this.synth + " synth=" + synth);
         }
         if (synth == null)
         {
@@ -261,7 +261,7 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
 
     @Override
     public T getInstrument(MidiAddress address)
-    {      
+    {
         return mapAddressInstrument.get(address);
     }
 
@@ -317,5 +317,5 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
     public String toString()
     {
         return "InstrumentBank=" + getName() + "[" + instruments.size() + "]";
-    }
+    }        
 }

@@ -27,6 +27,7 @@ import org.jjazz.rhythmmusicgeneration.spi.MidiMusicGenerator;
 import java.util.logging.Logger;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.midi.GM1Bank;
 import org.jjazz.rhythm.api.*;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.Range;
@@ -76,25 +77,28 @@ public class DummyGenerator implements MidiMusicGenerator
                     // Fill the track for each supported RhythmVoice
                     Track track = mapRvTracks.get(rv);
                     int channel = context.getMidiMix().getChannel(rv);
-                    switch (rv.getType())
+                    if (rv.isDrums())
                     {
-                        case Bass:
+                        LOGGER.fine("generateMusic() generate dummy drums track for RhythmVoice: " + rv.getName() + " size=" + track.size());
+                        Utilities.addDrumsNoteEvents(track, channel, tick, sptRange.size(), ts);
+                    } else
+                    {
+                        if (rv.getPreferredInstrument().getSubstitute().getFamily().equals(GM1Bank.Family.Bass))
+                        {
                             LOGGER.fine("generateMusic() generate dummy bass track for RhythmVoice: " + rv.getName() + " size=" + track.size());
                             Utilities.addBassNoteEvents(track, channel, tick, cSeq, ts);
-                            break;
-                        case Drums:
-                            LOGGER.fine("generateMusic() generate dummy drums track for RhythmVoice: " + rv.getName() + " size=" + track.size());
-                            Utilities.addDrumsNoteEvents(track, channel, tick, sptRange.size(), ts);
-                            break;
-                        default:
+                        } else
+                        {
                             LOGGER.fine("generateMusic() music generation not supported for this RhythmVoice: " + rv.getName());
+                        }
                     }
+
                 }
             }
         }
     }
 
-    // ====================================================================================================
-    // Private methods
-    // ====================================================================================================
+// ====================================================================================================
+// Private methods
+// ====================================================================================================
 }

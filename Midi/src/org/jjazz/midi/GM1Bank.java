@@ -51,6 +51,7 @@ public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
         {
             return this.name().replace('_', ' ');
         }
+
     }
 
     private static final Logger LOGGER = Logger.getLogger(GM1Bank.class.getSimpleName());

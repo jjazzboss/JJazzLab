@@ -41,7 +41,6 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.defaultinstruments.FavoriteInstruments;
 import org.jjazz.instrumentchooser.api.InstrumentChooserDialog;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
@@ -635,14 +634,14 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         LOGGER.fine("toggleFavoriteInstrument() selectedInstrument=" + selectedInstrument);
         if (selectedInstrument != null)
         {
-            FavoriteInstruments fi = FavoriteInstruments.getInstance();
-            if (fi.contains(selectedInstrument))
-            {
-                fi.removeInstrument(selectedInstrument);
-            } else
-            {
-                fi.addInstrument(selectedInstrument);
-            }
+//            FavoriteInstruments fi = FavoriteInstruments.getInstance();
+//            if (fi.contains(selectedInstrument))
+//            {
+//                fi.removeInstrument(selectedInstrument);
+//            } else
+//            {
+//                fi.addInstrument(selectedInstrument);
+//            }
         }
     }
 
@@ -763,13 +762,13 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             Instrument ins = (Instrument) value;
             InstrumentBank bank = ins.getBank();
-            FavoriteInstruments fi = FavoriteInstruments.getInstance();
-            if (fi.contains(ins))
-            {
-                Font f = c.getFont();
-                Font newFont = f.deriveFont(Font.BOLD);
-                setFont(newFont);
-            }
+//            FavoriteInstruments fi = FavoriteInstruments.getInstance();
+//            if (fi.contains(ins))
+//            {
+//                Font f = c.getFont();
+//                Font newFont = f.deriveFont(Font.BOLD);
+//                setFont(newFont);
+//            }
             setText(ins.getPatchName());
             setToolTipText("Synth:" + bank.getMidiSynth().getName() + ", Bank:" + bank.getName() + ", Program Change:" + ins.getMidiAddress().getProgramChange());
             setForeground(getSynthColor(ins.getBank().getMidiSynth(), ins));

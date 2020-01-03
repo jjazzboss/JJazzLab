@@ -20,27 +20,19 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.defaultinstruments;
+package org.jjazz.midi;
 
 import java.util.logging.*;
-import static org.jjazz.defaultinstruments.Bundle.CTL_NotSetBank;
-import org.jjazz.midi.AbstractInstrumentBank;
-import org.jjazz.midi.Instrument;
-import org.openide.util.NbBundle;
 
 /**
- * JJazzBank utility bank to store the Void instrument.
+ * Utility bank to store the Void instrument.
  *
  * @param <T>
  */
-@NbBundle.Messages(
-        {
-            "CTL_NotSetBank=NotSet Bank"
-        })
 public final class NotSetBank<T extends Instrument> extends AbstractInstrumentBank<Instrument>
 {
 
-    public static final String BANKNAME = CTL_NotSetBank();
+    public static final String BANKNAME = "NotSet Bank";
     private static NotSetBank<Instrument> INSTANCE;
 
     private static final Logger LOGGER = Logger.getLogger(NotSetBank.class.getSimpleName());

@@ -32,7 +32,6 @@ import static javax.swing.Action.NAME;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
-import org.jjazz.defaultinstruments.JJazzSynth;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midimix.MidiMix;
@@ -120,15 +119,15 @@ public class ToggleUserChannel extends AbstractAction implements Presenter.Menu
             songMidiMix.removeUserChannel();
         } else
         {
-            InstrumentMix insMix = new InstrumentMix(JJazzSynth.getDelegate2DefaultInstrumentUser(), new InstrumentSettings());
-            try
-            {
-                songMidiMix.addUserChannel(insMix);
-            } catch (MidiUnavailableException ex)
-            {
-                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.WARNING_MESSAGE);
-                DialogDisplayer.getDefault().notify(d);
-            }
+//            InstrumentMix insMix = new InstrumentMix(JJazzSynth.getDelegate2DefaultInstrumentUser(), new InstrumentSettings());
+//            try
+//            {
+//                songMidiMix.addUserChannel(insMix);
+//            } catch (MidiUnavailableException ex)
+//            {
+//                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.WARNING_MESSAGE);
+//                DialogDisplayer.getDefault().notify(d);
+//            }
         }
     }
 

@@ -75,8 +75,8 @@ public class DummyRhythm implements Rhythm
         rhythmParameters.add(new RP_STD_Variation());
 
         // Rhythm voices
-        GM1Bank gmb = StdSynth.getInstance().getGM1Bank();
-        rhythmVoices.add(new RhythmVoice(this, RvType.Bass, "Bass", gmb.getDefaultInstrument(GM1Bank.Family.Bass)));
+        GM1Bank gmb = StdSynth.getGM1Bank();
+        rhythmVoices.add(new RhythmVoice(this, "Bass", gmb.getDefaultInstrument(GM1Bank.Family.Bass), 11));
 
         // The music generator
         lookup = Lookups.fixed("dummy lookup");

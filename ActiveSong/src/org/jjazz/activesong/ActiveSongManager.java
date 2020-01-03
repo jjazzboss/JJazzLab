@@ -30,7 +30,6 @@ import java.util.EnumSet;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import static org.jjazz.activesong.Bundle.ERR_OtherSongPlaying;
-import org.jjazz.defaultinstruments.DefaultInstruments;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.JJazzMidiSystem;
@@ -91,8 +90,6 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     {
         // Listen to Midi out and master volume changes
         JJazzMidiSystem.getInstance().addPropertyChangeListener(this);
-        // Listen to default instrument changes
-        DefaultInstruments.getInstance().addPropertyListener(this);
         // Listen to pre-playback events
         MusicController.getInstance().addVetoableChangeListener(this);
 
@@ -307,10 +304,6 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
                     sendAllMidiMixMessages();
                 }
             }
-        } else if (evt.getSource() == DefaultInstruments.getInstance())
-        {
-            // Resend init messages in case the current MidiMix uses some DelegateInstruments.
-            sendAllMidiMixMessages();
         }
 
         if (!sendMidiMessagePolicy.contains(SendMidiMessagePolicy.MIX_CHANGE))

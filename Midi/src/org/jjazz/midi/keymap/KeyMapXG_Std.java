@@ -33,7 +33,7 @@ import org.jjazz.midi.DrumKit;
  */
 public class KeyMapXG_Std implements DrumKit.KeyMap
 {
-    public static final String NAME = "XG Standard";
+    public static final String NAME = "XG_STD";
     private static KeyMapXG_Std INSTANCE;
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();

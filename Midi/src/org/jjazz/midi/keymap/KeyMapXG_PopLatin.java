@@ -30,22 +30,22 @@ import org.jjazz.midi.DrumKit;
 /**
  * The XG PopLatin key map.
  */
-public class KeyMapXG_Latin implements DrumKit.KeyMap
+public class KeyMapXG_PopLatin implements DrumKit.KeyMap
 {
 
-    public static final String NAME = "XG PopLatin";
-    private static KeyMapXG_Latin INSTANCE;
+    public static final String NAME = "XG_POPLATIN";
+    private static KeyMapXG_PopLatin INSTANCE;
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
     private ArrayList<Integer> accentPitches = new ArrayList<>();
 
-    public static KeyMapXG_Latin getInstance()
+    public static KeyMapXG_PopLatin getInstance()
     {
-        synchronized (KeyMapXG_Latin.class)
+        synchronized (KeyMapXG_PopLatin.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new KeyMapXG_Latin();
+                INSTANCE = new KeyMapXG_PopLatin();
             }
         }
         return INSTANCE;
@@ -57,7 +57,7 @@ public class KeyMapXG_Latin implements DrumKit.KeyMap
         return null;
     }
 
-    private KeyMapXG_Latin()
+    private KeyMapXG_PopLatin()
     {
         addNote("Cajon Low", 13, false);
         addNote("Cajon Slap", 14, false);

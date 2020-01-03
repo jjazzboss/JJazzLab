@@ -35,7 +35,6 @@ import org.jjazz.midi.StdSynth;
 import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.api.RvType;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.rhythm.parameters.RP_STD_Variation;
 import org.jjazz.rhythm.parameters.RhythmParameter;
@@ -84,9 +83,9 @@ public class RhythmStub implements Rhythm
         rhythmParameters.add(new RP_STD_Variation());
 
         // Rhythm voices
-        GM1Bank gmb = StdSynth.getInstance().getGM1Bank();
-        rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RvType.Drums, "Drums"));
-        rhythmVoices.add(new RhythmVoice(this, RvType.Bass, "Bass", gmb.getDefaultInstrument(GM1Bank.Family.Bass)));
+        GM1Bank gmb = StdSynth.getGM1Bank();
+        rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.DRUMS, "Drums", 9));
+        rhythmVoices.add(new RhythmVoice(this, "Bass", gmb.getDefaultInstrument(GM1Bank.Family.Bass), 10));
 
         // The music generator
         lookup = Lookups.fixed(new DummyGenerator(this));

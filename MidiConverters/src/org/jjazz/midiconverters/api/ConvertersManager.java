@@ -60,7 +60,7 @@ public class ConvertersManager
     }
 
     /**
-     * Try to convert a key(note) from srcKit into a key of destKit.
+     * Try to convert a drum key (a note) from srcKit into a key of destKit.
      * <p>
      * The method asks each KeyMapConverter found in the global lookup to do the conversion, until a conversion succeeds.
      *
@@ -69,7 +69,7 @@ public class ConvertersManager
      * @param destKit
      * @return -1 if no conversion could be done.
      */
-    public int convertKey(DrumKit srcKit, int key, DrumKit destKit)
+    public int convertDrumKey(DrumKit srcKit, int key, DrumKit destKit)
     {
         if (srcKit == null || destKit == null || srcKit.getKeyMap().getKeyName(key) == null)
         {

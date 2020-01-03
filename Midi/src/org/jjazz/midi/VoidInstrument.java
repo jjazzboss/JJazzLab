@@ -20,29 +20,24 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.defaultinstruments;
+package org.jjazz.midi;
 
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import javax.sound.midi.MidiMessage;
-import static org.jjazz.defaultinstruments.Bundle.CTL_VoidInstrument;
-import org.jjazz.midi.Instrument;
-import org.openide.util.NbBundle;
 
 /**
  * A special "void" instrument: no bank change or program change is associated to this instrument.
  * <p>
  * When used the system should not send any Midi bank select or program change messages for this instument.
  */
-@NbBundle.Messages(
-        {
-            "CTL_VoidInstrument=!Not Set!"
-        })
 public class VoidInstrument extends Instrument implements Serializable
 {
+
     private static VoidInstrument INSTANCE;
+    private InstrumentBank<?> myBank;
 
     /**
      * Should be only called by JazzSynth: this way the bank/synth are correctly set.
@@ -55,15 +50,27 @@ public class VoidInstrument extends Instrument implements Serializable
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new VoidInstrument();
+                INSTANCE = new VoidInstrument(0, "!Not Set!");
             }
         }
         return INSTANCE;
     }
 
-    private VoidInstrument()
+    private VoidInstrument(int programChange, String patchName)
     {
-        super(0, CTL_VoidInstrument());
+        super(programChange, patchName);
+    }
+
+    @Override
+    public void setBank(InstrumentBank<?> bank)
+    {
+        this.myBank = bank;
+    }
+
+    @Override
+    public InstrumentBank<?> getBank()
+    {
+        return this.myBank;
     }
 
     /**
@@ -108,7 +115,7 @@ public class VoidInstrument extends Instrument implements Serializable
 
         private Object readResolve() throws ObjectStreamException
         {
-            return JJazzSynth.getVoidInstrument();
+            return StdSynth.getInstance().getVoidInstrument();
         }
     }
 

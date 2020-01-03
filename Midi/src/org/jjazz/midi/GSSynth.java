@@ -20,38 +20,50 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.midimix;
+package org.jjazz.midi;
 
-import org.jjazz.harmony.TimeSignature;
-import org.jjazz.midi.GM1Bank;
-import org.jjazz.midi.StdSynth;
-import org.jjazz.midi.InstrumentSettings;
-import org.jjazz.rhythm.api.DummyRhythm;
-import org.jjazz.rhythm.api.RhythmVoice;
+import java.util.logging.Logger;
 
 /**
- * A special RhythmVoice instance used by MidiMix as the RhythmVoice key for the special User channel.
+ * The GS synth for the GS banks.
+ * <p>
+ * NOTE: GS banks are NOT compatible with GM2/XG in general, some identical MidiAddresses result in completly different patches.
  */
-public class UserChannelRhythmVoiceKey extends RhythmVoice
+public class GSSynth extends MidiSynth
 {
 
-    private static UserChannelRhythmVoiceKey INSTANCE;
+    public static String NAME = "GS Synth";
+    public static String MANUFACTURER = "JJazz";
+    private static GSSynth INSTANCE;
+    private static final Logger LOGGER = Logger.getLogger(GSSynth.class.getSimpleName());
 
-    static public UserChannelRhythmVoiceKey getInstance()
+    public static GSSynth getInstance()
     {
-        synchronized (UserChannelRhythmVoiceKey.class)
+        synchronized (GSSynth.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new UserChannelRhythmVoiceKey();
+                INSTANCE = new GSSynth();
             }
         }
         return INSTANCE;
     }
 
-    private UserChannelRhythmVoiceKey()
+    private GSSynth()
     {
-        super(new DummyRhythm("UserChannelDummyRhythm", TimeSignature.FOUR_FOUR), "USER_CHANNEL", StdSynth.getGM1Bank().getDefaultInstrument(GM1Bank.Family.Piano), new InstrumentSettings(), 0);
+        super(NAME, MANUFACTURER);
+        addBank(getGSBank());
+        addBank(getGS_SC88Pro_Bank());
     }
 
+    static public GSBank getGSBank()
+    {
+        return GSBank.getInstance();
+    }
+
+    static public GSBank_SC88Pro getGS_SC88Pro_Bank()
+    {
+        return GSBank_SC88Pro.getInstance();
+    }
+ 
 }

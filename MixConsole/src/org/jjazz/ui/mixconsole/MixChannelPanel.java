@@ -714,7 +714,7 @@ class BaseMixChannelPanelModel implements MixChannelPanelModel
     @Override
     public Instrument getInstrument()
     {
-        return StdSynth.getInstance().getGM1Bank().getInstruments().get(0);
+        return StdSynth.getGM1Bank().getInstruments().get(0);
     }
 
     @Override

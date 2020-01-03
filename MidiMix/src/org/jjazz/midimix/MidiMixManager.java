@@ -29,10 +29,10 @@ import java.io.IOException;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
-import org.jjazz.defaultinstruments.JJazzSynth;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
+import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
@@ -152,9 +152,9 @@ public class MidiMixManager implements PropertyChangeListener
 
     /**
      * Create a new MidiMix for the specified song.
-     * 
+     * <p>
      * Use the default rhythm mix for each song's rhythm.
-     * 
+     *
      * @param sg
      * @return
      * @throws MidiUnavailableException If there is not enough available channels to accomodate song's rhythms.
@@ -187,12 +187,8 @@ public class MidiMixManager implements PropertyChangeListener
         MidiMix mm = new MidiMix();
         for (RhythmVoice rv : r.getRhythmVoices())
         {
-            Instrument ins = rv.getPreferredInstrument();
-            if (ins == null)
-            {
-                // No preferred instrument set, use the delegate to default 
-                ins = JJazzSynth.getDelegate2DefaultInstrument(rv.getType());
-            }
+            Instrument ins = OutputSynthManager.getInstance().getOutputSynth().getInstrument(rv);
+            assert ins != null : "rv=" + rv;
             int channel = rv.getPreferredChannel();
             if (mm.getInstrumentMixFromChannel(channel) != null)
             {
@@ -230,7 +226,6 @@ public class MidiMixManager implements PropertyChangeListener
     // ==================================================================
     // Private functions
     // ==================================================================
-
     private void registerSong(MidiMix mm, Song sg)
     {
         if (mapSongMix.get(sg) != mm)
