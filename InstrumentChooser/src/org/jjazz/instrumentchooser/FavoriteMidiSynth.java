@@ -125,7 +125,7 @@ public class FavoriteMidiSynth extends MidiSynth implements PropertyChangeListen
 
         public FavoriteBank(MidiSynth synth)
         {
-            super("Favorites", null, 0, 0);
+            super("Favorites", 0, 0);
         }
 
         /**

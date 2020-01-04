@@ -71,7 +71,7 @@ public class StdSynth extends MidiSynth
         return XGBank.getInstance();
     }
 
-    public VoidInstrument getVoidInstrument()
+    static public VoidInstrument getVoidInstrument()
     {
         return NotSetBank.getInstance().getVoidInstrument();
     }

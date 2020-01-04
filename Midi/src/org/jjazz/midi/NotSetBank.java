@@ -56,10 +56,15 @@ public final class NotSetBank<T extends Instrument> extends AbstractInstrumentBa
 
     private NotSetBank()
     {
-        super(BANKNAME, null, 0, 0);
+        super(BANKNAME, 0, 0);
         addInstrument(getVoidInstrument());
     }
 
+    /**
+     * An empty GM1Instrument: when used, no Midi message is sent.
+     *
+     * @return
+     */
     public VoidInstrument getVoidInstrument()
     {
         return VoidInstrument.getInstance();

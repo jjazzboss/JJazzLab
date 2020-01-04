@@ -48,30 +48,28 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
      * Create an empty bank with BankSelectMethod.MSB_LSB.
      *
      * @param name
-     * @param synth
      * @param msb
      * @param lsb
      */
-    public AbstractInstrumentBank(String name, MidiSynth synth, int msb, int lsb)
+    public AbstractInstrumentBank(String name, int msb, int lsb)
     {
-        this(name, synth, msb, lsb, BankSelectMethod.MSB_LSB);
+        this(name, msb, lsb, BankSelectMethod.MSB_LSB);
     }
 
     /**
+     * Create an InstrumentBank.
      *
      * @param name
-     * @param synth The container for this bank. Can be null.
-     * @param msb   The default Most Significant Byte or "Control 0".
-     * @param lsb   The default Least Significant Byte or "Control 32"
-     * @param m     The default bank select method. Can't be null.
+     * @param msb  The default Most Significant Byte or "Control 0".
+     * @param lsb  The default Least Significant Byte or "Control 32"
+     * @param m    The default bank select method. Can't be null.
      */
-    public AbstractInstrumentBank(String name, MidiSynth synth, int msb, int lsb, BankSelectMethod m)
+    public AbstractInstrumentBank(String name, int msb, int lsb, BankSelectMethod m)
     {
         if (name == null || name.trim().isEmpty() || msb < 0 || msb > 127 || lsb < 0 || lsb > 127 || m == null)
         {
-            throw new IllegalArgumentException("name=" + name + " synth=" + synth + " msb=" + msb + " lsb=" + lsb + " m=" + m);
+            throw new IllegalArgumentException("name=" + name + " msb=" + msb + " lsb=" + lsb + " m=" + m);
         }
-        this.synth = synth;
         this.defaultLsb = lsb;
         this.defaultMsb = msb;
         this.name = name;
@@ -136,7 +134,7 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
      *
      * @param instrument
      */
-    protected void addInstrument(T instrument)
+    public void addInstrument(T instrument)
     {
         if (instrument == null)
         {
@@ -157,7 +155,7 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
         }
     }
 
-    protected void removeInstrument(T instrument)
+    public void removeInstrument(T instrument)
     {
         if (instrument == null)
         {
@@ -170,7 +168,7 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
     /**
      * Empty the bank.
      */
-    protected void clear()
+    public void clear()
     {
         instruments.clear();
         mapAddressInstrument.clear();
@@ -317,5 +315,5 @@ public class AbstractInstrumentBank<T extends Instrument> implements InstrumentB
     public String toString()
     {
         return "InstrumentBank=" + getName() + "[" + instruments.size() + "]";
-    }        
+    }
 }

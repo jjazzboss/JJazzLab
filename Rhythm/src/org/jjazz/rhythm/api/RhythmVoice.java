@@ -25,10 +25,10 @@ package org.jjazz.rhythm.api;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.midi.DrumKit;
-import org.jjazz.midi.GM1Instrument;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.MidiConst;
+import org.jjazz.midi.StdSynth;
 
 /**
  * Describe a voice for which a Rhythm will generate music.
@@ -106,6 +106,8 @@ public class RhythmVoice
 
     /**
      * Create a RhythmVoice for Drums/Percussion instruments.
+     * <p>
+     * The preferred Instrument is set to the VoidInstrument.
      *
      * @param kit
      * @param container        The Rhythm this RhythmVoice belongs to.
@@ -126,7 +128,7 @@ public class RhythmVoice
         this.container = container;
         this.name = name;
         this.type = type;
-        this.instrument = null;
+        this.instrument = StdSynth.getVoidInstrument();
         this.instrumentSettings = new InstrumentSettings(is);
         this.preferredChannel = preferredChannel;
         this.drumKit = kit;
@@ -182,7 +184,8 @@ public class RhythmVoice
     /**
      * The preferred Instrument for this voice.
      *
-     * @return Can be null for drums/percussion. Returned instrument has its method getSubstitute() defined.
+     * @return Can't be null. For Drums/Percussion return the VoidInstrument. Returned instrument has its method getSubstitute()
+     *         defined.
      */
     public Instrument getPreferredInstrument()
     {

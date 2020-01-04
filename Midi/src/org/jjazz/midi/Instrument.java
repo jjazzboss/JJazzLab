@@ -138,8 +138,8 @@ public class Instrument implements Serializable
      * <p>
      * It is the responsibility of the specified bank to add the Instrument.
      * <p>
-     * If this object has an InstrumentBank defined and the MidiAddress set for this instrument has undefined bankMSB or bankLSB
-     * or bankSelectMethod, then a new MidiAddress is created which replaces the undefined values by the bank default values.
+     * If this object's MidiAddress has undefined bankMSB or bankLSB or bankSelectMethod, then a new MidiAddress is created which
+     * replaces the undefined values by the bank default values.
      *
      * @param bank A non null value, the InstrumentBank this Instrument belongs to, e.g. GM1Bank.
      */

@@ -610,7 +610,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                         break;
                     case Percussive:
                         icon = new ImageIcon(getClass().getResource("resources/Percu-48x48.png"));
-                        break;
+                        break;                   
                     default: // Ethnic, Sound_Effects, Synth_Effects, Pipe, Chromatic_Percussion:
                         icon = new ImageIcon(getClass().getResource("resources/Notes-48x48.png"));
                 }

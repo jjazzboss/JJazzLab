@@ -44,7 +44,7 @@ public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
     {
         Bass, Piano, Guitar, Organ, Synth_Pad, Percussive,
         Ensemble, Brass, Reed, Synth_Lead, Chromatic_Percussion, Strings, Pipe,
-        Synth_Effects, Ethnic, Sound_Effects;
+        Synth_Effects, Ethnic, Sound_Effects;       
 
         @Override
         public String toString()
@@ -79,7 +79,7 @@ public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
     private GM1Bank()
     {
         // Yamaha MOTIF : GM bank is MSB=LSB=0
-        super(GM1_BANKNAME, null, DEFAULT_BANK_SELECT_MSB, DEFAULT_BANK_SELECT_LSB, DEFAULT_BANK_SELECT_METHOD);
+        super(GM1_BANKNAME, DEFAULT_BANK_SELECT_MSB, DEFAULT_BANK_SELECT_LSB, DEFAULT_BANK_SELECT_METHOD);
         addInstrument(new GM1Instrument(0, "Acoustic Piano", Family.Piano));
         addInstrument(new GM1Instrument(1, "Bright Piano", Family.Piano));
         addInstrument(new GM1Instrument(2, "Elec. Grand Piano", Family.Piano));
@@ -263,6 +263,7 @@ public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
 
     /**
      * Return a hard-coded default GM1Instrument for the specified GM family.
+     * <p>
      *
      * @param f
      * @return A GM1Instrument.
@@ -306,7 +307,7 @@ public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
             case Ethnic:
                 return instruments.get(104);     // Sitar
             case Sound_Effects:
-                return instruments.get(121);     // Breath noise
+                return instruments.get(121);     // Breath noise          
             default:
                 return instruments.get(0);       // Piano         
         }

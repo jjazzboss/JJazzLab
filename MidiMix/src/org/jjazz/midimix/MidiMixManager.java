@@ -124,7 +124,7 @@ public class MidiMixManager implements PropertyChangeListener
      * <p>
      *
      * @param r
-     * @return A valid MidiMix usable for the specified rhythm
+     * @return Can't be null
      */
     public MidiMix findMix(Rhythm r)
     {
@@ -138,15 +138,14 @@ public class MidiMixManager implements PropertyChangeListener
                 mm = MidiMix.loadFromFile(mixFile);
             } catch (IOException ex)
             {
-                LOGGER.warning("findMix(Rhythm) Problem reading mix file" + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage());
+                LOGGER.severe("findMix(rhythm) Problem reading mix file" + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage()+". Creating a new mix instead.");
             }
-        } else
+        }
+        if (mm == null)
         {
             // No valid mixFile or problem loading rhythm mix file, create a new mix
             mm = createMix(r);
         }
-        assert mm != null : "r=" + r + " mixFile=" + mixFile;
-
         return mm;
     }
 
@@ -157,7 +156,7 @@ public class MidiMixManager implements PropertyChangeListener
      *
      * @param sg
      * @return
-     * @throws MidiUnavailableException If there is not enough available channels to accomodate song's rhythms.
+     * @throws MidiUnavailableException If there is not enough available channels to accomodate song's rhythms, or other errors.
      */
     public MidiMix createMix(Song sg) throws MidiUnavailableException
     {

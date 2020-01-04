@@ -248,7 +248,7 @@ public class MidiSynth
 
     public void dump()
     {
-        LOGGER.severe("dump() Dumping synth: " + this.name + "(" + getNbPatches() + ") ================================================");
+        LOGGER.severe("DUMP synth: " + this.name + "(" + getNbPatches() + ") ================================================");
         for (InstrumentBank<?> bank : banks)
         {
             LOGGER.severe("   Bank=" + bank.getName() + " (" + bank.getSize() + ") ---------");

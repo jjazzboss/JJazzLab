@@ -166,6 +166,7 @@ public class OutputSynth implements Serializable
     public Instrument getInstrument(RhythmVoice rv)
     {
         Instrument rvIns = rv.getPreferredInstrument();
+        assert rvIns != null : "rv=" + rv;
         ConvertersManager cm = ConvertersManager.getInstance();
         Instrument ins = null;
         // Try with custom synths first

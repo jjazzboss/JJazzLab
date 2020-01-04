@@ -60,7 +60,7 @@ public class GM2Bank extends AbstractInstrumentBank<Instrument>
 
     private GM2Bank()
     {
-        super(GM2_BANKNAME, null, DEFAULT_BANK_SELECT_MSB, DEFAULT_BANK_SELECT_LSB, DEFAULT_BANK_SELECT_METHOD);
+        super(GM2_BANKNAME, DEFAULT_BANK_SELECT_MSB, DEFAULT_BANK_SELECT_LSB, DEFAULT_BANK_SELECT_METHOD);
         addInstrument(createInstrument(0, 121, 2, "European Pf"));
         addInstrument(createInstrument(3, 121, 0, "Honky-tonk"));
         addInstrument(createInstrument(3, 121, 1, "Honky-tonk w"));

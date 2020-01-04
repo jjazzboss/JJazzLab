@@ -72,12 +72,13 @@ public class RhythmStub implements Rhythm
      */
     public RhythmStub(String uniqueId, TimeSignature ts)
     {
-        if (ts == null)
+        if (uniqueId == null || uniqueId.trim().isEmpty() || ts == null)
         {
-            throw new NullPointerException("ts");
+            throw new IllegalArgumentException("uniqueId=" + uniqueId + " ts=" + ts);
         }
 
         this.uniqueId = uniqueId;
+        this.timeSignature = ts;
 
         // Our Rhythm Parameters
         rhythmParameters.add(new RP_STD_Variation());

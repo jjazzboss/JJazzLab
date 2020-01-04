@@ -97,12 +97,12 @@ public class GM1RemapTable implements Serializable
     /**
      * Get the remapped instrument for the specified instrument family.
      *
-     * @param family
+     * @param family 
      * @return Null if no mapping defined for this family.
      */
     public Instrument getInstrument(GM1Bank.Family family)
     {
-        if (family == null)
+        if (family == null )
         {
             throw new NullPointerException("family");
         }

@@ -27,6 +27,8 @@ import java.util.Objects;
 
 /**
  * The data to select an Instrument via Midi.
+ * <p>
+ * This is an immutable class.
  */
 public class MidiAddress
 {

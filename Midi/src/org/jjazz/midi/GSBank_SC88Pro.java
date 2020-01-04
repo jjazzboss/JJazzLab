@@ -68,7 +68,7 @@ public class GSBank_SC88Pro extends AbstractInstrumentBank<Instrument>
 
     private GSBank_SC88Pro()
     {
-        super(BANKNAME, null, DEFAULT_BANK_SELECT_MSB, DEFAULT_BANK_SELECT_LSB, DEFAULT_BANK_SELECT_METHOD);
+        super(BANKNAME, DEFAULT_BANK_SELECT_MSB, DEFAULT_BANK_SELECT_LSB, DEFAULT_BANK_SELECT_METHOD);
         addInstrument(createInstrument(0, 0, "Piano 1"));
         addInstrument(createInstrument(0, 8, "Piano 1w"));
         addInstrument(createInstrument(0, 16, "Piano 1d"));

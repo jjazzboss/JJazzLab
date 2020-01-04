@@ -58,7 +58,7 @@ import org.openide.util.NbPreferences;
         })
 public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListener
 {
-
+    
     private static final String PREF_DEFAULT_RHYTHM = "DefaultRhythm";
     private static RhythmDatabaseImpl INSTANCE;
     /**
@@ -74,10 +74,10 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
      * Used to store the default rhythms
      */
     private static Preferences prefs = NbPreferences.forModule(RhythmDatabaseImpl.class);
-
+    
     private final ArrayList<ChangeListener> listeners = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(RhythmDatabaseImpl.class.getSimpleName());
-
+    
     static public RhythmDatabaseImpl getInstance()
     {
         synchronized (RhythmDatabaseImpl.class)
@@ -98,7 +98,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     {
         FileDirectoryManager.getInstance().addPropertyChangeListener(this);
     }
-
+    
     @Override
     public void refresh(final boolean forceRescan)
     {
@@ -106,7 +106,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
         // Save data for comparison
         final HashMap<RhythmProvider, List<Rhythm>> saveMap = cloneDataMap();
-
+        
         Runnable r = new Runnable()
         {
             @Override
@@ -121,7 +121,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         };
         BaseProgressUtils.showProgressDialogAndRun(r, CTL_Scanning());
     }
-
+    
     @SuppressWarnings("unchecked")
     @Override
     public List<Rhythm> getRhythms(TimeSignature ts, List<Rhythm> optRhythms)
@@ -170,7 +170,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                 break;
             }
         }
-
+        
         if (rhythms1.isEmpty())
         {
             return null;
@@ -188,7 +188,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         // stop searching...
         return rhythms1.get(0);
     }
-
+    
     @Override
     public List<Rhythm> getRhythms(List<String> tags, List<Rhythm> optRhythms)
     {
@@ -216,7 +216,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
         return rhythms;
     }
-
+    
     @Override
     public List<Rhythm> getRhythms(int tempo, List<Rhythm> optRhythms)
     {
@@ -235,7 +235,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
         return rhythms;
     }
-
+    
     @Override
     public Rhythm getRhythm(String uniqueSerialId)
     {
@@ -248,7 +248,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
         return null;
     }
-
+    
     @Override
     public List<Rhythm> getRhythms()
     {
@@ -259,7 +259,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
         return rhythms;
     }
-
+    
     @Override
     public List<Rhythm> getRhythms(RhythmProvider rp)
     {
@@ -275,7 +275,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         List<Rhythm> rhythms = new ArrayList<>(rpRhythms);
         return rhythms;
     }
-
+    
     @Override
     public Rhythm getNextRhythm(Rhythm r)
     {
@@ -291,7 +291,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
         return (index == rhythms.size() - 1) ? rhythms.get(0) : rhythms.get(index + 1);
     }
-
+    
     @Override
     public Rhythm getPreviousRhythm(Rhythm r)
     {
@@ -307,7 +307,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
         return (index == 0) ? rhythms.get(rhythms.size() - 1) : rhythms.get(index - 1);
     }
-
+    
     @Override
     public Rhythm getDefaultRhythm(TimeSignature ts)
     {
@@ -371,7 +371,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     {
         return new ArrayList<>(mapTsRhythms.keySet());
     }
-
+    
     @Override
     public RhythmProvider getRhythmProvider(Rhythm r)
     {
@@ -386,11 +386,11 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
         return resRp;
     }
-
+    
     @Override
     public List<RhythmProvider> getRhythmProviders()
     {
-
+        
         List<RhythmProvider> res = new ArrayList<>(mapRpRhythms.keySet());
         res.sort(new Comparator<RhythmProvider>()
         {
@@ -402,13 +402,13 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         });
         return res;
     }
-
+    
     @Override
     public String toString()
     {
         return "RhythmDB=" + getRhythms();
     }
-
+    
     @Override
     public int size()
     {
@@ -420,19 +420,19 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
         return size;
     }
-
+    
     @Override
     public void addChangeListener(ChangeListener l)
     {
         listeners.add(l);
     }
-
+    
     @Override
     public void removeChangeListener(ChangeListener l)
     {
         listeners.remove(l);
     }
-
+    
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
@@ -460,7 +460,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         {
             LOGGER.warning("refresh() - no RhythmProvider found, database will be empty");
         }
-
+        
         for (RhythmProvider rp : rps)
         {
             if (!mapRpRhythms.containsKey(rp))
@@ -483,12 +483,12 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             }
         }
     }
-
+    
     private String getPrefString(TimeSignature ts)
     {
         return PREF_DEFAULT_RHYTHM + "__" + ts.name();
     }
-
+    
     protected void clear()
     {
         this.mapRpRhythms.clear();
@@ -520,7 +520,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             ts_rInfos.add(r);
         }
     }
-
+    
     private void fireChanged(ChangeEvent e)
     {
         LOGGER.fine("fireChanged()");
@@ -529,7 +529,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             l.stateChanged(e);
         }
     }
-
+    
     private void dump()
     {
         LOGGER.info("RhythmDatabaseImpl dump ----- ");
@@ -554,5 +554,5 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
         return res;
     }
-
+    
 }

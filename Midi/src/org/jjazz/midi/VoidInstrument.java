@@ -33,7 +33,7 @@ import javax.sound.midi.MidiMessage;
  * <p>
  * When used the system should not send any Midi bank select or program change messages for this instument.
  */
-public class VoidInstrument extends Instrument implements Serializable
+public class VoidInstrument extends GM1Instrument implements Serializable
 {
 
     private static VoidInstrument INSTANCE;
@@ -58,7 +58,7 @@ public class VoidInstrument extends Instrument implements Serializable
 
     private VoidInstrument(int programChange, String patchName)
     {
-        super(programChange, patchName);
+        super(programChange, patchName, GM1Bank.Family.Piano);
     }
 
     @Override
