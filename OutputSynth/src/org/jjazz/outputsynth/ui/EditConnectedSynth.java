@@ -20,13 +20,13 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.mixconsole.actions;
+package org.jjazz.outputsynth.ui;
 
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import org.jjazz.outputsynth.OutputSynthManager;
-import static org.jjazz.ui.mixconsole.actions.Bundle.CTL_EditRemap;
+import static org.jjazz.outputsynth.ui.Bundle.CTL_EditConnectedSynth;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -34,23 +34,23 @@ import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 
-@ActionID(category = "JJazz", id = "org.jjazz.ui.mixconsole.actions.editGM1Remap")
-@ActionRegistration(displayName = "#CTL_EditRemap", lazy = true)
+@ActionID(category = "JJazz", id = "org.jjazz.outputsynth.ui.editConnectedSynth")
+@ActionRegistration(displayName = "#CTL_EditConnectedSynth", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/Edit", position = 983948)
+            @ActionReference(path = "Menu/Edit", position = 98392)
         })
 @NbBundle.Messages(
         {
-            "CTL_EditRemap=Edit GM1 Remap"
+            "CTL_EditConnectedSynth=Edit Connected Synth"
         })
-public class EditGM1Remap extends AbstractAction
+public class EditConnectedSynth extends AbstractAction
 {
 
-    private String undoText = CTL_EditRemap();
-    private static final Logger LOGGER = Logger.getLogger(EditGM1Remap.class.getSimpleName());
+    private String undoText = CTL_EditConnectedSynth();
+    private static final Logger LOGGER = Logger.getLogger(EditConnectedSynth.class.getSimpleName());
 
-    public EditGM1Remap()
+    public EditConnectedSynth()
     {
         putValue(NAME, undoText);
         // putValue(SHORT_DESCRIPTION, "");
@@ -60,7 +60,7 @@ public class EditGM1Remap extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        EditGM1RemapDialog dlg = EditGM1RemapDialog.getInstance();
+        EditConnectedSynthDialog dlg = EditConnectedSynthDialog.getInstance();
         dlg.preset(OutputSynthManager.getInstance().getOutputSynth());
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);

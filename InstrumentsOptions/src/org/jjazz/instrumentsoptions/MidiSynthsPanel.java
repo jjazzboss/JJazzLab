@@ -44,6 +44,7 @@ import javax.swing.table.TableColumnModel;
 import static org.jjazz.instrumentsoptions.Bundle.CTL_BuiltinSynth;
 import static org.jjazz.instrumentsoptions.Bundle.ERR_BankNotGM1;
 import org.jjazz.midi.GM1Bank;
+import org.jjazz.midi.GSSynth;
 import org.jjazz.midi.StdSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
@@ -105,24 +106,7 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
-        if (e.getSource() == MidiSynthManager.getInstance())
-        {
-            if (e.getPropertyName() == MidiSynthManager.PROP_USER_SYNTH)
-            {
-                // A synth was added or removed : rebuild the MidiSynth list
-                int saveIndex = list_MidiSynths.getSelectedIndex();
-                List<MidiSynth> synths = MidiSynthManager.getInstance().getSynths();
-                list_MidiSynths.setListData(synths.toArray(new MidiSynth[0]));
-                saveIndex = saveIndex < synths.size() ? saveIndex : synths.size() - 1;
-                if (saveIndex >= 0)
-                {
-                    list_MidiSynths.setSelectedIndex(saveIndex);
-                }
-            } else if (e.getPropertyName() == MidiSynthManager.PROP_GM1_DELEGATE_BANK)
-            {
-                updateCurrentGM1BankText((InstrumentBank) e.getNewValue());
-            }
-        }
+      
     }
 
     /**
@@ -288,7 +272,7 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
                 list_Banks.setSelectedIndex(0);
             }
         }
-        btn_RemoveSynth.setEnabled(synth != null && !MidiSynthManager.getInstance().getBuiltinSynths().contains(synth));
+        //btn_RemoveSynth.setEnabled(synth != null && !MidiSynthManager.getInstance().getBuiltinSynths().contains(synth));
     }//GEN-LAST:event_list_MidiSynthsValueChanged
 
     private void list_BanksValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_list_BanksValueChanged
@@ -301,12 +285,12 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
         InstrumentBank<?> bank = list_Banks.getSelectedValue();
         tbl_Instruments.setEnabled(bank != null);
         tableModel.setBank(bank);
-        InstrumentBank<?> gmBank = MidiSynthManager.getInstance().getGM1DelegateBank();
-        if (gmBank == null)
-        {
-            gmBank = StdSynth.getInstance().getGM1Bank();
-        }
-        btn_SetAsGM1Bank.setEnabled(bank != null && bank != gmBank);
+//        InstrumentBank<?> gmBank = MidiSynthManager.getInstance().getGM1DelegateBank();
+//        if (gmBank == null)
+//        {
+//            gmBank = StdSynth.getInstance().getGM1Bank();
+//        }
+//        btn_SetAsGM1Bank.setEnabled(bank != null && bank != gmBank);
 
     }//GEN-LAST:event_list_BanksValueChanged
 
@@ -318,86 +302,86 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
             // Normally useless if button is correctly enabled
             return;
         }
-        MidiSynthManager.getInstance().removeUserSynth(synth);
+//        MidiSynthManager.getInstance().removeUserSynth(synth);
     }//GEN-LAST:event_btn_RemoveSynthActionPerformed
 
     private void btn_AddSynthActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_AddSynthActionPerformed
     {//GEN-HEADEREND:event_btn_AddSynthActionPerformed
         // First collect all file extensions managed by the MidiSynthProviders
-        HashMap<String, MidiSynthProvider> mapExtProvider = new HashMap<>();
-        List<FileNameExtensionFilter> allFilters = new ArrayList<>();
-        for (MidiSynthProvider p : MidiSynthProvider.Utilities.getProviders())
-        {
-            List<FileNameExtensionFilter> filters = p.getSupportedFileTypes();
-            for (FileNameExtensionFilter filter : filters)
-            {
-                allFilters.add(filter);
-                for (String s : filter.getExtensions())
-                {
-                    mapExtProvider.put(s.toLowerCase(), p);
-                }
-            }
-        }
-
-        // Initialize the file chooser
-        JFileChooser chooser = org.jjazz.ui.utilities.Utilities.getFileChooserInstance();
-        chooser.resetChoosableFileFilters();
-        for (FileNameExtensionFilter filter : allFilters)
-        {
-            chooser.addChoosableFileFilter(filter);
-        }
-        chooser.setAcceptAllFileFilterUsed(false);
-        chooser.setMultiSelectionEnabled(false);
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setDialogTitle("Add a Midi synth description file");
-        chooser.setCurrentDirectory(MidiSynthManager.getInstance().getMidiSynthFilesDir());
-
-        if (chooser.showOpenDialog(WindowManager.getDefault().getMainWindow()) != JFileChooser.APPROVE_OPTION)
-        {
-            // User cancel
-            return;
-        }
-
-        // Process selected files
-        File[] synthFiles = new File[]
-        {
-            chooser.getSelectedFile()           // We don't allow multi file selection anymore...
-        };
-        for (File f : synthFiles)
-        {
-            String ext = org.jjazz.util.Utilities.getExtension(f.getAbsolutePath());
-            MidiSynthProvider p = mapExtProvider.get(ext.toLowerCase());
-            if (p == null)
-            {
-                // Extension not managed by any MidiSynthProvider
-                String msg = ERR_NotSupportedExtension() + f.getAbsolutePath();
-                LOGGER.log(Level.WARNING, msg);
-                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(nd);
-                continue;
-            }
-            // Ask provider to read the file
-            List<MidiSynth> synths = null;
-            try
-            {
-                synths = p.getSynthsFromStream(f);
-            } catch (IOException ex)
-            {
-                String msg = "Problem reading file : " + ex.getLocalizedMessage();
-                LOGGER.log(Level.WARNING, msg);
-                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(nd);
-                continue;
-            }
-            // Add the non-empty synths
-            for (MidiSynth synth : synths)
-            {
-                if (synth.getNbPatches() > 0)
-                {
-                    MidiSynthManager.getInstance().addUserSynth(p, synth);
-                }
-            }
-        }
+//        HashMap<String, MidiSynthProvider> mapExtProvider = new HashMap<>();
+//        List<FileNameExtensionFilter> allFilters = new ArrayList<>();
+//        for (MidiSynthProvider p : MidiSynthProvider.Utilities.getProviders())
+//        {
+//            List<FileNameExtensionFilter> filters = p.getSupportedFileTypes();
+//            for (FileNameExtensionFilter filter : filters)
+//            {
+//                allFilters.add(filter);
+//                for (String s : filter.getExtensions())
+//                {
+//                    mapExtProvider.put(s.toLowerCase(), p);
+//                }
+//            }
+//        }
+//
+//        // Initialize the file chooser
+//        JFileChooser chooser = org.jjazz.ui.utilities.Utilities.getFileChooserInstance();
+//        chooser.resetChoosableFileFilters();
+//        for (FileNameExtensionFilter filter : allFilters)
+//        {
+//            chooser.addChoosableFileFilter(filter);
+//        }
+//        chooser.setAcceptAllFileFilterUsed(false);
+//        chooser.setMultiSelectionEnabled(false);
+//        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+//        chooser.setDialogTitle("Add a Midi synth description file");
+//        chooser.setCurrentDirectory(MidiSynthManager.getInstance().getMidiSynthFilesDir());
+//
+//        if (chooser.showOpenDialog(WindowManager.getDefault().getMainWindow()) != JFileChooser.APPROVE_OPTION)
+//        {
+//            // User cancel
+//            return;
+//        }
+//
+//        // Process selected files
+//        File[] synthFiles = new File[]
+//        {
+//            chooser.getSelectedFile()           // We don't allow multi file selection anymore...
+//        };
+//        for (File f : synthFiles)
+//        {
+//            String ext = org.jjazz.util.Utilities.getExtension(f.getAbsolutePath());
+//            MidiSynthProvider p = mapExtProvider.get(ext.toLowerCase());
+//            if (p == null)
+//            {
+//                // Extension not managed by any MidiSynthProvider
+//                String msg = ERR_NotSupportedExtension() + f.getAbsolutePath();
+//                LOGGER.log(Level.WARNING, msg);
+//                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+//                DialogDisplayer.getDefault().notify(nd);
+//                continue;
+//            }
+//            // Ask provider to read the file
+//            List<MidiSynth> synths = null;
+//            try
+//            {
+//                synths = p.getSynthsFromStream(f);
+//            } catch (IOException ex)
+//            {
+//                String msg = "Problem reading file : " + ex.getLocalizedMessage();
+//                LOGGER.log(Level.WARNING, msg);
+//                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+//                DialogDisplayer.getDefault().notify(nd);
+//                continue;
+//            }
+//            // Add the non-empty synths
+//            for (MidiSynth synth : synths)
+//            {
+//                if (synth.getNbPatches() > 0)
+//                {
+//                    MidiSynthManager.getInstance().addUserSynth(p, synth);
+//                }
+//            }
+//        }
     }//GEN-LAST:event_btn_AddSynthActionPerformed
 
     private void btn_SetAsGM1BankActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_SetAsGM1BankActionPerformed
@@ -408,22 +392,22 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
             // Should not happen if button is correctly enabled
             return;
         }
-        if (bank == StdSynth.getInstance().getGM1Bank())
-        {
-            // Easy, no need of delegate since we want to use the standard GM1Bank
-            MidiSynthManager.getInstance().setGM1DelegateBank(null, null);
-            return;
-        }
-        if (!GM1Bank.isGM1Compatible(bank))
-        {
-            NotifyDescriptor d = new NotifyDescriptor.Message(ERR_BankNotGM1(), NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-            return;
-        }
-        // Ok let's set the delegate
-        MidiSynthProvider p = MidiSynthManager.getInstance().getProvider(bank.getMidiSynth());
-        assert p != null : "p=" + p + " bank=" + bank;
-        MidiSynthManager.getInstance().setGM1DelegateBank(p, bank);
+//        if (bank == StdSynth.getInstance().getGM1Bank())
+//        {
+//            // Easy, no need of delegate since we want to use the standard GM1Bank
+//            MidiSynthManager.getInstance().setGM1DelegateBank(null, null);
+//            return;
+//        }
+//        if (!GM1Bank.isGM1Compatible(bank))
+//        {
+//            NotifyDescriptor d = new NotifyDescriptor.Message(ERR_BankNotGM1(), NotifyDescriptor.ERROR_MESSAGE);
+//            DialogDisplayer.getDefault().notify(d);
+//            return;
+//        }
+//        // Ok let's set the delegate
+//        MidiSynthProvider p = MidiSynthManager.getInstance().getProvider(bank.getMidiSynth());
+//        assert p != null : "p=" + p + " bank=" + bank;
+//        MidiSynthManager.getInstance().setGM1DelegateBank(p, bank);
     }//GEN-LAST:event_btn_SetAsGM1BankActionPerformed
 
     void load()
@@ -435,8 +419,11 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
         // someCheckBox.setSelected(NbPreferences.forModule(MidiSynthsPanel.class).getBoolean("someFlag", false));
         // or:
         // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
-        MidiSynthManager msm = MidiSynthManager.getInstance();
-        List<MidiSynth> synths = msm.getSynths();
+        //MidiSynthManager msm = MidiSynthManager.getInstance();
+        
+        List<MidiSynth> synths = new ArrayList<>();
+        synths.add(StdSynth.getInstance());
+        synths.add(GSSynth.getInstance());
         list_MidiSynths.setListData(synths.toArray(new MidiSynth[0]));
         if (!synths.isEmpty())
         {
@@ -445,7 +432,7 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
         {
             clearBanks();
         }
-        updateCurrentGM1BankText(MidiSynthManager.getInstance().getGM1DelegateBank());
+        // updateCurrentGM1BankText(MidiSynthManager.getInstance().getGM1DelegateBank());
     }
 
     private void updateCurrentGM1BankText(InstrumentBank<?> bank)
@@ -588,11 +575,11 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
             switch (columnIndex)
             {
                 case 3:
-                    return ins.getBankSelectLSB();
+                    return (Integer)ins.getMidiAddress().getBankLSB();
                 case 2:
-                    return (Integer) ins.getBankSelectMSB();
+                    return (Integer)ins.getMidiAddress().getBankMSB();
                 case 1:
-                    return (Integer) ins.getProgramChange();
+                    return (Integer)ins.getMidiAddress().getProgramChange();
                 case 0:
                     return ins.getPatchName();
                 default:

@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import org.jjazz.midi.GSSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
@@ -66,7 +67,7 @@ public class OutputSynth implements Serializable
     }
 
     /**
-     * Get the list of InstrumentBanks from StdSynth which are compatible with this OutputSynth.
+     * Get the list of standard InstrumentBanks (GM/GM2/XG/GS) which are compatible with this OutputSynth.
      *
      * @return Can be an empty list.
      */
@@ -77,14 +78,27 @@ public class OutputSynth implements Serializable
 
     /**
      * Add a standard bank compatible with this OutputSynth.
+     * <p>
+     * NOTE: GS and XG/GM2 are incompatible, one will not be added if the other(s) is present.
      *
-     * @param stdBank Must belong to the StdSynth instance.
+     * @param stdBank Must be GM/GM2/XG/GS
      */
     public void addCompatibleStdBank(InstrumentBank<?> stdBank)
     {
-        if (stdBank == null || stdBank.getMidiSynth() != StdSynth.getInstance())
+        if (stdBank == null
+                || (stdBank != StdSynth.getGM1Bank() && stdBank != StdSynth.getGM2Bank() && stdBank != StdSynth.getXGBank() && stdBank != GSSynth.getGSBank()))
         {
             throw new IllegalArgumentException("stdBank=" + stdBank);
+        }
+
+        if ((stdBank == StdSynth.getGM2Bank() || stdBank == StdSynth.getXGBank()) && compatibleStdBanks.contains(GSSynth.getGSBank()))
+        {
+            LOGGER.warning("addCompatibleStdBank() Can't add " + stdBank + " because the GS bank is used");
+            return;
+        } else if (stdBank == GSSynth.getGSBank() && (compatibleStdBanks.contains(StdSynth.getGM2Bank()) || compatibleStdBanks.contains(StdSynth.getXGBank())))
+        {
+            LOGGER.warning("addCompatibleStdBank() Can't add " + stdBank + " because the GM2 or XG bank is used");
+            return;
         }
 
         if (!compatibleStdBanks.contains(this))
@@ -96,11 +110,11 @@ public class OutputSynth implements Serializable
     /**
      * Remove a standard bank compatible with this OutputSynth.
      *
-     * @param stdBank Must belong to the StdSynth instance.
+     * @param stdBank
      */
     public void removeCompatibleStdBank(InstrumentBank<?> stdBank)
     {
-        if (stdBank == null || stdBank.getMidiSynth() != StdSynth.getInstance())
+        if (stdBank == null)
         {
             throw new IllegalArgumentException("stdBank=" + stdBank);
         }

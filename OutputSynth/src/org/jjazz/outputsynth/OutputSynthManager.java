@@ -24,6 +24,8 @@
 package org.jjazz.outputsynth;
 
 import java.util.logging.Logger;
+import org.jjazz.midi.GSSynth;
+import org.jjazz.midi.StdSynth;
 
 /**
  * Management of the OutputSynth.
@@ -31,12 +33,12 @@ import java.util.logging.Logger;
  */
 public class OutputSynthManager
 {
-
+    
     private static OutputSynthManager INSTANCE;
     private OutputSynth outputSynth;
-
+    
     private static final Logger LOGGER = Logger.getLogger(OutputSynthManager.class.getSimpleName());
-
+    
     public static OutputSynthManager getInstance()
     {
         synchronized (OutputSynthManager.class)
@@ -48,10 +50,12 @@ public class OutputSynthManager
         }
         return INSTANCE;
     }
-
+    
     private OutputSynthManager()
     {
         outputSynth = new OutputSynth();
+        outputSynth.addCompatibleStdBank(StdSynth.getXGBank());
+        outputSynth.addCustomSynth(GSSynth.getInstance());
     }
 
     /**
@@ -62,5 +66,14 @@ public class OutputSynthManager
     public OutputSynth getOutputSynth()
     {
         return outputSynth;
+    }
+    
+    public void setOutputSynth(OutputSynth outSynth)
+    {
+        if (outSynth == null)
+        {
+            throw new IllegalArgumentException("outSynth=" + outSynth);
+        }
+        outputSynth = outSynth;
     }
 }

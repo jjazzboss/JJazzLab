@@ -871,7 +871,7 @@ public class GSBank_SC88Pro extends AbstractInstrumentBank<Instrument>
      *
      * @return
      */
-    private Instrument createInstrument(int msb, int pc, String name)
+    private Instrument createInstrument(int pc, int msb, String name)
     {
         GM1Instrument gmIns = StdSynth.getGM1Bank().getInstrument(pc); // GS's PC is directly compatible with GM1
         Instrument ins = new Instrument(name, null, new MidiAddress(pc, msb, 0, DEFAULT_BANK_SELECT_METHOD), null, gmIns);

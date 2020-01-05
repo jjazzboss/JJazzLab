@@ -71,15 +71,16 @@ public class GSBank extends AbstractInstrumentBank<Instrument>
     private GSBank()
     {
         super(BANKNAME, DEFAULT_BANK_SELECT_MSB, DEFAULT_BANK_SELECT_LSB, DEFAULT_BANK_SELECT_METHOD);
+        // PC, MSB, PatchName
         addInstrument(createInstrument(0, 0, "Piano 1"));
         addInstrument(createInstrument(0, 8, "Piano 1w"));
         addInstrument(createInstrument(0, 16, "Piano 1d"));
         addInstrument(createInstrument(1, 0, "Piano 2"));
         addInstrument(createInstrument(1, 8, "Piano 2w"));
         addInstrument(createInstrument(2, 0, "Piano 3"));
-        addInstrument(createInstrument(3, 8, "Piano 3w"));
+        addInstrument(createInstrument(2, 8, "Piano 3w"));
         addInstrument(createInstrument(3, 0, "Honky-tonk"));
-        addInstrument(createInstrument(4, 8, "Honky-tonk w"));
+        addInstrument(createInstrument(3, 8, "Honky-tonk w"));
         addInstrument(createInstrument(4, 0, "E. Piano 1"));
         addInstrument(createInstrument(4, 8, "Detuned EP 1"));
         addInstrument(createInstrument(4, 16, "E. Piano 1w"));
@@ -93,16 +94,16 @@ public class GSBank extends AbstractInstrumentBank<Instrument>
         addInstrument(createInstrument(6, 24, "Harpsichord"));
         addInstrument(createInstrument(7, 0, "Clavinet"));
         addInstrument(createInstrument(8, 0, "Celesta"));
-        addInstrument(createInstrument(10, 0, "Glockenspiel"));
-        addInstrument(createInstrument(11, 0, "Music Box"));
+        addInstrument(createInstrument(9, 0, "Glockenspiel"));
+        addInstrument(createInstrument(10, 0, "Music Box"));
         addInstrument(createInstrument(11, 0, "Vibraphone"));
         addInstrument(createInstrument(11, 8, "Vibraphone w"));
         addInstrument(createInstrument(12, 0, "Marimba"));
         addInstrument(createInstrument(12, 8, "Marimba w"));
-        addInstrument(createInstrument(14, 0, "Xylophone"));
+        addInstrument(createInstrument(13, 0, "Xylophone"));
         addInstrument(createInstrument(14, 0, "Tubular-bell"));
         addInstrument(createInstrument(14, 8, "Church Bell"));
-        addInstrument(createInstrument(15, 9, "Carillon"));
+        addInstrument(createInstrument(14, 9, "Carillon"));
         addInstrument(createInstrument(15, 0, "Santur"));
         addInstrument(createInstrument(16, 0, "Organ 1"));
         addInstrument(createInstrument(16, 8, "Detunedor.1"));
@@ -110,8 +111,8 @@ public class GSBank extends AbstractInstrumentBank<Instrument>
         addInstrument(createInstrument(16, 32, "Organ 4"));
         addInstrument(createInstrument(17, 0, "Organ 2"));
         addInstrument(createInstrument(17, 8, "Detunedorgan 2"));
-        addInstrument(createInstrument(18, 32, "Organ 5"));
         addInstrument(createInstrument(18, 0, "Organ 3"));
+        addInstrument(createInstrument(18, 32, "Organ 5"));        
         addInstrument(createInstrument(19, 0, "Churchorg.1"));
         addInstrument(createInstrument(19, 8, "Churchorg.2"));
         addInstrument(createInstrument(19, 16, "Churchorg.3"));
@@ -128,13 +129,13 @@ public class GSBank extends AbstractInstrumentBank<Instrument>
         addInstrument(createInstrument(25, 8, "12 String Guitar"));
         addInstrument(createInstrument(25, 16, "Mandolin"));
         addInstrument(createInstrument(26, 0, "Jazz Guitar"));
-        addInstrument(createInstrument(27, 8, "Hawaiian Guitar"));
+        addInstrument(createInstrument(26, 8, "Hawaiian Guitar"));
         addInstrument(createInstrument(27, 0, "Clean Guitar"));
         addInstrument(createInstrument(27, 8, "Chorus Guitar"));
         addInstrument(createInstrument(28, 0, "Muted Gt."));
         addInstrument(createInstrument(28, 8, "Funk Guitar"));
-        addInstrument(createInstrument(29, 16, "Funk Guitar 2"));
-        addInstrument(createInstrument(29, 0, "Overdrive Guitar"));
+        addInstrument(createInstrument(28, 16, "Funk Guitar 2"));        
+        addInstrument(createInstrument(29, 0, "Overdrive Guitar"));        
         addInstrument(createInstrument(30, 0, "Distortion Guitar"));
         addInstrument(createInstrument(30, 8, "Feedback Guitar"));
         addInstrument(createInstrument(31, 0, "Guitar Harmonics"));
@@ -152,10 +153,10 @@ public class GSBank extends AbstractInstrumentBank<Instrument>
         addInstrument(createInstrument(39, 8, "Synth Bass 4"));
         addInstrument(createInstrument(39, 16, "Rubber Bass"));
         addInstrument(createInstrument(40, 0, "Violin"));
+        addInstrument(createInstrument(41, 0, "Viola"));        
         addInstrument(createInstrument(41, 8, "Slow Violin"));
-        addInstrument(createInstrument(41, 0, "Viola"));
         addInstrument(createInstrument(42, 0, "Cello"));
-        addInstrument(createInstrument(44, 0, "Contrabass"));
+        addInstrument(createInstrument(43, 0, "Contrabass"));
         addInstrument(createInstrument(44, 0, "Tremolo Strings"));
         addInstrument(createInstrument(45, 0, "Pizzicato Strings"));
         addInstrument(createInstrument(46, 0, "Harp"));
@@ -191,14 +192,14 @@ public class GSBank extends AbstractInstrumentBank<Instrument>
         addInstrument(createInstrument(66, 0, "Tenor Sax"));
         addInstrument(createInstrument(67, 0, "Baritone Sax"));
         addInstrument(createInstrument(68, 0, "Oboe"));
-        addInstrument(createInstrument(70, 0, "English Horn"));
-        addInstrument(createInstrument(71, 0, "Bassoon"));
+        addInstrument(createInstrument(69, 0, "English Horn"));
+        addInstrument(createInstrument(70, 0, "Bassoon"));
         addInstrument(createInstrument(71, 0, "Clarinet"));
         addInstrument(createInstrument(72, 0, "Piccolo"));
         addInstrument(createInstrument(73, 0, "Flute"));
-        addInstrument(createInstrument(75, 0, "Recorder"));
+        addInstrument(createInstrument(74, 0, "Recorder"));
         addInstrument(createInstrument(75, 0, "Pan Flute"));
-        addInstrument(createInstrument(77, 0, "Bottle Blow"));
+        addInstrument(createInstrument(76, 0, "Bottle Blow"));
         addInstrument(createInstrument(77, 0, "Shakuhachi"));
         addInstrument(createInstrument(78, 0, "Whistle"));
         addInstrument(createInstrument(79, 0, "Ocarina"));
@@ -260,7 +261,7 @@ public class GSBank extends AbstractInstrumentBank<Instrument>
         addInstrument(createInstrument(120, 1, "Guitar Cut Noise"));
         addInstrument(createInstrument(120, 2, "String Slap"));
         addInstrument(createInstrument(121, 0, "Breath Noise"));
-        addInstrument(createInstrument(122, 1, "Flute Key Click"));
+        addInstrument(createInstrument(121, 1, "Flute Key Click"));
         addInstrument(createInstrument(122, 0, "Seashore"));
         addInstrument(createInstrument(122, 1, "Rain"));
         addInstrument(createInstrument(122, 2, "Thunder"));
@@ -321,7 +322,7 @@ public class GSBank extends AbstractInstrumentBank<Instrument>
      *
      * @return
      */
-    private Instrument createInstrument(int msb, int pc, String name)
+    private Instrument createInstrument(int pc, int msb, String name)
     {
         GM1Instrument gmIns = StdSynth.getGM1Bank().getInstrument(pc); // GS's PC is directly compatible with GM1
         Instrument ins = new Instrument(name, null, new MidiAddress(pc, msb, 0, DEFAULT_BANK_SELECT_METHOD), null, gmIns);

@@ -288,6 +288,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         fbtn_allSoloOff = new org.jjazz.ui.flatcomponents.FlatButton();
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         fbtn_panic = new org.jjazz.ui.flatcomponents.FlatButton();
+        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(40, 0), new java.awt.Dimension(40, 0), new java.awt.Dimension(40, 32767));
+        fbtn_ConnectedSynth = new org.jjazz.ui.flatcomponents.FlatButton();
         scrollPane_mixChannelsPanel = new javax.swing.JScrollPane();
         panel_mixChannels = new javax.swing.JPanel();
 
@@ -333,6 +335,19 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         fbtn_panic.setToolTipText(org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.fbtn_panic.toolTipText")); // NOI18N
         fbtn_panic.setFont(new java.awt.Font("Arial Narrow", 0, 11)); // NOI18N
         panel_MasterControls.add(fbtn_panic);
+        panel_MasterControls.add(filler2);
+
+        org.openide.awt.Mnemonics.setLocalizedText(fbtn_ConnectedSynth, org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.fbtn_ConnectedSynth.text")); // NOI18N
+        fbtn_ConnectedSynth.setToolTipText(org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.fbtn_ConnectedSynth.toolTipText")); // NOI18N
+        fbtn_ConnectedSynth.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        fbtn_ConnectedSynth.addChangeListener(new javax.swing.event.ChangeListener()
+        {
+            public void stateChanged(javax.swing.event.ChangeEvent evt)
+            {
+                fbtn_ConnectedSynthStateChanged(evt);
+            }
+        });
+        panel_MasterControls.add(fbtn_ConnectedSynth);
 
         panel_Main.add(panel_MasterControls, java.awt.BorderLayout.PAGE_START);
 
@@ -348,11 +363,19 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         add(panel_Main, java.awt.BorderLayout.PAGE_START);
     }// </editor-fold>//GEN-END:initComponents
 
+    private void fbtn_ConnectedSynthStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_fbtn_ConnectedSynthStateChanged
+    {//GEN-HEADEREND:event_fbtn_ConnectedSynthStateChanged
+        
+        
+    }//GEN-LAST:event_fbtn_ConnectedSynthStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<Rhythm> cb_viewRhythms;
+    private org.jjazz.ui.flatcomponents.FlatButton fbtn_ConnectedSynth;
     private org.jjazz.ui.flatcomponents.FlatButton fbtn_allSoloOff;
     private org.jjazz.ui.flatcomponents.FlatButton fbtn_panic;
     private org.jjazz.ui.flatcomponents.FlatButton fbtn_switchAllMute;
+    private javax.swing.Box.Filler filler2;
     private javax.swing.Box.Filler filler3;
     private javax.swing.Box.Filler filler4;
     private javax.swing.Box.Filler filler5;

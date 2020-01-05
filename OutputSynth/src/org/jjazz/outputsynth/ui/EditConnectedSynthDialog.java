@@ -21,35 +21,33 @@
  * Contributor(s): 
  *
  */
-package org.jjazz.ui.mixconsole.actions;
+package org.jjazz.outputsynth.ui;
 
-import org.jjazz.outputsynth.GM1RemapTable;
 import org.jjazz.outputsynth.OutputSynth;
-import org.jjazz.outputsynth.ui.RemapTableUI;
 import org.openide.windows.WindowManager;
 
 /**
  */
-public class EditGM1RemapDialog extends javax.swing.JDialog
+public class EditConnectedSynthDialog extends javax.swing.JDialog
 {
 
-    private static EditGM1RemapDialog INSTANCE;
+    private static EditConnectedSynthDialog INSTANCE;
     private boolean exitOk;
     private OutputSynth outSynth;
 
-    public static EditGM1RemapDialog getInstance()
+    public static EditConnectedSynthDialog getInstance()
     {
-        synchronized (EditGM1RemapDialog.class)
+        synchronized (EditConnectedSynthDialog.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new EditGM1RemapDialog(WindowManager.getDefault().getMainWindow(), true);
+                INSTANCE = new EditConnectedSynthDialog(WindowManager.getDefault().getMainWindow(), true);
             }
         }
         return INSTANCE;
     }
 
-    private EditGM1RemapDialog(java.awt.Frame parent, boolean modal)
+    private EditConnectedSynthDialog(java.awt.Frame parent, boolean modal)
     {
         super(parent, modal);
         initComponents();
@@ -57,7 +55,7 @@ public class EditGM1RemapDialog extends javax.swing.JDialog
     
     public void preset(OutputSynth outSynth)
     {
-        tbl_remap.setPrimaryModel(outSynth.getGM1RemapTable());
+        editor.preset(outSynth);
     }
 
     /** This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
@@ -68,16 +66,13 @@ public class EditGM1RemapDialog extends javax.swing.JDialog
     private void initComponents()
     {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        tbl_remap = new org.jjazz.outputsynth.ui.RemapTableUI();
-        btn_Ok = new javax.swing.JButton();
-        btn_Cancel = new javax.swing.JButton();
+        editor = new org.jjazz.outputsynth.ui.OutputSynthEditor();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
 
-        jScrollPane1.setViewportView(tbl_remap);
+        org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(EditConnectedSynthDialog.class, "EditConnectedSynthDialog.jButton1.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(EditGM1RemapDialog.class, "EditGM1RemapDialog.btn_Ok.text")); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(EditGM1RemapDialog.class, "EditGM1RemapDialog.btn_Cancel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jButton2, org.openide.util.NbBundle.getMessage(EditConnectedSynthDialog.class, "EditConnectedSynthDialog.jButton2.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -88,21 +83,24 @@ public class EditGM1RemapDialog extends javax.swing.JDialog
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(btn_Ok, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btn_Cancel))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 630, Short.MAX_VALUE))
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1))
+                    .addComponent(editor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
+
+        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jButton1, jButton2});
+
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 314, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
+                .addComponent(editor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btn_Ok)
-                    .addComponent(btn_Cancel))
+                    .addComponent(jButton1)
+                    .addComponent(jButton2))
                 .addContainerGap())
         );
 
@@ -111,9 +109,8 @@ public class EditGM1RemapDialog extends javax.swing.JDialog
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btn_Cancel;
-    private javax.swing.JButton btn_Ok;
-    private javax.swing.JScrollPane jScrollPane1;
-    private org.jjazz.outputsynth.ui.RemapTableUI tbl_remap;
+    private org.jjazz.outputsynth.ui.OutputSynthEditor editor;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     // End of variables declaration//GEN-END:variables
 }
