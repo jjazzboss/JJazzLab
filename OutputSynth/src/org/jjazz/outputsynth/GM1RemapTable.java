@@ -28,6 +28,7 @@ import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.logging.Logger;
 import org.jjazz.midi.GM1Bank;
 import org.jjazz.midi.GM1Instrument;
 import org.jjazz.midi.Instrument;
@@ -51,13 +52,20 @@ public class GM1RemapTable implements Serializable
     private HashMap<GM1Instrument, Instrument> mapVoiceInstruments = new HashMap<>();
     private HashMap<GM1Bank.Family, Instrument> mapFamilyInstruments = new HashMap<>();
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
-
+private static final Logger LOGGER = Logger.getLogger(GM1RemapTable.class.getSimpleName());
     /**
      * Create an empty DefaultInstruments instance.
      */
     public GM1RemapTable()
     {
 
+    }
+    
+    @Override
+    public GM1RemapTable clone()
+    {
+        LOGGER.severe("clone() TO BE IMPLEMENTED !!!!!!!!!!!!!!!!!!!!!");
+        return this;
     }
 
     /**

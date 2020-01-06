@@ -25,12 +25,17 @@ package org.jjazz.outputsynth.ui;
 
 import java.awt.Component;
 import java.awt.Font;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JList;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import org.jjazz.midi.GSSynth;
@@ -41,14 +46,15 @@ import org.jjazz.midi.StdSynth;
 import org.jjazz.outputsynth.OutputSynth;
 
 /**
- *
- * @author Administrateur
+ * An editor for an OutputSynth.
  */
-public class OutputSynthEditor extends javax.swing.JPanel
+public class OutputSynthEditor extends javax.swing.JPanel implements PropertyChangeListener
 {
 
     private OutputSynth outputSynth;
-    private final InstrumentTableModel tableModel = new InstrumentTableModel();
+    private final InstrumentTableModel instrumentTableModel = new InstrumentTableModel();
+    private static final Logger LOGGER = Logger.getLogger(OutputSynthEditor.class.getSimpleName());
+    private boolean exitedOk;
 
     /** Creates new form OutputSynthEditor */
     public OutputSynthEditor()
@@ -64,17 +70,37 @@ public class OutputSynthEditor extends javax.swing.JPanel
 
         this.list_Banks.setCellRenderer(new BankCellRenderer());
         this.list_MidiSynths.setCellRenderer(new SynthCellRenderer());
+
+        tbl_Instruments.getSelectionModel().addListSelectionListener(new ListSelectionListener()
+        {
+            @Override
+            public void valueChanged(ListSelectionEvent e)
+            {
+                tbl_InstrumentsSelectionChanged(e);
+            }
+
+        });
     }
 
+    /**
+     * Must be called before making the editor visible.
+     *
+     * @param outSynth
+     */
     public void preset(OutputSynth outSynth)
     {
         if (outSynth == null)
         {
             throw new IllegalArgumentException("outSynth=" + outSynth);
         }
-        outputSynth = outSynth;
+        if (outputSynth != null)
+        {
+            outputSynth.removePropertyChangeListener(this);
+        }
+        outputSynth = outSynth.clone();
+        outputSynth.addPropertyChangeListener(this);
 
-        // Update the UI
+        // The MidiSynth lists + banks + instruments
         List<MidiSynth> synths = outputSynth.getCustomSynths();
         list_MidiSynths.setListData(synths.toArray(new MidiSynth[0]));
         if (!synths.isEmpty())
@@ -82,9 +108,95 @@ public class OutputSynthEditor extends javax.swing.JPanel
             list_MidiSynths.setSelectedIndex(0);
         } else
         {
-            updateBankList(null);
+            updateBankList();
         }
-        remapTable.setPrimaryModel(outSynth.getGM1RemapTable());        
+
+        // The remap table
+        remapTable.setPrimaryModel(outputSynth.getGM1RemapTable());
+
+        updateVariableUI();
+    }
+
+    /**
+     * A new OutputSynth instance updated by this editor.
+     *
+     * @return Value is meaningfull only if exitOK() returns true.
+     */
+    public OutputSynth getResult()
+    {
+        return outputSynth;
+    }
+
+    public boolean exitedOk()
+    {
+        return exitedOk;
+    }
+
+    /**
+     * Must be called when this editor is disposed.
+     */
+    public void clean()
+    {
+        if (outputSynth != null)
+        {
+            outputSynth.removePropertyChangeListener(this);
+        }
+    }
+
+    // ==============================================================================
+    // PropertyChangeListener interface
+    // ==============================================================================
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getPropertyName() == OutputSynth.PROP_STD_BANK)
+        {
+            List<InstrumentBank<?>> stdBanks = outputSynth.getCompatibleStdBanks();
+            cb_GM.setSelected(stdBanks.contains(StdSynth.getGM1Bank()));
+            cb_GM2.setSelected(stdBanks.contains(StdSynth.getGM2Bank()));
+            cb_XG.setSelected(stdBanks.contains(StdSynth.getXGBank()));
+            cb_GS.setSelected(stdBanks.contains(GSSynth.getGSBank()));
+            updateBankList();
+        } else if (evt.getPropertyName() == OutputSynth.PROP_CUSTOM_SYNTH)
+        {
+
+        } else if (evt.getPropertyName() == OutputSynth.PROP_USER_INSTRUMENT)
+        {
+            Instrument userIns = outputSynth.getUserInstrument();
+            btn_SetUserInstrument.setToolTipText(userIns.getPatchName() + " (bank:" + userIns.getBank().getName() + ")");
+        }
+
+    }
+
+    // ==============================================================================
+    // Private methods
+    // ==============================================================================
+    private void tbl_InstrumentsSelectionChanged(ListSelectionEvent e)
+    {
+        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);
+        if (e.getValueIsAdjusting())
+        {
+            return;
+        }
+        int row = tbl_Instruments.getSelectedRow();
+        this.btn_SetUserInstrument.setEnabled(row != -1);
+    }
+
+    /**
+     * Update the UI parts which can be changed in the editor.
+     */
+    private void updateVariableUI()
+    {
+        // The Set as User Instrument
+        Instrument userIns = outputSynth.getUserInstrument();
+        btn_SetUserInstrument.setToolTipText(userIns.getPatchName() + " (bank:" + userIns.getBank().getName() + ")");
+
+        // The compatibility checkboxes
+        List<InstrumentBank<?>> stdBanks = outputSynth.getCompatibleStdBanks();
+        cb_GM.setSelected(stdBanks.contains(StdSynth.getGM1Bank()));
+        cb_GM2.setSelected(stdBanks.contains(StdSynth.getGM2Bank()));
+        cb_XG.setSelected(stdBanks.contains(StdSynth.getXGBank()));
+        cb_GS.setSelected(stdBanks.contains(GSSynth.getGSBank()));
     }
 
     private class SynthCellRenderer extends DefaultListCellRenderer
@@ -124,10 +236,16 @@ public class OutputSynthEditor extends javax.swing.JPanel
             InstrumentBank<?> bank = (InstrumentBank<?>) value;
             setText(bank.getName() + " (" + bank.getSize() + ")");
             setToolTipText("Bank select method: " + bank.getDefaultBankSelectMethod().toString());
+            if (StdSynth.getInstance().getBanks().contains(bank) || bank == GSSynth.getGSBank())
+            {
+                Font ft = getFont();
+                setFont(ft.deriveFont(Font.ITALIC));
+            }
             return c;
         }
     }
 
+    // Need an instrument cell renderer to show the UserInstrument in a different way xx (User Instrument)
     private class InstrumentTableModel extends AbstractTableModel
     {
 
@@ -228,6 +346,7 @@ public class OutputSynthEditor extends javax.swing.JPanel
         jLabel4 = new javax.swing.JLabel();
         btn_AddSynth = new javax.swing.JButton();
         btn_RemoveSynth = new javax.swing.JButton();
+        btn_SetUserInstrument = new javax.swing.JButton();
         pnl_defaultInstruments = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
@@ -258,7 +377,7 @@ public class OutputSynthEditor extends javax.swing.JPanel
         org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jLabel3.text")); // NOI18N
 
         tbl_Instruments.setAutoCreateRowSorter(true);
-        tbl_Instruments.setModel(tableModel);
+        tbl_Instruments.setModel(instrumentTableModel);
         jScrollPane4.setViewportView(tbl_Instruments);
 
         list_MidiSynths.addListSelectionListener(new javax.swing.event.ListSelectionListener()
@@ -277,6 +396,8 @@ public class OutputSynthEditor extends javax.swing.JPanel
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_RemoveSynth, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_RemoveSynth.text")); // NOI18N
         btn_RemoveSynth.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_RemoveSynth.toolTipText")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(btn_SetUserInstrument, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_SetUserInstrument.text")); // NOI18N
 
         javax.swing.GroupLayout pnl_mainLayout = new javax.swing.GroupLayout(pnl_main);
         pnl_main.setLayout(pnl_mainLayout);
@@ -300,7 +421,8 @@ public class OutputSynthEditor extends javax.swing.JPanel
                 .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnl_mainLayout.createSequentialGroup()
                         .addComponent(jLabel3)
-                        .addGap(0, 188, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 45, Short.MAX_VALUE)
+                        .addComponent(btn_SetUserInstrument))
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -316,7 +438,8 @@ public class OutputSynthEditor extends javax.swing.JPanel
                     .addComponent(jLabel3)
                     .addComponent(jLabel4)
                     .addComponent(btn_AddSynth)
-                    .addComponent(btn_RemoveSynth))
+                    .addComponent(btn_RemoveSynth)
+                    .addComponent(btn_SetUserInstrument))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 304, Short.MAX_VALUE)
@@ -371,10 +494,31 @@ public class OutputSynthEditor extends javax.swing.JPanel
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_GM2, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.cb_GM2.text")); // NOI18N
+        cb_GM2.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cb_GM2ActionPerformed(evt);
+            }
+        });
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_XG, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.cb_XG.text")); // NOI18N
+        cb_XG.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cb_XGActionPerformed(evt);
+            }
+        });
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_GS, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.cb_GS.text")); // NOI18N
+        cb_GS.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cb_GSActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout pnl_CompatibilityLayout = new javax.swing.GroupLayout(pnl_Compatibility);
         pnl_Compatibility.setLayout(pnl_CompatibilityLayout);
@@ -443,7 +587,13 @@ public class OutputSynthEditor extends javax.swing.JPanel
 
     private void cb_GMActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_GMActionPerformed
     {//GEN-HEADEREND:event_cb_GMActionPerformed
-        // TODO add your handling code here:
+        if (cb_GM.isSelected())
+        {
+            outputSynth.removeCompatibleStdBank(StdSynth.getGM1Bank());
+        } else
+        {
+            outputSynth.addCompatibleStdBank(StdSynth.getGM1Bank());
+        }
     }//GEN-LAST:event_cb_GMActionPerformed
 
     private void list_MidiSynthsValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_list_MidiSynthsValueChanged
@@ -454,7 +604,7 @@ public class OutputSynthEditor extends javax.swing.JPanel
             return;
         }
         MidiSynth synth = list_MidiSynths.getSelectedValue();
-        updateBankList(synth);
+        updateBankList();
         btn_RemoveSynth.setEnabled(synth != null);
     }//GEN-LAST:event_list_MidiSynthsValueChanged
 
@@ -467,16 +617,49 @@ public class OutputSynthEditor extends javax.swing.JPanel
         }
         InstrumentBank<?> bank = list_Banks.getSelectedValue();
         tbl_Instruments.setEnabled(bank != null);
-        tableModel.setBank(bank);
+        instrumentTableModel.setBank(bank);
     }//GEN-LAST:event_list_BanksValueChanged
 
+    private void cb_GM2ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_GM2ActionPerformed
+    {//GEN-HEADEREND:event_cb_GM2ActionPerformed
+        if (cb_GM2.isSelected())
+        {
+            outputSynth.removeCompatibleStdBank(StdSynth.getGM2Bank());
+        } else
+        {
+            outputSynth.addCompatibleStdBank(StdSynth.getGM2Bank());
+        }
+    }//GEN-LAST:event_cb_GM2ActionPerformed
+
+    private void cb_XGActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_XGActionPerformed
+    {//GEN-HEADEREND:event_cb_XGActionPerformed
+        if (cb_XG.isSelected())
+        {
+            outputSynth.removeCompatibleStdBank(StdSynth.getXGBank());
+        } else
+        {
+            outputSynth.addCompatibleStdBank(StdSynth.getXGBank());
+        }
+    }//GEN-LAST:event_cb_XGActionPerformed
+
+    private void cb_GSActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_GSActionPerformed
+    {//GEN-HEADEREND:event_cb_GSActionPerformed
+        if (cb_GS.isSelected())
+        {
+            outputSynth.removeCompatibleStdBank(GSSynth.getGSBank());
+        } else
+        {
+            outputSynth.addCompatibleStdBank(GSSynth.getGSBank());
+        }
+    }//GEN-LAST:event_cb_GSActionPerformed
+
     /**
-     * Update the Banks JList contents to show synth (or null).
-     *
-     * @param synth Can be null
+     * Update the Banks JList contents depending on the MidiSynth selection.
+     * <p>
      */
-    private void updateBankList(MidiSynth synth)
+    private void updateBankList()
     {
+        MidiSynth synth = list_MidiSynths.getSelectedValue();
         List<InstrumentBank<?>> banks = outputSynth.getCompatibleStdBanks();
         if (synth != null)
         {
@@ -493,6 +676,7 @@ public class OutputSynthEditor extends javax.swing.JPanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_AddSynth;
     private javax.swing.JButton btn_RemoveSynth;
+    private javax.swing.JButton btn_SetUserInstrument;
     private javax.swing.JCheckBox cb_GM;
     private javax.swing.JCheckBox cb_GM2;
     private javax.swing.JCheckBox cb_GS;

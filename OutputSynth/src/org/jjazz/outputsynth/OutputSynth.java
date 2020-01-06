@@ -23,6 +23,8 @@
  */
 package org.jjazz.outputsynth;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,17 +44,30 @@ import org.openide.util.NbPreferences;
  */
 public class OutputSynth implements Serializable
 {
-    
+
+    /**
+     * oldValue=false if removed, true if added. newValue=InstrumentBank<?>
+     */
+    public static final String PROP_STD_BANK = "PROP_STD_BANK";
+    /**
+     * oldValue=false if removed, true if added. newValue=MidiSynth
+     */
+    public static final String PROP_CUSTOM_SYNTH = "PROP_CUSTOM_SYNTH";
+    /**
+     * oldValue=old UserInstrument, newValue=new UserInstrument
+     */
+    public static final String PROP_USER_INSTRUMENT = "PROP_USER_INSTRUMENT";
+
     private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
     private static final String MIDISYNTH_FILES_RESOURCE_ZIP = "resources/MidiSynthFiles.zip";
     private final static String SGM_SOUNDFONT_INS = "resources/SGM-v2.01.ins";
-    
+
     private final List<InstrumentBank<?>> compatibleStdBanks = new ArrayList<>();
     private final List<MidiSynth> customSynths = new ArrayList<>();
     private GM1RemapTable remapTable = new GM1RemapTable();
     private Instrument userInstrument = StdSynth.getGM1Bank().getInstrument(0);  // Piano
-    private static Preferences prefs = NbPreferences.forModule(OutputSynth.class);
     private static final Logger LOGGER = Logger.getLogger(OutputSynth.class.getSimpleName());
+    private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
 
     /**
      * Construct a default OutputSynth compatible with the GM1 Bank and with no custom MidiSynth.
@@ -61,7 +76,20 @@ public class OutputSynth implements Serializable
     {
         compatibleStdBanks.add(StdSynth.getGM1Bank());
     }
-    
+
+    @Override
+    public OutputSynth clone()
+    {
+        OutputSynth os = new OutputSynth();
+        os.compatibleStdBanks.clear();
+        os.compatibleStdBanks.addAll(compatibleStdBanks);
+        os.customSynths.clear();
+        os.customSynths.addAll(customSynths);
+        os.userInstrument = userInstrument;
+        os.remapTable = remapTable.clone();
+        return os;
+    }
+
     public GM1RemapTable getGM1RemapTable()
     {
         return remapTable;
@@ -91,7 +119,7 @@ public class OutputSynth implements Serializable
         {
             throw new IllegalArgumentException("stdBank=" + stdBank);
         }
-        
+
         if ((stdBank == StdSynth.getGM2Bank() || stdBank == StdSynth.getXGBank()) && compatibleStdBanks.contains(GSSynth.getGSBank()))
         {
             LOGGER.warning("addCompatibleStdBank() Can't add " + stdBank + " because the GS bank is used");
@@ -101,10 +129,11 @@ public class OutputSynth implements Serializable
             LOGGER.warning("addCompatibleStdBank() Can't add " + stdBank + " because the GM2 or XG bank is used");
             return;
         }
-        
+
         if (!compatibleStdBanks.contains(this))
         {
             compatibleStdBanks.add(stdBank);
+            pcs.firePropertyChange(PROP_STD_BANK, true, stdBank);
         }
     }
 
@@ -119,7 +148,11 @@ public class OutputSynth implements Serializable
         {
             throw new IllegalArgumentException("stdBank=" + stdBank);
         }
-        compatibleStdBanks.remove(stdBank);
+
+        if (compatibleStdBanks.remove(stdBank))
+        {
+            pcs.firePropertyChange(PROP_STD_BANK, false, stdBank);
+        }
     }
 
     /**
@@ -135,30 +168,28 @@ public class OutputSynth implements Serializable
     /**
      * Add a custom MidiSynth compatible with this OutputSynth.
      * <p>
-     * Scan the synth to possibly add compatible standard banks.
      *
      * @param synth
      */
     public void addCustomSynth(MidiSynth synth)
     {
-        if (synth == null || synth == StdSynth.getInstance())
+        if (synth == null)
         {
             throw new IllegalArgumentException("stdBank=" + synth);
         }
-        
+
         if (!customSynths.contains(synth))
         {
             customSynths.add(synth);
-            this.scanAndAddCompatibleStdBanks(synth);
+            pcs.firePropertyChange(PROP_CUSTOM_SYNTH, true, synth);
         }
     }
 
     /**
-     * Remove a standard bank compatible with this OutputSynth.
+     * Remove a custom MidiSynth compatible with this OutputSynth.
      * <p>
-     * This might remove some compatible standard banks.
      *
-     * @param stdBank Must belong to the StdSynth instance.
+     * @param synth
      */
     public void removeCustomSynth(MidiSynth synth)
     {
@@ -166,8 +197,10 @@ public class OutputSynth implements Serializable
         {
             throw new IllegalArgumentException("stdBank=" + synth);
         }
-        customSynths.remove(synth);
-        resetCompatibleStdBanksFromCustomSynths();
+        if (customSynths.remove(synth))
+        {
+            pcs.firePropertyChange(PROP_CUSTOM_SYNTH, false, synth);
+        }
     }
 
     /**
@@ -253,27 +286,25 @@ public class OutputSynth implements Serializable
         {
             throw new IllegalArgumentException("ins=" + ins);
         }
-        userInstrument = ins;
+        Instrument oldIns = userInstrument;
+        if (oldIns != userInstrument)
+        {
+            userInstrument = ins;
+            pcs.firePropertyChange(PROP_USER_INSTRUMENT, oldIns, ins);
+        }
     }
+
+    public void addPropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.addPropertyChangeListener(l);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(l);
+    }
+
     // ========================================================================================
     // Private methods
-    // ========================================================================================
-
-    private void resetCompatibleStdBanksFromCustomSynths()
-    {
-        compatibleStdBanks.clear();
-        for (MidiSynth synth : customSynths)
-        {
-            scanAndAddCompatibleStdBanks(synth);
-        }
-    }
-    
-    private void scanAndAddCompatibleStdBanks(MidiSynth synth)
-    {
-        List<InstrumentBank<?>> stdBanks = StdSynth.getInstance().scanCompatibleBanks(synth, 0.8f);
-        for (InstrumentBank<?> stdBank : stdBanks)
-        {
-            addCompatibleStdBank(stdBank);
-        }
-    }
+    // ========================================================================================    
 }
