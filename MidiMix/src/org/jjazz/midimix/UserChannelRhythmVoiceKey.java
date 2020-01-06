@@ -51,7 +51,7 @@ public class UserChannelRhythmVoiceKey extends RhythmVoice
 
     private UserChannelRhythmVoiceKey()
     {
-        super(new DummyRhythm("UserChannelDummyRhythm", TimeSignature.FOUR_FOUR), "USER_CHANNEL", StdSynth.getGM1Bank().getDefaultInstrument(GM1Bank.Family.Piano), new InstrumentSettings(), 0);
+        super(new DummyRhythm("UserChannelDummyRhythm", TimeSignature.FOUR_FOUR), Type.CHORD1, "USER_CHANNEL", StdSynth.getGM1Bank().getDefaultInstrument(GM1Bank.Family.Piano), new InstrumentSettings(), 0);
     }
 
 }

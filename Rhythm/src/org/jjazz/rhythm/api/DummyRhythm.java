@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.midi.GM1Bank;
 import org.jjazz.midi.StdSynth;
+import org.jjazz.rhythm.api.RhythmVoice.Type;
 import org.jjazz.rhythm.parameters.RP_STD_Variation;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.openide.util.Lookup;
@@ -76,7 +77,7 @@ public class DummyRhythm implements Rhythm
 
         // Rhythm voices
         GM1Bank gmb = StdSynth.getGM1Bank();
-        rhythmVoices.add(new RhythmVoice(this, "Bass", gmb.getDefaultInstrument(GM1Bank.Family.Bass), 11));
+        rhythmVoices.add(new RhythmVoice(this, Type.BASS,"Bass", gmb.getDefaultInstrument(GM1Bank.Family.Bass), 11));
 
         // The music generator
         lookup = Lookups.fixed("dummy lookup");

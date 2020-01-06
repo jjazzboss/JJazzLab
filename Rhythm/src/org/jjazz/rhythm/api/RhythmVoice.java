@@ -37,10 +37,17 @@ import org.jjazz.midi.StdSynth;
  */
 public class RhythmVoice
 {
-
+    /**
+     * The main types of a rhythm voice.
+     */
     public enum Type
     {
-        VOICE, DRUMS, PERCUSSION
+        DRUMS, PERCUSSION, BASS, CHORD1, CHORD2, PHRASE1, PHRASE2, PAD, OTHER;
+
+        public boolean isDrums()
+        {
+            return this.equals(DRUMS) || this.equals(PERCUSSION);
+        }
     }
 
     private final String name;
@@ -53,33 +60,36 @@ public class RhythmVoice
     private static final Logger LOGGER = Logger.getLogger(RhythmVoice.class.getName());
 
     /**
-     * Create a RhythmVoice for type=VOICE with a default InstrumentSettings and the default channel associated to specified type.
+     * Create a RhythmVoice for a non-drums voice with a default InstrumentSettings.
      *
-     * @param container        The Rhythm this RhythmVoice belongs to.
+     * @param container The Rhythm this RhythmVoice belongs to.
+     * @param type DRUMS or PERCUSSION not allowed.
      * @param name
-     * @param instrument       The instrument to be used by default. Can't be null. Must have getSubstitute() defined.
-     * @param preferredChannel
+     * @param instrument The instrument to be used by default. Can't be null. Must have getSubstitute() defined.
+     * @param preferredChannel Preferred Midi channel
      */
-    public RhythmVoice(Rhythm container, String name, Instrument instrument, int preferredChannel)
+    public RhythmVoice(Rhythm container, Type type, String name, Instrument instrument, int preferredChannel)
     {
-        this(container, name, instrument, new InstrumentSettings(), preferredChannel);
+        this(container, type, name, instrument, new InstrumentSettings(), preferredChannel);
     }
 
     /**
-     * Create a RhythmVoice (type=VOICE) for instruments which are not Drums/Percussion.
+     * Create a RhythmVoice for a non-drums voice.
      *
-     * @param container        The Rhythm this RhythmVoice belongs to.
-     * @param name             Name of the RhythmVoice
-     * @param ins              The recommended instrument. Can't be null. Must have getSubstitute() defined.
-     * @param is               The recommended InstrumentSettings.
+     * @param container The Rhythm this RhythmVoice belongs to.
+     * @param type DRUMS or PERCUSSION not allowed.
+     * @param name Name of the RhythmVoice
+     * @param ins The recommended instrument. Can't be null. Must have getSubstitute() defined.
+     * @param is The recommended InstrumentSettings.
      * @param preferredChannel The preferred Midi channel for this voice.
      */
-    public RhythmVoice(Rhythm container, String name, Instrument ins, InstrumentSettings is, int preferredChannel)
+    public RhythmVoice(Rhythm container, Type type, String name, Instrument ins, InstrumentSettings is, int preferredChannel)
     {
-        if (container == null || ins == null || ins.getSubstitute() == null || name == null || is == null || !MidiConst.checkMidiChannel(preferredChannel))
+        if (container == null || type == null || type.equals(Type.DRUMS) || type.equals(Type.PERCUSSION) || ins == null
+                || ins.getSubstitute() == null || name == null || is == null || !MidiConst.checkMidiChannel(preferredChannel))
         {
             throw new IllegalArgumentException(
-                    "container=" + container + " name=" + name + " ins=" + ins.toLongString() + " is=" + is + " preferredChannel=" + preferredChannel);
+                    "container=" + container + "type=" + type + " name=" + name + " ins=" + ins.toLongString() + " is=" + is + " preferredChannel=" + preferredChannel);
         }
         this.container = container;
         this.name = name;
@@ -87,17 +97,17 @@ public class RhythmVoice
         this.instrumentSettings = new InstrumentSettings(is);
         this.preferredChannel = preferredChannel;
         this.drumKit = null;
-        this.type = Type.VOICE;
+        this.type = type;
     }
 
     /**
-     * Create a drums/percussion RhythmVoice with a default InstrumentSettings and the default channel associated to specified
-     * type.
+     * Create a drums/percussion RhythmVoice with a default InstrumentSettings.
      *
      * @param drumKit
      * @param container
-     * @param type      Must be DRUMS or PERCUSSION.
+     * @param type Must be DRUMS or PERCUSSION.
      * @param name
+     * @param preferredChannel
      */
     public RhythmVoice(DrumKit drumKit, Rhythm container, Type type, String name, int preferredChannel)
     {
@@ -110,15 +120,15 @@ public class RhythmVoice
      * The preferred Instrument is set to the VoidInstrument.
      *
      * @param kit
-     * @param container        The Rhythm this RhythmVoice belongs to.
-     * @param type             Must be DRUMS or PERCUSSION.
-     * @param name             Name of the RhythmVoice
-     * @param is               The recommended InstrumentSettings.
+     * @param container The Rhythm this RhythmVoice belongs to.
+     * @param type Must be DRUMS or PERCUSSION.
+     * @param name Name of the RhythmVoice
+     * @param is The recommended InstrumentSettings.
      * @param preferredChannel The preferred Midi channel for this voice.
      */
     public RhythmVoice(DrumKit kit, Rhythm container, Type type, String name, InstrumentSettings is, int preferredChannel)
     {
-        if (kit == null || container == null || type == null || type.equals(Type.VOICE)
+        if (kit == null || container == null || type == null || (!type.equals(Type.DRUMS) && !type.equals(Type.PERCUSSION))
                 || name == null || is == null || !MidiConst.checkMidiChannel(preferredChannel))
         {
             throw new IllegalArgumentException(
@@ -139,7 +149,7 @@ public class RhythmVoice
      */
     public boolean isDrums()
     {
-        return this.type.equals(Type.DRUMS) || this.type.equals(Type.DRUMS);
+        return this.type.isDrums();
     }
 
     /**
@@ -185,7 +195,7 @@ public class RhythmVoice
      * The preferred Instrument for this voice.
      *
      * @return Can't be null. For Drums/Percussion return the VoidInstrument. Returned instrument has its method getSubstitute()
-     *         defined.
+     * defined.
      */
     public Instrument getPreferredInstrument()
     {
