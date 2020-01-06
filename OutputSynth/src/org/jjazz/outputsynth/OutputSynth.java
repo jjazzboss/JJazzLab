@@ -42,14 +42,15 @@ import org.openide.util.NbPreferences;
  */
 public class OutputSynth implements Serializable
 {
-
+    
     private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
     private static final String MIDISYNTH_FILES_RESOURCE_ZIP = "resources/MidiSynthFiles.zip";
     private final static String SGM_SOUNDFONT_INS = "resources/SGM-v2.01.ins";
-
+    
     private final List<InstrumentBank<?>> compatibleStdBanks = new ArrayList<>();
     private final List<MidiSynth> customSynths = new ArrayList<>();
     private GM1RemapTable remapTable = new GM1RemapTable();
+    private Instrument userInstrument = StdSynth.getGM1Bank().getInstrument(0);  // Piano
     private static Preferences prefs = NbPreferences.forModule(OutputSynth.class);
     private static final Logger LOGGER = Logger.getLogger(OutputSynth.class.getSimpleName());
 
@@ -60,7 +61,7 @@ public class OutputSynth implements Serializable
     {
         compatibleStdBanks.add(StdSynth.getGM1Bank());
     }
-
+    
     public GM1RemapTable getGM1RemapTable()
     {
         return remapTable;
@@ -90,7 +91,7 @@ public class OutputSynth implements Serializable
         {
             throw new IllegalArgumentException("stdBank=" + stdBank);
         }
-
+        
         if ((stdBank == StdSynth.getGM2Bank() || stdBank == StdSynth.getXGBank()) && compatibleStdBanks.contains(GSSynth.getGSBank()))
         {
             LOGGER.warning("addCompatibleStdBank() Can't add " + stdBank + " because the GS bank is used");
@@ -100,7 +101,7 @@ public class OutputSynth implements Serializable
             LOGGER.warning("addCompatibleStdBank() Can't add " + stdBank + " because the GM2 or XG bank is used");
             return;
         }
-
+        
         if (!compatibleStdBanks.contains(this))
         {
             compatibleStdBanks.add(stdBank);
@@ -144,7 +145,7 @@ public class OutputSynth implements Serializable
         {
             throw new IllegalArgumentException("stdBank=" + synth);
         }
-
+        
         if (!customSynths.contains(synth))
         {
             customSynths.add(synth);
@@ -230,6 +231,30 @@ public class OutputSynth implements Serializable
         assert ins != null : "rv=" + rv;
         return ins;
     }
+
+    /**
+     * The instrument for the user channel.
+     *
+     * @return Can't be null.
+     */
+    public Instrument getUserInstrument()
+    {
+        return userInstrument;
+    }
+
+    /**
+     * Set the instrument for the user channel.
+     *
+     * @param ins Can't be null
+     */
+    public void setUserInstrument(Instrument ins)
+    {
+        if (ins == null)
+        {
+            throw new IllegalArgumentException("ins=" + ins);
+        }
+        userInstrument = ins;
+    }
     // ========================================================================================
     // Private methods
     // ========================================================================================
@@ -242,7 +267,7 @@ public class OutputSynth implements Serializable
             scanAndAddCompatibleStdBanks(synth);
         }
     }
-
+    
     private void scanAndAddCompatibleStdBanks(MidiSynth synth)
     {
         List<InstrumentBank<?>> stdBanks = StdSynth.getInstance().scanCompatibleBanks(synth, 0.8f);

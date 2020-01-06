@@ -86,7 +86,7 @@ public class RhythmStub implements Rhythm
         // Rhythm voices
         GM1Bank gmb = StdSynth.getGM1Bank();
         rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.DRUMS, "Drums", 9));
-        rhythmVoices.add(new RhythmVoice(this, "Bass", gmb.getDefaultInstrument(GM1Bank.Family.Bass), 10));
+        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.BASS, "Bass", gmb.getDefaultInstrument(GM1Bank.Family.Bass), 10));
 
         // The music generator
         lookup = Lookups.fixed(new DummyGenerator(this));

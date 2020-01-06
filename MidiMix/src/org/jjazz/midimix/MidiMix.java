@@ -48,6 +48,7 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midi.GM1Bank;
+import org.jjazz.midi.GM1Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.MidiConst;
@@ -67,6 +68,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.jjazz.undomanager.SimpleEdit;
+import org.jjazz.util.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
@@ -171,7 +173,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * New MidiMix will be initialized with copies of the InstrumentMixes of mm. RhythmVoice keys are directly reused.
      *
      * @param mm
-     * @param r If not null, keep only the data RhythmVoices/InstrumentMixes related to r
+     * @param r  If not null, keep only the data RhythmVoices/InstrumentMixes related to r
      */
     public MidiMix(MidiMix mm, Rhythm r)
     {
@@ -255,7 +257,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      *
      * @param insMix The instrument mix to be used for the user channel
      * @throws MidiUnavailableException If no Midi channel available.
-     * @throws IllegalStateException If a user channel is already added.
+     * @throws IllegalStateException    If a user channel is already added.
      */
     public void addUserChannel(final InstrumentMix insMix) throws MidiUnavailableException
     {
@@ -312,8 +314,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * Fire a PROP_CHANNEL_INSTRUMENT_MIX change event for this channel, and one UndoableEvent.
      *
      * @param channel A valid midi channel number.
-     * @param rvKey Can be null if insMix is also null. If a song is set, must be a RhythmVoice of song's rhythms.
-     * @param insMix Can be null if rvKey is also null.
+     * @param rvKey   Can be null if insMix is also null. If a song is set, must be a RhythmVoice of song's rhythms.
+     * @param insMix  Can be null if rvKey is also null.
      * @throws IllegalArgumentException if insMix is already part of this MidiMix for a different channel
      */
     public void setInstrumentMix(int channel, RhythmVoice rvKey, InstrumentMix insMix)
@@ -550,8 +552,10 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     }
 
     /**
-     * Return a free channel to be used in this MidiMix. Try to keep channels in one section above the drums channel reserved to
-     * Drums. If not enough channels extend to channel below the drums channel.
+     * Return a free channel to be used in this MidiMix.
+     * <p>
+     * Try to keep channels in one section above the drums channel reserved to Drums. If not enough channels extend to channel
+     * below the drums channel.
      *
      * @param findDrumsChannel If true try to use CHANNEL_DRUMS if it is available.
      * @return -1 if no channel found
@@ -586,12 +590,12 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * Add new nstrumentMixes and related keys from mm into this MidiMix.
      * <p>
      * Create copies of each added InstrumentMix. Copies have solo/drumsRerouting set to OFF.<p>
-     * It uses findFreeChannel() to allocate the new channels of mm if they are not free in this MidiMix.
+     * Method uses findFreeChannel() to allocate the new channels of mm if they are not free in this MidiMix.
      * <p>
      * The operation will fire UndoableEvent edits.
      *
      * @param fromMm
-     * @param r If non null, copy fromMm instrumentMixes only if they belong to rhythm r
+     * @param r      If non null, copy fromMm instrumentMixes only if they belong to rhythm r
      * @throws MidiUnavailableException If not enough channels available to accommodate mm instruments.
      */
     public final void addInstrumentMixes(MidiMix fromMm, Rhythm r) throws MidiUnavailableException
@@ -612,7 +616,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             InstrumentMix fromInsMix = fromMm.getInstrumentMixFromChannel(fromChannel);
             if (fromRvKey == UserChannelRhythmVoiceKey.getInstance())
             {
-                // Copy the user channel
+                // Copy the user channel by remove/add
                 removeUserChannel();
                 addUserChannel(new InstrumentMix(fromInsMix));
             } else
@@ -623,7 +627,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                 usedChannels.add(newChannel);
                 setInstrumentMix(newChannel, fromRvKey, new InstrumentMix(fromInsMix));
             }
-
         }
         LOGGER.log(Level.FINE, "copyInstrumentMixes()     exit : rvKeys={0}", getRvKeys());
     }
@@ -784,7 +787,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      *
      * @param f
      * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no PROP_MODIFIED_OR_SAVED state
-     * change)
+     *               change)
      * @throws java.io.IOException
      */
     public void saveToFile(File f, boolean isCopy) throws IOException
@@ -1224,7 +1227,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
 
     /**
      * Add a rhythm to this MidiMix.
-     *
+     * <p>
      * Manage the case where r is not the unique rhythm of the MidiMix: need to maintain instruments consistency to avoid
      * poor-sounding rhythms transitions.
      *
@@ -1258,27 +1261,31 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     {
         HashMap<String, InstrumentMix> mapKeyMix = new HashMap<>();
         HashMap<GM1Bank.Family, InstrumentMix> mapFamilyMix = new HashMap<>();
-        // First try to match InstrumentMixes using keys=3 first letters of channel name + GM1 family
-        // For example Cho-Piano (if RhythmVoices from YamJJazz with names=Chord1, Rhythm, Phrase1, Bass, Pad)        
+        // First try to match InstrumentMixes using key=3 first char of Rv.getName() + GM1 family
         for (int channel : getUsedChannels(r0))
         {
             RhythmVoice rv = rvKeys[channel];
             InstrumentMix insMix = instrumentMixes[channel];
-            GM1Bank.Family family = insMix.getInstrument().getSubstitute().getFamily(); // Can be null for drums/perc
-            String mapKey = prefix(rv.getName(), 3) + "-" + family != null ? family.name() : "";
-            mapKeyMix.put(mapKey, insMix);
+            GM1Instrument insGM1 = insMix.getInstrument().getSubstitute();  // Can be null            
+            GM1Bank.Family family = insGM1 != null ? insGM1.getFamily() : null;
+            String mapKey = Utilities.truncate(rv.getName().toLowerCase(), 3) + "-" + ((family != null) ? family.name() : "");
+            if (mapKeyMix.get(mapKey) == null)
+            {
+                mapKeyMix.put(mapKey, insMix);  // If several instruments have the same Type, save only the first one
+            }
             if (mapFamilyMix.get(family) == null)
             {
-                mapFamilyMix.put(family, insMix);   // If several instruments have the same family, save the first one
+                mapFamilyMix.put(family, insMix);       // If several instruments have the same family, save only the first one
             }
         }
         HashSet<Integer> doneChannels = new HashSet<>();
         for (int mmChannel : mm.getUsedChannels())
         {
-            RhythmVoice mmRv = rvKeys[mmChannel];
-            InstrumentMix mmInsMix = instrumentMixes[mmChannel];
-            GM1Bank.Family mmFamily = mmInsMix.getInstrument().getSubstitute().getFamily(); // Can be null for drums/perc
-            String mapKey = prefix(mmRv.getName(), 3) + "-" + mmFamily != null ? mmFamily.name() : "";
+            RhythmVoice mmRv = mm.rvKeys[mmChannel];
+            InstrumentMix mmInsMix = mm.instrumentMixes[mmChannel];
+            GM1Instrument mmInsGM1 = mmInsMix.getInstrument().getSubstitute();  // Can be null            
+            GM1Bank.Family mmFamily = mmInsGM1 != null ? mmInsGM1.getFamily() : null;
+            String mapKey = Utilities.truncate(mmRv.getName().toLowerCase(), 3) + "-" + ((mmFamily != null) ? mmFamily.name() : "");
             InstrumentMix insMix = mapKeyMix.get(mapKey);
             if (insMix != null)
             {
@@ -1290,9 +1297,13 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         }
 
         // Try to convert also the other channels by matching only the instrument family
-         for (int mmChannel : mm.getUsedChannels())
+        for (int mmChannel : mm.getUsedChannels())
         {
-            InstrumentMix mmInsMix = instrumentMixes[mmChannel];
+            if (doneChannels.contains(mmChannel))
+            {
+                continue;
+            }
+            InstrumentMix mmInsMix = mm.instrumentMixes[mmChannel];
             GM1Bank.Family mmFamily = mmInsMix.getInstrument().getSubstitute().getFamily(); // Can be null for drums/perc
             InstrumentMix insMix = mapFamilyMix.get(mmFamily);
             if (insMix != null)
@@ -1301,7 +1312,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                 mmInsMix.setInstrument(insMix.getInstrument());
                 mmInsMix.getSettings().set(insMix.getSettings());
             }
-        }        
+        }
     }
 
     private void removeRhythm(Rhythm r)
@@ -1349,17 +1360,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         for (UndoableEditListener l : undoListeners.toArray(new UndoableEditListener[undoListeners.size()]))
         {
             l.undoableEditHappened(event);
-        }
-    }
-
-    private String prefix(String s, int n)
-    {
-        if (s.length() < n)
-        {
-            return s;
-        } else
-        {
-            return s.substring(0, n);
         }
     }
 

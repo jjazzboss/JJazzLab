@@ -33,6 +33,7 @@ import org.jjazz.helpers.DrumsReroutingDialog.ReroutingChoice;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.MidiConst;
+import org.jjazz.midi.StdSynth;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -143,8 +144,7 @@ public class DrumsReroutingAction implements VetoableChangeListener, Runnable
      * A channel needs rerouting if all the following conditions are met:<br>
      * 1/ channel != 10 <br>
      * 2/ rv.isDrums()==true and rerouting is not already enabled <br>
-     * 3/ instrument is the VoidInstrument (possibly via a Delegate2DefaultInstrument).
-     * <p>
+     * 3/ instrument is the VoidInstrument<br>
      *
      * @param midiMix
      * @return Can't be null
@@ -157,21 +157,14 @@ public class DrumsReroutingAction implements VetoableChangeListener, Runnable
             int channel = midiMix.getChannel(rv);
             InstrumentMix insMix = midiMix.getInstrumentMixFromKey(rv);
             Instrument ins = insMix.getInstrument();
-//            if (ins instanceof Delegate2DefaultInstrument)
-//            {
-//                // Special case : test the target instrument
-//                Delegate2DefaultInstrument dIns = (Delegate2DefaultInstrument) ins;
-//                ins = dIns.getTargetDefaultInstrument();
-//            }
-
-//            LOGGER.fine("getChannelsToBeRerouted() rv=" + rv + " channel=" + channel + " ins=" + ins);
-//            if (channel != MidiConst.CHANNEL_DRUMS
-//                    && rv.isDrums()
-//                    && !midiMix.getDrumsReroutedChannels().contains(channel)
-//                    && ins == JJazzSynth.getVoidInstrument())
-//            {
-//                res.add(channel);
-//            }
+            LOGGER.fine("getChannelsToBeRerouted() rv=" + rv + " channel=" + channel + " ins=" + ins);
+            if (channel != MidiConst.CHANNEL_DRUMS
+                    && rv.isDrums()
+                    && !midiMix.getDrumsReroutedChannels().contains(channel)
+                    && ins == StdSynth.getVoidInstrument())
+            {
+                res.add(channel);
+            }
         }
         LOGGER.fine("getChannelsToBeRerouted() res=" + res);
         return res;

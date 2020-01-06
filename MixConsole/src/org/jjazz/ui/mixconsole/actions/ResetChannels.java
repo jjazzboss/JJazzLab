@@ -31,6 +31,8 @@ import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midimix.UserChannelRhythmVoiceKey;
+import org.jjazz.outputsynth.OutputSynth;
+import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
@@ -88,6 +90,7 @@ public class ResetChannels extends AbstractAction
                 resetInstrument(insMix, rv);
                 resetSettings(insMix.getSettings(), rv);
                 songMidiMix.setInstrumentMix(channel, rv, insMix);
+                songMidiMix.setDrumsReroutedChannel(false, channel);
             }
         }
         JJazzUndoManagerFinder.getDefault().get(song).endCEdit(undoText);
@@ -109,19 +112,17 @@ public class ResetChannels extends AbstractAction
     static public void resetInstrument(InstrumentMix insMix, RhythmVoice rv)
     {
         Instrument ins;
-//        if (!(rv instanceof UserChannelRhythmVoiceKey))
-//        {
-//            ins = rv.getPreferredInstrument();
-//            if (ins == null)
-//            {
-//                ins = JJazzSynth.getDelegate2DefaultInstrument(rv.getType());
-//            }
-//        } else
-//        {
-//            ins = JJazzSynth.getDelegate2DefaultInstrumentUser();
-//        }
-//        insMix.setInstrument(ins);
-//        insMix.getSettings().setTransposition(0);
+        OutputSynth outSynth = OutputSynthManager.getInstance().getOutputSynth();
+        if (!(rv instanceof UserChannelRhythmVoiceKey))
+        {
+            ins = outSynth.getInstrument(rv);
+
+        } else
+        {
+            ins = outSynth.getUserInstrument();
+        }
+        insMix.setInstrument(ins);
+        insMix.getSettings().setTransposition(0);
     }
 
 }

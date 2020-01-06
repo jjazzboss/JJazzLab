@@ -138,7 +138,7 @@ public class MidiMixManager implements PropertyChangeListener
                 mm = MidiMix.loadFromFile(mixFile);
             } catch (IOException ex)
             {
-                LOGGER.severe("findMix(rhythm) Problem reading mix file" + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage()+". Creating a new mix instead.");
+                LOGGER.severe("findMix(rhythm) Problem reading mix file " + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage() + ". Creating a new mix instead.");
             }
         }
         if (mm == null)
@@ -192,6 +192,7 @@ public class MidiMixManager implements PropertyChangeListener
             if (mm.getInstrumentMixFromChannel(channel) != null)
             {
                 // If 2 rhythm voices have the same preferred channel (strange...)
+                LOGGER.warning("createMix() 2 rhythm voices have the same preferredChannel! mm=" + mm + " channel=" + channel);
                 channel = mm.findFreeChannel(rv.isDrums());
                 if (channel == -1)
                 {
