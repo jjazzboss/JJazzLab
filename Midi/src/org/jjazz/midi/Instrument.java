@@ -96,7 +96,7 @@ public class Instrument implements Serializable
      *
      * @param programChange
      * @param patchName
-     * @param kit Must be null if instrument is not a drums/percussion kit
+     * @param kit           Must be null if instrument is not a drums/percussion kit
      */
     public Instrument(int programChange, String patchName, DrumKit kit)
     {
@@ -110,10 +110,10 @@ public class Instrument implements Serializable
      * replaces the undefined values by the bank default values.
      *
      *
-     * @param patchName The patchName of the patch, e.g. "Grand Piano"
-     * @param bank The InstrumentBank this instruments belongs to. Can be null if undefined.
-     * @param ma The MidiAddress of the instrument. Can't be null.
-     * @param kit Optional. Must be non-null for drums/percussion instruments.
+     * @param patchName  The patchName of the patch, e.g. "Grand Piano"
+     * @param bank       The InstrumentBank this instruments belongs to. Can be null if undefined.
+     * @param ma         The MidiAddress of the instrument. Can't be null.
+     * @param kit        Optional. Must be non-null for drums/percussion instruments.
      * @param substitute Optional. Must be null for drums/percussion instruments.
      */
     public Instrument(String patchName, InstrumentBank<?> bank, MidiAddress ma, DrumKit kit, GM1Instrument substitute)
@@ -131,7 +131,7 @@ public class Instrument implements Serializable
                 (bank != null && ma.getBankLSB() == -1) ? this.bank.getDefaultBankSelectLSB() : ma.getBankLSB(),
                 (bank != null && ma.getBankSelectMethod() == null) ? this.bank.getDefaultBankSelectMethod() : ma.getBankSelectMethod()
         );
-    }
+    }    
 
     /**
      * This function can be called only once.
@@ -147,7 +147,7 @@ public class Instrument implements Serializable
     {
         if (this.bank != null)
         {
-            throw new IllegalStateException("bank already set!");
+            throw new IllegalStateException("Instrument=" + this.toLongString() + " - can't set bank to " + bank.getName() + ", bank is already set to " + this.bank.getName());
         }
         if (bank == null)
         {

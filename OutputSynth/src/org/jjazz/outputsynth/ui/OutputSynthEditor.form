@@ -32,8 +32,9 @@
                       <Component id="tabPane" max="32767" attributes="0"/>
                       <Group type="102" attributes="0">
                           <Component id="pnl_Compatibility" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace min="-2" max="-2" attributes="0"/>
-                          <Component id="jScrollPane1" max="32767" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="jScrollPane1" min="-2" pref="430" max="-2" attributes="0"/>
+                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
@@ -177,7 +178,11 @@
                   <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
                   <SubComponents>
                     <Component class="javax.swing.JList" name="list_MidiSynths">
+                      <Properties>
+                        <Property name="selectionMode" type="int" value="0"/>
+                      </Properties>
                       <Events>
+                        <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="list_MidiSynthsKeyPressed"/>
                         <EventHandler event="valueChanged" listener="javax.swing.event.ListSelectionListener" parameters="javax.swing.event.ListSelectionEvent" handler="list_MidiSynthsValueChanged"/>
                       </Events>
                       <AuxValues>
@@ -202,6 +207,9 @@
                       <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="OutputSynthEditor.btn_AddSynth.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                     </Property>
                   </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_AddSynthActionPerformed"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JButton" name="btn_RemoveSynth">
                   <Properties>
@@ -212,6 +220,9 @@
                       <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="OutputSynthEditor.btn_RemoveSynth.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                     </Property>
                   </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_RemoveSynthActionPerformed"/>
+                  </Events>
                 </Component>
                 <Container class="javax.swing.JScrollPane" name="jScrollPane7">
                   <AuxValues>

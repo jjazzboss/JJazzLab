@@ -25,6 +25,7 @@ package org.jjazz.outputsynth.ui;
 
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -36,12 +37,14 @@ import java.util.logging.Logger;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JList;
+import javax.swing.KeyStroke;
 import org.jjazz.midi.GSSynth;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.StdSynth;
 import org.jjazz.midi.ui.InstrumentTable;
 import org.jjazz.outputsynth.OutputSynth;
+import org.jjazz.outputsynth.OutputSynthManager;
 
 /**
  * An editor for an OutputSynth.
@@ -66,7 +69,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
     /**
      * Must be called before making the editor visible.
-     *
+     * <p>
      * outSynth will be directly modified by this editor.
      *
      * @param outSynth
@@ -229,7 +232,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             String s = synth.getName() + " (" + synth.getNbPatches() + ")";
             setText(s);
             File f = synth.getFile();
-            s = (f == null) ? "Builint" : f.getName();
+            s = (f == null) ? "Builtin" : f.getName();
             if (synth == editorStdSynth)
             {
                 setFont(getFont().deriveFont(Font.ITALIC));
@@ -311,6 +314,14 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jLabel3.text")); // NOI18N
 
+        list_MidiSynths.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        list_MidiSynths.addKeyListener(new java.awt.event.KeyAdapter()
+        {
+            public void keyPressed(java.awt.event.KeyEvent evt)
+            {
+                list_MidiSynthsKeyPressed(evt);
+            }
+        });
         list_MidiSynths.addListSelectionListener(new javax.swing.event.ListSelectionListener()
         {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt)
@@ -324,9 +335,23 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_AddSynth, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_AddSynth.text")); // NOI18N
         btn_AddSynth.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_AddSynth.toolTipText")); // NOI18N
+        btn_AddSynth.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_AddSynthActionPerformed(evt);
+            }
+        });
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_RemoveSynth, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_RemoveSynth.text")); // NOI18N
         btn_RemoveSynth.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_RemoveSynth.toolTipText")); // NOI18N
+        btn_RemoveSynth.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_RemoveSynthActionPerformed(evt);
+            }
+        });
 
         jScrollPane7.setViewportView(tbl_Instruments);
 
@@ -492,7 +517,8 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(pnl_Compatibility, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1)))
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 430, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -533,7 +559,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         }
         MidiSynth synth = list_MidiSynths.getSelectedValue();
         refreshBankList();
-        btn_RemoveSynth.setEnabled(synth != null);
+        btn_RemoveSynth.setEnabled(synth != null && synth != editorStdSynth);
     }//GEN-LAST:event_list_MidiSynthsValueChanged
 
     private void list_BanksValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_list_BanksValueChanged
@@ -544,7 +570,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             return;
         }
         InstrumentBank bank = list_Banks.getSelectedValue();
-        tbl_Instruments.getInsTableModel().setInstruments((bank != null) ? bank.getInstruments() : new ArrayList<>());
+        tbl_Instruments.setInstruments((bank != null) ? bank.getInstruments() : new ArrayList<>());
     }//GEN-LAST:event_list_BanksValueChanged
 
     private void cb_GM2ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_GM2ActionPerformed
@@ -579,6 +605,35 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             outputSynth.addCompatibleStdBank(GSSynth.getGSBank());
         }
     }//GEN-LAST:event_cb_GSActionPerformed
+
+    private void btn_RemoveSynthActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_RemoveSynthActionPerformed
+    {//GEN-HEADEREND:event_btn_RemoveSynthActionPerformed
+        MidiSynth synth = list_MidiSynths.getSelectedValue();
+        if (synth != null && synth != editorStdSynth)
+        {
+            int newSelIndex = Math.min(list_MidiSynths.getSelectedIndex(), list_MidiSynths.getModel().getSize() - 2);
+            outputSynth.removeCustomSynth(synth);   // This will update the list
+            list_MidiSynths.setSelectedIndex(newSelIndex);
+        }
+    }//GEN-LAST:event_btn_RemoveSynthActionPerformed
+
+    private void btn_AddSynthActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_AddSynthActionPerformed
+    {//GEN-HEADEREND:event_btn_AddSynthActionPerformed
+        List<MidiSynth> synths = OutputSynthManager.getInstance().showAddCustomSynthDialog();
+        for (MidiSynth synth : synths)
+        {
+            outputSynth.addCustomSynth(synth);
+        }
+    }//GEN-LAST:event_btn_AddSynthActionPerformed
+
+    private void list_MidiSynthsKeyPressed(java.awt.event.KeyEvent evt)//GEN-FIRST:event_list_MidiSynthsKeyPressed
+    {//GEN-HEADEREND:event_list_MidiSynthsKeyPressed
+        LOGGER.severe("evt=" + evt.getKeyChar() + " evtcode=" + evt.getKeyCode());
+        if (evt.getKeyCode() == KeyEvent.VK_DELETE)
+        {
+            btn_RemoveSynthActionPerformed(null);
+        }
+    }//GEN-LAST:event_list_MidiSynthsKeyPressed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

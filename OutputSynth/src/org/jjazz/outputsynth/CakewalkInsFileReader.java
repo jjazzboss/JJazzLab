@@ -286,6 +286,11 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             continue;
                         }
                         String bankName = m2Patch.group(1).trim();
+                        if (currentSynth.getBank(bankName) != null)
+                        {
+                            // The bank has already been created for this synth via a Patch[123]=SomeBankName (happens in some erroneous files)                            
+                            continue;
+                        }
                         List<Instrument> bankInstruments = mapBankNameInstruments.get(bankName);
                         if (bankInstruments == null)
                         {
@@ -298,7 +303,9 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             // Add the instruments
                             for (Instrument ins : bankInstruments)
                             {
-                                bank.addInstrument(ins);    // Instrument will inherit the MSB/LSB/BSM from the bank
+                                // Create a copy of the instrument because some .ins can reuse one bank for several synths
+                                Instrument insCopy = new Instrument(ins.getPatchName(), null, ins.getMidiAddress(), ins.getDrumKit(), ins.getSubstitute());
+                                bank.addInstrument(insCopy);    // Instrument will inherit the MSB/LSB/BSM from the bank
                             }
                         }
                     } else if (mPatch.matches())
@@ -335,7 +342,9 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             // Add the instruments
                             for (Instrument ins : bankInstruments)
                             {
-                                bank.addInstrument(ins);    // Instrument will inherit the MSB/LSB/BSM from the bank
+                                // Create a copy of the instrument because some .ins can reuse one bank for several synths
+                                Instrument insCopy = new Instrument(ins.getPatchName(), null, ins.getMidiAddress(), ins.getDrumKit(), ins.getSubstitute());
+                                bank.addInstrument(insCopy);    // Instrument will inherit the MSB/LSB/BSM from the bank
                             }
                         }
                     }

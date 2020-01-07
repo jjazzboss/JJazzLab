@@ -56,10 +56,6 @@ public class OutputSynth implements Serializable
      */
     public static final String PROP_USER_INSTRUMENT = "PROP_USER_INSTRUMENT";
 
-    private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
-    private static final String MIDISYNTH_FILES_RESOURCE_ZIP = "resources/MidiSynthFiles.zip";
-    private final static String SGM_SOUNDFONT_INS = "resources/SGM-v2.01.ins";
-
     private final List<InstrumentBank<?>> compatibleStdBanks;
     private final List<MidiSynth> customSynths;
     private GMRemapTable remapTable;

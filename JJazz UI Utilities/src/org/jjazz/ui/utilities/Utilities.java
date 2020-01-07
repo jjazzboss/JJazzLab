@@ -29,8 +29,11 @@ import java.awt.Toolkit;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
+import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import org.openide.awt.MenuBar;
 
 public class Utilities
@@ -69,7 +72,7 @@ public class Utilities
     /**
      * Recursively enable/disable a JComponent and its JComponent children.
      *
-     * @param b boolean
+     * @param b  boolean
      * @param jc JComponent
      */
     public static void setRecursiveEnabled(boolean b, JComponent jc)
