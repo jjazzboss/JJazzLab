@@ -98,7 +98,7 @@ public class MidiSynth
     public List<Instrument> findInstruments(String text)
     {
         ArrayList<Instrument> res = new ArrayList<>();
-        for (InstrumentBank<?> bank : banks)
+        for (InstrumentBank<?> bank : getBanks())
         {
             res.addAll(bank.findInstruments(text));
         }
@@ -113,7 +113,7 @@ public class MidiSynth
      */
     public Instrument getInstrument(String patchName)
     {
-        for (InstrumentBank<?> bank : banks)
+        for (InstrumentBank<?> bank : getBanks())
         {
             Instrument ins = bank.getInstrument(patchName);
             if (ins != null)
@@ -132,7 +132,7 @@ public class MidiSynth
      */
     public Instrument getInstrument(MidiAddress address)
     {
-        for (InstrumentBank<?> bank : banks)
+        for (InstrumentBank<?> bank : getBanks())
         {
             Instrument ins = bank.getInstrument(address);
             if (ins != null)
@@ -207,7 +207,7 @@ public class MidiSynth
     public int getNbPatches()
     {
         int size = 0;
-        for (InstrumentBank<?> bank : banks)
+        for (InstrumentBank<?> bank : getBanks())
         {
             size += bank.getSize();
         }
@@ -249,7 +249,7 @@ public class MidiSynth
     public void dump()
     {
         LOGGER.severe("DUMP synth: " + this.name + "(" + getNbPatches() + ") ================================================");
-        for (InstrumentBank<?> bank : banks)
+        for (InstrumentBank<?> bank : getBanks())
         {
             LOGGER.severe("   Bank=" + bank.getName() + " (" + bank.getSize() + ") ---------");
             for (Instrument ins : bank.getInstruments())

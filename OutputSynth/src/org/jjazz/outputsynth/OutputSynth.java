@@ -29,7 +29,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 import org.jjazz.midi.GSSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
@@ -37,7 +36,6 @@ import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.StdSynth;
 import org.jjazz.midiconverters.api.ConvertersManager;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.openide.util.NbPreferences;
 
 /**
  * The information about the MidiSynth connected to the Midi output of JJazzLab.
@@ -62,10 +60,10 @@ public class OutputSynth implements Serializable
     private static final String MIDISYNTH_FILES_RESOURCE_ZIP = "resources/MidiSynthFiles.zip";
     private final static String SGM_SOUNDFONT_INS = "resources/SGM-v2.01.ins";
 
-    private final List<InstrumentBank<?>> compatibleStdBanks = new ArrayList<>();
-    private final List<MidiSynth> customSynths = new ArrayList<>();
-    private GM1RemapTable remapTable = new GM1RemapTable();
-    private Instrument userInstrument = StdSynth.getGM1Bank().getInstrument(0);  // Piano
+    private final List<InstrumentBank<?>> compatibleStdBanks;
+    private final List<MidiSynth> customSynths;
+    private GMRemapTable remapTable;
+    private Instrument userInstrument;
     private static final Logger LOGGER = Logger.getLogger(OutputSynth.class.getSimpleName());
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
 
@@ -74,23 +72,30 @@ public class OutputSynth implements Serializable
      */
     public OutputSynth()
     {
+        compatibleStdBanks = new ArrayList<>();
+        customSynths = new ArrayList<>();
+        remapTable = new GMRemapTable();
         compatibleStdBanks.add(StdSynth.getGM1Bank());
+        userInstrument = StdSynth.getGM1Bank().getInstrument(0);  // Piano
     }
 
-    @Override
-    public OutputSynth clone()
+    /**
+     * Construct a new OutputSynth which copies the values from os.
+     *
+     * @param os
+     */
+    public OutputSynth(OutputSynth os)
     {
-        OutputSynth os = new OutputSynth();
-        os.compatibleStdBanks.clear();
-        os.compatibleStdBanks.addAll(compatibleStdBanks);
-        os.customSynths.clear();
-        os.customSynths.addAll(customSynths);
-        os.userInstrument = userInstrument;
-        os.remapTable = remapTable.clone();
-        return os;
+        compatibleStdBanks = new ArrayList<>();
+        customSynths = new ArrayList<>();
+
+        compatibleStdBanks.addAll(os.compatibleStdBanks);
+        customSynths.addAll(customSynths);
+        userInstrument = os.userInstrument;
+        remapTable = new GMRemapTable(os.remapTable);
     }
 
-    public GM1RemapTable getGM1RemapTable()
+    public GMRemapTable getGMRemapTable()
     {
         return remapTable;
     }
@@ -206,8 +211,11 @@ public class OutputSynth implements Serializable
     /**
      * Get an instrument compatible with this OutputSynth for the specified rhythm voice.
      * <p>
-     * Start with the instruments from the custom synths then from the compatible standard banks.
-     *
+     * Search a matching instrument in the following order :<br>
+     * - in the custom synths <br>
+     * - in the compatible banks<br>
+     * - in the GMRemapTable
+     * - Use the substitute or, if , create a custom instrument for the rv.GetPreferredInstrument().
      * @param rv
      * @return Can't be null. It may be the VoidInstrument for drums/percussion.
      */

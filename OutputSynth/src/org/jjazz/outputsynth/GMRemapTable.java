@@ -38,34 +38,51 @@ import org.jjazz.midi.Instrument;
  * <p>
  * Association can also be done at the GM1Bank.Family level.
  */
-public class GM1RemapTable implements Serializable
+public class GMRemapTable implements Serializable
 {
 
-    /** oldValue=Family, newValue=Instrument */
+    /**
+     * oldValue=Family, newValue=Instrument
+     */
     public static final String PROP_FAMILY = "Family";
-    /** oldValue=GM1Instrument, newValue=Instrument */
+    /**
+     * oldValue=GM1Instrument, newValue=Instrument
+     */
     public static final String PROP_INSTRUMENT = "Instrument";
+    /**
+     * oldValue=old Instrument, newValue=new Instrument.
+     */
     public static final String PROP_DRUMS_INSTRUMENT = "DrumsInstrument";
+    /**
+     * oldValue=old Instrument, newValue=new Instrument.
+     */
     public static final String PROP_PERC_INSTRUMENT = "PercInstrument";
     private Instrument insDrums;
     private Instrument insPerc;
     private HashMap<GM1Instrument, Instrument> mapVoiceInstruments = new HashMap<>();
     private HashMap<GM1Bank.Family, Instrument> mapFamilyInstruments = new HashMap<>();
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
-private static final Logger LOGGER = Logger.getLogger(GM1RemapTable.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(GMRemapTable.class.getSimpleName());
+
     /**
-     * Create an empty DefaultInstruments instance.
+     * Create an empty GM1RemapTable instance.
      */
-    public GM1RemapTable()
+    public GMRemapTable()
     {
 
     }
-    
-    @Override
-    public GM1RemapTable clone()
+
+    /**
+     * Create a table which copies the value from rt.
+     *
+     * @param rt
+     */
+    public GMRemapTable(GMRemapTable rt)
     {
-        LOGGER.severe("clone() TO BE IMPLEMENTED !!!!!!!!!!!!!!!!!!!!!");
-        return this;
+        insDrums = rt.insDrums;
+        insPerc = rt.insPerc;
+        mapVoiceInstruments = new HashMap<>(rt.mapVoiceInstruments);
+        mapFamilyInstruments = new HashMap<>(rt.mapFamilyInstruments);
     }
 
     /**
@@ -87,7 +104,7 @@ private static final Logger LOGGER = Logger.getLogger(GM1RemapTable.class.getSim
      * Set the remapped instrument for the specified GM1 instrument.
      *
      * @param insGM1
-     * @param ins    Can be null
+     * @param ins Can be null
      */
     public void setInstrument(GM1Instrument insGM1, Instrument ins)
     {
@@ -105,12 +122,12 @@ private static final Logger LOGGER = Logger.getLogger(GM1RemapTable.class.getSim
     /**
      * Get the remapped instrument for the specified instrument family.
      *
-     * @param family 
+     * @param family
      * @return Null if no mapping defined for this family.
      */
     public Instrument getInstrument(GM1Bank.Family family)
     {
-        if (family == null )
+        if (family == null)
         {
             throw new NullPointerException("family");
         }
@@ -121,7 +138,7 @@ private static final Logger LOGGER = Logger.getLogger(GM1RemapTable.class.getSim
      * Set the remapped instrument for the specified GM1 instrument.
      *
      * @param family
-     * @param ins    Can be null
+     * @param ins Can be null
      */
     public void setInstrument(GM1Bank.Family family, Instrument ins)
     {

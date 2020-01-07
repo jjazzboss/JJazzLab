@@ -28,21 +28,19 @@ import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JList;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableColumnModel;
 import org.jjazz.midi.GSSynth;
-import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.StdSynth;
+import org.jjazz.midi.ui.InstrumentTable;
 import org.jjazz.outputsynth.OutputSynth;
 
 /**
@@ -52,38 +50,24 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 {
 
     private OutputSynth outputSynth;
-    private final InstrumentTableModel instrumentTableModel = new InstrumentTableModel();
+    private MidiSynth editorStdSynth = new StdSynthProxy("Standard Synth", "");
     private static final Logger LOGGER = Logger.getLogger(OutputSynthEditor.class.getSimpleName());
     private boolean exitedOk;
 
-    /** Creates new form OutputSynthEditor */
+    /**
+     * Creates new form OutputSynthEditor
+     */
     public OutputSynthEditor()
     {
         initComponents();
-
-        // Adjust the Instrument JTable 
-        TableColumnModel cm = tbl_Instruments.getColumnModel();
-        cm.getColumn(0).setPreferredWidth(130); // Using pixels size, NOT nice but simple for a start...
-        cm.getColumn(1).setPreferredWidth(20);
-        cm.getColumn(2).setPreferredWidth(20);
-        cm.getColumn(3).setPreferredWidth(20);
-
         this.list_Banks.setCellRenderer(new BankCellRenderer());
         this.list_MidiSynths.setCellRenderer(new SynthCellRenderer());
-
-        tbl_Instruments.getSelectionModel().addListSelectionListener(new ListSelectionListener()
-        {
-            @Override
-            public void valueChanged(ListSelectionEvent e)
-            {
-                tbl_InstrumentsSelectionChanged(e);
-            }
-
-        });
     }
 
     /**
      * Must be called before making the editor visible.
+     *
+     * outSynth will be directly modified by this editor.
      *
      * @param outSynth
      */
@@ -95,41 +79,19 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         }
         if (outputSynth != null)
         {
-            outputSynth.removePropertyChangeListener(this);
+            clean();
         }
-        outputSynth = outSynth.clone();
+
+        outputSynth = outSynth;
+
+        // Register for changes
         outputSynth.addPropertyChangeListener(this);
+        outputSynth.getGMRemapTable().addPropertyChangeListener(this);
 
-        // The MidiSynth lists + banks + instruments
-        List<MidiSynth> synths = outputSynth.getCustomSynths();
-        list_MidiSynths.setListData(synths.toArray(new MidiSynth[0]));
-        if (!synths.isEmpty())
-        {
-            list_MidiSynths.setSelectedIndex(0);
-        } else
-        {
-            updateBankList();
-        }
-
-        // The remap table
-        remapTable.setPrimaryModel(outputSynth.getGM1RemapTable());
-
-        updateVariableUI();
-    }
-
-    /**
-     * A new OutputSynth instance updated by this editor.
-     *
-     * @return Value is meaningfull only if exitOK() returns true.
-     */
-    public OutputSynth getResult()
-    {
-        return outputSynth;
-    }
-
-    public boolean exitedOk()
-    {
-        return exitedOk;
+        /// Update UI
+        refreshSynthList();
+        refreshCompatibilityCheckBoxes();
+        remapTable.setPrimaryModel(outputSynth.getGMRemapTable());
     }
 
     /**
@@ -140,6 +102,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         if (outputSynth != null)
         {
             outputSynth.removePropertyChangeListener(this);
+            outputSynth.getGMRemapTable().removePropertyChangeListener(this);
         }
     }
 
@@ -149,54 +112,109 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getPropertyName() == OutputSynth.PROP_STD_BANK)
+        if (evt.getSource() == outputSynth)
         {
-            List<InstrumentBank<?>> stdBanks = outputSynth.getCompatibleStdBanks();
-            cb_GM.setSelected(stdBanks.contains(StdSynth.getGM1Bank()));
-            cb_GM2.setSelected(stdBanks.contains(StdSynth.getGM2Bank()));
-            cb_XG.setSelected(stdBanks.contains(StdSynth.getXGBank()));
-            cb_GS.setSelected(stdBanks.contains(GSSynth.getGSBank()));
-            updateBankList();
-        } else if (evt.getPropertyName() == OutputSynth.PROP_CUSTOM_SYNTH)
-        {
+            if (evt.getPropertyName() == OutputSynth.PROP_STD_BANK)
+            {
+                refreshCompatibilityCheckBoxes();
+                // Stdsynth must be the first : make sure it is repaint to have the right size displayed
+                list_MidiSynths.repaint(list_MidiSynths.getCellBounds(0, 0));
+                if (list_MidiSynths.getSelectedValue() == editorStdSynth)
+                {
+                    refreshBankList();
+                }
+            } else if (evt.getPropertyName() == OutputSynth.PROP_CUSTOM_SYNTH)
+            {
+                refreshSynthList();
 
-        } else if (evt.getPropertyName() == OutputSynth.PROP_USER_INSTRUMENT)
-        {
-            Instrument userIns = outputSynth.getUserInstrument();
-            btn_SetUserInstrument.setToolTipText(userIns.getPatchName() + " (bank:" + userIns.getBank().getName() + ")");
+            } else if (evt.getPropertyName() == OutputSynth.PROP_USER_INSTRUMENT)
+            {
+            }
         }
-
     }
 
     // ==============================================================================
     // Private methods
-    // ==============================================================================
-    private void tbl_InstrumentsSelectionChanged(ListSelectionEvent e)
+    // ==============================================================================  
+    private void refreshCompatibilityCheckBoxes()
     {
-        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);
-        if (e.getValueIsAdjusting())
-        {
-            return;
-        }
-        int row = tbl_Instruments.getSelectedRow();
-        this.btn_SetUserInstrument.setEnabled(row != -1);
-    }
-
-    /**
-     * Update the UI parts which can be changed in the editor.
-     */
-    private void updateVariableUI()
-    {
-        // The Set as User Instrument
-        Instrument userIns = outputSynth.getUserInstrument();
-        btn_SetUserInstrument.setToolTipText(userIns.getPatchName() + " (bank:" + userIns.getBank().getName() + ")");
-
         // The compatibility checkboxes
         List<InstrumentBank<?>> stdBanks = outputSynth.getCompatibleStdBanks();
         cb_GM.setSelected(stdBanks.contains(StdSynth.getGM1Bank()));
         cb_GM2.setSelected(stdBanks.contains(StdSynth.getGM2Bank()));
         cb_XG.setSelected(stdBanks.contains(StdSynth.getXGBank()));
         cb_GS.setSelected(stdBanks.contains(GSSynth.getGSBank()));
+        cb_GS.setEnabled(!(cb_GM2.isSelected() || cb_XG.isSelected()));
+        cb_GM2.setEnabled(!cb_GS.isSelected());
+        cb_XG.setEnabled(!cb_GS.isSelected());
+    }
+
+    private void refreshSynthList()
+    {
+        List<MidiSynth> synths = new ArrayList<>();
+        synths.add(editorStdSynth);
+        synths.addAll(outputSynth.getCustomSynths());
+        list_MidiSynths.setListData(synths.toArray(new MidiSynth[0]));
+        if (!synths.isEmpty())
+        {
+            list_MidiSynths.setSelectedIndex(0);    // This will trigger an update of listBank
+        } else
+        {
+            refreshBankList();
+        }
+    }
+
+    /**
+     * Update the Banks JList contents depending on the MidiSynth selection.
+     * <p>
+     */
+    private void refreshBankList()
+    {
+        MidiSynth synth = list_MidiSynths.getSelectedValue();
+        InstrumentBank<?>[] banks;
+        if (synth == null)
+        {
+            banks = new InstrumentBank<?>[0];
+        } else
+        {
+            banks = synth.getBanks().toArray(new InstrumentBank<?>[0]);
+        }
+        list_Banks.setListData(banks);
+        if (banks.length > 0)
+        {
+            list_Banks.setSelectedIndex(0);
+        }
+    }
+
+    // ==============================================================================
+    // Private classes
+    // ==============================================================================
+    /**
+     * A virtual StdSynth to show the standard compatible banks of outputSynth.
+     */
+    private class StdSynthProxy extends MidiSynth
+    {
+
+        public StdSynthProxy(String name, String manufacturer)
+        {
+            super(name, manufacturer);
+        }
+
+        @Override
+        public List<InstrumentBank<?>> getBanks()
+        {
+            List<InstrumentBank<?>> banks = outputSynth.getCompatibleStdBanks();
+            Collections.sort(banks, new Comparator<InstrumentBank<?>>()
+            {
+                @Override
+                public int compare(InstrumentBank<?> b, InstrumentBank<?> b1)
+                {
+                    return b.getName().compareTo(b1.getName());
+
+                }
+            });
+            return banks;
+        }
     }
 
     private class SynthCellRenderer extends DefaultListCellRenderer
@@ -211,14 +229,10 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             String s = synth.getName() + " (" + synth.getNbPatches() + ")";
             setText(s);
             File f = synth.getFile();
-            if (f == null)
+            s = (f == null) ? "Builint" : f.getName();
+            if (synth == editorStdSynth)
             {
-                s = "Builtin";
-                Font ft = getFont();
-                setFont(ft.deriveFont(Font.ITALIC));
-            } else
-            {
-                s = f.getName();
+                setFont(getFont().deriveFont(Font.ITALIC));
             }
             setToolTipText(s);
             return c;
@@ -239,92 +253,14 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             if (StdSynth.getInstance().getBanks().contains(bank) || bank == GSSynth.getGSBank())
             {
                 Font ft = getFont();
-                setFont(ft.deriveFont(Font.ITALIC));
+                // setFont(ft.deriveFont(Font.ITALIC));
             }
             return c;
         }
     }
 
-    // Need an instrument cell renderer to show the UserInstrument in a different way xx (User Instrument)
-    private class InstrumentTableModel extends AbstractTableModel
-    {
-
-        InstrumentBank<? extends Instrument> bank;
-        List<? extends Instrument> instruments;
-
-        public void setBank(InstrumentBank<?> b)
-        {
-            bank = b;
-            if (bank != null)
-            {
-                instruments = bank.getInstruments();
-            }
-            fireTableDataChanged();
-        }
-
-        @Override
-        public Class<?> getColumnClass(int columnIndex)
-        {
-            return columnIndex == 0 ? String.class : Integer.class;
-        }
-
-        @Override
-        public String getColumnName(int columnIndex)
-        {
-            String s;
-            switch (columnIndex)
-            {
-                case 3:
-                    s = "LSB";
-                    break;
-                case 2:
-                    s = "MSB";
-                    break;
-                case 1:
-                    s = "PC";
-                    break;
-                case 0:
-                    s = "Program Name";
-                    break;
-                default:
-                    throw new IllegalStateException("columnIndex=" + columnIndex);
-            }
-            return s;
-        }
-
-        @Override
-        public int getRowCount()
-        {
-            return bank == null ? 0 : bank.getSize();
-        }
-
-        @Override
-        public int getColumnCount()
-        {
-            return 4;
-        }
-
-        @Override
-        public Object getValueAt(int rowIndex, int columnIndex)
-        {
-            Instrument ins = instruments.get(rowIndex);
-            switch (columnIndex)
-            {
-                case 3:
-                    return (Integer) ins.getMidiAddress().getBankLSB();
-                case 2:
-                    return (Integer) ins.getMidiAddress().getBankMSB();
-                case 1:
-                    return (Integer) ins.getMidiAddress().getProgramChange();
-                case 0:
-                    return ins.getPatchName();
-                default:
-                    throw new IllegalStateException("columnIndex=" + columnIndex);
-            }
-        }
-    }
-
-    /** This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
+    /**
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
      * this method is always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
@@ -339,14 +275,13 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         list_Banks = new javax.swing.JList<>();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        tbl_Instruments = new javax.swing.JTable();
         jScrollPane6 = new javax.swing.JScrollPane();
         list_MidiSynths = new javax.swing.JList<>();
         jLabel4 = new javax.swing.JLabel();
         btn_AddSynth = new javax.swing.JButton();
         btn_RemoveSynth = new javax.swing.JButton();
-        btn_SetUserInstrument = new javax.swing.JButton();
+        jScrollPane7 = new javax.swing.JScrollPane();
+        tbl_Instruments = new org.jjazz.midi.ui.InstrumentTable();
         pnl_defaultInstruments = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
@@ -376,10 +311,6 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jLabel3.text")); // NOI18N
 
-        tbl_Instruments.setAutoCreateRowSorter(true);
-        tbl_Instruments.setModel(instrumentTableModel);
-        jScrollPane4.setViewportView(tbl_Instruments);
-
         list_MidiSynths.addListSelectionListener(new javax.swing.event.ListSelectionListener()
         {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt)
@@ -397,7 +328,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         org.openide.awt.Mnemonics.setLocalizedText(btn_RemoveSynth, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_RemoveSynth.text")); // NOI18N
         btn_RemoveSynth.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_RemoveSynth.toolTipText")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_SetUserInstrument, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_SetUserInstrument.text")); // NOI18N
+        jScrollPane7.setViewportView(tbl_Instruments);
 
         javax.swing.GroupLayout pnl_mainLayout = new javax.swing.GroupLayout(pnl_main);
         pnl_main.setLayout(pnl_mainLayout);
@@ -405,30 +336,28 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_mainLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 210, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(pnl_mainLayout.createSequentialGroup()
                         .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btn_AddSynth)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btn_RemoveSynth)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btn_RemoveSynth))
+                    .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnl_mainLayout.createSequentialGroup()
+                        .addGap(43, 43, 43)
+                        .addComponent(jLabel2))
+                    .addGroup(pnl_mainLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 408, Short.MAX_VALUE)
+                    .addGroup(pnl_mainLayout.createSequentialGroup()
                         .addComponent(jLabel3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 45, Short.MAX_VALUE)
-                        .addComponent(btn_SetUserInstrument))
-                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                .addContainerGap())
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
-
-        pnl_mainLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jScrollPane2, jScrollPane6});
-
         pnl_mainLayout.setVerticalGroup(
             pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnl_mainLayout.createSequentialGroup()
@@ -438,13 +367,12 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                     .addComponent(jLabel3)
                     .addComponent(jLabel4)
                     .addComponent(btn_AddSynth)
-                    .addComponent(btn_RemoveSynth)
-                    .addComponent(btn_SetUserInstrument))
+                    .addComponent(btn_RemoveSynth))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 304, Short.MAX_VALUE)
-                    .addComponent(jScrollPane2)
-                    .addComponent(jScrollPane6))
+                    .addComponent(jScrollPane6)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 365, Short.MAX_VALUE)
+                    .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -466,7 +394,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             .addGroup(pnl_defaultInstrumentsLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnl_defaultInstrumentsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 690, Short.MAX_VALUE)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 765, Short.MAX_VALUE)
                     .addComponent(jScrollPane3))
                 .addContainerGap())
         );
@@ -476,7 +404,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 .addContainerGap()
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 323, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -587,7 +515,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
     private void cb_GMActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_GMActionPerformed
     {//GEN-HEADEREND:event_cb_GMActionPerformed
-        if (cb_GM.isSelected())
+        if (!cb_GM.isSelected())
         {
             outputSynth.removeCompatibleStdBank(StdSynth.getGM1Bank());
         } else
@@ -604,7 +532,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             return;
         }
         MidiSynth synth = list_MidiSynths.getSelectedValue();
-        updateBankList();
+        refreshBankList();
         btn_RemoveSynth.setEnabled(synth != null);
     }//GEN-LAST:event_list_MidiSynthsValueChanged
 
@@ -615,14 +543,13 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         {
             return;
         }
-        InstrumentBank<?> bank = list_Banks.getSelectedValue();
-        tbl_Instruments.setEnabled(bank != null);
-        instrumentTableModel.setBank(bank);
+        InstrumentBank bank = list_Banks.getSelectedValue();
+        tbl_Instruments.getInsTableModel().setInstruments((bank != null) ? bank.getInstruments() : new ArrayList<>());
     }//GEN-LAST:event_list_BanksValueChanged
 
     private void cb_GM2ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_GM2ActionPerformed
     {//GEN-HEADEREND:event_cb_GM2ActionPerformed
-        if (cb_GM2.isSelected())
+        if (!cb_GM2.isSelected())
         {
             outputSynth.removeCompatibleStdBank(StdSynth.getGM2Bank());
         } else
@@ -633,7 +560,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
     private void cb_XGActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_XGActionPerformed
     {//GEN-HEADEREND:event_cb_XGActionPerformed
-        if (cb_XG.isSelected())
+        if (!cb_XG.isSelected())
         {
             outputSynth.removeCompatibleStdBank(StdSynth.getXGBank());
         } else
@@ -644,7 +571,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
     private void cb_GSActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_GSActionPerformed
     {//GEN-HEADEREND:event_cb_GSActionPerformed
-        if (cb_GS.isSelected())
+        if (!cb_GS.isSelected())
         {
             outputSynth.removeCompatibleStdBank(GSSynth.getGSBank());
         } else
@@ -653,30 +580,10 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         }
     }//GEN-LAST:event_cb_GSActionPerformed
 
-    /**
-     * Update the Banks JList contents depending on the MidiSynth selection.
-     * <p>
-     */
-    private void updateBankList()
-    {
-        MidiSynth synth = list_MidiSynths.getSelectedValue();
-        List<InstrumentBank<?>> banks = outputSynth.getCompatibleStdBanks();
-        if (synth != null)
-        {
-            banks.addAll(synth.getBanks());
-        }
-        list_Banks.setListData(banks.toArray(new InstrumentBank<?>[0]));
-        if (!banks.isEmpty())
-        {
-            list_Banks.setSelectedIndex(0);
-        }
-    }
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_AddSynth;
     private javax.swing.JButton btn_RemoveSynth;
-    private javax.swing.JButton btn_SetUserInstrument;
     private javax.swing.JCheckBox cb_GM;
     private javax.swing.JCheckBox cb_GM2;
     private javax.swing.JCheckBox cb_GS;
@@ -690,9 +597,9 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
+    private javax.swing.JScrollPane jScrollPane7;
     private javax.swing.JList<InstrumentBank<?>> list_Banks;
     private javax.swing.JList<MidiSynth> list_MidiSynths;
     private javax.swing.JPanel pnl_Compatibility;
@@ -700,6 +607,6 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JPanel pnl_main;
     private org.jjazz.outputsynth.ui.RemapTableUI remapTable;
     private javax.swing.JTabbedPane tabPane;
-    private javax.swing.JTable tbl_Instruments;
+    private org.jjazz.midi.ui.InstrumentTable tbl_Instruments;
     // End of variables declaration//GEN-END:variables
 }

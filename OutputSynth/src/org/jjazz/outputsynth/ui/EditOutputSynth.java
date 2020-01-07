@@ -44,13 +44,13 @@ import org.openide.windows.WindowManager;
         {
             "CTL_EditConnectedSynth=Edit Connected Synth"
         })
-public class EditConnectedSynth extends AbstractAction
+public class EditOutputSynth extends AbstractAction
 {
 
     private String undoText = CTL_EditConnectedSynth();
-    private static final Logger LOGGER = Logger.getLogger(EditConnectedSynth.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(EditOutputSynth.class.getSimpleName());
 
-    public EditConnectedSynth()
+    public EditOutputSynth()
     {
         putValue(NAME, undoText);
         // putValue(SHORT_DESCRIPTION, "");
@@ -60,7 +60,7 @@ public class EditConnectedSynth extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        EditConnectedSynthDialog dlg = EditConnectedSynthDialog.getInstance();
+        EditOutputSynthDialog dlg = EditOutputSynthDialog.getInstance();
         dlg.preset(OutputSynthManager.getInstance().getOutputSynth());
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);

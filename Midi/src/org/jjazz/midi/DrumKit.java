@@ -123,7 +123,7 @@ public class DrumKit
     @Override
     public String toString()
     {
-        return "[type=" + type + ",map=" + map.getName() + "]";
+        return "[Type:" + type + ", KeyMap:" + map.getName() + "]";
     }
 
     @Override
