@@ -99,7 +99,7 @@ public class MidiMixManager implements PropertyChangeListener
                     mm = MidiMix.loadFromFile(mixFile);
                 } catch (IOException ex)
                 {
-                    LOGGER.warning("findMix(Song) Problem reading mix file" + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage());
+                    LOGGER.warning("findMix(Song) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage());
                 }
                 if (mm == null)
                 {
@@ -139,7 +139,7 @@ public class MidiMixManager implements PropertyChangeListener
                 mm = MidiMix.loadFromFile(mixFile);
             } catch (IOException ex)
             {
-                LOGGER.severe("findMix(rhythm) Problem reading mix file " + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage() + ". Creating a new mix instead.");
+                LOGGER.severe("findMix(rhythm) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage() + ". Creating a new mix instead.");
             }
         }
         if (mm == null)

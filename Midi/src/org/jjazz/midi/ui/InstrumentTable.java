@@ -22,10 +22,13 @@
  */
 package org.jjazz.midi.ui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
@@ -41,10 +44,10 @@ import org.jjazz.midi.MidiAddress.BankSelectMethod;
  */
 public class InstrumentTable extends JTable
 {
-    
+
     Model tblModel = new Model();
     private static final Logger LOGGER = Logger.getLogger(InstrumentTable.class.getSimpleName());
-    
+
     public InstrumentTable()
     {
         setModel(tblModel);
@@ -85,20 +88,20 @@ public class InstrumentTable extends JTable
             }
         }
         return ins;
-    }
-    
+    }   
+
     private class Model extends AbstractTableModel
     {
-        
+
         public static final int COL_ID = 0;
         public static final int COL_PATCHNAME = 1;
         public static final int COL_DRUMKIT = 2;
         public static final int COL_PC = 3;
         public static final int COL_MSB = 4;
         public static final int COL_LSB = 5;
-        
+
         List<? extends Instrument> instruments = new ArrayList<>();
-        
+
         public void setInstruments(List<Instrument> instruments)
         {
             if (instruments == null)
@@ -108,12 +111,12 @@ public class InstrumentTable extends JTable
             this.instruments = instruments;
             fireTableDataChanged();
         }
-        
+
         List<? extends Instrument> getInstruments()
         {
             return instruments;
         }
-        
+
         @Override
         public Class<?> getColumnClass(int col)
         {
@@ -131,7 +134,7 @@ public class InstrumentTable extends JTable
                     throw new IllegalStateException("columnIndex=" + col);
             }
         }
-        
+
         @Override
         public String getColumnName(int columnIndex)
         {
@@ -161,19 +164,19 @@ public class InstrumentTable extends JTable
             }
             return s;
         }
-        
+
         @Override
         public int getRowCount()
         {
             return instruments.size();
         }
-        
+
         @Override
         public int getColumnCount()
         {
             return 6;
         }
-        
+
         @Override
         public Object getValueAt(int row, int col)
         {
@@ -217,7 +220,7 @@ public class InstrumentTable extends JTable
             TableCellRenderer renderer = getTableHeader().getDefaultRenderer();
             Component comp = renderer.getTableCellRendererComponent(this, tblModel.getColumnName(colIndex), true, true, 0, colIndex);
             int headerWidth = comp.getPreferredSize().width + EXTRA;
-            
+
             int width = 20; // Min width
 
             // Handle data
@@ -251,10 +254,10 @@ public class InstrumentTable extends JTable
             }
         }
     }
-    
+
     private class InsCellRenderer extends JLabel implements TableCellRenderer
     {
-        
+
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
         {
@@ -293,5 +296,5 @@ public class InstrumentTable extends JTable
             return this;
         }
     }
-    
+
 }

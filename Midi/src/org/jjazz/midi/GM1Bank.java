@@ -40,16 +40,29 @@ public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
     public static final BankSelectMethod DEFAULT_BANK_SELECT_METHOD = BankSelectMethod.MSB_LSB;
     private static GM1Bank INSTANCE;
 
+    /**
+     * A group of 8 similar instruments.
+     */
     public enum Family
     {
-        Bass, Piano, Guitar, Organ, Synth_Pad, Percussive,
-        Ensemble, Brass, Reed, Synth_Lead, Chromatic_Percussion, Strings, Pipe,
-        Synth_Effects, Ethnic, Sound_Effects;       
+        Piano, Chromatic_Percussion, Organ, Guitar, Bass, Strings,
+        Ensemble, Brass, Reed, Pipe, Synth_Lead, Synth_Pad, Synth_Effects,
+        Ethnic, Percussive, Sound_Effects;
 
         @Override
         public String toString()
         {
             return this.name().replace('_', ' ');
+        }
+
+        /**
+         * The ProgramChange of the first instrument which belongs to this family.
+         *
+         * @return
+         */
+        public int getFirstProgramChange()
+        {
+            return ordinal() * 8;
         }
 
     }

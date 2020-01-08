@@ -23,16 +23,19 @@
  */
 package org.jjazz.outputsynth.ui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 import org.jjazz.midi.GM1Bank;
 import org.jjazz.midi.GM1Instrument;
 import org.jjazz.midi.Instrument;
@@ -61,6 +64,8 @@ public class RemapTableUI extends JTable
         // Prevent column dragging
         getTableHeader().setReorderingAllowed(false);
         setModel(tblModel);
+        setShowGrid(false);
+        this.setRowMargin(0);
     }
 
     @Override
@@ -74,48 +79,44 @@ public class RemapTableUI extends JTable
         tblModel.setPrimaryModel(m);
     }
 
+    /**
+     * Overridden to manage the display of cell borders.
+     *
+     * @param renderer
+     * @param row
+     * @param column
+     * @return
+     */
+    @Override
+    public Component prepareRenderer(TableCellRenderer renderer, int row, int column)
+    {
+        JComponent c = (JComponent) super.prepareRenderer(renderer, row, column);
+        if (column == Model.COL_INS || column == Model.COL_INS_MAP)
+        {
+            c.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        } else if ((row - Model.ROW_GMVOICE_START) % 8 == 0)
+        {
+            // It's a new family, border on the top and 
+            c.setBorder(BorderFactory.createMatteBorder(1, 1, 0, 1, Color.LIGHT_GRAY));
+        } else
+        {
+            c.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, Color.LIGHT_GRAY));
+        }              
+        return c;
+    }
+
     public class Model extends AbstractTableModel implements PropertyChangeListener
     {
+
         public static final int ROW_DRUMS = 0;
         public static final int ROW_PERC = 1;
-        public static final int ROW_VOICE_START = 2;
-        public static final int COL_GM1_FAM = 0;
-        public static final int COL_GM1_INS = 1;
-        public static final int COL_MAP_INS = 2;
-        public static final int COL_MAP_INS_FAM = 3;
-        private HashMap<GM1Bank.Family, Integer> mapFamilyFirstRow = new HashMap<>();
-        private HashMap<GM1Bank.Family, Integer> mapFamilyCenterRow = new HashMap<>();
-        private HashMap<GM1Bank.Family, Integer> mapFamilyLastRow = new HashMap<>();
-        private GMRemapTable remapTable = null;
+        public static final int ROW_GMVOICE_START = 2;
+        public static final int COL_INS = 0;
+        public static final int COL_INS_MAP = 1;
+        public static final int COL_FAM = 2;
+        public static final int COL_FAM_MAP = 3;
 
-        public Model()
-        {
-            // Precalculate the first/last row per family
-            GM1Bank gm1Bank = StdSynth.getGM1Bank();
-            GM1Bank.Family prevFamily = null;
-            for (int i = 0; i < gm1Bank.getSize(); i++)
-            {
-                GM1Bank.Family family = gm1Bank.getInstrument(i).getFamily();
-                if (!family.equals(prevFamily))
-                {
-                    mapFamilyFirstRow.put(family, i + ROW_VOICE_START);
-                    if (prevFamily != null)
-                    {
-                        int rowLast = i - 1 + ROW_VOICE_START;
-                        int rowFirst = mapFamilyFirstRow.get(prevFamily);
-                        int rowCenter = (rowLast - rowFirst + 1) / 2 + rowFirst;
-                        mapFamilyLastRow.put(prevFamily, rowLast);
-                        mapFamilyCenterRow.put(prevFamily, rowCenter);
-                    }
-                }
-                prevFamily = family;
-            }
-            int rowLast = 127 + ROW_VOICE_START;
-            int rowFirst = mapFamilyFirstRow.get(prevFamily);
-            int rowCenter = (rowLast - rowFirst + 1) / 2 + rowFirst;
-            mapFamilyLastRow.put(prevFamily, rowLast);
-            mapFamilyCenterRow.put(prevFamily, rowCenter);
-        }
+        private GMRemapTable remapTable = null;
 
         public void setPrimaryModel(GMRemapTable model)
         {
@@ -135,7 +136,7 @@ public class RemapTableUI extends JTable
         @Override
         public int getRowCount()
         {
-            return 128 + ROW_VOICE_START; // 128 + Drums + Percussion
+            return 128 + ROW_GMVOICE_START; // 128 + Drums + Percussion
 
         }
 
@@ -151,16 +152,16 @@ public class RemapTableUI extends JTable
             String res;
             switch (col)
             {
-                case COL_GM1_FAM:
-                    res = "Family";
+                case COL_FAM:
+                    res = "GM Family";
                     break;
-                case COL_GM1_INS:
-                    res = "GM1 Instrument";
+                case COL_INS:
+                    res = "GM Instrument";
                     break;
-                case COL_MAP_INS:
+                case COL_INS_MAP:
                     res = "Remapped Instrument";
                     break;
-                case COL_MAP_INS_FAM:
+                case COL_FAM_MAP:
                     res = "Remapped Instrument";
                     break;
                 default:
@@ -175,16 +176,16 @@ public class RemapTableUI extends JTable
             Class<?> res = Object.class;
             switch (col)
             {
-                case COL_GM1_FAM:
+                case COL_FAM:
                     res = GM1Bank.Family.class;
                     break;
-                case COL_GM1_INS:
+                case COL_INS:
                     res = Instrument.class;
                     break;
-                case COL_MAP_INS:
+                case COL_INS_MAP:
                     res = Instrument.class;
                     break;
-                case COL_MAP_INS_FAM:
+                case COL_FAM_MAP:
                     res = Instrument.class;
                     break;
                 default:
@@ -206,16 +207,16 @@ public class RemapTableUI extends JTable
                 case ROW_DRUMS:
                     switch (col)
                     {
-                        case COL_GM1_FAM:
+                        case COL_FAM:
                             res = null;
                             break;
-                        case COL_GM1_INS:
+                        case COL_INS:
                             res = new Instrument(0, "Drums");
                             break;
-                        case COL_MAP_INS:
+                        case COL_INS_MAP:
                             res = remapTable.getDrumsInstrument();
                             break;
-                        case COL_MAP_INS_FAM:
+                        case COL_FAM_MAP:
                             res = null;
                             break;
                         default:
@@ -225,16 +226,16 @@ public class RemapTableUI extends JTable
                 case ROW_PERC:
                     switch (col)
                     {
-                        case COL_GM1_FAM:
+                        case COL_FAM:
                             res = null;
                             break;
-                        case COL_GM1_INS:
+                        case COL_INS:
                             res = new Instrument(0, "Percussion");
                             break;
-                        case COL_MAP_INS:
+                        case COL_INS_MAP:
                             res = remapTable.getPercussionInstrument();
                             break;
-                        case COL_MAP_INS_FAM:
+                        case COL_FAM_MAP:
                             res = null;
                             break;
                         default:
@@ -244,24 +245,24 @@ public class RemapTableUI extends JTable
                 default:
                     // GM1 voices
                     GM1Bank.Family f = getFamily(row);
-                    int pc = row - ROW_VOICE_START;
+                    int pc = row - ROW_GMVOICE_START;
+                    boolean familyRow = (pc % 8) == 0;
                     switch (col)
                     {
-                        case COL_GM1_FAM:
-                            Integer rowCenter = mapFamilyCenterRow.get(f);
-                            res = (row != rowCenter) ? null : f;
+                        case COL_FAM:
+                            res = familyRow ? f : null;
                             break;
-                        case COL_GM1_INS:
+                        case COL_FAM_MAP:
+                            res = familyRow ? remapTable.getInstrument(f) : null;
+                            break;
+                        case COL_INS:
                             res = StdSynth.getGM1Bank().getInstrument(pc);
                             break;
-                        case COL_MAP_INS:
+                        case COL_INS_MAP:
                             GM1Instrument insGM1 = StdSynth.getGM1Bank().getInstrument(pc);
                             res = remapTable.getInstrument(insGM1);
                             break;
-                        case COL_MAP_INS_FAM:
-                            rowCenter = mapFamilyCenterRow.get(f);
-                            res = (row == rowCenter) ? null : remapTable.getInstrument(f);
-                            break;
+
                         default:
                             throw new IllegalArgumentException("row=" + row + " col=" + col);
                     }
@@ -281,18 +282,18 @@ public class RemapTableUI extends JTable
             {
                 case "PROP_FAMILY":
                     GM1Bank.Family f = (GM1Bank.Family) e.getOldValue();
-                    int row = mapFamilyCenterRow.get(f);
-                    fireTableCellUpdated(row, COL_MAP_INS_FAM);
+                    int row = f.getFirstProgramChange() + Model.ROW_GMVOICE_START;
+                    fireTableCellUpdated(row, COL_FAM_MAP);
                     break;
                 case "PROP_INSTRUMENT":
                     GM1Instrument insGM1 = (GM1Instrument) e.getOldValue();
-                    fireTableCellUpdated(insGM1.getMidiAddress().getProgramChange() + ROW_VOICE_START, COL_MAP_INS);
+                    fireTableCellUpdated(insGM1.getMidiAddress().getProgramChange() + ROW_GMVOICE_START, COL_INS_MAP);
                     break;
                 case "PROP_DRUMS_INSTRUMENT":
-                    fireTableCellUpdated(ROW_DRUMS, COL_MAP_INS);
+                    fireTableCellUpdated(ROW_DRUMS, COL_INS_MAP);
                     break;
                 case "PROP_PERC_INSTRUMENT":
-                    fireTableCellUpdated(ROW_PERC, COL_MAP_INS);
+                    fireTableCellUpdated(ROW_PERC, COL_INS_MAP);
                     break;
                 default:
                     throw new IllegalArgumentException("e=" + e);
@@ -301,25 +302,21 @@ public class RemapTableUI extends JTable
 
         // =============================================================================
         // Private methods
-        // =============================================================================  
-        private GM1Bank.Family getFamily(int row)
-        {
-            for (GM1Bank.Family f : mapFamilyFirstRow.keySet())
-            {
-                int first = mapFamilyFirstRow.get(f);
-                int last = mapFamilyLastRow.get(f);
-                if (row >= first && row <= last)
-                {
-                    return f;
-                }
-            }
-            throw new IllegalStateException("row=" + row);
-        }
+        // =============================================================================       
     }
 
     // ============================================================================================
     // Private methods
     // ============================================================================================    
+    private GM1Bank.Family getFamily(int row)
+    {
+        if (row < Model.ROW_GMVOICE_START)
+        {
+            return null;
+        }
+        return GM1Bank.Family.values()[(row - Model.ROW_GMVOICE_START) / 8];
+    }
+
     /**
      * <p>
      * Used to update cell's tooltip.
