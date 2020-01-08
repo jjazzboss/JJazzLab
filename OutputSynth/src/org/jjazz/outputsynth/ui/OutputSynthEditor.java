@@ -33,23 +33,33 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.KeyStroke;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import org.jjazz.*;
 import org.jjazz.midi.GSSynth;
+import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
+import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.StdSynth;
 import org.jjazz.midi.ui.InstrumentTable;
+import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 
 /**
  * An editor for an OutputSynth.
  */
-public class OutputSynthEditor extends javax.swing.JPanel implements PropertyChangeListener
+public class OutputSynthEditor extends javax.swing.JPanel implements PropertyChangeListener, ListSelectionListener
 {
 
     private OutputSynth outputSynth;
@@ -65,6 +75,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         initComponents();
         this.list_Banks.setCellRenderer(new BankCellRenderer());
         this.list_MidiSynths.setCellRenderer(new SynthCellRenderer());
+        this.tbl_Instruments.getSelectionModel().addListSelectionListener(this);
     }
 
     /**
@@ -94,6 +105,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         /// Update UI
         refreshSynthList();
         refreshCompatibilityCheckBoxes();
+        btn_Hear.setEnabled(false);
         remapTable.setPrimaryModel(outputSynth.getGMRemapTable());
     }
 
@@ -106,6 +118,23 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         {
             outputSynth.removePropertyChangeListener(this);
             outputSynth.getGMRemapTable().removePropertyChangeListener(this);
+        }
+    }
+
+    // ===================================================================================
+    // ListSelectionListener interfacce
+    // ===================================================================================
+    @Override
+    public void valueChanged(ListSelectionEvent e)
+    {
+        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);
+        if (e.getValueIsAdjusting())
+        {
+            return;
+        }
+        if (e.getSource() == tbl_Instruments.getSelectionModel())
+        {
+            btn_Hear.setEnabled(tbl_Instruments.getSelectedInstrument() != null);
         }
     }
 
@@ -285,6 +314,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         btn_RemoveSynth = new javax.swing.JButton();
         jScrollPane7 = new javax.swing.JScrollPane();
         tbl_Instruments = new org.jjazz.midi.ui.InstrumentTable();
+        btn_Hear = new javax.swing.JButton();
         pnl_defaultInstruments = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
@@ -355,6 +385,17 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
         jScrollPane7.setViewportView(tbl_Instruments);
 
+        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/resources/Speaker-20x20.png"))); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Hear, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_Hear.text")); // NOI18N
+        btn_Hear.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_Hear.toolTipText")); // NOI18N
+        btn_Hear.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_HearActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout pnl_mainLayout = new javax.swing.GroupLayout(pnl_main);
         pnl_main.setLayout(pnl_mainLayout);
         pnl_mainLayout.setHorizontalGroup(
@@ -369,34 +410,35 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btn_RemoveSynth))
                     .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnl_mainLayout.createSequentialGroup()
-                        .addGap(43, 43, 43)
-                        .addComponent(jLabel2))
-                    .addGroup(pnl_mainLayout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 408, Short.MAX_VALUE)
                     .addGroup(pnl_mainLayout.createSequentialGroup()
                         .addComponent(jLabel3)
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btn_Hear))
+                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE))
+                .addContainerGap())
         );
         pnl_mainLayout.setVerticalGroup(
             pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnl_mainLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabel4)
-                    .addComponent(btn_AddSynth)
-                    .addComponent(btn_RemoveSynth))
+                .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btn_Hear)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel4)
+                        .addComponent(btn_AddSynth)
+                        .addComponent(btn_RemoveSynth)
+                        .addComponent(jLabel2)
+                        .addComponent(jLabel3)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane6)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 365, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 359, Short.MAX_VALUE)
                     .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -530,7 +572,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                         .addComponent(pnl_Compatibility, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(19, 19, 19)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jScrollPane1)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(tabPane)
                 .addContainerGap())
@@ -635,9 +677,58 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         }
     }//GEN-LAST:event_list_MidiSynthsKeyPressed
 
+    private void btn_HearActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_HearActionPerformed
+    {//GEN-HEADEREND:event_btn_HearActionPerformed
+        Instrument ins = this.tbl_Instruments.getSelectedInstrument();
+        if (ins == null)
+        {
+            return;
+        }
+        list_MidiSynths.setEnabled(false);
+        list_Banks.setEnabled(false);
+        tbl_Instruments.setEnabled(false);
+        btn_Hear.setEnabled(false);
+        tabPane.setEnabled(false);
+        cb_GM.setEnabled(false);
+        cb_GM2.setEnabled(false);
+        cb_XG.setEnabled(false);
+        cb_GS.setEnabled(false);
+
+        Runnable endAction = new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                list_MidiSynths.setEnabled(true);
+                list_Banks.setEnabled(true);
+                tbl_Instruments.setEnabled(true);
+                btn_Hear.setEnabled(true);
+                tabPane.setEnabled(true);
+                cb_GM.setEnabled(true);
+                cb_GM2.setEnabled(true);
+                cb_XG.setEnabled(true);
+                cb_GS.setEnabled(true);
+            }
+        };
+        // Send MIDI messages for the selected instrument             
+        MusicController mc = MusicController.getInstance();
+        try
+        {
+            final int CHANNEL = 0;
+            JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(CHANNEL));
+            mc.playTestNotes(CHANNEL, -1, 0, endAction);
+        } catch (MusicGenerationException ex)
+        {
+            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+        }
+
+    }//GEN-LAST:event_btn_HearActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_AddSynth;
+    private javax.swing.JButton btn_Hear;
     private javax.swing.JButton btn_RemoveSynth;
     private javax.swing.JCheckBox cb_GM;
     private javax.swing.JCheckBox cb_GM2;

@@ -115,7 +115,7 @@ public class ResetChannels extends AbstractAction
         OutputSynth outSynth = OutputSynthManager.getInstance().getOutputSynth();
         if (!(rv instanceof UserChannelRhythmVoiceKey))
         {
-            ins = outSynth.getInstrument(rv);
+            ins = outSynth.findInstrument(rv);
 
         } else
         {

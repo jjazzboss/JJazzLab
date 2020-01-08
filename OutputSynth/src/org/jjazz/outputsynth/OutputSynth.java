@@ -210,12 +210,12 @@ public class OutputSynth implements Serializable
      * Search a matching instrument in the following order :<br>
      * - in the custom synths <br>
      * - in the compatible banks<br>
-     * - in the GMRemapTable
+     * - in the GMRemapTable<br>
      * - Use the substitute or, if , create a custom instrument for the rv.GetPreferredInstrument().
      * @param rv
      * @return Can't be null. It may be the VoidInstrument for drums/percussion.
      */
-    public Instrument getInstrument(RhythmVoice rv)
+    public Instrument findInstrument(RhythmVoice rv)
     {
         Instrument rvIns = rv.getPreferredInstrument();
         assert rvIns != null : "rv=" + rv;

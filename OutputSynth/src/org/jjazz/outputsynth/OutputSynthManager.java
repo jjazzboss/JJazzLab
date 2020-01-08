@@ -33,12 +33,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jjazz.*;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.midi.GSSynth;
+import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiSynth;
-import org.jjazz.midi.StdSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
+import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.util.Utilities;
 import org.openide.*;
 import org.openide.util.Lookup;
@@ -48,7 +47,7 @@ import org.openide.windows.WindowManager;
  * Management of the OutputSynth.
  * <p>
  */
-public class OutputSynthManager
+public class OutputSynthManager 
 {
 
     private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
@@ -77,8 +76,6 @@ public class OutputSynthManager
     private OutputSynthManager()
     {
         outputSynth = new OutputSynth();
-        outputSynth.addCompatibleStdBank(StdSynth.getXGBank());
-        outputSynth.addCustomSynth(GSSynth.getInstance());
     }
 
     /**
@@ -184,7 +181,7 @@ public class OutputSynthManager
         }
         return res;
     }
-
+   
     // ===============================================================================
     // Private methods
     // ===============================================================================
@@ -229,4 +226,5 @@ public class OutputSynthManager
         }
         return res.toArray(new File[0]);
     }
+
 }

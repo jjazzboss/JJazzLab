@@ -32,11 +32,12 @@ import javax.sound.midi.MidiUnavailableException;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
-import org.jjazz.outputsynth.OutputSynthManager;
+import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongStructure;
+import org.openide.util.Lookup;
 
 /**
  * Global instance to obtain MidiMixes for songs and rhythms.
@@ -186,7 +187,8 @@ public class MidiMixManager implements PropertyChangeListener
         MidiMix mm = new MidiMix();
         for (RhythmVoice rv : r.getRhythmVoices())
         {
-            Instrument ins = OutputSynthManager.getInstance().getOutputSynth().getInstrument(rv);
+            RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.Util.getProvider();
+            Instrument ins = p.findInstrument(rv);
             assert ins != null : "rv=" + rv;
             int channel = rv.getPreferredChannel();
             if (mm.getInstrumentMixFromChannel(channel) != null)

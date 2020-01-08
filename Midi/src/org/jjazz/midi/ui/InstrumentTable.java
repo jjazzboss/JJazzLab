@@ -41,10 +41,10 @@ import org.jjazz.midi.MidiAddress.BankSelectMethod;
  */
 public class InstrumentTable extends JTable
 {
-
+    
     Model tblModel = new Model();
     private static final Logger LOGGER = Logger.getLogger(InstrumentTable.class.getSimpleName());
-
+    
     public InstrumentTable()
     {
         setModel(tblModel);
@@ -54,19 +54,6 @@ public class InstrumentTable extends JTable
         setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         getTableHeader().setReorderingAllowed(false);               // Prevent column dragging
 
-        // setDefaultRenderer(Instrument.class, new InsCellRenderer());
-//        // Adjust columns size
-//        TableColumnModel cm = getColumnModel();
-//        cm.getColumn(InstrumentTable.Model.COL_ID).setPreferredWidth(20); // Using pixels size, NOT nice but simple for a start...
-//        cm.getColumn(InstrumentTable.Model.COL_ID).setMaxWidth(20);
-//        cm.getColumn(InstrumentTable.Model.COL_PATCHNAME).setPreferredWidth(80);
-//        cm.getColumn(InstrumentTable.Model.COL_DRUMKIT).setPreferredWidth(40);
-//        cm.getColumn(InstrumentTable.Model.COL_PC).setPreferredWidth(20);
-//        cm.getColumn(InstrumentTable.Model.COL_PC).setMaxWidth(20);
-//        cm.getColumn(InstrumentTable.Model.COL_MSB).setPreferredWidth(20);
-//        cm.getColumn(InstrumentTable.Model.COL_MSB).setMaxWidth(20);
-//        cm.getColumn(InstrumentTable.Model.COL_LSB).setPreferredWidth(20);
-//        cm.getColumn(InstrumentTable.Model.COL_LSB).setMaxWidth(20);
     }
 
     /**
@@ -80,18 +67,38 @@ public class InstrumentTable extends JTable
         adjustWidths();
     }
 
+    /**
+     * The selected instrument.
+     *
+     * @return Can be null if no selection
+     */
+    public Instrument getSelectedInstrument()
+    {
+        Instrument ins = null;
+        if (tblModel != null)
+        {
+            int rowIndex = getSelectedRow();
+            if (rowIndex != -1)
+            {
+                int modelIndex = convertRowIndexToModel(rowIndex);
+                ins = tblModel.getInstruments().get(modelIndex);
+            }
+        }
+        return ins;
+    }
+    
     private class Model extends AbstractTableModel
     {
-
+        
         public static final int COL_ID = 0;
         public static final int COL_PATCHNAME = 1;
         public static final int COL_DRUMKIT = 2;
         public static final int COL_PC = 3;
         public static final int COL_MSB = 4;
         public static final int COL_LSB = 5;
-
+        
         List<? extends Instrument> instruments = new ArrayList<>();
-
+        
         public void setInstruments(List<Instrument> instruments)
         {
             if (instruments == null)
@@ -101,7 +108,12 @@ public class InstrumentTable extends JTable
             this.instruments = instruments;
             fireTableDataChanged();
         }
-
+        
+        List<? extends Instrument> getInstruments()
+        {
+            return instruments;
+        }
+        
         @Override
         public Class<?> getColumnClass(int col)
         {
@@ -119,7 +131,7 @@ public class InstrumentTable extends JTable
                     throw new IllegalStateException("columnIndex=" + col);
             }
         }
-
+        
         @Override
         public String getColumnName(int columnIndex)
         {
@@ -149,19 +161,19 @@ public class InstrumentTable extends JTable
             }
             return s;
         }
-
+        
         @Override
         public int getRowCount()
         {
             return instruments.size();
         }
-
+        
         @Override
         public int getColumnCount()
         {
             return 6;
         }
-
+        
         @Override
         public Object getValueAt(int row, int col)
         {
@@ -205,7 +217,7 @@ public class InstrumentTable extends JTable
             TableCellRenderer renderer = getTableHeader().getDefaultRenderer();
             Component comp = renderer.getTableCellRendererComponent(this, tblModel.getColumnName(colIndex), true, true, 0, colIndex);
             int headerWidth = comp.getPreferredSize().width + EXTRA;
-
+            
             int width = 20; // Min width
 
             // Handle data
@@ -239,10 +251,10 @@ public class InstrumentTable extends JTable
             }
         }
     }
-
+    
     private class InsCellRenderer extends JLabel implements TableCellRenderer
     {
-
+        
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
         {
@@ -281,5 +293,5 @@ public class InstrumentTable extends JTable
             return this;
         }
     }
-
+    
 }
