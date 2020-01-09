@@ -104,9 +104,10 @@ public class GMRemapTable implements Serializable
      * Set the remapped instrument for the specified GM1 instrument.
      *
      * @param insGM1
-     * @param ins Can be null
+     * @param ins                   Can be null
+     * @param useAsDefaultForFamily If true ins will be also the default instrument for the insGM1's family.
      */
-    public void setInstrument(GM1Instrument insGM1, Instrument ins)
+    public void setInstrument(GM1Instrument insGM1, Instrument ins, boolean useAsDefaultForFamily)
     {
         if (insGM1 == null)
         {
@@ -116,6 +117,14 @@ public class GMRemapTable implements Serializable
         if (!Objects.equals(ins, oldIns))
         {
             pcs.firePropertyChange(PROP_INSTRUMENT, insGM1, ins);
+        }
+        if (useAsDefaultForFamily)
+        {
+            oldIns = mapFamilyInstruments.put(insGM1.getFamily(), ins);
+            if (!Objects.equals(ins, oldIns))
+            {
+                pcs.firePropertyChange(PROP_FAMILY, insGM1.getFamily(), ins);
+            }
         }
     }
 
@@ -132,26 +141,7 @@ public class GMRemapTable implements Serializable
             throw new NullPointerException("family");
         }
         return mapFamilyInstruments.get(family);
-    }
-
-    /**
-     * Set the remapped instrument for the specified GM1 instrument.
-     *
-     * @param family
-     * @param ins Can be null
-     */
-    public void setInstrument(GM1Bank.Family family, Instrument ins)
-    {
-        if (family == null)
-        {
-            throw new IllegalArgumentException("family=" + family + " ins=" + ins);
-        }
-        Instrument oldIns = mapFamilyInstruments.put(family, ins);
-        if (!Objects.equals(ins, oldIns))
-        {
-            pcs.firePropertyChange(PROP_FAMILY, family, ins);
-        }
-    }
+    }   
 
     /**
      * Get the remapped instrument for drums.

@@ -34,10 +34,11 @@ import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
+import org.jjazz.midi.GM1Bank;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.StdSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
-import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.util.Utilities;
 import org.openide.*;
 import org.openide.util.Lookup;
@@ -47,7 +48,7 @@ import org.openide.windows.WindowManager;
  * Management of the OutputSynth.
  * <p>
  */
-public class OutputSynthManager 
+public class OutputSynthManager
 {
 
     private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
@@ -76,6 +77,10 @@ public class OutputSynthManager
     private OutputSynthManager()
     {
         outputSynth = new OutputSynth();
+        outputSynth.getGMRemapTable().setDrumsInstrument(new Instrument(20, "MyDrums"));
+        outputSynth.getGMRemapTable().setPercussionInstrument(StdSynth.getGM2Bank().getDefaultDrumsInstrument());
+        outputSynth.getGMRemapTable().setInstrument(StdSynth.getGM1Bank().getInstrument(17), StdSynth.getXGBank().getInstrument(23), true);
+        outputSynth.getGMRemapTable().setInstrument(StdSynth.getGM1Bank().getInstrument(30), StdSynth.getXGBank().getInstrument(90), false);
     }
 
     /**
@@ -181,7 +186,7 @@ public class OutputSynthManager
         }
         return res;
     }
-   
+
     // ===============================================================================
     // Private methods
     // ===============================================================================

@@ -22,13 +22,10 @@
  */
 package org.jjazz.midi.ui;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.swing.BorderFactory;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
@@ -210,7 +207,7 @@ public class InstrumentTable extends JTable
     /**
      * Pre-adjust the columns size parameters to have a correct display.
      */
-    public void adjustWidths()
+    private void adjustWidths()
     {
         final TableColumnModel colModel = getColumnModel();
         final int EXTRA = 5;

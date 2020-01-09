@@ -25,7 +25,10 @@ package org.jjazz.outputsynth.ui;
 
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -38,17 +41,15 @@ import java.util.logging.Logger;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JList;
-import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import org.jjazz.*;
 import org.jjazz.midi.GSSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.StdSynth;
-import org.jjazz.midi.ui.InstrumentTable;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
@@ -76,6 +77,26 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         this.list_Banks.setCellRenderer(new BankCellRenderer());
         this.list_MidiSynths.setCellRenderer(new SynthCellRenderer());
         this.tbl_Instruments.getSelectionModel().addListSelectionListener(this);
+        tbl_Remap.getSelectionModel().addListSelectionListener(this);
+
+        // To catch double clicks        
+        this.tbl_Instruments.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                handleTableMouseClicked(e);
+            }
+        });
+        this.tbl_Remap.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                handleTableMouseClicked(e);
+            }
+        });
+
     }
 
     /**
@@ -106,7 +127,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         refreshSynthList();
         refreshCompatibilityCheckBoxes();
         btn_Hear.setEnabled(false);
-        remapTable.setPrimaryModel(outputSynth.getGMRemapTable());
+        tbl_Remap.setPrimaryModel(outputSynth.getGMRemapTable());
     }
 
     /**
@@ -135,6 +156,9 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         if (e.getSource() == tbl_Instruments.getSelectionModel())
         {
             btn_Hear.setEnabled(tbl_Instruments.getSelectedInstrument() != null);
+        } else if (e.getSource() == tbl_Remap.getSelectionModel())
+        {
+            btn_changeRemappedIns.setEnabled(tbl_Remap.getSelectedInstrument() != null);
         }
     }
 
@@ -168,6 +192,31 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     // ==============================================================================
     // Private methods
     // ==============================================================================  
+    private void handleTableMouseClicked(MouseEvent evt)
+    {
+        boolean ctrl = (evt.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
+        boolean shift = (evt.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK;
+        if (evt.getSource() == this.tbl_Remap)
+        {
+            if (SwingUtilities.isLeftMouseButton(evt))
+            {
+                if (evt.getClickCount() == 2)
+                {
+                    btn_changeRemappedInsActionPerformed(null);
+                }
+            }
+        } else if (evt.getSource() == this.tbl_Instruments)
+        {
+            if (SwingUtilities.isLeftMouseButton(evt))
+            {
+                if (evt.getClickCount() == 2)
+                {
+                    this.btn_HearActionPerformed(null);
+                }
+            }
+        }
+    }
+
     private void refreshCompatibilityCheckBoxes()
     {
         // The compatibility checkboxes
@@ -319,7 +368,8 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         jScrollPane3 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
         jScrollPane5 = new javax.swing.JScrollPane();
-        remapTable = new org.jjazz.outputsynth.ui.RemapTableUI();
+        tbl_Remap = new org.jjazz.outputsynth.ui.RemapTableUI();
+        btn_changeRemappedIns = new javax.swing.JButton();
         pnl_Compatibility = new javax.swing.JPanel();
         cb_GM = new javax.swing.JCheckBox();
         cb_GM2 = new javax.swing.JCheckBox();
@@ -388,6 +438,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/resources/Speaker-20x20.png"))); // NOI18N
         org.openide.awt.Mnemonics.setLocalizedText(btn_Hear, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_Hear.text")); // NOI18N
         btn_Hear.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_Hear.toolTipText")); // NOI18N
+        btn_Hear.setEnabled(false);
         btn_Hear.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -452,7 +503,18 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.helpTextArea1.text")); // NOI18N
         jScrollPane3.setViewportView(helpTextArea1);
 
-        jScrollPane5.setViewportView(remapTable);
+        jScrollPane5.setViewportView(tbl_Remap);
+
+        org.openide.awt.Mnemonics.setLocalizedText(btn_changeRemappedIns, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_changeRemappedIns.text")); // NOI18N
+        btn_changeRemappedIns.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_changeRemappedIns.toolTipText")); // NOI18N
+        btn_changeRemappedIns.setEnabled(false);
+        btn_changeRemappedIns.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_changeRemappedInsActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout pnl_defaultInstrumentsLayout = new javax.swing.GroupLayout(pnl_defaultInstruments);
         pnl_defaultInstruments.setLayout(pnl_defaultInstrumentsLayout);
@@ -462,14 +524,19 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 .addContainerGap()
                 .addGroup(pnl_defaultInstrumentsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 765, Short.MAX_VALUE)
-                    .addComponent(jScrollPane3))
+                    .addGroup(pnl_defaultInstrumentsLayout.createSequentialGroup()
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 556, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btn_changeRemappedIns)))
                 .addContainerGap())
         );
         pnl_defaultInstrumentsLayout.setVerticalGroup(
             pnl_defaultInstrumentsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_defaultInstrumentsLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(pnl_defaultInstrumentsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btn_changeRemappedIns))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 323, Short.MAX_VALUE)
                 .addContainerGap())
@@ -725,11 +792,21 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
     }//GEN-LAST:event_btn_HearActionPerformed
 
+    private void btn_changeRemappedInsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_changeRemappedInsActionPerformed
+    {//GEN-HEADEREND:event_btn_changeRemappedInsActionPerformed
+        Instrument ins = tbl_Remap.getSelectedInstrument();
+        if (ins != null)
+        {
+            LOGGER.severe("btn_setRemappedInsActionPerformed() CALLED");
+        }
+    }//GEN-LAST:event_btn_changeRemappedInsActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_AddSynth;
     private javax.swing.JButton btn_Hear;
     private javax.swing.JButton btn_RemoveSynth;
+    private javax.swing.JButton btn_changeRemappedIns;
     private javax.swing.JCheckBox cb_GM;
     private javax.swing.JCheckBox cb_GM2;
     private javax.swing.JCheckBox cb_GS;
@@ -751,8 +828,8 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JPanel pnl_Compatibility;
     private javax.swing.JPanel pnl_defaultInstruments;
     private javax.swing.JPanel pnl_main;
-    private org.jjazz.outputsynth.ui.RemapTableUI remapTable;
     private javax.swing.JTabbedPane tabPane;
     private org.jjazz.midi.ui.InstrumentTable tbl_Instruments;
+    private org.jjazz.outputsynth.ui.RemapTableUI tbl_Remap;
     // End of variables declaration//GEN-END:variables
 }

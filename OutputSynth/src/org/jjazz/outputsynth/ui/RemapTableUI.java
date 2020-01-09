@@ -25,9 +25,9 @@ package org.jjazz.outputsynth.ui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -35,13 +35,14 @@ import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import org.jjazz.midi.GM1Bank;
 import org.jjazz.midi.GM1Instrument;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.StdSynth;
 import org.jjazz.outputsynth.GMRemapTable;
-import org.jjazz.rhythm.api.Rhythm;
 
 /**
  * A JTable to edit a GM1RemapTable.
@@ -49,6 +50,8 @@ import org.jjazz.rhythm.api.Rhythm;
 public class RemapTableUI extends JTable
 {
 
+    public static final Instrument DRUMS_INSTRUMENT = new Instrument(0, "Drums");
+    public static final Instrument PERCUSSION_INSTRUMENT = new Instrument(0, "Percussion");
     private static final Logger LOGGER = Logger.getLogger(RemapTableUI.class.getSimpleName());
     Model tblModel = new Model();
 
@@ -57,15 +60,19 @@ public class RemapTableUI extends JTable
      */
     public RemapTableUI()
     {
-        // setAutoCreateRowSorter(true);
-        setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+        setAutoCreateRowSorter(true);
+        setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_NEXT_COLUMN);
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         // Prevent column dragging
         getTableHeader().setReorderingAllowed(false);
         setModel(tblModel);
-        setShowGrid(false);
-        this.setRowMargin(0);
+        MyCellRenderer renderer = new MyCellRenderer();
+        setDefaultRenderer(String.class, renderer);
+        setDefaultRenderer(Instrument.class, renderer);
+        JTableHeader header = getTableHeader();
+        // header.setBackground(new Color(236, 236, 255));
+        // header.setOpaque(false);    // Required for setBackground() to work !!!!???
     }
 
     @Override
@@ -77,6 +84,7 @@ public class RemapTableUI extends JTable
     public void setPrimaryModel(GMRemapTable m)
     {
         tblModel.setPrimaryModel(m);
+        adjustWidths();
     }
 
     /**
@@ -91,30 +99,114 @@ public class RemapTableUI extends JTable
     public Component prepareRenderer(TableCellRenderer renderer, int row, int column)
     {
         JComponent c = (JComponent) super.prepareRenderer(renderer, row, column);
-        if (column == Model.COL_INS || column == Model.COL_INS_MAP)
-        {
-            c.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-        } else if ((row - Model.ROW_GMVOICE_START) % 8 == 0)
+        if (row==0 || (row - Model.ROW_GMVOICE_START) % 8 == 0)
         {
             // It's a new family, border on the top and 
-            c.setBorder(BorderFactory.createMatteBorder(1, 1, 0, 1, Color.LIGHT_GRAY));
-        } else
-        {
-            c.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, Color.LIGHT_GRAY));
-        }              
+            c.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.BLACK));
+        }
         return c;
     }
 
+    /**
+     * Get the selected reference Instrument.
+     * <p>
+     * Get a GM1Instrument or the special DRUMS_INS or PERCUSSION_INS instances.
+     *
+     * @return Can be null if no selection
+     */
+    public Instrument getSelectedInstrument()
+    {
+        Instrument ins = null;
+        int rowIndex = getSelectedRow();
+        if (rowIndex != -1)
+        {
+            int pc = convertRowIndexToModel(rowIndex) - Model.ROW_GMVOICE_START;
+            if (pc == -2)
+            {
+                ins = DRUMS_INSTRUMENT;
+            } else if (pc == -1)
+            {
+                ins = PERCUSSION_INSTRUMENT;
+            } else
+            {
+                ins = StdSynth.getGM1Bank().getInstrument(pc);
+            }
+        }
+        return ins;
+    }
+
+    // ============================================================================================
+    // Private methods
+    // ============================================================================================    
+    private GM1Bank.Family getFamily(int row)
+    {
+        if (row < Model.ROW_GMVOICE_START)
+        {
+            return null;
+        }
+        return GM1Bank.Family.values()[(row - Model.ROW_GMVOICE_START) / 8];
+    }
+
+    /**
+     * Pre-adjust the columns size parameters to have a correct display.
+     */
+    public void adjustWidths()
+    {
+        final TableColumnModel colModel = getColumnModel();
+        final int EXTRA = 5;
+        for (int colIndex = 0; colIndex < getColumnCount(); colIndex++)
+        {
+            // Handle header
+            TableCellRenderer renderer = getTableHeader().getDefaultRenderer();
+            Component comp = renderer.getTableCellRendererComponent(this, tblModel.getColumnName(colIndex), false, false, 0, colIndex);
+            int headerWidth = comp.getPreferredSize().width + EXTRA;
+
+            int width = 20; // Min width
+
+            // Handle data
+            for (int row = 0; row < getRowCount(); row++)
+            {
+                renderer = getCellRenderer(row, colIndex);
+                comp = prepareRenderer(renderer, row, colIndex);
+                width = Math.max(comp.getPreferredSize().width + EXTRA, width);
+            }
+            width = Math.max(width, headerWidth);
+            width = Math.min(width, 400);
+
+            // We have our preferred width
+            colModel.getColumn(colIndex).setPreferredWidth(width);
+
+            // Also set max size
+            switch (colIndex)
+            {
+                case Model.COL_ID:
+                case Model.COL_FAM:
+                case Model.COL_INS:
+                    colModel.getColumn(colIndex).setMaxWidth(width);
+                    break;
+                case Model.COL_INS_MAP:
+                    // Nothing
+                    break;
+                default:
+                    throw new IllegalStateException("col=" + colIndex);
+
+            }
+        }
+    }
+
+    // ============================================================================================
+    // Private classes
+    // ============================================================================================    
     public class Model extends AbstractTableModel implements PropertyChangeListener
     {
 
         public static final int ROW_DRUMS = 0;
         public static final int ROW_PERC = 1;
         public static final int ROW_GMVOICE_START = 2;
-        public static final int COL_INS = 0;
-        public static final int COL_INS_MAP = 1;
-        public static final int COL_FAM = 2;
-        public static final int COL_FAM_MAP = 3;
+        public static final int COL_ID = 0;
+        public static final int COL_FAM = 1;
+        public static final int COL_INS = 2;
+        public static final int COL_INS_MAP = 3;
 
         private GMRemapTable remapTable = null;
 
@@ -159,10 +251,10 @@ public class RemapTableUI extends JTable
                     res = "GM Instrument";
                     break;
                 case COL_INS_MAP:
-                    res = "Remapped Instrument";
+                    res = "Remapped Instrument (bold=also default ins. for the whole family)";
                     break;
-                case COL_FAM_MAP:
-                    res = "Remapped Instrument";
+                case COL_ID:
+                    res = "#";
                     break;
                 default:
                     throw new IllegalArgumentException("col=" + col);
@@ -177,16 +269,16 @@ public class RemapTableUI extends JTable
             switch (col)
             {
                 case COL_FAM:
-                    res = GM1Bank.Family.class;
+                    res = String.class;
                     break;
                 case COL_INS:
-                    res = Instrument.class;
+                    res = String.class;
                     break;
                 case COL_INS_MAP:
                     res = Instrument.class;
                     break;
-                case COL_FAM_MAP:
-                    res = Instrument.class;
+                case COL_ID:
+                    res = Integer.class;
                     break;
                 default:
                     throw new IllegalArgumentException("col=" + col);
@@ -202,22 +294,24 @@ public class RemapTableUI extends JTable
             {
                 return null;
             }
+            int pc = row - ROW_GMVOICE_START;
+            if (col == COL_ID)
+            {
+                return pc < 0 ? null : pc + 1;
+            }
             switch (row)
             {
                 case ROW_DRUMS:
                     switch (col)
                     {
                         case COL_FAM:
-                            res = null;
+                            res = "-";
                             break;
                         case COL_INS:
-                            res = new Instrument(0, "Drums");
+                            res = "Drums";
                             break;
                         case COL_INS_MAP:
                             res = remapTable.getDrumsInstrument();
-                            break;
-                        case COL_FAM_MAP:
-                            res = null;
                             break;
                         default:
                             throw new IllegalArgumentException("row=" + row + " col=" + col);
@@ -227,16 +321,13 @@ public class RemapTableUI extends JTable
                     switch (col)
                     {
                         case COL_FAM:
-                            res = null;
+                            res = "-";
                             break;
                         case COL_INS:
-                            res = new Instrument(0, "Percussion");
+                            res = "Percussion";
                             break;
                         case COL_INS_MAP:
                             res = remapTable.getPercussionInstrument();
-                            break;
-                        case COL_FAM_MAP:
-                            res = null;
                             break;
                         default:
                             throw new IllegalArgumentException("row=" + row + " col=" + col);
@@ -244,25 +335,18 @@ public class RemapTableUI extends JTable
                     break;
                 default:
                     // GM1 voices
-                    GM1Bank.Family f = getFamily(row);
-                    int pc = row - ROW_GMVOICE_START;
-                    boolean familyRow = (pc % 8) == 0;
                     switch (col)
                     {
                         case COL_FAM:
-                            res = familyRow ? f : null;
-                            break;
-                        case COL_FAM_MAP:
-                            res = familyRow ? remapTable.getInstrument(f) : null;
+                            res = getFamily(row).toString();
                             break;
                         case COL_INS:
-                            res = StdSynth.getGM1Bank().getInstrument(pc);
+                            res = StdSynth.getGM1Bank().getInstrument(pc).getPatchName();
                             break;
                         case COL_INS_MAP:
                             GM1Instrument insGM1 = StdSynth.getGM1Bank().getInstrument(pc);
                             res = remapTable.getInstrument(insGM1);
                             break;
-
                         default:
                             throw new IllegalArgumentException("row=" + row + " col=" + col);
                     }
@@ -283,7 +367,7 @@ public class RemapTableUI extends JTable
                 case "PROP_FAMILY":
                     GM1Bank.Family f = (GM1Bank.Family) e.getOldValue();
                     int row = f.getFirstProgramChange() + Model.ROW_GMVOICE_START;
-                    fireTableCellUpdated(row, COL_FAM_MAP);
+                    fireTableRowsUpdated(row, row + 7);
                     break;
                 case "PROP_INSTRUMENT":
                     GM1Instrument insGM1 = (GM1Instrument) e.getOldValue();
@@ -299,78 +383,63 @@ public class RemapTableUI extends JTable
                     throw new IllegalArgumentException("e=" + e);
             }
         }
-
-        // =============================================================================
-        // Private methods
-        // =============================================================================       
     }
 
-    // ============================================================================================
-    // Private methods
-    // ============================================================================================    
-    private GM1Bank.Family getFamily(int row)
-    {
-        if (row < Model.ROW_GMVOICE_START)
-        {
-            return null;
-        }
-        return GM1Bank.Family.values()[(row - Model.ROW_GMVOICE_START) / 8];
-    }
-
-    /**
-     * <p>
-     * Used to update cell's tooltip.
-     */
     private class MyCellRenderer extends DefaultTableCellRenderer
     {
-
-        private final List<Rhythm> rhythms;
-
-        public MyCellRenderer(List<Rhythm> rhythms)
-        {
-            this.rhythms = rhythms;
-        }
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
         {
             JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
-//            if (rhythms != null && row < rhythms.size() && col < COL_NAMES.length)
-//            {
-//                Rhythm r = rhythms.get(row);
-//                String tooltip = null;
-//                switch (col)
-//                {
-//                    case 0:
-//                        tooltip = "Description=" + r.getDescription() + ", Author=" + r.getAuthor() + ", Version=" + r.getVersion();
-//                        break;
-//                    case 1:
-//                        tooltip = r.getTempoRange().toString();
-//                        break;
-//                    case 2:
-//                        tooltip = "Possible values=" + Arrays.asList(Rhythm.Feel.values());
-//                        break;
-//                    case 3:
-//                        tooltip = Arrays.asList(r.getTags()).toString();
-//                        break;
-//                    case 4:
-//                        tooltip = getFileValue(r.getFile());
-//                        break;
-//                    default:
-//                    // Nothing
-//                }
-//                c.setToolTipText(tooltip);
-//
-//                // Different rendering if it's a favorite
-//                FavoriteRhythms fr = FavoriteRhythms.getInstance();
-//                if (highlightFavorite && fr.contains(r))
-//                {
-//                    Font f = c.getFont();
-//                    Font newFont = f.deriveFont(Font.BOLD);
-//                    c.setFont(newFont);
-//                }
-//            }
+            // Same component is reused for several cells : need to reset some default settings
+            c.setToolTipText(null);
+            if (value == null)
+            {
+                return c;
+            }
+            int pc = row - Model.ROW_GMVOICE_START;
+            if (col == Model.COL_INS_MAP)
+            {
+                Instrument ins = (Instrument) value;
+                if (pc >= 0 && ins == tblModel.remapTable.getInstrument(StdSynth.getGM1Bank().getInstrument(pc).getFamily()))
+                {
+                    // Special display if Instrument is also the default instrument for the family                
+                    c.setFont(getFont().deriveFont(Font.BOLD));
+                }
+                String text = getInstrumentText(ins);
+                String tt = ins.isDrumKit() ? ins.getDrumKit().toString() + " " + ins.getMidiAddress().toString() : ins.getMidiAddress().toString();
+                c.setText(text);
+                c.setToolTipText(tt);
+            } else if (col == Model.COL_FAM && pc >= 0)
+            {
+                // Show only the first row
+                if (pc % 8 != 0)
+                {
+                    c.setText(null);
+                } else
+                {
+                    c.setFont(getFont().deriveFont(Font.BOLD));
+                }
+            }
             return c;
+        }
+
+        private String getInstrumentText(Instrument ins)
+        {
+            StringBuilder sb = new StringBuilder(ins.getPatchName());
+            sb.append("    ");
+            if (ins.getBank() != null)
+            {
+                sb.append("(");
+                if (ins.getBank().getMidiSynth() != null)
+                {
+                    sb.append("synth=").append(ins.getBank().getMidiSynth().getName()).append(", ");
+                }
+                sb.append("bank=").append(ins.getBank().getName());
+                sb.append(")");
+            }
+            return sb.toString();
         }
     }
 }
