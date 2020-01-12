@@ -33,7 +33,7 @@ import org.jjazz.helpers.DrumsReroutingDialog.ReroutingChoice;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.MidiConst;
-import org.jjazz.midi.StdSynth;
+import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.rhythm.api.RhythmVoice;

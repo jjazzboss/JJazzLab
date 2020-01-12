@@ -20,30 +20,27 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.instrumentchooser.api;
+package org.jjazz.outputsynth.ui.spi;
 
 import javax.swing.JDialog;
-import org.jjazz.instrumentchooser.DrumsInstrumentChooserDialogImpl;
-import org.jjazz.midi.DrumKitType;
-import org.jjazz.midi.DrumsInstrument;
 import org.jjazz.midi.Instrument;
-import org.jjazz.util.Filter;
+import org.jjazz.outputsynth.OutputSynth;
+import org.jjazz.outputsynth.ui.RemapTableInstrumentChooserImpl;
 import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;
-import org.jjazz.midi.DrumKitKeyMap;
 
 /**
- * A dialog to select a drums instrument in the instrument banks available on the system.
+ * A dialog to select an instrument to remap another one.
  */
-public abstract class DrumsInstrumentChooserDialog extends JDialog
+public abstract class RemapTableInstrumentChooser extends JDialog
 {
 
-    public static DrumsInstrumentChooserDialog getDefault()
+    public static RemapTableInstrumentChooser getDefault()
     {
-        DrumsInstrumentChooserDialog result = Lookup.getDefault().lookup(DrumsInstrumentChooserDialog.class);
+        RemapTableInstrumentChooser result = Lookup.getDefault().lookup(RemapTableInstrumentChooser.class);
         if (result == null)
         {
-            return DrumsInstrumentChooserDialogImpl.getInstance();
+            return RemapTableInstrumentChooserImpl.getInstance();
         }
         return result;
     }
@@ -51,7 +48,7 @@ public abstract class DrumsInstrumentChooserDialog extends JDialog
     /**
      * Dialog is automatically owned by WindowManager.getDefault().getMainWindow()
      */
-    protected DrumsInstrumentChooserDialog()
+    protected RemapTableInstrumentChooser()
     {
         super(WindowManager.getDefault().getMainWindow());
     }
@@ -59,18 +56,23 @@ public abstract class DrumsInstrumentChooserDialog extends JDialog
     /**
      * Initialize the dialog.
      *
-     * @param kitType Expected DrumKitType
-     * @param drumMap Expected DrumKitKeyMap
-     * @param ins A default selected instrument. If null no selection is done.
-     * @param channel Use this Midi channel to send the Midi patch changes. If -1 no midi messages sent.
-     * @param title Dialog title.
-     * @param filter Filtered instruments must not be shown by the dialog. If null accept all instruments
+     * @param outSynth    The OutputSynth which contains the available instruments to choose from.
+     * @param remappedIns The remapped instrument: a GM1Instrument or the special
      */
-    public abstract void preset(DrumKitType kitType, DrumKitKeyMap drumMap, DrumsInstrument ins, int channel, String title, Filter<Instrument> filter);
+    public abstract void preset(OutputSynth outSynth, Instrument remappedIns);
 
     /**
      * @return The selected instrument, or null if no selection or dialog cancelled.
      */
-    public abstract DrumsInstrument getSelectedInstrument();
- 
+    public abstract Instrument getSelectedInstrument();
+
+    /**
+     * Return true if the selected instrument should be also used as the Family default instrument.
+     * <p>
+     * Not used if the remappedIns passed in preset() was the DRUMS or PERCUSSION special instances.
+     *
+     * @return
+     */
+    public abstract boolean useAsFamilyDefault();
+
 }

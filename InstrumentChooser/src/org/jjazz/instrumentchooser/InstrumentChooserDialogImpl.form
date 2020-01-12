@@ -64,7 +64,7 @@
                                   <Group type="102" alignment="0" attributes="0">
                                       <Component id="spn_transposition" min="-2" pref="54" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="lbl_Transpose" pref="92" max="32767" attributes="0"/>
+                                      <Component id="lbl_Transpose" max="32767" attributes="0"/>
                                   </Group>
                                   <Component id="jTextArea1" alignment="0" pref="0" max="32767" attributes="0"/>
                               </Group>
@@ -110,7 +110,7 @@
                           <Component id="spn_transposition" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="lbl_Transpose" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace pref="28" max="32767" attributes="0"/>
+                      <EmptySpace pref="142" max="32767" attributes="0"/>
                       <Component id="jTextArea1" min="-2" pref="115" max="-2" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">

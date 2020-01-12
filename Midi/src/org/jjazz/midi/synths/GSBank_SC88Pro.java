@@ -20,13 +20,18 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.midi;
+package org.jjazz.midi.synths;
 
 import java.util.logging.*;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
+import org.jjazz.midi.AbstractInstrumentBank;
+import org.jjazz.midi.DrumKit;
+import org.jjazz.midi.Instrument;
+import org.jjazz.midi.InstrumentBank;
+import org.jjazz.midi.MidiAddress;
 import org.jjazz.midi.MidiAddress.BankSelectMethod;
 import static org.jjazz.midi.MidiUtilities.buildMessage;
 import org.jjazz.midi.keymap.KeyMapGSGM2;

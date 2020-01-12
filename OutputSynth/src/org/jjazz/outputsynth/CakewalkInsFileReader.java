@@ -38,12 +38,12 @@ import java.util.regex.Pattern;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.midi.AbstractInstrumentBank;
 import org.jjazz.midi.DrumKit;
-import org.jjazz.midi.GM1Instrument;
+import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiAddress;
 import org.jjazz.midi.MidiAddress.BankSelectMethod;
 import org.jjazz.midi.MidiSynth;
-import org.jjazz.midi.StdSynth;
+import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.spi.KeyMapProvider;
 import org.openide.util.lookup.ServiceProvider;
@@ -344,7 +344,13 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             {
                                 // Create a copy of the instrument because some .ins can reuse one bank for several synths
                                 Instrument insCopy = new Instrument(ins.getPatchName(), null, ins.getMidiAddress(), ins.getDrumKit(), ins.getSubstitute());
-                                bank.addInstrument(insCopy);    // Instrument will inherit the MSB/LSB/BSM from the bank
+                                try
+                                {
+                                    bank.addInstrument(insCopy);    // Instrument will inherit the MSB/LSB/BSM from the bank
+                                } catch (IllegalArgumentException ex)
+                                {
+                                    LOGGER.warning("readSynthsFromStream() Can't add instrument " + insCopy.getPatchName() + " in file " + fileName + " at line " + lineCount);
+                                }
                             }
                         }
                     }

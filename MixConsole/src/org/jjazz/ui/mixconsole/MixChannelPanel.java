@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JTextField;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.midi.StdSynth;
+import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.musiccontrol.MusicController;

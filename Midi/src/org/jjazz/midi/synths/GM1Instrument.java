@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.midi;
+package org.jjazz.midi.synths;
 
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
@@ -28,6 +28,8 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.midi.Instrument;
+import org.jjazz.midi.InstrumentBank;
 
 /**
  * An Instrument from the GM1 bank.

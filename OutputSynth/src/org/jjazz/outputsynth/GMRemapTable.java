@@ -29,12 +29,12 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.logging.Logger;
-import org.jjazz.midi.GM1Bank;
-import org.jjazz.midi.GM1Instrument;
+import org.jjazz.midi.synths.GM1Bank;
+import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.Instrument;
 
 /**
- * The table can associate an Instrument to each of the GM1 instruments + drums/percussion instruments.
+ * The table can associate an Instrument to each of the GM1 instruments + the special DRUMS/PERCUSSION static instances.
  * <p>
  * Association can also be done at the GM1Bank.Family level.
  */
@@ -42,24 +42,21 @@ public class GMRemapTable implements Serializable
 {
 
     /**
+     * Special instances for the Drums/Percussion, since GM1 does not define them.
+     */
+    public static final Instrument DRUMS_INSTRUMENT = new Instrument(0, "Drums");
+    public static final Instrument PERCUSSION_INSTRUMENT = new Instrument(1, "Percussion");
+
+    /**
      * oldValue=Family, newValue=Instrument
      */
     public static final String PROP_FAMILY = "Family";
     /**
-     * oldValue=GM1Instrument, newValue=Instrument
+     * oldValue=GM1Instrument or the special DRUMS/PERCUSSION static instances, newValue=Instrument
      */
     public static final String PROP_INSTRUMENT = "Instrument";
-    /**
-     * oldValue=old Instrument, newValue=new Instrument.
-     */
-    public static final String PROP_DRUMS_INSTRUMENT = "DrumsInstrument";
-    /**
-     * oldValue=old Instrument, newValue=new Instrument.
-     */
-    public static final String PROP_PERC_INSTRUMENT = "PercInstrument";
-    private Instrument insDrums;
-    private Instrument insPerc;
-    private HashMap<GM1Instrument, Instrument> mapVoiceInstruments = new HashMap<>();
+
+    private HashMap<Instrument, Instrument> mapInstruments = new HashMap<>();
     private HashMap<GM1Bank.Family, Instrument> mapFamilyInstruments = new HashMap<>();
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(GMRemapTable.class.getSimpleName());
@@ -79,57 +76,66 @@ public class GMRemapTable implements Serializable
      */
     public GMRemapTable(GMRemapTable rt)
     {
-        insDrums = rt.insDrums;
-        insPerc = rt.insPerc;
-        mapVoiceInstruments = new HashMap<>(rt.mapVoiceInstruments);
+        mapInstruments = new HashMap<>(rt.mapInstruments);
         mapFamilyInstruments = new HashMap<>(rt.mapFamilyInstruments);
     }
 
     /**
-     * Get the remapped instrument for the specified GM1 instrument.
+     * Check that the specified remapped Instrument is valid.
      *
-     * @param insGM1
-     * @return Null if no mapping defined for insGM1.
+     * @param remappedIns
+     * @throws IllegalArgumentException If invalid value
      */
-    public Instrument getInstrument(GM1Instrument insGM1)
+    static public void checkRemappedInstrument(Instrument remappedIns)
     {
-        if (insGM1 == null)
+        if (remappedIns == null
+                || (remappedIns != DRUMS_INSTRUMENT && remappedIns != PERCUSSION_INSTRUMENT && !(remappedIns instanceof GM1Instrument)))
         {
-            throw new NullPointerException("insGM1");
+            throw new IllegalArgumentException("remappedIns=" + remappedIns);
         }
-        return mapVoiceInstruments.get(insGM1);
     }
 
     /**
-     * Set the remapped instrument for the specified GM1 instrument.
+     * Get the mapped instrument for remappedIns.
      *
-     * @param insGM1
-     * @param ins                   Can be null
-     * @param useAsDefaultForFamily If true ins will be also the default instrument for the insGM1's family.
+     * @param remappedIns Must be a GM1Instrument or the special DRUMS/PERCUSSION static instances.
+     * @return Null if no mapping defined for insGM1orDrumsPerc.
      */
-    public void setInstrument(GM1Instrument insGM1, Instrument ins, boolean useAsDefaultForFamily)
+    public Instrument getInstrument(Instrument remappedIns)
     {
-        if (insGM1 == null)
-        {
-            throw new IllegalArgumentException("insGM1=" + insGM1 + " ins=" + ins);
-        }
-        Instrument oldIns = mapVoiceInstruments.put(insGM1, ins);
+        checkRemappedInstrument(remappedIns);
+        return mapInstruments.get(remappedIns);
+    }
+
+    /**
+     * Set the mapped instrument for remappedIns.
+     *
+     * @param remappedIns           Must be a GM1Instrument or the special DRUMS/PERCUSSION static instances.
+     * @param ins                   Can be null
+     * @param useAsDefaultForFamily If true ins will be also the default instrument for the insGM1orDrumsPerc's family. Not used
+     *                              for if insGM1orDrumsPerc is one of the special DRUMS/PERCUSSION instances.
+     */
+    public void setInstrument(Instrument remappedIns, Instrument ins, boolean useAsDefaultForFamily)
+    {
+        checkRemappedInstrument(remappedIns);
+        Instrument oldIns = mapInstruments.put(remappedIns, ins);
         if (!Objects.equals(ins, oldIns))
         {
-            pcs.firePropertyChange(PROP_INSTRUMENT, insGM1, ins);
+            pcs.firePropertyChange(PROP_INSTRUMENT, remappedIns, ins);
         }
-        if (useAsDefaultForFamily)
+        if (useAsDefaultForFamily && (remappedIns != DRUMS_INSTRUMENT && remappedIns != PERCUSSION_INSTRUMENT))
         {
-            oldIns = mapFamilyInstruments.put(insGM1.getFamily(), ins);
+            GM1Bank.Family family = ((GM1Instrument) remappedIns).getFamily();
+            oldIns = mapFamilyInstruments.put(family, ins);
             if (!Objects.equals(ins, oldIns))
             {
-                pcs.firePropertyChange(PROP_FAMILY, insGM1.getFamily(), ins);
+                pcs.firePropertyChange(PROP_FAMILY, family, ins);
             }
         }
     }
 
     /**
-     * Get the remapped instrument for the specified instrument family.
+     * Get the mapped instrument for the specified instrument family.
      *
      * @param family
      * @return Null if no mapping defined for this family.
@@ -141,56 +147,6 @@ public class GMRemapTable implements Serializable
             throw new NullPointerException("family");
         }
         return mapFamilyInstruments.get(family);
-    }   
-
-    /**
-     * Get the remapped instrument for drums.
-     *
-     * @return Null if no mapping defined for drums.
-     */
-    public Instrument getDrumsInstrument()
-    {
-        return insDrums;
-    }
-
-    /**
-     * Set the remapped instrument for the drums instrument.
-     *
-     * @param ins Can be null
-     */
-    public void setDrumsInstrument(Instrument ins)
-    {
-        Instrument oldIns = insDrums;
-        insDrums = ins;
-        if (!Objects.equals(ins, oldIns))
-        {
-            pcs.firePropertyChange(PROP_DRUMS_INSTRUMENT, oldIns, ins);
-        }
-    }
-
-    /**
-     * Get the remapped instrument for percussion.
-     *
-     * @return Null if no mapping defined for percussion.
-     */
-    public Instrument getPercussionInstrument()
-    {
-        return insPerc;
-    }
-
-    /**
-     * Set the remapped instrument for the percussion instrument.
-     *
-     * @param ins Can be null
-     */
-    public void setPercussionInstrument(Instrument ins)
-    {
-        Instrument oldIns = insPerc;
-        insPerc = ins;
-        if (!Objects.equals(ins, oldIns))
-        {
-            pcs.firePropertyChange(PROP_PERC_INSTRUMENT, oldIns, ins);
-        }
     }
 
     public void addPropertyChangeListener(PropertyChangeListener l)

@@ -22,6 +22,8 @@
  */
 package org.jjazz.midi;
 
+import org.jjazz.midi.synths.GM1Bank;
+import org.jjazz.midi.synths.GM1Instrument;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -29,6 +31,7 @@ import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiMessage;
+import org.jjazz.midi.synths.StdSynth;
 import org.openide.util.Lookup;
 
 /**
@@ -351,7 +354,7 @@ public class Instrument implements Serializable
             Instrument ins = Instrument.loadFromString(spSaveString);
             if (ins == null)
             {
-                GM1Bank gm1Bank = GM1Bank.getInstance();
+                GM1Bank gm1Bank = StdSynth.getGM1Bank();
                 ins = gm1Bank.getSimilarInstrument(spPatchname.trim());
                 if (ins == null)
                 {

@@ -20,9 +20,10 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.midi;
+package org.jjazz.midi.synths;
 
 import java.util.logging.Logger;
+import org.jjazz.midi.MidiSynth;
 
 /**
  * The GS synth for the GS banks.

@@ -65,6 +65,18 @@ public abstract class InstrumentChooserDialog extends JDialog
     public abstract void preset(Instrument ins, int transpose, int channel, String title, Filter<Instrument> filter);
 
     /**
+     * Initialize the dialog.
+     *
+     * @param ins A default selected instrument. If null no selection is done.
+     * @param transpose The transposition in semitons.
+     * @param channel Use this Midi channel to send the Midi patch changes. If -1 no midi messages sent.
+     * @param title Dialog title.
+     * @param filter Filtered instruments must not be shown by the dialog. If null accept all instruments
+     */
+    // public abstract void preset(Instrument ins, int transpose, int channel, String title, Filter<Instrument> filter);
+
+    
+    /**
      * @return The selected instrument, or null if no selection or dialog cancelled.
      */
     public abstract Instrument getSelectedInstrument();

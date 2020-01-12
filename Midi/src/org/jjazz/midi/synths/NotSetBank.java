@@ -20,9 +20,11 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.midi;
+package org.jjazz.midi.synths;
 
 import java.util.logging.*;
+import org.jjazz.midi.AbstractInstrumentBank;
+import org.jjazz.midi.Instrument;
 
 /**
  * Utility bank to store the Void instrument.

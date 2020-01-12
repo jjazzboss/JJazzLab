@@ -28,7 +28,7 @@ import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.MidiConst;
-import org.jjazz.midi.StdSynth;
+import org.jjazz.midi.synths.StdSynth;
 
 /**
  * Describe a voice for which a Rhythm will generate music.

@@ -23,8 +23,8 @@
 package org.jjazz.midimix;
 
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.midi.GM1Bank;
-import org.jjazz.midi.StdSynth;
+import org.jjazz.midi.synths.GM1Bank;
+import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.rhythm.api.DummyRhythm;
 import org.jjazz.rhythm.api.RhythmVoice;

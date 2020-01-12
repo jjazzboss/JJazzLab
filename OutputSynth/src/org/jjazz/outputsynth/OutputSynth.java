@@ -29,11 +29,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import org.jjazz.midi.GSSynth;
+import org.jjazz.midi.synths.GSSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
-import org.jjazz.midi.StdSynth;
+import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midiconverters.api.ConvertersManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 
@@ -241,17 +241,17 @@ public class OutputSynth implements Serializable
             switch (rv.getType())
             {
                 case DRUMS:
-                    ins = remapTable.getDrumsInstrument();
+                    ins = remapTable.getInstrument(GMRemapTable.DRUMS_INSTRUMENT);
                     if (ins == null)
                     {
-                        ins = StdSynth.getInstance().getVoidInstrument();
+                        ins = StdSynth.getVoidInstrument();
                     }
                     break;
                 case PERCUSSION:
-                    ins = remapTable.getPercussionInstrument();
+                    ins = remapTable.getInstrument(GMRemapTable.PERCUSSION_INSTRUMENT);
                     if (ins == null)
                     {
-                        ins = StdSynth.getInstance().getVoidInstrument();
+                        ins = StdSynth.getVoidInstrument();
                     }
                     break;
                 default:

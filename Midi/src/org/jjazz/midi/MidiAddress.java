@@ -99,13 +99,30 @@ public class MidiAddress
     }
 
     /**
-     * Return true if bankMSB, bankLSB and bankSelectMethod are defined.
+     * Return true if bankMSB, bankLSB and bankSelectMethod are defined consistently.
+     * <p>
      *
      * @return
      */
     public boolean isFullyDefined()
     {
-        return bankLSB > -1 && bankMSB > -1 && bsMethod != null;
+        if (bsMethod == null)
+        {
+            return false;
+        }
+        switch (bsMethod)
+        {
+            case MSB_LSB:
+                return bankLSB > -1 && bankMSB > -1;
+            case MSB_ONLY:
+                return bankMSB > -1;
+            case LSB_ONLY:
+                return bankLSB > -1;
+            case PC_ONLY:
+                return true;
+            default:
+                throw new IllegalStateException("bsMethod=" + bsMethod);
+        }
     }
 
     @Override

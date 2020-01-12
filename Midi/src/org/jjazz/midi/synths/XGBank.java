@@ -20,9 +20,13 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.midi;
+package org.jjazz.midi.synths;
 
 import java.util.logging.*;
+import org.jjazz.midi.AbstractInstrumentBank;
+import org.jjazz.midi.DrumKit;
+import org.jjazz.midi.Instrument;
+import org.jjazz.midi.MidiAddress;
 import org.jjazz.midi.MidiAddress.BankSelectMethod;
 import org.jjazz.midi.keymap.KeyMapXG_PopLatin;
 import org.jjazz.midi.keymap.KeyMapXG_Std;

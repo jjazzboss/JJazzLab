@@ -20,9 +20,12 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.midi;
+package org.jjazz.midi.synths;
 
 import java.util.logging.Logger;
+import org.jjazz.midi.Instrument;
+import org.jjazz.midi.MidiAddress;
+import org.jjazz.midi.MidiSynth;
 
 /**
  * A shared instance of a standard MidiSynth for standard banks: GM, GM2, XG.
@@ -30,7 +33,7 @@ import java.util.logging.Logger;
 public class StdSynth extends MidiSynth
 {
 
-    public static String NAME = "Standard Synth";
+    public static String NAME = "Standard";
     public static String MANUFACTURER = "JJazz";
     private static StdSynth INSTANCE;
     private static final Logger LOGGER = Logger.getLogger(StdSynth.class.getSimpleName());

@@ -24,7 +24,7 @@ package org.jjazz.ui.mixconsole;
 
 import java.util.logging.Logger;
 import org.jjazz.instrumentchooser.api.InstrumentChooserDialog;
-import org.jjazz.midi.GM1Bank;
+import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.InstrumentMix;

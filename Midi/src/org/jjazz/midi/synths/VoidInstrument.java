@@ -20,13 +20,14 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.midi;
+package org.jjazz.midi.synths;
 
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import javax.sound.midi.MidiMessage;
+import org.jjazz.midi.InstrumentBank;
 
 /**
  * A special "void" instrument: no bank change or program change is associated to this instrument.
@@ -115,7 +116,7 @@ public class VoidInstrument extends GM1Instrument implements Serializable
 
         private Object readResolve() throws ObjectStreamException
         {
-            return StdSynth.getInstance().getVoidInstrument();
+            return StdSynth.getVoidInstrument();
         }
     }
 

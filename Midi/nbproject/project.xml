@@ -87,6 +87,7 @@
                 <package>org.jjazz.midi.keymap</package>
                 <package>org.jjazz.midi.parser</package>
                 <package>org.jjazz.midi.spi</package>
+                <package>org.jjazz.midi.synths</package>
                 <package>org.jjazz.midi.ui</package>
             </public-packages>
         </data>

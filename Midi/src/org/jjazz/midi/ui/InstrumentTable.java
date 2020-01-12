@@ -29,12 +29,14 @@ import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiAddress;
 import org.jjazz.midi.MidiAddress.BankSelectMethod;
+import org.jjazz.midi.synths.GM1Instrument;
 
 /**
  * A JTable to show a list of instruments.
@@ -42,9 +44,14 @@ import org.jjazz.midi.MidiAddress.BankSelectMethod;
 public class InstrumentTable extends JTable
 {
 
-    Model tblModel = new Model();
+    private Model tblModel = new Model();
+    private List<Integer> hiddenColumnIndexes = new ArrayList<Integer>();
     private static final Logger LOGGER = Logger.getLogger(InstrumentTable.class.getSimpleName());
 
+    /**
+     * Create an InstrumentTable.
+     * <p>
+     */
     public InstrumentTable()
     {
         setModel(tblModel);
@@ -53,18 +60,24 @@ public class InstrumentTable extends JTable
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         getTableHeader().setReorderingAllowed(false);               // Prevent column dragging
-
+        PatchNameRenderer renderer = new PatchNameRenderer();
+        getColumnModel().getColumn(Model.COL_PATCHNAME).setCellRenderer(renderer);
     }
 
     /**
-     * Set the list of instruments shown in this table.
      *
-     * @param instruments
+     * @param hiddenColumns The indexes of the columns to hide. Can be null.
      */
-    public void setInstruments(List<Instrument> instruments)
+    public void setHiddenColumns(List<Integer> hiddenColumns)
     {
-        tblModel.setInstruments(instruments);
+        hiddenColumnIndexes = (hiddenColumns == null) ? new ArrayList<Integer>() : hiddenColumns;
         adjustWidths();
+    }
+
+    @Override
+    public Model getModel()
+    {
+        return tblModel;
     }
 
     /**
@@ -85,19 +98,39 @@ public class InstrumentTable extends JTable
             }
         }
         return ins;
-    }   
+    }
 
-    private class Model extends AbstractTableModel
+    /**
+     * Select the row corresponding to the specified instrument.
+     *
+     * @param ins
+     */
+    public void setSelectedInstrument(Instrument ins)
+    {
+        int index = tblModel.getInstruments().indexOf(ins);
+        if (index != -1)
+        {
+            int vIndex = convertRowIndexToView(index);      // Take into account sorting/filtering 
+            if (vIndex != -1)
+            {
+                // Select if row is not filtered out
+                setRowSelectionInterval(vIndex, vIndex);
+            }
+        }
+    }
+
+    public class Model extends AbstractTableModel
     {
 
         public static final int COL_ID = 0;
-        public static final int COL_PATCHNAME = 1;
-        public static final int COL_DRUMKIT = 2;
-        public static final int COL_PC = 3;
-        public static final int COL_MSB = 4;
-        public static final int COL_LSB = 5;
-
-        List<? extends Instrument> instruments = new ArrayList<>();
+        public static final int COL_PATCHNAME = 3;
+        public static final int COL_DRUMKIT = 4;
+        public static final int COL_PC = 5;
+        public static final int COL_MSB = 6;
+        public static final int COL_LSB = 7;
+        public static final int COL_SYNTH = 1;
+        public static final int COL_BANK = 2;
+        private List<? extends Instrument> instruments = new ArrayList<>();
 
         public void setInstruments(List<Instrument> instruments)
         {
@@ -107,6 +140,7 @@ public class InstrumentTable extends JTable
             }
             this.instruments = instruments;
             fireTableDataChanged();
+            adjustWidths();
         }
 
         List<? extends Instrument> getInstruments()
@@ -126,6 +160,8 @@ public class InstrumentTable extends JTable
                     return Integer.class;
                 case COL_PATCHNAME:
                 case COL_DRUMKIT:
+                case COL_SYNTH:
+                case COL_BANK:
                     return String.class;
                 default:
                     throw new IllegalStateException("columnIndex=" + col);
@@ -156,6 +192,12 @@ public class InstrumentTable extends JTable
                 case COL_ID:
                     s = "#";
                     break;
+                case COL_SYNTH:
+                    s = "Synth";
+                    break;
+                case COL_BANK:
+                    s = "Bank";
+                    break;
                 default:
                     throw new IllegalStateException("columnIndex=" + columnIndex);
             }
@@ -171,7 +213,7 @@ public class InstrumentTable extends JTable
         @Override
         public int getColumnCount()
         {
-            return 6;
+            return 8;
         }
 
         @Override
@@ -190,9 +232,13 @@ public class InstrumentTable extends JTable
                     return adr.getProgramChange();
                 case COL_PATCHNAME:
                     return ins.getPatchName();
+                case COL_BANK:
+                    return ins.getBank() != null ? ins.getBank().getName() : null;
+                case COL_SYNTH:
+                    return (ins.getBank() != null && ins.getBank().getMidiSynth() != null) ? ins.getBank().getMidiSynth().getName() : null;
                 case COL_DRUMKIT:
                     DrumKit kit = ins.getDrumKit();
-                    return (kit != null) ? kit.getType().toString() + "-" + kit.getKeyMap().getName() : "";
+                    return (kit != null) ? kit.getType().toString() + "-" + kit.getKeyMap().getName() : null;
                 case COL_ID:
                     return row + 1;
                 default:
@@ -213,10 +259,17 @@ public class InstrumentTable extends JTable
         final int EXTRA = 5;
         for (int colIndex = 0; colIndex < getColumnCount(); colIndex++)
         {
+            if (hiddenColumnIndexes.contains(colIndex))
+            {
+                colModel.getColumn(colIndex).setMinWidth(0);
+                colModel.getColumn(colIndex).setMaxWidth(0);
+                colModel.getColumn(colIndex).setPreferredWidth(0);
+                continue;
+            }
             // Handle header
             TableCellRenderer renderer = getTableHeader().getDefaultRenderer();
             Component comp = renderer.getTableCellRendererComponent(this, tblModel.getColumnName(colIndex), true, true, 0, colIndex);
-            int headerWidth = comp.getPreferredSize().width + EXTRA;
+            int headerWidth = comp.getPreferredSize().width;
 
             int width = 20; // Min width
 
@@ -225,10 +278,11 @@ public class InstrumentTable extends JTable
             {
                 renderer = getCellRenderer(row, colIndex);
                 comp = prepareRenderer(renderer, row, colIndex);
-                width = Math.max(comp.getPreferredSize().width + EXTRA, width);
+                width = Math.max(comp.getPreferredSize().width, width);
             }
             width = Math.max(width, headerWidth);
             width = Math.min(width, 400);
+            width += EXTRA;
 
             // We have our preferred width
             colModel.getColumn(colIndex).setPreferredWidth(width);
@@ -241,6 +295,8 @@ public class InstrumentTable extends JTable
                 case Model.COL_PC:
                 case Model.COL_ID:
                 case Model.COL_DRUMKIT:
+                case Model.COL_SYNTH:
+                case Model.COL_BANK:
                     colModel.getColumn(colIndex).setMaxWidth(width);
                     break;
                 case Model.COL_PATCHNAME:
@@ -252,45 +308,39 @@ public class InstrumentTable extends JTable
         }
     }
 
-    private class InsCellRenderer extends JLabel implements TableCellRenderer
+    private class PatchNameRenderer extends DefaultTableCellRenderer
     {
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
         {
-//            Instrument ins = instruments.
-//            MidiAddress adr = ins.getMidiAddress();
-//            MidiAddress.BankSelectMethod bsm = adr.getBankSelectMethod();
-//            String text = null;
-//            String tooltip = null;
-//            switch (col)
-//            {
-//                case Model.COL_LSB:
-//                    text = bsm.equals(MidiAddress.BankSelectMethod.MSB_ONLY) ? "x" : String.valueOf(adr.getBankLSB());
-//                    tooltip = bsm.equals(MidiAddress.BankSelectMethod.MSB_ONLY) ? "Not used (bank select method=" + bsm.toString() + ")" : null;
-//                    break;
-//                case Model.COL_MSB:
-//                    text = bsm.equals(MidiAddress.BankSelectMethod.LSB_ONLY) ? "x" : String.valueOf(adr.getBankMSB());
-//                    tooltip = bsm.equals(MidiAddress.BankSelectMethod.LSB_ONLY) ? "Not used (bank select method=" + bsm.toString() + ")" : null;
-//                    break;
-//                case Model.COL_PC:
-//                    text = String.valueOf(adr.getProgramChange());
-//                    break;
-//                case Model.COL_PATCHNAME:
-//                    text = ins.getPatchName();
-//                    tooltip = ins.getSubstitute() != null ? "GM substitute=" + ins.getSubstitute().getPatchName() : null;
-//                    break;
-//                case Model.COL_DRUMKIT:
-//                    text = ins.getDrumKit() != null ? ins.getDrumKit().toString() : null;
-//                    tooltip = "Optional info. for patches corresponding to drums/percussion kits.";
-//                    break;
-//                case Model.COL_ID:
-//                default:
-//                    throw new IllegalStateException("col=" + col);
-//            }
-//            setText(text);
-//            setToolTipText(tooltip);
-            return this;
+            JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+            // Same component is reused for several cells : need to reset some default settings
+            c.setToolTipText(null);
+            if (value == null)
+            {
+                return c;
+            }
+            Instrument ins = tblModel.getInstruments().get(row);
+            String tt = buildToolTipText(ins);
+            c.setToolTipText(tt);
+            return c;
+        }
+
+        private String buildToolTipText(Instrument ins)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (ins.getSubstitute() != null && !(ins instanceof GM1Instrument))
+            {
+                GM1Instrument gm1Ins = ins.getSubstitute();
+                sb.append("GM Substitute=").append(gm1Ins.getPatchName());
+                sb.append(", Family=").append(gm1Ins.getFamily().toString());
+            } else if (ins.isDrumKit())
+            {
+                sb.append("DrumKit=").append(ins.getDrumKit().toString());
+            }
+            return sb.toString();
+
         }
     }
 

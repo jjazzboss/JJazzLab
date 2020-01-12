@@ -121,7 +121,7 @@
             </module-dependencies>
             <public-packages>
                 <package>org.jjazz.outputsynth</package>
-                <package>org.jjazz.outputsynth.ui</package>
+                <package>org.jjazz.outputsynth.ui.spi</package>
             </public-packages>
         </data>
     </configuration>
