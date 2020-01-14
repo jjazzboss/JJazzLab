@@ -29,6 +29,7 @@ import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.JJazzMidiSystem;
+import org.jjazz.midi.synths.Family;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.openide.DialogDisplayer;
@@ -285,7 +286,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
 
     private void btn_test1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_test1ActionPerformed
     {//GEN-HEADEREND:event_btn_test1ActionPerformed
-        sendTestNotes(2, StdSynth.getGM1Bank().getDefaultInstrument(GM1Bank.Family.Organ), 0);
+        sendTestNotes(2, StdSynth.getGM1Bank().getDefaultInstrument(Family.Organ), 0);
     }//GEN-LAST:event_btn_test1ActionPerformed
 
     private void btn_testDrumsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_testDrumsActionPerformed
@@ -295,7 +296,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
 
     private void btn_test2ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_test2ActionPerformed
     {//GEN-HEADEREND:event_btn_test2ActionPerformed
-        sendTestNotes(11, StdSynth.getGM1Bank().getDefaultInstrument(GM1Bank.Family.Reed), -12);
+        sendTestNotes(11, StdSynth.getGM1Bank().getDefaultInstrument(Family.Reed), -12);
     }//GEN-LAST:event_btn_test2ActionPerformed
 
     private void btn_testDrumsOtherChannelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_testDrumsOtherChannelActionPerformed

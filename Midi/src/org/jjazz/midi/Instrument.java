@@ -355,7 +355,7 @@ public class Instrument implements Serializable
             if (ins == null)
             {
                 GM1Bank gm1Bank = StdSynth.getGM1Bank();
-                ins = gm1Bank.getSimilarInstrument(spPatchname.trim());
+                ins = gm1Bank.guessInstrument(spPatchname.trim());
                 if (ins == null)
                 {
                     ins = gm1Bank.getInstrument(0);

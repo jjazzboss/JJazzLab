@@ -23,7 +23,9 @@
 package org.jjazz.midi;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 import org.jjazz.midi.MidiAddress.BankSelectMethod;
 
 /**
@@ -33,67 +35,80 @@ import org.jjazz.midi.MidiAddress.BankSelectMethod;
  *
  * @param <T>
  */
-public interface InstrumentBank<T extends Instrument>
+public class InstrumentBank<T extends Instrument>
 {
 
-    public static class Util
+    protected HashMap<MidiAddress, T> mapAddressInstrument = new HashMap<>();
+    protected ArrayList<T> instruments = new ArrayList<>();
+    protected int defaultLsb, defaultMsb;
+    protected BankSelectMethod defaultBsm;
+    private MidiSynth synth;
+    protected String name;
+    private static final Logger LOGGER = Logger.getLogger(InstrumentBank.class.getSimpleName());
+
+    /**
+     * Create an empty bank with BankSelectMethod.MSB_LSB.
+     *
+     * @param name
+     * @param msb
+     * @param lsb
+     */
+    public InstrumentBank(String name, int msb, int lsb)
     {
+        this(name, msb, lsb, BankSelectMethod.MSB_LSB);
+    }
 
-        /**
-         * Get all the DrumKit.KeyMaps used by this bank.
-         *
-         * @param bank
-         * @return
-         */
-        public List<DrumKit.KeyMap> getKeyMaps(InstrumentBank<? extends Instrument> bank)
+    /**
+     * Create an InstrumentBank.
+     *
+     * @param name
+     * @param msb  The default Most Significant Byte or "Control 0".
+     * @param lsb  The default Least Significant Byte or "Control 32"
+     * @param m    The default bank select method. Can't be null.
+     */
+    public InstrumentBank(String name, int msb, int lsb, BankSelectMethod m)
+    {
+        if (name == null || name.trim().isEmpty() || msb < 0 || msb > 127 || lsb < 0 || lsb > 127 || m == null)
         {
-            ArrayList<DrumKit.KeyMap> res = new ArrayList<>();
-            for (Instrument ins : bank.getDrumsInstruments())
-            {
-                if (ins.isDrumKit())
-                {
-                    res.add(ins.getDrumKit().getKeyMap());
-                }
-            }
-            return res;
+            throw new IllegalArgumentException("name=" + name + " msb=" + msb + " lsb=" + lsb + " m=" + m);
         }
+        this.defaultLsb = lsb;
+        this.defaultMsb = msb;
+        this.name = name;
+        defaultBsm = m;
+    }
 
-        /**
-         * Get all the DrumKit.Types used by this bank.
-         *
-         * @param bank
-         * @return
-         */
-
-        public List<DrumKit.Type> getTypes(InstrumentBank<? extends Instrument> bank)
+    /**
+     * Associate a MidiSynth to this bank.
+     * <p>
+     * IMPORTANT: this method can be called only once (a bank can't be assigned to 2 different MidiSynths).
+     * <p>
+     * It is the responsibility of the specified MidiSynth to add the bank.
+     *
+     * @param synth A non null value, the MidiSynth this InstrumentBank belongs to
+     */
+    public void setMidiSynth(MidiSynth synth)
+    {
+        if (this.synth != null)
         {
-            ArrayList<DrumKit.Type> res = new ArrayList<>();
-            for (Instrument ins : bank.getDrumsInstruments())
-            {
-                if (ins.isDrumKit())
-                {
-                    res.add(ins.getDrumKit().getType());
-                }
-            }
-            return res;
+            throw new IllegalStateException("synth already set! this.synth=" + this.synth + " synth=" + synth);
         }
+        if (synth == null)
+        {
+            throw new IllegalArgumentException("synth=" + synth);
+        }
+        this.synth = synth;
     }
 
     /**
      * The MidiSynth this bank belongs to.
      *
-     * @return
+     * @return Can be null
      */
-    MidiSynth getMidiSynth();
-
-    /**
-     * Set the MidiSynth this bank belongs to.
-     * <p>
-     * Can be called only once.
-     *
-     * @param synth A non-null value.
-     */
-    void setMidiSynth(MidiSynth synth);
+    public MidiSynth getMidiSynth()
+    {
+        return synth;
+    }
 
     /**
      * The default BankSelect method.
@@ -102,7 +117,10 @@ public interface InstrumentBank<T extends Instrument>
      *
      * @return Can't be null.
      */
-    BankSelectMethod getDefaultBankSelectMethod();
+    public BankSelectMethod getDefaultBankSelectMethod()
+    {
+        return defaultBsm;
+    }
 
     /**
      * The default BankSelect MSB (Midi control #0).
@@ -111,7 +129,10 @@ public interface InstrumentBank<T extends Instrument>
      *
      * @return [0;127] Bank Select Most Significant Byte (MIdi control #0).
      */
-    int getDefaultBankSelectMSB();
+    public int getDefaultBankSelectMSB()
+    {
+        return defaultMsb;
+    }
 
     /**
      * The default BankSelect LSB (Midi control #32).
@@ -120,29 +141,166 @@ public interface InstrumentBank<T extends Instrument>
      *
      * @return [0;127] Bank Select Most Significant Byte (Midi control #32)
      */
-    int getDefaultBankSelectLSB();
+    public int getDefaultBankSelectLSB()
+    {
+        return defaultLsb;
+    }
+
+    /**
+     * Add the instrument to the bank.
+     * <p>
+     * If there is already an Instrument with same patchname, nothing is done. The function sets the instrument's bank to this
+     * bank.
+     *
+     * @param instrument
+     */
+    public void addInstrument(T instrument)
+    {
+        if (instrument == null)
+        {
+            throw new IllegalArgumentException("instrument=" + instrument);
+        }
+        if (!instruments.contains(instrument))
+        {
+            instrument.setBank(this);
+            instruments.add(instrument);
+            Instrument ins = mapAddressInstrument.get(instrument.getMidiAddress());
+            if (ins != null)
+            {
+                throw new IllegalArgumentException("Instrument " + instrument + " conflicts with instrument already in the bank:" + ins);
+            } else
+            {
+                mapAddressInstrument.put(instrument.getMidiAddress(), instrument);
+            }
+        }
+    }
+
+    /**
+     * Remove an Instrument from this bank.
+     *
+     * @param instrument
+     */
+    public void removeInstrument(T instrument)
+    {
+        if (instrument == null)
+        {
+            throw new IllegalArgumentException("instrument=" + instrument);
+        }
+        instruments.remove(instrument);
+        mapAddressInstrument.remove(instrument.getMidiAddress());
+    }
+
+    /**
+     * Get all the DrumKit.KeyMaps used by this bank.
+     *
+     * @return
+     */
+    public List<DrumKit.KeyMap> getKeyMaps()
+    {
+        ArrayList<DrumKit.KeyMap> res = new ArrayList<>();
+        for (Instrument ins : getDrumsInstruments())
+        {
+            if (ins.isDrumKit())
+            {
+                res.add(ins.getDrumKit().getKeyMap());
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Get all the DrumKit.Types used by this bank.
+     *
+     * @return
+     */
+    public List<DrumKit.Type> getTypes()
+    {
+        ArrayList<DrumKit.Type> res = new ArrayList<>();
+        for (Instrument ins : getDrumsInstruments())
+        {
+            if (ins.isDrumKit())
+            {
+                res.add(ins.getDrumKit().getType());
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Empty the bank.
+     */
+    public void clear()
+    {
+        instruments.clear();
+        mapAddressInstrument.clear();
+    }
+
+    /**
+     * The number of instruments in the bank.
+     *
+     * @return
+     */
+    public int getSize()
+    {
+        return instruments.size();
+    }
+
+    /**
+     * The name of the bank.
+     *
+     * @return
+     */
+    public String getName()
+    {
+        return name;
+    }
 
     /**
      * Get all the instruments of the bank.
      *
      * @return
      */
-    List<T> getInstruments();
+    public List<T> getInstruments()
+    {
+        ArrayList<T> res = new ArrayList<>(instruments);
+        return res;
+    }
 
     /**
-     * Get the instrument which is specified index in the bank.
+     * The next instrument in the database after the specified instrument.
+     * <p>
+     * Return the 1st element of the database if ins is the last element.
      *
-     * @param index
+     * @param ins
      * @return
      */
-    T getInstrument(int index);
+    public T getNextInstrument(Instrument ins)
+    {
+        int index = instruments.indexOf(ins);
+        if (index == -1)
+        {
+            throw new IllegalArgumentException("ins=" + ins);
+        }
+        return instruments.get((index == instruments.size() - 1) ? 0 : index + 1);
+    }
 
     /**
-     * Get all the Drums/Percussion instruments.
+     * The previous instrument in the database after the specified instrument.
+     * <p>
+     * Return the 1st element of the database if ins is the last element.
      *
-     * @return Returned instruments must have isDrumKit() set to true.
+     * @param ins
+     * @return
      */
-    List<T> getDrumsInstruments();
+    public T getPreviousInstrument(Instrument ins)
+    {
+        int index = instruments.indexOf(ins);
+        if (index == -1)
+        {
+            throw new IllegalArgumentException("ins=" + ins);
+        }
+        return instruments.get((index == 0) ? instruments.size() - 1 : index - 1);
+    }
 
     /**
      * Get the instrument whose patchName matches (ignoring case) the specified name.
@@ -150,7 +308,21 @@ public interface InstrumentBank<T extends Instrument>
      * @param patchName
      * @return null if not found
      */
-    T getInstrument(String patchName);
+    public T getInstrument(String patchName)
+    {
+        if (patchName == null)
+        {
+            throw new IllegalArgumentException("patchName=" + patchName);
+        }
+        for (T i : instruments)
+        {
+            if (i.getPatchName().equalsIgnoreCase(patchName.trim()))
+            {
+                return i;
+            }
+        }
+        return null;
+    }
 
     /**
      * Get the instrument at the specified MidiAddress.
@@ -158,7 +330,43 @@ public interface InstrumentBank<T extends Instrument>
      * @param address
      * @return null if not found
      */
-    T getInstrument(MidiAddress address);
+    public T getInstrument(MidiAddress address)
+    {
+        return mapAddressInstrument.get(address);
+    }
+
+    /**
+     * Get the instrument which is specified index in the bank.
+     *
+     * @param index
+     * @return
+     */
+    public T getInstrument(int index)
+    {
+        if (index < 0 || index > instruments.size() - 1)
+        {
+            throw new IllegalArgumentException("index=" + index);
+        }
+        return instruments.get(index);
+    }
+
+    /**
+     * Get all the Drums/Percussion instruments.
+     *
+     * @return Returned instruments must have isDrumKit() set to true.
+     */
+    public List<T> getDrumsInstruments()
+    {
+        ArrayList<T> res = new ArrayList<>();
+        for (T ins : instruments)
+        {
+            if (ins.isDrumKit())
+            {
+                res.add(ins);
+            }
+        }
+        return res;
+    }
 
     /**
      * Find the instruments whose patchName contains specified text (ignoring case).
@@ -166,38 +374,26 @@ public interface InstrumentBank<T extends Instrument>
      * @param text
      * @return
      */
-    List<T> findInstruments(String text);
+    public List<T> findInstruments(String text)
+    {
+        if (text == null || text.isEmpty())
+        {
+            throw new IllegalArgumentException("text=" + text);
+        }
+        ArrayList<T> res = new ArrayList<>();
+        for (T i : instruments)
+        {
+            if (i.getPatchName().toLowerCase().contains(text.toLowerCase()))
+            {
+                res.add(i);
+            }
+        }
+        return res;
+    }
 
-    /**
-     * The name of the bank.
-     *
-     * @return
-     */
-    String getName();
-
-    /**
-     * The next instrument in the database after the specified instrument. Return the 1st element of the database if ins is the
-     * last element.
-     *
-     * @param ins
-     * @return
-     */
-    T getNextInstrument(Instrument ins);
-
-    /**
-     * The previous instrument in the database after the specified instrument. Return the 1st element of the database if ins is
-     * the last element.
-     *
-     * @param ins
-     * @return
-     */
-    T getPreviousInstrument(Instrument ins);
-
-    /**
-     * The number of instruments in the bank.
-     *
-     * @return
-     */
-    int getSize();
-
+    @Override
+    public String toString()
+    {
+        return "InstrumentBank=" + getName() + "[" + instruments.size() + "]";
+    }
 }

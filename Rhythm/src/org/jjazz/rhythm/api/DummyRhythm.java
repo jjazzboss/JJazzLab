@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.midi.synths.Family;
 import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.rhythm.api.RhythmVoice.Type;
@@ -77,7 +78,7 @@ public class DummyRhythm implements Rhythm
 
         // Rhythm voices
         GM1Bank gmb = StdSynth.getGM1Bank();
-        rhythmVoices.add(new RhythmVoice(this, Type.BASS,"Bass", gmb.getDefaultInstrument(GM1Bank.Family.Bass), 11));
+        rhythmVoices.add(new RhythmVoice(this, Type.BASS,"Bass", gmb.getDefaultInstrument(Family.Bass), 11));
 
         // The music generator
         lookup = Lookups.fixed("dummy lookup");

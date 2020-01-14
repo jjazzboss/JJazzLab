@@ -27,7 +27,7 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.midi.AbstractInstrumentBank;
+import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiSynth;
 import static org.jjazz.midi.synths.Bundle.CTL_Favorites;
@@ -120,7 +120,7 @@ public class FavoriteMidiSynth extends MidiSynth implements PropertyChangeListen
         }
     }
 
-    private static class FavoriteBank extends AbstractInstrumentBank<Instrument>
+    private static class FavoriteBank extends InstrumentBank<Instrument>
     {
 
         public FavoriteBank(MidiSynth synth)

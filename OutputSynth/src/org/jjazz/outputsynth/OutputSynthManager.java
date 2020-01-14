@@ -34,7 +34,6 @@ import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.synths.StdSynth;
@@ -77,10 +76,10 @@ public class OutputSynthManager
     private OutputSynthManager()
     {
         outputSynth = new OutputSynth();
-        outputSynth.getGMRemapTable().setInstrument(GMRemapTable.DRUMS_INSTRUMENT, new Instrument(20, "MyDrums"), false);
-        outputSynth.getGMRemapTable().setInstrument(GMRemapTable.PERCUSSION_INSTRUMENT, StdSynth.getGM2Bank().getDefaultDrumsInstrument(), false);
-        outputSynth.getGMRemapTable().setInstrument(StdSynth.getGM1Bank().getInstrument(17), StdSynth.getXGBank().getInstrument(23), true);
-        outputSynth.getGMRemapTable().setInstrument(StdSynth.getGM1Bank().getInstrument(30), StdSynth.getXGBank().getInstrument(90), false);
+//        outputSynth.getGMRemapTable().setInstrument(GMRemapTable.DRUMS_INSTRUMENT, new Instrument(20, "MyDrums"), false);
+//        outputSynth.getGMRemapTable().setInstrument(GMRemapTable.PERCUSSION_INSTRUMENT, StdSynth.getGM2Bank().getDefaultDrumsInstrument(), false);
+//        outputSynth.getGMRemapTable().setInstrument(StdSynth.getGM1Bank().getInstrument(17), StdSynth.getXGBank().getInstrument(23), true);
+//        outputSynth.getGMRemapTable().setInstrument(StdSynth.getGM1Bank().getInstrument(30), StdSynth.getXGBank().getInstrument(90), false);
     }
 
     /**

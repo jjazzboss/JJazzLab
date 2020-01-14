@@ -51,7 +51,6 @@ import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiSynth;
-import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.ui.InstrumentTable;
 import org.jjazz.musiccontrol.MusicController;
@@ -191,7 +190,6 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             } else if (evt.getPropertyName() == OutputSynth.PROP_CUSTOM_SYNTH)
             {
                 refreshSynthList();
-
             } else if (evt.getPropertyName() == OutputSynth.PROP_USER_INSTRUMENT)
             {
             }
@@ -383,6 +381,11 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         tbl_Remap = new org.jjazz.outputsynth.ui.RemapTableUI();
         btn_changeRemappedIns = new javax.swing.JButton();
         btn_HearRemap = new javax.swing.JButton();
+        pnl_advanced = new javax.swing.JPanel();
+        jCheckBox1 = new javax.swing.JCheckBox();
+        jCheckBox2 = new javax.swing.JCheckBox();
+        jCheckBox3 = new javax.swing.JCheckBox();
+        jCheckBox4 = new javax.swing.JCheckBox();
         pnl_Compatibility = new javax.swing.JPanel();
         cb_GM = new javax.swing.JCheckBox();
         cb_GM2 = new javax.swing.JCheckBox();
@@ -571,6 +574,43 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         );
 
         tabPane.addTab(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.pnl_defaultInstruments.TabConstraints.tabTitle"), pnl_defaultInstruments); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox1, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jCheckBox1.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox2, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jCheckBox2.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox3, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jCheckBox3.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox4, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jCheckBox4.text")); // NOI18N
+
+        javax.swing.GroupLayout pnl_advancedLayout = new javax.swing.GroupLayout(pnl_advanced);
+        pnl_advanced.setLayout(pnl_advancedLayout);
+        pnl_advancedLayout.setHorizontalGroup(
+            pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnl_advancedLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jCheckBox1)
+                    .addComponent(jCheckBox2)
+                    .addComponent(jCheckBox3)
+                    .addComponent(jCheckBox4))
+                .addContainerGap(588, Short.MAX_VALUE))
+        );
+        pnl_advancedLayout.setVerticalGroup(
+            pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnl_advancedLayout.createSequentialGroup()
+                .addGap(15, 15, 15)
+                .addComponent(jCheckBox1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jCheckBox2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jCheckBox3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jCheckBox4)
+                .addContainerGap(303, Short.MAX_VALUE))
+        );
+
+        tabPane.addTab(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.pnl_advanced.TabConstraints.tabTitle"), pnl_advanced); // NOI18N
 
         pnl_Compatibility.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.pnl_Compatibility.border.title"))); // NOI18N
 
@@ -904,6 +944,10 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JCheckBox cb_XG;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
     private org.jjazz.ui.utilities.HelpTextArea hlp_area;
+    private javax.swing.JCheckBox jCheckBox1;
+    private javax.swing.JCheckBox jCheckBox2;
+    private javax.swing.JCheckBox jCheckBox3;
+    private javax.swing.JCheckBox jCheckBox4;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -917,6 +961,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JList<InstrumentBank<?>> list_Banks;
     private javax.swing.JList<MidiSynth> list_MidiSynths;
     private javax.swing.JPanel pnl_Compatibility;
+    private javax.swing.JPanel pnl_advanced;
     private javax.swing.JPanel pnl_defaultInstruments;
     private javax.swing.JPanel pnl_main;
     private javax.swing.JTabbedPane tabPane;

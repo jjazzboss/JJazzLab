@@ -27,6 +27,7 @@ import org.jjazz.rhythmmusicgeneration.spi.MidiMusicGenerator;
 import java.util.logging.Logger;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.midi.synths.Family;
 import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.rhythm.api.*;
 import org.jjazz.songstructure.api.SongPart;
@@ -83,7 +84,7 @@ public class DummyGenerator implements MidiMusicGenerator
                         Utilities.addDrumsNoteEvents(track, channel, tick, sptRange.size(), ts);
                     } else
                     {
-                        if (rv.getPreferredInstrument().getSubstitute().getFamily().equals(GM1Bank.Family.Bass))
+                        if (rv.getPreferredInstrument().getSubstitute().getFamily().equals(Family.Bass))
                         {
                             LOGGER.fine("generateMusic() generate dummy bass track for RhythmVoice: " + rv.getName() + " size=" + track.size());
                             Utilities.addBassNoteEvents(track, channel, tick, cSeq, ts);

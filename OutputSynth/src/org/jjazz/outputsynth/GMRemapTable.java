@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.Instrument;
+import org.jjazz.midi.synths.Family;
 
 /**
  * The table can associate an Instrument to each of the GM1 instruments + the special DRUMS/PERCUSSION static instances.
@@ -57,7 +58,7 @@ public class GMRemapTable implements Serializable
     public static final String PROP_INSTRUMENT = "Instrument";
 
     private HashMap<Instrument, Instrument> mapInstruments = new HashMap<>();
-    private HashMap<GM1Bank.Family, Instrument> mapFamilyInstruments = new HashMap<>();
+    private HashMap<Family, Instrument> mapFamilyInstruments = new HashMap<>();
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(GMRemapTable.class.getSimpleName());
 
@@ -125,7 +126,7 @@ public class GMRemapTable implements Serializable
         }
         if (useAsDefaultForFamily && (remappedIns != DRUMS_INSTRUMENT && remappedIns != PERCUSSION_INSTRUMENT))
         {
-            GM1Bank.Family family = ((GM1Instrument) remappedIns).getFamily();
+            Family family = ((GM1Instrument) remappedIns).getFamily();
             oldIns = mapFamilyInstruments.put(family, ins);
             if (!Objects.equals(ins, oldIns))
             {
@@ -140,7 +141,7 @@ public class GMRemapTable implements Serializable
      * @param family
      * @return Null if no mapping defined for this family.
      */
-    public Instrument getInstrument(GM1Bank.Family family)
+    public Instrument getInstrument(Family family)
     {
         if (family == null)
         {

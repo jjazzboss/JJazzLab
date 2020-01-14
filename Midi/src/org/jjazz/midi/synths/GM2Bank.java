@@ -23,7 +23,7 @@
 package org.jjazz.midi.synths;
 
 import java.util.logging.*;
-import org.jjazz.midi.AbstractInstrumentBank;
+import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiAddress;
@@ -33,7 +33,7 @@ import org.jjazz.midi.keymap.KeyMapGSGM2;
 /**
  * General Midi 2 bank. Instance should be obtained from the StdSynth.
  */
-public class GM2Bank extends AbstractInstrumentBank<Instrument>
+public class GM2Bank extends InstrumentBank<Instrument>
 {
 
     public static final String GM2_BANKNAME = "GM2 Bank";

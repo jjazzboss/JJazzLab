@@ -36,7 +36,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jjazz.midi.AbstractInstrumentBank;
+import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.Instrument;
@@ -235,6 +235,12 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             {
                                 patchName = patchName.substring(0, patchName.indexOf("{{"));
                             }
+
+                            if (insGM1 == null)
+                            {
+                                // Try to find a substitute using the patchName
+                                insGM1 = StdSynth.getGM1Bank().guessInstrument(patchName);
+                            }
                         }
 
                         // Build the instrument with a NOT fully defined MidiAddress
@@ -298,7 +304,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         } else
                         {
                             // Create the actual bank with BankSelectMethod.PC_ONLY
-                            AbstractInstrumentBank bank = new AbstractInstrumentBank(bankName, 0, 0, BankSelectMethod.PC_ONLY);
+                            InstrumentBank bank = new InstrumentBank(bankName, 0, 0, BankSelectMethod.PC_ONLY);
                             currentSynth.addBank(bank);
                             // Add the instruments
                             for (Instrument ins : bankInstruments)
@@ -337,7 +343,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         } else
                         {
                             // Create the actual bank with current parameters
-                            AbstractInstrumentBank bank = new AbstractInstrumentBank(bankName, msb, lsb, currentBsm);
+                            InstrumentBank bank = new InstrumentBank(bankName, msb, lsb, currentBsm);
                             currentSynth.addBank(bank);
                             // Add the instruments
                             for (Instrument ins : bankInstruments)

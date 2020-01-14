@@ -36,11 +36,14 @@ import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
+import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.JJazzMidiSystem;
@@ -54,12 +57,13 @@ import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.ui.spi.RemapTableInstrumentChooser;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.jjazz.util.Filter;
+import org.jjazz.util.Utilities;
 import org.openide.*;
 import org.openide.windows.WindowManager;
 
 public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser implements ChangeListener, ListSelectionListener
 {
-    
+
     private static RemapTableInstrumentChooserImpl INSTANCE;
     private OutputSynth outputSynth;
     private Instrument selectedInstrument;
@@ -68,13 +72,8 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
     private GM1Instrument remappedGM1Instrument;
     private List<Instrument> allInstruments;
     private List<Instrument> recommendedInstruments;
-    private Filter<Instrument> instrumentFilter;
-    /**
-     * If not null, is used to select only instruments that contain this string.
-     */
-    private String instrumentSelectString = null;
     private static final Logger LOGGER = Logger.getLogger(RemapTableInstrumentChooserImpl.class.getSimpleName());
-    
+
     static public RemapTableInstrumentChooserImpl getInstance()
     {
         synchronized (RemapTableInstrumentChooserImpl.class)
@@ -87,16 +86,15 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         }
         return INSTANCE;
     }
-    
+
     private RemapTableInstrumentChooserImpl()
     {
         setModal(true);
         initComponents();
         setTitle("Instrument Selection Dialog");
         favoriteSynth = FavoriteMidiSynth.getInstance();
-        // Listen to added/removed favorites
-        favoriteSynth.addChangeListener(this);
-        
+        favoriteSynth.addChangeListener(this);      // Listen to added/removed favorites
+
         tbl_Instruments.setHiddenColumns(Arrays.asList(InstrumentTable.Model.COL_LSB,
                 InstrumentTable.Model.COL_MSB,
                 InstrumentTable.Model.COL_PC,
@@ -112,7 +110,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             }
         });
     }
-    
+
     @Override
     public void preset(OutputSynth outSynth, Instrument remappedIns)
     {
@@ -121,11 +119,11 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         {
             throw new IllegalArgumentException("outSynth=" + outSynth + " remappedIns=" + remappedIns);
         }
-        
+
         remappedInstrument = remappedIns;
         outputSynth = outSynth;
         GMRemapTable rTable = outputSynth.getGMRemapTable();
-        
+
         String myTitle = "Mapped instrument: " + remappedInstrument.getPatchName();
         if (remappedInstrument instanceof GM1Instrument)
         {
@@ -136,10 +134,10 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
 
         // Reset text filter
         btn_TxtClearActionPerformed(null);
-        
+
         cb_UseAsFamilyDefault.setSelected(false);
         btn_Hear.setEnabled(false);
-        
+
         allInstruments = this.getAllInstruments(outputSynth);
         recommendedInstruments = this.getRecommendedInstruments(allInstruments, remappedInstrument);
         if (!recommendedInstruments.isEmpty())
@@ -152,7 +150,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             rbtn_showAllActionPerformed(null);
         }
         updateRbtnShowRecommendedText(remappedInstrument);
-        
+
         Instrument ins = outputSynth.getGMRemapTable().getInstrument(remappedInstrument);
         if (ins != null)
         {
@@ -162,15 +160,15 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
                 cb_UseAsFamilyDefault.setSelected(true);
             }
         }
-        
+
     }
-    
+
     @Override
     public Instrument getSelectedInstrument()
     {
         return selectedInstrument;
     }
-    
+
     @Override
     public boolean useAsFamilyDefault()
     {
@@ -189,18 +187,18 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
-            
+
             @Override
             public void actionPerformed(ActionEvent e)
             {
                 btn_OkActionPerformed(null);
             }
         });
-        
+
         contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
-            
+
             @Override
             public void actionPerformed(ActionEvent e)
             {
@@ -260,12 +258,6 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
     // ----------------------------------------------------------------------------
     // Private methods
     // ----------------------------------------------------------------------------
-    private void setInstrumentTextFilter(String s)
-    {
-        instrumentSelectString = s;
-        tbl_Instruments.getModel().fireTableDataChanged();
-    }
-
     /**
      * Get all the instruments
      *
@@ -281,10 +273,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         }
         for (MidiSynth synth : outSynth.getCustomSynths())
         {
-            for (InstrumentBank<?> bank : synth.getBanks())
-            {
-                res.addAll(bank.getInstruments());
-            }
+            res.addAll(synth.getInstruments());
         }
         return res;
     }
@@ -337,7 +326,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         }
         return res;
     }
-    
+
     private void handleTableMouseClicked(MouseEvent evt)
     {
         boolean ctrl = (evt.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
@@ -356,7 +345,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             }
         }
     }
-    
+
     private void updateRbtnShowRecommendedText(Instrument remappedInstrument)
     {
         String text = this.rbtn_showRecommended.getText();
@@ -377,7 +366,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         }
         this.rbtn_showRecommended.setText(text);
     }
-    
+
     private void toggleFavoriteInstrument()
     {
         LOGGER.fine("toggleFavoriteInstrument() selectedInstrument=" + selectedInstrument);
@@ -406,7 +395,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         btn_showInstruments = new javax.swing.ButtonGroup();
         btn_Ok = new javax.swing.JButton();
         btn_Cancel = new javax.swing.JButton();
-        txt_Filter = new javax.swing.JTextField();
+        tf_Filter = new javax.swing.JTextField();
         btn_TxtFilter = new javax.swing.JButton();
         btn_TxtClear = new javax.swing.JButton();
         btn_Hear = new javax.swing.JButton();
@@ -436,13 +425,13 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             }
         });
 
-        txt_Filter.setText(org.openide.util.NbBundle.getMessage(RemapTableInstrumentChooserImpl.class, "RemapTableInstrumentChooserImpl.txt_Filter.text")); // NOI18N
-        txt_Filter.setToolTipText(org.openide.util.NbBundle.getMessage(RemapTableInstrumentChooserImpl.class, "RemapTableInstrumentChooserImpl.txt_Filter.toolTipText")); // NOI18N
-        txt_Filter.addActionListener(new java.awt.event.ActionListener()
+        tf_Filter.setText(org.openide.util.NbBundle.getMessage(RemapTableInstrumentChooserImpl.class, "RemapTableInstrumentChooserImpl.tf_Filter.text")); // NOI18N
+        tf_Filter.setToolTipText(org.openide.util.NbBundle.getMessage(RemapTableInstrumentChooserImpl.class, "RemapTableInstrumentChooserImpl.tf_Filter.toolTipText")); // NOI18N
+        tf_Filter.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                txt_FilterActionPerformed(evt);
+                tf_FilterActionPerformed(evt);
             }
         });
 
@@ -540,7 +529,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
                                 .addComponent(btn_TxtClear)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btn_TxtFilter))
-                            .addComponent(txt_Filter, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(tf_Filter, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(cb_UseAsFamilyDefault, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(btn_Hear, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addGap(6, 6, 6))
@@ -570,7 +559,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
                             .addComponent(btn_Ok)
                             .addComponent(btn_Cancel)))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(txt_Filter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(tf_Filter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(btn_TxtFilter)
@@ -586,9 +575,9 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
 
     private void btn_TxtFilterActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_TxtFilterActionPerformed
     {//GEN-HEADEREND:event_btn_TxtFilterActionPerformed
-        txt_FilterActionPerformed(null);
+        tf_FilterActionPerformed(null);
     }//GEN-LAST:event_btn_TxtFilterActionPerformed
-    
+
 
     private void btn_CancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_CancelActionPerformed
     {//GEN-HEADEREND:event_btn_CancelActionPerformed
@@ -609,12 +598,12 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + ins.getMidiAddress());
             return;
         }
-        
+
         tbl_Instruments.setEnabled(false);
         btn_Hear.setEnabled(false);
         btn_Ok.setEnabled(false);
         btn_Cancel.setEnabled(false);
-        
+
         Runnable endAction = new Runnable()
         {
             @Override
@@ -641,28 +630,39 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
 
     }//GEN-LAST:event_btn_HearActionPerformed
 
-    private void txt_FilterActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_txt_FilterActionPerformed
-    {//GEN-HEADEREND:event_txt_FilterActionPerformed
-        LOGGER.fine("txt_SearchActionPerformed()");
-        String txt = txt_Filter.getText();
-        if (txt.trim().isEmpty())
+    private void tf_FilterActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tf_FilterActionPerformed
+    {//GEN-HEADEREND:event_tf_FilterActionPerformed
+        LOGGER.fine("tf_FilterActionPerformed()");
+        String s = tf_Filter.getText().trim();
+        if (s.isEmpty())
         {
             return;
         }
-        btn_TxtClear.setEnabled(true);
-        txt_Filter.setEnabled(false);
+        RowFilter<TableModel, Object> rf = null;
+        try
+        {
+            rf = RowFilter.regexFilter("(?i)" + s);
+        } catch (java.util.regex.PatternSyntaxException e)
+        {
+            LOGGER.warning("tf_FilterActionPerformed() invalid filter regex string e=" + e.getLocalizedMessage());
+            return;
+        }
+        TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) tbl_Instruments.getRowSorter();
+        sorter.setRowFilter(rf);
         btn_TxtFilter.setEnabled(false);
-        lbl_Filtered.setText("(FILTERED)");
-        setInstrumentTextFilter(txt);
-    }//GEN-LAST:event_txt_FilterActionPerformed
+        btn_TxtClear.setEnabled(true);
+        tf_Filter.setEnabled(false);
+        lbl_Filtered.setText("(FILTERED '" + Utilities.truncateWithDots(s, 10) + "')");
+    }//GEN-LAST:event_tf_FilterActionPerformed
 
     private void btn_TxtClearActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_TxtClearActionPerformed
     {//GEN-HEADEREND:event_btn_TxtClearActionPerformed
-        btn_TxtClear.setEnabled(false);
-        txt_Filter.setEnabled(true);
+        TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) tbl_Instruments.getRowSorter();
+        sorter.setRowFilter(null);
         btn_TxtFilter.setEnabled(true);
-        lbl_Filtered.setText(" ");
-        setInstrumentTextFilter(null);
+        btn_TxtClear.setEnabled(false);
+        tf_Filter.setEnabled(true);
+        lbl_Filtered.setText(" ");   // Not ""
     }//GEN-LAST:event_btn_TxtClearActionPerformed
 
     private void rbtn_showAllActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_showAllActionPerformed
@@ -689,7 +689,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
     private javax.swing.JRadioButton rbtn_showAll;
     private javax.swing.JRadioButton rbtn_showRecommended;
     private org.jjazz.midi.ui.InstrumentTable tbl_Instruments;
-    private javax.swing.JTextField txt_Filter;
+    private javax.swing.JTextField tf_Filter;
     // End of variables declaration//GEN-END:variables
 
 }

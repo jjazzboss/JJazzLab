@@ -40,6 +40,7 @@ import javax.swing.table.TableColumnModel;
 import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.Instrument;
+import org.jjazz.midi.synths.Family;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.outputsynth.GMRemapTable;
 
@@ -164,13 +165,13 @@ public class RemapTableUI extends JTable
     // ============================================================================================
     // Private methods
     // ============================================================================================    
-    private GM1Bank.Family getFamily(int row)
+    private Family getFamily(int row)
     {
         if (row < Model.ROW_GMVOICE_START)
         {
             return null;
         }
-        return GM1Bank.Family.values()[(row - Model.ROW_GMVOICE_START) / 8];
+        return Family.values()[(row - Model.ROW_GMVOICE_START) / 8];
     }
 
     /**
@@ -392,7 +393,7 @@ public class RemapTableUI extends JTable
             switch (e.getPropertyName())
             {
                 case GMRemapTable.PROP_FAMILY:
-                    GM1Bank.Family f = (GM1Bank.Family) e.getOldValue();
+                    Family f = (Family) e.getOldValue();
                     int row = f.getFirstProgramChange() + Model.ROW_GMVOICE_START;
                     fireTableRowsUpdated(row, row + 7);
                     break;

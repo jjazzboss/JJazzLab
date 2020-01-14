@@ -29,6 +29,7 @@ import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.MidiConst;
+import org.jjazz.midi.synths.Family;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.UserChannelRhythmVoiceKey;
@@ -74,7 +75,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         }
         InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channelId);
         RhythmVoice rvKey = midiMix.getKey(channelId);
-        if (newChannelId == MidiConst.CHANNEL_DRUMS && !rvKey.isDrums() && !GM1Bank.couldBeDrums(insMix.getInstrument().getPatchName()))
+        if (newChannelId == MidiConst.CHANNEL_DRUMS && !rvKey.isDrums() && !Family.couldBeDrums(insMix.getInstrument().getPatchName()))
         {
             LOGGER.warning("Instrument " + insMix.getInstrument().getPatchName() + " might not be a 'Drums' instrument, though it is assigned to a channel usually reserved for Drums.");
         }

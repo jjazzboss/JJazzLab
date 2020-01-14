@@ -23,7 +23,7 @@
 package org.jjazz.midi.synths;
 
 import java.util.logging.*;
-import org.jjazz.midi.AbstractInstrumentBank;
+import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiAddress;
@@ -36,7 +36,7 @@ import org.jjazz.midi.keymap.KeyMapXG_Std;
  * <p>
  * Instance should be obtained from the StdSynth.
  */
-public class XGBank extends AbstractInstrumentBank<Instrument>
+public class XGBank extends InstrumentBank<Instrument>
 {
 
     public static final String BANKNAME = "XG Bank";

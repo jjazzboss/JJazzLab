@@ -115,8 +115,7 @@ public class OutputSynth implements Serializable
      */
     public void addCompatibleStdBank(InstrumentBank<?> stdBank)
     {
-        if (stdBank == null
-                || (stdBank != StdSynth.getGM1Bank() && stdBank != StdSynth.getGM2Bank() && stdBank != StdSynth.getXGBank() && stdBank != GSSynth.getGSBank()))
+        if (stdBank == null || !getStdBanks().contains(stdBank))
         {
             throw new IllegalArgumentException("stdBank=" + stdBank);
         }
@@ -182,6 +181,13 @@ public class OutputSynth implements Serializable
         if (!customSynths.contains(synth))
         {
             customSynths.add(synth);
+            for (InstrumentBank<?> bank : getCompatibleStdBanks(synth))
+            {
+                if (!compatibleStdBanks.contains(bank))
+                {
+                    addCompatibleStdBank(bank);
+                }
+            }       
             pcs.firePropertyChange(PROP_CUSTOM_SYNTH, true, synth);
         }
     }
@@ -212,6 +218,7 @@ public class OutputSynth implements Serializable
      * - in the compatible banks<br>
      * - in the GMRemapTable<br>
      * - Use the substitute or, if , create a custom instrument for the rv.GetPreferredInstrument().
+     *
      * @param rv
      * @return Can't be null. It may be the VoidInstrument for drums/percussion.
      */
@@ -311,4 +318,31 @@ public class OutputSynth implements Serializable
     // ========================================================================================
     // Private methods
     // ========================================================================================    
+    /**
+     * Check if the specified synth is compatible with standard banks.
+     *
+     * @param synth
+     * @return The list of standard banks compatible with synth.
+     */
+    private List<InstrumentBank<?>> getCompatibleStdBanks(MidiSynth synth)
+    {
+        ArrayList<InstrumentBank<?>> res = new ArrayList<>();
+        for (InstrumentBank<?> stdBank : getStdBanks())
+        {
+            float coverage = synth.getMidiAddressMatchingCoverage(stdBank);
+            if (coverage > 0.8f)
+            {
+                res.add(stdBank);
+            }
+        }
+        return res;
+    }
+
+    private List<InstrumentBank<?>> getStdBanks()
+    {
+        ArrayList<InstrumentBank<?>> res = new ArrayList<>();
+        res.addAll(StdSynth.getInstance().getBanks());
+        res.add(GSSynth.getGSBank());
+        return res;
+    }
 }

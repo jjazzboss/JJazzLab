@@ -38,7 +38,7 @@ public class GM1Instrument extends Instrument implements Serializable
 {
 
     private static final Logger LOGGER = Logger.getLogger(GM1Instrument.class.getSimpleName());
-    private final GM1Bank.Family family;
+    private final Family family;
 
     /**
      * Create a GM1 Instrument.
@@ -47,7 +47,7 @@ public class GM1Instrument extends Instrument implements Serializable
      * @param patchName
      * @param f
      */
-    protected GM1Instrument(int programChange, String patchName, GM1Bank.Family f)
+    protected GM1Instrument(int programChange, String patchName, Family f)
     {
         super(programChange, patchName);
         if (f == null)
@@ -83,7 +83,7 @@ public class GM1Instrument extends Instrument implements Serializable
      *
      * @return A non-null value.
      */
-    public GM1Bank.Family getFamily()
+    public Family getFamily()
     {
         return family;
     }

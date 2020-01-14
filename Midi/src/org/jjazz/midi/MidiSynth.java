@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * A MidiSynth provides information how to select via Midi a synthesizer sounds.
+ * A MidiSynth is a collection of InstrumentBanks.
  * <p>
  */
 public class MidiSynth
@@ -87,6 +87,21 @@ public class MidiSynth
             }
         }
         return null;
+    }
+
+    /**
+     * Get all the instruments from this MidiSynth.
+     *
+     * @return
+     */
+    public List<Instrument> getInstruments()
+    {
+        ArrayList<Instrument> res = new ArrayList<>();
+        for (InstrumentBank<?> bank : banks)
+        {
+            res.addAll(bank.getInstruments());
+        }
+        return res;
     }
 
     /**
@@ -167,37 +182,37 @@ public class MidiSynth
         }
         return (nbInstruments == 0) ? 0 : count / nbInstruments;
     }
-
-    /**
-     * Scan the specified synth's banks to test which ones are considered as compatible with the banks of this synth.
-     * <p>
-     *
-     * @param synth
-     * @param threshold If the result of getMidiAddressMatchingCoverage() is &gt;= threshold for bank X, then bank X is considered
-     *                  as compatible.
-     * @return The list of standard banks considered as compatible
-     * @see MidiSynth#getMidiAddressMatchingCoverage(InstrumentBank)
-     */
-    public List<InstrumentBank<?>> scanCompatibleBanks(MidiSynth synth, float threshold)
-    {
-        if (synth == null || threshold < 0 || threshold > 1)
-        {
-            throw new IllegalArgumentException("synth=" + synth + " threshold=" + threshold);
-        }
-        if (synth == this)
-        {
-            return getBanks();
-        }
-        ArrayList<InstrumentBank<?>> res = new ArrayList<>();
-        for (InstrumentBank<?> bank : getBanks())
-        {
-            if (synth.getMidiAddressMatchingCoverage(bank) >= threshold)
-            {
-                res.add(bank);
-            }
-        }
-        return res;
-    }
+//
+//    /**
+//     * Get the banks from this MidiSynth which are considered as compatible with the banks of the specified synth's banks.
+//     * <p>
+//     *
+//     * @param synth
+//     * @param threshold If the result of getMidiAddressMatchingCoverage() is &gt;= threshold for bank X, then bank X is considered
+//     *                  as compatible.
+//     * @return A list of banks from this MidiSynth
+//     * @see MidiSynth#getMidiAddressMatchingCoverage(InstrumentBank)
+//     */
+//    public List<InstrumentBank<?>> getCompatibleBanks(MidiSynth synth, float threshold)
+//    {
+//        if (synth == null || threshold < 0 || threshold > 1)
+//        {
+//            throw new IllegalArgumentException("synth=" + synth + " threshold=" + threshold);
+//        }
+//        if (synth == this)
+//        {
+//            return getBanks();
+//        }
+//        ArrayList<InstrumentBank<?>> res = new ArrayList<>();
+//        for (InstrumentBank<?> bank : getBanks())
+//        {
+//            if (synth.getMidiAddressMatchingCoverage(bank) >= threshold)
+//            {
+//                res.add(bank);
+//            }
+//        }
+//        return res;
+//    }
 
     /**
      * The total number of patches in the banks of this synth.

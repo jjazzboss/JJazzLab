@@ -52,6 +52,7 @@ import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.MidiConst;
+import org.jjazz.midi.synths.Family;
 import static org.jjazz.midimix.Bundle.ERR_NotEnoughChannels;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -1260,14 +1261,14 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     private void adaptInstrumentMixes(MidiMix mm, Rhythm r0)
     {
         HashMap<String, InstrumentMix> mapKeyMix = new HashMap<>();
-        HashMap<GM1Bank.Family, InstrumentMix> mapFamilyMix = new HashMap<>();
+        HashMap<Family, InstrumentMix> mapFamilyMix = new HashMap<>();
         // First try to match InstrumentMixes using key=3 first char of Rv.getName() + GM1 family
         for (int channel : getUsedChannels(r0))
         {
             RhythmVoice rv = rvKeys[channel];
             InstrumentMix insMix = instrumentMixes[channel];
             GM1Instrument insGM1 = insMix.getInstrument().getSubstitute();  // Can be null            
-            GM1Bank.Family family = insGM1 != null ? insGM1.getFamily() : null;
+            Family family = insGM1 != null ? insGM1.getFamily() : null;
             String mapKey = Utilities.truncate(rv.getName().toLowerCase(), 3) + "-" + ((family != null) ? family.name() : "");
             if (mapKeyMix.get(mapKey) == null)
             {
@@ -1284,7 +1285,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             RhythmVoice mmRv = mm.rvKeys[mmChannel];
             InstrumentMix mmInsMix = mm.instrumentMixes[mmChannel];
             GM1Instrument mmInsGM1 = mmInsMix.getInstrument().getSubstitute();  // Can be null            
-            GM1Bank.Family mmFamily = mmInsGM1 != null ? mmInsGM1.getFamily() : null;
+            Family mmFamily = mmInsGM1 != null ? mmInsGM1.getFamily() : null;
             String mapKey = Utilities.truncate(mmRv.getName().toLowerCase(), 3) + "-" + ((mmFamily != null) ? mmFamily.name() : "");
             InstrumentMix insMix = mapKeyMix.get(mapKey);
             if (insMix != null)
@@ -1304,7 +1305,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                 continue;
             }
             InstrumentMix mmInsMix = mm.instrumentMixes[mmChannel];
-            GM1Bank.Family mmFamily = mmInsMix.getInstrument().getSubstitute().getFamily(); // Can be null for drums/perc
+            Family mmFamily = mmInsMix.getInstrument().getSubstitute().getFamily(); // Can be null for drums/perc
             InstrumentMix insMix = mapFamilyMix.get(mmFamily);
             if (insMix != null)
             {

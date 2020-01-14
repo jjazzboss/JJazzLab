@@ -24,7 +24,7 @@ package org.jjazz.midi.synths;
 
 import java.util.List;
 import java.util.logging.*;
-import org.jjazz.midi.AbstractInstrumentBank;
+import java.util.regex.Pattern;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiAddress.BankSelectMethod;
@@ -34,7 +34,7 @@ import org.jjazz.midi.MidiAddress.BankSelectMethod;
  * <p>
  * Instance should be obtained from the StdSynth.
  */
-public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
+public class GM1Bank extends InstrumentBank<GM1Instrument>
 {
 
     public static final String GM1_BANKNAME = "GM Bank";
@@ -42,34 +42,7 @@ public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
     public static final int DEFAULT_BANK_SELECT_MSB = 0;
     public static final BankSelectMethod DEFAULT_BANK_SELECT_METHOD = BankSelectMethod.MSB_LSB;
     private static GM1Bank INSTANCE;
-
-    /**
-     * A group of 8 similar instruments.
-     */
-    public enum Family
-    {
-        Piano, Chromatic_Percussion, Organ, Guitar, Bass, Strings,
-        Ensemble, Brass, Reed, Pipe, Synth_Lead, Synth_Pad, Synth_Effects,
-        Ethnic, Percussive, Sound_Effects;
-
-        @Override
-        public String toString()
-        {
-            return this.name().replace('_', ' ');
-        }
-
-        /**
-         * The ProgramChange of the first instrument which belongs to this family.
-         *
-         * @return
-         */
-        public int getFirstProgramChange()
-        {
-            return ordinal() * 8;
-        }
-
-    }
-
+    private static Patterns pInst = null;
     private static final Logger LOGGER = Logger.getLogger(GM1Bank.class.getSimpleName());
 
     /**
@@ -227,52 +200,298 @@ public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
     }
 
     /**
-     * Try to find a similar instrument: guess instrument type (piano, wind, bass, etc.) from the patch name and return an GM1
-     * instrument for that type.
+     * Store the guessInstruments compiled patterns.
+     */
+    class Patterns
+    {
+        Pattern CpPiano = Pattern.compile("cp[ 789]|elec.*gran");
+    }
+
+    /**
+     * Try to guess from patchName the equivalent GM1 Instrument.
      *
-     * @param name
+     *
+     * @param patchName
      * @return Null if nothing found.
      */
-    public GM1Instrument getSimilarInstrument(String name)
+    public GM1Instrument guessInstrument(String patchName)
     {
+        if (patchName == null)
+        {
+            throw new NullPointerException("patchName");
+        }
+        if (patchName.trim().isEmpty())
+        {
+            return null;
+        }
+        if (pInst == null)
+        {
+            pInst = new Patterns();
+        }
         GM1Instrument ins = null;
-        String s = name.toLowerCase();
-        if (s.contains("rhodes") || s.matches("e[.]? *piano") || s.matches("el.*piano"))
+        String s = patchName.trim().toLowerCase();
+
+        // PIANOS 0-5 
+        if (s.contains("pn:") || s.contains("pno") || s.contains("pian"))
+        {
+            if (s.contains("bri") || s.contains("rock") || s.contains("atta") || s.contains("tacky") || s.contains("danc") || s.contains("hous"))
+            {
+                ins = instruments.get(1);
+            } else if (pInst.CpPiano.matcher(s).find())
+            {
+                ins = instruments.get(2);
+            } else if (s.contains("honk") || s.contains("saloo"))
+            {
+                ins = instruments.get(3);
+            } else if (s.contains("elec") || s.contains("elp") || s.contains("el.") || s.contains("e."))
+            {
+                ins = instruments.get(4);
+            } else
+            {
+                ins = instruments.get(0);
+            }
+        } else if (patchName.contains("EP ") || patchName.contains("EP.") || patchName.contains("DX") || s.contains("wurli") || s.contains("kb:") || s.contains("kbd:"))
         {
             ins = instruments.get(4);
-        } else if (s.contains("piano"))
+        } else if (s.contains("harpsi"))
         {
-            ins = instruments.get(0);
-        } else if (s.contains("guit") || s.contains("gtr") || s.contains("gt."))
-        {
-            ins = instruments.get(26);
-        } else if (s.contains("bass"))
-        {
-            ins = instruments.get(33);
-        } else if (s.contains("org"))
-        {
-            ins = instruments.get(16);
+            ins = instruments.get(6);
         } else if (s.contains("clavi"))
         {
             ins = instruments.get(7);
-        } else if (s.contains("vibraph"))
+        } else if (s.contains("celest"))
+        {
+            ins = instruments.get(8);
+        } else if (s.contains("glock"))
+        {
+            ins = instruments.get(9);
+        } else if (s.contains("music") && s.contains("box"))
+        {
+            ins = instruments.get(10);
+        } else if (s.contains("vibrap"))
         {
             ins = instruments.get(11);
-        } else if (s.contains("harmonica"))
+        } else if (s.contains("marimb"))
         {
-            ins = instruments.get(2);
-        } else if (s.contains("string"))
+            ins = instruments.get(12);
+        } else if (s.contains("xylop"))
         {
-            ins = instruments.get(50);
-        } else if (s.contains("lead"))
+            ins = instruments.get(13);
+        } else if (s.contains("tubul"))
         {
-            ins = instruments.get(83);
-        } else if (s.contains("pad"))
+            ins = instruments.get(14);
+        } else if (s.contains("dulci") || s.contains("santur"))
         {
-            ins = instruments.get(89);
-        } else if (s.contains("brass") || s.contains("trump") || s.contains("trombo"))
+            ins = instruments.get(15);
+        } // ORGANS 16-20
+        else if (s.contains("or:") || s.contains("org:") || s.replaceFirst("korg", "").contains("org"))
         {
-            ins = instruments.get(61);
+            if (s.contains("perc") || s.contains("hammo") || s.contains("jazz") || s.contains("chorus"))
+            {
+                ins = instruments.get(17);
+            } else if (s.contains("rock") || s.contains("rotar"))
+            {
+                ins = instruments.get(18);
+            } else if (s.contains("chur") || s.contains("cath") || s.contains("pipe"))
+            {
+                ins = instruments.get(19);
+            } else if (s.contains("reed"))
+            {
+                ins = instruments.get(20);
+            } else
+            {
+                ins = instruments.get(16);
+            }
+        } else if (s.contains("accordi"))
+        {
+            ins = s.contains("tango") ? instruments.get(23) : instruments.get(21);
+        } else if (s.contains("harmonic"))
+        {
+            ins = instruments.get(22);
+        } // GUITARS 24-31
+        else if (s.contains("guit") || s.contains("gtr") || s.contains("gt.") || s.contains("gt:"))
+        {
+            if (s.contains("steel"))
+            {
+                ins = instruments.get(25);
+            } else if (s.contains("nylon") || s.contains("acoust") || s.contains("a."))
+            {
+                ins = instruments.get(24);
+            } else if (s.contains("clean"))
+            {
+                ins = instruments.get(27);
+            } else if (s.contains("mute"))
+            {
+                ins = instruments.get(28);
+            } else if (s.contains("overd"))
+            {
+                ins = instruments.get(29);
+            } else if (s.contains("dist") || s.contains("feedb") || s.contains("lead"))
+            {
+                ins = instruments.get(30);
+            } else if (s.contains("harm"))
+            {
+                ins = instruments.get(31);
+            } else
+            {
+                ins = instruments.get(26);
+            }
+        } // BASSES 32-39
+        else if (s.contains("bass") || s.contains("bs:") || s.contains("bas:"))
+        {
+            if (s.contains("wood") || s.contains("ac"))
+            {
+                ins = instruments.get(32);
+            } else if (s.contains("pick"))
+            {
+                ins = instruments.get(34);
+            } else if (s.contains("fretl"))
+            {
+                ins = instruments.get(35);
+            } else if (s.contains("slap"))
+            {
+                ins = instruments.get(36);
+            } else if (s.contains("syn"))
+            {
+                ins = instruments.get(38);
+            } else
+            {
+                ins = instruments.get(33);
+            }
+        } else if (s.contains("viola"))
+        {
+            ins = instruments.get(41);
+        } else if (s.contains("cello"))
+        {
+            ins = instruments.get(42);
+        } else if (s.contains("pizz"))
+        {
+            ins = instruments.get(45);
+        } else if (s.contains("harp"))
+        {
+            ins = instruments.get(46);
+        }// STRINGS 48-55        
+        else if (s.contains("string") || s.contains("str.") || s.contains("strng"))
+        {
+            if (s.contains("syn"))
+            {
+                ins = instruments.get(50);
+            } else
+            {
+                ins = instruments.get(48);
+            }
+        } else if (s.contains("orch") && s.contains("hit"))
+        {
+            ins = instruments.get(55);
+        } // BRASS 56-63
+        else if (s.contains("tuba"))
+        {
+            ins = instruments.get(58);
+        } else if (s.contains("brass") || s.contains("trump") || s.contains("trp") || s.contains("tromb") || s.contains("horn"))
+        {
+            if (s.contains("ens") || s.contains("sect") || s.contains("trumpets") || s.contains("horns"))
+            {
+                ins = s.contains("syn") ? instruments.get(62) : instruments.get(61);
+            } else if (s.contains("muted"))
+            {
+                ins = instruments.get(59);
+            } else if (s.contains("trumpet"))
+            {
+                ins = instruments.get(56);
+            } else if (s.contains("trombone"))
+            {
+                ins = instruments.get(57);
+            } else if (s.contains("horn"))
+            {
+                ins = instruments.get(60);
+            } else
+            {
+                ins = instruments.get(63);
+            }
+        } // SAXES
+        else if (s.contains("sax"))
+        {
+            if (s.contains("ens") || s.contains("sect") || s.contains("saxes"))
+            {
+                instruments.get(61);
+            } else if (s.contains("sop"))
+            {
+                ins = instruments.get(64);
+            } else if (s.contains("ten"))
+            {
+                ins = instruments.get(66);
+            } else if (s.contains("bari"))
+            {
+                ins = instruments.get(67);
+            } else
+            {
+                ins = instruments.get(65);
+            }
+        } else if (s.contains("oboe"))
+        {
+            ins = instruments.get(68);
+        } else if (s.contains("basson"))
+        {
+            ins = instruments.get(70);
+        } else if (s.contains("clarin"))
+        {
+            ins = instruments.get(71);
+        } else if (s.contains("picco"))
+        {
+            ins = instruments.get(72);
+        } else if (s.contains("flute"))
+        {
+            ins = s.contains("pan") ? instruments.get(75) : instruments.get(73);
+        } else if (s.contains("recorder"))
+        {
+            ins = instruments.get(74);
+        } else if (s.contains("bottl"))
+        {
+            ins = instruments.get(76);
+        } else if (s.contains("shaku"))
+        {
+            ins = instruments.get(77);
+        } else if (s.contains("whistl"))
+        {
+            ins = instruments.get(78);
+        } else if (s.contains("ocarina"))
+        {
+            ins = instruments.get(79);
+        } // LEAD 80-87
+        else if (s.contains("lead") || s.contains("ld"))
+        {
+            if (s.contains("voice"))
+            {
+                ins = instruments.get(85);
+            } else if (s.contains("saw"))
+            {
+                ins = instruments.get(81);
+            } else if (s.contains("fifth") || s.contains("5th"))
+            {
+                ins = instruments.get(86);
+            } else if (s.contains("bass"))
+            {
+                ins = instruments.get(87);
+            }
+        } // SYNTH PAD 88-95
+        else if (s.contains("pad"))
+        {
+            if (s.contains("syn"))
+            {
+                ins = instruments.get(90);
+            } else if (s.contains("saw"))
+            {
+                ins = instruments.get(81);
+            } else if (s.contains("choir"))
+            {
+                ins = instruments.get(91);
+            } else if (s.contains("sweep"))
+            {
+                ins = instruments.get(95);
+            } else
+            {
+                ins = instruments.get(89);
+            }
         }
         return ins;
     }
@@ -350,16 +569,6 @@ public class GM1Bank extends AbstractInstrumentBank<GM1Instrument>
             throw new IllegalArgumentException("msb=" + msb);
         }
         this.defaultMsb = msb;
-    }
-
-    /**
-     * @param patchName
-     * @return True if this patchName could represent a drums patch.
-     */
-    public static boolean couldBeDrums(String patchName)
-    {
-        String s = patchName.toLowerCase();
-        return s.contains("drums") || s.contains("kit");
     }
 
     /**

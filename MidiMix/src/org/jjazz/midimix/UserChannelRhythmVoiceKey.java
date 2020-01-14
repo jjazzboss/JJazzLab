@@ -26,6 +26,7 @@ import org.jjazz.harmony.TimeSignature;
 import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.InstrumentSettings;
+import org.jjazz.midi.synths.Family;
 import org.jjazz.rhythm.api.DummyRhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 
@@ -51,7 +52,7 @@ public class UserChannelRhythmVoiceKey extends RhythmVoice
 
     private UserChannelRhythmVoiceKey()
     {
-        super(new DummyRhythm("UserChannelDummyRhythm", TimeSignature.FOUR_FOUR), Type.CHORD1, "USER_CHANNEL", StdSynth.getGM1Bank().getDefaultInstrument(GM1Bank.Family.Piano), new InstrumentSettings(), 0);
+        super(new DummyRhythm("UserChannelDummyRhythm", TimeSignature.FOUR_FOUR), Type.CHORD1, "USER_CHANNEL", StdSynth.getGM1Bank().getDefaultInstrument(Family.Piano), new InstrumentSettings(), 0);
     }
 
 }

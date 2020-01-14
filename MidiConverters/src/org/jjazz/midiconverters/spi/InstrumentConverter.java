@@ -27,19 +27,19 @@ import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiSynth;
 
 /**
- * Converts an instrument from a source MidiSynth to another instrument on a destination MidiSynth.
+ * Converts a source Instrument to another instrument on a destination MidiSynth.
  */
 public interface InstrumentConverter
 {
 
     String getConverterId();
-    
+
     /**
      * Try to find in destSynth an instrument corresponding to srcIns.
      *
      * @param srcIns
      * @param destSynth
-     * @return Can be null.
+     * @return Can be null if no matching instrument found.
      */
     Instrument convertInstrument(Instrument srcIns, MidiSynth destSynth);
 }

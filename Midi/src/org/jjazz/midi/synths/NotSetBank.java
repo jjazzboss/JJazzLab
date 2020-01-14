@@ -23,7 +23,7 @@
 package org.jjazz.midi.synths;
 
 import java.util.logging.*;
-import org.jjazz.midi.AbstractInstrumentBank;
+import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.Instrument;
 
 /**
@@ -31,7 +31,7 @@ import org.jjazz.midi.Instrument;
  *
  * @param <T>
  */
-public final class NotSetBank<T extends Instrument> extends AbstractInstrumentBank<Instrument>
+public final class NotSetBank<T extends Instrument> extends InstrumentBank<Instrument>
 {
 
     public static final String BANKNAME = "NotSet Bank";
