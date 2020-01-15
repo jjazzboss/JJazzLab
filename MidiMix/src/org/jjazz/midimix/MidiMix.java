@@ -47,7 +47,6 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;

@@ -204,6 +204,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
      */
     class Patterns
     {
+
         Pattern CpPiano = Pattern.compile("cp[ 789]|elec.*gran");
     }
 
@@ -232,7 +233,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
         String s = patchName.trim().toLowerCase();
 
         // PIANOS 0-5 
-        if (s.contains("pn:") || s.contains("pno") || s.contains("pian"))
+        if (s.contains("ap:") || s.contains("pn:") || s.contains("pno") || s.contains("pian"))
         {
             if (s.contains("bri") || s.contains("rock") || s.contains("atta") || s.contains("tacky") || s.contains("danc") || s.contains("hous"))
             {
@@ -268,7 +269,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
         } else if (s.contains("music") && s.contains("box"))
         {
             ins = instruments.get(10);
-        } else if (s.contains("vibrap"))
+        } else if (s.contains("vibrap") || s.contains("vibes"))
         {
             ins = instruments.get(11);
         } else if (s.contains("marimb"))
@@ -302,7 +303,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
             {
                 ins = instruments.get(16);
             }
-        } else if (s.contains("accordi"))
+        } else if (s.contains("accord   "))
         {
             ins = s.contains("tango") ? instruments.get(23) : instruments.get(21);
         } else if (s.contains("harmonic"))
@@ -337,7 +338,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
                 ins = instruments.get(26);
             }
         } // BASSES 32-39
-        else if (s.contains("bass") || s.contains("bs:") || s.contains("bas:"))
+        else if (!(s.contains("lead") || s.contains("contra") || s.contains("bassoo")) && (s.contains("bass") || s.contains("ba:") || s.contains("bs:") || s.contains("bas:")))
         {
             if (s.contains("wood") || s.contains("ac"))
             {
@@ -364,6 +365,9 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
         } else if (s.contains("cello"))
         {
             ins = instruments.get(42);
+        } else if (s.contains("contra"))
+        {
+            ins = instruments.get(43);
         } else if (s.contains("pizz"))
         {
             ins = instruments.get(45);
@@ -371,7 +375,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
         {
             ins = instruments.get(46);
         }// STRINGS 48-55        
-        else if (s.contains("string") || s.contains("str.") || s.contains("strng"))
+        else if (s.contains("st:") || s.contains("str:") || s.contains("string") || s.contains("str.") || s.contains("strng"))
         {
             if (s.contains("syn"))
             {
@@ -380,6 +384,9 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
             {
                 ins = instruments.get(48);
             }
+        } else if (!s.contains("pad") && s.contains("choir"))
+        {
+            ins = instruments.get(52);
         } else if (s.contains("orch") && s.contains("hit"))
         {
             ins = instruments.get(55);
@@ -387,12 +394,12 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
         else if (s.contains("tuba"))
         {
             ins = instruments.get(58);
-        } else if (s.contains("brass") || s.contains("trump") || s.contains("trp") || s.contains("tromb") || s.contains("horn"))
+        } else if (s.contains("br:") || s.contains("bra:") || s.contains("brass") || s.contains("trump") || s.contains("trp") || s.contains("tromb") || s.contains("horn"))
         {
             if (s.contains("ens") || s.contains("sect") || s.contains("trumpets") || s.contains("horns"))
             {
                 ins = s.contains("syn") ? instruments.get(62) : instruments.get(61);
-            } else if (s.contains("muted"))
+            } else if (s.contains("muted") || s.contains("mtd"))
             {
                 ins = instruments.get(59);
             } else if (s.contains("trumpet"))
@@ -472,9 +479,12 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
             } else if (s.contains("bass"))
             {
                 ins = instruments.get(87);
+            } else
+            {
+                ins = instruments.get(80);
             }
         } // SYNTH PAD 88-95
-        else if (s.contains("pad"))
+        else if (s.contains("pad") || s.contains("pd:"))
         {
             if (s.contains("syn"))
             {

@@ -23,8 +23,16 @@
  */
 package org.jjazz.outputsynth;
 
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +51,16 @@ import org.jjazz.rhythm.api.RhythmVoice;
 public class OutputSynth implements Serializable
 {
 
+    public enum SendModeOnUponStartup
+    {
+        OFF, GM, GM2, XG, GS
+    }
+    public static final String PROP_FILE = "file";
+    /**
+     * Fired when of the sendModeOnUponStartup is changed.
+     */
+    public static final String PROP_SEND_MSG_UPON_STARTUP = "sendMsgUponStartup";
+
     /**
      * oldValue=false if removed, true if added. newValue=InstrumentBank<?>
      */
@@ -58,8 +76,10 @@ public class OutputSynth implements Serializable
 
     private final List<InstrumentBank<?>> compatibleStdBanks;
     private final List<MidiSynth> customSynths;
-    private GMRemapTable remapTable;
+    protected GMRemapTable remapTable;
     private Instrument userInstrument;
+    private SendModeOnUponStartup sendModeOnUponStartup;
+    private File file;
     private static final Logger LOGGER = Logger.getLogger(OutputSynth.class.getSimpleName());
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
 
@@ -70,9 +90,10 @@ public class OutputSynth implements Serializable
     {
         compatibleStdBanks = new ArrayList<>();
         customSynths = new ArrayList<>();
-        remapTable = new GMRemapTable();
         compatibleStdBanks.add(StdSynth.getGM1Bank());
+        remapTable = new GMRemapTable();
         userInstrument = StdSynth.getGM1Bank().getInstrument(0);  // Piano
+        sendModeOnUponStartup = SendModeOnUponStartup.OFF;
     }
 
     /**
@@ -84,16 +105,68 @@ public class OutputSynth implements Serializable
     {
         compatibleStdBanks = new ArrayList<>();
         customSynths = new ArrayList<>();
-
         compatibleStdBanks.addAll(os.compatibleStdBanks);
+        remapTable = new GMRemapTable(os.remapTable);
         customSynths.addAll(customSynths);
         userInstrument = os.userInstrument;
-        remapTable = new GMRemapTable(os.remapTable);
+        sendModeOnUponStartup = os.getSendModeOnUponStartup();
+    }
+    
+    public void set(OutputSynth os)
+    {
+        
     }
 
     public GMRemapTable getGMRemapTable()
     {
         return remapTable;
+    }
+
+    /**
+     * Restore the OutputSynth in the initial state, with only a GM1 Bank, no custom synth, and a clear GMRemapTable.
+     */
+    public void reset()
+    {
+        for (InstrumentBank<?> bank : getCompatibleStdBanks())
+        {
+            if (bank != StdSynth.getGM1Bank())
+            {
+                removeCompatibleStdBank(bank);
+            }
+        }
+        if (getCompatibleStdBanks().isEmpty())
+        {
+            addCompatibleStdBank(StdSynth.getGM1Bank());
+        }
+        for (MidiSynth synth : getCustomSynths())
+        {
+            removeCustomSynth(synth);
+        }
+        remapTable.clear();
+        setUserInstrument(StdSynth.getGM1Bank().getInstrument(0));
+        setSendModeOnUponStartup(SendModeOnUponStartup.OFF);
+    }
+
+    /**
+     * The file associated to this OutputSynth.
+     *
+     * @return Can be null.
+     */
+    public File getFile()
+    {
+        return file;
+    }
+
+    /**
+     * Set the file associated to this OutputSynth.
+     *
+     * @param file
+     */
+    public void setFile(File file)
+    {
+        File oldFile = this.file;
+        this.file = file;
+        pcs.firePropertyChange(PROP_FILE, oldFile, file);
     }
 
     /**
@@ -187,7 +260,7 @@ public class OutputSynth implements Serializable
                 {
                     addCompatibleStdBank(bank);
                 }
-            }       
+            }
             pcs.firePropertyChange(PROP_CUSTOM_SYNTH, true, synth);
         }
     }
@@ -208,6 +281,32 @@ public class OutputSynth implements Serializable
         {
             pcs.firePropertyChange(PROP_CUSTOM_SYNTH, false, synth);
         }
+    }
+
+    /**
+     * Get 'Send XX Mode ON upon startup' feature.
+     *
+     * @return If null feature is disabled.
+     */
+    public SendModeOnUponStartup getSendModeOnUponStartup()
+    {
+        return this.sendModeOnUponStartup;
+    }
+
+    /**
+     * Enable or disable the 'Send XX Mode ON upon startup' feature.
+     *
+     * @param mode Can't be null
+     */
+    public void setSendModeOnUponStartup(SendModeOnUponStartup mode)
+    {
+        if (mode == null)
+        {
+            throw new NullPointerException("mode");
+        }
+        SendModeOnUponStartup old = this.sendModeOnUponStartup;
+        this.sendModeOnUponStartup = mode;
+        pcs.firePropertyChange(PROP_SEND_MSG_UPON_STARTUP, old, sendModeOnUponStartup);
     }
 
     /**
@@ -305,6 +404,42 @@ public class OutputSynth implements Serializable
         }
     }
 
+    /**
+     * Save this OutputSynth to a file.
+     * <p>
+     *
+     * @param f
+     * @throws java.io.IOException
+     */
+    public void saveToFile(File f) throws IOException
+    {
+        if (f == null)
+        {
+            throw new IllegalArgumentException("f=" + f);
+        }
+        LOGGER.fine("saveToFile() f=" + f.getAbsolutePath());
+
+        setFile(f);
+
+        try (FileOutputStream fos = new FileOutputStream(f))
+        {
+            XStream xstream = new XStream();
+            xstream.alias("OutputSynth", OutputSynth.class);
+            xstream.toXML(this, fos);
+        } catch (IOException e)
+        {
+            setFile(null);
+            throw new IOException(e);
+        } catch (XStreamException e)
+        {
+            setFile(null);
+            LOGGER.warning("saveToFile() exception=" + e.getLocalizedMessage());
+            // Translate into an IOException to be handled by the Netbeans framework 
+            throw new IOException("XStream XML unmarshalling error", e);
+        }
+    }
+    
+
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
@@ -345,4 +480,102 @@ public class OutputSynth implements Serializable
         res.add(GSSynth.getGSBank());
         return res;
     }
+
+    // --------------------------------------------------------------------- 
+    // Serialization
+    // --------------------------------------------------------------------- 
+    private Object writeReplace()
+    {
+        return new SerializationProxy(this);
+    }
+
+    private void readObject(ObjectInputStream stream)
+            throws InvalidObjectException
+    {
+        throw new InvalidObjectException("Serialization proxy required");
+    }
+
+    /**
+     *
+     * <p>
+     */
+    protected static class SerializationProxy implements Serializable
+    {
+
+        private static final long serialVersionUID = -29672611210L;
+        private final int spVERSION = 1;
+        private final List<String> spCompatibleStdBankNames = new ArrayList<>();
+        private final List<String> spCustomSynthsStrings = new ArrayList<>();
+        private GMRemapTable spRemapTable;
+        private Instrument spUserInstrument;
+        private SendModeOnUponStartup spSendModeOnUponStartup;
+
+        protected SerializationProxy(OutputSynth outSynth)
+        {
+            for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
+            {
+                String str = "GM";
+                if (bank == StdSynth.getGM2Bank())
+                {
+                    str = "GM2";
+                } else if (bank == StdSynth.getXGBank())
+                {
+                    str = "XG";
+                } else if (bank == GSSynth.getGSBank())
+                {
+                    str = "GS";
+                }
+                spCompatibleStdBankNames.add(str);
+            }
+            for (MidiSynth synth : outSynth.getCustomSynths())
+            {
+                spCustomSynthsStrings.add(synth.saveAsString());
+            }
+            spRemapTable = new GMRemapTable(outSynth.getGMRemapTable());
+            spUserInstrument = outSynth.getUserInstrument();
+            spSendModeOnUponStartup = outSynth.getSendModeOnUponStartup();
+        }
+
+        private Object readResolve() throws ObjectStreamException
+        {
+            OutputSynth outSynth = new OutputSynth();
+            if (!spCompatibleStdBankNames.contains("GM"))
+            {
+                outSynth.removeCompatibleStdBank(StdSynth.getGM1Bank());
+            }
+            for (String strBank : spCompatibleStdBankNames)
+            {
+                switch (strBank)
+                {
+                    case "GM2":
+                        outSynth.addCompatibleStdBank(StdSynth.getGM2Bank());
+                        break;
+                    case "XG":
+                        outSynth.addCompatibleStdBank(StdSynth.getXGBank());
+                        break;
+                    case "GS":
+                        outSynth.addCompatibleStdBank(GSSynth.getGSBank());
+                        break;
+                    default:
+                    // Nothing
+                }
+            }
+            for (String strSynth : spCustomSynthsStrings)
+            {
+                MidiSynth synth = MidiSynth.loadFromString(strSynth);
+                if (synth == null)
+                {
+                    LOGGER.warning("readResolve() Can't restore MidiSynth from save string: " + strSynth);
+                } else
+                {
+                    outSynth.addCustomSynth(synth);
+                }
+            }
+            outSynth.remapTable = spRemapTable;
+            outSynth.setUserInstrument(spUserInstrument);
+            outSynth.setSendModeOnUponStartup(spSendModeOnUponStartup);
+            return outSynth;
+        }
+    }
+
 }

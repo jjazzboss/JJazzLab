@@ -26,6 +26,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.openide.util.Lookup;
 
 /**
  * A MidiSynth is a collection of InstrumentBanks.
@@ -33,6 +34,43 @@ import java.util.logging.Logger;
  */
 public class MidiSynth
 {
+
+    /**
+     * Required by the MidiSynth serialization process : an implementation must be available in the global lookup.
+     */
+    public interface Finder
+    {
+
+        static public class Utilities
+        {
+
+            /**
+             * Find the first Finder implementation in the global lookup.
+             *
+             * @return
+             */
+            static public Finder getDefault()
+            {
+                Finder finder = Lookup.getDefault().lookup(Finder.class);
+                if (finder == null)
+                {
+                    throw new IllegalStateException("finder=" + finder);
+                }
+                return finder;
+            }
+
+        }
+
+        /**
+         * Search for a MidiSynth instance from the specified name and file name.
+         *
+         * @param synthName The MidiSynth name containing the bank. Can't be null.
+         * @param synthFile The file associated to synthName. Can be null.
+         * @return Null if no MidiSynth found
+         */
+        MidiSynth getMidiSynth(String synthName, File synthFile);
+
+    }
 
     private File file;
     ArrayList<InstrumentBank<?>> banks = new ArrayList<>();
@@ -182,37 +220,6 @@ public class MidiSynth
         }
         return (nbInstruments == 0) ? 0 : count / nbInstruments;
     }
-//
-//    /**
-//     * Get the banks from this MidiSynth which are considered as compatible with the banks of the specified synth's banks.
-//     * <p>
-//     *
-//     * @param synth
-//     * @param threshold If the result of getMidiAddressMatchingCoverage() is &gt;= threshold for bank X, then bank X is considered
-//     *                  as compatible.
-//     * @return A list of banks from this MidiSynth
-//     * @see MidiSynth#getMidiAddressMatchingCoverage(InstrumentBank)
-//     */
-//    public List<InstrumentBank<?>> getCompatibleBanks(MidiSynth synth, float threshold)
-//    {
-//        if (synth == null || threshold < 0 || threshold > 1)
-//        {
-//            throw new IllegalArgumentException("synth=" + synth + " threshold=" + threshold);
-//        }
-//        if (synth == this)
-//        {
-//            return getBanks();
-//        }
-//        ArrayList<InstrumentBank<?>> res = new ArrayList<>();
-//        for (InstrumentBank<?> bank : getBanks())
-//        {
-//            if (synth.getMidiAddressMatchingCoverage(bank) >= threshold)
-//            {
-//                res.add(bank);
-//            }
-//        }
-//        return res;
-//    }
 
     /**
      * The total number of patches in the banks of this synth.
@@ -273,4 +280,47 @@ public class MidiSynth
             }
         }
     }
+
+    /**
+     * Save this MidiSynth as a string so that it can be retrieved by loadFromString().
+     * <p>
+     *
+     * @return A string "Name, FilePath". FilePath can be "NOT_SET" if no file associated.
+     * @see loadFromString(String)
+     */
+    public String saveAsString()
+    {
+        LOGGER.fine("saveAsString() MidiSynth=" + getName() + ", getFile()=" + getFile());
+        String strFile = getFile() == null ? "NOT_SET" : getFile().getAbsolutePath();
+        return getName() + ", " + strFile;
+    }
+
+    /**
+     * Get the MidiSynth corresponding to the string produced by saveAsString().
+     * <p>
+     *
+     * @param s
+     * @return Null if no MidiSynth could be found corresponding to s.
+     * @see saveAsString()
+     *
+     */
+    static public MidiSynth loadFromString(String s)
+    {
+        if (s == null)
+        {
+            throw new NullPointerException("s");
+        }
+        String[] strs = s.split(" *, *");
+        if (strs.length != 2)
+        {
+            LOGGER.warning("loadFromString() Invalid string format : " + s);
+            return null;
+        }
+        String synthName = strs[0].trim();
+        String filePath = strs[1].trim();
+        File f = filePath.equals("NOT_SET") ? null : new File(filePath);
+        MidiSynth synth = Finder.Utilities.getDefault().getMidiSynth(synthName, f);
+        return synth;
+    }
+
 }

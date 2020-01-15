@@ -55,7 +55,9 @@ import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.ui.InstrumentTable;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.outputsynth.GMRemapTable;
+import org.jjazz.outputsynth.MidiSynthManager;
 import org.jjazz.outputsynth.OutputSynth;
+import org.jjazz.outputsynth.OutputSynth.SendModeOnUponStartup;
 import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.outputsynth.ui.spi.RemapTableInstrumentChooser;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
@@ -190,6 +192,9 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             } else if (evt.getPropertyName() == OutputSynth.PROP_CUSTOM_SYNTH)
             {
                 refreshSynthList();
+            } else if (evt.getPropertyName() == OutputSynth.PROP_SEND_MSG_UPON_STARTUP)
+            {
+                refreshCompatibilityCheckBoxes();
             } else if (evt.getPropertyName() == OutputSynth.PROP_USER_INSTRUMENT)
             {
             }
@@ -235,9 +240,31 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         cb_GM2.setSelected(stdBanks.contains(StdSynth.getGM2Bank()));
         cb_XG.setSelected(stdBanks.contains(StdSynth.getXGBank()));
         cb_GS.setSelected(stdBanks.contains(GSSynth.getGSBank()));
+
         cb_GS.setEnabled(!(cb_GM2.isSelected() || cb_XG.isSelected()));
         cb_GM2.setEnabled(!cb_GS.isSelected());
         cb_XG.setEnabled(!cb_GS.isSelected());
+
+        switch (outputSynth.getSendModeOnUponStartup())
+        {
+            case GM:
+                this.rbtn_setGmModeOnUponStartup.setSelected(true);
+                break;
+            case GM2:
+                this.rbtn_setGm2ModeOnUponStartup.setSelected(true);
+                break;
+            case XG:
+                this.rbtn_setXgModeOnUponStartup.setSelected(true);
+                break;
+            case GS:
+                this.rbtn_setGsModeOnUponStartup.setSelected(true);
+                break;
+            default:
+                rbtn_setModeOnUponStartupOFF.setSelected(true);
+        }
+        rbtn_setGm2ModeOnUponStartup.setEnabled(cb_GM2.isSelected());
+        rbtn_setXgModeOnUponStartup.setEnabled(cb_XG.isSelected());
+        rbtn_setGsModeOnUponStartup.setEnabled(cb_GS.isSelected());
     }
 
     private void refreshSynthList()
@@ -359,6 +386,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private void initComponents()
     {
 
+        rbtnGroup_SendMsgUponStartup = new javax.swing.ButtonGroup();
         jPanel1 = new javax.swing.JPanel();
         tabPane = new javax.swing.JTabbedPane();
         pnl_main = new javax.swing.JPanel();
@@ -382,10 +410,14 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         btn_changeRemappedIns = new javax.swing.JButton();
         btn_HearRemap = new javax.swing.JButton();
         pnl_advanced = new javax.swing.JPanel();
-        jCheckBox1 = new javax.swing.JCheckBox();
-        jCheckBox2 = new javax.swing.JCheckBox();
-        jCheckBox3 = new javax.swing.JCheckBox();
-        jCheckBox4 = new javax.swing.JCheckBox();
+        jPanel2 = new javax.swing.JPanel();
+        rbtn_setModeOnUponStartupOFF = new javax.swing.JRadioButton();
+        rbtn_setGmModeOnUponStartup = new javax.swing.JRadioButton();
+        rbtn_setGm2ModeOnUponStartup = new javax.swing.JRadioButton();
+        rbtn_setXgModeOnUponStartup = new javax.swing.JRadioButton();
+        rbtn_setGsModeOnUponStartup = new javax.swing.JRadioButton();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        helpTextArea2 = new org.jjazz.ui.utilities.HelpTextArea();
         pnl_Compatibility = new javax.swing.JPanel();
         cb_GM = new javax.swing.JCheckBox();
         cb_GM2 = new javax.swing.JCheckBox();
@@ -487,7 +519,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(btn_Hear))
-                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE))
+                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 398, Short.MAX_VALUE))
                 .addContainerGap())
         );
         pnl_mainLayout.setVerticalGroup(
@@ -505,7 +537,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane6)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 362, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE)
                     .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -553,7 +585,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                     .addComponent(jScrollPane5)
                     .addGroup(pnl_defaultInstrumentsLayout.createSequentialGroup()
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 481, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 42, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 66, Short.MAX_VALUE)
                         .addComponent(btn_changeRemappedIns)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_HearRemap)))
@@ -569,19 +601,103 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                         .addComponent(btn_changeRemappedIns)
                         .addComponent(btn_HearRemap)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 326, Short.MAX_VALUE)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 325, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         tabPane.addTab(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.pnl_defaultInstruments.TabConstraints.tabTitle"), pnl_defaultInstruments); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox1, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jCheckBox1.text")); // NOI18N
+        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jPanel2.border.title"))); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox2, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jCheckBox2.text")); // NOI18N
+        rbtnGroup_SendMsgUponStartup.add(rbtn_setModeOnUponStartupOFF);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_setModeOnUponStartupOFF, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.rbtn_setModeOnUponStartupOFF.text")); // NOI18N
+        rbtn_setModeOnUponStartupOFF.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.rbtn_setModeOnUponStartupOFF.toolTipText")); // NOI18N
+        rbtn_setModeOnUponStartupOFF.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                rbtn_setModeOnUponStartupOFFActionPerformed(evt);
+            }
+        });
 
-        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox3, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jCheckBox3.text")); // NOI18N
+        rbtnGroup_SendMsgUponStartup.add(rbtn_setGmModeOnUponStartup);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_setGmModeOnUponStartup, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.rbtn_setGmModeOnUponStartup.text")); // NOI18N
+        rbtn_setGmModeOnUponStartup.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                rbtn_setGmModeOnUponStartupActionPerformed(evt);
+            }
+        });
 
-        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox4, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jCheckBox4.text")); // NOI18N
+        rbtnGroup_SendMsgUponStartup.add(rbtn_setGm2ModeOnUponStartup);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_setGm2ModeOnUponStartup, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.rbtn_setGm2ModeOnUponStartup.text")); // NOI18N
+        rbtn_setGm2ModeOnUponStartup.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                rbtn_setGm2ModeOnUponStartupActionPerformed(evt);
+            }
+        });
+
+        rbtnGroup_SendMsgUponStartup.add(rbtn_setXgModeOnUponStartup);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_setXgModeOnUponStartup, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.rbtn_setXgModeOnUponStartup.text")); // NOI18N
+        rbtn_setXgModeOnUponStartup.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                rbtn_setXgModeOnUponStartupActionPerformed(evt);
+            }
+        });
+
+        rbtnGroup_SendMsgUponStartup.add(rbtn_setGsModeOnUponStartup);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_setGsModeOnUponStartup, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.rbtn_setGsModeOnUponStartup.text")); // NOI18N
+        rbtn_setGsModeOnUponStartup.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                rbtn_setGsModeOnUponStartupActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(rbtn_setModeOnUponStartupOFF)
+                    .addComponent(rbtn_setGmModeOnUponStartup)
+                    .addComponent(rbtn_setGm2ModeOnUponStartup)
+                    .addComponent(rbtn_setXgModeOnUponStartup)
+                    .addComponent(rbtn_setGsModeOnUponStartup))
+                .addContainerGap(86, Short.MAX_VALUE))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(rbtn_setModeOnUponStartupOFF)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(rbtn_setGmModeOnUponStartup)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(rbtn_setGm2ModeOnUponStartup)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(rbtn_setXgModeOnUponStartup)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(rbtn_setGsModeOnUponStartup)
+                .addContainerGap())
+        );
+
+        jScrollPane4.setBackground(null);
+        jScrollPane4.setBorder(null);
+
+        helpTextArea2.setBackground(null);
+        helpTextArea2.setColumns(20);
+        helpTextArea2.setRows(5);
+        helpTextArea2.setText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.helpTextArea2.text")); // NOI18N
+        jScrollPane4.setViewportView(helpTextArea2);
 
         javax.swing.GroupLayout pnl_advancedLayout = new javax.swing.GroupLayout(pnl_advanced);
         pnl_advanced.setLayout(pnl_advancedLayout);
@@ -589,25 +705,22 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_advancedLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jCheckBox1)
-                    .addComponent(jCheckBox2)
-                    .addComponent(jCheckBox3)
-                    .addComponent(jCheckBox4))
-                .addContainerGap(588, Short.MAX_VALUE))
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
+                .addContainerGap())
         );
         pnl_advancedLayout.setVerticalGroup(
             pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_advancedLayout.createSequentialGroup()
-                .addGap(15, 15, 15)
-                .addComponent(jCheckBox1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jCheckBox2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jCheckBox3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jCheckBox4)
-                .addContainerGap(303, Short.MAX_VALUE))
+                .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnl_advancedLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(pnl_advancedLayout.createSequentialGroup()
+                        .addGap(27, 27, 27)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(243, Short.MAX_VALUE))
         );
 
         tabPane.addTab(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.pnl_advanced.TabConstraints.tabTitle"), pnl_advanced); // NOI18N
@@ -690,7 +803,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(tabPane)
+                    .addComponent(tabPane, javax.swing.GroupLayout.DEFAULT_SIZE, 794, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(pnl_Compatibility, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -701,15 +814,14 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(pnl_Compatibility, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(19, 19, 19)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)))
+                    .addComponent(pnl_Compatibility, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(29, 29, 29)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tabPane)
+                .addComponent(tabPane, javax.swing.GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -796,10 +908,15 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
     private void btn_AddSynthActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_AddSynthActionPerformed
     {//GEN-HEADEREND:event_btn_AddSynthActionPerformed
-        List<MidiSynth> synths = OutputSynthManager.getInstance().showAddCustomSynthDialog();
-        for (MidiSynth synth : synths)
+        MidiSynthManager msm = MidiSynthManager.getInstance();
+        File f = msm.showSelectSynthFileDialog();
+        if (f != null)
         {
-            outputSynth.addCustomSynth(synth);
+            List<MidiSynth> synths = msm.loadSynths(f);
+            for (MidiSynth synth : synths)
+            {
+                outputSynth.addCustomSynth(synth);
+            }
         }
     }//GEN-LAST:event_btn_AddSynthActionPerformed
 
@@ -931,6 +1048,31 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
     }//GEN-LAST:event_btn_HearRemapActionPerformed
 
+    private void rbtn_setModeOnUponStartupOFFActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_setModeOnUponStartupOFFActionPerformed
+    {//GEN-HEADEREND:event_rbtn_setModeOnUponStartupOFFActionPerformed
+        outputSynth.setSendModeOnUponStartup(OutputSynth.SendModeOnUponStartup.OFF);
+    }//GEN-LAST:event_rbtn_setModeOnUponStartupOFFActionPerformed
+
+    private void rbtn_setGmModeOnUponStartupActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_setGmModeOnUponStartupActionPerformed
+    {//GEN-HEADEREND:event_rbtn_setGmModeOnUponStartupActionPerformed
+        outputSynth.setSendModeOnUponStartup(OutputSynth.SendModeOnUponStartup.GM);
+    }//GEN-LAST:event_rbtn_setGmModeOnUponStartupActionPerformed
+
+    private void rbtn_setGm2ModeOnUponStartupActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_setGm2ModeOnUponStartupActionPerformed
+    {//GEN-HEADEREND:event_rbtn_setGm2ModeOnUponStartupActionPerformed
+        outputSynth.setSendModeOnUponStartup(OutputSynth.SendModeOnUponStartup.GM2);
+    }//GEN-LAST:event_rbtn_setGm2ModeOnUponStartupActionPerformed
+
+    private void rbtn_setXgModeOnUponStartupActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_setXgModeOnUponStartupActionPerformed
+    {//GEN-HEADEREND:event_rbtn_setXgModeOnUponStartupActionPerformed
+        outputSynth.setSendModeOnUponStartup(OutputSynth.SendModeOnUponStartup.XG);
+    }//GEN-LAST:event_rbtn_setXgModeOnUponStartupActionPerformed
+
+    private void rbtn_setGsModeOnUponStartupActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_setGsModeOnUponStartupActionPerformed
+    {//GEN-HEADEREND:event_rbtn_setGsModeOnUponStartupActionPerformed
+        outputSynth.setSendModeOnUponStartup(OutputSynth.SendModeOnUponStartup.GS);
+    }//GEN-LAST:event_rbtn_setGsModeOnUponStartupActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_AddSynth;
@@ -943,18 +1085,17 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JCheckBox cb_GS;
     private javax.swing.JCheckBox cb_XG;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.HelpTextArea helpTextArea2;
     private org.jjazz.ui.utilities.HelpTextArea hlp_area;
-    private javax.swing.JCheckBox jCheckBox1;
-    private javax.swing.JCheckBox jCheckBox2;
-    private javax.swing.JCheckBox jCheckBox3;
-    private javax.swing.JCheckBox jCheckBox4;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JScrollPane jScrollPane7;
@@ -964,6 +1105,12 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JPanel pnl_advanced;
     private javax.swing.JPanel pnl_defaultInstruments;
     private javax.swing.JPanel pnl_main;
+    private javax.swing.ButtonGroup rbtnGroup_SendMsgUponStartup;
+    private javax.swing.JRadioButton rbtn_setGm2ModeOnUponStartup;
+    private javax.swing.JRadioButton rbtn_setGmModeOnUponStartup;
+    private javax.swing.JRadioButton rbtn_setGsModeOnUponStartup;
+    private javax.swing.JRadioButton rbtn_setModeOnUponStartupOFF;
+    private javax.swing.JRadioButton rbtn_setXgModeOnUponStartup;
     private javax.swing.JTabbedPane tabPane;
     private org.jjazz.midi.ui.InstrumentTable tbl_Instruments;
     private org.jjazz.outputsynth.ui.RemapTableUI tbl_Remap;

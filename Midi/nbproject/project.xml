@@ -15,6 +15,14 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
+                    <code-name-base>org.jjazz.ui.utilities</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.jjazz.util</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -69,6 +77,14 @@
                     <compile-dependency/>
                     <run-dependency>
                         <specification-version>9.4.1</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.openide.windows</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>6.82</specification-version>
                     </run-dependency>
                 </dependency>
             </module-dependencies>

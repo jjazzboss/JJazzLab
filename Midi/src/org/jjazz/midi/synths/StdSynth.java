@@ -32,7 +32,6 @@ import org.jjazz.midi.MidiSynth;
  */
 public class StdSynth extends MidiSynth
 {
-
     public static String NAME = "Standard";
     public static String MANUFACTURER = "JJazz";
     private static StdSynth INSTANCE;

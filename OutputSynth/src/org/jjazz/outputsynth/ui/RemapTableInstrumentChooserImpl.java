@@ -295,7 +295,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             // First add instruments whose substitute is mappedIns
             for (Instrument ins : allInsts)
             {
-                if (ins.getSubstitute() == mappedIns)
+                if (ins.getSubstitute() == mappedIns && !ins.getMidiAddress().equals(mappedIns.getMidiAddress()))
                 {
                     res.add(ins);
                 }
@@ -304,21 +304,22 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             // Second add instruments whose substitute family matches mappedInx family
             for (Instrument ins : allInsts)
             {
-                if (ins.getSubstitute() != null && ins.getSubstitute().getFamily().equals(gm1MappedIns.getFamily()))
+                if (ins.getSubstitute() != null
+                        && ins.getSubstitute().getFamily().equals(gm1MappedIns.getFamily())
+                        && !ins.getMidiAddress().equals(mappedIns.getMidiAddress()))
                 {
                     if (!res.contains(ins))
                     {
                         res.add(ins);
                     }
                 }
-            }
-            LOGGER.info("getRecommendedInstruments() TODO: Add string component based search");
+            }           
         } else
         {
             // Drums/Percussion
             for (Instrument ins : allInsts)
             {
-                if (ins.isDrumKit())
+                if (ins.isDrumKit() && !ins.getMidiAddress().equals(mappedIns.getMidiAddress()))
                 {
                     res.add(ins);
                 }

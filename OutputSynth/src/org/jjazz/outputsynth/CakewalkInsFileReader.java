@@ -261,6 +261,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         String synthName = mSynth.group(1);
                         currentSynth = new MidiSynth(synthName, "");
                         synths.add(currentSynth);
+                        currentBsm = BankSelectMethod.MSB_LSB;
                     } else if (mBsm.matches())
                     {
                         // It's a BankSelectMethod specification
@@ -294,7 +295,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         String bankName = m2Patch.group(1).trim();
                         if (currentSynth.getBank(bankName) != null)
                         {
-                            // The bank has already been created for this synth via a Patch[123]=SomeBankName (happens in some erroneous files)                            
+                            // The bank has already been created for this synth via a Patch[123]=SomeBankName                        
                             continue;
                         }
                         List<Instrument> bankInstruments = mapBankNameInstruments.get(bankName);

@@ -43,7 +43,7 @@ public class Instrument implements Serializable
     /**
      * Required by the Instrument serialization process : an implementation must be available in the global lookup.
      */
-    public interface BankFinder
+    public interface Finder
     {
 
         static public class Utilities
@@ -54,23 +54,26 @@ public class Instrument implements Serializable
              *
              * @return
              */
-            static public BankFinder getDefault()
+            static public Finder getDefault()
             {
-                BankFinder bf = Lookup.getDefault().lookup(BankFinder.class);
-                if (bf == null)
+                Finder finder = Lookup.getDefault().lookup(Finder.class);
+                if (finder == null)
                 {
-                    throw new IllegalStateException("ibf=" + null);
+                    throw new IllegalStateException("finder=" + finder);
                 }
-                return bf;
+                return finder;
             }
         }
 
         /**
-         * @param synthName The MidiSynth name containing the bank
-         * @param bankName
+         * Search for an Instrument instance from the specified name.
+         *
+         * @param synthName The MidiSynth name containing the bank. Can't be null.
+         * @param bankName  The instrument bank's name. Can't be null.
+         * @param patchName Can't be null.
          * @return Null if no bank found
          */
-        InstrumentBank<?> getBank(String synthName, String bankName);
+        Instrument getInstrument(String synthName, String bankName, String patchName);
 
     }
 
@@ -134,7 +137,7 @@ public class Instrument implements Serializable
                 (bank != null && ma.getBankLSB() == -1) ? this.bank.getDefaultBankSelectLSB() : ma.getBankLSB(),
                 (bank != null && ma.getBankSelectMethod() == null) ? this.bank.getDefaultBankSelectMethod() : ma.getBankSelectMethod()
         );
-    }    
+    }
 
     /**
      * This function can be called only once.
@@ -198,6 +201,16 @@ public class Instrument implements Serializable
     }
 
     /**
+     * Set the optional GM1Instrument that can be used as a GM1 replacement instrument.
+     * <p>
+     * @param ins Can be null
+     */
+    public void setSubstitute(GM1Instrument ins)
+    {
+        this.substitute = ins;
+    }
+
+    /**
      * @return Can be null.
      */
     public InstrumentBank<?> getBank()
@@ -258,24 +271,23 @@ public class Instrument implements Serializable
     }
 
     /**
-     * Save this Instrument as a string so that it can be retrieved by loadFromString() if the MidiSynth and the related Bank
-     * exists on the system which performs loadFromString().
+     * Save this Instrument as a string so that it can be retrieved by loadFromString().
      * <p>
-     * The instrument must have a bank defined.
      *
      * @return A string "MidiSynthName, BankName, PatchName"
-     * @throws IllegalStateException If instrument does not have an InstrumentBank defined.
+     * @throws IllegalStateException If instrument does not have an InstrumentBank and MidiSynth defined.
+     * @see loadFromString(String)
      */
     public String saveAsString()
     {
+        if (getBank() == null || getBank().getMidiSynth() == null)
+        {
+            throw new IllegalStateException("getBank()=" + getBank());
+        }
         LOGGER.log(Level.FINE, "saveAsString() this={0} bank={1} midiSynth={2}", new Object[]
         {
             this, getBank().getName(), getBank().getMidiSynth().getName()
         });
-        if (getBank() == null)
-        {
-            throw new IllegalStateException("Can't use this method if bank is not defined. this=" + this);
-        }
         return getBank().getMidiSynth().getName() + ", " + getBank().getName() + ", " + getPatchName();
     }
 
@@ -298,18 +310,15 @@ public class Instrument implements Serializable
         String[] strs = s.split(" *, *");
         if (strs.length != 3)
         {
+            LOGGER.warning("loadFromString() Invalid string format : " + s);
             return null;
         }
         String synthName = strs[0].trim();
         String bankName = strs[1].trim();
         String patchName = strs[2].trim();
 
-        InstrumentBank<?> bank = BankFinder.Utilities.getDefault().getBank(synthName, bankName);
-        if (bank == null)
-        {
-            return null;
-        }
-        return bank.getInstrument(patchName);
+        Instrument ins = Finder.Utilities.getDefault().getInstrument(synthName, bankName, patchName);
+        return ins;
     }
 
     // --------------------------------------------------------------------- 
@@ -341,12 +350,11 @@ public class Instrument implements Serializable
 
         protected SerializationProxy(Instrument ins)
         {
-            if (ins.getBank() == null)
+            if (ins.getBank() == null || ins.getBank().getMidiSynth() == null)
             {
-                throw new IllegalStateException("ins=" + ins);
+                throw new IllegalStateException("ins=" + ins + " ins.getBank()=" + ins.getBank());
             }
             spSaveString = ins.saveAsString();
-            spPatchname = ins.getPatchName(); // Not really needed, just in case for safety
         }
 
         private Object readResolve() throws ObjectStreamException

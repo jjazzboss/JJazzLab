@@ -37,13 +37,11 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructureFactory;
-import org.openide.util.Exceptions;
 
 /**
  * Manage the creation and the registration of the songs.

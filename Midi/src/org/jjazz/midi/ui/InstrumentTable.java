@@ -338,10 +338,13 @@ public class InstrumentTable extends JTable
             } else if (ins.isDrumKit())
             {
                 sb.append("DrumKit=").append(ins.getDrumKit().toString());
-            } else
-            {
-                sb.append(ins.getMidiAddress().toString());
             }
+            if (sb.length() != 0)
+            {
+                sb.append(", ");
+            }
+            sb.append(ins.getMidiAddress().toString());
+
             return sb.length() == 0 ? null : sb.toString();
         }
     }

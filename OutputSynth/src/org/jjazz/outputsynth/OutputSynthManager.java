@@ -23,42 +23,44 @@
  */
 package org.jjazz.outputsynth;
 
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.XStreamException;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.MidiSynth;
-import org.jjazz.midi.synths.StdSynth;
-import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.util.Utilities;
-import org.openide.*;
-import org.openide.util.Lookup;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
+import org.openide.util.NbPreferences;
 import org.openide.windows.WindowManager;
 
 /**
  * Management of the OutputSynth.
  * <p>
  */
-public class OutputSynthManager
+public class OutputSynthManager implements PropertyChangeListener
 {
 
-    private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
-    private static final String MIDISYNTH_FILES_RESOURCE_ZIP = "resources/MidiSynthFiles.zip";
-    private final static String SGM_SOUNDFONT_INS = "resources/SGM-v2.01.ins";
+    public final static String PROP_DEFAULT_OUTPUTSYNTH = "OutputSynth";
+    public final static String DEFAULT_OUTPUT_SYNTH_FILENAME = "Default.cfg";
+    public final static String JJAZZLAB_OUTPUT_SYNTH_FILENAME = "JJazzLab-SoundFont.cfg";
+    public final static String OUTPUT_SYNTH_FILES_DIR = "OutputSynthFiles";
+    public final static String OUTPUT_SYNTH_FILES_EXT = "cfg";
+
+    private static final String OUTPUT_SYNTH_FILES_ZIP = "resources/OutputSynthFiles.zip";
 
     private static OutputSynthManager INSTANCE;
     private OutputSynth outputSynth;
-
-    private File lastSynthDir;
-
+    private static Preferences prefs = NbPreferences.forModule(MidiSynthManager.class);
+    private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(OutputSynthManager.class.getSimpleName());
 
     public static OutputSynthManager getInstance()
@@ -75,11 +77,24 @@ public class OutputSynthManager
 
     private OutputSynthManager()
     {
-        outputSynth = new OutputSynth();
-//        outputSynth.getGMRemapTable().setInstrument(GMRemapTable.DRUMS_INSTRUMENT, new Instrument(20, "MyDrums"), false);
-//        outputSynth.getGMRemapTable().setInstrument(GMRemapTable.PERCUSSION_INSTRUMENT, StdSynth.getGM2Bank().getDefaultDrumsInstrument(), false);
-//        outputSynth.getGMRemapTable().setInstrument(StdSynth.getGM1Bank().getInstrument(17), StdSynth.getXGBank().getInstrument(23), true);
-//        outputSynth.getGMRemapTable().setInstrument(StdSynth.getGM1Bank().getInstrument(30), StdSynth.getXGBank().getInstrument(90), false);
+        String path = prefs.get(PROP_DEFAULT_OUTPUTSYNTH, DEFAULT_OUTPUT_SYNTH_FILENAME);
+        File f = new File(getOutputSynthFilesDir(), path);
+        outputSynth = loadOutputSynth(f, false);
+        if (outputSynth == null)
+        {
+            if (!path.equals(DEFAULT_OUTPUT_SYNTH_FILENAME))
+            {
+                // Try reading the default config file
+                f = new File(getOutputSynthFilesDir(), DEFAULT_OUTPUT_SYNTH_FILENAME);
+                outputSynth = loadOutputSynth(f, false);
+            }
+            if (outputSynth == null)
+            {
+                outputSynth = new OutputSynth();
+                outputSynth.setFile(f);
+            }
+        }
+        outputSynth.addPropertyChangeListener(this); // Listen to file changes
     }
 
     /**
@@ -92,130 +107,147 @@ public class OutputSynthManager
         return outputSynth;
     }
 
+    /**
+     * Set the current OutputSynth.
+     *
+     * @param outSynth Can't be null
+     */
     public void setOutputSynth(OutputSynth outSynth)
     {
         if (outSynth == null)
         {
             throw new IllegalArgumentException("outSynth=" + outSynth);
         }
+        OutputSynth old = this.outputSynth;
+        if (old != null)
+        {
+            old.removePropertyChangeListener(this);
+        }
         outputSynth = outSynth;
+        outputSynth.addPropertyChangeListener(this);        // Listen to file changes
+        pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, old, outputSynth);
     }
 
     /**
-     * Show the AddCustomDialog synth dialog.
+     * Show a dialog to select an OutputSynth file.
      * <p>
-     * Errors are notified to user.
      *
-     * @return The loaded MidiSynths or an empty list if user cancelled the dialog or other error.
+     * @return The selected file. Null if user cancelled or no selection.
      */
-    public List<MidiSynth> showAddCustomSynthDialog()
+    public File showSelectOutputSynthFileDialog()
     {
-        ArrayList<MidiSynth> res = new ArrayList<>();
-
-        // First collect all file extensions managed by the MidiSynthFileReaders
-        HashMap<String, MidiSynthFileReader> mapExtReader = new HashMap<>();
-        List<FileNameExtensionFilter> allFilters = new ArrayList<>();
-        for (MidiSynthFileReader r : Lookup.getDefault().lookupAll(MidiSynthFileReader.class))
-        {
-            List<FileNameExtensionFilter> filters = r.getSupportedFileTypes();
-            for (FileNameExtensionFilter filter : filters)
-            {
-                allFilters.add(filter);
-                for (String s : filter.getExtensions())
-                {
-                    mapExtReader.put(s.toLowerCase(), r);
-                }
-            }
-        }
-
+        // Collect all file extensions managed by the MidiSynthFileReaders       
         // Initialize the file chooser
         JFileChooser chooser = org.jjazz.ui.utilities.Utilities.getFileChooserInstance();
         chooser.resetChoosableFileFilters();
-        for (FileNameExtensionFilter filter : allFilters)
-        {
-            chooser.addChoosableFileFilter(filter);
-        }
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Output synth config. files (" + "." + OUTPUT_SYNTH_FILES_EXT + ")", OUTPUT_SYNTH_FILES_EXT);
+        chooser.addChoosableFileFilter(filter);
         chooser.setAcceptAllFileFilterUsed(false);
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setDialogTitle("Load Midi synth definition file");
-        chooser.setCurrentDirectory(getMidiSynthFilesDir());
+        chooser.setDialogTitle("Load Output Synth Configuration File");
+        chooser.setCurrentDirectory(getOutputSynthFilesDir());
 
         // Show dialog
         if (chooser.showOpenDialog(WindowManager.getDefault().getMainWindow()) != JFileChooser.APPROVE_OPTION)
         {
             // User cancelled
-            return res;
+            return null;
         }
 
-        File synthFile = chooser.getSelectedFile();
-        lastSynthDir = synthFile.getParentFile();
+        return chooser.getSelectedFile();
+    }
 
-        // Process file
-        String ext = org.jjazz.util.Utilities.getExtension(synthFile.getAbsolutePath());
-        MidiSynthFileReader r = mapExtReader.get(ext.toLowerCase());
-        if (r == null)
+    /**
+     * Load an OutputSynth from a file.
+     * <p>
+     * Notify user if problem occured while reading file.
+     *
+     * @param f
+     * @param notifyUser If true notify user if error occured while reading the file.
+     * @return Null if problem.
+     */
+    public OutputSynth loadOutputSynth(File f, boolean notifyUser)
+    {
+        if (f == null)
         {
-            // Extension not managed by any MidiSynthFileReader
-            String msg = "File extension not supported: " + synthFile.getAbsolutePath();
-            LOGGER.log(Level.WARNING, msg);
-            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(nd);
-        } else
+            throw new NullPointerException("f");
+        }
+        OutputSynth synth = null;
+        XStream xstream = new XStream();
+        try
         {
-            // Ask provider to read the file and add the non-empty synths
-            List<MidiSynth> synths = null;
-            try
+            synth = (OutputSynth) xstream.fromXML(f);
+        } catch (XStreamException ex)
+        {
+            String msg = "Problem reading file: " + f.getAbsolutePath() + ".\n" + ex.getLocalizedMessage();
+            LOGGER.log(Level.WARNING, "loadOutputSynth() - {0}", msg);
+            if (notifyUser)
             {
-                synths = r.readSynthsFromStream(new FileInputStream(synthFile), synthFile); // Can raise exception
-                for (MidiSynth synth : synths)
+                NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+            }
+            return null;
+        }
+        synth.setFile(f);
+        return synth;
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.addPropertyChangeListener(l);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(l);
+    }
+
+    // ==============================================================================
+    // PropertyChangeListener interface
+    // ==============================================================================
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == outputSynth)
+        {
+            if (evt.getPropertyName() == OutputSynth.PROP_FILE)
+            {
+                File f = (File) evt.getNewValue();
+                if (f != null)
                 {
-                    if (synth.getNbPatches() > 0)
-                    {
-                        res.add(synth);
-                    }
+                    prefs.put(PROP_DEFAULT_OUTPUTSYNTH, f.getName());
                 }
-            } catch (IOException ex)
-            {
-                String msg = "Problem reading file : " + ex.getLocalizedMessage();
-                LOGGER.log(Level.WARNING, msg);
-                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(nd);
             }
         }
-        return res;
     }
 
     // ===============================================================================
     // Private methods
     // ===============================================================================
     /**
-     * The last used directory, or if not set the standard directory for MidiSynth.
+     * A fixed user directory.
      * <p>
      * Prepare the builtin files when first called.
      *
      * @return
      */
-    private File getMidiSynthFilesDir()
+    private File getOutputSynthFilesDir()
     {
-        if (lastSynthDir != null)
-        {
-            return lastSynthDir;
-        }
         FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-        File rDir = fdm.getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
+        File rDir = fdm.getAppConfigDirectory(OUTPUT_SYNTH_FILES_DIR);
         assert rDir.isDirectory() : "rDir=" + rDir;
         File[] files = rDir.listFiles();
         if (files.length == 0)
         {
             files = copyBuiltinResourceFiles(rDir);
-            LOGGER.info("getMidiSynthFilesDir() copied " + files.length + " files into " + rDir.getAbsolutePath());
+            LOGGER.info("getOutputSynthFilesDir() copied " + files.length + " files into " + rDir.getAbsolutePath());
         }
         return rDir;
     }
 
     /**
-     * Copy the builtin Midi synth files within the JAR to destPath.
+     * Copy the builtin OutputSynth configuration files within the JAR to destPath.
      * <p>
      *
      * @param destPath
@@ -223,12 +255,11 @@ public class OutputSynthManager
      */
     private File[] copyBuiltinResourceFiles(File destDir)
     {
-        List<File> res = Utilities.extractZipResource(getClass(), MIDISYNTH_FILES_RESOURCE_ZIP, destDir.toPath());
+        List<File> res = Utilities.extractZipResource(getClass(), OutputSynthManager.OUTPUT_SYNTH_FILES_ZIP, destDir.toPath());
         if (res.isEmpty())
         {
-            LOGGER.warning("copyBuiltinResourceFiles() No synth definition files found in " + MIDISYNTH_FILES_RESOURCE_ZIP);
+            LOGGER.warning("copyBuiltinResourceFiles() No output synth definition file found in " + OUTPUT_SYNTH_FILES_ZIP);
         }
         return res.toArray(new File[0]);
     }
-
 }
