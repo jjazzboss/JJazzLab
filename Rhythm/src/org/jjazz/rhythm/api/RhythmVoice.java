@@ -138,7 +138,7 @@ public class RhythmVoice
         this.container = container;
         this.name = name;
         this.type = type;
-        this.instrument = StdSynth.getVoidInstrument();
+        this.instrument = StdSynth.getInstance().getVoidInstrument();
         this.instrumentSettings = new InstrumentSettings(is);
         this.preferredChannel = preferredChannel;
         this.drumKit = kit;

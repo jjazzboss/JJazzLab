@@ -286,7 +286,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
 
     private void btn_test1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_test1ActionPerformed
     {//GEN-HEADEREND:event_btn_test1ActionPerformed
-        sendTestNotes(2, StdSynth.getGM1Bank().getDefaultInstrument(Family.Organ), 0);
+        sendTestNotes(2, StdSynth.getInstance().getGM1Bank().getDefaultInstrument(Family.Organ), 0);
     }//GEN-LAST:event_btn_test1ActionPerformed
 
     private void btn_testDrumsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_testDrumsActionPerformed
@@ -296,12 +296,12 @@ public final class MidiWizardVisualPanel5 extends JPanel
 
     private void btn_test2ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_test2ActionPerformed
     {//GEN-HEADEREND:event_btn_test2ActionPerformed
-        sendTestNotes(11, StdSynth.getGM1Bank().getDefaultInstrument(Family.Reed), -12);
+        sendTestNotes(11, StdSynth.getInstance().getGM1Bank().getDefaultInstrument(Family.Reed), -12);
     }//GEN-LAST:event_btn_test2ActionPerformed
 
     private void btn_testDrumsOtherChannelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_testDrumsOtherChannelActionPerformed
     {//GEN-HEADEREND:event_btn_testDrumsOtherChannelActionPerformed
-        sendTestNotes(2, StdSynth.getGM2Bank().getDefaultDrumsInstrument(), -12);
+        sendTestNotes(2, StdSynth.getInstance().getGM2Bank().getDefaultDrumsInstrument(), -12);
     }//GEN-LAST:event_btn_testDrumsOtherChannelActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -78,13 +78,18 @@ public class MidiSynth
     private String manufacturer;
     private static final Logger LOGGER = Logger.getLogger(MidiSynth.class.getSimpleName());
 
+    /**
+     * Create an empty MidiSynth.
+     * @param name If name contains comas (',') they are removed.
+     * @param manufacturer 
+     */
     public MidiSynth(String name, String manufacturer)
     {
         if (name == null || name.trim().isEmpty() || manufacturer == null)
         {
             throw new IllegalArgumentException("name=" + name + " manufacturer=" + manufacturer);
         }
-        this.name = name;
+        this.name = name.replaceAll(",", "");
         this.manufacturer = manufacturer;
     }
 

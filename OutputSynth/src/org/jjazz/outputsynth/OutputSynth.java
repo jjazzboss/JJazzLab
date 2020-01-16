@@ -50,7 +50,7 @@ import org.jjazz.rhythm.api.RhythmVoice;
  */
 public class OutputSynth implements Serializable
 {
-
+    
     public enum SendModeOnUponStartup
     {
         OFF, GM, GM2, XG, GS
@@ -73,7 +73,7 @@ public class OutputSynth implements Serializable
      * oldValue=old UserInstrument, newValue=new UserInstrument
      */
     public static final String PROP_USER_INSTRUMENT = "PROP_USER_INSTRUMENT";
-
+    
     private final List<InstrumentBank<?>> compatibleStdBanks;
     private final List<MidiSynth> customSynths;
     protected GMRemapTable remapTable;
@@ -90,9 +90,10 @@ public class OutputSynth implements Serializable
     {
         compatibleStdBanks = new ArrayList<>();
         customSynths = new ArrayList<>();
-        compatibleStdBanks.add(StdSynth.getGM1Bank());
+        compatibleStdBanks.add(StdSynth.getInstance().getGM1Bank());
         remapTable = new GMRemapTable();
-        userInstrument = StdSynth.getGM1Bank().getInstrument(0);  // Piano
+        remapTable.setContainer(this);
+        userInstrument = StdSynth.getInstance().getGM1Bank().getInstrument(0);  // Piano
         sendModeOnUponStartup = SendModeOnUponStartup.OFF;
     }
 
@@ -107,16 +108,12 @@ public class OutputSynth implements Serializable
         customSynths = new ArrayList<>();
         compatibleStdBanks.addAll(os.compatibleStdBanks);
         remapTable = new GMRemapTable(os.remapTable);
+        remapTable.setContainer(this);
         customSynths.addAll(customSynths);
         userInstrument = os.userInstrument;
         sendModeOnUponStartup = os.getSendModeOnUponStartup();
     }
     
-    public void set(OutputSynth os)
-    {
-        
-    }
-
     public GMRemapTable getGMRemapTable()
     {
         return remapTable;
@@ -129,21 +126,21 @@ public class OutputSynth implements Serializable
     {
         for (InstrumentBank<?> bank : getCompatibleStdBanks())
         {
-            if (bank != StdSynth.getGM1Bank())
+            if (bank != StdSynth.getInstance().getGM1Bank())
             {
                 removeCompatibleStdBank(bank);
             }
         }
         if (getCompatibleStdBanks().isEmpty())
         {
-            addCompatibleStdBank(StdSynth.getGM1Bank());
+            addCompatibleStdBank(StdSynth.getInstance().getGM1Bank());
         }
         for (MidiSynth synth : getCustomSynths())
         {
             removeCustomSynth(synth);
         }
         remapTable.clear();
-        setUserInstrument(StdSynth.getGM1Bank().getInstrument(0));
+        setUserInstrument(StdSynth.getInstance().getGM1Bank().getInstrument(0));
         setSendModeOnUponStartup(SendModeOnUponStartup.OFF);
     }
 
@@ -192,17 +189,17 @@ public class OutputSynth implements Serializable
         {
             throw new IllegalArgumentException("stdBank=" + stdBank);
         }
-
-        if ((stdBank == StdSynth.getGM2Bank() || stdBank == StdSynth.getXGBank()) && compatibleStdBanks.contains(GSSynth.getGSBank()))
+        
+        if ((stdBank == StdSynth.getInstance().getGM2Bank() || stdBank == StdSynth.getInstance().getXGBank()) && compatibleStdBanks.contains(GSSynth.getInstance().getGSBank()))
         {
             LOGGER.warning("addCompatibleStdBank() Can't add " + stdBank + " because the GS bank is used");
             return;
-        } else if (stdBank == GSSynth.getGSBank() && (compatibleStdBanks.contains(StdSynth.getGM2Bank()) || compatibleStdBanks.contains(StdSynth.getXGBank())))
+        } else if (stdBank == GSSynth.getInstance().getGSBank() && (compatibleStdBanks.contains(StdSynth.getInstance().getGM2Bank()) || compatibleStdBanks.contains(StdSynth.getInstance().getXGBank())))
         {
             LOGGER.warning("addCompatibleStdBank() Can't add " + stdBank + " because the GM2 or XG bank is used");
             return;
         }
-
+        
         if (!compatibleStdBanks.contains(this))
         {
             compatibleStdBanks.add(stdBank);
@@ -221,7 +218,7 @@ public class OutputSynth implements Serializable
         {
             throw new IllegalArgumentException("stdBank=" + stdBank);
         }
-
+        
         if (compatibleStdBanks.remove(stdBank))
         {
             pcs.firePropertyChange(PROP_STD_BANK, false, stdBank);
@@ -250,7 +247,7 @@ public class OutputSynth implements Serializable
         {
             throw new IllegalArgumentException("stdBank=" + synth);
         }
-
+        
         if (!customSynths.contains(synth))
         {
             customSynths.add(synth);
@@ -350,14 +347,14 @@ public class OutputSynth implements Serializable
                     ins = remapTable.getInstrument(GMRemapTable.DRUMS_INSTRUMENT);
                     if (ins == null)
                     {
-                        ins = StdSynth.getVoidInstrument();
+                        ins = StdSynth.getInstance().getVoidInstrument();
                     }
                     break;
                 case PERCUSSION:
                     ins = remapTable.getInstrument(GMRemapTable.PERCUSSION_INSTRUMENT);
                     if (ins == null)
                     {
-                        ins = StdSynth.getVoidInstrument();
+                        ins = StdSynth.getInstance().getVoidInstrument();
                     }
                     break;
                 default:
@@ -418,9 +415,10 @@ public class OutputSynth implements Serializable
             throw new IllegalArgumentException("f=" + f);
         }
         LOGGER.fine("saveToFile() f=" + f.getAbsolutePath());
-
+        
+        File prevFile = getFile();
         setFile(f);
-
+        
         try (FileOutputStream fos = new FileOutputStream(f))
         {
             XStream xstream = new XStream();
@@ -428,23 +426,22 @@ public class OutputSynth implements Serializable
             xstream.toXML(this, fos);
         } catch (IOException e)
         {
-            setFile(null);
+            setFile(prevFile);
             throw new IOException(e);
         } catch (XStreamException e)
         {
-            setFile(null);
+            setFile(prevFile);
             LOGGER.warning("saveToFile() exception=" + e.getLocalizedMessage());
             // Translate into an IOException to be handled by the Netbeans framework 
-            throw new IOException("XStream XML unmarshalling error", e);
+            throw new IOException("XStream XML marshalling error", e);
         }
     }
     
-
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
-
+    
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
@@ -472,12 +469,12 @@ public class OutputSynth implements Serializable
         }
         return res;
     }
-
+    
     private List<InstrumentBank<?>> getStdBanks()
     {
         ArrayList<InstrumentBank<?>> res = new ArrayList<>();
         res.addAll(StdSynth.getInstance().getBanks());
-        res.add(GSSynth.getGSBank());
+        res.add(GSSynth.getInstance().getGSBank());
         return res;
     }
 
@@ -488,7 +485,7 @@ public class OutputSynth implements Serializable
     {
         return new SerializationProxy(this);
     }
-
+    
     private void readObject(ObjectInputStream stream)
             throws InvalidObjectException
     {
@@ -500,8 +497,7 @@ public class OutputSynth implements Serializable
      * <p>
      */
     protected static class SerializationProxy implements Serializable
-    {
-
+    {        
         private static final long serialVersionUID = -29672611210L;
         private final int spVERSION = 1;
         private final List<String> spCompatibleStdBankNames = new ArrayList<>();
@@ -509,19 +505,19 @@ public class OutputSynth implements Serializable
         private GMRemapTable spRemapTable;
         private Instrument spUserInstrument;
         private SendModeOnUponStartup spSendModeOnUponStartup;
-
+        
         protected SerializationProxy(OutputSynth outSynth)
         {
             for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
             {
                 String str = "GM";
-                if (bank == StdSynth.getGM2Bank())
+                if (bank == StdSynth.getInstance().getGM2Bank())
                 {
                     str = "GM2";
-                } else if (bank == StdSynth.getXGBank())
+                } else if (bank == StdSynth.getInstance().getXGBank())
                 {
                     str = "XG";
-                } else if (bank == GSSynth.getGSBank())
+                } else if (bank == GSSynth.getInstance().getGSBank())
                 {
                     str = "GS";
                 }
@@ -535,26 +531,26 @@ public class OutputSynth implements Serializable
             spUserInstrument = outSynth.getUserInstrument();
             spSendModeOnUponStartup = outSynth.getSendModeOnUponStartup();
         }
-
+        
         private Object readResolve() throws ObjectStreamException
         {
             OutputSynth outSynth = new OutputSynth();
             if (!spCompatibleStdBankNames.contains("GM"))
             {
-                outSynth.removeCompatibleStdBank(StdSynth.getGM1Bank());
+                outSynth.removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());
             }
             for (String strBank : spCompatibleStdBankNames)
             {
                 switch (strBank)
                 {
                     case "GM2":
-                        outSynth.addCompatibleStdBank(StdSynth.getGM2Bank());
+                        outSynth.addCompatibleStdBank(StdSynth.getInstance().getGM2Bank());
                         break;
                     case "XG":
-                        outSynth.addCompatibleStdBank(StdSynth.getXGBank());
+                        outSynth.addCompatibleStdBank(StdSynth.getInstance().getXGBank());
                         break;
                     case "GS":
-                        outSynth.addCompatibleStdBank(GSSynth.getGSBank());
+                        outSynth.addCompatibleStdBank(GSSynth.getInstance().getGSBank());
                         break;
                     default:
                     // Nothing
@@ -572,10 +568,11 @@ public class OutputSynth implements Serializable
                 }
             }
             outSynth.remapTable = spRemapTable;
+            outSynth.remapTable.setContainer(outSynth);
             outSynth.setUserInstrument(spUserInstrument);
             outSynth.setSendModeOnUponStartup(spSendModeOnUponStartup);
             return outSynth;
         }
     }
-
+    
 }

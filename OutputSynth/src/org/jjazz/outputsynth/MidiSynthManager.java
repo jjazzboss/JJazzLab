@@ -39,6 +39,8 @@ import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
+import org.jjazz.midi.synths.GSSynth;
+import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.util.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -76,7 +78,7 @@ public class MidiSynthManager
     }
 
     /**
-     * Search through our active MidiSynth references to find a synth with synthName.
+     * Search the standard synths and then through our active MidiSynth references to find a synth with synthName.
      *
      * @param synthName
      * @return Can be null.
@@ -86,6 +88,14 @@ public class MidiSynthManager
         if (synthName == null)
         {
             throw new IllegalArgumentException("synthName=" + synthName);
+        }
+        if (StdSynth.getInstance().getName().equals(synthName))
+        {
+            return StdSynth.getInstance();
+        }
+        if (GSSynth.getInstance().getName().equals(synthName))
+        {
+            return GSSynth.getInstance();
         }
         for (WeakReference<MidiSynth> ref : getInstance().midiSynthRefs)
         {
@@ -206,7 +216,6 @@ public class MidiSynthManager
     @ServiceProvider(service = MidiSynth.Finder.class)
     static public class SynthFinder implements MidiSynth.Finder
     {
-
         @Override
         public MidiSynth getMidiSynth(String synthName, File synthFile)
         {
@@ -231,26 +240,6 @@ public class MidiSynthManager
                 }
             }
             return res;
-        }
-    }
-
-    @ServiceProvider(service = Instrument.Finder.class)
-    static public class InstrumentFinder implements Instrument.Finder
-    {
-        @Override
-        public Instrument getInstrument(String synthName, String bankName, String patchName)
-        {
-            Instrument ins = null;
-            MidiSynth synth = getInstance().getMidiSynth(synthName);
-            if (synth != null)
-            {
-                InstrumentBank<?> bank = synth.getBank(bankName);
-                if (bank != null)
-                {
-                    ins = bank.getInstrument(patchName);
-                }
-            }
-            return ins;
         }
     }
 

@@ -124,7 +124,7 @@ public class RemapTableUI extends JTable
                 ins = GMRemapTable.PERCUSSION_INSTRUMENT;
             } else
             {
-                ins = StdSynth.getGM1Bank().getInstrument(pc);
+                ins = StdSynth.getInstance().getGM1Bank().getInstrument(pc);
             }
         }
         return ins;
@@ -369,10 +369,10 @@ public class RemapTableUI extends JTable
                             res = getFamily(row).toString();
                             break;
                         case COL_INS:
-                            res = StdSynth.getGM1Bank().getInstrument(pc).getPatchName();
+                            res = StdSynth.getInstance().getGM1Bank().getInstrument(pc).getPatchName();
                             break;
                         case COL_INS_MAP:
-                            GM1Instrument insGM1 = StdSynth.getGM1Bank().getInstrument(pc);
+                            GM1Instrument insGM1 = StdSynth.getInstance().getGM1Bank().getInstrument(pc);
                             res = remapTable.getInstrument(insGM1);
                             break;
                         default:
@@ -438,7 +438,7 @@ public class RemapTableUI extends JTable
             {
                 Instrument ins = (Instrument) value;
                 String text = ins.getPatchName();
-                if (pc >= 0 && ins == tblModel.remapTable.getInstrument(StdSynth.getGM1Bank().getInstrument(pc).getFamily()))
+                if (pc >= 0 && ins == tblModel.remapTable.getInstrument(StdSynth.getInstance().getGM1Bank().getInstrument(pc).getFamily()))
                 {
                     // Special display if Instrument is also the default instrument for the family                
                     text += "   (family's default instrument)";

@@ -115,7 +115,7 @@ public final class MidiWizardAction implements ActionListener, Runnable
 //            Instrument ins = JJazzSynth.getInstance().getNotSetBank().getVoidInstrument();
 //            if (gm2DrumsSupport)
 //            {
-//                ins = StdSynth.getGM2Bank().getDefaultDrumsInstrument();
+//                ins = StdSynth.getInstance().getGM2Bank().getDefaultDrumsInstrument();
 //            }
 //            DefaultInstruments di = DefaultInstruments.getInstance();
 //            di.setInstrument(RvType.Drums, ins);

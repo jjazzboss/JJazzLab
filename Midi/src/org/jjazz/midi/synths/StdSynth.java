@@ -58,22 +58,22 @@ public class StdSynth extends MidiSynth
         addBank(NotSetBank.getInstance());
     }
 
-    static public GM1Bank getGM1Bank()
+    public GM1Bank getGM1Bank()
     {
         return GM1Bank.getInstance();
     }
 
-    static public GM2Bank getGM2Bank()
+    public GM2Bank getGM2Bank()
     {
         return GM2Bank.getInstance();
     }
 
-    static public XGBank getXGBank()
+    public XGBank getXGBank()
     {
         return XGBank.getInstance();
     }
 
-    static public VoidInstrument getVoidInstrument()
+    public VoidInstrument getVoidInstrument()
     {
         return NotSetBank.getInstance().getVoidInstrument();
     }

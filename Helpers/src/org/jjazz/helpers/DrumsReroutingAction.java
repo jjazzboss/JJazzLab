@@ -161,7 +161,7 @@ public class DrumsReroutingAction implements VetoableChangeListener, Runnable
             if (channel != MidiConst.CHANNEL_DRUMS
                     && rv.isDrums()
                     && !midiMix.getDrumsReroutedChannels().contains(channel)
-                    && ins == StdSynth.getVoidInstrument())
+                    && ins == StdSynth.getInstance().getVoidInstrument())
             {
                 res.add(channel);
             }

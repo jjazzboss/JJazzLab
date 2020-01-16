@@ -85,7 +85,7 @@ public class RhythmStub implements Rhythm
         rhythmParameters.add(new RP_STD_Variation());
 
         // Rhythm voices
-        GM1Bank gmb = StdSynth.getGM1Bank();
+        GM1Bank gmb = StdSynth.getInstance().getGM1Bank();
         rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.DRUMS, "Drums", 9));
         rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.BASS, "Bass", gmb.getDefaultInstrument(Family.Bass), 10));
 

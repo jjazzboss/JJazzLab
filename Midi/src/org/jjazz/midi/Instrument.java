@@ -32,51 +32,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiMessage;
 import org.jjazz.midi.synths.StdSynth;
-import org.openide.util.Lookup;
 
 /**
  * The data used to select via MIDI an instrument on a synthesizer.
  */
 public class Instrument implements Serializable
 {
-
-    /**
-     * Required by the Instrument serialization process : an implementation must be available in the global lookup.
-     */
-    public interface Finder
-    {
-
-        static public class Utilities
-        {
-
-            /**
-             * Find an implementation in the global lookup.
-             *
-             * @return
-             */
-            static public Finder getDefault()
-            {
-                Finder finder = Lookup.getDefault().lookup(Finder.class);
-                if (finder == null)
-                {
-                    throw new IllegalStateException("finder=" + finder);
-                }
-                return finder;
-            }
-        }
-
-        /**
-         * Search for an Instrument instance from the specified name.
-         *
-         * @param synthName The MidiSynth name containing the bank. Can't be null.
-         * @param bankName  The instrument bank's name. Can't be null.
-         * @param patchName Can't be null.
-         * @return Null if no bank found
-         */
-        Instrument getInstrument(String synthName, String bankName, String patchName);
-
-    }
-
+  
     private InstrumentBank<?> bank;
     private String patchName;
     private MidiAddress address;
@@ -274,7 +236,7 @@ public class Instrument implements Serializable
      * Save this Instrument as a string so that it can be retrieved by loadFromString().
      * <p>
      *
-     * @return A string "MidiSynthName, BankName, PatchName"
+     * @return A string "MidiSynthName#_#BankName#_#PatchName"
      * @throws IllegalStateException If instrument does not have an InstrumentBank and MidiSynth defined.
      * @see loadFromString(String)
      */
@@ -288,7 +250,7 @@ public class Instrument implements Serializable
         {
             this, getBank().getName(), getBank().getMidiSynth().getName()
         });
-        return getBank().getMidiSynth().getName() + ", " + getBank().getName() + ", " + getPatchName();
+        return getBank().getMidiSynth().saveAsString() + "#_#" + getBank().getName() + "#_#" + getPatchName();
     }
 
     /**
@@ -307,17 +269,26 @@ public class Instrument implements Serializable
         {
             throw new NullPointerException("s");
         }
-        String[] strs = s.split(" *, *");
+        String[] strs = s.split(" *#_# *");
         if (strs.length != 3)
         {
             LOGGER.warning("loadFromString() Invalid string format : " + s);
             return null;
         }
-        String synthName = strs[0].trim();
+        String synthSaveString = strs[0].trim();
         String bankName = strs[1].trim();
         String patchName = strs[2].trim();
 
-        Instrument ins = Finder.Utilities.getDefault().getInstrument(synthName, bankName, patchName);
+        MidiSynth synth = MidiSynth.loadFromString(synthSaveString);
+        Instrument ins = null;
+        if (synth != null)
+        {
+            InstrumentBank<?> bank = synth.getBank(bankName);
+            if (bank != null)
+            {
+                ins = bank.getInstrument(patchName);
+            }
+        }
         return ins;
     }
 
@@ -362,7 +333,7 @@ public class Instrument implements Serializable
             Instrument ins = Instrument.loadFromString(spSaveString);
             if (ins == null)
             {
-                GM1Bank gm1Bank = StdSynth.getGM1Bank();
+                GM1Bank gm1Bank = StdSynth.getInstance().getGM1Bank();
                 ins = gm1Bank.guessInstrument(spPatchname.trim());
                 if (ins == null)
                 {

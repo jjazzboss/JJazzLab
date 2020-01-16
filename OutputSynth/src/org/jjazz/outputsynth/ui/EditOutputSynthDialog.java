@@ -35,14 +35,18 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
+import org.jjazz.util.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.awt.StatusDisplayer;
+import org.openide.util.Exceptions;
 import org.openide.windows.WindowManager;
 
 /**
  */
 public class EditOutputSynthDialog extends javax.swing.JDialog implements PropertyChangeListener
 {
+
     private static EditOutputSynthDialog INSTANCE;
     private OutputSynth outputSynth;
     private static final Logger LOGGER = Logger.getLogger(EditOutputSynthDialog.class.getSimpleName());
@@ -79,7 +83,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
         outputSynth = outSynth;
         outputSynth.addPropertyChangeListener(this);
         editor.preset(outputSynth);
-        updateTitle();
+        updateUI();
     }
 
     // ==============================================================================
@@ -92,7 +96,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
         {
             if (evt.getPropertyName() == OutputSynth.PROP_FILE)
             {
-                updateTitle();
+                updateUI();
             }
         } else if (evt.getSource() == OutputSynthManager.getInstance())
         {
@@ -102,19 +106,20 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
             }
         }
     }
-    
+
     // ==============================================================================
     // Private methods
     // ==============================================================================
-
-    private void updateTitle()
+    private void updateUI()
     {
-        String title = "Output Synth Editor";
+        String title = "Output Synth Configuration Editor";
+        String cfgName = outputSynth.getFile() == null ? "-" : outputSynth.getFile().getName();
         if (outputSynth.getFile() != null)
         {
-            title += ": " + outputSynth.getFile().getName();
+            title += ": " + cfgName;
         }
         this.setTitle(title);
+        this.tf_configName.setText(cfgName);
     }
 
     /**
@@ -160,12 +165,15 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
 
         editor = new org.jjazz.outputsynth.ui.OutputSynthEditor();
         btn_Save = new javax.swing.JButton();
-        btn_SaveAs = new javax.swing.JButton();
+        btn_SaveAsConfig = new javax.swing.JButton();
         btn_Load = new javax.swing.JButton();
         btn_Reset = new javax.swing.JButton();
+        tf_configName = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
 
         setTitle(org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.title")); // NOI18N
 
+        btn_Save.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         org.openide.awt.Mnemonics.setLocalizedText(btn_Save, org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.btn_Save.text")); // NOI18N
         btn_Save.setToolTipText(org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.btn_Save.toolTipText")); // NOI18N
         btn_Save.addActionListener(new java.awt.event.ActionListener()
@@ -176,13 +184,13 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_SaveAs, org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.btn_SaveAs.text")); // NOI18N
-        btn_SaveAs.setToolTipText(org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.btn_SaveAs.toolTipText")); // NOI18N
-        btn_SaveAs.addActionListener(new java.awt.event.ActionListener()
+        org.openide.awt.Mnemonics.setLocalizedText(btn_SaveAsConfig, org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.btn_SaveAsConfig.text")); // NOI18N
+        btn_SaveAsConfig.setToolTipText(org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.btn_SaveAsConfig.toolTipText")); // NOI18N
+        btn_SaveAsConfig.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                btn_SaveAsActionPerformed(evt);
+                btn_SaveAsConfigActionPerformed(evt);
             }
         });
 
@@ -206,6 +214,12 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
             }
         });
 
+        tf_configName.setEditable(false);
+        tf_configName.setText(org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.tf_configName.text")); // NOI18N
+        tf_configName.setToolTipText(org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.tf_configName.toolTipText")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.jLabel1.text")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -214,9 +228,13 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tf_configName, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_Load)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_SaveAs)
+                        .addComponent(btn_SaveAsConfig)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_Reset)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -227,14 +245,15 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(editor, javax.swing.GroupLayout.PREFERRED_SIZE, 637, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(editor, javax.swing.GroupLayout.DEFAULT_SIZE, 512, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btn_Save)
-                    .addComponent(btn_SaveAs)
+                    .addComponent(btn_SaveAsConfig)
                     .addComponent(btn_Load)
-                    .addComponent(btn_Reset))
+                    .addComponent(btn_Reset)
+                    .addComponent(tf_configName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
                 .addContainerGap())
         );
 
@@ -249,11 +268,12 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
             try
             {
                 outputSynth.saveToFile(f);
+                StatusDisplayer.getDefault().setStatusText("Saved " + f.getAbsolutePath());
             } catch (IOException ex)
             {
                 String msg = "Problem saving output synth file " + f.getName() + " : " + ex.getLocalizedMessage();
                 LOGGER.warning("btn_SaveActionPerformed() " + msg);
-                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
+                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
             }
         }
@@ -262,35 +282,73 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
 
     private void btn_ResetActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_ResetActionPerformed
     {//GEN-HEADEREND:event_btn_ResetActionPerformed
-        outputSynth.reset();
+        String msg = "This will reset this dialog settings to their default values. Do you confirm ?";
+        NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
+        Object result = DialogDisplayer.getDefault().notify(d);
+        if (NotifyDescriptor.YES_OPTION == result)
+        {
+            outputSynth.reset();
+        }
     }//GEN-LAST:event_btn_ResetActionPerformed
 
     private void btn_LoadActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_LoadActionPerformed
     {//GEN-HEADEREND:event_btn_LoadActionPerformed
         OutputSynthManager osm = OutputSynthManager.getInstance();
-        File f = osm.showSelectOutputSynthFileDialog();
+        File f = osm.showSelectOutputSynthFileDialog(false);
         if (f != null)
         {
             OutputSynth outSynth = osm.loadOutputSynth(f, true);
             if (outSynth != null)
             {
                 osm.setOutputSynth(outSynth);
+                StatusDisplayer.getDefault().setStatusText("Loaded " + f.getAbsolutePath());
             }
         }
     }//GEN-LAST:event_btn_LoadActionPerformed
 
-    private void btn_SaveAsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_SaveAsActionPerformed
-    {//GEN-HEADEREND:event_btn_SaveAsActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btn_SaveAsActionPerformed
+    private void btn_SaveAsConfigActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_SaveAsConfigActionPerformed
+    {//GEN-HEADEREND:event_btn_SaveAsConfigActionPerformed
+        OutputSynthManager osm = OutputSynthManager.getInstance();
+        File f = osm.showSelectOutputSynthFileDialog(true);
+        if (f != null)
+        {
+            if (f.exists())
+            {
+                String msg = "Overwrite " + f.getName() + " ?";
+                NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
+                Object result = DialogDisplayer.getDefault().notify(d);
+                if (NotifyDescriptor.YES_OPTION != result)
+                {
+                    return;
+                }
+            }
+            OutputSynth newOutSynth = new OutputSynth(outputSynth);
+            try
+            {
+                newOutSynth.saveToFile(f);
+            } catch (IOException ex)
+            {
+                String msg = "Problem saving file " + f.getName() + ". Ex=" + ex.getLocalizedMessage();
+                LOGGER.warning("btn_SaveAsConfigActionPerformed() " + msg);
+                NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                return;
+            }
+            osm.setOutputSynth(newOutSynth);
+            StatusDisplayer.getDefault().setStatusText("Saved " + f.getAbsolutePath());
+        }
+
+    }//GEN-LAST:event_btn_SaveAsConfigActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_Load;
     private javax.swing.JButton btn_Reset;
     private javax.swing.JButton btn_Save;
-    private javax.swing.JButton btn_SaveAs;
+    private javax.swing.JButton btn_SaveAsConfig;
     private org.jjazz.outputsynth.ui.OutputSynthEditor editor;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JTextField tf_configName;
     // End of variables declaration//GEN-END:variables
 
 }

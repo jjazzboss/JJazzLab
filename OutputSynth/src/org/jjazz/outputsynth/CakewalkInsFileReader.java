@@ -227,7 +227,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                             + " in file " + fileName + " at line " + lineCount + ". Using value SubGM1 PC=0 instead.");
                                     pcGM1 = 0;
                                 }
-                                insGM1 = StdSynth.getGM1Bank().getInstrument(pcGM1);
+                                insGM1 = StdSynth.getInstance().getGM1Bank().getInstrument(pcGM1);
                             }
 
                             // Get rid of the extensions if any
@@ -239,7 +239,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             if (insGM1 == null)
                             {
                                 // Try to find a substitute using the patchName
-                                insGM1 = StdSynth.getGM1Bank().guessInstrument(patchName);
+                                insGM1 = StdSynth.getInstance().getGM1Bank().guessInstrument(patchName);
                             }
                         }
 

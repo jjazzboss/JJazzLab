@@ -116,7 +116,7 @@ public class VoidInstrument extends GM1Instrument implements Serializable
 
         private Object readResolve() throws ObjectStreamException
         {
-            return StdSynth.getVoidInstrument();
+            return StdSynth.getInstance().getVoidInstrument();
         }
     }
 

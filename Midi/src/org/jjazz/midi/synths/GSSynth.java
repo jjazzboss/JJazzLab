@@ -57,12 +57,12 @@ public class GSSynth extends MidiSynth
         addBank(getGS_SC88Pro_Bank());
     }
 
-    static public GSBank getGSBank()
+    public GSBank getGSBank()
     {
         return GSBank.getInstance();
     }
 
-    static public GSBank_SC88Pro getGS_SC88Pro_Bank()
+    public GSBank_SC88Pro getGS_SC88Pro_Bank()
     {
         return GSBank_SC88Pro.getInstance();
     }

@@ -518,7 +518,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
                 file = null;
             }
             // Translate into an IOException to be handled by the Netbeans framework 
-            throw new IOException("XStream XML unmarshalling error", e);
+            throw new IOException("XStream XML marshalling error", e);
         }
     }
 

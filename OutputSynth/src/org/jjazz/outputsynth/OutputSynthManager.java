@@ -35,7 +35,9 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.filechooser.FileSystemView;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
+import org.jjazz.ui.utilities.SingleRootFileSystemView;
 import org.jjazz.util.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -48,21 +50,22 @@ import org.openide.windows.WindowManager;
  */
 public class OutputSynthManager implements PropertyChangeListener
 {
-
+    
     public final static String PROP_DEFAULT_OUTPUTSYNTH = "OutputSynth";
     public final static String DEFAULT_OUTPUT_SYNTH_FILENAME = "Default.cfg";
     public final static String JJAZZLAB_OUTPUT_SYNTH_FILENAME = "JJazzLab-SoundFont.cfg";
     public final static String OUTPUT_SYNTH_FILES_DIR = "OutputSynthFiles";
     public final static String OUTPUT_SYNTH_FILES_EXT = "cfg";
-
+    
     private static final String OUTPUT_SYNTH_FILES_ZIP = "resources/OutputSynthFiles.zip";
-
+    
     private static OutputSynthManager INSTANCE;
+    private static JFileChooser CHOOSER_INSTANCE;
     private OutputSynth outputSynth;
     private static Preferences prefs = NbPreferences.forModule(MidiSynthManager.class);
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(OutputSynthManager.class.getSimpleName());
-
+    
     public static OutputSynthManager getInstance()
     {
         synchronized (OutputSynthManager.class)
@@ -74,7 +77,7 @@ public class OutputSynthManager implements PropertyChangeListener
         }
         return INSTANCE;
     }
-
+    
     private OutputSynthManager()
     {
         String path = prefs.get(PROP_DEFAULT_OUTPUTSYNTH, DEFAULT_OUTPUT_SYNTH_FILENAME);
@@ -125,6 +128,10 @@ public class OutputSynthManager implements PropertyChangeListener
         }
         outputSynth = outSynth;
         outputSynth.addPropertyChangeListener(this);        // Listen to file changes
+        if (outputSynth.getFile() != null)
+        {
+            prefs.put(PROP_DEFAULT_OUTPUTSYNTH, outputSynth.getFile().getName());
+        }
         pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, old, outputSynth);
     }
 
@@ -132,30 +139,38 @@ public class OutputSynthManager implements PropertyChangeListener
      * Show a dialog to select an OutputSynth file.
      * <p>
      *
-     * @return The selected file. Null if user cancelled or no selection.
+     * @param save If true show a save dialog, if false an open dialog.
+     * @return The selected file. Null if user cancelled or no valid selection. File is guaranteed to have appropriate location
+     *         and extension.
      */
-    public File showSelectOutputSynthFileDialog()
+    public File showSelectOutputSynthFileDialog(boolean save)
     {
-        // Collect all file extensions managed by the MidiSynthFileReaders       
-        // Initialize the file chooser
-        JFileChooser chooser = org.jjazz.ui.utilities.Utilities.getFileChooserInstance();
-        chooser.resetChoosableFileFilters();
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("Output synth config. files (" + "." + OUTPUT_SYNTH_FILES_EXT + ")", OUTPUT_SYNTH_FILES_EXT);
-        chooser.addChoosableFileFilter(filter);
-        chooser.setAcceptAllFileFilterUsed(false);
-        chooser.setMultiSelectionEnabled(false);
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setDialogTitle("Load Output Synth Configuration File");
-        chooser.setCurrentDirectory(getOutputSynthFilesDir());
-
-        // Show dialog
-        if (chooser.showOpenDialog(WindowManager.getDefault().getMainWindow()) != JFileChooser.APPROVE_OPTION)
+        JFileChooser chooser = getFileChooserInstance();
+        chooser.setDialogTitle((save ? "Save" : "Load") + " Output Synth Configuration File");
+        Object res;
+        if (save)
         {
-            // User cancelled
-            return null;
+            res = chooser.showSaveDialog(WindowManager.getDefault().getMainWindow());
+        } else
+        {
+            res = chooser.showOpenDialog(WindowManager.getDefault().getMainWindow());
         }
-
-        return chooser.getSelectedFile();
+        File f = null;
+        if (res.equals(JFileChooser.APPROVE_OPTION))
+        {
+            f = chooser.getSelectedFile();
+            if (!f.getParentFile().equals(getOutputSynthFilesDir()))
+            {
+                String msg = "Invalid directory. Output synth configuration file must be in the default directory";
+                NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                chooser.setCurrentDirectory(getOutputSynthFilesDir());
+                return null;
+            }
+            // Make sure we have the right extension
+            f = new File(f.getParentFile(), Utilities.replaceExtension(f.getName(), OutputSynthManager.OUTPUT_SYNTH_FILES_EXT));            
+        }
+        return f;
     }
 
     /**
@@ -180,7 +195,7 @@ public class OutputSynthManager implements PropertyChangeListener
             synth = (OutputSynth) xstream.fromXML(f);
         } catch (XStreamException ex)
         {
-            String msg = "Problem reading file: " + f.getAbsolutePath() + ".\n" + ex.getLocalizedMessage();
+            String msg = "Problem reading file " + f.getAbsolutePath() + ": " + ex.getLocalizedMessage();
             LOGGER.log(Level.WARNING, "loadOutputSynth() - {0}", msg);
             if (notifyUser)
             {
@@ -192,12 +207,12 @@ public class OutputSynthManager implements PropertyChangeListener
         synth.setFile(f);
         return synth;
     }
-
+    
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
-
+    
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
@@ -244,6 +259,23 @@ public class OutputSynthManager implements PropertyChangeListener
             LOGGER.info("getOutputSynthFilesDir() copied " + files.length + " files into " + rDir.getAbsolutePath());
         }
         return rDir;
+    }
+    
+    private JFileChooser getFileChooserInstance()
+    {
+        if (CHOOSER_INSTANCE == null)
+        {
+            FileSystemView fsv = new SingleRootFileSystemView(getOutputSynthFilesDir());
+            CHOOSER_INSTANCE = new JFileChooser(fsv);
+            CHOOSER_INSTANCE.resetChoosableFileFilters();
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("Output synth config. files (" + "." + OUTPUT_SYNTH_FILES_EXT + ")", OUTPUT_SYNTH_FILES_EXT);
+            CHOOSER_INSTANCE.addChoosableFileFilter(filter);
+            CHOOSER_INSTANCE.setAcceptAllFileFilterUsed(false);
+            CHOOSER_INSTANCE.setMultiSelectionEnabled(false);
+            CHOOSER_INSTANCE.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            CHOOSER_INSTANCE.setCurrentDirectory(getOutputSynthFilesDir());
+        }
+        return CHOOSER_INSTANCE;
     }
 
     /**
