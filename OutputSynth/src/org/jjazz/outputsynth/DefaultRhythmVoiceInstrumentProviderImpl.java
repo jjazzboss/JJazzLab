@@ -34,7 +34,6 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = RhythmVoiceInstrumentProvider.class)
 public class DefaultRhythmVoiceInstrumentProviderImpl implements RhythmVoiceInstrumentProvider
 {
-
     @Override
     public String getId()
     {

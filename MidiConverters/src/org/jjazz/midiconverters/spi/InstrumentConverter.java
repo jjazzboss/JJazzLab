@@ -23,7 +23,9 @@
  */
 package org.jjazz.midiconverters.spi;
 
+import java.util.List;
 import org.jjazz.midi.Instrument;
+import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
 
 /**
@@ -37,9 +39,10 @@ public interface InstrumentConverter
     /**
      * Try to find in destSynth an instrument corresponding to srcIns.
      *
-     * @param srcIns
+     * @param srcIns    srcIns's MidiSynth is different from destSynth
      * @param destSynth
+     * @param banks     Limit search to these banks. They must belong to destSynth. If null search all the destSynth banks.
      * @return Can be null if no matching instrument found.
      */
-    Instrument convertInstrument(Instrument srcIns, MidiSynth destSynth);
+    Instrument convertInstrument(Instrument srcIns, MidiSynth destSynth, List<InstrumentBank<?>> banks);
 }

@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.midi.Instrument;
+import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
 import org.openide.util.Lookup;
 
@@ -88,24 +89,43 @@ public class ConvertersManager
     }
 
     /**
-     * Try to convert an Instrument from a source MidiSynth into an instrument of destSynth.
+     * Try to convert an Instrument into an instrument of destSynth.
      * <p>
      * The method asks each InstrumentConverter found in the global lookup to do the conversion, until a conversion succeeds.
      *
-     * @param ins
+     * @param srcIns
      * @param destSynth
+     * @param banks     Limit the search to these destSynth banks. If null use all banks of destSynth.
      * @return null if no conversion could be done.
      */
-    public Instrument convertInstrument(Instrument ins, MidiSynth destSynth)
+    public Instrument convertInstrument(Instrument srcIns, MidiSynth destSynth, List<InstrumentBank<?>> banks)
     {
-        if (ins == null || destSynth == null)
+        if (srcIns == null || destSynth == null)
         {
-            throw new IllegalArgumentException("ins=" + ins + " destSynth=" + destSynth);
+            throw new IllegalArgumentException("ins=" + srcIns + " destSynth=" + destSynth);
         }
+        if (banks != null)
+        {
+            for (InstrumentBank<?> bank : banks)
+            {
+                if (bank.getMidiSynth() != destSynth)
+                {
+                    throw new IllegalArgumentException("srcIns=" + srcIns.toLongString() + " destSynth=" + destSynth + " banks=" + banks + " bank=" + bank);
+                }
+            }
+        }
+        // Special easy case: check if srcSynth is an instrument from destSynth and its bank is searched
+        InstrumentBank<?> srcBank = srcIns.getBank();
+        if (srcBank != null && destSynth.getBanks().contains(srcBank) && (banks == null || banks.contains(srcBank)))
+        {
+            return srcIns;
+        }
+
+        // Ask all InstrumentConverters from the Lookup
         Instrument res = null;
         for (InstrumentConverter ic : getInstrumentConverters())
         {
-            res = ic.convertInstrument(ins, destSynth);
+            res = ic.convertInstrument(srcIns, destSynth, banks);
             if (res != null)
             {
                 break;

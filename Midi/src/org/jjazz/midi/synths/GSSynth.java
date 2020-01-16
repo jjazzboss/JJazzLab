@@ -54,7 +54,7 @@ public class GSSynth extends MidiSynth
     {
         super(NAME, MANUFACTURER);
         addBank(getGSBank());
-        addBank(getGS_SC88Pro_Bank());
+        // addBank(getGS_SC88Pro_Bank());
     }
 
     public GSBank getGSBank()

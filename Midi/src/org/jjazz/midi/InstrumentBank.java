@@ -256,6 +256,17 @@ public class InstrumentBank<T extends Instrument>
     }
 
     /**
+     * The index of the specified instrument.
+     *
+     * @param ins
+     * @return -1 if not found
+     */
+    public int getIndex(Instrument ins)
+    {
+        return instruments.indexOf(ins);
+    }
+
+    /**
      * Get all the instruments of the bank.
      *
      * @return

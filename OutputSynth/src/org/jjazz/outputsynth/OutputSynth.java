@@ -50,7 +50,7 @@ import org.jjazz.rhythm.api.RhythmVoice;
  */
 public class OutputSynth implements Serializable
 {
-    
+
     public enum SendModeOnUponStartup
     {
         OFF, GM, GM2, XG, GS
@@ -73,7 +73,7 @@ public class OutputSynth implements Serializable
      * oldValue=old UserInstrument, newValue=new UserInstrument
      */
     public static final String PROP_USER_INSTRUMENT = "PROP_USER_INSTRUMENT";
-    
+
     private final List<InstrumentBank<?>> compatibleStdBanks;
     private final List<MidiSynth> customSynths;
     protected GMRemapTable remapTable;
@@ -113,7 +113,7 @@ public class OutputSynth implements Serializable
         userInstrument = os.userInstrument;
         sendModeOnUponStartup = os.getSendModeOnUponStartup();
     }
-    
+
     public GMRemapTable getGMRemapTable()
     {
         return remapTable;
@@ -189,7 +189,7 @@ public class OutputSynth implements Serializable
         {
             throw new IllegalArgumentException("stdBank=" + stdBank);
         }
-        
+
         if ((stdBank == StdSynth.getInstance().getGM2Bank() || stdBank == StdSynth.getInstance().getXGBank()) && compatibleStdBanks.contains(GSSynth.getInstance().getGSBank()))
         {
             LOGGER.warning("addCompatibleStdBank() Can't add " + stdBank + " because the GS bank is used");
@@ -199,7 +199,7 @@ public class OutputSynth implements Serializable
             LOGGER.warning("addCompatibleStdBank() Can't add " + stdBank + " because the GM2 or XG bank is used");
             return;
         }
-        
+
         if (!compatibleStdBanks.contains(this))
         {
             compatibleStdBanks.add(stdBank);
@@ -218,7 +218,7 @@ public class OutputSynth implements Serializable
         {
             throw new IllegalArgumentException("stdBank=" + stdBank);
         }
-        
+
         if (compatibleStdBanks.remove(stdBank))
         {
             pcs.firePropertyChange(PROP_STD_BANK, false, stdBank);
@@ -247,7 +247,7 @@ public class OutputSynth implements Serializable
         {
             throw new IllegalArgumentException("stdBank=" + synth);
         }
-        
+
         if (!customSynths.contains(synth))
         {
             customSynths.add(synth);
@@ -307,13 +307,13 @@ public class OutputSynth implements Serializable
     }
 
     /**
-     * Get an instrument compatible with this OutputSynth for the specified rhythm voice.
+     * Try to get an instrument compatible with this OutputSynth for the specified rhythm voice.
      * <p>
      * Search a matching instrument in the following order :<br>
      * - in the custom synths <br>
      * - in the compatible banks<br>
      * - in the GMRemapTable<br>
-     * - Use the substitute or, if , create a custom instrument for the rv.GetPreferredInstrument().
+     * - Use the GM1Instrument substitute.
      *
      * @param rv
      * @return Can't be null. It may be the VoidInstrument for drums/percussion.
@@ -327,7 +327,7 @@ public class OutputSynth implements Serializable
         // Try with custom synths first
         for (MidiSynth synth : customSynths)
         {
-            ins = cm.convertInstrument(rvIns, synth);
+            ins = cm.convertInstrument(rvIns, synth, null);
             if (ins != null)
             {
                 break;
@@ -335,8 +335,17 @@ public class OutputSynth implements Serializable
         }
         if (ins == null)
         {
-            // Try with the standard banks
-            ins = cm.convertInstrument(rvIns, StdSynth.getInstance());
+            // Try with the standard banks from StdSynth
+            List<InstrumentBank<?>> stdBanks = new ArrayList<>(compatibleStdBanks);
+            stdBanks.remove(GSSynth.getInstance().getGSBank());
+            ins = cm.convertInstrument(rvIns, StdSynth.getInstance(), stdBanks);
+        }
+        if (ins == null && compatibleStdBanks.contains(GSSynth.getInstance().getGSBank()))
+        {
+            // Try with the standard bank from GSSynth
+            List<InstrumentBank<?>> stdBanks = new ArrayList<>();
+            stdBanks.add(GSSynth.getInstance().getGSBank());
+            ins = cm.convertInstrument(rvIns, GSSynth.getInstance(), stdBanks);
         }
         if (ins == null)
         {
@@ -415,10 +424,10 @@ public class OutputSynth implements Serializable
             throw new IllegalArgumentException("f=" + f);
         }
         LOGGER.fine("saveToFile() f=" + f.getAbsolutePath());
-        
+
         File prevFile = getFile();
         setFile(f);
-        
+
         try (FileOutputStream fos = new FileOutputStream(f))
         {
             XStream xstream = new XStream();
@@ -436,12 +445,12 @@ public class OutputSynth implements Serializable
             throw new IOException("XStream XML marshalling error", e);
         }
     }
-    
+
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
-    
+
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
@@ -469,7 +478,7 @@ public class OutputSynth implements Serializable
         }
         return res;
     }
-    
+
     private List<InstrumentBank<?>> getStdBanks()
     {
         ArrayList<InstrumentBank<?>> res = new ArrayList<>();
@@ -485,7 +494,7 @@ public class OutputSynth implements Serializable
     {
         return new SerializationProxy(this);
     }
-    
+
     private void readObject(ObjectInputStream stream)
             throws InvalidObjectException
     {
@@ -497,7 +506,8 @@ public class OutputSynth implements Serializable
      * <p>
      */
     protected static class SerializationProxy implements Serializable
-    {        
+    {
+
         private static final long serialVersionUID = -29672611210L;
         private final int spVERSION = 1;
         private final List<String> spCompatibleStdBankNames = new ArrayList<>();
@@ -505,7 +515,7 @@ public class OutputSynth implements Serializable
         private GMRemapTable spRemapTable;
         private Instrument spUserInstrument;
         private SendModeOnUponStartup spSendModeOnUponStartup;
-        
+
         protected SerializationProxy(OutputSynth outSynth)
         {
             for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
@@ -531,7 +541,7 @@ public class OutputSynth implements Serializable
             spUserInstrument = outSynth.getUserInstrument();
             spSendModeOnUponStartup = outSynth.getSendModeOnUponStartup();
         }
-        
+
         private Object readResolve() throws ObjectStreamException
         {
             OutputSynth outSynth = new OutputSynth();
@@ -574,5 +584,5 @@ public class OutputSynth implements Serializable
             return outSynth;
         }
     }
-    
+
 }
