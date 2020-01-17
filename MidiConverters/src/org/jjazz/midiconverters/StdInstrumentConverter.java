@@ -190,9 +190,53 @@ public class StdInstrumentConverter implements InstrumentConverter
     {
         if (CONVERSION_TABLE_XG_TO_GM2 == null)
         {
-            CONVERSION_TABLE_XG_TO_GM2 = new ConversionTable("XG_to_GM2", MAP_XG_TO_GM2);
+            CONVERSION_TABLE_XG_TO_GM2 = new XgToGM2ConversionTable();
         }
         return CONVERSION_TABLE_XG_TO_GM2;
+    }
+
+    /**
+     * Overridden to fix the reverse GM2=>XG drumkit conversion
+     * <p>
+     */
+    private static class XgToGM2ConversionTable extends ConversionTable
+    {
+
+        /**
+         * For GM2=>XG drumkit conversion (GM2index=256-264)
+         */
+        static private final int[] MAP_GM2_TO_XG_DRUMKIT =
+        {
+            480, 488, 490, 492, 493, 500, 502, 504, 516
+        };
+
+        public XgToGM2ConversionTable()
+        {
+            super("XG_to_GM2", MAP_XG_TO_GM2);
+        }
+
+        /**
+         * Overridden to fix GM2=>XG drumkit conversion (GM2index=256-264)
+         *
+         * @param bankToIndex
+         * @return
+         */
+        @Override
+        public int reverseConvert(int bankToIndex)
+        {
+            int bankFromIndex;
+            if (bankToIndex < 256)
+            {
+                // We can use the normal map
+                bankFromIndex = super.reverseConvert(bankToIndex);
+            } else
+            {
+                // The normal map can not be used in reverse mode for drum kits in reverse mode 
+                // because a single GM2 drumkit is often used by several very different XG drums kits
+                bankFromIndex = MAP_GM2_TO_XG_DRUMKIT[bankToIndex - 256];
+            }
+            return bankFromIndex;
+        }
     }
 
     //===========================================================
@@ -455,7 +499,16 @@ public class StdInstrumentConverter implements InstrumentConverter
         218,
         219,
         220,
-        221
+        221,
+        222, // Standard Kit DRUMS
+        223,
+        224,
+        225,
+        226,
+        227,
+        228,
+        229,
+        230         // SFX Kit DRUMS
     };
 
     static private final int[] MAP_XG_TO_GM2 =
@@ -939,7 +992,56 @@ public class StdInstrumentConverter implements InstrumentConverter
         253,
         254,
         255,
-        255
+        255,
+        256, // Standard Drums Kit
+        256,
+        256,
+        256,
+        256,
+        256,
+        256,
+        256,
+        257,
+        257,
+        258,
+        258,
+        259,
+        260,
+        260,
+        260,
+        260,
+        260,
+        260,
+        260,
+        261,
+        261,
+        262,
+        262,
+        263,
+        259,
+        259,
+        259,
+        259,
+        259,
+        256, // FROM HERE (XG Index=510, XG Live Drum Kit Series starts), because single GM2 kits are reused by several very different XG drums kits. ReverseMap won't be good.
+        256,
+        262,
+        256,
+        256,
+        262,
+        264,
+        264,
+        259,
+        259,
+        259,
+        256,
+        256,
+        256,
+        256,
+        256,
+        256,
+        256,
+        256
     };
 
 }

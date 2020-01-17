@@ -236,9 +236,9 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                 patchName = patchName.substring(0, patchName.indexOf("{{"));
                             }
 
-                            if (insGM1 == null)
+                            if (kit==null && insGM1 == null)
                             {
-                                // Try to find a substitute using the patchName
+                                // For non-drums voices try to find a substitute using the patchName
                                 insGM1 = StdSynth.getInstance().getGM1Bank().guessInstrument(patchName);
                             }
                         }
