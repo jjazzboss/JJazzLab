@@ -23,48 +23,73 @@
  */
 package org.jjazz.midiconverters.api;
 
-import java.util.HashMap;
-
 /**
- * A simple class to store bank index conversion maps.
+ * A bidirectional conversion table between instrument indexes of 2 banks, bankFrom and bankTo.
  */
 public class ConversionTable
 {
 
     private String id;
-    private HashMap<Integer, Integer> map;
-    private HashMap<Integer, Integer> reverseMap;
+    private int[] map;
+    private int[] reverseMap;
 
     /**
+     * Create a ConversionTable.
+     * <p>
+     * bankFrom size must be &gt;= bankTo size.
      *
-     * @param id
-     * @param mapFromTo
+     * @param id For debugging message, e.g. "GM2=>GS"
+     * @param map map[bankFromIndex] = bankToIndex. bankToIndex must not be &gt; (bankFrom.size()-1);
      */
-    public ConversionTable(String id, HashMap<Integer, Integer> mapFromTo)
+    public ConversionTable(String id, int[] map)
     {
-        if (id == null || id.isEmpty() || map == null)
+        if (id == null || id.isEmpty() || map == null || map.length == 0)
         {
             throw new IllegalArgumentException("id=" + id + " map=" + map);
         }
         this.map = map;
     }
 
-    public HashMap<Integer, Integer> getMapFromTo()
+    /**
+     * Get the index in bankTo corresponding to the specified index in bankFrom.
+     * <p>
+     * E.g. for a "GM2=>GS" table, get the GS index corresponding to a GM2 index.
+     *
+     * @param bankFromIndex
+     * @return
+     */
+    public int convert(int bankFromIndex)
     {
-        return map;
+        return map[bankFromIndex];
     }
 
-    public HashMap<Integer, Integer> getMapToFrom()
+    /**
+     * Get the index in bankFrom corresponding to the specified index in bankTo.
+     *
+     * E.g. for a "GM2=>GS" table, get the GM2 index corresponding to a GS index.
+     * 
+     * @param bankToIndex
+     * @return
+     */
+    public int reverseConvert(int bankToIndex)
     {
         if (reverseMap == null)
         {
-            reverseMap = new HashMap<>((int) (map.size() / 0.7f));     // With default LoadFactor of 0.75, this should avoid rehash
-            for (int to : map.keySet())
+            // First use, build the reverse table
+            reverseMap = new int[map.length];  // might be too large but not a problem
+            int lastBankToIdx = -1;
+            for (int bankFromIdx = 0; bankFromIdx < map.length; bankFromIdx++)
             {
-                reverseMap.put(map.get(to), to);
+                int bankToIdx = map[bankFromIdx];
+                if (bankToIdx != lastBankToIdx)
+                {
+                    // Save only the first bankFromIndex if several ones are mapped to the same bankToIndex
+                    reverseMap[bankToIdx] = bankFromIdx;
+                }
+                lastBankToIdx = bankToIdx;
             }
         }
-        return reverseMap;
+        return reverseMap[bankToIndex];
     }
 
     @Override
