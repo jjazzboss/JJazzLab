@@ -37,6 +37,7 @@ import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.synths.Family;
 
 /**
@@ -46,6 +47,18 @@ import org.jjazz.midi.synths.Family;
  */
 public class GMRemapTable implements Serializable, PropertyChangeListener
 {
+
+    /**
+     * Specific exception for this object.
+     */
+    public class ArgumentsException extends Exception
+    {
+
+        public ArgumentsException(String msg)
+        {
+            super(msg);
+        }
+    }
 
     /**
      * Special instances for the Drums/Percussion, since GM1 does not define them.
@@ -123,7 +136,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
     {
         for (Instrument ins : getInstrumentMap().keySet())
         {
-            setInstrument(ins, null, true);
+            setInstrumentNoException(ins, null, true);
         }
     }
 
@@ -135,10 +148,9 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
      */
     static public void checkRemappedInstrument(Instrument remappedIns)
     {
-        if (remappedIns == null
-                || (remappedIns != DRUMS_INSTRUMENT && remappedIns != PERCUSSION_INSTRUMENT && !(remappedIns instanceof GM1Instrument)))
+        if (remappedIns == null || remappedIns != DRUMS_INSTRUMENT && remappedIns != PERCUSSION_INSTRUMENT && !(remappedIns instanceof GM1Instrument))
         {
-            throw new IllegalArgumentException("remappedIns=" + remappedIns);
+            throw new IllegalArgumentException("remappedIns");
         }
     }
 
@@ -146,7 +158,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
      * Get the mapped instrument for remappedIns.
      *
      * @param remappedIns Must be a GM1Instrument or the special DRUMS/PERCUSSION static instances.
-     * @return Null if no mapping defined for insGM1orDrumsPerc.
+     * @return Null if no mapping defined for remappedIns.
      */
     public Instrument getInstrument(Instrument remappedIns)
     {
@@ -158,27 +170,29 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
      * Set the mapped instrument for remappedIns.
      *
      * @param remappedIns        Must be a GM1Instrument or the special DRUMS/PERCUSSION static instances.
-     * @param ins                Can be null
+     * @param ins                Can be null. Must be a Drums/Perc instrument with a GM compatible DrumsKit.KeyMap if remappedIns
+     *                           is one of the special DRUMS/PERCUSSION instances.
      * @param useAsFamilyDefault If true ins will be also the default instrument for the remappedIns's family. Not used if
      *                           remappedIns is one of the special DRUMS/PERCUSSION instances.
+     * @throws ArgumentsException If arguments are invalid. The exception error message can be used for user notification.
      */
-    public void setInstrument(Instrument remappedIns, Instrument ins, boolean useAsFamilyDefault)
+    public void setInstrument(Instrument remappedIns, Instrument ins, boolean useAsFamilyDefault) throws ArgumentsException
     {
         checkRemappedInstrument(remappedIns);
-        Instrument oldIns = mapInstruments.put(remappedIns, ins);
-        if (!Objects.equals(ins, oldIns))
+        if (ins == remappedIns)
         {
-            pcs.firePropertyChange(PROP_INSTRUMENT, remappedIns, ins);
+            throw new ArgumentsException("Invalid instrument: " + ins.getPatchName() + ". It must be different from the mapped instrument.");
         }
-        if (useAsFamilyDefault && (remappedIns != DRUMS_INSTRUMENT && remappedIns != PERCUSSION_INSTRUMENT))
+        if (ins != null && !ins.isDrumKit() && (remappedIns == DRUMS_INSTRUMENT || remappedIns == PERCUSSION_INSTRUMENT))
         {
-            Family family = ((GM1Instrument) remappedIns).getFamily();
-            oldIns = mapFamilyInstruments.put(family, ins);
-            if (!Objects.equals(ins, oldIns))
-            {
-                pcs.firePropertyChange(PROP_FAMILY, family, ins);
-            }
+            throw new ArgumentsException("Invalid instrument: " + ins.getPatchName() + ". It must be a Drums/Percussion instrument.");
         }
+        if (ins != null && ins.isDrumKit()
+                && !(ins.getDrumKit().getKeyMap().getName().equals(KeyMapGM.NAME) || (ins.getDrumKit().getKeyMap().getReplacementKeyMap() != null && ins.getDrumKit().getKeyMap().getReplacementKeyMap().getName().equals(KeyMapGM.NAME))))
+        {
+            throw new ArgumentsException("Invalid instrument: " + ins.toLongString() + ". Its DrumKit keymap must be GM-compatible.");
+        }
+        setInstrumentNoException(remappedIns, ins, useAsFamilyDefault);
     }
 
     /**
@@ -252,6 +266,24 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
     // --------------------------------------------------------------------- 
     // Private methods
     // --------------------------------------------------------------------- 
+    private void setInstrumentNoException(Instrument remappedIns, Instrument ins, boolean useAsFamilyDefault)
+    {
+        Instrument oldIns = mapInstruments.put(remappedIns, ins);
+        if (!Objects.equals(ins, oldIns))
+        {
+            pcs.firePropertyChange(PROP_INSTRUMENT, remappedIns, ins);
+        }
+        if (useAsFamilyDefault && (remappedIns != DRUMS_INSTRUMENT && remappedIns != PERCUSSION_INSTRUMENT))
+        {
+            Family family = ((GM1Instrument) remappedIns).getFamily();
+            oldIns = mapFamilyInstruments.put(family, ins);
+            if (!Objects.equals(ins, oldIns))
+            {
+                pcs.firePropertyChange(PROP_FAMILY, family, ins);
+            }
+        }
+    }
+
     /**
      * Remove all mappings where destination instrument uses the specified synth OR bank.
      *
@@ -271,7 +303,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
                     GM1Instrument gmIns = (GM1Instrument) mappedIns;
                     useAsFamilyDefault = mapFamilyInstruments.get(gmIns.getFamily()) == ins;
                 }
-                setInstrument(mappedIns, null, useAsFamilyDefault);
+                setInstrumentNoException(mappedIns, null, useAsFamilyDefault);
             }
         }
     }
@@ -359,7 +391,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
                     LOGGER.warning("readResolve() Can't find instrument for saved string: " + strIns + ". Instrument mapping could not be set for GM instrument " + gmIns.getPatchName());
                     continue;
                 }
-                table.setInstrument(gmIns, destIns, useAsFamilyDefault);
+                table.setInstrumentNoException(gmIns, destIns, useAsFamilyDefault);
             }
             if (!spPercInstrumentStr.equals("NOT_SET"))
             {
@@ -369,7 +401,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
                     LOGGER.warning("readResolve() Can't find instrument for saved string: " + spPercInstrumentStr + ". Instrument mapping could not be set for the PERCUSSION instrument.");
                 } else
                 {
-                    table.setInstrument(PERCUSSION_INSTRUMENT, ins, false);
+                    table.setInstrumentNoException(PERCUSSION_INSTRUMENT, ins, false);
                 }
             }
             if (!spDrumsInstrumentStr.equals("NOT_SET"))
@@ -380,7 +412,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
                     LOGGER.warning("readResolve() Can't find instrument for saved string: " + spDrumsInstrumentStr + ". Instrument mapping could not be set for the DRUMS instrument.");
                 } else
                 {
-                    table.setInstrument(DRUMS_INSTRUMENT, ins, false);
+                    table.setInstrumentNoException(DRUMS_INSTRUMENT, ins, false);
                 }
             }
             return table;

@@ -40,6 +40,7 @@ import org.jjazz.ui.flatcomponents.FlatButton;
 import org.jjazz.ui.flatcomponents.FlatIntegerKnob;
 import org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider;
 import org.jjazz.ui.flatcomponents.FlatTextEditDialog;
+import org.jjazz.util.Utilities;
 
 /**
  * Display a MixChannel.
@@ -56,7 +57,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
     /**
      * Creates a new form InstrumentChannel with a basic model.
-     * 
+     * <p>
      */
     public MixChannelPanel()
     {
@@ -76,9 +77,9 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         MusicController.getInstance().addPlaybackListener(this);
 
         initComponents();
-        
+
         this.fbtn_mute.setEnabled(!model.isUserChannel());
-        this.fbtn_solo.setEnabled(!model.isUserChannel());        
+        this.fbtn_solo.setEnabled(!model.isUserChannel());
         this.lbl_Icon.setText(null);
 
         // Listen to UI changes
@@ -125,6 +126,11 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         this.lbl_Icon.setToolTipText(text);
     }
 
+    public void setNameToolTipText(String text)
+    {
+        this.lbl_name.setToolTipText(text);
+    }
+
     /**
      *
      * @param upperName
@@ -137,7 +143,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
             throw new NullPointerException("upperName");
         }
         String tt = (lowerName != null) ? upperName + " /" + lowerName : upperName;
-        lbl_name.setToolTipText(tt);
         if (upperName.length() > 10)
         {
             upperName = upperName.substring(0, 6).trim() + "...";
@@ -231,17 +236,13 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         }
         this.fbtn_channelId.setText(s);
         this.fbtn_channelId.setToolTipText(tt);
-        this.fbtn_mute.setSelected(model.isMute());
-        this.fbtn_solo.setSelected(model.isSolo());
         Instrument ins = model.getInstrument();
         String patchName = ins.getPatchName();
-        String longName = patchName + " [synth=" + ins.getBank().getMidiSynth().getName() + ", bank=" + ins.getBank().getName() + "]";
-        this.fbtn_Instrument.setToolTipText(longName);
-        if (patchName.length() > 15)
-        {
-            patchName = patchName.substring(0, 15).trim() + "...";
-        }
+        tt = patchName + " [synth=" + ins.getBank().getMidiSynth().getName() + ", bank=" + ins.getBank().getName() + "]";
+        fbtn_Instrument.setToolTipText(tt);
         this.fbtn_Instrument.setvLabel(patchName);
+        this.fbtn_mute.setSelected(model.isMute());
+        this.fbtn_solo.setSelected(model.isSolo());
         this.fslider_volume.setValue(model.getVolume());
         this.knob_chorus.setValue(model.getChorus());
         this.knob_panoramic.setValue(model.getPanoramic());

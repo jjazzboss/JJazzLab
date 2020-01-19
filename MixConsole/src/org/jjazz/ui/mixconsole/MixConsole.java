@@ -49,6 +49,7 @@ import javax.swing.undo.UndoManager;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.base.actions.Savable;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -365,8 +366,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
     private void fbtn_ConnectedSynthStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_fbtn_ConnectedSynthStateChanged
     {//GEN-HEADEREND:event_fbtn_ConnectedSynthStateChanged
-        
-        
+
+
     }//GEN-LAST:event_fbtn_ConnectedSynthStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -599,7 +600,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         }
         mcp.setChannelColor(c);
         mcp.setChannelName(r.getName(), rv.getName());
-        Icon icon;
+        Instrument prefIns = rv.getPreferredInstrument();
+        Icon icon;  
         switch (rv.getType())
         {
             case DRUMS:
@@ -609,7 +611,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                 icon = new ImageIcon(getClass().getResource("resources/Percu-48x48.png"));
                 break;
             default:    // VOICE
-                switch (rv.getPreferredInstrument().getSubstitute().getFamily())
+                switch (prefIns.getSubstitute().getFamily())
                 {
                     case Guitar:
                         icon = new ImageIcon(getClass().getResource("resources/Guitar-48x48.png"));
@@ -633,14 +635,15 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                         break;
                     case Percussive:
                         icon = new ImageIcon(getClass().getResource("resources/Percu-48x48.png"));
-                        break;                   
+                        break;
                     default: // Ethnic, Sound_Effects, Synth_Effects, Pipe, Chromatic_Percussion:
                         icon = new ImageIcon(getClass().getResource("resources/Notes-48x48.png"));
                 }
 
         }
         mcp.setIcon(icon);
-        mcp.setIconToolTipText(rv.getName());
+        mcp.setIconToolTipText(rv.getName());       
+        mcp.setNameToolTipText(prefIns.toLongString());
         return mcp;
 
     }

@@ -36,13 +36,16 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.synths.GSSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midiconverters.api.ConvertersManager;
+import org.jjazz.midiconverters.api.StdInstrumentConverter;
 import org.jjazz.rhythm.api.RhythmVoice;
 
 /**
@@ -324,59 +327,64 @@ public class OutputSynth implements Serializable
         assert rvIns != null : "rv=" + rv;
         ConvertersManager cm = ConvertersManager.getInstance();
         Instrument ins = null;
-        // Try with custom synths first
+        LOGGER.log(Level.FINE, "findInstrument() -- rv={0}", rv.toString());
+
+        // Try with custom synths first        
         for (MidiSynth synth : customSynths)
         {
             ins = cm.convertInstrument(rvIns, synth, null);
             if (ins != null)
             {
+                LOGGER.log(Level.FINE, "findInstrument()    found in custom synth {0}, ins={1}", new Object[]
+                {
+                    synth.getName(), ins.toLongString()
+                });
                 break;
             }
         }
         if (ins == null)
         {
-            // Try with the standard banks from StdSynth
-            List<InstrumentBank<?>> stdBanks = new ArrayList<>(compatibleStdBanks);
-            stdBanks.remove(GSSynth.getInstance().getGSBank());
-            ins = cm.convertInstrument(rvIns, StdSynth.getInstance(), stdBanks);
-        }
-        if (ins == null && compatibleStdBanks.contains(GSSynth.getInstance().getGSBank()))
-        {
-            // Try with the standard bank from GSSynth
-            List<InstrumentBank<?>> stdBanks = new ArrayList<>();
-            stdBanks.add(GSSynth.getInstance().getGSBank());
-            ins = cm.convertInstrument(rvIns, GSSynth.getInstance(), stdBanks);
-        }
-        if (ins == null)
-        {
-            // Use the GM1Substitute or its remaps
-            switch (rv.getType())
+            // Try with the standards banks
+            ins = StdInstrumentConverter.getInstance().convertInstrument(rvIns, null, compatibleStdBanks);
+            if (ins != null)
             {
-                case DRUMS:
-                    ins = remapTable.getInstrument(GMRemapTable.DRUMS_INSTRUMENT);
-                    if (ins == null)
-                    {
-                        ins = StdSynth.getInstance().getVoidInstrument();
-                    }
-                    break;
-                case PERCUSSION:
-                    ins = remapTable.getInstrument(GMRemapTable.PERCUSSION_INSTRUMENT);
-                    if (ins == null)
-                    {
-                        ins = StdSynth.getInstance().getVoidInstrument();
-                    }
-                    break;
-                default:
-                    // Use the default GM1 instrument
-                    ins = remapTable.getInstrument(rvIns.getSubstitute());
-                    if (ins == null)
-                    {
-                        // No remap: use the substitute
-                        ins = rvIns.getSubstitute();
-                    }
-                    break;
+                LOGGER.log(Level.FINE, "findInstrument()    found in StdSynth, ins={0}", ins.toLongString());
             }
         }
+
+        if (ins == null && rv.isDrums())
+        {
+            // Drums voices: use the DrumKit information
+            assert rvIns.isDrumKit() : "rv=" + rv;
+            ins = StdInstrumentConverter.getInstance().convertDrumsInstrument(rvIns, compatibleStdBanks);
+            if (ins == null)
+            {
+                Instrument mappedIns = rv.getType().equals(RhythmVoice.Type.DRUMS) ? GMRemapTable.DRUMS_INSTRUMENT : GMRemapTable.PERCUSSION_INSTRUMENT;
+                ins = remapTable.getInstrument(mappedIns);
+                if (ins == null)
+                {
+                    ins = StdSynth.getInstance().getVoidInstrument();
+                }
+            }
+            LOGGER.log(Level.FINE, "findInstrument()    using mapped or default instrument for drums/perc. ins={0}", ins.toLongString());
+        } else if (ins == null)
+        {
+            // Normal voices: use the substitute or its default GM1 instrument
+            // Try the GM1Instrument remap
+            ins = remapTable.getInstrument(rvIns.getSubstitute());
+            if (ins == null)
+            {
+                // Try the family remap
+                ins = remapTable.getInstrument(rvIns.getSubstitute().getFamily());
+            }
+            if (ins == null)
+            {
+                // No remap: use the substitute
+                ins = rvIns.getSubstitute();
+            }
+            LOGGER.log(Level.FINE, "findInstrument()    using mapped or substitute. ins={0}", ins.toLongString());
+        }
+
         assert ins != null : "rv=" + rv;
         return ins;
     }

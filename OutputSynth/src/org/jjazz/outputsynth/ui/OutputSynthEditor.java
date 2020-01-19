@@ -51,11 +51,13 @@ import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.ui.InstrumentTable;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.outputsynth.GMRemapTable;
+import org.jjazz.outputsynth.GMRemapTable.ArgumentsException;
 import org.jjazz.outputsynth.MidiSynthManager;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynth.SendModeOnUponStartup;
@@ -64,6 +66,7 @@ import org.jjazz.outputsynth.ui.spi.RemapTableInstrumentChooser;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 
 /**
  * An editor for an OutputSynth.
@@ -1078,14 +1081,13 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             Instrument ins = chooser.getSelectedInstrument();
             if (ins != null)
             {
-                if (ins == mappedIns)
-                {
-                    String msg = "Invalid default instrument: " + ins.getPatchName() + ". It must be different from the mapped GM instrument.";
-                    NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-                    DialogDisplayer.getDefault().notify(d);
-                } else
+                try
                 {
                     rTable.setInstrument(mappedIns, ins, chooser.useAsFamilyDefault());
+                } catch (ArgumentsException ex)
+                {
+                    NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                    DialogDisplayer.getDefault().notify(d);
                 }
             }
         }
@@ -1181,7 +1183,13 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             GM1Instrument gmIns = (GM1Instrument) remappedIns;
             useAsFamilyDefault = table.getInstrument(gmIns.getFamily()) == ins;
         }
-        table.setInstrument(remappedIns, null, useAsFamilyDefault);
+        try
+        {
+            table.setInstrument(remappedIns, null, useAsFamilyDefault);
+        } catch (ArgumentsException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
     }//GEN-LAST:event_btn_ResetInstrumentActionPerformed
 
 

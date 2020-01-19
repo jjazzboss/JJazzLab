@@ -21,33 +21,55 @@
  * Contributor(s): 
  *
  */
-package org.jjazz.midiconverters;
+package org.jjazz.midiconverters.api;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.keymap.KeyMapGM;
+import org.jjazz.midi.keymap.KeyMapGSGM2;
+import org.jjazz.midi.keymap.KeyMapXG_PopLatin;
+import org.jjazz.midi.keymap.KeyMapXG_Std;
 import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.GM2Bank;
 import org.jjazz.midi.synths.GSBank;
 import org.jjazz.midi.synths.GSSynth;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.synths.XGBank;
-import org.jjazz.midiconverters.api.ConversionTable;
 import org.jjazz.midiconverters.spi.InstrumentConverter;
-import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Conversion between GM/GS/GM2/XG sounds.
  */
-@ServiceProvider(service = InstrumentConverter.class)
 public class StdInstrumentConverter implements InstrumentConverter
 {
 
     static private ConversionTable CONVERSION_TABLE_GM2_TO_GS;
     static private ConversionTable CONVERSION_TABLE_XG_TO_GM2;
     private static final Logger LOGGER = Logger.getLogger(StdInstrumentConverter.class.getSimpleName());
+
+    private static StdInstrumentConverter INSTANCE;
+
+    public static StdInstrumentConverter getInstance()
+    {
+        synchronized (StdInstrumentConverter.class)
+        {
+            if (INSTANCE == null)
+            {
+                INSTANCE = new StdInstrumentConverter();
+            }
+        }
+        return INSTANCE;
+    }
+
+    private StdInstrumentConverter()
+    {
+    }
 
     @Override
     public String getConverterId()
@@ -56,14 +78,16 @@ public class StdInstrumentConverter implements InstrumentConverter
     }
 
     /**
-     * Accept only instruments from/to the standard banks GM/GM2/XG/GS.
      *
+     * @param srcIns
+     * @param destSynth Can be null.
+     * @param destBanks Must be banks from StdSynth and the GSBank from GSSynth. If null use all these banks.
      * @return
      */
     @Override
     public Instrument convertInstrument(Instrument srcIns, MidiSynth destSynth, List<InstrumentBank<?>> destBanks)
     {
-        if (srcIns == null || destSynth == null)
+        if (srcIns == null)
         {
             throw new IllegalArgumentException("srcIns=" + srcIns + " destSynth=" + destSynth + " destBanks=" + destBanks);
         }
@@ -74,7 +98,15 @@ public class StdInstrumentConverter implements InstrumentConverter
         }
         if (destBanks == null)
         {
-            destBanks = destSynth.getBanks();
+            if (destSynth == null)
+            {
+                destBanks = new ArrayList<>();
+                destBanks.addAll(StdSynth.getInstance().getBanks());
+                destBanks.add(GSSynth.getInstance().getGSBank());
+            } else
+            {
+                destBanks = destSynth.getBanks();
+            }
         }
         if (destBanks.isEmpty())
         {
@@ -84,7 +116,7 @@ public class StdInstrumentConverter implements InstrumentConverter
         {
             if (!isValidBank(destBank))
             {
-                return null;
+                throw new IllegalArgumentException("srcIns=" + srcIns.toLongString() + " destSynth=" + destSynth + " destBanks=" + destBanks);
             }
         }
 
@@ -161,9 +193,106 @@ public class StdInstrumentConverter implements InstrumentConverter
         }
         if (ins == null)
         {
-            LOGGER.warning("convertInstrument() unexpected ins=null result. srcIns=" + srcIns + " destSynth=" + destSynth + " destBanks=" + destBanks);
+            LOGGER.log(Level.WARNING, "convertInstrument() unexpected ins=null result. srcIns={0} destSynth={1} destBanks={2}", new Object[]
+            {
+                srcIns, destSynth, destBanks
+            });
         }
         return ins;
+    }
+
+    /**
+     * Try to convert srcIns into a drums/percussion instrument from the standard banks GM2/XG/GS.
+     * <p>
+     * The search is only based on the instrument's DrumKit information. If DrumKit.Type does not match, try with Type=STANDARD.
+     *
+     *
+     * @param srcIns    Must be a drums/percussion instrument
+     * @param destBanks Can't be null. Must be banks from GM/GM2/XG/GS
+     * @return Can be null. If non null, the instrument KeyMap is guaranteed to be compatible with the KeyMap of srcIns.
+     */
+    public Instrument convertDrumsInstrument(Instrument srcIns, List<InstrumentBank<?>> destBanks)
+    {
+        if (srcIns == null || !srcIns.isDrumKit() || destBanks == null)
+        {
+            throw new IllegalArgumentException("srcIns=" + srcIns + " destBanks=" + destBanks);
+        }
+        if (destBanks.isEmpty())
+        {
+            return null;
+        }
+        for (InstrumentBank<?> destBank : destBanks)
+        {
+            if (!isValidBank(destBank))
+            {
+                throw new IllegalArgumentException("srcIns=" + srcIns.toLongString() + " destBanks=" + destBanks);
+            }
+        }
+
+        Instrument res = null;
+        DrumKit.Type srcType = srcIns.getDrumKit().getType();
+        DrumKit.KeyMap srcKeyMap = srcIns.getDrumKit().getKeyMap();
+        DrumKit.KeyMap srcKeyMapRep = srcIns.getDrumKit().getKeyMap().getReplacementKeyMap();
+
+        DrumKit.KeyMap xgLatinKeyMap = KeyMapXG_PopLatin.getInstance();
+        DrumKit.KeyMap xgKeyMap = KeyMapXG_Std.getInstance();
+        DrumKit.KeyMap gsgm2KeyMap = KeyMapGSGM2.getInstance();
+        DrumKit.KeyMap gmKeyMap = KeyMapGM.getInstance();
+
+        if (srcKeyMap != xgLatinKeyMap && srcKeyMap != xgKeyMap
+                && srcKeyMap != gsgm2KeyMap && srcKeyMap != gmKeyMap)
+        {
+            if (srcKeyMapRep == null
+                    || (srcKeyMapRep != xgLatinKeyMap && srcKeyMapRep != xgKeyMap
+                    && srcKeyMapRep != gsgm2KeyMap && srcKeyMapRep != gmKeyMap))
+            {
+                // srcIns uses a non standard KeyMap : no possible conversion here
+                return null;
+            }
+        }
+
+        XGBank xgBank = StdSynth.getInstance().getXGBank();
+        GM2Bank gm2Bank = StdSynth.getInstance().getGM2Bank();
+        GM1Bank gmBank = StdSynth.getInstance().getGM1Bank();
+        GSBank gsBank = GSSynth.getInstance().getGSBank();
+        boolean isXG = destBanks.contains(xgBank);
+        boolean isGM2 = destBanks.contains(gm2Bank);
+        boolean isGS = destBanks.contains(gsBank);
+        boolean isGM1 = destBanks.contains(gmBank);
+
+        if (!isXG && !isGM2 && !isGS)
+        {
+            // No possible compatibility: there is no drums instrument in GM1
+            return null;
+        }
+
+        // Check keyMap match
+        if (isXG && (srcKeyMap == xgLatinKeyMap || srcKeyMap == xgKeyMap || srcKeyMap == gmKeyMap))
+        {
+            res = getDrumsInstrument(xgBank, srcType, srcKeyMap);
+        } else if (isGM2 && (srcKeyMap == gsgm2KeyMap || srcKeyMap == gmKeyMap))
+        {
+            res = getDrumsInstrument(gm2Bank, srcType, srcKeyMap);
+        } else if (isGS && (srcKeyMap == gsgm2KeyMap || srcKeyMap == gmKeyMap))
+        {
+            res = getDrumsInstrument(gsBank, srcType, srcKeyMap);
+        }
+
+        if (res == null && srcKeyMapRep != null)
+        {
+            // No, try with the replacement KeyMap, or if srcKeyMap is GM
+            if (isXG && (srcKeyMapRep == xgLatinKeyMap || srcKeyMapRep == xgKeyMap || srcKeyMapRep == gmKeyMap))
+            {
+                res = getDrumsInstrument(xgBank, srcType, srcKeyMapRep);
+            } else if (isGM2 && (srcKeyMapRep == gsgm2KeyMap || srcKeyMapRep == gmKeyMap))
+            {
+                res = getDrumsInstrument(gm2Bank, srcType, srcKeyMapRep);
+            } else if (isGS && (srcKeyMap == gsgm2KeyMap || srcKeyMapRep == gmKeyMap))
+            {
+                res = getDrumsInstrument(gsBank, srcType, srcKeyMapRep);
+            }
+        }
+        return res;
     }
 
     // =====================================================================================
@@ -175,6 +304,33 @@ public class StdInstrumentConverter implements InstrumentConverter
                 || bank == StdSynth.getInstance().getGM2Bank()
                 || bank == StdSynth.getInstance().getXGBank()
                 || bank == GSSynth.getInstance().getGSBank();
+    }
+
+    /**
+     * Search with the specified parameters, then with type=STANDARD
+     *
+     * @param bank
+     * @param type
+     * @param keyMap
+     * @return
+     */
+    private Instrument getDrumsInstrument(InstrumentBank<?> bank, DrumKit.Type type, DrumKit.KeyMap keyMap)
+    {
+        for (Instrument ins : bank.getDrumsInstruments())
+        {
+            if (ins.getDrumKit().getKeyMap().equals(keyMap) && ins.getDrumKit().getType().equals(type))
+            {
+                return ins;
+            }
+        }
+        for (Instrument ins : bank.getDrumsInstruments())
+        {
+            if (ins.getDrumKit().getKeyMap().equals(keyMap) && ins.getDrumKit().getType().equals(DrumKit.Type.STANDARD))
+            {
+                return ins;
+            }
+        }
+        return null;
     }
 
     private ConversionTable getGM2toGSMap()
