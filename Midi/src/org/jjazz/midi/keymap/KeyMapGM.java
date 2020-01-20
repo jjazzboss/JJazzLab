@@ -51,7 +51,6 @@ public class KeyMapGM implements DrumKit.KeyMap
         return INSTANCE;
     }
 
-
     private KeyMapGM()
     {
         addNote("ACOUSTIC BASS DRUM", 35, true);
@@ -126,6 +125,12 @@ public class KeyMapGM implements DrumKit.KeyMap
     public List<Integer> getAccentKeys()
     {
         return new ArrayList<>(accentPitches);
+    }
+
+    @Override
+    public boolean isContaining(DrumKit.KeyMap otherKeyMap)
+    {
+        return otherKeyMap == this;
     }
 
     private void addNote(String name, int pitch, boolean isAccent)

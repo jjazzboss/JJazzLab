@@ -207,10 +207,10 @@ public class StdInstrumentConverter implements InstrumentConverter
      * The search is only based on the instrument's DrumKit information.
      *
      *
-     * @param srcIns Must be a drums/percussion instrument
+     * @param srcIns    Must be a drums/percussion instrument
      * @param destBanks Can't be null. Must be banks from GM/GM2/XG/GS
      * @param tryHarder If initial search did not yield any instrument, try again with a more flexible matching scheme.
-     * @return Can be null. If non null, the instrument KeyMap is guaranteed to be compatible with the KeyMap of srcIns.
+     * @return Can be null.
      */
     public Instrument convertDrumsInstrument(Instrument srcIns, List<InstrumentBank<?>> destBanks, boolean tryHarder)
     {
@@ -239,7 +239,10 @@ public class StdInstrumentConverter implements InstrumentConverter
         DrumKit.KeyMap gsgm2KeyMap = KeyMapGSGM2.getInstance();
         DrumKit.KeyMap gmKeyMap = KeyMapGM.getInstance();
 
-        if (srcKeyMap != xgLatinKeyMap && srcKeyMap != xgKeyMap && srcKeyMap != gsgm2KeyMap && srcKeyMap != gmKeyMap)
+        if (!srcKeyMap.isContaining(xgKeyMap)
+                && !srcKeyMap.isContaining(xgLatinKeyMap)
+                && !srcKeyMap.isContaining(gsgm2KeyMap)
+                && !srcKeyMap.isContaining(gmKeyMap))
         {
             // srcIns uses a non standard KeyMap : no possible conversion here
             return null;
@@ -258,13 +261,13 @@ public class StdInstrumentConverter implements InstrumentConverter
             return null;
         }
 
-        if (isXG && (srcKeyMap == xgLatinKeyMap || srcKeyMap == xgKeyMap || srcKeyMap == gmKeyMap))
+        if (isXG && (srcKeyMap.isContaining(xgLatinKeyMap) || srcKeyMap.isContaining(xgKeyMap) || srcKeyMap.isContaining(gmKeyMap)))
         {
             res = getDrumsInstrument(xgBank, srcKit, tryHarder);
-        } else if (isGM2 && (srcKeyMap == gsgm2KeyMap || srcKeyMap == gmKeyMap))
+        } else if (isGM2 && (srcKeyMap.isContaining(gsgm2KeyMap) || srcKeyMap.isContaining(gmKeyMap)))
         {
             res = getDrumsInstrument(gm2Bank, srcKit, tryHarder);
-        } else if (isGS && (srcKeyMap == gsgm2KeyMap || srcKeyMap == gmKeyMap))
+        } else if (isGS && (srcKeyMap.isContaining(gsgm2KeyMap) || srcKeyMap.isContaining(gmKeyMap)))
         {
             res = getDrumsInstrument(gsBank, srcKit, tryHarder);
         }

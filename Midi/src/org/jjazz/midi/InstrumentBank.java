@@ -62,9 +62,9 @@ public class InstrumentBank<T extends Instrument>
      * Create an InstrumentBank.
      *
      * @param name
-     * @param msb The default Most Significant Byte or "Control 0".
-     * @param lsb The default Least Significant Byte or "Control 32"
-     * @param m The default bank select method. Can't be null.
+     * @param msb  The default Most Significant Byte or "Control 0".
+     * @param lsb  The default Least Significant Byte or "Control 32"
+     * @param m    The default bank select method. Can't be null.
      */
     public InstrumentBank(String name, int msb, int lsb, BankSelectMethod m)
     {
@@ -380,11 +380,29 @@ public class InstrumentBank<T extends Instrument>
     }
 
     /**
+     * Get the non Drums/Percussion instruments.
+     *
+     * @return Returned instruments have isDrumKit() set to false.
+     */
+    public List<T> getNonDrumsInstruments()
+    {
+        ArrayList<T> res = new ArrayList<>();
+        for (T ins : instruments)
+        {
+            if (!ins.isDrumKit())
+            {
+                res.add(ins);
+            }
+        }
+        return res;
+    }
+
+    /**
      * Get all the drums/percussion instruments which match the specified DrumKit.
      *
      * @param kit
      * @param tryHarder If true and no instrument matched the specified kit, then try again but with a more flexible matching
-     * algorithm. Default implementation starts a second search using kit.Type.STANDARD.
+     *                  algorithm. Default implementation starts a second search using kit.Type.STANDARD.
      * @return Can be empty.
      */
     public List<T> getDrumsInstrument(DrumKit kit, boolean tryHarder)

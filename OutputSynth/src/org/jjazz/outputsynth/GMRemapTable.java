@@ -37,8 +37,8 @@ import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
-import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.synths.Family;
+import org.jjazz.midiconverters.api.StdKeyMapConverter;
 
 /**
  * The table can associate an Instrument to each of the GM1 instruments + the special DRUMS/PERCUSSION static instances.
@@ -170,8 +170,8 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
      * Set the mapped instrument for remappedIns.
      *
      * @param remappedIns        Must be a GM1Instrument or the special DRUMS/PERCUSSION static instances.
-     * @param ins                Can be null. Must be a Drums/Perc instrument with a GM compatible DrumsKit.KeyMap if remappedIns
-     *                           is one of the special DRUMS/PERCUSSION instances.
+     * @param ins                Can be null. If remappedIns is one of the special DRUMS/PERCUSSION instances, ins must be a
+     *                           Drums/Perc instrument with a GM compatible DrumsKit.KeyMap.
      * @param useAsFamilyDefault If true ins will be also the default instrument for the remappedIns's family. Not used if
      *                           remappedIns is one of the special DRUMS/PERCUSSION instances.
      * @throws ArgumentsException If arguments are invalid. The exception error message can be used for user notification.
@@ -187,8 +187,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
         {
             throw new ArgumentsException("Invalid instrument: " + ins.getPatchName() + ". It must be a Drums/Percussion instrument.");
         }
-        if (ins != null && ins.isDrumKit()
-                && !(ins.getDrumKit().getKeyMap().getName().equals(KeyMapGM.NAME) || (ins.getDrumKit().getKeyMap().getReplacementKeyMap() != null && ins.getDrumKit().getKeyMap().getReplacementKeyMap().getName().equals(KeyMapGM.NAME))))
+        if (ins != null && ins.isDrumKit() && !StdKeyMapConverter.getInstance().isStandardKeyMap(ins.getDrumKit()))
         {
             throw new ArgumentsException("Invalid instrument: " + ins.toLongString() + ". Its DrumKit keymap must be GM-compatible.");
         }

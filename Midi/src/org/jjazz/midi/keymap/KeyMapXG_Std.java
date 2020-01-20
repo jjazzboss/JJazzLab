@@ -29,10 +29,11 @@ import org.jjazz.midi.DrumKit;
 
 /**
  * The Yamaha XG standard Drum Map.
- * 
+ * <p>
  */
 public class KeyMapXG_Std implements DrumKit.KeyMap
 {
+
     public static final String NAME = "XG_STD";
     private static KeyMapXG_Std INSTANCE;
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
@@ -131,6 +132,12 @@ public class KeyMapXG_Std implements DrumKit.KeyMap
     public String getName()
     {
         return NAME;
+    }
+
+    @Override
+    public boolean isContaining(DrumKit.KeyMap otherKeyMap)
+    {
+        return otherKeyMap == this || otherKeyMap == KeyMapGM.getInstance();
     }
 
     @Override

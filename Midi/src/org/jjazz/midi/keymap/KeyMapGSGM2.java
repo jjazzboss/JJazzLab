@@ -129,6 +129,12 @@ public class KeyMapGSGM2 implements KeyMap
     }
 
     @Override
+    public boolean isContaining(DrumKit.KeyMap otherKeyMap)
+    {
+        return otherKeyMap == this || otherKeyMap == KeyMapGM.getInstance();
+    }
+
+    @Override
     public String getKeyName(int pitch)
     {
         return mapPitchName.get(pitch);

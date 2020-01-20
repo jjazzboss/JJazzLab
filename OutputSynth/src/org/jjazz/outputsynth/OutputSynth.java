@@ -356,12 +356,15 @@ public class OutputSynth implements Serializable
         {
             // Drums voices: use the DrumKit information
             assert rvIns.isDrumKit() : "rv=" + rv;
-            ins = StdInstrumentConverter.getInstance().convertDrumsInstrument(rvIns, compatibleStdBanks);
+            Instrument mappedIns = rv.getType().equals(RhythmVoice.Type.DRUMS) ? GMRemapTable.DRUMS_INSTRUMENT : GMRemapTable.PERCUSSION_INSTRUMENT;
+            Instrument targetIns = remapTable.getInstrument(mappedIns);
+            ins = StdInstrumentConverter.getInstance().convertDrumsInstrument(rvIns, compatibleStdBanks, targetIns == null);
             if (ins == null)
             {
-                Instrument mappedIns = rv.getType().equals(RhythmVoice.Type.DRUMS) ? GMRemapTable.DRUMS_INSTRUMENT : GMRemapTable.PERCUSSION_INSTRUMENT;
-                ins = remapTable.getInstrument(mappedIns);
-                if (ins == null)
+                if (targetIns != null)
+                {
+                    ins = targetIns;
+                } else
                 {
                     ins = StdSynth.getInstance().getVoidInstrument();
                 }

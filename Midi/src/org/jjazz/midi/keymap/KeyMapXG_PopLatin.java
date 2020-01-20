@@ -50,7 +50,6 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
         }
         return INSTANCE;
     }
- 
 
     private KeyMapXG_PopLatin()
     {
@@ -122,6 +121,12 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
     public String getName()
     {
         return NAME;
+    }
+
+    @Override
+    public boolean isContaining(DrumKit.KeyMap otherKeyMap)
+    {
+        return otherKeyMap == this;
     }
 
     @Override

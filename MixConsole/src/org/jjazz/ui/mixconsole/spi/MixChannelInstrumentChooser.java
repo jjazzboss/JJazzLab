@@ -60,13 +60,16 @@ public abstract class MixChannelInstrumentChooser extends JDialog
      * @param outSynth The OutputSynth which contains the available instruments to choose from.
      * @param rv The RhythmVoice for which we're choosing an instrument.
      * @param preselectedIns
+     * @param transpose The initial transposition in semi-tons.
      * @param channel The Midi channel for this RhythmVoice.
      */
-    public abstract void preset(OutputSynth outSynth, RhythmVoice rv, Instrument preselectedIns, int channel);
+    public abstract void preset(OutputSynth outSynth, RhythmVoice rv, Instrument preselectedIns, int transpose, int channel);
 
     /**
      * @return The selected instrument, or null if no selection or dialog cancelled.
      */
     public abstract Instrument getSelectedInstrument();
+    
+    public abstract int getTransposition();
 
 }

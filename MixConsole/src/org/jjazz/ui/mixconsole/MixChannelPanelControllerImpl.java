@@ -23,8 +23,6 @@
 package org.jjazz.ui.mixconsole;
 
 import java.util.logging.Logger;
-import org.jjazz.instrumentchooser.api.InstrumentChooserDialog;
-import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.InstrumentMix;
@@ -33,6 +31,8 @@ import org.jjazz.midi.synths.Family;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.UserChannelRhythmVoiceKey;
+import org.jjazz.outputsynth.OutputSynthManager;
+import org.jjazz.ui.mixconsole.spi.MixChannelInstrumentChooser;
 
 /**
  *
@@ -114,9 +114,9 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     public void editInstrument()
     {
         InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channelId);
-        InstrumentChooserDialog dlg = InstrumentChooserDialog.getDefault();
-        String title = buildTitle();
-        dlg.preset(insMix.getInstrument(), insMix.getSettings().getTransposition(), channelId, title, null);
+        RhythmVoice rv = midiMix.getKey(channelId);
+        MixChannelInstrumentChooser dlg = MixChannelInstrumentChooser.getDefault();
+        dlg.preset(OutputSynthManager.getInstance().getOutputSynth(), rv, insMix.getInstrument(), insMix.getSettings().getTransposition(), channelId);
         dlg.setVisible(true);
         Instrument ins = dlg.getSelectedInstrument();
         if (ins != null)

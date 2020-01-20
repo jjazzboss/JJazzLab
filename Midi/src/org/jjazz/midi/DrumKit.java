@@ -50,6 +50,17 @@ public class DrumKit
         public String getName();
 
         /**
+         * True if this KeyMap contains otherKeyMap.
+         * <p>
+         * E.g. the GM2 KeyMap contains the GM keymap (but not the other way around): a GM-keymap-based rhythm can be played on a
+         * GM2-keymap-based drums instrument. Should return true if this keymap==otherKeyMap.
+         *
+         * @param otherKeyMap
+         * @return
+         */
+        public boolean isContaining(KeyMap otherKeyMap);
+
+        /**
          * The isntrument name, e.g. "Kick" for the given key.
          *
          * @param pitch

@@ -44,19 +44,23 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.keymap.KeyMapGM;
+import org.jjazz.midi.keymap.KeyMapGSGM2;
+import org.jjazz.midi.keymap.KeyMapXG_Std;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.ui.InstrumentTable;
+import org.jjazz.midiconverters.api.StdKeyMapConverter;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.outputsynth.GMRemapTable;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.ui.spi.RemapTableInstrumentChooser;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
-import org.jjazz.util.Filter;
 import org.jjazz.util.Utilities;
 import org.openide.*;
 import org.openide.windows.WindowManager;
@@ -138,9 +142,11 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         cb_UseAsFamilyDefault.setSelected(false);
         btn_Hear.setEnabled(false);
 
-        allInstruments = this.getAllInstruments(outputSynth);
+        Instrument targetIns = outputSynth.getGMRemapTable().getInstrument(remappedInstrument);
+
+        allInstruments = this.getAllInstruments(outputSynth, remappedGM1Instrument == null);
         recommendedInstruments = this.getRecommendedInstruments(allInstruments, remappedInstrument);
-        if (!recommendedInstruments.isEmpty())
+        if (!recommendedInstruments.isEmpty() && (targetIns == null || recommendedInstruments.contains(targetIns)))
         {
             rbtn_showRecommended.setSelected(true);
             rbtn_showRecommendedActionPerformed(null);
@@ -151,11 +157,10 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         }
         updateRbtnShowRecommendedText(remappedInstrument);
 
-        Instrument ins = outputSynth.getGMRemapTable().getInstrument(remappedInstrument);
-        if (ins != null)
+        if (targetIns != null)
         {
-            tbl_Instruments.setSelectedInstrument(ins);
-            if (remappedGM1Instrument != null && rTable.getInstrument(remappedGM1Instrument.getFamily()) == ins)
+            tbl_Instruments.setSelectedInstrument(targetIns);
+            if (remappedGM1Instrument != null && rTable.getInstrument(remappedGM1Instrument.getFamily()) == targetIns)
             {
                 cb_UseAsFamilyDefault.setSelected(true);
             }
@@ -259,21 +264,22 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
     // Private methods
     // ----------------------------------------------------------------------------
     /**
-     * Get all the instruments
+     * Get all the instruments for melodic voices or drums voices.
      *
      * @param outSynth
+     * @param drumsMode If true return only drums instruments, otherwise only voice instruments.
      * @return
      */
-    private List<Instrument> getAllInstruments(OutputSynth outSynth)
+    private List<Instrument> getAllInstruments(OutputSynth outSynth, boolean drumsMode)
     {
         ArrayList<Instrument> res = new ArrayList<>();
         for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
         {
-            res.addAll(bank.getInstruments());
+            res.addAll(drumsMode ? bank.getDrumsInstruments() : bank.getNonDrumsInstruments());
         }
         for (MidiSynth synth : outSynth.getCustomSynths())
         {
-            res.addAll(synth.getInstruments());
+            res.addAll(drumsMode ? synth.getDrumsInstruments() : synth.getNonDrumsInstruments());
         }
         return res;
     }
@@ -287,7 +293,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
      */
     private List<Instrument> getRecommendedInstruments(List<Instrument> allInsts, Instrument mappedIns)
     {
-        ArrayList<Instrument> res = new ArrayList<>();
+        List<Instrument> res = new ArrayList<>();
         if (mappedIns instanceof GM1Instrument)
         {
             GM1Instrument gm1MappedIns = (GM1Instrument) mappedIns;
@@ -295,7 +301,11 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             // First add instruments whose substitute is mappedIns
             for (Instrument ins : allInsts)
             {
-                if (ins.getSubstitute() == mappedIns && !ins.getMidiAddress().equals(mappedIns.getMidiAddress()))
+                if (ins.getMidiAddress().equals(gm1MappedIns.getMidiAddress()))
+                {
+                    continue;
+                }
+                if (ins.getSubstitute() == gm1MappedIns)
                 {
                     res.add(ins);
                 }
@@ -304,25 +314,31 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             // Second add instruments whose substitute family matches mappedInx family
             for (Instrument ins : allInsts)
             {
-                if (ins.getSubstitute() != null
-                        && ins.getSubstitute().getFamily().equals(gm1MappedIns.getFamily())
-                        && !ins.getMidiAddress().equals(mappedIns.getMidiAddress()))
+                if (ins.getMidiAddress().equals(gm1MappedIns.getMidiAddress()) || ins.getSubstitute() == null)
+                {
+                    continue;
+                }
+                if (ins.getSubstitute().getFamily().equals(gm1MappedIns.getFamily()))
                 {
                     if (!res.contains(ins))
                     {
                         res.add(ins);
                     }
                 }
-            }           
+            }
         } else
         {
-            // Drums/Percussion
+            // Drums : keep only kits with a GM compatible KeyMap
             for (Instrument ins : allInsts)
             {
-                if (ins.isDrumKit() && !ins.getMidiAddress().equals(mappedIns.getMidiAddress()))
+                DrumKit.KeyMap keyMap = ins.getDrumKit().getKeyMap();
+                if (!keyMap.isContaining(KeyMapGM.getInstance())
+                        && !keyMap.isContaining(KeyMapGSGM2.getInstance())
+                        && !keyMap.isContaining(KeyMapXG_Std.getInstance()))
                 {
-                    res.add(ins);
+                    continue;
                 }
+                res.add(ins);
             }
         }
         return res;

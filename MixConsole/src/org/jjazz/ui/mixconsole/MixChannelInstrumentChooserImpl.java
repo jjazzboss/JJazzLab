@@ -37,12 +37,11 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.JJazzMidiSystem;
@@ -51,9 +50,9 @@ import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.ui.InstrumentTable;
 import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.outputsynth.GMRemapTable;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.jjazz.ui.mixconsole.spi.MixChannelInstrumentChooser;
 import org.jjazz.util.Utilities;
 import org.openide.*;
@@ -108,7 +107,7 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
     }
 
     @Override
-    public void preset(OutputSynth outSynth, RhythmVoice rv, Instrument preselectedIns, int channel)
+    public void preset(OutputSynth outSynth, RhythmVoice rv, Instrument preselectedIns, int transpose, int channel)
     {
         if (outSynth == null || rv == null || !MidiConst.checkMidiChannel(channel))
         {
@@ -118,22 +117,25 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         this.rhythmVoice = rv;
         this.channel = channel;
         this.preferredInstrument = rv.getPreferredInstrument();
+        GM1Instrument gmSubstitute = this.preferredInstrument.getSubstitute();
 
-        String rvType = rv.isDrums() ? "" : " - " + preferredInstrument.getSubstitute().getFamily().toString();
+        String rvType = rv.isDrums() ? "" : " - " + gmSubstitute.getFamily().toString();
         String myTitle = "Select instrument for channel " + (channel + 1) + " - " + rv.getName() + rvType;
         lbl_Title.setText(myTitle);
         String prefInsTxt = "Recommended instrument: " + preferredInstrument.getPatchName()
                 + "(synth=" + preferredInstrument.getBank().getMidiSynth().getName() + ", bank=" + preferredInstrument.getBank().getName() + ")";
         this.lbl_PreferredInstrument.setText(prefInsTxt);
+        this.lbl_PreferredInstrument.setToolTipText(preferredInstrument.toLongString());
 
         // Reset text filter
         btn_TxtClearActionPerformed(null);
 
         btn_Hear.setEnabled(false);
 
-        allInstruments = this.getAllInstruments(outputSynth);
-        recommendedInstruments = this.getRecommendedInstruments(allInstruments, remappedInstrument);
-        if (!recommendedInstruments.isEmpty())
+        allInstruments = this.getAllInstruments(outputSynth, rv.isDrums());
+        recommendedInstruments = this.getRecommendedInstruments(allInstruments, preferredInstrument);
+
+        if (!recommendedInstruments.isEmpty() && (preselectedIns == null || recommendedInstruments.contains(preselectedIns)))
         {
             rbtn_showRecommended.setSelected(true);
             rbtn_showRecommendedActionPerformed(null);
@@ -142,25 +144,34 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
             rbtn_showAll.setSelected(true);
             rbtn_showAllActionPerformed(null);
         }
-        updateRbtnShowRecommendedText(remappedInstrument);
-
-        Instrument ins = outputSynth.getGMRemapTable().getInstrument(remappedInstrument);
-        if (ins != null)
+        if (preselectedIns != null)
         {
-            tbl_Instruments.setSelectedInstrument(ins);
-            if (remappedGM1Instrument != null && rTable.getInstrument(remappedGM1Instrument.getFamily()) == ins)
-            {
-                cb_UseAsFamilyDefault.setSelected(true);
-            }
+            tbl_Instruments.setSelectedInstrument(preselectedIns);
         }
 
+        String txtType;
+        if (rv.isDrums())
+        {
+            txtType = rv.getType().equals(RhythmVoice.Type.DRUMS) ? "Drums" : "Percussion";
+        } else
+        {
+            txtType = gmSubstitute.getFamily().toString();
+        }
+        updateRbtnShowRecommendedText(txtType);
+        spn_transposition.setValue(transpose);
     }
 
     @Override
     public Instrument getSelectedInstrument()
     {
         return selectedInstrument;
-    } 
+    }
+
+    @Override
+    public int getTransposition()
+    {
+        return (int) spn_transposition.getValue();
+    }
 
     /**
      * Overridden to add global key bindings
@@ -195,7 +206,6 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         return contentPane;
     }
 
-
     // ===================================================================================
     // ListSelectionListener interfacce
     // ===================================================================================
@@ -218,54 +228,57 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
     // Private methods
     // ----------------------------------------------------------------------------
     /**
-     * Get all the instruments
+     * Get all the instruments for melodic voices or drums voices.
      *
      * @param outSynth
+     * @param drumsMode If true return only drums instruments, otherwise only voice instruments.
      * @return
      */
-    private List<Instrument> getAllInstruments(OutputSynth outSynth)
+    private List<Instrument> getAllInstruments(OutputSynth outSynth, boolean drumsMode)
     {
         ArrayList<Instrument> res = new ArrayList<>();
         for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
         {
-            res.addAll(bank.getInstruments());
+            res.addAll(drumsMode ? bank.getDrumsInstruments() : bank.getNonDrumsInstruments());
         }
         for (MidiSynth synth : outSynth.getCustomSynths())
         {
-            res.addAll(synth.getInstruments());
+            res.addAll(drumsMode ? synth.getDrumsInstruments() : synth.getNonDrumsInstruments());
         }
         return res;
     }
 
     /**
-     * Get only the recommended instruments for this RhythmVoice.
+     * Get only the recommended instruments for prefIns.
      *
      * @param allInsts
-     * @param substitute
+     * @param prefIns  The preferredInstrument for the RhythmVoice
      * @return
      */
-    private List<Instrument> getRecommendedInstruments(List<Instrument> allInsts, Instrument substitute)
+    private List<Instrument> getRecommendedInstruments(List<Instrument> allInsts, Instrument prefIns)
     {
-        ArrayList<Instrument> res = new ArrayList<>();
-        if (substitute instanceof GM1Instrument)
+        List<Instrument> res = new ArrayList<>();
+        if (!prefIns.isDrumKit())
         {
-            GM1Instrument gmSubstitute = (GM1Instrument) substitute;
+            GM1Instrument gm1PrefIns = prefIns.getSubstitute();
 
-            // First add instruments whose substitute is gmSubstitute
+            // First add instruments whose substitute is gm1PrefIns
             for (Instrument ins : allInsts)
             {
-                if (ins.getSubstitute() == substitute && !ins.getMidiAddress().equals(substitute.getMidiAddress()))
+                if (ins.getSubstitute() == gm1PrefIns)
                 {
                     res.add(ins);
                 }
             }
 
-            // Second add instruments whose substitute family matches gmSubstitute family
+            // Second add instruments whose substitute family matches mappedInx family
             for (Instrument ins : allInsts)
             {
-                if (ins.getSubstitute() != null
-                        && ins.getSubstitute().getFamily().equals(gmSubstitute.getFamily())
-                        && !ins.getMidiAddress().equals(substitute.getMidiAddress()))
+                if (ins.getSubstitute() == null)
+                {
+                    continue;
+                }
+                if (ins.getSubstitute().getFamily().equals(gm1PrefIns.getFamily()))
                 {
                     if (!res.contains(ins))
                     {
@@ -275,15 +288,23 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
             }
         } else
         {
-            // Drums/Percussion
-            
+            // Drums
+            List<Instrument> second = new ArrayList<>();
+            DrumKit kit = prefIns.getDrumKit();
             for (Instrument ins : allInsts)
             {
-                if (ins.isDrumKit() && !ins.getMidiAddress().equals(substitute.getMidiAddress()))
+                DrumKit insKit = ins.getDrumKit();
+                if (insKit.getType().equals(kit.getType()) && kit.getKeyMap().isContaining(insKit.getKeyMap()))
                 {
+                    // First : full match
                     res.add(ins);
+                } else if (kit.getKeyMap().isContaining(insKit.getKeyMap()))
+                {
+                    // Second : keymap match
+                    second.add(ins);
                 }
             }
+            res.addAll(second);
         }
         return res;
     }
@@ -307,24 +328,9 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         }
     }
 
-    private void updateRbtnShowRecommendedText(Instrument remappedInstrument)
+    private void updateRbtnShowRecommendedText(String txtType)
     {
-        String text = this.rbtn_showRecommended.getText();
-        int index = text.indexOf("(");
-        if (index != -1)
-        {
-            text = text.substring(0, index).trim();
-        }
-        if (remappedInstrument instanceof GM1Instrument)
-        {
-            text += " (" + ((GM1Instrument) remappedInstrument).getFamily().toString().toUpperCase() + ")";
-        } else if (remappedInstrument == GMRemapTable.DRUMS_INSTRUMENT)
-        {
-            text += " (DRUMS)";
-        } else
-        {
-            text += " (PERCUSSION)";
-        }
+        String text = "Show only recommended instruments (" + txtType + ")";
         this.rbtn_showRecommended.setText(text);
     }
 
@@ -367,6 +373,10 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         rbtn_showAll = new javax.swing.JRadioButton();
         lbl_Filtered = new javax.swing.JLabel();
         lbl_PreferredInstrument = new javax.swing.JLabel();
+        spn_transposition = new org.jjazz.ui.utilities.WheelSpinner();
+        lbl_transpose = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.btn_Ok.text")); // NOI18N
         btn_Ok.addActionListener(new java.awt.event.ActionListener()
@@ -415,7 +425,7 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
             }
         });
 
-        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/resources/Speaker-20x20.png"))); // NOI18N
+        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/Speaker-20x20.png"))); // NOI18N
         btn_Hear.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.btn_Hear.toolTipText")); // NOI18N
         btn_Hear.addActionListener(new java.awt.event.ActionListener()
         {
@@ -456,6 +466,22 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         org.openide.awt.Mnemonics.setLocalizedText(lbl_PreferredInstrument, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_PreferredInstrument.text")); // NOI18N
         lbl_PreferredInstrument.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_PreferredInstrument.toolTipText")); // NOI18N
 
+        spn_transposition.setModel(new javax.swing.SpinnerNumberModel(0, 0, 48, 1));
+        spn_transposition.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.spn_transposition.toolTipText")); // NOI18N
+        spn_transposition.setColumns(2);
+
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_transpose, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_transpose.text")); // NOI18N
+        lbl_transpose.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_transpose.toolTipText")); // NOI18N
+
+        jScrollPane2.setBackground(null);
+        jScrollPane2.setBorder(null);
+
+        helpTextArea1.setBackground(null);
+        helpTextArea1.setColumns(20);
+        helpTextArea1.setRows(5);
+        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.helpTextArea1.text")); // NOI18N
+        jScrollPane2.setViewportView(helpTextArea1);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -463,41 +489,43 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(lbl_Filtered))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(spn_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lbl_transpose, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(btn_Hear, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lbl_Title, javax.swing.GroupLayout.PREFERRED_SIZE, 375, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lbl_PreferredInstrument))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(rbtn_showRecommended)
+                            .addComponent(rbtn_showAll))
+                        .addGap(0, 223, Short.MAX_VALUE)
+                        .addComponent(btn_TxtClear)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_TxtFilter)
+                        .addGap(46, 46, 46))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
                                 .addComponent(btn_Ok)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btn_Cancel))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(lbl_Title, javax.swing.GroupLayout.PREFERRED_SIZE, 375, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(rbtn_showRecommended)
-                                            .addComponent(rbtn_showAll))
-                                        .addGap(0, 0, Short.MAX_VALUE))
-                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                            .addGroup(layout.createSequentialGroup()
-                                                .addGap(0, 0, Short.MAX_VALUE)
-                                                .addComponent(lbl_Filtered))
-                                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                                        .addGap(13, 13, 13)))
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(btn_TxtClear)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(btn_TxtFilter))
-                                    .addComponent(tf_Filter, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(btn_Hear, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addGap(6, 6, 6))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(lbl_PreferredInstrument)
-                        .addContainerGap(271, Short.MAX_VALUE))))
+                            .addComponent(tf_Filter, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap())
         );
 
         layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btn_Cancel, btn_Ok});
@@ -518,7 +546,7 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 345, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(btn_Ok)
@@ -529,8 +557,14 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(btn_TxtFilter)
                             .addComponent(btn_TxtClear))
-                        .addGap(29, 29, 29)
+                        .addGap(50, 50, 50)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(spn_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lbl_transpose))
+                        .addGap(27, 27, 27)
                         .addComponent(btn_Hear)
+                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -584,9 +618,8 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         MusicController mc = MusicController.getInstance();
         try
         {
-            final int CHANNEL = ins.isDrumKit() ? MidiConst.CHANNEL_DRUMS : 0;
-            JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(CHANNEL));
-            mc.playTestNotes(CHANNEL, -1, 0, endAction);
+            JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(channel));
+            mc.playTestNotes(channel, -1, 0, endAction);
         } catch (MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -647,12 +680,16 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
     private javax.swing.JButton btn_TxtClear;
     private javax.swing.JButton btn_TxtFilter;
     private javax.swing.ButtonGroup btn_showInstruments;
+    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lbl_Filtered;
     private javax.swing.JLabel lbl_PreferredInstrument;
     private javax.swing.JLabel lbl_Title;
+    private javax.swing.JLabel lbl_transpose;
     private javax.swing.JRadioButton rbtn_showAll;
     private javax.swing.JRadioButton rbtn_showRecommended;
+    private org.jjazz.ui.utilities.WheelSpinner spn_transposition;
     private org.jjazz.midi.ui.InstrumentTable tbl_Instruments;
     private javax.swing.JTextField tf_Filter;
     // End of variables declaration//GEN-END:variables

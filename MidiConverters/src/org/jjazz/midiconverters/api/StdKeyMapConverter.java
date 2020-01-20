@@ -1,18 +1,34 @@
-package org.jjazz.midiconverters;
+package org.jjazz.midiconverters.api;
 
 import org.jjazz.midi.keymap.KeyMapGSGM2;
 import org.jjazz.midi.keymap.KeyMapXG_Std;
 import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midiconverters.spi.KeyMapConverter;
 import org.jjazz.midi.DrumKit;
-import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Note mapping between GSGM2/XG/GM DrumMaps.
  */
-@ServiceProvider(service = KeyMapConverter.class)
 public class StdKeyMapConverter implements KeyMapConverter
 {
+
+    private static StdKeyMapConverter INSTANCE;
+
+    public static StdKeyMapConverter getInstance()
+    {
+        synchronized (StdKeyMapConverter.class)
+        {
+            if (INSTANCE == null)
+            {
+                INSTANCE = new StdKeyMapConverter();
+            }
+        }
+        return INSTANCE;
+    }
+
+    private StdKeyMapConverter()
+    {
+    }
 
     @Override
     public String getConverterId()
@@ -28,7 +44,7 @@ public class StdKeyMapConverter implements KeyMapConverter
             throw new IllegalArgumentException("srcKit=" + srcKit + " srcPitch=" + srcPitch + " destKit=" + destKit);
         }
 
-        if (!isStandardDrumKit(srcKit) || !isStandardDrumKit(destKit))
+        if (!isStandardKeyMap(srcKit) || !isStandardKeyMap(destKit))
         {
             return -1;
         }
@@ -76,7 +92,7 @@ public class StdKeyMapConverter implements KeyMapConverter
         return destPitch;
     }
 
-    private boolean isStandardDrumKit(DrumKit kit)
+    public boolean isStandardKeyMap(DrumKit kit)
     {
         if (kit == null)
         {
