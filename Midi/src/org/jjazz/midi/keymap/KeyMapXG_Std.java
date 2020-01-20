@@ -51,12 +51,6 @@ public class KeyMapXG_Std implements DrumKit.KeyMap
         return INSTANCE;
     }
 
-    @Override
-    public DrumKit.KeyMap getReplacementKeyMap()
-    {
-        return KeyMapGM.getInstance();
-    }
-
     private KeyMapXG_Std()
     {
         addNote("Surdo Mute", 13, false);

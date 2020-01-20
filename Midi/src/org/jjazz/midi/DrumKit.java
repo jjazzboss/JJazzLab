@@ -50,13 +50,6 @@ public class DrumKit
         public String getName();
 
         /**
-         * An optional default key map to be used as a replacement if this map could not be used for some reason.
-         *
-         * @return Can be null.
-         */
-        public KeyMap getReplacementKeyMap();
-
-        /**
          * The isntrument name, e.g. "Kick" for the given key.
          *
          * @param pitch

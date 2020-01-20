@@ -22,12 +22,15 @@
  */
 package org.jjazz.midi.synths;
 
+import java.util.List;
 import java.util.logging.*;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiAddress;
 import org.jjazz.midi.MidiAddress.BankSelectMethod;
+import org.jjazz.midi.keymap.KeyMapGM;
+import org.jjazz.midi.keymap.KeyMapGSGM2;
 import org.jjazz.midi.keymap.KeyMapXG_PopLatin;
 import org.jjazz.midi.keymap.KeyMapXG_Std;
 
@@ -604,6 +607,57 @@ public class XGBank extends InstrumentBank<Instrument>
     public Instrument getDefaultDrumsInstrument()
     {
         return DEFAULT_DRUMS_INSTRUMENT;
+    }
+
+    /**
+     * Overridden to accept any GM-compatible keymaps when trying harder.
+     *
+     * @param kit
+     * @param tryHarder
+     * @return
+     */
+    @Override
+    public List<Instrument> getDrumsInstrument(DrumKit kit, boolean tryHarder)
+    {
+        List<Instrument> res = super.getDrumsInstrument(kit, tryHarder);
+        if (res.isEmpty() && tryHarder
+                && (kit.getKeyMap().equals(KeyMapGM.getInstance()) || kit.getKeyMap().equals(KeyMapGSGM2.getInstance())))
+        {
+            // GM is fully compatible, XG is somewhat compatible...
+            switch (kit.getType())
+            {
+                case STANDARD:
+                    res.add(instruments.get(480));
+                    break;
+                case ROOM:
+                    res.add(instruments.get(488));
+                    break;
+                case POWER:
+                    res.add(instruments.get(490));
+                    break;
+                case ANALOG:
+                    res.add(instruments.get(493));
+                    break;
+                case ELECTRONIC:
+                    res.add(instruments.get(495));
+                    break;
+                case JAZZ:
+                    res.add(instruments.get(500));
+                    break;
+                case BRUSH:
+                    res.add(instruments.get(502));
+                    break;
+                case ORCHESTRA:
+                    res.add(instruments.get(504));
+                    break;
+                case SFX:
+                    res.add(instruments.get(516));
+                    break;
+                default:
+                    throw new IllegalStateException("kit=" + kit);
+            }
+        }
+        return res;
     }
 
     /**

@@ -80,8 +80,9 @@ public class MidiSynth
 
     /**
      * Create an empty MidiSynth.
+     *
      * @param name If name contains comas (',') they are removed.
-     * @param manufacturer 
+     * @param manufacturer
      */
     public MidiSynth(String name, String manufacturer)
     {
@@ -143,6 +144,21 @@ public class MidiSynth
         for (InstrumentBank<?> bank : banks)
         {
             res.addAll(bank.getInstruments());
+        }
+        return res;
+    }
+
+    /**
+     * Get all the Drums/Percussion instruments from this MidiSynth.
+     *
+     * @return Returned instruments have isDrumKit() set to true.
+     */
+    public List<Instrument> getDrumsInstruments()
+    {
+        ArrayList<Instrument> res = new ArrayList<>();
+        for (InstrumentBank<?> bank : banks)
+        {
+            res.addAll(bank.getDrumsInstruments());
         }
         return res;
     }

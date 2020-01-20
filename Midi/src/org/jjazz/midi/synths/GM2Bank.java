@@ -22,13 +22,16 @@
  */
 package org.jjazz.midi.synths;
 
+import java.util.List;
 import java.util.logging.*;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiAddress;
 import org.jjazz.midi.MidiAddress.BankSelectMethod;
+import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.keymap.KeyMapGSGM2;
+import org.jjazz.midi.keymap.KeyMapXG_Std;
 
 /**
  * General Midi 2 bank. Instance should be obtained from the StdSynth.
@@ -337,6 +340,26 @@ public class GM2Bank extends InstrumentBank<Instrument>
     public Instrument getDefaultDrumsInstrument()
     {
         return DEFAULT_DRUMS_INSTRUMENT;
+    }
+
+    /**
+     * Overridden to accept any GM-compatible keymaps when trying harder.
+     *
+     * @param kit
+     * @param tryHarder
+     * @return
+     */
+    @Override
+    public List<Instrument> getDrumsInstrument(DrumKit kit, boolean tryHarder)
+    {
+        List<Instrument> res = super.getDrumsInstrument(kit, tryHarder);
+        if (res.isEmpty() && tryHarder
+                && (kit.getKeyMap().equals(KeyMapGM.getInstance()) || kit.getKeyMap().equals(KeyMapXG_Std.getInstance())))
+        {
+            // GM is fully compatible, XG is somewhat compatible...
+            res.add(instruments.get(256 + kit.getType().ordinal()));
+        }
+        return res;
     }
 
     /**

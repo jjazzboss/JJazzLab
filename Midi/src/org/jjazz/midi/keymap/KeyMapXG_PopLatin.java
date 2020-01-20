@@ -50,12 +50,7 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
         }
         return INSTANCE;
     }
-
-    @Override
-    public DrumKit.KeyMap getReplacementKeyMap()
-    {
-        return null;
-    }
+ 
 
     private KeyMapXG_PopLatin()
     {

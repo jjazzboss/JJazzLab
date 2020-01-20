@@ -51,11 +51,6 @@ public class KeyMapGM implements DrumKit.KeyMap
         return INSTANCE;
     }
 
-    @Override
-    public DrumKit.KeyMap getReplacementKeyMap()
-    {
-        return null;
-    }
 
     private KeyMapGM()
     {

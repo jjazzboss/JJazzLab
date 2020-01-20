@@ -52,12 +52,6 @@ public class KeyMapGSGM2 implements KeyMap
         return INSTANCE;
     }
 
-    @Override
-    public DrumKit.KeyMap getReplacementKeyMap()
-    {
-        return KeyMapGM.getInstance();
-    }
-
     private KeyMapGSGM2()
     {
         addNote("Beep 1", 22, false);       // SC-88 pro only

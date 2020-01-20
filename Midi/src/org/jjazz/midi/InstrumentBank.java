@@ -62,9 +62,9 @@ public class InstrumentBank<T extends Instrument>
      * Create an InstrumentBank.
      *
      * @param name
-     * @param msb  The default Most Significant Byte or "Control 0".
-     * @param lsb  The default Least Significant Byte or "Control 32"
-     * @param m    The default bank select method. Can't be null.
+     * @param msb The default Most Significant Byte or "Control 0".
+     * @param lsb The default Least Significant Byte or "Control 32"
+     * @param m The default bank select method. Can't be null.
      */
     public InstrumentBank(String name, int msb, int lsb, BankSelectMethod m)
     {
@@ -81,7 +81,7 @@ public class InstrumentBank<T extends Instrument>
     /**
      * Associate a MidiSynth to this bank.
      * <p>
-     * IMPORTANT: this method can be called only once (a bank can't be assigned to 2 different MidiSynths).
+     * IMPORTANT: this method can be called only once (because a bank can't be assigned to 2 different MidiSynths).
      * <p>
      * It is the responsibility of the specified MidiSynth to add the bank.
      *
@@ -149,8 +149,8 @@ public class InstrumentBank<T extends Instrument>
     /**
      * Add the instrument to the bank.
      * <p>
-     * If there is already an Instrument with same patchname, nothing is done. The function sets the instrument's bank to this
-     * bank.
+     * The method sets the instrument's bank to this bank. It is the responsibility of the caller to check that instrument's
+     * patchName is not used twice in the bank.
      *
      * @param instrument
      */
@@ -364,7 +364,7 @@ public class InstrumentBank<T extends Instrument>
     /**
      * Get all the Drums/Percussion instruments.
      *
-     * @return Returned instruments must have isDrumKit() set to true.
+     * @return Returned instruments have isDrumKit() set to true.
      */
     public List<T> getDrumsInstruments()
     {
@@ -374,6 +374,43 @@ public class InstrumentBank<T extends Instrument>
             if (ins.isDrumKit())
             {
                 res.add(ins);
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Get all the drums/percussion instruments which match the specified DrumKit.
+     *
+     * @param kit
+     * @param tryHarder If true and no instrument matched the specified kit, then try again but with a more flexible matching
+     * algorithm. Default implementation starts a second search using kit.Type.STANDARD.
+     * @return Can be empty.
+     */
+    public List<T> getDrumsInstrument(DrumKit kit, boolean tryHarder)
+    {
+        if (kit == null)
+        {
+            throw new NullPointerException("kit=" + kit + " tryHarder=" + tryHarder);
+        }
+        ArrayList<T> res = new ArrayList<>();
+        List<T> drumsInstruments = getDrumsInstruments();
+        for (T ins : drumsInstruments)
+        {
+            if (kit.equals(ins.getDrumKit()))
+            {
+                res.add(ins);
+            }
+        }
+        if (res.isEmpty() && tryHarder && !kit.getType().equals(DrumKit.Type.STANDARD))
+        {
+            DrumKit kit2 = new DrumKit(DrumKit.Type.STANDARD, kit.getKeyMap());
+            for (T ins : drumsInstruments)
+            {
+                if (kit2.equals(ins.getDrumKit()))
+                {
+                    res.add(ins);
+                }
             }
         }
         return res;
