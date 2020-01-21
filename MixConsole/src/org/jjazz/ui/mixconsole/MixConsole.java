@@ -49,8 +49,10 @@ import javax.swing.undo.UndoManager;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.base.actions.Savable;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
+import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.savablesong.SavableSong;
@@ -601,7 +603,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         mcp.setChannelColor(c);
         mcp.setChannelName(r.getName(), rv.getName());
         Instrument prefIns = rv.getPreferredInstrument();
-        Icon icon;  
+        Icon icon;
         switch (rv.getType())
         {
             case DRUMS:
@@ -642,8 +644,16 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         }
         mcp.setIcon(icon);
-        mcp.setIconToolTipText(rv.getName());       
-        mcp.setNameToolTipText(prefIns.toLongString());
+        mcp.setIconToolTipText(rv.getName());
+        String txt = "Recommended instrument: " + prefIns.getFullName();
+        if (!(prefIns instanceof GM1Instrument))
+        {
+            DrumKit kit = prefIns.getDrumKit();
+            txt += ", ";
+            txt += rv.isDrums() ? "DrumKit type=" + kit.getType().toString() + " keymap= " + kit.getKeyMap().getName()
+                    : "GM substitute: " + prefIns.getSubstitute().getPatchName();
+        }
+        mcp.setNameToolTipText(txt);
         return mcp;
 
     }

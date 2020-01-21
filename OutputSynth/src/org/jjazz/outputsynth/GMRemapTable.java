@@ -37,6 +37,7 @@ import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.synths.Family;
 import org.jjazz.midiconverters.api.StdKeyMapConverter;
 
@@ -181,15 +182,15 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
         checkRemappedInstrument(remappedIns);
         if (ins == remappedIns)
         {
-            throw new ArgumentsException("Invalid instrument: " + ins.getPatchName() + ". It must be different from the mapped instrument.");
+            throw new ArgumentsException("Invalid instrument: " + ins.getFullName() + " is not different from the mapped instrument.");
         }
         if (ins != null && !ins.isDrumKit() && (remappedIns == DRUMS_INSTRUMENT || remappedIns == PERCUSSION_INSTRUMENT))
         {
-            throw new ArgumentsException("Invalid instrument: " + ins.getPatchName() + ". It must be a Drums/Percussion instrument.");
+            throw new ArgumentsException("Invalid instrument: " + ins.getFullName() + " is not a Drums/Percussion instrument.");
         }
-        if (ins != null && ins.isDrumKit() && !StdKeyMapConverter.getInstance().isStandardKeyMap(ins.getDrumKit()))
+        if (ins != null && ins.isDrumKit() && !ins.getDrumKit().getKeyMap().isContaining(KeyMapGM.getInstance()))
         {
-            throw new ArgumentsException("Invalid instrument: " + ins.toLongString() + ". Its DrumKit keymap must be GM-compatible.");
+            throw new ArgumentsException("Invalid instrument: " + ins.getFullName() + " drum kit keymap (" + ins.getDrumKit().getKeyMap().getName() + ") is not GM-compatible.");
         }
         setInstrumentNoException(remappedIns, ins, useAsFamilyDefault);
     }

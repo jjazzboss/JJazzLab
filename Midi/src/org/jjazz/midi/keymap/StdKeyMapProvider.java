@@ -43,7 +43,7 @@ public class StdKeyMapProvider implements KeyMapProvider
     {
         keyMaps.add(KeyMapGM.getInstance());
         keyMaps.add(KeyMapGSGM2.getInstance());
-        keyMaps.add(KeyMapXG_Std.getInstance());
+        keyMaps.add(KeyMapXG.getInstance());
         keyMaps.add(KeyMapXG_PopLatin.getInstance());
     }
 

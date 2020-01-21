@@ -23,6 +23,7 @@
 package org.jjazz.ui.mixconsole;
 
 import java.util.logging.Logger;
+import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.InstrumentMix;
@@ -33,6 +34,8 @@ import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.UserChannelRhythmVoiceKey;
 import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.ui.mixconsole.spi.MixChannelInstrumentChooser;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 
 /**
  *
@@ -45,7 +48,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     private static final Logger LOGGER = Logger.getLogger(MixChannelPanelControllerImpl.class.getSimpleName());
 
     /**
-     * @param mMix The MidiMix containing all data of our model.
+     * @param mMix    The MidiMix containing all data of our model.
      * @param channel Used to retrieve the InstrumentMix from mMix.
      */
     public MixChannelPanelControllerImpl(MidiMix mMix, int channel)
@@ -121,8 +124,25 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         Instrument ins = dlg.getSelectedInstrument();
         if (ins != null)
         {
-            insMix.setInstrument(ins);
-            insMix.getSettings().setTransposition(dlg.getTransposition());
+            // Perform some consistency checks
+            if (rv.isDrums())
+            {
+                DrumKit.KeyMap prefKeyMap = rv.getPreferredInstrument().getDrumKit().getKeyMap();
+                DrumKit.KeyMap keyMap = ins.getDrumKit().getKeyMap();
+                if (!keyMap.isContaining(prefKeyMap))
+                {
+                    String msg = "Selected instrument (" + ins.getPatchName() + ", drum keymap=" + keyMap.getName() + ") does not match the recommended keymap " + prefKeyMap.getName()+"."
+                            + "\n This may result in incorrect sounds. Do you want to continue ?";
+                    NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
+                    Object result = DialogDisplayer.getDefault().notify(d);
+                    if (NotifyDescriptor.YES_OPTION != result)
+                    {
+                        return;
+                    }
+                }
+                insMix.setInstrument(ins);
+                insMix.getSettings().setTransposition(dlg.getTransposition());
+            }
         }
     }
 

@@ -34,7 +34,7 @@ import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.keymap.KeyMapGSGM2;
 import org.jjazz.midi.keymap.KeyMapXG_PopLatin;
-import org.jjazz.midi.keymap.KeyMapXG_Std;
+import org.jjazz.midi.keymap.KeyMapXG;
 import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.GM2Bank;
 import org.jjazz.midi.synths.GSBank;
@@ -235,7 +235,7 @@ public class StdInstrumentConverter implements InstrumentConverter
         DrumKit.KeyMap srcKeyMap = srcIns.getDrumKit().getKeyMap();
 
         DrumKit.KeyMap xgLatinKeyMap = KeyMapXG_PopLatin.getInstance();
-        DrumKit.KeyMap xgKeyMap = KeyMapXG_Std.getInstance();
+        DrumKit.KeyMap xgKeyMap = KeyMapXG.getInstance();
         DrumKit.KeyMap gsgm2KeyMap = KeyMapGSGM2.getInstance();
         DrumKit.KeyMap gmKeyMap = KeyMapGM.getInstance();
 

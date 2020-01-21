@@ -31,28 +31,28 @@ import org.jjazz.midi.DrumKit;
  * The Yamaha XG standard Drum Map.
  * <p>
  */
-public class KeyMapXG_Std implements DrumKit.KeyMap
+public class KeyMapXG implements DrumKit.KeyMap
 {
 
-    public static final String NAME = "XG_STD";
-    private static KeyMapXG_Std INSTANCE;
+    public static final String NAME = "XG";
+    private static KeyMapXG INSTANCE;
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
     private ArrayList<Integer> accentPitches = new ArrayList<>();
 
-    public static KeyMapXG_Std getInstance()
+    public static KeyMapXG getInstance()
     {
-        synchronized (KeyMapXG_Std.class)
+        synchronized (KeyMapXG.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new KeyMapXG_Std();
+                INSTANCE = new KeyMapXG();
             }
         }
         return INSTANCE;
     }
 
-    private KeyMapXG_Std()
+    private KeyMapXG()
     {
         addNote("Surdo Mute", 13, false);
         addNote("Surdo Open", 14, false);

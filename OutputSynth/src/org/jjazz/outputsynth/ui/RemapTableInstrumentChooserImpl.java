@@ -52,10 +52,9 @@ import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.keymap.KeyMapGSGM2;
-import org.jjazz.midi.keymap.KeyMapXG_Std;
+import org.jjazz.midi.keymap.KeyMapXG;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.ui.InstrumentTable;
-import org.jjazz.midiconverters.api.StdKeyMapConverter;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.outputsynth.GMRemapTable;
 import org.jjazz.outputsynth.OutputSynth;
@@ -334,7 +333,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
                 DrumKit.KeyMap keyMap = ins.getDrumKit().getKeyMap();
                 if (!keyMap.isContaining(KeyMapGM.getInstance())
                         && !keyMap.isContaining(KeyMapGSGM2.getInstance())
-                        && !keyMap.isContaining(KeyMapXG_Std.getInstance()))
+                        && !keyMap.isContaining(KeyMapXG.getInstance()))
                 {
                     continue;
                 }
@@ -507,6 +506,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             }
         });
 
+        lbl_Filtered.setForeground(new java.awt.Color(153, 0, 0));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_Filtered, org.openide.util.NbBundle.getMessage(RemapTableInstrumentChooserImpl.class, "RemapTableInstrumentChooserImpl.lbl_Filtered.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_UseAsFamilyDefault, org.openide.util.NbBundle.getMessage(RemapTableInstrumentChooserImpl.class, "RemapTableInstrumentChooserImpl.cb_UseAsFamilyDefault.text")); // NOI18N

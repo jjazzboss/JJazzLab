@@ -233,7 +233,8 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
         String s = patchName.trim().toLowerCase();
 
         // Exclude drum kits
-        if (!s.contains("steel") && (s.contains("drum") || s.contains("kit")))
+        if (!s.contains("steel") 
+                && (s.contains("drum") || s.contains("kit")))
         {
             return null;
         }
@@ -344,7 +345,8 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
                 ins = instruments.get(26);
             }
         } // BASSES 32-39
-        else if (!s.contains("lead") && (s.contains("contra") || s.contains("bassoo")) && (s.contains("bass") || s.contains("ba:") || s.contains("bs:") || s.contains("bas:")))
+        else if (!(s.contains("lead") || (s.contains("contra") || s.contains("bassoo"))) 
+                && (s.contains("bass") || s.contains("ba:") || s.contains("bs:") || s.contains("bas:")))
         {
             if (s.contains("wood") || s.contains("ac"))
             {
@@ -390,7 +392,8 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
             {
                 ins = instruments.get(48);
             }
-        } else if (!s.contains("pad") && s.contains("choir"))
+        } else if (!s.contains("pad") 
+                && s.contains("choir"))
         {
             ins = instruments.get(52);
         } else if (s.contains("orch") && s.contains("hit"))

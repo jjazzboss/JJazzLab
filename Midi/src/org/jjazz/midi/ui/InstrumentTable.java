@@ -56,7 +56,7 @@ public class InstrumentTable extends JTable
     {
         setModel(tblModel);
         setAutoCreateRowSorter(true);
-        setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_NEXT_COLUMN);
+        setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         getTableHeader().setReorderingAllowed(false);               // Prevent column dragging
@@ -140,7 +140,7 @@ public class InstrumentTable extends JTable
             }
             this.instruments = instruments;
             fireTableDataChanged();
-            adjustWidths();
+            // adjustWidths();
         }
 
         List<? extends Instrument> getInstruments()

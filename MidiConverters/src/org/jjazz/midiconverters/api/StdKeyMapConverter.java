@@ -1,7 +1,7 @@
 package org.jjazz.midiconverters.api;
 
 import org.jjazz.midi.keymap.KeyMapGSGM2;
-import org.jjazz.midi.keymap.KeyMapXG_Std;
+import org.jjazz.midi.keymap.KeyMapXG;
 import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midiconverters.spi.KeyMapConverter;
 import org.jjazz.midi.DrumKit;
@@ -98,7 +98,7 @@ public class StdKeyMapConverter implements KeyMapConverter
         {
             throw new NullPointerException("kit");
         }
-        return kit.getKeyMap() == KeyMapXG_Std.getInstance() || kit.getKeyMap() == KeyMapGSGM2.getInstance() || kit.getKeyMap() == KeyMapGM.getInstance();
+        return kit.getKeyMap() == KeyMapXG.getInstance() || kit.getKeyMap() == KeyMapGSGM2.getInstance() || kit.getKeyMap() == KeyMapGM.getInstance();
     }
 
 }

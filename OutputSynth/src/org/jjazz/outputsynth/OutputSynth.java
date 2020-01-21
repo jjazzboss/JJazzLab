@@ -352,6 +352,10 @@ public class OutputSynth implements Serializable
             }
         }
 
+        Edit outputsynth => propose to reset existing mix si les instruments ont disparu ? A l'inverse de recalculer le mix (action reset)'
+        par exemple car un drumsretouting pourrait devenir inutiel...
+        drumsRerouting automatic lors de la création du MidiMix
+        
         if (ins == null && rv.isDrums())
         {
             // Drums voices: use the DrumKit information

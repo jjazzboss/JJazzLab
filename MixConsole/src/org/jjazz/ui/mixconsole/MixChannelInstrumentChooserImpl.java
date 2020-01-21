@@ -88,8 +88,6 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
     {
         setModal(true);
         initComponents();
-        setTitle("Instrument Selection Dialog");
-
         tbl_Instruments.setHiddenColumns(Arrays.asList(InstrumentTable.Model.COL_LSB,
                 InstrumentTable.Model.COL_MSB,
                 InstrumentTable.Model.COL_PC,
@@ -119,13 +117,30 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         this.preferredInstrument = rv.getPreferredInstrument();
         GM1Instrument gmSubstitute = this.preferredInstrument.getSubstitute();
 
-        String rvType = rv.isDrums() ? "" : " - " + gmSubstitute.getFamily().toString();
+        // Prepare title labels
+        String rvType = "";
+        if (!rv.isDrums() && !gmSubstitute.getFamily().toString().equalsIgnoreCase(rv.getName()))
+        {
+            rvType = " (family=" + gmSubstitute.getFamily().toString() + ")";
+        }
         String myTitle = "Select instrument for channel " + (channel + 1) + " - " + rv.getName() + rvType;
         lbl_Title.setText(myTitle);
-        String prefInsTxt = "Recommended instrument: " + preferredInstrument.getPatchName()
-                + "(synth=" + preferredInstrument.getBank().getMidiSynth().getName() + ", bank=" + preferredInstrument.getBank().getName() + ")";
-        this.lbl_PreferredInstrument.setText(prefInsTxt);
-        this.lbl_PreferredInstrument.setToolTipText(preferredInstrument.toLongString());
+
+        // Prepare recommended instrument label
+        String prefInsTxt = preferredInstrument.getFullName();
+        this.lbl_preferredInstrument.setText(prefInsTxt);
+        DrumKit kit = rv.getDrumKit();
+        String tt = null;
+        if (!(preferredInstrument instanceof GM1Instrument))
+        {
+            tt = rv.isDrums() ? "DrumKit type=" + kit.getType().toString() + ", keymap= " + kit.getKeyMap().getName()
+                    : "GM substitute: " + gmSubstitute.getSubstitute().getPatchName();
+        }
+        this.lbl_preferredInstrument.setToolTipText(tt);
+
+        // OutputSynth label
+        String outSynthTxt = outputSynth.getFile() == null ? null : "Output synth config: " + outputSynth.getFile().getName();
+        this.lbl_outputSynthConfig.setText(outSynthTxt);
 
         // Reset text filter
         btn_TxtClearActionPerformed(null);
@@ -360,6 +375,7 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
     {
 
         btn_showInstruments = new javax.swing.ButtonGroup();
+        jLabel1 = new javax.swing.JLabel();
         btn_Ok = new javax.swing.JButton();
         btn_Cancel = new javax.swing.JButton();
         tf_Filter = new javax.swing.JTextField();
@@ -372,11 +388,15 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         rbtn_showRecommended = new javax.swing.JRadioButton();
         rbtn_showAll = new javax.swing.JRadioButton();
         lbl_Filtered = new javax.swing.JLabel();
-        lbl_PreferredInstrument = new javax.swing.JLabel();
+        lbl_recIns = new javax.swing.JLabel();
         spn_transposition = new org.jjazz.ui.utilities.WheelSpinner();
         lbl_transpose = new javax.swing.JLabel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        lbl_preferredInstrument = new javax.swing.JLabel();
+        lbl_outputSynthConfig = new javax.swing.JLabel();
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.jLabel1.text")); // NOI18N
+
+        setTitle(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.title")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.btn_Ok.text")); // NOI18N
         btn_Ok.addActionListener(new java.awt.event.ActionListener()
@@ -407,6 +427,7 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_TxtFilter, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.btn_TxtFilter.text")); // NOI18N
+        btn_TxtFilter.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.btn_TxtFilter.toolTipText")); // NOI18N
         btn_TxtFilter.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -416,6 +437,7 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_TxtClear, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.btn_TxtClear.text")); // NOI18N
+        btn_TxtClear.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.btn_TxtClear.toolTipText")); // NOI18N
         btn_TxtClear.setEnabled(false);
         btn_TxtClear.addActionListener(new java.awt.event.ActionListener()
         {
@@ -438,11 +460,13 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         lbl_Title.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         org.openide.awt.Mnemonics.setLocalizedText(lbl_Title, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_Title.text")); // NOI18N
 
+        tbl_Instruments.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
         jScrollPane1.setViewportView(tbl_Instruments);
 
         btn_showInstruments.add(rbtn_showRecommended);
         rbtn_showRecommended.setSelected(true);
         org.openide.awt.Mnemonics.setLocalizedText(rbtn_showRecommended, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.rbtn_showRecommended.text")); // NOI18N
+        rbtn_showRecommended.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.rbtn_showRecommended.toolTipText")); // NOI18N
         rbtn_showRecommended.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -453,6 +477,7 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
 
         btn_showInstruments.add(rbtn_showAll);
         org.openide.awt.Mnemonics.setLocalizedText(rbtn_showAll, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.rbtn_showAll.text")); // NOI18N
+        rbtn_showAll.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.rbtn_showAll.toolTipText")); // NOI18N
         rbtn_showAll.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -461,10 +486,11 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
             }
         });
 
+        lbl_Filtered.setForeground(new java.awt.Color(153, 0, 0));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_Filtered, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_Filtered.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_PreferredInstrument, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_PreferredInstrument.text")); // NOI18N
-        lbl_PreferredInstrument.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_PreferredInstrument.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_recIns, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_recIns.text")); // NOI18N
+        lbl_recIns.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_recIns.toolTipText")); // NOI18N
 
         spn_transposition.setModel(new javax.swing.SpinnerNumberModel(0, 0, 48, 1));
         spn_transposition.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.spn_transposition.toolTipText")); // NOI18N
@@ -473,14 +499,11 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         org.openide.awt.Mnemonics.setLocalizedText(lbl_transpose, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_transpose.text")); // NOI18N
         lbl_transpose.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_transpose.toolTipText")); // NOI18N
 
-        jScrollPane2.setBackground(null);
-        jScrollPane2.setBorder(null);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_preferredInstrument, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_preferredInstrument.text")); // NOI18N
+        lbl_preferredInstrument.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_preferredInstrument.toolTipText")); // NOI18N
 
-        helpTextArea1.setBackground(null);
-        helpTextArea1.setColumns(20);
-        helpTextArea1.setRows(5);
-        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.helpTextArea1.text")); // NOI18N
-        jScrollPane2.setViewportView(helpTextArea1);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_outputSynthConfig, org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_outputSynthConfig.text")); // NOI18N
+        lbl_outputSynthConfig.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelInstrumentChooserImpl.class, "MixChannelInstrumentChooserImpl.lbl_outputSynthConfig.toolTipText")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -489,6 +512,7 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lbl_Title, javax.swing.GroupLayout.DEFAULT_SIZE, 437, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(layout.createSequentialGroup()
@@ -504,27 +528,30 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
                             .addComponent(btn_Hear, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lbl_Title, javax.swing.GroupLayout.PREFERRED_SIZE, 375, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(lbl_PreferredInstrument))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(rbtn_showRecommended)
-                            .addComponent(rbtn_showAll))
-                        .addGap(0, 223, Short.MAX_VALUE)
-                        .addComponent(btn_TxtClear)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(rbtn_showRecommended)
+                                    .addComponent(rbtn_showAll))
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(btn_TxtClear)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_TxtFilter)
-                        .addGap(46, 46, 46))
+                        .addComponent(btn_TxtFilter))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(btn_Ok)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btn_Cancel))
-                            .addComponent(tf_Filter, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addComponent(tf_Filter, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lbl_recIns)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lbl_preferredInstrument)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(lbl_outputSynthConfig)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btn_Ok)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_Cancel)))
                 .addContainerGap())
         );
 
@@ -535,22 +562,25 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(lbl_Title, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(7, 7, 7)
-                .addComponent(lbl_PreferredInstrument)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lbl_recIns, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lbl_preferredInstrument))
                 .addGap(18, 18, 18)
                 .addComponent(rbtn_showAll)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(rbtn_showRecommended)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(lbl_Filtered)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 345, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 336, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(btn_Ok)
-                            .addComponent(btn_Cancel)))
+                            .addComponent(btn_Cancel)
+                            .addComponent(lbl_outputSynthConfig)))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(tf_Filter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -563,8 +593,6 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
                             .addComponent(lbl_transpose))
                         .addGap(27, 27, 27)
                         .addComponent(btn_Hear)
-                        .addGap(18, 18, 18)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -680,12 +708,13 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
     private javax.swing.JButton btn_TxtClear;
     private javax.swing.JButton btn_TxtFilter;
     private javax.swing.ButtonGroup btn_showInstruments;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lbl_Filtered;
-    private javax.swing.JLabel lbl_PreferredInstrument;
     private javax.swing.JLabel lbl_Title;
+    private javax.swing.JLabel lbl_outputSynthConfig;
+    private javax.swing.JLabel lbl_preferredInstrument;
+    private javax.swing.JLabel lbl_recIns;
     private javax.swing.JLabel lbl_transpose;
     private javax.swing.JRadioButton rbtn_showAll;
     private javax.swing.JRadioButton rbtn_showRecommended;

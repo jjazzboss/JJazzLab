@@ -36,7 +36,7 @@ import org.jjazz.midi.MidiAddress.BankSelectMethod;
 import static org.jjazz.midi.MidiUtilities.buildMessage;
 import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.keymap.KeyMapGSGM2;
-import org.jjazz.midi.keymap.KeyMapXG_Std;
+import org.jjazz.midi.keymap.KeyMapXG;
 import org.openide.util.Exceptions;
 
 /**
@@ -336,7 +336,7 @@ public class GSBank extends InstrumentBank<Instrument>
     {
         List<Instrument> res = super.getDrumsInstrument(kit, tryHarder);
         if (res.isEmpty() && tryHarder
-                && (kit.getKeyMap().equals(KeyMapGM.getInstance()) || kit.getKeyMap().equals(KeyMapXG_Std.getInstance())))
+                && (kit.getKeyMap().equals(KeyMapGM.getInstance()) || kit.getKeyMap().equals(KeyMapXG.getInstance())))
         {
             // GM is fully compatible, XG is somewhat compatible...
             res.add(instruments.get(256 + kit.getType().ordinal()));

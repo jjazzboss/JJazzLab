@@ -31,14 +31,17 @@ import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiMessage;
+import org.jjazz.midi.synths.GM2Bank;
+import org.jjazz.midi.synths.GSBank;
 import org.jjazz.midi.synths.StdSynth;
+import org.jjazz.midi.synths.XGBank;
 
 /**
  * The data used to select via MIDI an instrument on a synthesizer.
  */
 public class Instrument implements Serializable
 {
-  
+
     private InstrumentBank<?> bank;
     private String patchName;
     private MidiAddress address;
@@ -183,6 +186,36 @@ public class Instrument implements Serializable
     public String getPatchName()
     {
         return patchName;
+    }
+
+    /**
+     * A user-friendly string describing the instrument with its synth (or bank if its a standard bank).
+     * <p>
+     * Examples: "GM: Acoustic Piano", "MOXF: JP Strings"
+     *
+     * @return
+     */
+    public String getFullName()
+    {
+        if (bank == null || bank.getMidiSynth() == null)
+        {
+            return getPatchName();
+        } else if (bank instanceof GM1Bank)
+        {
+            return "GM/" + getPatchName();
+        } else if (bank instanceof GM2Bank)
+        {
+            return "GM2/" + getPatchName();
+        } else if (bank instanceof XGBank)
+        {
+            return "XG/ " + getPatchName();
+        } else if (bank instanceof GSBank)
+        {
+            return "GS/" + getPatchName();
+        } else
+        {
+            return bank.getMidiSynth().getName() + "/" + getPatchName();
+        }
     }
 
     /**
