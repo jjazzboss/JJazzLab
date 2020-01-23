@@ -30,7 +30,7 @@ import org.openide.windows.OnShowing;
 /**
  * Class only used to apply the toolbar configuration defined in the layer file ("Toolbars" directory).
  * <p>
- * Because could not find another way to get rid of the Profiling toolbar by default !<br>
+ * Because I could not find another way to get rid of the Profiling toolbar by default !<br>
  * There is still the Warning upon run : "Not all children in Toolbars/ marked with the position attribute: [MusicControls,
  * MyToolBarConfig.xml], but some are: [File, Clipboard, UndoRedo, Memory]" Did not find how to get rid of this, although
  * MusicControls "position" is specified in my MyToolBarConfig.xml.

@@ -22,47 +22,49 @@
  */
 package org.jjazz.outputsynth.ui;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import org.jjazz.outputsynth.OutputSynthManager;
-import static org.jjazz.outputsynth.ui.Bundle.CTL_EditConnectedSynth;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle;
-import org.openide.windows.WindowManager;
+import org.openide.util.*;
+import org.openide.util.actions.Presenter;
 
-@ActionID(category = "JJazz", id = "org.jjazz.outputsynth.ui.editConnectedSynth")
-@ActionRegistration(displayName = "#CTL_EditConnectedSynth", lazy = true)
+@ActionID(category = "JJazz", id = "org.jjazz.outputsynth.ui.outputsynthtoolbaraction")
+@ActionRegistration(displayName = "#CTL_OutputSynthToolBar", lazy = false)   // Need to be false because we implement Presenter.Toolbar
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/Edit", position = 98392)
+            @ActionReference(path = "Toolbars/OutputSynth", position = 450)     // This will insert our toolbar
         })
 @NbBundle.Messages(
         {
-            "CTL_EditConnectedSynth=Edit Connected Synth"
+            "CTL_OutputSynthToolBar=Output Synth Toolbar"
         })
-public class EditOutputSynth extends AbstractAction
+public class OutputSynthlToolbarAction extends AbstractAction implements Presenter.Toolbar
 {
 
-    private String undoText = CTL_EditConnectedSynth();
-    private static final Logger LOGGER = Logger.getLogger(EditOutputSynth.class.getSimpleName());
+    private OutputSynthToolbarPanel panel;
+    private static final Logger LOGGER = Logger.getLogger(OutputSynthlToolbarAction.class.getSimpleName());
 
-    public EditOutputSynth()
+    public OutputSynthlToolbarAction()
     {
-        putValue(NAME, undoText);
-        // putValue(SHORT_DESCRIPTION, "");
-        // putValue("hideActionText", true);
+        // Build the component
+        panel = new OutputSynthToolbarPanel();
+
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        EditOutputSynthDialog dlg = EditOutputSynthDialog.getInstance();
-        dlg.preset(OutputSynthManager.getInstance().getOutputSynth());
-        dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
-        dlg.setVisible(true);
+        // Not used because of Presenter.Toolbar implementation
+    }
+
+    @Override
+    public Component getToolbarPresenter()
+    {
+        return panel;
     }
 }

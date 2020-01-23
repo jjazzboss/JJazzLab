@@ -28,6 +28,7 @@
         <Toolbar name="UndoRedo" position="200" />
         <Toolbar name="Clipboard" visible="false" position="300" />    
         <Toolbar name="MusicControls" position="400" />      
+        <Toolbar name="OutputSynth" position="450" />      
         <Toolbar name="Memory" visible="false" position="500" />
     </Row> 
 
