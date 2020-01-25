@@ -614,6 +614,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     public void propertyChange(PropertyChangeEvent e)
     {
         LOGGER.log(Level.FINE, "propertyChange() e={0}", e);
+        if (mgContext == null)
+        {
+            return;
+        }
         if (e.getSource() == mgContext.getSong())
         {
             if (e.getPropertyName() == Song.PROP_MODIFIED_OR_SAVED)
@@ -844,7 +848,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(context);
                 sequence = seqBuilder.buildSequence(false);                  // Can raise MusicGenerationException
                 mapRvTrackId = seqBuilder.getRvTrackIdMap();                 // Used to identify a RhythmVoice's track
-                
+
                 // Add the control track
                 ControlTrackBuilder ctm = new ControlTrackBuilder(context);
                 controlTrackId = ctm.addControlTrack(sequence);

@@ -29,13 +29,19 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.musiccontrol.ClickManager;
+import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.FlatToggleButton;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.HelpCtx;
+import org.openide.util.Lookup;
+import org.openide.util.LookupEvent;
+import org.openide.util.LookupListener;
 import org.openide.util.NbBundle;
+import org.openide.util.Utilities;
 import org.openide.util.actions.BooleanStateAction;
 
 /**
@@ -52,9 +58,11 @@ import org.openide.util.actions.BooleanStateAction;
             "CTL_Precount=Precount",
             "CTL_PrecountTooltip=Precount before playback"
         })
-public class Precount extends BooleanStateAction implements PropertyChangeListener
+public class Precount extends BooleanStateAction implements PropertyChangeListener, LookupListener
 {
 
+    private Lookup.Result<Song> lookupResult;
+    private Song currentSong;
     private static final Logger LOGGER = Logger.getLogger(Precount.class.getSimpleName());
 
     public Precount()
@@ -69,6 +77,14 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
         ClickManager cm = ClickManager.getInstance();
         cm.addPropertyChangeListener(this);
         setSelected(cm.isClickPrecount());
+
+        // Listen to the Midi active song changes
+        ActiveSongManager.getInstance().addPropertyListener(this);
+
+        // Listen to the current Song changes
+        lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
+        lookupResult.addLookupListener(this);
+        currentSongChanged();
     }
 
     @Override
@@ -86,6 +102,34 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
         ClickManager cm = ClickManager.getInstance();
         cm.setClickPrecount(b);
         setBooleanState(b);  // Notify action listeners
+    }
+
+    @Override
+    public void resultChanged(LookupEvent ev)
+    {
+        int i = 0;
+        Song newSong = null;
+        for (Song s : lookupResult.allInstances())
+        {
+            newSong = s;
+            i++;
+        }
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();
+        if (newSong != null)
+        {
+            // Current song has changed
+            if (currentSong != null)
+            {
+                // Listen to song close event
+                currentSong.removePropertyChangeListener(this);
+            }
+            currentSong = newSong;
+            currentSong.addPropertyChangeListener(this);
+            currentSongChanged();
+        } else
+        {
+            // Do nothing : still using the last valid song
+        }
     }
 
     @Override
@@ -115,9 +159,21 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
         ClickManager cm = ClickManager.getInstance();
         if (evt.getSource() == cm)
         {
-            if (evt.getPropertyName() == ClickManager.PROP_CLICK_PRECOUNT)
+            if (evt.getPropertyName().equals(ClickManager.PROP_CLICK_PRECOUNT))
             {
                 setBooleanState((boolean) evt.getNewValue());
+            }
+        } else if (evt.getSource() == ActiveSongManager.getInstance())
+        {
+            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
+            {
+                activeSongChanged();
+            }
+        } else if (evt.getSource() == currentSong)
+        {
+            if (evt.getPropertyName().equals(Song.PROP_CLOSED))
+            {
+                currentSongClosed();
             }
         }
     }
@@ -125,4 +181,23 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
     // ======================================================================
     // Private methods
     // ======================================================================    
+    private void activeSongChanged()
+    {
+        currentSongChanged();    // Enable/Disable components            
+    }
+
+    private void currentSongChanged()
+    {
+        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
+        boolean b = (currentSong != null) && (currentSong == activeSong);
+        setEnabled(b);
+    }
+
+    private void currentSongClosed()
+    {
+        currentSong.removePropertyChangeListener(this);
+        currentSong = null;
+        currentSongChanged();
+    }
+
 }
