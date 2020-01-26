@@ -328,7 +328,7 @@ public class MidiSynth
     {
         LOGGER.fine("saveAsString() MidiSynth=" + getName() + ", getFile()=" + getFile());
         String strFile = getFile() == null ? "NOT_SET" : getFile().getAbsolutePath();
-        return getName() + "#_#" + strFile;
+        return getName() + "#:#" + strFile;
     }
 
     /**
@@ -346,7 +346,7 @@ public class MidiSynth
         {
             throw new NullPointerException("s");
         }
-        String[] strs = s.split("#_#");
+        String[] strs = s.split("#:#");
         if (strs.length != 2)
         {
             LOGGER.warning("loadFromString() Invalid string format : " + s);
