@@ -56,7 +56,7 @@ public class InstrumentTable extends JTable
     {
         setModel(tblModel);
         setAutoCreateRowSorter(true);
-        setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+        setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         getTableHeader().setReorderingAllowed(false);               // Prevent column dragging
@@ -175,13 +175,13 @@ public class InstrumentTable extends JTable
             switch (columnIndex)
             {
                 case COL_LSB:
-                    s = "LSB";
+                    s = "LSB ";
                     break;
                 case COL_MSB:
-                    s = "MSB";
+                    s = "MSB ";
                     break;
                 case COL_PC:
-                    s = "PC";
+                    s = "PC  ";
                     break;
                 case COL_PATCHNAME:
                     s = "Patch Name";
@@ -190,13 +190,13 @@ public class InstrumentTable extends JTable
                     s = "Drum Kit";
                     break;
                 case COL_ID:
-                    s = "#";
+                    s = "#   ";
                     break;
                 case COL_SYNTH:
-                    s = "Synth";
+                    s = "Synth ";
                     break;
                 case COL_BANK:
-                    s = "Bank";
+                    s = "Bank ";
                     break;
                 default:
                     throw new IllegalStateException("columnIndex=" + columnIndex);
@@ -294,10 +294,12 @@ public class InstrumentTable extends JTable
                 case Model.COL_MSB:
                 case Model.COL_PC:
                 case Model.COL_ID:
+                    colModel.getColumn(colIndex).setMaxWidth(width);
+                    break;
                 case Model.COL_DRUMKIT:
                 case Model.COL_SYNTH:
                 case Model.COL_BANK:
-                    colModel.getColumn(colIndex).setMaxWidth(width);
+                    // colModel.getColumn(colIndex).setMaxWidth(width);
                     break;
                 case Model.COL_PATCHNAME:
                     // Nothing

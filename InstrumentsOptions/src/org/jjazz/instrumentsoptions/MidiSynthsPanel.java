@@ -376,7 +376,7 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
 //            // Add the non-empty synths
 //            for (MidiSynth synth : synths)
 //            {
-//                if (synth.getNbPatches() > 0)
+//                if (synth.getNbInstruments() > 0)
 //                {
 //                    MidiSynthManager.getInstance().addUserSynth(p, synth);
 //                }
@@ -478,7 +478,7 @@ final class MidiSynthsPanel extends javax.swing.JPanel implements PropertyChange
         {
             Component c = (JComponent) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             MidiSynth synth = (MidiSynth) value;
-            String s = synth.getName() + " (" + synth.getNbPatches() + ")";
+            String s = synth.getName() + " (" + synth.getNbInstruments() + ")";
             setText(s);
             File f = synth.getFile();
             if (f == null)

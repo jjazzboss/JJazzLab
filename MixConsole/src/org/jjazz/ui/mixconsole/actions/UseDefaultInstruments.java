@@ -45,12 +45,12 @@ import org.openide.awt.StatusDisplayer;
 import org.openide.util.NbBundle;
 import org.openide.util.actions.Presenter;
 
-@ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.usedefaultinstruments")
-@ActionRegistration(displayName = "#CTL_UseDefaultInstruments", lazy = false) // lazy=false needed for Presenter.Menu implementation 
-@ActionReferences(
-        {
-            @ActionReference(path = "Actions/MixConsole/MenuBar/Edit", position = 300)
-        })
+//@ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.usedefaultinstruments")
+//@ActionRegistration(displayName = "#CTL_UseDefaultInstruments", lazy = false) // lazy=false needed for Presenter.Menu implementation 
+//@ActionReferences(
+//        {
+//            @ActionReference(path = "Actions/MixConsole/MenuBar/Edit", position = 300)
+//        })
 @NbBundle.Messages(
         {
             "CTL_UseDefaultInstruments=Use default instruments",

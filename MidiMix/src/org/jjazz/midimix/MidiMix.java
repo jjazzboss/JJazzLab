@@ -587,7 +587,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     }
 
     /**
-     * Add new nstrumentMixes and related keys from mm into this MidiMix.
+     * Add new InstrumentMixes and related keys from mm into this MidiMix.
      * <p>
      * Create copies of each added InstrumentMix. Copies have solo/drumsRerouting set to OFF.<p>
      * Method uses findFreeChannel() to allocate the new channels of mm if they are not free in this MidiMix.

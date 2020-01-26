@@ -353,10 +353,9 @@ public class GM2Bank extends InstrumentBank<Instrument>
     public List<Instrument> getDrumsInstrument(DrumKit kit, boolean tryHarder)
     {
         List<Instrument> res = super.getDrumsInstrument(kit, tryHarder);
-        if (res.isEmpty() && tryHarder
-                && (kit.getKeyMap().equals(KeyMapGM.getInstance()) || kit.getKeyMap().equals(KeyMapXG.getInstance())))
+        if (res.isEmpty() && tryHarder && (kit.getKeyMap().isContaining(KeyMapGM.getInstance())))
         {
-            // GM is fully compatible, XG is somewhat compatible...
+            // GM is fully compatible
             res.add(instruments.get(256 + kit.getType().ordinal()));
         }
         return res;

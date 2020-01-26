@@ -242,6 +242,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         filler8 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
         fbtn_Click = new org.jjazz.ui.flatcomponents.FlatToggleButton();
         fbtn_Precount = new org.jjazz.ui.flatcomponents.FlatToggleButton();
+        filler9 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
 
         setOpaque(false);
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
@@ -327,6 +328,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         fbtn_Precount.setToolTipText(org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Precount.toolTipText")); // NOI18N
         fbtn_Precount.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/precount-ON-24x24.png"))); // NOI18N
         add(fbtn_Precount);
+        add(filler9);
     }// </editor-fold>//GEN-END:initComponents
 
     private void spn_TempoStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_TempoStateChanged
@@ -352,6 +354,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     private javax.swing.Box.Filler filler6;
     private javax.swing.Box.Filler filler7;
     private javax.swing.Box.Filler filler8;
+    private javax.swing.Box.Filler filler9;
     private javax.swing.JPanel panel_PlayButtons;
     private javax.swing.JPanel panel_Tempo;
     private org.jjazz.ui.musiccontrolactions.PositionViewer posViewer;

@@ -34,14 +34,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import org.*;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midi.synths.GSSynth;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.util.Utilities;
+import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Lookup;
@@ -75,6 +75,22 @@ public class MidiSynthManager
 
     private MidiSynthManager()
     {
+        // Copy the default MidiSynths if not done
+        final File dir = getMidiSynthFilesDir();
+        final File[] files = dir.listFiles();
+        if (files.length == 0)
+        {
+            Runnable run = new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    File[] res = MidiSynthManager.this.copyBuiltinResourceFiles(dir);
+                    LOGGER.info("MidiSynthManager() First time initialization - copied " + res.length + " files into " + dir.getAbsolutePath());
+                }
+            };
+            BaseProgressUtils.showProgressDialogAndRun(run, "First time initialization - copying builtin Midi synth files...");
+        }
     }
 
     /**
@@ -146,7 +162,7 @@ public class MidiSynthManager
                 synths = reader.readSynthsFromStream(new FileInputStream(synthFile), synthFile); // Can raise exception
                 for (MidiSynth synth : synths)
                 {
-                    if (synth.getNbPatches() > 0)
+                    if (synth.getNbInstruments() > 0)
                     {
                         res.add(synth);
                         midiSynthRefs.add(new WeakReference<>(synth));
@@ -216,6 +232,7 @@ public class MidiSynthManager
     @ServiceProvider(service = MidiSynth.Finder.class)
     static public class SynthFinder implements MidiSynth.Finder
     {
+
         @Override
         public MidiSynth getMidiSynth(String synthName, File synthFile)
         {
@@ -249,7 +266,6 @@ public class MidiSynthManager
     /**
      * The last used directory, or if not set the standard directory for MidiSynth.
      * <p>
-     * Prepare the builtin files when first called.
      *
      * @return
      */
@@ -259,14 +275,12 @@ public class MidiSynthManager
         {
             return lastSynthDir;
         }
-        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-        File rDir = fdm.getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
-        assert rDir.isDirectory() : "rDir=" + rDir;
-        File[] files = rDir.listFiles();
-        if (files.length == 0)
+        File rDir = FileDirectoryManager.getInstance().getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
+        if (rDir == null)
         {
-            files = copyBuiltinResourceFiles(rDir);
-            LOGGER.info("getMidiSynthFilesDir() copied " + files.length + " files into " + rDir.getAbsolutePath());
+            String msg = "SERIOUS ERROR - Can't find the app. config. directory for " + MIDISYNTH_FILES_DEST_DIRNAME;
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
         }
         return rDir;
     }

@@ -28,6 +28,9 @@ import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.MidiConst;
+import org.jjazz.midi.synths.Family;
+import org.jjazz.midi.synths.GM1Bank;
+import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.synths.StdSynth;
 
 /**
@@ -48,6 +51,38 @@ public class RhythmVoice
         public boolean isDrums()
         {
             return this.equals(DRUMS) || this.equals(PERCUSSION);
+        }
+
+        /**
+         * Return a default instrument for each type.
+         *
+         * @return Null for Drums or Percussion.
+         */
+        public GM1Instrument getDefaultInstrument()
+        {
+            GM1Bank gmBank = StdSynth.getInstance().getGM1Bank();
+            switch (this)
+            {
+                case DRUMS:
+                case PERCUSSION:
+                    return null;
+                case BASS:
+                    return gmBank.getDefaultInstrument(Family.Bass);
+                case CHORD1:
+                    return gmBank.getDefaultInstrument(Family.Guitar);
+                case CHORD2:
+                    return gmBank.getDefaultInstrument(Family.Piano);
+                case PAD:
+                    return gmBank.getDefaultInstrument(Family.Ensemble);
+                case PHRASE1:
+                    return gmBank.getDefaultInstrument(Family.Brass);
+                case PHRASE2:
+                    return gmBank.getDefaultInstrument(Family.Brass);
+                case OTHER:
+                    return gmBank.getDefaultInstrument(Family.Piano);                    
+                default:
+                    throw new IllegalStateException("this=" + this);
+            }
         }
     }
 

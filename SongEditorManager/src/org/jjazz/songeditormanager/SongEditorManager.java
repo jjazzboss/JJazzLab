@@ -326,10 +326,10 @@ public class SongEditorManager implements PropertyChangeListener
             if (!savables.isEmpty())
             {
                 StringBuilder msg = new StringBuilder();
-                msg.append("There are unsaved changes in the files below. OK to exit anyway ?").append("\n");
+                msg.append("There are unsaved changes in the files below. OK to exit anyway ?").append("\n\n");
                 for (Savable s : savables)
                 {
-                    msg.append(" - ").append(s.toString()).append("\n");
+                    msg.append("  ").append(s.toString()).append("\n");
                 }
                 NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg.toString(), NotifyDescriptor.OK_CANCEL_OPTION);
                 Object result = DialogDisplayer.getDefault().notify(nd);

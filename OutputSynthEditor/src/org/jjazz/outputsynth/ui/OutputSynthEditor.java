@@ -51,7 +51,6 @@ import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiSynth;
-import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.ui.InstrumentTable;
@@ -60,8 +59,6 @@ import org.jjazz.outputsynth.GMRemapTable;
 import org.jjazz.outputsynth.GMRemapTable.ArgumentsException;
 import org.jjazz.outputsynth.MidiSynthManager;
 import org.jjazz.outputsynth.OutputSynth;
-import org.jjazz.outputsynth.OutputSynth.SendModeOnUponStartup;
-import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.outputsynth.ui.spi.RemapTableInstrumentChooser;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.openide.DialogDisplayer;
@@ -384,7 +381,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         {
             Component c = (JComponent) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             MidiSynth synth = (MidiSynth) value;
-            String s = synth.getName() + " (" + synth.getNbPatches() + ")";
+            String s = synth.getName() + " (" + synth.getNbInstruments() + ")";
             setText(s);
             File f = synth.getFile();
             s = (f == null) ? "Builtin" : f.getName();
@@ -524,7 +521,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
         jScrollPane7.setViewportView(tbl_Instruments);
 
-        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/resources/Speaker-20x20.png"))); // NOI18N
+        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/Speaker-20x20.png"))); // NOI18N
         org.openide.awt.Mnemonics.setLocalizedText(btn_Hear, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_Hear.text")); // NOI18N
         btn_Hear.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_Hear.toolTipText")); // NOI18N
         btn_Hear.setEnabled(false);
@@ -578,7 +575,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane6)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 367, Short.MAX_VALUE)
                     .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -606,7 +603,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             }
         });
 
-        btn_HearRemap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/resources/Speaker-20x20.png"))); // NOI18N
+        btn_HearRemap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/Speaker-20x20.png"))); // NOI18N
         btn_HearRemap.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_HearRemap.toolTipText")); // NOI18N
         btn_HearRemap.addActionListener(new java.awt.event.ActionListener()
         {
@@ -637,11 +634,11 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                     .addComponent(jScrollPane5)
                     .addGroup(pnl_defaultInstrumentsLayout.createSequentialGroup()
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 481, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 93, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 81, Short.MAX_VALUE)
                         .addComponent(btn_ResetInstrument)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_changeRemappedIns)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGap(18, 18, 18)
                         .addComponent(btn_HearRemap)))
                 .addContainerGap())
         );
@@ -657,7 +654,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                             .addComponent(btn_ResetInstrument))
                         .addComponent(btn_HearRemap)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 325, Short.MAX_VALUE)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 331, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -892,7 +889,14 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                     return;
                 }
             }
-            outputSynth.removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());
+            if (!outputSynth.removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank()))
+            {
+                String msg = "Can't remove the GM bank, otherwise output synth would be empty.";
+                NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                cb_GM.setSelected(true);
+                return;
+            }
         } else
         {
             outputSynth.addCompatibleStdBank(StdSynth.getInstance().getGM1Bank());

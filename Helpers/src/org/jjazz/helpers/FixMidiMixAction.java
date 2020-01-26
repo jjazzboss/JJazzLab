@@ -26,38 +26,41 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.helpers.DrumsReroutingDialog.ReroutingChoice;
+import org.jjazz.helpers.FixMidiMixDialog.FixChoice;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.outputsynth.OutputSynth;
+import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.openide.modules.OnStart;
 
 /**
- * Listen to pre-playback events, show the DrumsReroutingDialog and reroute channels if needed.
+ * Listen to pre-playback events, show the FixMidiMixDialog and fix the instruments if needed.
  */
 @OnStart               // Used only to get the automatic object creation upon startup
-public class DrumsReroutingAction implements VetoableChangeListener, Runnable
+public class FixMidiMixAction implements VetoableChangeListener, Runnable
 {
-
-    private static DrumsReroutingDialog DIALOG;
-    private static final Logger LOGGER = Logger.getLogger(DrumsReroutingAction.class.getSimpleName());
-    ReroutingChoice savedChoice = DrumsReroutingDialog.ReroutingChoice.CANCEL;
-
-    public DrumsReroutingAction()
+    
+    private static FixMidiMixDialog DIALOG;
+    private static final Logger LOGGER = Logger.getLogger(FixMidiMixAction.class.getSimpleName());
+    FixChoice savedChoice = FixChoice.CANCEL;
+    
+    public FixMidiMixAction()
     {
         // Register for song playback
         MusicController mc = MusicController.getInstance();
         mc.addVetoableChangeListener(this);
     }
-
+    
     @Override
     public void run()
     {
@@ -74,39 +77,41 @@ public class DrumsReroutingAction implements VetoableChangeListener, Runnable
     public void vetoableChange(PropertyChangeEvent evt) throws PropertyVetoException
     {
         LOGGER.log(Level.FINE, "vetoableChange() -- evt={0}", evt);
-
+        
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() != mc
-                || evt.getPropertyName() != MusicController.PROPVETO_PRE_PLAYBACK
+                || !evt.getPropertyName().equals(MusicController.PROPVETO_PRE_PLAYBACK)
                 || !mc.getPlaybackState().equals(MusicController.State.PLAYBACK_STOPPED))  // Don't check in pause mode
         {
             return;
         }
-
+        
         MusicGenerationContext context = (MusicGenerationContext) evt.getNewValue();
         assert context != null : "evt=" + evt;
         MidiMix midiMix = context.getMidiMix();
-
-        List<Integer> toBeReroutedChannels = new ArrayList<>();
-        List<Integer> reroutableChannels = getChannelsToBeRerouted(midiMix);
-        if (!reroutableChannels.isEmpty())
+        
+        OutputSynth outputSynth = OutputSynthManager.getInstance().getOutputSynth();
+        HashMap<Integer, Instrument> mapNewInstruments = outputSynth.getFixedInstruments(midiMix);
+        List<Integer> reroutableChannels = getChannelsToBeRerouted(midiMix, mapNewInstruments);
+        
+        if (!mapNewInstruments.isEmpty() || !reroutableChannels.isEmpty())
         {
             switch (savedChoice)
             {
                 case CANCEL:
-                    DrumsReroutingDialog dialog = getDialog();
-                    dialog.preset(reroutableChannels, midiMix);
+                    FixMidiMixDialog dialog = getDialog();
+                    dialog.preset(mapNewInstruments, reroutableChannels, midiMix);
                     dialog.setVisible(true);
-                    ReroutingChoice choice = dialog.getUserChoice();
+                    FixChoice choice = dialog.getUserChoice();
                     switch (choice)
                     {
                         case CANCEL:
                             throw new PropertyVetoException(null, evt); // null msg to prevent user notifications by exception handlers
-                        case REROUTE:
-                            toBeReroutedChannels = reroutableChannels;
+                        case FIX:
+                            performFix(mapNewInstruments, reroutableChannels, midiMix);
                             break;
-                        case DONT_REROUTE:
-                            // Do nothing, leave toBeReroutedChannels empty
+                        case DONT_FIX:
+                            // Do nothing, leave toBeFixedChannels empty
                             break;
                         default:
                             throw new IllegalStateException("choice=" + choice);
@@ -116,26 +121,40 @@ public class DrumsReroutingAction implements VetoableChangeListener, Runnable
                         savedChoice = choice;
                     }
                     break;
-                case REROUTE:
-                    toBeReroutedChannels = reroutableChannels;
+                case FIX:
+                    performFix(mapNewInstruments, reroutableChannels, midiMix);
                     break;
-                case DONT_REROUTE:
-                    // Do nothing, leave toBeReroutedChannels empty
+                case DONT_FIX:
+                    // Do nothing, leave toBeFixedChannels empty
                     break;
                 default:
                     throw new IllegalStateException("savedChoice=" + savedChoice);
             }
-            performRerouting(toBeReroutedChannels, midiMix);
         }
     }
-
-    private DrumsReroutingDialog getDialog()
+    
+    private FixMidiMixDialog getDialog()
     {
         if (DIALOG == null)
         {
-            DIALOG = new DrumsReroutingDialog();
+            DIALOG = new FixMidiMixDialog();
         }
         return DIALOG;
+    }
+    
+    private void performFix(HashMap<Integer, Instrument> mapChanIns, List<Integer> reroutedChannels, MidiMix midiMix)
+    {
+        for (int ch : mapChanIns.keySet())
+        {
+            Instrument newIns = mapChanIns.get(ch);
+            InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(ch);
+            insMix.setInstrument(newIns);
+            midiMix.setDrumsReroutedChannel(false, ch);   // If we set an instrument it should not be rerouted anymore if it was the case before
+        }
+        for (int ch : reroutedChannels)
+        {
+            midiMix.setDrumsReroutedChannel(true, ch);
+        }
     }
 
     /**
@@ -144,19 +163,21 @@ public class DrumsReroutingAction implements VetoableChangeListener, Runnable
      * A channel needs rerouting if all the following conditions are met:<br>
      * 1/ channel != 10 <br>
      * 2/ rv.isDrums()==true and rerouting is not already enabled <br>
-     * 3/ instrument is the VoidInstrument<br>
+     * 3/ instrument (or new instrument if defined) is the VoidInstrument<br>
      *
      * @param midiMix
+     * @param mapChannelNewIns Possible new instruments to use for some channels
      * @return Can't be null
      */
-    private List<Integer> getChannelsToBeRerouted(MidiMix midiMix)
+    private List<Integer> getChannelsToBeRerouted(MidiMix midiMix, HashMap<Integer, Instrument> mapChannelNewIns)
     {
         List<Integer> res = new ArrayList<>();
         for (RhythmVoice rv : midiMix.getRvKeys())
         {
             int channel = midiMix.getChannel(rv);
             InstrumentMix insMix = midiMix.getInstrumentMixFromKey(rv);
-            Instrument ins = insMix.getInstrument();
+            Instrument newIns = mapChannelNewIns.get(channel);
+            Instrument ins = (newIns != null) ? newIns : insMix.getInstrument();
             LOGGER.fine("getChannelsToBeRerouted() rv=" + rv + " channel=" + channel + " ins=" + ins);
             if (channel != MidiConst.CHANNEL_DRUMS
                     && rv.isDrums()
@@ -169,13 +190,5 @@ public class DrumsReroutingAction implements VetoableChangeListener, Runnable
         LOGGER.fine("getChannelsToBeRerouted() res=" + res);
         return res;
     }
-
-    private void performRerouting(List<Integer> channels, MidiMix midiMix)
-    {
-        for (int ch : channels)
-        {
-            midiMix.setDrumsReroutedChannel(true, ch);
-        }
-    }
-
+    
 }

@@ -35,11 +35,9 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
-import org.jjazz.util.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.Exceptions;
 import org.openide.windows.WindowManager;
 
 /**

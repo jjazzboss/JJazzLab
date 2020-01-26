@@ -140,9 +140,9 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
                         return;
                     }
                 }
-                insMix.setInstrument(ins);
-                insMix.getSettings().setTransposition(dlg.getTransposition());
             }
+            insMix.setInstrument(ins);
+            insMix.getSettings().setTransposition(dlg.getTransposition());
         }
     }
 

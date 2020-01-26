@@ -47,20 +47,23 @@ public class OutputSynthToolbarPanel extends javax.swing.JPanel
     private void initComponents()
     {
 
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         fbtn_editOutputSynth = new org.jjazz.ui.flatcomponents.FlatButton();
+        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
 
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
         add(filler1);
 
-        fbtn_editOutputSynth.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/resources/OutputSynth.png"))); // NOI18N
+        fbtn_editOutputSynth.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/OutputSynth2.png"))); // NOI18N
         fbtn_editOutputSynth.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthToolbarPanel.class, "OutputSynthToolbarPanel.fbtn_editOutputSynth.toolTipText")); // NOI18N
         add(fbtn_editOutputSynth);
+        add(filler2);
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.jjazz.ui.flatcomponents.FlatButton fbtn_editOutputSynth;
     private javax.swing.Box.Filler filler1;
+    private javax.swing.Box.Filler filler2;
     // End of variables declaration//GEN-END:variables
 }

@@ -74,6 +74,12 @@ public class VoidInstrument extends GM1Instrument implements Serializable
         return this.myBank;
     }
 
+    @Override
+    public String getFullName()
+    {
+        return "Void Instrument";
+    }
+
     /**
      * Overridden : return an empty array.
      *

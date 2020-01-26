@@ -54,7 +54,7 @@ public class MidiSynth
                 Finder finder = Lookup.getDefault().lookup(Finder.class);
                 if (finder == null)
                 {
-                    throw new IllegalStateException("finder=" + finder);
+                    throw new IllegalStateException("Can't find a MidiSynth.Finder instance in the global lookup");
                 }
                 return finder;
             }
@@ -262,7 +262,7 @@ public class MidiSynth
      *
      * @return
      */
-    public int getNbPatches()
+    public int getNbInstruments()
     {
         int size = 0;
         for (InstrumentBank<?> bank : getBanks())
@@ -306,7 +306,7 @@ public class MidiSynth
 
     public void dump()
     {
-        LOGGER.severe("DUMP synth: " + this.name + "(" + getNbPatches() + ") ================================================");
+        LOGGER.severe("DUMP synth: " + this.name + "(" + getNbInstruments() + ") ================================================");
         for (InstrumentBank<?> bank : getBanks())
         {
             LOGGER.severe("   Bank=" + bank.getName() + " (" + bank.getSize() + ") ---------");
@@ -328,7 +328,7 @@ public class MidiSynth
     {
         LOGGER.fine("saveAsString() MidiSynth=" + getName() + ", getFile()=" + getFile());
         String strFile = getFile() == null ? "NOT_SET" : getFile().getAbsolutePath();
-        return getName() + ", " + strFile;
+        return getName() + "#_#" + strFile;
     }
 
     /**
@@ -346,7 +346,7 @@ public class MidiSynth
         {
             throw new NullPointerException("s");
         }
-        String[] strs = s.split(" *, *");
+        String[] strs = s.split("#_#");
         if (strs.length != 2)
         {
             LOGGER.warning("loadFromString() Invalid string format : " + s);

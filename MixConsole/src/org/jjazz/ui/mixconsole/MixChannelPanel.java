@@ -40,7 +40,6 @@ import org.jjazz.ui.flatcomponents.FlatButton;
 import org.jjazz.ui.flatcomponents.FlatIntegerKnob;
 import org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider;
 import org.jjazz.ui.flatcomponents.FlatTextEditDialog;
-import org.jjazz.util.Utilities;
 
 /**
  * Display a MixChannel.
@@ -142,7 +141,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         {
             throw new NullPointerException("upperName");
         }
-        String tt = (lowerName != null) ? upperName + " /" + lowerName : upperName;
         if (upperName.length() > 10)
         {
             upperName = upperName.substring(0, 6).trim() + "...";

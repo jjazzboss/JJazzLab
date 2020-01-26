@@ -302,11 +302,15 @@ public class Instrument implements Serializable
         {
             throw new NullPointerException("s");
         }
-        String[] strs = s.split(" *#_# *");
+        String[] strs = s.split("#_#");
         if (strs.length != 3)
         {
-            LOGGER.warning("loadFromString() Invalid string format : " + s);
-            return null;
+            strs = s.split(",");        // Kept for backwards compatibility with 1.x 
+            if (strs.length != 3)
+            {
+                LOGGER.warning("loadFromString() Invalid string format : " + s);
+                return null;
+            }
         }
         String synthSaveString = strs[0].trim();
         String bankName = strs[1].trim();

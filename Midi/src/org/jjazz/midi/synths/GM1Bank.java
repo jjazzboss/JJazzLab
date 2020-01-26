@@ -209,6 +209,20 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
     }
 
     /**
+     * Try to guess if patchName represents a drums/percussion instrument.
+     *
+     * @param patchName
+     * @return
+     */
+    public boolean guessIsDrums(String patchName)
+    {
+        // Exclude drum kits
+        String s = patchName.trim().toLowerCase();
+        boolean b = !s.contains("steel") && (s.contains("drum") || s.contains("kit") || s.contains("kt:") || s.contains("dr:") || s.contains("drm:"));
+        return b;
+    }
+
+    /**
      * Try to guess from patchName the equivalent GM1 Instrument.
      *
      *
@@ -232,9 +246,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
         GM1Instrument ins = null;
         String s = patchName.trim().toLowerCase();
 
-        // Exclude drum kits
-        if (!s.contains("steel") 
-                && (s.contains("drum") || s.contains("kit")))
+        if (guessIsDrums(s))
         {
             return null;
         }
@@ -345,7 +357,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
                 ins = instruments.get(26);
             }
         } // BASSES 32-39
-        else if (!(s.contains("lead") || (s.contains("contra") || s.contains("bassoo"))) 
+        else if (!(s.contains("lead") || (s.contains("contra") || s.contains("bassoo")))
                 && (s.contains("bass") || s.contains("ba:") || s.contains("bs:") || s.contains("bas:")))
         {
             if (s.contains("wood") || s.contains("ac"))
@@ -392,7 +404,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
             {
                 ins = instruments.get(48);
             }
-        } else if (!s.contains("pad") 
+        } else if (!s.contains("pad")
                 && s.contains("choir"))
         {
             ins = instruments.get(52);

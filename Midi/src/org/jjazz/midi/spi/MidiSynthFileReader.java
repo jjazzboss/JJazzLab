@@ -81,6 +81,7 @@ public interface MidiSynthFileReader
     /**
      * Get synth(s) from an input stream.
      * <p>
+     * Returned synths must have at least one InstrumentBank. InstrumentBanks can't be empty.
      *
      * @param in
      * @param f  If f is non null, the created synths will be associated to this file.

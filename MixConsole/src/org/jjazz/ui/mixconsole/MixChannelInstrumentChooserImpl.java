@@ -48,8 +48,10 @@ import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.synths.GM1Instrument;
+import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.ui.InstrumentTable;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.outputsynth.GMRemapTable;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
@@ -150,7 +152,8 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         allInstruments = this.getAllInstruments(outputSynth, rv.isDrums());
         recommendedInstruments = this.getRecommendedInstruments(allInstruments, preferredInstrument);
 
-        if (!recommendedInstruments.isEmpty() && (preselectedIns == null || recommendedInstruments.contains(preselectedIns)))
+        if (!recommendedInstruments.isEmpty()
+                && (preselectedIns == null || preselectedIns == StdSynth.getInstance().getVoidInstrument() || recommendedInstruments.contains(preselectedIns)))
         {
             rbtn_showRecommended.setSelected(true);
             rbtn_showRecommendedActionPerformed(null);
@@ -246,19 +249,30 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
      * Get all the instruments for melodic voices or drums voices.
      *
      * @param outSynth
-     * @param drumsMode If true return only drums instruments, otherwise only voice instruments.
+     * @param drumsMode If true return drums instruments first
      * @return
      */
     private List<Instrument> getAllInstruments(OutputSynth outSynth, boolean drumsMode)
     {
         ArrayList<Instrument> res = new ArrayList<>();
+        if (drumsMode)
+        {
+            for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
+            {
+                res.addAll(bank.getDrumsInstruments());
+            }
+            for (MidiSynth synth : outSynth.getCustomSynths())
+            {
+                res.addAll(synth.getDrumsInstruments());
+            }
+        }
         for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
         {
-            res.addAll(drumsMode ? bank.getDrumsInstruments() : bank.getNonDrumsInstruments());
+            res.addAll(bank.getNonDrumsInstruments());
         }
         for (MidiSynth synth : outSynth.getCustomSynths())
         {
-            res.addAll(drumsMode ? synth.getDrumsInstruments() : synth.getNonDrumsInstruments());
+            res.addAll(synth.getNonDrumsInstruments());
         }
         return res;
     }
@@ -301,6 +315,19 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
                     }
                 }
             }
+
+            // Is there a mapped instrument ? If yes add it first
+            Instrument mappedIns = outputSynth.getGMRemapTable().getInstrument(gm1PrefIns);
+            if (mappedIns == null)
+            {
+                mappedIns = outputSynth.getGMRemapTable().getInstrument(gm1PrefIns.getFamily());
+            }
+            if (mappedIns != null)
+            {
+                res.remove(mappedIns);
+                res.add(0, mappedIns);
+            }
+
         } else
         {
             // Drums
@@ -309,6 +336,10 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
             for (Instrument ins : allInsts)
             {
                 DrumKit insKit = ins.getDrumKit();
+                if (insKit == null)
+                {
+                    continue;
+                }
                 if (insKit.getType().equals(kit.getType()) && kit.getKeyMap().isContaining(insKit.getKeyMap()))
                 {
                     // First : full match
@@ -320,6 +351,21 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
                 }
             }
             res.addAll(second);
+
+            // If mapped drums/perc instruments are defined, put them first
+            Instrument mappedDrumsIns = outputSynth.getGMRemapTable().getInstrument(GMRemapTable.DRUMS_INSTRUMENT);
+            Instrument mappedPercIns = outputSynth.getGMRemapTable().getInstrument(GMRemapTable.PERCUSSION_INSTRUMENT);
+            if (mappedPercIns != null)
+            {
+                res.remove(mappedPercIns);
+                res.add(0, mappedPercIns);
+            }
+            if (mappedDrumsIns != null)
+            {
+                res.remove(mappedDrumsIns);
+                res.add(0, mappedDrumsIns);
+            }
+
         }
         return res;
     }

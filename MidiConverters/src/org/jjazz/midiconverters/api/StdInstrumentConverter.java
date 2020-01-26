@@ -183,7 +183,7 @@ public class StdInstrumentConverter implements InstrumentConverter
             {
                 // XG => GS
                 int gm2Index = getXGtoGM2Map().convert(xgIndex);     // We don't have a direct GS<>XG map
-                int index = getXGtoGM2Map().convert(gm2Index);
+                int index = getGM2toGSMap().convert(gm2Index);
                 ins = gsBank.getInstrument(index);
             } else if (destBanks.contains(gm1Bank) && !srcIns.isDrumKit())
             {

@@ -23,7 +23,6 @@
 package org.jjazz.midiconverters.spi;
 
 import org.jjazz.midi.DrumKit;
-import org.jjazz.midi.DrumKit;
 
 /**
  * Map notes from a source DrumKit to a destination DrumKit.

@@ -52,20 +52,21 @@
                                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                                       <Component id="lbl_Filtered" min="-2" max="-2" attributes="0"/>
                                   </Group>
-                                  <Component id="jScrollPane1" max="32767" attributes="0"/>
+                                  <Component id="jScrollPane1" pref="371" max="32767" attributes="0"/>
                               </Group>
                               <EmptySpace min="-2" pref="13" max="-2" attributes="0"/>
                           </Group>
                       </Group>
-                      <Group type="103" groupAlignment="1" attributes="0">
-                          <Group type="102" alignment="1" attributes="0">
+                      <Group type="103" groupAlignment="1" max="-2" attributes="0">
+                          <Component id="cb_UseAsFamilyDefault" alignment="0" min="-2" pref="135" max="-2" attributes="0"/>
+                          <Component id="btn_Hear" alignment="0" min="-2" pref="34" max="-2" attributes="0"/>
+                          <Group type="102" attributes="0">
+                              <EmptySpace min="-2" pref="55" max="-2" attributes="0"/>
                               <Component id="btn_TxtClear" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="btn_TxtFilter" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <Component id="tf_Filter" alignment="1" min="-2" pref="159" max="-2" attributes="0"/>
-                          <Component id="cb_UseAsFamilyDefault" alignment="0" min="-2" pref="135" max="-2" attributes="0"/>
-                          <Component id="btn_Hear" alignment="0" min="-2" pref="34" max="-2" attributes="0"/>
+                          <Component id="tf_Filter" alignment="1" max="32767" attributes="0"/>
                       </Group>
                   </Group>
               </Group>
@@ -90,7 +91,7 @@
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
-                      <Component id="jScrollPane1" pref="382" max="32767" attributes="0"/>
+                      <Component id="jScrollPane1" pref="379" max="32767" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="btn_Ok" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -172,7 +173,7 @@
     <Component class="javax.swing.JButton" name="btn_Hear">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/org/jjazz/outputsynth/resources/Speaker-20x20.png"/>
+          <Image iconType="3" name="/org/jjazz/outputsynth/ui/resources/Speaker-20x20.png"/>
         </Property>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="RemapTableInstrumentChooserImpl.btn_Hear.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>

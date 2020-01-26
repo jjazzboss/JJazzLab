@@ -35,21 +35,25 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.synths.GSSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midiconverters.api.ConvertersManager;
 import org.jjazz.midiconverters.api.StdInstrumentConverter;
+import org.jjazz.midimix.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
 
 /**
  * The information about the MidiSynth connected to the Midi output of JJazzLab.
+ * <p>
+ * An OutputSynth can't be empty: if no custom synths defined, there must be at least one standard compatible bank.
  */
 public class OutputSynth implements Serializable
 {
@@ -212,19 +216,39 @@ public class OutputSynth implements Serializable
 
     /**
      * Remove a standard bank compatible with this OutputSynth.
+     * <p>
+     * If the only remaining bank is the GM bank, then don't remove it. If removal makes the output synth empty (no instruments)
+     * then automatically add first the GM standard bank.
      *
      * @param stdBank
+     * @return True if stdBank could be successfully removed.
      */
-    public void removeCompatibleStdBank(InstrumentBank<?> stdBank)
+    public boolean removeCompatibleStdBank(InstrumentBank<?> stdBank)
     {
         if (stdBank == null)
         {
             throw new IllegalArgumentException("stdBank=" + stdBank);
         }
-
+        GM1Bank gmBank = StdSynth.getInstance().getGM1Bank();
+        if (customSynths.isEmpty() && compatibleStdBanks.size() == 1 && compatibleStdBanks.get(0) == stdBank)
+        {
+            if (stdBank == gmBank)
+            {
+                // Don't remove
+                return false;
+            } else
+            {
+                // Add first the GM bank
+                addCompatibleStdBank(gmBank);
+            }
+        }
         if (compatibleStdBanks.remove(stdBank))
         {
             pcs.firePropertyChange(PROP_STD_BANK, false, stdBank);
+            return true;
+        } else
+        {
+            return false;
         }
     }
 
@@ -268,6 +292,7 @@ public class OutputSynth implements Serializable
     /**
      * Remove a custom MidiSynth compatible with this OutputSynth.
      * <p>
+     * If removal makes the output synth empty (no instruments) then automatically add the GM standard bank.
      *
      * @param synth
      */
@@ -276,6 +301,11 @@ public class OutputSynth implements Serializable
         if (synth == null || synth == StdSynth.getInstance())
         {
             throw new IllegalArgumentException("stdBank=" + synth);
+        }
+        if (compatibleStdBanks.isEmpty() && customSynths.size() == 1 && customSynths.get(0) == synth)
+        {
+            // First add the GM bank
+            addCompatibleStdBank(StdSynth.getInstance().getGM1Bank());
         }
         if (customSynths.remove(synth))
         {
@@ -307,6 +337,32 @@ public class OutputSynth implements Serializable
         SendModeOnUponStartup old = this.sendModeOnUponStartup;
         this.sendModeOnUponStartup = mode;
         pcs.firePropertyChange(PROP_SEND_MSG_UPON_STARTUP, old, sendModeOnUponStartup);
+    }
+
+     /**
+     * Get the instruments that should be used in the specified MidiMix to be consistent with this OutputSynth.
+     * <p>
+     *
+     * @param mm
+     * @return The channels which need to be fixed and the associated new instrument. HashMap can be empty.
+     */
+    public HashMap<Integer, Instrument> getFixedInstruments(MidiMix mm)
+    {
+        HashMap<Integer, Instrument> res = new HashMap<>();
+        for (int channel : mm.getUsedChannels())
+        {
+            Instrument ins = mm.getInstrumentMixFromChannel(channel).getInstrument(); // Can be the VoidInstrument
+            if (!contains(ins))
+            {
+                RhythmVoice rv = mm.getKey(channel);
+                Instrument newIns = findInstrument(rv);     // Can be the VoidInstrument
+                if (newIns != ins)
+                {
+                    res.put(channel, newIns);
+                }
+            }
+        }
+        return res;
     }
 
     /**
@@ -352,7 +408,6 @@ public class OutputSynth implements Serializable
             }
         }
 
-        
         if (ins == null && rv.isDrums())
         {
             // Drums voices: use the DrumKit information
@@ -420,6 +475,30 @@ public class OutputSynth implements Serializable
             userInstrument = ins;
             pcs.firePropertyChange(PROP_USER_INSTRUMENT, oldIns, ins);
         }
+    }
+
+    /**
+     * Check whether this output synth contains this instrument.
+     *
+     * @param ins
+     * @return
+     */
+    public boolean contains(Instrument ins)
+    {
+        InstrumentBank<?> bank = ins.getBank();
+        if (bank != null)
+        {
+            if (compatibleStdBanks.contains(bank))
+            {
+                return true;
+            }
+            MidiSynth synth = bank.getMidiSynth();
+            if (synth != null)
+            {
+                return customSynths.contains(synth);
+            }
+        }
+        return false;
     }
 
     /**
@@ -557,10 +636,6 @@ public class OutputSynth implements Serializable
         private Object readResolve() throws ObjectStreamException
         {
             OutputSynth outSynth = new OutputSynth();
-            if (!spCompatibleStdBankNames.contains("GM"))
-            {
-                outSynth.removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());
-            }
             for (String strBank : spCompatibleStdBankNames)
             {
                 switch (strBank)
@@ -588,6 +663,11 @@ public class OutputSynth implements Serializable
                 {
                     outSynth.addCustomSynth(synth);
                 }
+            }
+            if (!spCompatibleStdBankNames.contains("GM"))
+            {
+                boolean b = outSynth.removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());  // Remove must be done last
+                assert b = true : "spCompatibleStdBankNames=" + spCompatibleStdBankNames + " spCustomSynthsStrings=" + spCustomSynthsStrings;
             }
             outSynth.remapTable = spRemapTable;
             outSynth.remapTable.setContainer(outSynth);

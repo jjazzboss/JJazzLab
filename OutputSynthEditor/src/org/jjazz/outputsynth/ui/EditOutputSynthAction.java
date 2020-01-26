@@ -23,10 +23,14 @@
 package org.jjazz.outputsynth.ui;
 
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
 import static org.jjazz.outputsynth.ui.Bundle.CTL_editoutputsynth;
 import org.openide.awt.ActionID;
@@ -43,10 +47,10 @@ import org.openide.windows.WindowManager;
         })
 @NbBundle.Messages(
         {
-            "CTL_editoutputsynth=Edit Output Synth",
-            "CTL_editoutputsynthTooltip=Edit the output synth connected to JJazzLab"
+            "CTL_editoutputsynth=Configure Output Synth",
+            "CTL_editoutputsynthTooltip=Configure the output synth connected to JJazzLab"
         })
-public class EditOutputSynthAction extends AbstractAction
+public class EditOutputSynthAction extends AbstractAction implements PropertyChangeListener
 {
 
     private String undoText = CTL_editoutputsynth();
@@ -55,18 +59,41 @@ public class EditOutputSynthAction extends AbstractAction
     public EditOutputSynthAction()
     {
         putValue(NAME, undoText);
-        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/outputsynth/resources/OutputSynth.png")));
-        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/outputsynth/resources/OutputSynth.png")));
-        putValue(Action.SHORT_DESCRIPTION, Bundle.CTL_editoutputsynthTooltip());
+        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/OutputSynth2.png")));
+        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/OutputSynth2.png")));
         putValue("hideActionText", true);
+        OutputSynthManager osm = OutputSynthManager.getInstance();
+        osm.addPropertyChangeListener(this);
+        updateActionName(osm.getOutputSynth());
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
         EditOutputSynthDialog dlg = EditOutputSynthDialog.getInstance();
-        dlg.preset(OutputSynthManager.getInstance().getOutputSynth());
+        OutputSynth outputSynth = OutputSynthManager.getInstance().getOutputSynth();
+        dlg.preset(outputSynth);
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == OutputSynthManager.getInstance())
+        {
+            if (evt.getPropertyName().equals(OutputSynthManager.PROP_DEFAULT_OUTPUTSYNTH))
+            {
+                updateActionName((OutputSynth) evt.getNewValue());
+            }
+        }
+    }
+
+    private void updateActionName(OutputSynth outSynth)
+    {
+        File f = outSynth.getFile();
+        String s = (f == null) ? "." : ". Current=" + f.getName();
+        // putValue(Action.NAME, f == null ? null : f.getName());
+        putValue(Action.SHORT_DESCRIPTION, Bundle.CTL_editoutputsynthTooltip() + s);
     }
 }

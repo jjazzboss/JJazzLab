@@ -266,19 +266,30 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
      * Get all the instruments for melodic voices or drums voices.
      *
      * @param outSynth
-     * @param drumsMode If true return only drums instruments, otherwise only voice instruments.
+     * @param drumsMode If true return drums instruments first
      * @return
      */
     private List<Instrument> getAllInstruments(OutputSynth outSynth, boolean drumsMode)
     {
         ArrayList<Instrument> res = new ArrayList<>();
+        if (drumsMode)
+        {
+            for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
+            {
+                res.addAll(bank.getDrumsInstruments());
+            }
+            for (MidiSynth synth : outSynth.getCustomSynths())
+            {
+                res.addAll(synth.getDrumsInstruments());
+            }
+        }
         for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
         {
-            res.addAll(drumsMode ? bank.getDrumsInstruments() : bank.getNonDrumsInstruments());
+            res.addAll(bank.getNonDrumsInstruments());
         }
         for (MidiSynth synth : outSynth.getCustomSynths())
         {
-            res.addAll(drumsMode ? synth.getDrumsInstruments() : synth.getNonDrumsInstruments());
+            res.addAll(synth.getNonDrumsInstruments());
         }
         return res;
     }
@@ -330,6 +341,10 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             // Drums : keep only kits with a GM compatible KeyMap
             for (Instrument ins : allInsts)
             {
+                if (!ins.isDrumKit())
+                {
+                    continue;
+                }
                 DrumKit.KeyMap keyMap = ins.getDrumKit().getKeyMap();
                 if (!keyMap.isContaining(KeyMapGM.getInstance())
                         && !keyMap.isContaining(KeyMapGSGM2.getInstance())
@@ -470,7 +485,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             }
         });
 
-        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/resources/Speaker-20x20.png"))); // NOI18N
+        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/Speaker-20x20.png"))); // NOI18N
         btn_Hear.setToolTipText(org.openide.util.NbBundle.getMessage(RemapTableInstrumentChooserImpl.class, "RemapTableInstrumentChooserImpl.btn_Hear.toolTipText")); // NOI18N
         btn_Hear.addActionListener(new java.awt.event.ActionListener()
         {
@@ -539,16 +554,17 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
                                     .addGroup(layout.createSequentialGroup()
                                         .addGap(0, 0, Short.MAX_VALUE)
                                         .addComponent(lbl_Filtered))
-                                    .addComponent(jScrollPane1))
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE))
                                 .addGap(13, 13, 13)))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(cb_UseAsFamilyDefault, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btn_Hear, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
+                                .addGap(55, 55, 55)
                                 .addComponent(btn_TxtClear)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btn_TxtFilter))
-                            .addComponent(tf_Filter, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(cb_UseAsFamilyDefault, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btn_Hear, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(tf_Filter))))
                 .addGap(6, 6, 6))
         );
 
@@ -570,7 +586,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 382, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 379, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(btn_Ok)

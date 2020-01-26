@@ -32,6 +32,8 @@ import javax.sound.midi.MidiUnavailableException;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
+import org.jjazz.midi.MidiConst;
+import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -174,8 +176,8 @@ public class MidiMixManager implements PropertyChangeListener
     /**
      * Create a MidiMix for the specified rhythm.
      * <p>
-     * Create one InstrumentMix per rhythm voice, using rhythm voice's preferred instrument (or default if no preferred instrument
-     * set), settings, and preferred channel (except if several voices share the same preferred channel).
+     * Create one InstrumentMix per rhythm voice, using rhythm voice's preferred instrument and settings, and preferred channel
+     * (except if several voices share the same preferred channel).
      *
      * @param r
      * @return A MidiMix associated to this rhythm. Rhythm voices are used as keys for InstrumentMixes.
