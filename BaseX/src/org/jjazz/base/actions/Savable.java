@@ -24,27 +24,17 @@ package org.jjazz.base.actions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import javax.swing.event.ChangeListener;
-import static org.jjazz.base.actions.Bundle.CTL_ConfirmExit;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
-import org.openide.modules.OnStop;
-import org.openide.util.NbBundle;
 
 /**
  * How to use:
  * <p>
- * - Create the Savable<br>
- * - Add it to the ToBeSavedList =&gt; will be used saved by SaveAll, and to confirm exit with unsaved changes<br>
+ * - Create a Savable instance<br>
+ * - Add it to the ToBeSavedList =&gt; it will be used by SaveAll, and also to confirm exit with unsaved changes<br>
  * - Add it in the TopComponent's lookup =&gt; Save action will be enabled if TopComponent is active<br>
  * - When save is done (e.g. end of save() method), remove the Savable from the ToBeSavedList and the TopComponent's lookup.<br>
  * <p>
  */
-@NbBundle.Messages(
-        {
-            "CTL_ConfirmExit=Unsaved changes in the files below. OK to exit anyway ?"
-        })
 public interface Savable
 {
 
@@ -56,12 +46,18 @@ public interface Savable
     public int save();
 
     /**
+     * A string describing the object saved by this Savable instance.
+     *
+     * @return
+     */
+    @Override
+    public String toString();
+
+    /**
      * The list of files that need to be saved.
      * <p>
-     * On shutdown pop up a warning to confirm "quit with unsaved changes" if the list is not empty
      */
-    @OnStop
-    static public final class ToBeSavedList implements Callable<Boolean>
+    static public final class ToBeSavedList
     {
 
         static private ArrayList<Savable> savables = new ArrayList<>();
@@ -115,29 +111,6 @@ public interface Savable
         static public void removeListener(ChangeListener l)
         {
             listeners.remove(l);
-        }
-
-        @Override
-        public Boolean call()
-        {
-            // Ask user confirmation if there are still files to be saved
-            if (!savables.isEmpty())
-            {
-                StringBuilder msg = new StringBuilder();
-                msg.append(CTL_ConfirmExit()).append("\n");
-                for (Savable s : savables)
-                {
-                    msg.append(s.toString()).append("\n");
-                }
-
-                NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg.toString(), NotifyDescriptor.OK_CANCEL_OPTION);
-                Object result = DialogDisplayer.getDefault().notify(nd);
-                if (result != NotifyDescriptor.OK_OPTION)
-                {
-                    return Boolean.FALSE;
-                }
-            }
-            return Boolean.TRUE;
         }
     }
 }

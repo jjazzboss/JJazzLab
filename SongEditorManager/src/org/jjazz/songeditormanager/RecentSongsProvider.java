@@ -58,23 +58,18 @@ public class RecentSongsProvider extends RecentFilesProvider implements Property
         if (evt.getSource() == SongEditorManager.getInstance())
         {
             Song s = (Song) evt.getNewValue();
-            if (evt.getPropertyName() == SongEditorManager.PROP_SONG_CLOSED)
+            if (evt.getPropertyName().equals(SongEditorManager.PROP_SONG_CLOSED))
             {
                 if (s.getFile() != null)
                 {
                     pcs.firePropertyChange(PROP_FILE_CLOSED, false, s.getFile());
                 }
-                s.removePropertyChangeListener(this);
-            } else if (evt.getPropertyName() == SongEditorManager.PROP_SONG_OPENED
-                    || evt.getPropertyName() == SongEditorManager.PROP_SONG_SAVED)
+            } else if (evt.getPropertyName().equals(SongEditorManager.PROP_SONG_OPENED)
+                    || evt.getPropertyName().equals(SongEditorManager.PROP_SONG_SAVED))
             {
                 if (s.getFile() != null)
                 {
                     pcs.firePropertyChange(PROP_FILE_OPENED, false, s.getFile());
-                } else
-                {
-                    // It's a new song, need to listen to song save/closed event
-                    s.addPropertyChangeListener(this);
                 }
             }
         }

@@ -30,7 +30,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -38,15 +37,11 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import javax.swing.SwingUtilities;
-import javax.swing.event.SwingPropertyChangeSupport;
 import static org.jjazz.base.actions.Bundle.*;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.awt.Actions;
-import org.openide.modules.OnStop;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
 import org.openide.util.actions.Presenter;
@@ -67,17 +62,11 @@ import org.openide.util.actions.Presenter;
         {
             "CTL_OpenRecentFile=Open recent file"
         })
-
 public final class OpenRecentFile extends AbstractAction implements Presenter.Menu, Presenter.Popup, PropertyChangeListener
 {
-
-    public static OpenRecentFile INSTANCE;
     private static final String PREF_RECENT_FILES = "RecentFiles";
     private static final String PREF_MAX_NB_FILES = "NbMaxRecentFiles";
-    /**
-     * Used as the Preference id and property change.
-     */
-    public static final String PREF_OPEN_RECENT_FILE_UPON_STARTUP = "OpenRecentFileUponStartup";
+
     private RecentFilesProvider rfProvider;
     private JMenu subMenu;
     /**
@@ -85,18 +74,11 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
      */
     private JMenuItem firstMenuItem;
     private ArrayList<File> recentFiles;
-    private ArrayList<File> openFiles;
     private static Preferences prefs = NbPreferences.forModule(OpenRecentFile.class);
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(OpenRecentFile.class.getSimpleName());
 
     public OpenRecentFile()
     {
-        if (INSTANCE != null)
-        {
-            throw new IllegalStateException("INSTANCE=" + INSTANCE);
-        }
-        INSTANCE = this;
         rfProvider = RecentFilesProvider.getDefault();
         if (rfProvider == null)
         {
@@ -109,7 +91,6 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
 
         // Initialize the file list
         recentFiles = new ArrayList<>();
-        openFiles = new ArrayList<>();
         String s = prefs.get(PREF_RECENT_FILES, "").trim();
         if (!s.isEmpty())
         {
@@ -126,91 +107,6 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
         subMenu.setText(CTL_OpenRecentFile());
         updateMenuItems();
 
-        // Open last recent file or create a new file if no recent file
-        if (isOpenRecentFileUponStartup() && firstMenuItem != null)
-        {
-            Runnable doRun = new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    firstMenuItem.doClick();
-                }
-            };
-            SwingUtilities.invokeLater(doRun);
-        } else
-        {
-            // Do nothing: faster startup, better for the Getting Started tutorial
-//            String cat = "File";
-//            String id = "org.jjazz.songeditormanager.NewSong";
-//            final Action a = Actions.forID(cat, id);
-//            if (a != null)
-//            {
-//                Runnable doRun = new Runnable()
-//                {
-//                    @Override
-//                    public void run()
-//                    {
-//                        a.actionPerformed(null);
-//                    }
-//                };
-//                SwingUtilities.invokeLater(doRun);
-//            } else
-//            {
-//                LOGGER.warning("OpenRecentFile() no action found for category=" + cat + ", id=" + id);
-//            }
-        }
-    }
-
-    public void setOpenRecentFileUponStartup(boolean b)
-    {
-        if (b != isOpenRecentFileUponStartup())
-        {
-            prefs.putBoolean(PREF_OPEN_RECENT_FILE_UPON_STARTUP, b);
-            pcs.firePropertyChange(PREF_OPEN_RECENT_FILE_UPON_STARTUP, !b, b);
-        }
-    }
-
-    public boolean isOpenRecentFileUponStartup()
-    {
-        return prefs.getBoolean(PREF_OPEN_RECENT_FILE_UPON_STARTUP, true);
-    }
-
-    /**
-     * We should use a Runnable, but then Preferences are not saved ! (probably too late ?) Use a Callable as workaround: if
-     * another Callable vetoes the shutdown, we'll have updated the recent list anyway...
-     */
-    @OnStop
-    public static class Shutdown implements Callable<Boolean>
-    {
-
-        @Override
-        public Boolean call() throws Exception
-        {
-            INSTANCE.shutdown();
-            return Boolean.TRUE;
-        }
-    }
-
-    public void shutdown()
-    {
-        if (rfProvider != null)
-        {
-            LOGGER.log(Level.FINE, "shutdown() openFiles=" + openFiles + " recentFiles=" + recentFiles);
-            rfProvider.removePropertyChangeListener(this);
-            for (File f : openFiles)
-            {
-                if (recentFiles.size() >= getNbMaxFiles())
-                {
-                    break;
-                }
-                if (!recentFiles.contains(f))
-                {
-                    recentFiles.add(0, f);
-                }
-            }
-            updatePreferences();
-        }
     }
 
     /**
@@ -220,10 +116,6 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
      */
     private void fileOpened(File f)
     {
-        if (!openFiles.contains(f))
-        {
-            openFiles.add(f);
-        }
         recentFiles.remove(f);
         updatePreferences();
         updateMenuItems();
@@ -246,7 +138,6 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
             recentFiles.remove(recentFiles.size() - 1);
         }
         recentFiles.add(0, f);
-        openFiles.remove(f);
         updatePreferences();
         updateMenuItems();
     }
@@ -328,7 +219,7 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getPropertyName() == RecentFilesProvider.PROP_FILE_OPENED)
+        if (evt.getPropertyName().equals(RecentFilesProvider.PROP_FILE_OPENED))
         {
             LOGGER.log(Level.FINE, "propertyChange() FILE_OPENED");
             File f = (File) evt.getNewValue();
@@ -352,15 +243,4 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
             }
         }
     }
-
-    public void addPropertyListener(PropertyChangeListener l)
-    {
-        pcs.addPropertyChangeListener(l);
-    }
-
-    public void removePropertyListener(PropertyChangeListener l)
-    {
-        pcs.removePropertyChangeListener(l);
-    }
-
 }

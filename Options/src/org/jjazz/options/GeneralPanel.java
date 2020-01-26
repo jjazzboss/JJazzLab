@@ -35,11 +35,11 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import org.jjazz.base.actions.ShowLogWindow;
-import org.jjazz.base.actions.OpenRecentFile;
 import org.jjazz.midi.device.MidiFilter;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.songeditormanager.SongEditorManager;
 import org.openide.awt.Actions;
 import org.openide.util.NbBundle.Messages;
 
@@ -312,7 +312,7 @@ final class GeneralPanel extends javax.swing.JPanel
         // or:
         // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
 
-        cb_loadLastRecentFile.setSelected(OpenRecentFile.INSTANCE.isOpenRecentFileUponStartup());
+        cb_loadLastRecentFile.setSelected(SongEditorManager.getInstance().isOpenRecentFilesUponStartup());
         cb_logMidiOut.setSelected(JJazzMidiSystem.getInstance().getMidiOutLogConfig().contains(MidiFilter.ConfigLog.LOG_PASSED_MESSAGES));
         cb_debugBuiltSequence.setSelected(MusicController.getInstance().isDebugBuiltSequence());
         spn_preferredUserChannel.setValue(Integer.valueOf(MidiMix.getPreferredUserChannel()) + 1);
@@ -327,7 +327,7 @@ final class GeneralPanel extends javax.swing.JPanel
         // NbPreferences.forModule(GeneralPanel.class).putBoolean("someFlag", someCheckBox.isSelected());
         // or:
         // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
-        OpenRecentFile.INSTANCE.setOpenRecentFileUponStartup(cb_loadLastRecentFile.isSelected());
+        SongEditorManager.getInstance().setOpenRecentFilesUponStartup(cb_loadLastRecentFile.isSelected());
 
         if (cb_logMidiOut.isSelected())
         {

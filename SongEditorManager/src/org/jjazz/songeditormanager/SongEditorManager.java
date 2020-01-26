@@ -27,11 +27,16 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import javax.sound.midi.MidiUnavailableException;
+import javax.swing.SwingUtilities;
 import org.jjazz.activesong.ActiveSongManager;
+import org.jjazz.base.actions.Savable;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
@@ -41,6 +46,9 @@ import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.openide.*;
+import org.openide.modules.OnStop;
+import org.openide.util.NbPreferences;
 import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
@@ -64,16 +72,18 @@ public class SongEditorManager implements PropertyChangeListener
      * This property change event is fired when a song is saved. NewValue is the song object.
      */
     public static final String PROP_SONG_SAVED = "SongSaved";
+    /**
+     * Used as the Preference id and property change.
+     */
+    public static final String PREF_OPEN_RECENT_FILES_UPON_STARTUP = "OpenRecentFilesUponStartup";
+    public static final String PREF_FILES_TO_BE_REOPENED_UPON_STARTUP = "FilesToBeReOpenedUponStartup";
+    private static final String NO_FILE = "__NO_FILE__";
+    private static final int MAX_FILES = 6;
     private static SongEditorManager INSTANCE;
     private HashMap<Song, Editors> mapSongEditors;       // Don't use WeakHashMap here
+    private static Preferences prefs = NbPreferences.forModule(SongEditorManager.class);
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(SongEditorManager.class.getSimpleName());
-
-    private SongEditorManager()
-    {
-        mapSongEditors = new HashMap<>();
-        TopComponent.getRegistry().addPropertyChangeListener(this);
-    }
 
     static public SongEditorManager getInstance()
     {
@@ -85,6 +95,37 @@ public class SongEditorManager implements PropertyChangeListener
             }
         }
         return INSTANCE;
+    }
+
+    private SongEditorManager()
+    {
+        mapSongEditors = new HashMap<>();
+        TopComponent.getRegistry().addPropertyChangeListener(this);
+
+        // Reopen files upon startup
+        if (isOpenRecentFilesUponStartup())
+        {
+            String s = prefs.get(PREF_FILES_TO_BE_REOPENED_UPON_STARTUP, NO_FILE).trim();
+            if (!s.equals(NO_FILE))
+            {
+                final List<String> strFiles = Arrays.asList(s.split(","));
+                final int max = Math.min(strFiles.size(), MAX_FILES);         // Robustness
+                Runnable run = new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        for (int i = 0; i < max; i++)
+                        {
+                            File f = new File(strFiles.get(i).trim());
+                            SongEditorManager.this.showSong(f);
+                        }
+                    }
+                };
+                SwingUtilities.invokeLater(run);              
+            }
+        }
+
     }
 
     /**
@@ -131,7 +172,7 @@ public class SongEditorManager implements PropertyChangeListener
                 Mode mode = WindowManager.getDefault().findMode("editor");
                 mode.dockInto(clTC);
                 clTC.open();
-                
+
                 SS_EditorTopComponent ssTC = new SS_EditorTopComponent(song);
                 mode = WindowManager.getDefault().findMode("output");
                 mode.dockInto(ssTC);
@@ -149,7 +190,7 @@ public class SongEditorManager implements PropertyChangeListener
             }
         };
         // Make sure everything is run on the EDT
-        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(run);
+        SwingUtilities.invokeLater(run);
     }
 
     /**
@@ -215,6 +256,20 @@ public class SongEditorManager implements PropertyChangeListener
         return mapSongEditors.get(s);
     }
 
+    public void setOpenRecentFilesUponStartup(boolean b)
+    {
+        if (b != isOpenRecentFilesUponStartup())
+        {
+            prefs.putBoolean(PREF_OPEN_RECENT_FILES_UPON_STARTUP, b);
+            pcs.firePropertyChange(PREF_OPEN_RECENT_FILES_UPON_STARTUP, !b, b);
+        }
+    }
+
+    public final boolean isOpenRecentFilesUponStartup()
+    {
+        return prefs.getBoolean(PREF_OPEN_RECENT_FILES_UPON_STARTUP, true);
+    }
+
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
@@ -248,6 +303,61 @@ public class SongEditorManager implements PropertyChangeListener
             {
                 songSaved(s);
             }
+        }
+    }
+
+    /**
+     * Ask user if unsaved changes, close properly the opened songs (so that listeners with persistence like RecentFiles are
+     * notified).
+     * <p>
+     * Also save the opened songs for possible reopen at startup (see isOpenRecentFilesUponStartup()).
+     */
+    @OnStop
+    public static class Shutdown implements Callable<Boolean>
+    {
+
+        @Override
+        public Boolean call() throws Exception
+        {
+            SongEditorManager sem = SongEditorManager.getInstance();
+
+            // Ask user confirmation if there are still files to be saved
+            List<Savable> savables = Savable.ToBeSavedList.getSavables();
+            if (!savables.isEmpty())
+            {
+                StringBuilder msg = new StringBuilder();
+                msg.append("There are unsaved changes in the files below. OK to exit anyway ?").append("\n");
+                for (Savable s : savables)
+                {
+                    msg.append(" - ").append(s.toString()).append("\n");
+                }
+                NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg.toString(), NotifyDescriptor.OK_CANCEL_OPTION);
+                Object result = DialogDisplayer.getDefault().notify(nd);
+                if (result != NotifyDescriptor.OK_OPTION)
+                {
+                    return Boolean.FALSE;
+                }
+            }
+
+            // Close the open editors and update the preferences
+            StringBuilder sb = new StringBuilder();
+            for (Song s : sem.getOpenedSongs())
+            {
+                File f = s.getFile();
+                if (f != null)
+                {
+                    if (sb.length() > 0)
+                    {
+                        sb.append(", ");
+                    }
+                    sb.append(f.getAbsolutePath());
+                }
+                sem.songClosed(s);
+            }
+            String s = sb.toString();
+            prefs.put(PREF_FILES_TO_BE_REOPENED_UPON_STARTUP, s.isEmpty() ? NO_FILE : s);
+
+            return Boolean.TRUE;
         }
     }
 

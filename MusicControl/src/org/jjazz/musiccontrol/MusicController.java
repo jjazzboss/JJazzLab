@@ -962,6 +962,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
          */
         void close()
         {
+            if (sequence == null)
+            {
+                return;
+            }
             Track[] tracks = sequence.getTracks();
             if (tracks != null)
             {
