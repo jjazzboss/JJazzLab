@@ -38,6 +38,7 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
     private ArrayList<Integer> accentPitches = new ArrayList<>();
+    private final KeyRange range = new KeyRange(13, 84);    
 
     public static KeyMapXG_PopLatin getInstance()
     {
@@ -128,6 +129,12 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
     {
         return otherKeyMap == this;
     }
+    
+       @Override
+    public KeyRange getRange()
+    {
+        return range;
+    }    
 
     @Override
     public String getKeyName(int pitch)

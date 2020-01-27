@@ -23,6 +23,7 @@
  */
 package org.jjazz.midi;
 
+import org.jjazz.midi.keymap.KeyRange;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,6 +35,7 @@ import java.util.Objects;
 public class DrumKit
 {
 
+
     /**
      * Defines a key map for a drumkit: associate a percussion name to a note pitch.
      * <p>
@@ -41,6 +43,13 @@ public class DrumKit
      */
     public interface KeyMap
     {
+
+        /**
+         * The key getRange of this KeyMap.
+         *
+         * @return
+         */
+        public KeyRange getRange();
 
         /**
          * The name of the DrumKitKeyMap.

@@ -25,7 +25,6 @@ package org.jjazz.midiconverters.api;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midiconverters.spi.KeyMapConverter;
 import org.jjazz.midiconverters.spi.InstrumentConverter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.midi.Instrument;
@@ -61,31 +60,27 @@ public class ConvertersManager
     }
 
     /**
-     * Try to convert a drum key (a note) from srcKit into a key of destKit.
-     * <p>
-     * The method asks each KeyMapConverter found in the global lookup to do the conversion, until a conversion succeeds.
+     * Search the first available KeyMapConverter which accepts to convert notes from the specified DrumKits.
      *
      * @param srcKit
-     * @param key     The pitch of the note
      * @param destKit
-     * @return -1 if no conversion could be done.
+     * @return Can be null.
      */
-    public int convertDrumKey(DrumKit srcKit, int key, DrumKit destKit)
+    public KeyMapConverter getKeyMapConverter(DrumKit srcKit, DrumKit destKit)
     {
-        if (srcKit == null || destKit == null || srcKit.getKeyMap().getKeyName(key) == null)
+        StdKeyMapConverter stdConverter = StdKeyMapConverter.getInstance();
+        if (stdConverter.accept(srcKit, destKit))
         {
-            throw new IllegalArgumentException("srcKit=" + srcKit + " key=" + key + " destKit=" + destKit);
+            return stdConverter;
         }
-        int res = -1;
-        for (KeyMapConverter dkm : getKeyMapConverters())
+        for (KeyMapConverter c : Lookup.getDefault().lookupAll(KeyMapConverter.class))
         {
-            res = dkm.convertKey(srcKit, key, destKit);
-            if (res != -1)
+            if (c.accept(srcKit, destKit))
             {
-                break;
+                return c;
             }
         }
-        return res;
+        return null;
     }
 
     /**
@@ -123,7 +118,7 @@ public class ConvertersManager
 
         // Ask all InstrumentConverters from the Lookup
         Instrument res = null;
-        for (InstrumentConverter ic : getInstrumentConverters())
+        for (InstrumentConverter ic : Lookup.getDefault().lookupAll(InstrumentConverter.class))
         {
             res = ic.convertInstrument(srcIns, destSynth, banks);
             if (res != null)
@@ -136,35 +131,5 @@ public class ConvertersManager
 
     // ======================================================================================
     // Private methods
-    // ======================================================================================
-    /**
-     * Get all the KeyMapConverters present in the global lookup.
-     *
-     * @return Can be empty
-     */
-    private List<KeyMapConverter> getKeyMapConverters()
-    {
-        ArrayList<KeyMapConverter> res = new ArrayList<>();
-        for (KeyMapConverter dmc : Lookup.getDefault().lookupAll(KeyMapConverter.class))
-        {
-            res.add(dmc);
-        }
-        return res;
-    }
-
-    /**
-     * Get all the Instrument present in the global lookup.
-     *
-     * @return Can be empty
-     */
-    private List<InstrumentConverter> getInstrumentConverters()
-    {
-        ArrayList<InstrumentConverter> res = new ArrayList<>();
-        for (InstrumentConverter ic : Lookup.getDefault().lookupAll(InstrumentConverter.class))
-        {
-            res.add(ic);
-        }
-        return res;
-    }
-
+    // ======================================================================================   
 }

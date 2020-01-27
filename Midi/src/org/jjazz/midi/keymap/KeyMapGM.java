@@ -35,6 +35,7 @@ public class KeyMapGM implements DrumKit.KeyMap
 
     public static final String NAME = "GM";
     private static KeyMapGM INSTANCE;
+    private final KeyRange range = new KeyRange(35,81);
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
     private ArrayList<Integer> accentPitches = new ArrayList<>();
@@ -102,6 +103,13 @@ public class KeyMapGM implements DrumKit.KeyMap
         addNote("OPEN TRIANGLE", 81, false);
     }
 
+
+    @Override
+    public KeyRange getRange()
+    {
+        return range;
+    }    
+    
     @Override
     public String getName()
     {
@@ -151,4 +159,5 @@ public class KeyMapGM implements DrumKit.KeyMap
             accentPitches.add(pitch);
         }
     }
+
 }

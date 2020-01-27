@@ -38,6 +38,7 @@ public class KeyMapGSGM2 implements KeyMap
     private static KeyMapGSGM2 INSTANCE;
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
+    private final KeyRange range = new KeyRange(22, 87);
     private ArrayList<Integer> accentPitches = new ArrayList<>();
 
     public static KeyMapGSGM2 getInstance()
@@ -138,6 +139,12 @@ public class KeyMapGSGM2 implements KeyMap
     public String getKeyName(int pitch)
     {
         return mapPitchName.get(pitch);
+    }
+
+    @Override
+    public KeyRange getRange()
+    {
+        return range;
     }
 
     @Override

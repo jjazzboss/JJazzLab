@@ -29,8 +29,18 @@ import org.jjazz.midi.DrumKit;
  */
 public interface KeyMapConverter
 {
+
     String getConverterId();
-  
+
+    /**
+     * Return true if this converter can convert notes between the specified DrumKits.
+     *
+     * @param srcKit
+     * @param destKit
+     * @return
+     */
+    boolean accept(DrumKit srcKit, DrumKit destKit);
+
     /**
      * Try to Map srcPitch from srcKit into the corresponding note in destKit.
      *
