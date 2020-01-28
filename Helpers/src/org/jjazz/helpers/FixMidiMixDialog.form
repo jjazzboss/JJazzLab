@@ -68,9 +68,9 @@
               <Component id="lbl_reroutedChannels" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" pref="30" max="-2" attributes="0"/>
               <Component id="pnl_buttons" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="-2" pref="27" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="21" max="-2" attributes="0"/>
               <Component id="jScrollPane1" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="20" max="32767" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="btn_Cancel" alignment="1" min="-2" max="-2" attributes="0"/>
                   <Component id="cb_rememberMyChoice" alignment="1" min="-2" max="-2" attributes="0"/>
@@ -175,9 +175,6 @@
     </Component>
     <Container class="javax.swing.JScrollPane" name="jScrollPane1">
       <Properties>
-        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color type="null"/>
-        </Property>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="null"/>
         </Property>
@@ -190,14 +187,8 @@
       <SubComponents>
         <Component class="org.jjazz.ui.utilities.HelpTextArea" name="helpTextArea1">
           <Properties>
-            <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color type="null"/>
-            </Property>
             <Property name="columns" type="int" value="20"/>
-            <Property name="rows" type="int" value="4"/>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/helpers/Bundle.properties" key="FixMidiMixDialog.helpTextArea1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-            </Property>
+            <Property name="rows" type="int" value="1"/>
           </Properties>
         </Component>
       </SubComponents>

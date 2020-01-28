@@ -23,6 +23,7 @@
 package org.jjazz.midi.ui;
 
 import java.awt.Component;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -102,21 +103,26 @@ public class InstrumentTable extends JTable
 
     /**
      * Select the row corresponding to the specified instrument.
+     * <p>
+     * The method also scroll the table to make the selected instrument visible.
      *
      * @param ins
      */
     public void setSelectedInstrument(Instrument ins)
     {
-        int index = tblModel.getInstruments().indexOf(ins);
-        if (index != -1)
+        int mIndex = tblModel.getInstruments().indexOf(ins);
+        if (mIndex != -1)
         {
-            int vIndex = convertRowIndexToView(index);      // Take into account sorting/filtering 
+            int vIndex = convertRowIndexToView(mIndex);      // Take into account sorting/filtering 
             if (vIndex != -1)
             {
                 // Select if row is not filtered out
                 setRowSelectionInterval(vIndex, vIndex);
+                // Scroll to make it visible
+                Rectangle cellRect = getCellRect(vIndex, 1, true);
+                scrollRectToVisible(cellRect);
             }
-        }
+        }         
     }
 
     public class Model extends AbstractTableModel

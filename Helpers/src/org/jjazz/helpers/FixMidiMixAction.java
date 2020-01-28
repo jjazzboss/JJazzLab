@@ -49,18 +49,18 @@ import org.openide.modules.OnStart;
 @OnStart               // Used only to get the automatic object creation upon startup
 public class FixMidiMixAction implements VetoableChangeListener, Runnable
 {
-    
+
     private static FixMidiMixDialog DIALOG;
     private static final Logger LOGGER = Logger.getLogger(FixMidiMixAction.class.getSimpleName());
     FixChoice savedChoice = FixChoice.CANCEL;
-    
+
     public FixMidiMixAction()
     {
         // Register for song playback
         MusicController mc = MusicController.getInstance();
         mc.addVetoableChangeListener(this);
     }
-    
+
     @Override
     public void run()
     {
@@ -77,7 +77,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
     public void vetoableChange(PropertyChangeEvent evt) throws PropertyVetoException
     {
         LOGGER.log(Level.FINE, "vetoableChange() -- evt={0}", evt);
-        
+
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() != mc
                 || !evt.getPropertyName().equals(MusicController.PROPVETO_PRE_PLAYBACK)
@@ -85,15 +85,15 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
         {
             return;
         }
-        
+
         MusicGenerationContext context = (MusicGenerationContext) evt.getNewValue();
         assert context != null : "evt=" + evt;
         MidiMix midiMix = context.getMidiMix();
-        
+
         OutputSynth outputSynth = OutputSynthManager.getInstance().getOutputSynth();
         HashMap<Integer, Instrument> mapNewInstruments = outputSynth.getFixedInstruments(midiMix);
         List<Integer> reroutableChannels = getChannelsToBeRerouted(midiMix, mapNewInstruments);
-        
+
         if (!mapNewInstruments.isEmpty() || !reroutableChannels.isEmpty())
         {
             switch (savedChoice)
@@ -132,7 +132,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
             }
         }
     }
-    
+
     private FixMidiMixDialog getDialog()
     {
         if (DIALOG == null)
@@ -141,7 +141,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
         }
         return DIALOG;
     }
-    
+
     private void performFix(HashMap<Integer, Instrument> mapChanIns, List<Integer> reroutedChannels, MidiMix midiMix)
     {
         for (int ch : mapChanIns.keySet())
@@ -149,7 +149,11 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
             Instrument newIns = mapChanIns.get(ch);
             InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(ch);
             insMix.setInstrument(newIns);
-            midiMix.setDrumsReroutedChannel(false, ch);   // If we set an instrument it should not be rerouted anymore if it was the case before
+            if (newIns != StdSynth.getInstance().getVoidInstrument())
+            {
+                // If we set a (non void) instrument it should not be rerouted anymore if it was the case before
+                midiMix.setDrumsReroutedChannel(false, ch);
+            }
         }
         for (int ch : reroutedChannels)
         {
@@ -190,5 +194,5 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
         LOGGER.fine("getChannelsToBeRerouted() res=" + res);
         return res;
     }
-    
+
 }

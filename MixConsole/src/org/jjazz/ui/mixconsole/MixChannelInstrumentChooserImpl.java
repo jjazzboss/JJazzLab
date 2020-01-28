@@ -239,6 +239,10 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         {
             selectedInstrument = tbl_Instruments.getSelectedInstrument();
             btn_Hear.setEnabled(selectedInstrument != null);
+            if (selectedInstrument != null)
+            {
+                JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(selectedInstrument.getMidiMessages(channel));
+            }
         }
     }
 
@@ -739,12 +743,23 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
 
     private void rbtn_showAllActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_showAllActionPerformed
     {//GEN-HEADEREND:event_rbtn_showAllActionPerformed
+        Instrument sel = tbl_Instruments.getSelectedInstrument();
         tbl_Instruments.getModel().setInstruments(this.allInstruments);
+        if (sel != null && allInstruments.contains(sel))
+        {
+            tbl_Instruments.setSelectedInstrument(sel);           
+        }
     }//GEN-LAST:event_rbtn_showAllActionPerformed
 
     private void rbtn_showRecommendedActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_showRecommendedActionPerformed
     {//GEN-HEADEREND:event_rbtn_showRecommendedActionPerformed
-        tbl_Instruments.getModel().setInstruments(this.recommendedInstruments);    }//GEN-LAST:event_rbtn_showRecommendedActionPerformed
+        Instrument sel = tbl_Instruments.getSelectedInstrument();
+        tbl_Instruments.getModel().setInstruments(this.recommendedInstruments);
+        if (sel != null && recommendedInstruments.contains(sel))
+        {
+            tbl_Instruments.setSelectedInstrument(sel);
+        }
+	}//GEN-LAST:event_rbtn_showRecommendedActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -210,13 +210,10 @@ public class FixMidiMixDialog extends javax.swing.JDialog
         lbl_reroutedChannels.setForeground(new java.awt.Color(102, 0, 0));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_reroutedChannels, org.openide.util.NbBundle.getMessage(FixMidiMixDialog.class, "FixMidiMixDialog.lbl_reroutedChannels.text")); // NOI18N
 
-        jScrollPane1.setBackground(null);
         jScrollPane1.setBorder(null);
 
-        helpTextArea1.setBackground(null);
         helpTextArea1.setColumns(20);
-        helpTextArea1.setRows(4);
-        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(FixMidiMixDialog.class, "FixMidiMixDialog.helpTextArea1.text")); // NOI18N
+        helpTextArea1.setRows(1);
         jScrollPane1.setViewportView(helpTextArea1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -260,9 +257,9 @@ public class FixMidiMixDialog extends javax.swing.JDialog
                 .addComponent(lbl_reroutedChannels)
                 .addGap(30, 30, 30)
                 .addComponent(pnl_buttons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(27, 27, 27)
+                .addGap(21, 21, 21)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 20, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btn_Cancel, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(cb_rememberMyChoice, javax.swing.GroupLayout.Alignment.TRAILING))
