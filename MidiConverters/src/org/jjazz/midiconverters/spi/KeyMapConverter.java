@@ -25,7 +25,7 @@ package org.jjazz.midiconverters.spi;
 import org.jjazz.midi.DrumKit;
 
 /**
- * Map notes from a source DrumKit to a destination DrumKit.
+ * Map notes from a source DrumKit.KeyMap to a destination DrumKit.KeyMap.
  */
 public interface KeyMapConverter
 {
@@ -33,21 +33,21 @@ public interface KeyMapConverter
     String getConverterId();
 
     /**
-     * Return true if this converter can convert notes between the specified DrumKits.
+     * Return true if this converter can convert notes between the specified DrumKit.KeyMaps.
      *
-     * @param srcKit
-     * @param destKit
+     * @param srcMap
+     * @param destMap
      * @return
      */
-    boolean accept(DrumKit srcKit, DrumKit destKit);
+    boolean accept(DrumKit.KeyMap srcMap, DrumKit.KeyMap destMap);
 
     /**
-     * Try to Map srcPitch from srcKit into the corresponding note in destKit.
+     * Try to convert srcPitch from srcMap into the corresponding note in destMap.
      *
-     * @param srcKit
+     * @param srcMap
      * @param srcPitch
-     * @param destKit
+     * @param destMap
      * @return -1 If srcPitch could not be mapped.
      */
-    int convertKey(DrumKit srcKit, int srcPitch, DrumKit destKit);
+    int convertKey(DrumKit.KeyMap srcMap, int srcPitch, DrumKit.KeyMap destMap);
 }

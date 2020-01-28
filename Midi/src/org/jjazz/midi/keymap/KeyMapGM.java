@@ -115,6 +115,12 @@ public class KeyMapGM implements DrumKit.KeyMap
     {
         return NAME;
     }
+    
+    @Override
+    public String toString()
+    {
+        return getName();
+    }
 
     @Override
     public String getKeyName(int pitch)

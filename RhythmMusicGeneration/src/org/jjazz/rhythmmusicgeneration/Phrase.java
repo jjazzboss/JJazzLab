@@ -387,6 +387,8 @@ public class Phrase implements Cloneable
 
     /**
      * Add a MidiNoteEvent.
+     * <p>
+     * The NoteEvent is added at the correct index depending on its position.
      *
      * @param mne
      */
@@ -411,6 +413,21 @@ public class Phrase implements Cloneable
             }
             it.add(mne);
         }
+    }
+
+    /**
+     * Replace NoteEvent at specified index with NoteEvent ne.
+     *
+     * @param index
+     * @param ne
+     */
+    public void replaceNote(int index, NoteEvent ne)
+    {
+        if (index < 0 || index >= events.size() || ne == null)
+        {
+            throw new IllegalArgumentException("index=" + index + " ne=" + ne);
+        }
+        events.set(index, ne);
     }
 
     /**
@@ -441,11 +458,23 @@ public class Phrase implements Cloneable
     }
 
     /**
-     * All events sorted by startPosition.
+     * Get all NoteEvents sorted by startPosition.
+     * <p>
+     * Be careful: returned LinkedList is the internal data structure of the Phrase. 
      *
      * @return
      */
-    public List<NoteEvent> getEvents()
+    public LinkedList<NoteEvent> getEvents()
+    {
+        return events;
+    }
+
+    /**
+     * Get all NoteEvents sorted by startPosition as a List.
+     *
+     * @return
+     */
+    public List<NoteEvent> getEventsAsList()
     {
         return new ArrayList<>(events);
     }
@@ -477,17 +506,16 @@ public class Phrase implements Cloneable
      */
     public void shiftEvents(float shiftInBeats)
     {
-        NoteEvent[] saveEvents = events.toArray(new NoteEvent[0]);
-        events.clear();
-        for (NoteEvent ne : saveEvents)
+        for (int i = 0; i < events.size(); i++)
         {
+            NoteEvent ne = events.get(i);
             float newPosInBeats = ne.getPositionInBeats() + shiftInBeats;
             if (newPosInBeats < 0)
             {
                 throw new IllegalArgumentException("ne=" + ne + " shiftInBeats=" + shiftInBeats);
             }
             NoteEvent shiftedNe = new NoteEvent(ne, ne.getDurationInBeats(), newPosInBeats);
-            add(shiftedNe);
+            events.set(i, shiftedNe);
         }
     }
 
@@ -534,7 +562,7 @@ public class Phrase implements Cloneable
     }
 
     /**
-     * Remove overlapped notes.
+     * Remove overlapped notes with identical pitch.
      * <p>
      * A note N1 is overlapped by N2 if N1's noteOn event occurs after N2's noteOn event and N1's noteOff event occurs before N2's
      * noteOff event.
@@ -595,19 +623,18 @@ public class Phrase implements Cloneable
         {
             throw new IllegalArgumentException("lowLimit=" + lowLimit + " highLimit=" + highLimit);
         }
-        for (NoteEvent ne : events.toArray(new NoteEvent[0]))
+        for (int i = 0; i < events.size(); i++)
         {
+            NoteEvent ne = events.get(i);
             int pitch = ne.getPitch();
             if (lowLimit != -1 && pitch < lowLimit)
             {
-                events.remove(ne);
                 NoteEvent nne = new NoteEvent(ne, pitch + 12);
-                events.add(nne);
+                events.set(i, nne);
             } else if (highLimit != -1 && pitch > highLimit)
             {
-                events.remove(ne);
                 NoteEvent nne = new NoteEvent(ne, pitch - 12);
-                events.add(nne);
+                events.set(i, nne);
             }
         }
     }

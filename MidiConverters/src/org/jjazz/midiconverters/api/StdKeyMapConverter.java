@@ -1,5 +1,6 @@
 package org.jjazz.midiconverters.api;
 
+import java.util.logging.Logger;
 import org.jjazz.midi.keymap.KeyMapGSGM2;
 import org.jjazz.midi.keymap.KeyMapXG;
 import org.jjazz.midi.keymap.KeyMapGM;
@@ -14,6 +15,11 @@ public class StdKeyMapConverter implements KeyMapConverter
 {
 
     private static StdKeyMapConverter INSTANCE;
+    private static final Logger LOGGER = Logger.getLogger(StdKeyMapConverter.class.getSimpleName());
+    private final KeyMapGM gmMap;
+    private final KeyMapGSGM2 gm2Map;
+    private final KeyMapXG xgMap;
+    private final KeyMapXG_PopLatin xgLatinMap;
 
     public static StdKeyMapConverter getInstance()
     {
@@ -29,6 +35,11 @@ public class StdKeyMapConverter implements KeyMapConverter
 
     private StdKeyMapConverter()
     {
+        gmMap = KeyMapGM.getInstance();
+        gm2Map = KeyMapGSGM2.getInstance();
+        xgMap = KeyMapXG.getInstance();
+        xgLatinMap = KeyMapXG_PopLatin.getInstance();
+
     }
 
     @Override
@@ -38,36 +49,46 @@ public class StdKeyMapConverter implements KeyMapConverter
     }
 
     @Override
-    public boolean accept(DrumKit srcKit, DrumKit destKit)
+    public String toString()
     {
-        return isStandardKeyMap(srcKit) && isStandardKeyMap(destKit);
+        return getConverterId();
     }
 
     @Override
-    public int convertKey(DrumKit srcKit, int srcPitch, DrumKit destKit)
+    public boolean accept(DrumKit.KeyMap srcMap, DrumKit.KeyMap destMap)
     {
-        if (srcPitch < 0 || srcPitch > 127 || srcKit.getKeyMap().getKeyName(srcPitch) == null)
+        if (!isStandardKeyMap(srcMap) || !isStandardKeyMap(destMap))
         {
-            throw new IllegalArgumentException("srcKit=" + srcKit + " srcPitch=" + srcPitch + " destKit=" + destKit);
+            return false;
+        }
+        if (srcMap == gmMap || destMap == gmMap || destMap == gm2Map)
+        {
+            return true;
+        }
+        if (srcMap == xgMap)
+        {
+            return destMap == gm2Map;
+        }
+        return false;
+    }
+
+    @Override
+    public int convertKey(DrumKit.KeyMap srcMap, int srcPitch, DrumKit.KeyMap destMap)
+    {
+        if (srcPitch < 0 || srcPitch > 127 || srcMap.getKeyName(srcPitch) == null)
+        {
+            throw new IllegalArgumentException("srcMap=" + srcMap + " srcPitch=" + srcPitch + " destMap=" + destMap);
         }
 
-        if (accept(srcKit, destKit))
+        if (!accept(srcMap, destMap))
         {
             return -1;
         }
 
-        if (srcKit.equals(destKit))
+        if (srcMap.equals(destMap))
         {
             return srcPitch;
         }
-
-        KeyMapGM gmMap = KeyMapGM.getInstance();
-        KeyMapGSGM2 gm2Map = KeyMapGSGM2.getInstance();
-        KeyMapXG xgMap = KeyMapXG.getInstance();
-        KeyMapXG_PopLatin xgLatinMap = KeyMapXG_PopLatin.getInstance();
-
-        DrumKit.KeyMap srcMap = srcKit.getKeyMap();
-        DrumKit.KeyMap destMap = destKit.getKeyMap();
 
         // By default no change
         int destPitch = srcPitch;
@@ -105,13 +126,13 @@ public class StdKeyMapConverter implements KeyMapConverter
         return destPitch;
     }
 
-    public boolean isStandardKeyMap(DrumKit kit)
+    public boolean isStandardKeyMap(DrumKit.KeyMap map)
     {
-        if (kit == null)
+        if (map == null)
         {
-            throw new NullPointerException("kit");
+            throw new NullPointerException("map");
         }
-        return kit.getKeyMap() == KeyMapXG.getInstance() || kit.getKeyMap() == KeyMapGSGM2.getInstance() || kit.getKeyMap() == KeyMapGM.getInstance();
+        return map == xgMap || map == gm2Map || map == gmMap || map == xgLatinMap;
     }
 
     // =========================================================================
@@ -120,7 +141,11 @@ public class StdKeyMapConverter implements KeyMapConverter
     private int convertPitch(int srcPitch, DrumKit.KeyMap srcKeyMap, int[] mapSrcDest)
     {
         int p = srcPitch - srcKeyMap.getRange().lowNote;
-        assert p >= 0 && p < mapSrcDest.length : "p=" + p + " srcPitch=" + srcPitch + " srcKeyMap=" + srcKeyMap + " mapSrcDest.length=" + mapSrcDest.length;
+        if (p < 0 || p >= mapSrcDest.length)
+        {
+            LOGGER.warning("convertPitch() Invalid srcPitch/keyMap: srcPitch=" + srcPitch + " srcKeyMap=" + srcKeyMap + " mapSrcDest.length=" + mapSrcDest.length);
+            return srcPitch;
+        }
         return mapSrcDest[p];
     }
 

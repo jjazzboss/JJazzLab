@@ -45,7 +45,7 @@ import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.StdSynth;
-import org.jjazz.midiconverters.api.ConvertersManager;
+import org.jjazz.midiconverters.api.ConverterManager;
 import org.jjazz.midiconverters.api.StdInstrumentConverter;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -381,7 +381,7 @@ public class OutputSynth implements Serializable
     {
         Instrument rvIns = rv.getPreferredInstrument();
         assert rvIns != null : "rv=" + rv;
-        ConvertersManager cm = ConvertersManager.getInstance();
+        ConverterManager cm = ConverterManager.getInstance();
         Instrument ins = null;
         LOGGER.log(Level.FINE, "findInstrument() -- rv={0}", rv.toString());
 

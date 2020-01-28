@@ -153,6 +153,12 @@ public class KeyMapXG implements DrumKit.KeyMap
         return mapPitchName.get(pitch);
     }
 
+        @Override
+    public String toString()
+    {
+        return getName();
+    }
+    
     @Override
     public int getKey(String name)
     {

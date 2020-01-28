@@ -140,6 +140,12 @@ public class KeyMapGSGM2 implements KeyMap
     {
         return mapPitchName.get(pitch);
     }
+    
+        @Override
+    public String toString()
+    {
+        return getName();
+    }
 
     @Override
     public KeyRange getRange()

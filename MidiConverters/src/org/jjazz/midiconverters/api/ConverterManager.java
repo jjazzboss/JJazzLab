@@ -36,46 +36,46 @@ import org.openide.util.Lookup;
  * Manage the conversion between instruments (normal or drums/percussion) on different synths.
  * <p>
  */
-public class ConvertersManager
+public class ConverterManager
 {
 
-    private static ConvertersManager INSTANCE;
-    private static final Logger LOGGER = Logger.getLogger(ConvertersManager.class.getSimpleName());
+    private static ConverterManager INSTANCE;
+    private static final Logger LOGGER = Logger.getLogger(ConverterManager.class.getSimpleName());
 
-    public static ConvertersManager getInstance()
+    public static ConverterManager getInstance()
     {
-        synchronized (ConvertersManager.class)
+        synchronized (ConverterManager.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new ConvertersManager();
+                INSTANCE = new ConverterManager();
             }
         }
         return INSTANCE;
     }
 
-    private ConvertersManager()
+    private ConverterManager()
     {
 
     }
 
     /**
-     * Search the first available KeyMapConverter which accepts to convert notes from the specified DrumKits.
+     * Search the first available KeyMapConverter which accepts to convert notes from the specified DrumKit.KeyMaps.
      *
-     * @param srcKit
-     * @param destKit
+     * @param srcMap
+     * @param destMap
      * @return Can be null.
      */
-    public KeyMapConverter getKeyMapConverter(DrumKit srcKit, DrumKit destKit)
+    public KeyMapConverter getKeyMapConverter(DrumKit.KeyMap srcMap, DrumKit.KeyMap destMap)
     {
         StdKeyMapConverter stdConverter = StdKeyMapConverter.getInstance();
-        if (stdConverter.accept(srcKit, destKit))
+        if (stdConverter.accept(srcMap, destMap))
         {
             return stdConverter;
         }
         for (KeyMapConverter c : Lookup.getDefault().lookupAll(KeyMapConverter.class))
         {
-            if (c.accept(srcKit, destKit))
+            if (c.accept(srcMap, destMap))
             {
                 return c;
             }
