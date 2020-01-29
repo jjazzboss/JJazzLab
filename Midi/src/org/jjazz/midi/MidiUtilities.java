@@ -101,6 +101,36 @@ public class MidiUtilities
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
         }
     }
+    
+       static public SysexMessage getGsMidiOnSysExMessage()
+    {
+        SysexMessage sm = new SysexMessage();
+        byte[] data =
+        {
+            (byte) 0xF0, (byte) 0x41, (byte) 0x10, (byte) 0x42, (byte) 0x12, (byte) 0x40, (byte) 0x00, (byte) 0x7F, (byte) 0x00, (byte) 0x41, (byte) 0XF7
+        };
+        try
+        {
+            sm.setMessage(data, 11);
+        } catch (InvalidMidiDataException ex)
+        {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+        }
+        return sm;
+    }
+
+    static public void sendGSMidiOnSysExMessage()
+    {
+        SysexMessage sm = getGsMidiOnSysExMessage();
+        JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(sm);
+        try
+        {
+            Thread.sleep(50);  // Give time for the hardware to execute
+        } catch (InterruptedException ex)
+        {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+        }
+    }
 
     /**
      *

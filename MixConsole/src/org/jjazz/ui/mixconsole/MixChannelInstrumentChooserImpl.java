@@ -696,8 +696,9 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         MusicController mc = MusicController.getInstance();
         try
         {
+            final int TRANSPOSE = ins.isDrumKit() ? -24 : 0;
             JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(channel));
-            mc.playTestNotes(channel, -1, 0, endAction);
+            mc.playTestNotes(channel, -1, TRANSPOSE, endAction);
         } catch (MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);

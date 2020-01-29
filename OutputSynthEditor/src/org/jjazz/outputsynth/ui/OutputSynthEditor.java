@@ -1063,8 +1063,9 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         try
         {
             final int CHANNEL = ins.isDrumKit() ? MidiConst.CHANNEL_DRUMS : 0;
+            final int TRANSPOSE = ins.isDrumKit() ? -24 : 0;
             JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(CHANNEL));
-            mc.playTestNotes(CHANNEL, -1, 0, endAction);
+            mc.playTestNotes(CHANNEL, -1, TRANSPOSE, endAction);
         } catch (MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -1132,8 +1133,9 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         try
         {
             final int CHANNEL = ins.isDrumKit() ? MidiConst.CHANNEL_DRUMS : 0;
+            final int TRANSPOSE = ins.isDrumKit() ? -24 : 0;
             JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(CHANNEL));
-            mc.playTestNotes(CHANNEL, -1, 0, endAction);
+            mc.playTestNotes(CHANNEL, -1, TRANSPOSE, endAction);
 
         } catch (MusicGenerationException ex)
         {

@@ -41,7 +41,7 @@ import org.openide.util.Exceptions;
 
 /**
  * The Roland GS Bank (based on SC55).
- * 
+ * <p>
  * IMPORTANT: the GS bank is NOT compatible with GM2/XG voices. They use the same MidiAddress for different patches.
  * <p>
  * Instance should be obtained from the StdSynth.
@@ -119,7 +119,7 @@ public class GSBank extends InstrumentBank<Instrument>
         addInstrument(createInstrument(17, 0, "Organ 2"));
         addInstrument(createInstrument(17, 8, "Detunedorgan 2"));
         addInstrument(createInstrument(18, 0, "Organ 3"));
-        addInstrument(createInstrument(18, 32, "Organ 5"));        
+        addInstrument(createInstrument(18, 32, "Organ 5"));
         addInstrument(createInstrument(19, 0, "Churchorg.1"));
         addInstrument(createInstrument(19, 8, "Churchorg.2"));
         addInstrument(createInstrument(19, 16, "Churchorg.3"));
@@ -141,8 +141,8 @@ public class GSBank extends InstrumentBank<Instrument>
         addInstrument(createInstrument(27, 8, "Chorus Guitar"));
         addInstrument(createInstrument(28, 0, "Muted Gt."));
         addInstrument(createInstrument(28, 8, "Funk Guitar"));
-        addInstrument(createInstrument(28, 16, "Funk Guitar 2"));        
-        addInstrument(createInstrument(29, 0, "Overdrive Guitar"));        
+        addInstrument(createInstrument(28, 16, "Funk Guitar 2"));
+        addInstrument(createInstrument(29, 0, "Overdrive Guitar"));
         addInstrument(createInstrument(30, 0, "Distortion Guitar"));
         addInstrument(createInstrument(30, 8, "Feedback Guitar"));
         addInstrument(createInstrument(31, 0, "Guitar Harmonics"));
@@ -160,7 +160,7 @@ public class GSBank extends InstrumentBank<Instrument>
         addInstrument(createInstrument(39, 8, "Synth Bass 4"));
         addInstrument(createInstrument(39, 16, "Rubber Bass"));
         addInstrument(createInstrument(40, 0, "Violin"));
-        addInstrument(createInstrument(41, 0, "Viola"));        
+        addInstrument(createInstrument(41, 0, "Viola"));
         addInstrument(createInstrument(41, 8, "Slow Violin"));
         addInstrument(createInstrument(42, 0, "Cello"));
         addInstrument(createInstrument(43, 0, "Contrabass"));
@@ -301,7 +301,7 @@ public class GSBank extends InstrumentBank<Instrument>
         addInstrument(createInstrument(127, 1, "Machine Gun"));
         addInstrument(createInstrument(127, 2, "Lasergun"));
         addInstrument(createInstrument(127, 3, "Explosion"));
-        
+
         // IMPORTANT =======================================
         // Same as GM2 for the programChange. Reused 120 for MSB but in theory it is useless.
         // Normally GS accepts drums only on Midi channel 10, drumkit can't be selected via bankMSB/bankLSB to work on a different channel.
@@ -388,7 +388,7 @@ public class GSBank extends InstrumentBank<Instrument>
         public MidiMessage[] getMidiMessages(int channel)
         {
             MidiMessage[] messages = null;
-            if (channel == 8)
+            if (channel == 8 || channel == 10)
             {
                 messages = new MidiMessage[2];      // Send SysEx message + PC
 
@@ -397,12 +397,17 @@ public class GSBank extends InstrumentBank<Instrument>
                 // http://www.synthfont.com/SysEx.txt
                 // "The following SysEx messages will allow you to set channel 9 or 11 to drums (in addition to channel 10). 
                 // This will work for Roland GS compatible devices such as the Roland VSC and Roland SD-20.
-                // Set channel 9 to drums: F0 41 10 42 12 40 19 15 02 10 F7
+                // Set channel 9 to drums:  F0 41 10 42 12 40 19 15 02 10 F7
                 // Set channel 11 to drums: F0 41 10 42 12 40 1A 15 02 0F F7
-                byte[] bytes =
+                byte[] bytes8 =
                 {
                     (byte) 0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x19, 0x15, 0x02, 0x10, (byte) 0xF7
                 };
+                byte[] bytes10 =
+                {
+                    (byte) 0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x1A, 0x15, 0x02, 0x0F, (byte) 0xF7
+                };
+                byte[] bytes = (channel == 8) ? bytes8 : bytes10;
                 SysexMessage sysMsg = new SysexMessage();
                 try
                 {
@@ -413,9 +418,12 @@ public class GSBank extends InstrumentBank<Instrument>
                 }
                 messages[0] = sysMsg;
                 LOGGER.log(Level.INFO, "getMidiMessages() (special GS Drums instrument) sending SysEx messages to enable drums on channel 8");
-            } else
+            } else if (channel == 9)
             {
                 messages = new MidiMessage[1];          // Send Only PC
+            } else
+            {
+                LOGGER.log(Level.WARNING, "getMidiMessages() (special GS Drums instrument) Set Drums Channel SysEx messages NOT YET SUPPORTED for channel " + channel);
             }
 
             // Send PC_ONLY : GS does not use bank select for drums channel
