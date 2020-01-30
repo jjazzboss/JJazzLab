@@ -263,22 +263,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 break;
             default:
                 rbtn_setModeOnUponStartupOFF.setSelected(true);
-        }
-        rbtn_setGm2ModeOnUponStartup.setEnabled(cb_GM2.isSelected());
-        if (!cb_GM2.isSelected() && rbtn_setGm2ModeOnUponStartup.isSelected())
-        {
-            rbtn_setModeOnUponStartupOFF.setSelected(true);
-        }
-        rbtn_setXgModeOnUponStartup.setEnabled(cb_XG.isSelected());
-        if (!cb_XG.isSelected() && rbtn_setXgModeOnUponStartup.isSelected())
-        {
-            rbtn_setModeOnUponStartupOFF.setSelected(true);
-        }
-        rbtn_setGsModeOnUponStartup.setEnabled(cb_GS.isSelected());
-        if (!cb_GS.isSelected() && rbtn_setGsModeOnUponStartup.isSelected())
-        {
-            rbtn_setModeOnUponStartupOFF.setSelected(true);
-        }
+        }      
     }
 
     private void refreshSynthList()

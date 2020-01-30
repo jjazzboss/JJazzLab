@@ -31,7 +31,6 @@ import org.jjazz.midi.MidiAddress;
 import org.jjazz.midi.MidiAddress.BankSelectMethod;
 import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.keymap.KeyMapGSGM2;
-import org.jjazz.midi.keymap.KeyMapXG;
 
 /**
  * General Midi 2 bank. Instance should be obtained from the StdSynth.

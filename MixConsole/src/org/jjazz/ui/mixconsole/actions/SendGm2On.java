@@ -36,25 +36,25 @@ import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.NbBundle;
 
-@ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.sendgmon")
-@ActionRegistration(displayName = "#CTL_SendGmOn", lazy = true)
+@ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.sendgm2on")
+@ActionRegistration(displayName = "#CTL_SendGm2On", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/MixConsole/MenuBar/Midi", position = 300)
+            @ActionReference(path = "Actions/MixConsole/MenuBar/Midi", position = 318)
         })
 @NbBundle.Messages(
         {
-            "CTL_SendGmOn=Send General Midi On message",
-            "CTL_GMMidiMessageSent=GM Midi ON message sent"
+            "CTL_SendGm2On=Send GM2 On message",
+            "CTL_GM2MidiMessageSent=GM2 ON message sent"
         })
-public class SendGmOn extends AbstractAction
+public class SendGm2On extends AbstractAction
 {
 
     private MidiMix songMidiMix;
-    private String undoText = CTL_SendGmOn();
-    private static final Logger LOGGER = Logger.getLogger(SendGmOn.class.getSimpleName());
+    private String undoText = CTL_SendGm2On();
+    private static final Logger LOGGER = Logger.getLogger(SendGm2On.class.getSimpleName());
 
-    public SendGmOn(MidiMix context)
+    public SendGm2On(MidiMix context)
     {
         songMidiMix = context;
         putValue(NAME, undoText);
@@ -63,7 +63,7 @@ public class SendGmOn extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        MidiUtilities.sendSysExMessage(MidiUtilities.getGmOnSysExMessage());
-        StatusDisplayer.getDefault().setStatusText(CTL_GMMidiMessageSent());
+        MidiUtilities.sendSysExMessage(MidiUtilities.getGm2OnSysExMessage());
+        StatusDisplayer.getDefault().setStatusText(CTL_GM2MidiMessageSent());
     }
 }

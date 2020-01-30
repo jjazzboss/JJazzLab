@@ -48,6 +48,7 @@ import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.spi.KeyMapProvider;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.midi.spi.MidiSynthFileReader;
+import org.jjazz.midi.synths.GSDrumsInstrument;
 
 /**
  * A MidiSynth provider reading Cakewalk .ins instrument definition files.
@@ -56,7 +57,9 @@ import org.jjazz.midi.spi.MidiSynthFileReader;
  * instrument:<br>
  * - For drums instruments: 0=Live!DrumsStandardKit1 {{DrumKit=STANDARD, XG}}. Param1 is a DrumKit.Type value, param2 must be a
  * value corresponding to a DrumKit.KeyMap.getName(). <br>
+ * instance (which send SysEx messages to switch to channel to drum mode) <br>
  * - For voice instruments: 12=New Marimba {{SubGM1=12}}<br>
+ * - For bank : {{ UseGsInstruments }} or {{ UseGsDrumsInstruments }} : use the special GSInstrument/GSDrumsInstrument
  */
 @ServiceProvider(service = MidiSynthFileReader.class)
 public class CakewalkInsFileReader implements MidiSynthFileReader
@@ -101,11 +104,13 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
             String line;
             Pattern pBank1 = Pattern.compile("^\\s*\\[(.+)\\]\\s*");  // [Bank PRE1]
             Pattern pPatch1 = Pattern.compile("^\\s*(\\d+)=(.*)");   // 1=Grand Piano
-            Pattern pPatchDrums = Pattern.compile("\\{\\{\\s*DrumKit\\s*=(.*),(.*)\\}\\}");   // {{DrumKit=STANDARD, KitKeyMap}}
+            Pattern pPatchDrums = Pattern.compile("\\{\\{\\s*DrumKit\\s*=\\s*(\\w+)\\s*,\\s*(\\w+)\\s*\\}\\}");   // {{DrumKit=STANDARD, KitKeyMap}}
             Pattern pPatchSubstitute = Pattern.compile("\\{\\{\\s*SubGM1\\s*=\\s*(\\d+)\\s*\\}\\}");   // {{SubGM1=12}}          
             Pattern pSynth2 = Pattern.compile("^\\s*\\[(.+)\\]\\s*");  // [Motif XS]
             Pattern pBsm2 = Pattern.compile("^\\s*BankSelMethod=([0-9])\\s*");  // BankSelMethod=2
             Pattern pPatch2 = Pattern.compile("^\\s*Patch\\[(\\d+)\\]=(.*)");  // Patch[1232]=PRE 1
+            Pattern pPatch2Gs = Pattern.compile("\\{\\{\\s*UseGsInstruments\\s*\\}\\}");   // {{UseGsInstruments}}            
+            Pattern pPatch2GsDrums = Pattern.compile("\\{\\{\\s*UseGsDrumsInstruments\\s*\\}\\}");   // {{UseGsDrumsInstruments}}            
             Pattern p2Patch2 = Pattern.compile("^\\s*Patch\\[\\*\\]=([^.]*)\\s*");  // Patch[*]=PRE 1, but not Patch[*]=1...128                                        
 
             // 
@@ -175,6 +180,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         }
                         DrumKit kit = null;
                         GM1Instrument gmSubstitute = null;
+                        boolean useGsDrumsInstrument = false;
                         String patchName = mPatch.group(2);
                         if (patchName == null || patchName.trim().isEmpty())
                         {
@@ -182,7 +188,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             patchName = "ERROR";
                         } else
                         {
-                            // Got the patchName right
+                            // Got the patchName right, now check the Meta info {{ }}
 
                             // Check if a DrumKit is defined
                             Matcher mPatchDrumKit = pPatchDrums.matcher(patchName);
@@ -230,27 +236,40 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                 gmSubstitute = StdSynth.getInstance().getGM1Bank().getInstrument(pcGM1);
                             }
 
-                            // Get rid of the extensions if any
-                            if (kit != null || gmSubstitute != null)
+                            // Check if gsDrums is defined
+                            Matcher mPatchGsDrums = pPatchGsDrums.matcher(patchName);
+                            useGsDrumsInstrument = mPatchGsDrums.find();
+
+                            // Get rid of the extensions if meta info was provided
+                            int index = patchName.indexOf("{{");
+                            if (index != -1)
                             {
-                                patchName = patchName.substring(0, patchName.indexOf("{{")).trim();
+                                patchName = patchName.substring(0, index).trim();
                             }
 
-                            // No {{ }} extensions found, but try to guess if it's a drums from patchName
-                            if (gmSubstitute == null && StdSynth.getInstance().getGM1Bank().guessIsDrums(patchName))
+                            // No DrumKit meta info found, try to guess if it's a drums from patchName
+                            if (kit == null && (useGsDrumsInstrument || (gmSubstitute == null && StdSynth.getInstance().getGM1Bank().guessIsDrums(patchName))))
                             {
                                 kit = new DrumKit(DrumKit.Type.STANDARD, KeyMapGM.getInstance());
                             }
 
+                            // No meta info found but it's probably not a drums, try to guess the substitute
                             if (kit == null && gmSubstitute == null)
                             {
-                                // For non-drums voices try to find a substitute using the patchName
                                 gmSubstitute = StdSynth.getInstance().getGM1Bank().guessInstrument(patchName);
                             }
                         }
 
                         // Build the instrument with a NOT fully defined MidiAddress
-                        Instrument ins = new Instrument(patchName, null, new MidiAddress(pc, -1, -1, null), kit, gmSubstitute);
+                        Instrument ins;
+                        if (!useGsDrumsInstrument)
+                        {
+                            ins = new Instrument(patchName, null, new MidiAddress(pc, -1, -1, null), kit, gmSubstitute);
+                        } else
+                        {
+                            // LOGGER.severe("readSynthsFromStream() creating GSDrumsInstrument for " + patchName);
+                            ins = new GSDrumsInstrument(patchName, null, new MidiAddress(pc, -1, -1, null), kit, gmSubstitute);
+                        }
                         currentBankInstruments.add(ins);
                         continue;
                     }
@@ -317,7 +336,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             for (Instrument ins : bankInstruments)
                             {
                                 // Create a copy of the instrument because some .ins can reuse one bank for several synths
-                                Instrument insCopy = new Instrument(ins.getPatchName(), null, ins.getMidiAddress(), ins.getDrumKit(), ins.getSubstitute());
+                                Instrument insCopy = ins.getCopy();
                                 try
                                 {
                                     bank.addInstrument(insCopy);    // Instrument will inherit the MSB/LSB/BSM from the bank

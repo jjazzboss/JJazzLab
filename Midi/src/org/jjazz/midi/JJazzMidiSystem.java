@@ -264,7 +264,7 @@ public final class JJazzMidiSystem
                     @Override
                     public void run()
                     {
-                        MidiUtilities.sendGeneralMidiOnSysExMessage();
+                        MidiUtilities.sendSysExMessage(MidiUtilities.getGmOnSysExMessage());
                         LOGGER.info("JJazzMidiSystem() startup task: Sent General Midi ON SysEx message");
                     }
                 };

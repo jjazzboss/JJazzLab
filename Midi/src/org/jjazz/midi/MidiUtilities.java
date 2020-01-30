@@ -42,7 +42,7 @@ public class MidiUtilities
     private static String[] COMMAND_STRINGS;
     private static final Logger LOGGER = Logger.getLogger(MidiUtilities.class.getSimpleName());
 
-    static public SysexMessage getGeneralMidiOnSysExMessage()
+    static public SysexMessage getGmOnSysExMessage()
     {
         SysexMessage sm = new SysexMessage();
         byte[] data =
@@ -59,17 +59,21 @@ public class MidiUtilities
         return sm;
     }
 
-    static public void sendGeneralMidiOnSysExMessage()
+    static public SysexMessage getGm2OnSysExMessage()
     {
-        SysexMessage sm = getGeneralMidiOnSysExMessage();
-        JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(sm);
+        SysexMessage sm = new SysexMessage();
+        byte[] data =
+        {
+            (byte) 0xF0, (byte) 0x7E, (byte) 0x7F, (byte) 0x09, (byte) 0x03, (byte) 0xF7
+        };
         try
         {
-            Thread.sleep(50);  // Give time for the hardware to execute
-        } catch (InterruptedException ex)
+            sm.setMessage(data, 6);
+        } catch (InvalidMidiDataException ex)
         {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
         }
+        return sm;
     }
 
     static public SysexMessage getXgMidiOnSysExMessage()
@@ -89,20 +93,7 @@ public class MidiUtilities
         return sm;
     }
 
-    static public void sendXgMidiOnSysExMessage()
-    {
-        SysexMessage sm = getXgMidiOnSysExMessage();
-        JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(sm);
-        try
-        {
-            Thread.sleep(50);  // Give time for the hardware to execute
-        } catch (InterruptedException ex)
-        {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-        }
-    }
-    
-       static public SysexMessage getGsMidiOnSysExMessage()
+    static public SysexMessage getGsMidiOnSysExMessage()
     {
         SysexMessage sm = new SysexMessage();
         byte[] data =
@@ -119,9 +110,15 @@ public class MidiUtilities
         return sm;
     }
 
-    static public void sendGSMidiOnSysExMessage()
+    /**
+     * Send the specified SysExMessage.
+     * <p>
+     * Add a little Thread.sleep() to give time for harware to execute before sending other possible Midi messages.
+     *
+     * @param sm
+     */
+    static public void sendSysExMessage(SysexMessage sm)
     {
-        SysexMessage sm = getGsMidiOnSysExMessage();
         JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(sm);
         try
         {
@@ -502,7 +499,7 @@ public class MidiUtilities
     /**
      * Provide an explicit string for a MidiMessage.
      *
-     * @param msg A MidiMessage.
+     * @param msg  A MidiMessage.
      * @param tick The timestamp of the MidiMessage.
      * @return A string representing the MidiMessage.
      */

@@ -104,6 +104,11 @@ public class Instrument implements Serializable
         );
     }
 
+    public Instrument getCopy()
+    {
+        return new Instrument(this.patchName, this.bank, this.address, this.drumKit, this.substitute);
+    }
+
     /**
      * This function can be called only once.
      * <p>

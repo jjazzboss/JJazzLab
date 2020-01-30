@@ -29,6 +29,7 @@ import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.synths.Family;
+import org.jjazz.midiconverters.api.ConverterManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.UserChannelRhythmVoiceKey;
@@ -124,14 +125,14 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         Instrument ins = dlg.getSelectedInstrument();
         if (ins != null)
         {
-            // Perform some consistency checks
+            // Warning if drums keymap is not compatible even via a converter
             if (rv.isDrums())
             {
-                DrumKit.KeyMap prefKeyMap = rv.getPreferredInstrument().getDrumKit().getKeyMap();
-                DrumKit.KeyMap keyMap = ins.getDrumKit().getKeyMap();
-                if (!keyMap.isContaining(prefKeyMap))
+                DrumKit.KeyMap srcKeyMap = rv.getPreferredInstrument().getDrumKit().getKeyMap();
+                DrumKit.KeyMap destKeyMap = ins.getDrumKit().getKeyMap();
+                if (!(destKeyMap.isContaining(srcKeyMap) || ConverterManager.getInstance().getKeyMapConverter(srcKeyMap, destKeyMap) != null))
                 {
-                    String msg = "Selected instrument (" + ins.getPatchName() + ", drum keymap=" + keyMap.getName() + ") does not match the recommended keymap " + prefKeyMap.getName()+"."
+                    String msg = "Selected instrument (" + ins.getPatchName() + ", drum keymap=" + destKeyMap.getName() + ") can't match the recommended original drum keymap " + srcKeyMap.getName() + "."
                             + "\n This may result in incorrect sounds. Do you want to continue ?";
                     NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
                     Object result = DialogDisplayer.getDefault().notify(d);

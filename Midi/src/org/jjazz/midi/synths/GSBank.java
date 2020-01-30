@@ -24,20 +24,14 @@ package org.jjazz.midi.synths;
 
 import java.util.List;
 import java.util.logging.*;
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MidiMessage;
-import javax.sound.midi.ShortMessage;
-import javax.sound.midi.SysexMessage;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiAddress;
 import org.jjazz.midi.MidiAddress.BankSelectMethod;
-import static org.jjazz.midi.MidiUtilities.buildMessage;
 import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.keymap.KeyMapGSGM2;
 import org.jjazz.midi.keymap.KeyMapXG;
-import org.openide.util.Exceptions;
 
 /**
  * The Roland GS Bank (based on SC55).
@@ -366,71 +360,4 @@ public class GSBank extends InstrumentBank<Instrument>
         return new GSDrumsInstrument(name, null, new MidiAddress(pc, msb, lsb, DEFAULT_BANK_SELECT_METHOD), new DrumKit(t, map), null);
     }
 
-    /**
-     * A special class to override getMidiMessages() because of GS limitation of only 1 drums channel
-     */
-    private class GSDrumsInstrument extends Instrument
-    {
-
-        public GSDrumsInstrument(String patchName, InstrumentBank<?> bank, MidiAddress ma, DrumKit kit, GM1Instrument substitute)
-        {
-            super(patchName, bank, ma, kit, substitute);
-        }
-
-        /**
-         * Overridden to use GS SysEx messages to enable Drums on channel 8 (9 if channel drums is 10).
-         * <p>
-         *
-         * @param channel
-         * @return
-         */
-        @Override
-        public MidiMessage[] getMidiMessages(int channel)
-        {
-            MidiMessage[] messages = null;
-            if (channel == 8 || channel == 10)
-            {
-                messages = new MidiMessage[2];      // Send SysEx message + PC
-
-                // Found on the web: 
-                // https://www.pgmusic.com/forums/ubbthreads.php?ubb=showflat&Number=490421
-                // http://www.synthfont.com/SysEx.txt
-                // "The following SysEx messages will allow you to set channel 9 or 11 to drums (in addition to channel 10). 
-                // This will work for Roland GS compatible devices such as the Roland VSC and Roland SD-20.
-                // Set channel 9 to drums:  F0 41 10 42 12 40 19 15 02 10 F7
-                // Set channel 11 to drums: F0 41 10 42 12 40 1A 15 02 0F F7
-                byte[] bytes8 =
-                {
-                    (byte) 0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x19, 0x15, 0x02, 0x10, (byte) 0xF7
-                };
-                byte[] bytes10 =
-                {
-                    (byte) 0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x1A, 0x15, 0x02, 0x0F, (byte) 0xF7
-                };
-                byte[] bytes = (channel == 8) ? bytes8 : bytes10;
-                SysexMessage sysMsg = new SysexMessage();
-                try
-                {
-                    sysMsg.setMessage(bytes, bytes.length);
-                } catch (InvalidMidiDataException ex)
-                {
-                    Exceptions.printStackTrace(ex);
-                }
-                messages[0] = sysMsg;
-                LOGGER.log(Level.INFO, "getMidiMessages() (special GS Drums instrument) sending SysEx messages to enable drums on channel 8");
-            } else if (channel == 9)
-            {
-                messages = new MidiMessage[1];          // Send Only PC
-            } else
-            {
-                LOGGER.log(Level.WARNING, "getMidiMessages() (special GS Drums instrument) Set Drums Channel SysEx messages NOT YET SUPPORTED for channel " + channel);
-            }
-
-            // Send PC_ONLY : GS does not use bank select for drums channel
-            messages[messages.length - 1] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, getMidiAddress().getProgramChange(), 0);
-
-            return messages;
-        }
-
-    }
 }
