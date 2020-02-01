@@ -242,7 +242,8 @@ public class MidiUtilities
         BankSelectMethod bsm = ins.getMidiAddress().getBankSelectMethod();
         int bankMSB = ins.getMidiAddress().getBankMSB();
         int bankLSB = ins.getMidiAddress().getBankLSB();
-        if (bsm == null || bankMSB < 0 || bankLSB < 0)
+        int pc = ins.getMidiAddress().getProgramChange();
+        if (bsm == null || bankMSB > 127 || bankLSB > 127)
         {
             throw new IllegalArgumentException(
                     "bsm=" + bsm + " bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " channel=" + channel + " ins=" + ins + " ins.bank=" + ins.
@@ -251,32 +252,50 @@ public class MidiUtilities
         switch (bsm)
         {
             case MSB_LSB:
+                if (bankMSB < 0 || bankLSB < 0)
+                {
+                    throw new IllegalArgumentException(
+                            "bsm=" + bsm + " bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " channel=" + channel + " ins=" + ins + " ins.bank=" + ins.
+                                    getBank());
+                }
                 sms = new ShortMessage[3];
                 // Bank Select MSB
                 sms[0] = buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_BANK_SELECT_MSB, bankMSB);
                 // Bank Select LSB
                 sms[1] = buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_BANK_SELECT_LSB, bankLSB);
                 // Program Change
-                sms[2] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, ins.getMidiAddress().getProgramChange(), 0);
+                sms[2] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, pc, 0);
                 break;
             case MSB_ONLY:
+                if (bankMSB < 0)
+                {
+                    throw new IllegalArgumentException(
+                            "bsm=" + bsm + " bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " channel=" + channel + " ins=" + ins + " ins.bank=" + ins.
+                                    getBank());
+                }
                 sms = new ShortMessage[2];
                 // Bank Select MSB
                 sms[0] = buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_BANK_SELECT_MSB, bankMSB);
                 // Program Change
-                sms[1] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, ins.getMidiAddress().getProgramChange(), 0);
+                sms[1] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, pc, 0);
                 break;
             case LSB_ONLY:
+                if (bankLSB < 0)
+                {
+                    throw new IllegalArgumentException(
+                            "bsm=" + bsm + " bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " channel=" + channel + " ins=" + ins + " ins.bank=" + ins.
+                                    getBank());
+                }
                 sms = new ShortMessage[2];
                 // Bank Select LSB
                 sms[0] = buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_BANK_SELECT_LSB, bankLSB);
                 // Program Change
-                sms[1] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, ins.getMidiAddress().getProgramChange(), 0);
+                sms[1] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, pc, 0);
                 break;
             default:
                 // PC_ONLY
                 sms = new ShortMessage[1];
-                sms[0] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, ins.getMidiAddress().getProgramChange(), 0);
+                sms[0] = buildMessage(ShortMessage.PROGRAM_CHANGE, channel, pc, 0);
                 break;
         }
         LOGGER.log(Level.FINE, "getPatchMessages() chan={0} ins={1} bsm={2}", new Object[]

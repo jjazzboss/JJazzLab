@@ -86,7 +86,8 @@ public class ConverterManager
     /**
      * Try to convert an Instrument into an instrument of destSynth.
      * <p>
-     * The method asks each InstrumentConverter found in the global lookup to do the conversion, until a conversion succeeds.
+     * Manage the trivial cases (srcIns already belongs to destSynth). Then the method asks each InstrumentConverter found in the
+     * global lookup to do the conversion, until a conversion succeeds.
      *
      * @param srcIns
      * @param destSynth

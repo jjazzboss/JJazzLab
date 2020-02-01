@@ -78,11 +78,12 @@ public class StdInstrumentConverter implements InstrumentConverter
     }
 
     /**
+     * Try to convert an instrument from a standard bank to an instrument of another standard bank.
      *
-     * @param srcIns
+     * @param srcIns    Must be a sound from a standard bank
      * @param destSynth Can be null.
      * @param destBanks Must be banks from StdSynth and the GSBank from GSSynth. If null use all these banks.
-     * @return
+     * @return 
      */
     @Override
     public Instrument convertInstrument(Instrument srcIns, MidiSynth destSynth, List<InstrumentBank<?>> destBanks)
@@ -202,21 +203,19 @@ public class StdInstrumentConverter implements InstrumentConverter
     }
 
     /**
-     * Try to convert srcIns into a drums/percussion instrument from the standard banks GM2/XG/GS.
+     * Try to find a drums/percussion instrument from the standard banks GM2/XG/GS which match srcKit.
      * <p>
-     * The search is only based on the instrument's DrumKit information.
      *
-     *
-     * @param srcIns    Must be a drums/percussion instrument
+     * @param srcKit
      * @param destBanks Can't be null. Must be banks from GM/GM2/XG/GS
      * @param tryHarder If initial search did not yield any instrument, try again with a more flexible matching scheme.
      * @return Can be null.
      */
-    public Instrument convertDrumsInstrument(Instrument srcIns, List<InstrumentBank<?>> destBanks, boolean tryHarder)
+    public Instrument findStandardDrumsInstrument(DrumKit srcKit, List<InstrumentBank<?>> destBanks, boolean tryHarder)
     {
-        if (srcIns == null || !srcIns.isDrumKit() || destBanks == null)
+        if (srcKit == null || destBanks == null)
         {
-            throw new IllegalArgumentException("srcIns=" + srcIns + " destBanks=" + destBanks + " tryHarder=" + tryHarder);
+            throw new IllegalArgumentException("srcKit=" + srcKit + " destBanks=" + destBanks + " tryHarder=" + tryHarder);
         }
         if (destBanks.isEmpty())
         {
@@ -226,13 +225,12 @@ public class StdInstrumentConverter implements InstrumentConverter
         {
             if (!isValidBank(destBank))
             {
-                throw new IllegalArgumentException("srcIns=" + srcIns.toLongString() + " destBanks=" + destBanks);
+                throw new IllegalArgumentException("srcKit=" + srcKit + " destBanks=" + destBanks);
             }
         }
 
         Instrument res = null;
-        DrumKit srcKit = srcIns.getDrumKit();
-        DrumKit.KeyMap srcKeyMap = srcIns.getDrumKit().getKeyMap();
+        DrumKit.KeyMap srcKeyMap = srcKit.getKeyMap();
 
         DrumKit.KeyMap xgLatinKeyMap = KeyMapXG_PopLatin.getInstance();
         DrumKit.KeyMap xgKeyMap = KeyMapXG.getInstance();
@@ -251,23 +249,23 @@ public class StdInstrumentConverter implements InstrumentConverter
         XGBank xgBank = StdSynth.getInstance().getXGBank();
         GM2Bank gm2Bank = StdSynth.getInstance().getGM2Bank();
         GSBank gsBank = GSSynth.getInstance().getGSBank();
-        boolean isXG = destBanks.contains(xgBank);
-        boolean isGM2 = destBanks.contains(gm2Bank);
-        boolean isGS = destBanks.contains(gsBank);
+        boolean isDestXG = destBanks.contains(xgBank);
+        boolean isDestGM2 = destBanks.contains(gm2Bank);
+        boolean isDestGS = destBanks.contains(gsBank);
 
-        if (!isXG && !isGM2 && !isGS)
+        if (!isDestXG && !isDestGM2 && !isDestGS)
         {
             // No possible compatibility: there is no drums instrument in GM1
             return null;
         }
 
-        if (isXG && (srcKeyMap.isContaining(xgLatinKeyMap) || srcKeyMap.isContaining(xgKeyMap) || srcKeyMap.isContaining(gmKeyMap)))
+        if (isDestXG && (srcKeyMap.isContaining(xgLatinKeyMap) || srcKeyMap.isContaining(xgKeyMap) || srcKeyMap.isContaining(gmKeyMap)))
         {
             res = getDrumsInstrument(xgBank, srcKit, tryHarder);
-        } else if (isGM2 && (srcKeyMap.isContaining(gsgm2KeyMap) || srcKeyMap.isContaining(gmKeyMap)))
+        } else if (isDestGM2 && (srcKeyMap.isContaining(gsgm2KeyMap) || srcKeyMap.isContaining(gmKeyMap)))
         {
             res = getDrumsInstrument(gm2Bank, srcKit, tryHarder);
-        } else if (isGS && (srcKeyMap.isContaining(gsgm2KeyMap) || srcKeyMap.isContaining(gmKeyMap)))
+        } else if (isDestGS && (srcKeyMap.isContaining(gsgm2KeyMap) || srcKeyMap.isContaining(gmKeyMap)))
         {
             res = getDrumsInstrument(gsBank, srcKit, tryHarder);
         }

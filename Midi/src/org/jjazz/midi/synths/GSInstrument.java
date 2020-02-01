@@ -27,7 +27,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
-import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
@@ -104,9 +103,21 @@ public class GSInstrument extends Instrument
     };
     private static final Logger LOGGER = Logger.getLogger(GSInstrument.class.getSimpleName());
 
+    /**
+     *
+     * @param patchName
+     * @param bank
+     * @param ma         Must have BankSelectMethod set to MSB_ONLY
+     * @param kit
+     * @param substitute
+     */
     public GSInstrument(String patchName, InstrumentBank<?> bank, MidiAddress ma, DrumKit kit, GM1Instrument substitute)
     {
         super(patchName, bank, ma, kit, substitute);
+        if (!ma.getBankSelectMethod().equals(MidiAddress.BankSelectMethod.MSB_ONLY))
+        {
+            throw new IllegalArgumentException("patchName=" + patchName + " bank=" + bank + " ma=" + ma);
+        }
     }
 
     @Override
@@ -129,7 +140,10 @@ public class GSInstrument extends Instrument
         {
             throw new IllegalArgumentException("channel=" + channel);
         }
-        MidiMessage[] messages = new MidiMessage[2]; // Make room for SysEx message + PC       
+        MidiMessage[] messages = new MidiMessage[3];
+        MidiMessage[] msgs = MidiUtilities.getPatchMessages(channel, this);
+        assert msgs.length == 2 : "msgs.length=" + msgs.length + " this=" + getFullName(); // GS Instrument use MSB_ONLY addressing mode
+
         byte[] bytes = SYSEX_SET_NORMAL_CHANNEL[channel];
         SysexMessage sysMsg = new SysexMessage();
         try
@@ -140,9 +154,9 @@ public class GSInstrument extends Instrument
             Exceptions.printStackTrace(ex);
         }
         messages[0] = sysMsg;
+        messages[1] = msgs[0];
+        messages[2] = msgs[1];
         LOGGER.log(Level.INFO, "getMidiMessages() Sending SysEx messages to set melodic mode on channel " + channel);
-        // Add PC : GS does not use bank select for drums channel
-        messages[1] = MidiUtilities.buildMessage(ShortMessage.PROGRAM_CHANGE, channel, getMidiAddress().getProgramChange(), 0);
         return messages;
     }
 

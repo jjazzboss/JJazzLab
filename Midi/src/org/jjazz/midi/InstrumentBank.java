@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.midi.MidiAddress.BankSelectMethod;
+import org.jjazz.midi.synths.Family;
+import org.jjazz.midi.synths.GM1Instrument;
 
 /**
  * A set of Instruments grouped in a bank.
@@ -37,7 +39,7 @@ import org.jjazz.midi.MidiAddress.BankSelectMethod;
  */
 public class InstrumentBank<T extends Instrument>
 {
-
+    
     protected HashMap<MidiAddress, T> mapAddressInstrument = new HashMap<>();
     protected ArrayList<T> instruments = new ArrayList<>();
     protected int defaultLsb, defaultMsb;
@@ -88,7 +90,7 @@ public class InstrumentBank<T extends Instrument>
      * @param synth A non null value, the MidiSynth this InstrumentBank belongs to
      */
     public void setMidiSynth(MidiSynth synth)
-    {
+    {        
         if (this.synth != null)
         {
             throw new IllegalStateException("synth already set! this.synth=" + this.synth + " synth=" + synth);
@@ -435,6 +437,48 @@ public class InstrumentBank<T extends Instrument>
     }
 
     /**
+     * Get the instruments whose substitute is sub.
+     *
+     * @param sub Can be null
+     * @return
+     */
+    public List<T> getInstrumentsFromSubstitute(GM1Instrument sub)
+    {
+        ArrayList<T> res = new ArrayList<>();
+        for (T ins : instruments)
+        {
+            if (ins.getSubstitute() == sub)
+            {
+                res.add(ins);
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Get the instruments whose substitute's family is f.
+     *
+     * @param f Can't be null
+     * @return
+     */
+    public List<T> getInstrumentsFromFamily(Family f)
+    {
+        if (f == null)
+        {
+            throw new IllegalArgumentException("f=" + f);
+        }
+        ArrayList<T> res = new ArrayList<>();
+        for (T ins : instruments)
+        {
+            if (ins.getSubstitute() != null && ins.getSubstitute().getFamily().equals(f))
+            {
+                res.add(ins);
+            }
+        }
+        return res;
+    }
+
+    /**
      * Find the instruments whose patchName contains specified text (ignoring case).
      *
      * @param text
@@ -456,7 +500,7 @@ public class InstrumentBank<T extends Instrument>
         }
         return res;
     }
-
+    
     @Override
     public String toString()
     {

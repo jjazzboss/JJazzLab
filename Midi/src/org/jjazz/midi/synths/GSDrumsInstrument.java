@@ -108,9 +108,21 @@ public class GSDrumsInstrument extends Instrument
     };
     private static final Logger LOGGER = Logger.getLogger(GSDrumsInstrument.class.getSimpleName());
 
+    /**
+     *
+     * @param patchName
+     * @param bank
+     * @param ma         Must have BankSelectMethod set to PC_ONLY
+     * @param kit
+     * @param substitute
+     */
     public GSDrumsInstrument(String patchName, InstrumentBank<?> bank, MidiAddress ma, DrumKit kit, GM1Instrument substitute)
     {
         super(patchName, bank, ma, kit, substitute);
+        if (!ma.getBankSelectMethod().equals(MidiAddress.BankSelectMethod.PC_ONLY))
+        {
+            throw new IllegalArgumentException("patchName=" + patchName + " bank=" + bank + " ma=" + ma);
+        }
     }
 
     @Override
@@ -133,7 +145,11 @@ public class GSDrumsInstrument extends Instrument
         {
             throw new IllegalArgumentException("channel=" + channel);
         }
-        MidiMessage[] messages = new MidiMessage[2]; // Make room for SysEx message + PC   
+
+        MidiMessage[] messages = new MidiMessage[2];
+        MidiMessage[] msgs = MidiUtilities.getPatchMessages(channel, this);
+        assert msgs.length == 1 : "msgs.length=" + msgs.length + " this=" + getFullName(); // GS DrumsInstrument use PC_ONLY addressing mode        
+
         byte[] bytes = SYSEX_SET_DRUMS_CHANNEL[channel];
         SysexMessage sysMsg = new SysexMessage();
         try
@@ -144,9 +160,8 @@ public class GSDrumsInstrument extends Instrument
             Exceptions.printStackTrace(ex);
         }
         messages[0] = sysMsg;
+        messages[1] = msgs[0];
         LOGGER.log(Level.INFO, "getMidiMessages() Sending SysEx messages to set drums mode on channel " + channel);
-        // Add PC : GS does not use bank select for drums channel
-        messages[1] = MidiUtilities.buildMessage(ShortMessage.PROGRAM_CHANGE, channel, getMidiAddress().getProgramChange(), 0);
         return messages;
     }
 

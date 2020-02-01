@@ -369,7 +369,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             String s = synth.getName() + " (" + synth.getNbInstruments() + ")";
             setText(s);
             File f = synth.getFile();
-            s = (f == null) ? "Builtin" : f.getName();
+            s = (f == null) ? "Builtin" : f.getAbsolutePath();
             if (synth == editorStdSynth)
             {
                 setFont(getFont().deriveFont(Font.ITALIC));

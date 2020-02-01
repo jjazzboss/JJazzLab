@@ -46,7 +46,7 @@ public class GSBank extends InstrumentBank<Instrument>
     public static final String BANKNAME = "GS Bank (SC55)";
     public static final int DEFAULT_BANK_SELECT_LSB = 0;
     public static final int DEFAULT_BANK_SELECT_MSB = 0;
-    public static final BankSelectMethod DEFAULT_BANK_SELECT_METHOD = BankSelectMethod.MSB_LSB;
+    public static final BankSelectMethod DEFAULT_BANK_SELECT_METHOD = BankSelectMethod.MSB_ONLY;
     private static Instrument DEFAULT_DRUMS_INSTRUMENT;
     private static GSBank INSTANCE;
 
@@ -297,19 +297,18 @@ public class GSBank extends InstrumentBank<Instrument>
         addInstrument(createInstrument(127, 3, "Explosion"));
 
         // IMPORTANT =======================================
-        // Same as GM2 for the programChange. Reused 120 for MSB but in theory it is useless.
+        // Same as GM2 for the programChange. 
         // Normally GS accepts drums only on Midi channel 10, drumkit can't be selected via bankMSB/bankLSB to work on a different channel.
-        // However GS defines some specific SysEx messages which can program a Drums channel on other than 10 => TO BE IMPLEMENTED !
-        DEFAULT_DRUMS_INSTRUMENT = createDrumsInstrument(DrumKit.Type.STANDARD, KeyMapGSGM2.getInstance(), 0, 120, 0, "Drum Kit Standard");
+        DEFAULT_DRUMS_INSTRUMENT = createDrumsInstrument(DrumKit.Type.STANDARD, KeyMapGSGM2.getInstance(), 0, "Drum Kit Standard");
         addInstrument(DEFAULT_DRUMS_INSTRUMENT);
-        addInstrument(createDrumsInstrument(DrumKit.Type.ROOM, KeyMapGSGM2.getInstance(), 8, 120, 0, "Drum Kit Room"));
-        addInstrument(createDrumsInstrument(DrumKit.Type.POWER, KeyMapGSGM2.getInstance(), 16, 120, 0, "Drum Kit Power"));
-        addInstrument(createDrumsInstrument(DrumKit.Type.ELECTRONIC, KeyMapGSGM2.getInstance(), 24, 120, 0, "Drum Kit Electronic"));
-        addInstrument(createDrumsInstrument(DrumKit.Type.ANALOG, KeyMapGSGM2.getInstance(), 25, 120, 0, "Drum Kit Analog"));
-        addInstrument(createDrumsInstrument(DrumKit.Type.JAZZ, KeyMapGSGM2.getInstance(), 32, 120, 0, "Drum Kit Jazz"));
-        addInstrument(createDrumsInstrument(DrumKit.Type.BRUSH, KeyMapGSGM2.getInstance(), 40, 120, 0, "Drum Kit Brush"));
-        addInstrument(createDrumsInstrument(DrumKit.Type.ORCHESTRA, KeyMapGSGM2.getInstance(), 48, 120, 0, "Drum Kit Orchestra"));
-        addInstrument(createDrumsInstrument(DrumKit.Type.SFX, KeyMapGSGM2.getInstance(), 56, 120, 0, "Drum Kit SFX"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.ROOM, KeyMapGSGM2.getInstance(), 8, "Drum Kit Room"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.POWER, KeyMapGSGM2.getInstance(), 16, "Drum Kit Power"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.ELECTRONIC, KeyMapGSGM2.getInstance(), 24, "Drum Kit Electronic"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.ANALOG, KeyMapGSGM2.getInstance(), 25, "Drum Kit Analog"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.JAZZ, KeyMapGSGM2.getInstance(), 32, "Drum Kit Jazz"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.BRUSH, KeyMapGSGM2.getInstance(), 40, "Drum Kit Brush"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.ORCHESTRA, KeyMapGSGM2.getInstance(), 48, "Drum Kit Orchestra"));
+        addInstrument(createDrumsInstrument(DrumKit.Type.SFX, KeyMapGSGM2.getInstance(), 56, "Drum Kit SFX"));
 
     }
 
@@ -346,7 +345,7 @@ public class GSBank extends InstrumentBank<Instrument>
     private Instrument createInstrument(int pc, int msb, String name)
     {
         GM1Instrument gmIns = StdSynth.getInstance().getGM1Bank().getInstrument(pc); // GS's PC is directly compatible with GM1
-        Instrument ins = new Instrument(name, null, new MidiAddress(pc, msb, 0, DEFAULT_BANK_SELECT_METHOD), null, gmIns);
+        Instrument ins = new GSInstrument(name, null, new MidiAddress(pc, msb, -1, DEFAULT_BANK_SELECT_METHOD), null, gmIns);
         return ins;
     }
 
@@ -355,9 +354,10 @@ public class GSBank extends InstrumentBank<Instrument>
      *
      * @return
      */
-    private Instrument createDrumsInstrument(DrumKit.Type t, DrumKit.KeyMap map, int pc, int msb, int lsb, String name)
+    private Instrument createDrumsInstrument(DrumKit.Type t, DrumKit.KeyMap map, int pc, String name)
     {
-        return new GSDrumsInstrument(name, null, new MidiAddress(pc, msb, lsb, DEFAULT_BANK_SELECT_METHOD), new DrumKit(t, map), null);
+        // GS does not define bank select for drums: it must be on channel 10 only PC is used
+        return new GSDrumsInstrument(name, null, new MidiAddress(pc, 120, -1, MidiAddress.BankSelectMethod.PC_ONLY), new DrumKit(t, map), null);
     }
 
 }

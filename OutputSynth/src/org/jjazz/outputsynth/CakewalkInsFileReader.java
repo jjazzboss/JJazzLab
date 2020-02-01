@@ -49,6 +49,7 @@ import org.jjazz.midi.spi.KeyMapProvider;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midi.synths.GSDrumsInstrument;
+import org.jjazz.midi.synths.GSInstrument;
 
 /**
  * A MidiSynth provider reading Cakewalk .ins instrument definition files.
@@ -180,7 +181,6 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         }
                         DrumKit kit = null;
                         GM1Instrument gmSubstitute = null;
-                        boolean useGsDrumsInstrument = false;
                         String patchName = mPatch.group(2);
                         if (patchName == null || patchName.trim().isEmpty())
                         {
@@ -236,10 +236,6 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                 gmSubstitute = StdSynth.getInstance().getGM1Bank().getInstrument(pcGM1);
                             }
 
-                            // Check if gsDrums is defined
-                            Matcher mPatchGsDrums = pPatchGsDrums.matcher(patchName);
-                            useGsDrumsInstrument = mPatchGsDrums.find();
-
                             // Get rid of the extensions if meta info was provided
                             int index = patchName.indexOf("{{");
                             if (index != -1)
@@ -248,7 +244,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             }
 
                             // No DrumKit meta info found, try to guess if it's a drums from patchName
-                            if (kit == null && (useGsDrumsInstrument || (gmSubstitute == null && StdSynth.getInstance().getGM1Bank().guessIsDrums(patchName))))
+                            if (kit == null && gmSubstitute == null && StdSynth.getInstance().getGM1Bank().guessIsDrums(patchName))
                             {
                                 kit = new DrumKit(DrumKit.Type.STANDARD, KeyMapGM.getInstance());
                             }
@@ -262,14 +258,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
 
                         // Build the instrument with a NOT fully defined MidiAddress
                         Instrument ins;
-                        if (!useGsDrumsInstrument)
-                        {
-                            ins = new Instrument(patchName, null, new MidiAddress(pc, -1, -1, null), kit, gmSubstitute);
-                        } else
-                        {
-                            // LOGGER.severe("readSynthsFromStream() creating GSDrumsInstrument for " + patchName);
-                            ins = new GSDrumsInstrument(patchName, null, new MidiAddress(pc, -1, -1, null), kit, gmSubstitute);
-                        }
+                        ins = new Instrument(patchName, null, new MidiAddress(pc, -1, -1, null), kit, gmSubstitute);
                         currentBankInstruments.add(ins);
                         continue;
                     }
@@ -318,6 +307,20 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             continue;
                         }
                         String bankName = m2Patch.group(1).trim();
+
+                        // Check if there is a Meta info {{ }}
+                        Matcher mGsInstrument = pPatch2Gs.matcher(bankName);
+                        Matcher mGsDrumsInstrument = pPatch2GsDrums.matcher(bankName);
+                        boolean useGsIns = mGsInstrument.find();
+                        boolean useGsDrumsIns = mGsDrumsInstrument.find();
+
+                        // Remove possible meta info
+                        int index = bankName.indexOf("{{");
+                        if (index != -1)
+                        {
+                            bankName = bankName.substring(0, index).trim();
+                        }
+
                         if (currentSynth.getBank(bankName) != null)
                         {
                             // The bank has already been created for this synth via a Patch[123]=SomeBankName                        
@@ -336,7 +339,20 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             for (Instrument ins : bankInstruments)
                             {
                                 // Create a copy of the instrument because some .ins can reuse one bank for several synths
-                                Instrument insCopy = ins.getCopy();
+                                Instrument insCopy;
+                                MidiAddress adr = ins.getMidiAddress();
+                                if (useGsIns)
+                                {
+                                    MidiAddress newMa = new MidiAddress(adr.getProgramChange(), adr.getBankMSB(), adr.getBankLSB(), MidiAddress.BankSelectMethod.MSB_ONLY);
+                                    insCopy = new GSInstrument(ins.getPatchName(), ins.getBank(), newMa, ins.getDrumKit(), ins.getSubstitute());
+                                } else if (useGsDrumsIns)
+                                {
+                                    MidiAddress newMa = new MidiAddress(adr.getProgramChange(), adr.getBankMSB(), adr.getBankLSB(), MidiAddress.BankSelectMethod.PC_ONLY);
+                                    insCopy = new GSDrumsInstrument(ins.getPatchName(), ins.getBank(), newMa, ins.getDrumKit(), ins.getSubstitute());
+                                } else
+                                {
+                                    insCopy = ins.getCopy();
+                                }
                                 try
                                 {
                                     bank.addInstrument(insCopy);    // Instrument will inherit the MSB/LSB/BSM from the bank
@@ -368,6 +384,20 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         int msb = value / 128;
                         int lsb = value - (msb * 128);
                         String bankName = mPatch.group(2).trim();
+
+                        // Check if there is a Meta info {{ }}
+                        Matcher mGsInstrument = pPatch2Gs.matcher(bankName);
+                        Matcher mGsDrumsInstrument = pPatch2GsDrums.matcher(bankName);
+                        boolean useGsIns = mGsInstrument.find();
+                        boolean useGsDrumsIns = mGsDrumsInstrument.find();
+
+                        // Remove possible meta info
+                        int index = bankName.indexOf("{{");
+                        if (index != -1)
+                        {
+                            bankName = bankName.substring(0, index).trim();
+                        }
+
                         List<Instrument> bankInstruments = mapBankNameInstruments.get(bankName);
                         if (bankInstruments == null)
                         {
@@ -384,7 +414,20 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                             for (Instrument ins : bankInstruments)
                             {
                                 // Create a copy of the instrument because some .ins can reuse one bank for several synths
-                                Instrument insCopy = new Instrument(ins.getPatchName(), null, ins.getMidiAddress(), ins.getDrumKit(), ins.getSubstitute());
+                                Instrument insCopy;
+                                MidiAddress adr = ins.getMidiAddress();
+                                if (useGsIns)
+                                {
+                                    MidiAddress newMa = new MidiAddress(adr.getProgramChange(), adr.getBankMSB(), adr.getBankLSB(), MidiAddress.BankSelectMethod.MSB_ONLY);
+                                    insCopy = new GSInstrument(ins.getPatchName(), ins.getBank(), newMa, ins.getDrumKit(), ins.getSubstitute());
+                                } else if (useGsDrumsIns)
+                                {
+                                    MidiAddress newMa = new MidiAddress(adr.getProgramChange(), adr.getBankMSB(), adr.getBankLSB(), MidiAddress.BankSelectMethod.PC_ONLY);
+                                    insCopy = new GSDrumsInstrument(ins.getPatchName(), ins.getBank(), newMa, ins.getDrumKit(), ins.getSubstitute());
+                                } else
+                                {
+                                    insCopy = ins.getCopy();
+                                }
                                 try
                                 {
                                     bank.addInstrument(insCopy);    // Instrument will inherit the MSB/LSB/BSM from the bank

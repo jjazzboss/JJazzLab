@@ -135,8 +135,30 @@ public class MidiAddress
     public int hashCode()
     {
         int hash = 3;
-        hash = 23 * hash + this.bankMSB;
-        hash = 23 * hash + this.bankLSB;
+        if (this.bsMethod == null)
+        {
+            hash = 23 * hash + 11;
+        } else
+        {
+            switch (this.bsMethod)
+            {
+                case MSB_LSB:
+                    hash = 23 * hash + this.bankMSB;
+                    hash = 23 * hash + this.bankLSB;
+                    break;
+                case MSB_ONLY:
+                    hash = 23 * hash + this.bankMSB;
+                    break;
+                case LSB_ONLY:
+                    hash = 23 * hash + this.bankLSB;
+                    break;
+                case PC_ONLY:
+                    // Nothing
+                    break;
+                default:
+                    throw new IllegalStateException("bsMethod=" + bsMethod);
+            }
+        }
         hash = 23 * hash + this.progChange;
         hash = 23 * hash + Objects.hashCode(this.bsMethod);
         return hash;
@@ -158,14 +180,6 @@ public class MidiAddress
             return false;
         }
         final MidiAddress other = (MidiAddress) obj;
-        if (this.bankMSB != other.bankMSB)
-        {
-            return false;
-        }
-        if (this.bankLSB != other.bankLSB)
-        {
-            return false;
-        }
         if (this.progChange != other.progChange)
         {
             return false;
@@ -174,6 +188,22 @@ public class MidiAddress
         {
             return false;
         }
-        return true;
+        if (this.bsMethod == null)
+        {
+            return true;
+        }
+        switch (this.bsMethod)
+        {
+            case MSB_LSB:
+                return (this.bankMSB == other.bankMSB) && (this.bankLSB == other.bankLSB);
+            case MSB_ONLY:
+                return (this.bankMSB == other.bankMSB);
+            case LSB_ONLY:
+                return (this.bankLSB == other.bankLSB);
+            case PC_ONLY:
+                return true;
+            default:
+                throw new IllegalArgumentException("bsMethod=" + this.bsMethod);
+        }
     }
 }
