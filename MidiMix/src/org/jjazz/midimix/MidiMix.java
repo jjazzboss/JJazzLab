@@ -47,6 +47,8 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.midi.DrumKit;
+import org.jjazz.midi.Instrument;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
@@ -93,7 +95,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     public static final String PREF_USER_CHANNEL = "PrefUserChannel";
     public static final String MIX_FILE_EXTENSION = "mix";
     /**
-     * New or removed InstrumentMix. OldValue=the old InstrumentMix, newValue=channel
+     * New or removed InstrumentMix.
+     * <p>
+     * OldValue=the old InstrumentMix, newValue=channel
      */
     public static final String PROP_CHANNEL_INSTRUMENT_MIX = "ChannelInstrumentMix";
     /**
@@ -104,6 +108,12 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * oldValue=InstumentMix, newValue=mute boolean state.
      */
     public static final String PROP_INSTRUMENT_MUTE = "InstrumentMute";
+    /**
+     * A drums instrument has changed with different keymap.
+     * <p>
+     * oldValue=chanel, newValue=old keymap
+     */
+    public static final String PROP_DRUMS_INSTRUMENT_KEYMAP = "DrumsInstrumentKeyMap";
     /**
      * oldValue=InstumentMix, newValue=transposition value.
      */
@@ -1037,7 +1047,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         {
             InstrumentMix insMix = (InstrumentMix) e.getSource();
             int channel = getChannel(insMix);
-            if (e.getPropertyName() == InstrumentMix.PROP_SOLO)
+            if (e.getPropertyName().equals(InstrumentMix.PROP_SOLO))
             {
                 boolean b = (boolean) e.getNewValue();
                 LOGGER.fine("propertyChange() channel=" + channel + " solo=" + b);
@@ -1076,7 +1086,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                         insMix.setMute(true);
                     }
                 }
-            } else if (e.getPropertyName() == InstrumentMix.PROP_MUTE)
+            } else if (e.getPropertyName().equals(InstrumentMix.PROP_MUTE))
             {
                 boolean b = (boolean) e.getNewValue();
                 // If in solo mode, pressing unmute of a muted channel turns it in solo mode
@@ -1086,6 +1096,23 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                 }
                 // Forward the MUTE change event
                 pcs.firePropertyChange(MidiMix.PROP_INSTRUMENT_MUTE, insMix, b);
+            } else if (e.getPropertyName().equals(InstrumentMix.PROP_INSTRUMENT))
+            {
+                // If drums instrument change with different KeyMap
+                Instrument oldIns = (Instrument) e.getOldValue();
+                Instrument newIns = (Instrument) e.getNewValue();
+                RhythmVoice rv = getKey(channel);
+                if (rv.isDrums())
+                {
+                    DrumKit oldKit = oldIns.getDrumKit();
+                    DrumKit newKit = newIns.getDrumKit();
+                    if ((oldKit != null && newKit != null && oldKit.getKeyMap() != newKit.getKeyMap())
+                            || (oldKit == null && newKit != null)
+                            || (oldKit != null && newKit == null))
+                    {
+                        pcs.firePropertyChange(MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, channel, oldKit.getKeyMap());
+                    }
+                }
             }
             fireIsModified();
         } else if (e.getSource() instanceof InstrumentSettings)
@@ -1093,11 +1120,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             // Forward some change events
             InstrumentSettings insSet = (InstrumentSettings) e.getSource();
             InstrumentMix insMix = insSet.getContainer();
-            if (e.getPropertyName() == InstrumentSettings.PROPERTY_TRANSPOSITION)
+            if (e.getPropertyName().equals(InstrumentSettings.PROPERTY_TRANSPOSITION))
             {
                 int value = (Integer) e.getNewValue();
                 pcs.firePropertyChange(MidiMix.PROP_INSTRUMENT_TRANSPOSITION, insMix, value);
-            } else if (e.getPropertyName() == InstrumentSettings.PROPERTY_VELOCITY_SHIFT)
+            } else if (e.getPropertyName().equals(InstrumentSettings.PROPERTY_VELOCITY_SHIFT))
             {
                 int value = (Integer) e.getNewValue();
                 pcs.firePropertyChange(MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT, insMix, value);
@@ -1105,9 +1132,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             fireIsModified();
         }
     }
-    //-----------------------------------------------------------------------
-    // Private methods
-    //-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+// Private methods
+//-----------------------------------------------------------------------
 
     /**
      * Perform the InstrumentMix change operation.

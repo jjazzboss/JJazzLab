@@ -40,6 +40,7 @@ import org.jjazz.ui.flatcomponents.FlatButton;
 import org.jjazz.ui.flatcomponents.FlatIntegerKnob;
 import org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider;
 import org.jjazz.ui.flatcomponents.FlatTextEditDialog;
+import org.jjazz.util.Utilities;
 
 /**
  * Display a MixChannel.
@@ -235,9 +236,9 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         this.fbtn_channelId.setText(s);
         this.fbtn_channelId.setToolTipText(tt);
         Instrument ins = model.getInstrument();
-        String patchName = ins.getPatchName();
-        tt = patchName + " [synth=" + ins.getBank().getMidiSynth().getName() + ", bank=" + ins.getBank().getName() + "]";
+        tt = ins.getFullName() + (ins.isDrumKit() ? ", DrumKit type=" + ins.getDrumKit().getType().toString() + " keymap= " + ins.getDrumKit().getKeyMap().getName() : "");
         fbtn_Instrument.setToolTipText(tt);
+        String patchName = Utilities.truncateWithDots(ins.getPatchName(), 15);
         this.fbtn_Instrument.setvLabel(patchName);
         this.fbtn_mute.setSelected(model.isMute());
         this.fbtn_solo.setSelected(model.isSolo());

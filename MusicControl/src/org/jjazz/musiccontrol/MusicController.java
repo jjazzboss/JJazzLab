@@ -649,7 +649,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                     break;
                 case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX:
                     playbackContext.mapRvTrackId.clear();       // Mapping between RhythmVoice and Sequence tracks is no longer valid
-                    playbackContext.setDirty();    // Make sure sequence is rebuilt
+                    playbackContext.setDirty();                 // Make sure sequence is rebuilt
+                    break;
+                case MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP:
+                    // KeyMap has changed, need to regenerate the sequence
+                    playbackContext.setDirty();
                     break;
                 default:
                     // eg MidiMix.PROP_USER_CHANNEL: do nothing

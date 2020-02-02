@@ -623,9 +623,9 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                 }
 
         }
-        mcp.setNameToolTipText(rv.getName());
-        
-        mcp.setIcon(icon);        
+        mcp.setNameToolTipText(r.getName() + " - " + rv.getName());
+
+        mcp.setIcon(icon);
         String txt = "Recommended instrument: " + prefIns.getFullName();
         if (!(prefIns instanceof GM1Instrument))
         {

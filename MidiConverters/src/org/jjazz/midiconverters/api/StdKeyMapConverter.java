@@ -1,5 +1,6 @@
 package org.jjazz.midiconverters.api;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.midi.keymap.KeyMapGSGM2;
 import org.jjazz.midi.keymap.KeyMapXG;
@@ -57,19 +58,15 @@ public class StdKeyMapConverter implements KeyMapConverter
     @Override
     public boolean accept(DrumKit.KeyMap srcMap, DrumKit.KeyMap destMap)
     {
-        if (!isStandardKeyMap(srcMap) || !isStandardKeyMap(destMap))
-        {
-            return false;
-        }
+        boolean b = false;
         if (srcMap == gmMap || destMap == gmMap || destMap == gm2Map)
         {
-            return true;
-        }
-        if (srcMap == xgMap)
+            b = true;
+        } else if (srcMap == xgMap && destMap == gm2Map)
         {
-            return destMap == gm2Map;
+            b = true;
         }
-        return false;
+        return b;
     }
 
     @Override

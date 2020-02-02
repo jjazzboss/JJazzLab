@@ -32,13 +32,12 @@ import javax.sound.midi.MidiUnavailableException;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
-import org.jjazz.midi.MidiConst;
-import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongStructure;
+import org.openide.awt.StatusDisplayer;
 
 /**
  * Global instance to obtain MidiMixes for songs and rhythms.
@@ -98,6 +97,7 @@ public class MidiMixManager implements PropertyChangeListener
                 {
                     // Try to get it from the song mix file
                     mm = MidiMix.loadFromFile(mixFile);
+                    StatusDisplayer.getDefault().setStatusText("Loaded song mix file: " + mixFile.getAbsolutePath());
                 } catch (IOException ex)
                 {
                     LOGGER.warning("findMix(Song) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage());
@@ -138,6 +138,7 @@ public class MidiMixManager implements PropertyChangeListener
             try
             {
                 mm = MidiMix.loadFromFile(mixFile);
+                StatusDisplayer.getDefault().setStatusText("Loaded rhythm mix file: " + mixFile.getAbsolutePath());
             } catch (IOException ex)
             {
                 LOGGER.severe("findMix(rhythm) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage() + ". Creating a new mix instead.");

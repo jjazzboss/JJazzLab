@@ -371,10 +371,9 @@ public class OutputSynth implements Serializable
      * Try to get an instrument compatible with this OutputSynth for the specified rhythm voice.
      * <p>
      * Search a matching instrument :<br>
-     * - in the custom synths <br>
-     * - in the compatible banks<br>
-     * - in the GMRemapTable<br>
-     * - Use the GM1Instrument substitute.
+     * - Using custom converters<br>
+     * - then search for the instrument in custom synths and compatible banks<br>
+     * - then search using the GM1 substitute, remap table, and substitute family
      *
      * @param rv
      * @return Can't be null. It may be the VoidInstrument for drums/percussion.
@@ -405,22 +404,12 @@ public class OutputSynth implements Serializable
         }
 
         // Test the easy cases: rvIns is simply an instrument from the standard banks or from the custom synths
-        if (rvInsBank != null && this.compatibleStdBanks.contains(rvInsBank))
+        if ((rvInsBank != null && this.compatibleStdBanks.contains(rvInsBank))
+                || (rvInsSynth != null && customSynths.contains(rvInsSynth)))
         {
             ins = rvIns;
             LOGGER.fine("findInstrument()    No conversion needed, instrument can be directly reused : " + ins.getFullName());
             return ins;
-        } else if (rvInsSynth != null)
-        {
-            for (MidiSynth synth : customSynths)
-            {
-                if (synth.getBanks().contains(rvInsBank))
-                {
-                    ins = rvIns;
-                    LOGGER.fine("findInstrument()    No conversion needed, instrument can be directly reused : " + ins.getFullName());
-                    return ins;
-                }
-            }
         }
 
         //
@@ -440,8 +429,17 @@ public class OutputSynth implements Serializable
         if (!rv.isDrums())
         {
             // Melodic voice
-            // Search in the custom synth for instruments whose GMSubstitute match
             GM1Instrument gmSubstitute = rvIns.getSubstitute();
+
+            // Try the GM1Instrument remap
+            ins = remapTable.getInstrument(gmSubstitute);
+            if (ins != null)
+            {
+                LOGGER.log(Level.FINE, "findInstrument()    using mapped instrument for substitute. ins={0}", ins.toLongString());
+                return ins;
+            }
+
+            // Search in the custom synth for instruments whose GMSubstitute match
             assert gmSubstitute != null : "rv=" + rv;
             for (MidiSynth synth : customSynths)
             {
@@ -455,14 +453,6 @@ public class OutputSynth implements Serializable
                         return ins;
                     }
                 }
-            }
-
-            // Try the GM1Instrument remap
-            ins = remapTable.getInstrument(gmSubstitute);
-            if (ins != null)
-            {
-                LOGGER.log(Level.FINE, "findInstrument()    using mapped instrument for substitute. ins={0}", ins.toLongString());
-                return ins;
             }
 
             // Try the family remap
@@ -513,7 +503,7 @@ public class OutputSynth implements Serializable
                 }
             }
 
-            // FINALLY ! no conversion found
+            // No possible conversion found
             ins = rvIns.getSubstitute();
             LOGGER.log(Level.FINE, "findInstrument()    no conversion found. Using rv substitute. ins={0}", ins.toLongString());
             return ins;
@@ -579,6 +569,7 @@ public class OutputSynth implements Serializable
                 return ins;
             }
 
+            // Use the default Drums if defined
             if (defaultIns != null)
             {
                 ins = defaultIns;

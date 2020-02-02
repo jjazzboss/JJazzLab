@@ -60,6 +60,7 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
         addNote("Claves High", 16, false);
         addNote("Claves Low", 17, false);
         addNote("Hand Clap", 18, true);
+        // No 19    
         addNote("Finger Snap", 20, false);
         addNote("Castanet", 21, false);
         addNote("Conga H Tip", 22, false);
@@ -89,8 +90,16 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
         addNote("Bongo L Heel", 46, false);
         addNote("Bongo L Slap", 47, false);
         addNote("Timbale L Open", 48, true);
+        // No 49
+        // No 50
+        // No 51
+        // No 52
         addNote("Paila L", 53, false);
         addNote("Timbale H Open", 54, false);
+        // No 55
+        // No 56
+        // No 57
+        // No 58
         addNote("Paila H", 59, false);
         addNote("Cowbell Top", 60, false);
         addNote("Cowbell 1", 61, false);
@@ -115,6 +124,7 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
         addNote("Shekere Tone", 80, false);
         addNote("Triangle Mute", 81, false);
         addNote("Triangle Open", 82, false);
+        // No 83
         addNote("Wind Chime", 84, true);
     }
 
