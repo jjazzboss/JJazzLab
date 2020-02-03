@@ -119,6 +119,7 @@ public class MidiUtilities
      */
     static public void sendSysExMessage(SysexMessage sm)
     {
+        LOGGER.fine("sendSysExMessage() sm=" + sm);
         JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(sm);
         try
         {

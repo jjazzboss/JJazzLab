@@ -39,6 +39,7 @@ import javax.swing.filechooser.FileSystemView;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.ui.utilities.SingleRootFileSystemView;
 import org.jjazz.util.Utilities;
+import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.NbPreferences;
@@ -46,7 +47,6 @@ import org.openide.windows.WindowManager;
 
 /**
  * Management of the OutputSynth.
- * <p>
  */
 public class OutputSynthManager implements PropertyChangeListener
 {
@@ -80,24 +80,44 @@ public class OutputSynthManager implements PropertyChangeListener
 
     private OutputSynthManager()
     {
-        String path = prefs.get(PROP_DEFAULT_OUTPUTSYNTH, DEFAULT_OUTPUT_SYNTH_FILENAME);
-        File f = new File(getOutputSynthFilesDir(), path);
-        outputSynth = loadOutputSynth(f, false);
+        // Copy the default OutputSynth config files if not done
+        final File dir = getOutputSynthFilesDir();
+        final File[] files = dir.listFiles();
+        if (files.length == 0)
+        {
+            Runnable run = new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    File[] res = OutputSynthManager.this.copyBuiltinResourceFiles(dir);
+                    LOGGER.info("OutputSynthManager() First time initialization - copied " + res.length + " files into " + dir.getAbsolutePath());
+                }
+            };
+            BaseProgressUtils.showProgressDialogAndRun(run, "First time initialization - copying builtin Output Synth config files...");
+        }
+
+        // Load the saved output synth file
+        String fileName = prefs.get(PROP_DEFAULT_OUTPUTSYNTH, null);        // Only the filename is stored in the preferences (no path)
+        if (fileName != null)
+        {
+            File f = new File(getOutputSynthFilesDir(), fileName);
+            outputSynth = loadOutputSynth(f, false);
+        }
         if (outputSynth == null)
         {
-            if (!path.equals(DEFAULT_OUTPUT_SYNTH_FILENAME))
-            {
-                // Try reading the default config file
-                f = new File(getOutputSynthFilesDir(), DEFAULT_OUTPUT_SYNTH_FILENAME);
-                outputSynth = loadOutputSynth(f, false);
-            }
+            // Try reading the default config file
+            File f = new File(getOutputSynthFilesDir(), DEFAULT_OUTPUT_SYNTH_FILENAME);
+            outputSynth = loadOutputSynth(f, false);
             if (outputSynth == null)
             {
                 outputSynth = new OutputSynth();
                 outputSynth.setFile(f);
             }
         }
-        outputSynth.addPropertyChangeListener(this); // Listen to file changes
+        
+        // Listen to file changes
+        outputSynth.addPropertyChangeListener(this); 
     }
 
     /**
@@ -135,7 +155,7 @@ public class OutputSynthManager implements PropertyChangeListener
         pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, old, outputSynth);
     }
 
-      /**
+    /**
      * Show a dialog to select an OutputSynth file.
      * <p>
      *
@@ -242,21 +262,17 @@ public class OutputSynthManager implements PropertyChangeListener
     // ===============================================================================
     /**
      * A fixed user directory.
-     * <p>
-     * Prepare the builtin files when first called.
      *
      * @return
      */
     private File getOutputSynthFilesDir()
     {
-        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-        File rDir = fdm.getAppConfigDirectory(OUTPUT_SYNTH_FILES_DIR);
-        assert rDir.isDirectory() : "rDir=" + rDir;
-        File[] files = rDir.listFiles();
-        if (files.length == 0)
+        File rDir = FileDirectoryManager.getInstance().getAppConfigDirectory(OUTPUT_SYNTH_FILES_DIR);
+        if (rDir == null)
         {
-            files = copyBuiltinResourceFiles(rDir);
-            LOGGER.info("getOutputSynthFilesDir() copied " + files.length + " files into " + rDir.getAbsolutePath());
+            String msg = "SERIOUS ERROR - Can't find the app. config. directory for " + OUTPUT_SYNTH_FILES_DIR;
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
         }
         return rDir;
     }

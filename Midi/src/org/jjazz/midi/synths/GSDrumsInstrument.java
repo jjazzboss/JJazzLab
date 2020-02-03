@@ -161,7 +161,7 @@ public class GSDrumsInstrument extends Instrument
         }
         messages[0] = sysMsg;
         messages[1] = msgs[0];
-        LOGGER.log(Level.INFO, "getMidiMessages() Sending SysEx messages to set drums mode on channel " + channel);
+        LOGGER.log(Level.FINE, "getMidiMessages() Sending SysEx messages to set drums mode on channel " + channel);
         return messages;
     }
 

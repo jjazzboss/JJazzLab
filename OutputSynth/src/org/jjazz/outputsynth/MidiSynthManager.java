@@ -34,7 +34,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.*;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
@@ -233,6 +232,13 @@ public class MidiSynthManager
     static public class SynthFinder implements MidiSynth.Finder
     {
 
+        /**
+         * Search the MidiSynthManager instance.
+         *
+         * @param synthName
+         * @param synthFile If no parent directory, search the MidiSynthManager default directory for output synth config files.
+         * @return
+         */
         @Override
         public MidiSynth getMidiSynth(String synthName, File synthFile)
         {
@@ -246,6 +252,12 @@ public class MidiSynthManager
             // Try to read the file if not null
             if (res == null && synthFile != null)
             {
+                if (synthFile.getParentFile() == null)
+                {
+                    // If no parent file search the default dir
+                    File dir = FileDirectoryManager.getInstance().getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
+                    synthFile = new File(dir, synthFile.getName());
+                }
                 List<MidiSynth> synths = getInstance().loadSynths(synthFile);
                 for (MidiSynth synth : synths)
                 {

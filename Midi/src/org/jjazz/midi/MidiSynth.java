@@ -65,7 +65,8 @@ public class MidiSynth
          * Search for a MidiSynth instance from the specified name and file name.
          *
          * @param synthName The MidiSynth name containing the bank. Can't be null.
-         * @param synthFile The file associated to synthName. Can be null.
+         * @param synthFile The file associated to synthName. Can be null if no file. If synthFile has no parent directory, search the
+         *                  default directory for output synth config files.
          * @return Null if no MidiSynth found
          */
         MidiSynth getMidiSynth(String synthName, File synthFile);
@@ -321,7 +322,7 @@ public class MidiSynth
      * Save this MidiSynth as a string so that it can be retrieved by loadFromString().
      * <p>
      *
-     * @return A string "Name, FilePath". FilePath can be "NOT_SET" if no file associated.
+     * @return A string "Name, FilePath". FilePath can be "NOT_SET" if no file associated. If
      * @see loadFromString(String)
      */
     public String saveAsString()

@@ -33,10 +33,8 @@ import static org.jjazz.activesong.Bundle.ERR_OtherSongPlaying;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.JJazzMidiSystem;
-import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.song.api.Song;
 import org.openide.util.NbBundle;
@@ -246,8 +244,8 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
             {
                 if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.PLAY))
                 {
-                    sendAllMidiMixMessages();
                     OutputSynthManager.getInstance().getOutputSynth().sendModeOnUponPlaySysexMessages();
+                    sendAllMidiMixMessages();                    
                 }
             }
         }
