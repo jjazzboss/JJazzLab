@@ -72,7 +72,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
     private Instrument selectedInstrument;
     private FavoriteMidiSynth favoriteSynth;
     private Instrument remappedInstrument;
-    private GM1Instrument remappedGM1Instrument;
+    private GM1Instrument remappedInstrumentAsGM1;
     private List<Instrument> allInstruments;
     private List<Instrument> recommendedInstruments;
     private static final Logger LOGGER = Logger.getLogger(RemapTableInstrumentChooserImpl.class.getSimpleName());
@@ -130,8 +130,13 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         String myTitle = "Mapped instrument: " + remappedInstrument.getPatchName();
         if (remappedInstrument instanceof GM1Instrument)
         {
-            remappedGM1Instrument = (GM1Instrument) remappedInstrument;
-            myTitle += " (family=" + remappedGM1Instrument.getFamily().toString() + ")";
+            // Melodic
+            remappedInstrumentAsGM1 = (GM1Instrument) remappedInstrument;
+            myTitle += " (family=" + remappedInstrumentAsGM1.getFamily().toString() + ")";
+        } else
+        {
+            // Drums
+            remappedInstrumentAsGM1 = null;
         }
         lbl_Title.setText(myTitle);
 
@@ -143,7 +148,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
 
         Instrument targetIns = outputSynth.getGMRemapTable().getInstrument(remappedInstrument);
 
-        allInstruments = this.getAllInstruments(outputSynth, remappedGM1Instrument == null);
+        allInstruments = this.getAllInstruments(outputSynth, remappedInstrumentAsGM1 == null);
         recommendedInstruments = this.getRecommendedInstruments(allInstruments, remappedInstrument);
         if (!recommendedInstruments.isEmpty() && (targetIns == null || recommendedInstruments.contains(targetIns)))
         {
@@ -159,7 +164,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         if (targetIns != null)
         {
             tbl_Instruments.setSelectedInstrument(targetIns);
-            if (remappedGM1Instrument != null && rTable.getInstrument(remappedGM1Instrument.getFamily()) == targetIns)
+            if (remappedInstrumentAsGM1 != null && rTable.getInstrument(remappedInstrumentAsGM1.getFamily()) == targetIns)
             {
                 cb_UseAsFamilyDefault.setSelected(true);
             }
@@ -282,15 +287,26 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             {
                 res.addAll(synth.getDrumsInstruments());
             }
-        }
-        for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
+            for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
+            {
+                res.addAll(bank.getNonDrumsInstruments());
+            }
+            for (MidiSynth synth : outSynth.getCustomSynths())
+            {
+                res.addAll(synth.getNonDrumsInstruments());
+            }
+        } else
         {
-            res.addAll(bank.getNonDrumsInstruments());
+            for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
+            {
+                res.addAll(bank.getInstruments());
+            }
+            for (MidiSynth synth : outSynth.getCustomSynths())
+            {
+                res.addAll(synth.getInstruments());
+            }
         }
-        for (MidiSynth synth : outSynth.getCustomSynths())
-        {
-            res.addAll(synth.getNonDrumsInstruments());
-        }
+
         return res;
     }
 

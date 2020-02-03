@@ -247,7 +247,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         cb_GM2.setEnabled(!cb_GS.isSelected());
         cb_XG.setEnabled(!cb_GS.isSelected());
 
-        switch (outputSynth.getSendModeOnUponStartup())
+        switch (outputSynth.getSendModeOnUponPlay())
         {
             case GM:
                 this.rbtn_setGmModeOnUponStartup.setSelected(true);
@@ -743,7 +743,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 .addContainerGap()
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 534, Short.MAX_VALUE)
                 .addContainerGap())
         );
         pnl_advancedLayout.setVerticalGroup(
@@ -1132,27 +1132,27 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
     private void rbtn_setModeOnUponStartupOFFActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_setModeOnUponStartupOFFActionPerformed
     {//GEN-HEADEREND:event_rbtn_setModeOnUponStartupOFFActionPerformed
-        outputSynth.setSendModeOnUponStartup(OutputSynth.SendModeOnUponStartup.OFF);
+        outputSynth.setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.OFF);
     }//GEN-LAST:event_rbtn_setModeOnUponStartupOFFActionPerformed
 
     private void rbtn_setGmModeOnUponStartupActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_setGmModeOnUponStartupActionPerformed
     {//GEN-HEADEREND:event_rbtn_setGmModeOnUponStartupActionPerformed
-        outputSynth.setSendModeOnUponStartup(OutputSynth.SendModeOnUponStartup.GM);
+        outputSynth.setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.GM);
     }//GEN-LAST:event_rbtn_setGmModeOnUponStartupActionPerformed
 
     private void rbtn_setGm2ModeOnUponStartupActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_setGm2ModeOnUponStartupActionPerformed
     {//GEN-HEADEREND:event_rbtn_setGm2ModeOnUponStartupActionPerformed
-        outputSynth.setSendModeOnUponStartup(OutputSynth.SendModeOnUponStartup.GM2);
+        outputSynth.setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.GM2);
     }//GEN-LAST:event_rbtn_setGm2ModeOnUponStartupActionPerformed
 
     private void rbtn_setXgModeOnUponStartupActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_setXgModeOnUponStartupActionPerformed
     {//GEN-HEADEREND:event_rbtn_setXgModeOnUponStartupActionPerformed
-        outputSynth.setSendModeOnUponStartup(OutputSynth.SendModeOnUponStartup.XG);
+        outputSynth.setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.XG);
     }//GEN-LAST:event_rbtn_setXgModeOnUponStartupActionPerformed
 
     private void rbtn_setGsModeOnUponStartupActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_setGsModeOnUponStartupActionPerformed
     {//GEN-HEADEREND:event_rbtn_setGsModeOnUponStartupActionPerformed
-        outputSynth.setSendModeOnUponStartup(OutputSynth.SendModeOnUponStartup.GS);
+        outputSynth.setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.GS);
     }//GEN-LAST:event_rbtn_setGsModeOnUponStartupActionPerformed
 
     private void btn_ResetInstrumentActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_ResetInstrumentActionPerformed

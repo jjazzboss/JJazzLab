@@ -111,7 +111,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     /**
      * A drums instrument has changed with different keymap.
      * <p>
-     * oldValue=chanel, newValue=old keymap
+     * oldValue=channel, newValue=old keymap (may be null)
      */
     public static final String PROP_DRUMS_INSTRUMENT_KEYMAP = "DrumsInstrumentKeyMap";
     /**
@@ -183,7 +183,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * New MidiMix will be initialized with copies of the InstrumentMixes of mm. RhythmVoice keys are directly reused.
      *
      * @param mm
-     * @param r  If not null, keep only the data RhythmVoices/InstrumentMixes related to r
+     * @param r If not null, keep only the data RhythmVoices/InstrumentMixes related to r
      */
     public MidiMix(MidiMix mm, Rhythm r)
     {
@@ -267,7 +267,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      *
      * @param insMix The instrument mix to be used for the user channel
      * @throws MidiUnavailableException If no Midi channel available.
-     * @throws IllegalStateException    If a user channel is already added.
+     * @throws IllegalStateException If a user channel is already added.
      */
     public void addUserChannel(final InstrumentMix insMix) throws MidiUnavailableException
     {
@@ -324,8 +324,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * Fire a PROP_CHANNEL_INSTRUMENT_MIX change event for this channel, and one UndoableEvent.
      *
      * @param channel A valid midi channel number.
-     * @param rvKey   Can be null if insMix is also null. If a song is set, must be a RhythmVoice of song's rhythms.
-     * @param insMix  Can be null if rvKey is also null.
+     * @param rvKey Can be null if insMix is also null. If a song is set, must be a RhythmVoice of song's rhythms.
+     * @param insMix Can be null if rvKey is also null.
      * @throws IllegalArgumentException if insMix is already part of this MidiMix for a different channel
      */
     public void setInstrumentMix(int channel, RhythmVoice rvKey, InstrumentMix insMix)
@@ -605,7 +605,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * The operation will fire UndoableEvent edits.
      *
      * @param fromMm
-     * @param r      If non null, copy fromMm instrumentMixes only if they belong to rhythm r
+     * @param r If non null, copy fromMm instrumentMixes only if they belong to rhythm r
      * @throws MidiUnavailableException If not enough channels available to accommodate mm instruments.
      */
     public final void addInstrumentMixes(MidiMix fromMm, Rhythm r) throws MidiUnavailableException
@@ -797,7 +797,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      *
      * @param f
      * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no PROP_MODIFIED_OR_SAVED state
-     *               change)
+     * change)
      * @throws java.io.IOException
      */
     public void saveToFile(File f, boolean isCopy) throws IOException
@@ -1110,7 +1110,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                             || (oldKit == null && newKit != null)
                             || (oldKit != null && newKit == null))
                     {
-                        pcs.firePropertyChange(MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, channel, oldKit.getKeyMap());
+                        pcs.firePropertyChange(MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, channel, oldKit != null ? oldKit.getKeyMap() : null);
                     }
                 }
             }

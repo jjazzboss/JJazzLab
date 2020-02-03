@@ -189,7 +189,8 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         } else
                         {
                             // Got the patchName right, now check the Meta info {{ }}
-
+                            patchName = patchName.trim();
+                            
                             // Check if a DrumKit is defined
                             Matcher mPatchDrumKit = pPatchDrums.matcher(patchName);
                             if (mPatchDrumKit.find())
@@ -204,11 +205,13 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                     LOGGER.warning("readSynthsFromStream() Invalid DrumKit KeyMap " + keyMapName + " for instrument" + patchName + " in file " + fileName + " at line " + lineCount + ". Using the GM drum map instead.");
                                     kitKeyMap = KeyMapGM.getInstance();
                                 }
-                                DrumKit.Type kitType = DrumKit.Type.valueOf(typeName);
-                                if (kitType == null)
+                                DrumKit.Type kitType = DrumKit.Type.STANDARD;
+                                try
+                                {
+                                    kitType = DrumKit.Type.valueOf(typeName);
+                                } catch (IllegalArgumentException e)
                                 {
                                     LOGGER.warning("readSynthsFromStream() Invalid DrumKit type " + typeName + " for instrument" + patchName + " in file " + fileName + " at line " + lineCount + ". Using the STANDARD DrumKit type instead.");
-                                    kitType = DrumKit.Type.STANDARD;
                                 }
                                 kit = new DrumKit(kitType, kitKeyMap);
                             }

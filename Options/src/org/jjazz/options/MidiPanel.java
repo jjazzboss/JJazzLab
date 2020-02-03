@@ -86,7 +86,6 @@ final class MidiPanel extends javax.swing.JPanel
         jScrollPane3 = new javax.swing.JScrollPane();
         list_OutDevices = new org.jjazz.midi.ui.MidiOutDeviceList();
         btn_refresh = new javax.swing.JButton();
-        cb_sendGmOnUponStartup = new javax.swing.JCheckBox();
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_OutDevices, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.lbl_OutDevices.text")); // NOI18N
 
@@ -190,9 +189,6 @@ final class MidiPanel extends javax.swing.JPanel
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_sendGmOnUponStartup, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.cb_sendGmOnUponStartup.text")); // NOI18N
-        cb_sendGmOnUponStartup.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.cb_sendGmOnUponStartup.toolTipText")); // NOI18N
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -214,7 +210,6 @@ final class MidiPanel extends javax.swing.JPanel
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 268, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(cb_sendGmOnUponStartup)
                             .addComponent(btn_test)
                             .addComponent(cb_midiThru)
                             .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -226,15 +221,13 @@ final class MidiPanel extends javax.swing.JPanel
             .addGroup(layout.createSequentialGroup()
                 .addGap(6, 6, 6)
                 .addComponent(cb_midiThru)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(cb_sendGmOnUponStartup)
-                .addGap(24, 24, 24)
+                .addGap(23, 23, 23)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lbl_OutDevices)
                     .addComponent(lbl_InDevices))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 103, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 112, Short.MAX_VALUE)
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -242,7 +235,7 @@ final class MidiPanel extends javax.swing.JPanel
                     .addComponent(btn_refresh))
                 .addGap(21, 21, 21)
                 .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(87, Short.MAX_VALUE))
+                .addContainerGap(105, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -368,8 +361,6 @@ final class MidiPanel extends javax.swing.JPanel
         // Other stuff
         saveMidiThru = jms.isThruMode();
         cb_midiThru.setSelected(saveMidiThru);
-        saveSendGmOnUponStartup = jms.isSendGmOnUponStartup();
-        cb_sendGmOnUponStartup.setSelected(saveSendGmOnUponStartup);
 
         btn_test.setEnabled(saveOutDevice != null);
 
@@ -385,7 +376,6 @@ final class MidiPanel extends javax.swing.JPanel
     {
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
         jms.setThruMode(saveMidiThru);
-        jms.setSendGmOnUponStartup(saveSendGmOnUponStartup);
         openInDevice(saveInDevice);
         openOutDevice(saveOutDevice);
     }
@@ -402,7 +392,6 @@ final class MidiPanel extends javax.swing.JPanel
         // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
         jms.setThruMode(cb_midiThru.isSelected());
-        jms.setSendGmOnUponStartup(cb_sendGmOnUponStartup.isSelected());
         MidiDevice inDevice = list_InDevices.getSelectedValue();
         openInDevice(inDevice);
         MidiDevice outDevice = list_OutDevices.getSelectedValue();
@@ -469,7 +458,6 @@ final class MidiPanel extends javax.swing.JPanel
     private javax.swing.JButton btn_resetSoundbank;
     private javax.swing.JButton btn_test;
     private javax.swing.JCheckBox cb_midiThru;
-    private javax.swing.JCheckBox cb_sendGmOnUponStartup;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JLabel lbl_InDevices;

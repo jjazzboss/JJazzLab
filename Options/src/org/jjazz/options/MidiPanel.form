@@ -37,7 +37,6 @@
                   </Group>
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="cb_sendGmOnUponStartup" min="-2" max="-2" attributes="0"/>
                           <Component id="btn_test" min="-2" max="-2" attributes="0"/>
                           <Component id="cb_midiThru" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="pnl_soundbankFile" alignment="0" min="-2" max="-2" attributes="0"/>
@@ -54,16 +53,14 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace min="-2" pref="6" max="-2" attributes="0"/>
               <Component id="cb_midiThru" min="-2" max="-2" attributes="0"/>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Component id="cb_sendGmOnUponStartup" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="-2" pref="24" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="23" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="lbl_OutDevices" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="lbl_InDevices" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="jScrollPane2" pref="103" max="32767" attributes="0"/>
+                  <Component id="jScrollPane2" pref="112" max="32767" attributes="0"/>
                   <Component id="jScrollPane3" pref="0" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -73,7 +70,7 @@
               </Group>
               <EmptySpace min="-2" pref="21" max="-2" attributes="0"/>
               <Component id="pnl_soundbankFile" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="87" max="32767" attributes="0"/>
+              <EmptySpace pref="105" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -240,16 +237,6 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_refreshActionPerformed"/>
       </Events>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="cb_sendGmOnUponStartup">
-      <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/options/Bundle.properties" key="MidiPanel.cb_sendGmOnUponStartup.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
-        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/options/Bundle.properties" key="MidiPanel.cb_sendGmOnUponStartup.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
-      </Properties>
     </Component>
   </SubComponents>
 </Form>

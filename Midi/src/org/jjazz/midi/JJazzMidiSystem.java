@@ -45,7 +45,6 @@ import javax.sound.midi.Transmitter;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midi.device.JJazzMidiDevice;
 import org.netbeans.api.progress.BaseProgressUtils;
-import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
 
@@ -76,7 +75,6 @@ public final class JJazzMidiSystem
     public final static String PROP_MASTER_VOL_FACTOR = "MasterVolumeFactor";
     public final static String PROP_MIDI_OUT_FILTERING = "MidiOutFiltering";
     public final static String PREF_JAVA_SYNTH_SOUNDFONT_FILE = "JavaSynthSoundFontFile";
-    public final static String PREF_SEND_GM_ON_UPON_STARTUP = "SendGmOnUponStartup";
 
     /**
      * The default MIDI IN device.
@@ -250,30 +248,6 @@ public final class JJazzMidiSystem
                 loadSoundbankFileOnSynth(synthFile, true);      // Run in silent mode, return value is useless
             }
         }
-
-        // Send GM On if required
-        if (isSendGmOnUponStartup())
-        {
-            if (getDefaultOutDevice() == null)
-            {
-                LOGGER.warning("JJazzMidiSystem() can't send GM ON message on startup because no Midi OUT device set");
-            } else
-            {
-                Runnable r = new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        MidiUtilities.sendSysExMessage(MidiUtilities.getGmOnSysExMessage());
-                        LOGGER.info("JJazzMidiSystem() startup task: Sent General Midi ON SysEx message");
-                    }
-                };
-                addStartupTask(r);
-            }
-        }
-
-        // Must be the last action of the constructor
-        launchStartupTasks();
     }
 
     /**
@@ -734,21 +708,6 @@ public final class JJazzMidiSystem
         return prefs.getBoolean(PROP_MIDI_THRU, false);
     }
 
-    public boolean isSendGmOnUponStartup()
-    {
-        return prefs.getBoolean(PREF_SEND_GM_ON_UPON_STARTUP, false);
-    }
-
-    public void setSendGmOnUponStartup(boolean b)
-    {
-        if (b == isSendGmOnUponStartup())
-        {
-            return;
-        }
-        prefs.putBoolean(PREF_SEND_GM_ON_UPON_STARTUP, b);
-        LOGGER.info("setSendGmOnUponStartup() b=" + b);
-    }
-
     /**
      * The Midi panic method.
      * <p>
@@ -953,47 +912,5 @@ public final class JJazzMidiSystem
         return res;
     }
 
-    /**
-     * Add a task to be executed upon startup when the JJazzMidiSystem is ready.
-     *
-     * @param a
-     */
-    private void addStartupTask(Runnable r)
-    {
-        if (startupTasks == null)
-        {
-            startupTasks = new ArrayList<>();
-        }
-        startupTasks.add(r);
-    }
 
-    /**
-     * Tasks will be run in a separate thread started after JJazzMidiSystem initialization is over.
-     */
-    private void launchStartupTasks()
-    {
-        if (startupTasks == null || startupTasks.isEmpty())
-        {
-            return;
-        }
-        Runnable r = new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                try
-                {
-                    Thread.sleep(100);      // Make sure JJazzMidiSystem constructor is over
-                } catch (InterruptedException ex)
-                {
-                    Exceptions.printStackTrace(ex);
-                }
-                for (Runnable r : startupTasks)
-                {
-                    r.run();
-                }
-            }
-        };
-        new Thread(r).start();
-    }
 }

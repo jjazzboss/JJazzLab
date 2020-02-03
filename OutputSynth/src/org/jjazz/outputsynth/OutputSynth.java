@@ -44,6 +44,7 @@ import org.jjazz.midi.synths.GSSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.synths.StdSynth;
@@ -87,7 +88,7 @@ public class OutputSynth implements Serializable
     private final List<MidiSynth> customSynths;
     protected GMRemapTable remapTable;
     private Instrument userInstrument;
-    private SendModeOnUponStartup sendModeOnUponStartup;
+    private SendModeOnUponStartup sendModeOnUponPlay;
     private File file;
     private static final Logger LOGGER = Logger.getLogger(OutputSynth.class.getSimpleName());
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
@@ -103,7 +104,7 @@ public class OutputSynth implements Serializable
         remapTable = new GMRemapTable();
         remapTable.setContainer(this);
         userInstrument = StdSynth.getInstance().getGM1Bank().getInstrument(0);  // Piano
-        sendModeOnUponStartup = SendModeOnUponStartup.OFF;
+        sendModeOnUponPlay = SendModeOnUponStartup.OFF;
     }
 
     /**
@@ -118,9 +119,9 @@ public class OutputSynth implements Serializable
         compatibleStdBanks.addAll(os.compatibleStdBanks);
         remapTable = new GMRemapTable(os.remapTable);
         remapTable.setContainer(this);
-        customSynths.addAll(customSynths);
+        customSynths.addAll(os.customSynths);
         userInstrument = os.userInstrument;
-        sendModeOnUponStartup = os.getSendModeOnUponStartup();
+        sendModeOnUponPlay = os.getSendModeOnUponPlay();
     }
 
     public GMRemapTable getGMRemapTable()
@@ -150,7 +151,7 @@ public class OutputSynth implements Serializable
         }
         remapTable.clear();
         setUserInstrument(StdSynth.getInstance().getGM1Bank().getInstrument(0));
-        setSendModeOnUponStartup(SendModeOnUponStartup.OFF);
+        setSendModeOnUponPlay(SendModeOnUponStartup.OFF);
     }
 
     /**
@@ -316,29 +317,62 @@ public class OutputSynth implements Serializable
     }
 
     /**
-     * Get 'Send XX Mode ON upon startup' feature.
+     * Get 'Send XX Mode ON upon play' feature.
      *
-     * @return If null feature is disabled.
+     * @return 
      */
-    public SendModeOnUponStartup getSendModeOnUponStartup()
+    public SendModeOnUponStartup getSendModeOnUponPlay()
     {
-        return this.sendModeOnUponStartup;
+        return this.sendModeOnUponPlay;
     }
 
     /**
-     * Enable or disable the 'Send XX Mode ON upon startup' feature.
+     * Enable or disable the 'Send XX Mode ON upon play' feature.
+     * <p>
+     * The method also sends the corresponding sysex message.
      *
      * @param mode Can't be null
      */
-    public void setSendModeOnUponStartup(SendModeOnUponStartup mode)
+    public void setSendModeOnUponPlay(SendModeOnUponStartup mode)
     {
         if (mode == null)
         {
             throw new NullPointerException("mode");
         }
-        SendModeOnUponStartup old = this.sendModeOnUponStartup;
-        this.sendModeOnUponStartup = mode;
-        pcs.firePropertyChange(PROP_SEND_MSG_UPON_STARTUP, old, sendModeOnUponStartup);
+        if (mode.equals(this.sendModeOnUponPlay))
+        {
+            return;
+        }
+        SendModeOnUponStartup old = this.sendModeOnUponPlay;
+        this.sendModeOnUponPlay = mode;
+        sendModeOnUponPlaySysexMessages();        
+        pcs.firePropertyChange(PROP_SEND_MSG_UPON_STARTUP, old, sendModeOnUponPlay);
+    }
+
+    /**
+     * Send the Sysex messages corresponding to getSendModeOnUponPlay().
+     */
+    public void sendModeOnUponPlaySysexMessages()
+    {
+        switch (sendModeOnUponPlay)
+        {
+            case GM:
+                MidiUtilities.sendSysExMessage(MidiUtilities.getGmModeOnSysExMessage());
+                break;
+            case GM2:
+                MidiUtilities.sendSysExMessage(MidiUtilities.getGm2ModeOnSysExMessage());
+                break;
+            case XG:
+                MidiUtilities.sendSysExMessage(MidiUtilities.getXgModeOnSysExMessage());
+                break;
+            case GS:
+                MidiUtilities.sendSysExMessage(MidiUtilities.getGsModeOnSysExMessage());
+                break;
+            case OFF:
+                break;
+            default:
+                throw new IllegalStateException("sendModeOnUponPlay=" + sendModeOnUponPlay);
+        }
     }
 
     /**
@@ -749,7 +783,7 @@ public class OutputSynth implements Serializable
         private final List<String> spCustomSynthsStrings = new ArrayList<>();
         private GMRemapTable spRemapTable;
         private Instrument spUserInstrument;
-        private SendModeOnUponStartup spSendModeOnUponStartup;
+        private SendModeOnUponStartup spSendModeOnUponPlay;
 
         protected SerializationProxy(OutputSynth outSynth)
         {
@@ -774,7 +808,7 @@ public class OutputSynth implements Serializable
             }
             spRemapTable = new GMRemapTable(outSynth.getGMRemapTable());
             spUserInstrument = outSynth.getUserInstrument();
-            spSendModeOnUponStartup = outSynth.getSendModeOnUponStartup();
+            spSendModeOnUponPlay = outSynth.getSendModeOnUponPlay();
         }
 
         private Object readResolve() throws ObjectStreamException
@@ -816,7 +850,7 @@ public class OutputSynth implements Serializable
             outSynth.remapTable = spRemapTable;
             outSynth.remapTable.setContainer(outSynth);
             outSynth.setUserInstrument(spUserInstrument);
-            outSynth.setSendModeOnUponStartup(spSendModeOnUponStartup);
+            outSynth.setSendModeOnUponPlay(spSendModeOnUponPlay);
             return outSynth;
         }
     }

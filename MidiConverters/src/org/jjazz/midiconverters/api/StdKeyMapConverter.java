@@ -1,6 +1,5 @@
 package org.jjazz.midiconverters.api;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.midi.keymap.KeyMapGSGM2;
 import org.jjazz.midi.keymap.KeyMapXG;
@@ -58,13 +57,23 @@ public class StdKeyMapConverter implements KeyMapConverter
     @Override
     public boolean accept(DrumKit.KeyMap srcMap, DrumKit.KeyMap destMap)
     {
+        if (srcMap.equals(destMap))
+        {
+            return true;
+        }
         boolean b = false;
-        if (srcMap == gmMap || destMap == gmMap || destMap == gm2Map)
+        if (srcMap == gmMap)
+        {
+            b = destMap != xgLatinMap;
+        } else if (srcMap == xgMap)
+        {
+            b = destMap != xgLatinMap;
+        } else if (srcMap == xgLatinMap)
         {
             b = true;
-        } else if (srcMap == xgMap && destMap == gm2Map)
+        } else if (srcMap == gm2Map)
         {
-            b = true;
+            b = destMap != xgLatinMap;
         }
         return b;
     }
@@ -111,6 +120,10 @@ public class StdKeyMapConverter implements KeyMapConverter
             {
                 // XGLatin => GM2
                 destPitch = convertPitch(srcPitch, xgLatinMap, MAP_XGLATIN_TO_GM2);
+            } else if (destMap == xgMap)
+            {
+                // XGLatin => XG
+                destPitch = convertPitch(srcPitch, xgLatinMap, MAP_XGLATIN_TO_XG);
             }
         } else if (srcMap == gm2Map)
         {
@@ -118,6 +131,10 @@ public class StdKeyMapConverter implements KeyMapConverter
             {
                 // GM2 => GM
                 destPitch = convertPitch(srcPitch, gm2Map, MAP_GM2_TO_GM);
+            } else if (destMap == xgMap)
+            {
+                // GM2 => XG
+                destPitch = convertPitch(srcPitch, gm2Map, MAP_GM2_TO_XG);
             }
         }
         return destPitch;
@@ -303,8 +320,8 @@ public class StdKeyMapConverter implements KeyMapConverter
         87,
         86,
         62,
-        75,
         76,
+        77,
         39,
         26,
         85,
@@ -365,7 +382,7 @@ public class StdKeyMapConverter implements KeyMapConverter
         78,
         79,
         56,
-        77,
+        56,
         69,
         70,
         80,
@@ -379,8 +396,8 @@ public class StdKeyMapConverter implements KeyMapConverter
         35,
         38,
         44,
-        75,
         76,
+        77,
         39,
         77,
         75,
@@ -518,5 +535,151 @@ public class StdKeyMapConverter implements KeyMapConverter
         75,
         43,
         45
+    };
+
+    final private int[] MAP_XGLATIN_TO_XG =
+    {
+        14,
+        13,
+        13,
+        76,
+        77,
+        39,
+        19,
+        30,
+        60,
+        61,
+        63,
+        62,
+        63,
+        64,
+        62,
+        61,
+        60,
+        64,
+        63,
+        62,
+        62,
+        64,
+        60,
+        60,
+        63,
+        62,
+        66,
+        65,
+        61,
+        61,
+        62,
+        63,
+        65,
+        66,
+        45,
+        69,
+        70,
+        69,
+        70,
+        69,
+        48,
+        48,
+        69,
+        70,
+        69,
+        70,
+        50,
+        56,
+        76,
+        56,
+        77,
+        73,
+        74,
+        73,
+        74,
+        54,
+        54,
+        70,
+        69,
+        70,
+        82,
+        69,
+        78,
+        79,
+        56,
+        56,
+        69,
+        70,
+        80,
+        81,
+        69,
+        84
+    };
+
+    private static final int[] MAP_GM2_TO_XG =
+    {
+        21,
+        22,
+        31,
+        29,
+        19,
+        15,
+        16,
+        17,
+        18,
+        32,
+        20,
+        21,
+        22,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        30,
+        13,
+        14
     };
 }

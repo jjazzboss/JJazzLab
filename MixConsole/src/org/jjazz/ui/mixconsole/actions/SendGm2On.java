@@ -63,7 +63,7 @@ public class SendGm2On extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        MidiUtilities.sendSysExMessage(MidiUtilities.getGm2OnSysExMessage());
+        MidiUtilities.sendSysExMessage(MidiUtilities.getGm2ModeOnSysExMessage());
         StatusDisplayer.getDefault().setStatusText(CTL_GM2MidiMessageSent());
     }
 }

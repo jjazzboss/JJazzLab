@@ -42,7 +42,7 @@ public class MidiUtilities
     private static String[] COMMAND_STRINGS;
     private static final Logger LOGGER = Logger.getLogger(MidiUtilities.class.getSimpleName());
 
-    static public SysexMessage getGmOnSysExMessage()
+    static public SysexMessage getGmModeOnSysExMessage()
     {
         SysexMessage sm = new SysexMessage();
         byte[] data =
@@ -59,7 +59,7 @@ public class MidiUtilities
         return sm;
     }
 
-    static public SysexMessage getGm2OnSysExMessage()
+    static public SysexMessage getGm2ModeOnSysExMessage()
     {
         SysexMessage sm = new SysexMessage();
         byte[] data =
@@ -76,7 +76,7 @@ public class MidiUtilities
         return sm;
     }
 
-    static public SysexMessage getXgMidiOnSysExMessage()
+    static public SysexMessage getXgModeOnSysExMessage()
     {
         SysexMessage sm = new SysexMessage();
         byte[] data =
@@ -93,7 +93,7 @@ public class MidiUtilities
         return sm;
     }
 
-    static public SysexMessage getGsMidiOnSysExMessage()
+    static public SysexMessage getGsModeOnSysExMessage()
     {
         SysexMessage sm = new SysexMessage();
         byte[] data =

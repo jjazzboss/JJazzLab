@@ -63,7 +63,7 @@ public class SendGsOn extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        MidiUtilities.sendSysExMessage(MidiUtilities.getGsMidiOnSysExMessage());
+        MidiUtilities.sendSysExMessage(MidiUtilities.getGsModeOnSysExMessage());
         StatusDisplayer.getDefault().setStatusText(CTL_GSMidiMessageSent());
     }
 }

@@ -626,11 +626,11 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         mcp.setNameToolTipText(r.getName() + " - " + rv.getName());
 
         mcp.setIcon(icon);
-        String txt = "Recommended instrument: " + prefIns.getFullName();
+        String txt = "Recommended: " + prefIns.getFullName();
         if (!(prefIns instanceof GM1Instrument))
         {
             DrumKit kit = prefIns.getDrumKit();
-            txt += ", ";
+            txt += " - ";
             txt += rv.isDrums() ? "DrumKit type=" + kit.getType().toString() + " keymap= " + kit.getKeyMap().getName()
                     : "GM substitute: " + prefIns.getSubstitute().getPatchName();
         }

@@ -269,14 +269,24 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
             {
                 res.addAll(synth.getDrumsInstruments());
             }
-        }
-        for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
+            for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
+            {
+                res.addAll(bank.getNonDrumsInstruments());
+            }
+            for (MidiSynth synth : outSynth.getCustomSynths())
+            {
+                res.addAll(synth.getNonDrumsInstruments());
+            }
+        } else
         {
-            res.addAll(bank.getNonDrumsInstruments());
-        }
-        for (MidiSynth synth : outSynth.getCustomSynths())
-        {
-            res.addAll(synth.getNonDrumsInstruments());
+            for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
+            {
+                res.addAll(bank.getInstruments());
+            }
+            for (MidiSynth synth : outSynth.getCustomSynths())
+            {
+                res.addAll(synth.getInstruments());
+            }
         }
         return res;
     }
@@ -285,7 +295,7 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
      * Get only the recommended instruments for prefIns.
      *
      * @param allInsts
-     * @param prefIns  The preferredInstrument for the RhythmVoice
+     * @param prefIns The preferredInstrument for the RhythmVoice
      * @return
      */
     private List<Instrument> getRecommendedInstruments(List<Instrument> allInsts, Instrument prefIns)
@@ -336,6 +346,7 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         {
             // Drums
             List<Instrument> second = new ArrayList<>();
+            List<Instrument> third = new ArrayList<>();
             DrumKit kit = prefIns.getDrumKit();
             for (Instrument ins : allInsts)
             {
@@ -352,9 +363,14 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
                 {
                     // Second : keymap match
                     second.add(ins);
+                } else
+                {
+                    // Third other drums instruments
+                    third.add(ins);
                 }
             }
             res.addAll(second);
+            res.addAll(third);
 
             // If mapped drums/perc instruments are defined, put them first
             Instrument mappedDrumsIns = outputSynth.getGMRemapTable().getInstrument(GMRemapTable.DRUMS_INSTRUMENT);
@@ -747,7 +763,7 @@ public class MixChannelInstrumentChooserImpl extends MixChannelInstrumentChooser
         tbl_Instruments.getModel().setInstruments(this.allInstruments);
         if (sel != null && allInstruments.contains(sel))
         {
-            tbl_Instruments.setSelectedInstrument(sel);           
+            tbl_Instruments.setSelectedInstrument(sel);
         }
     }//GEN-LAST:event_rbtn_showAllActionPerformed
 

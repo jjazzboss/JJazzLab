@@ -63,7 +63,7 @@ public class SendXgOn extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        MidiUtilities.sendSysExMessage(MidiUtilities.getXgMidiOnSysExMessage());
+        MidiUtilities.sendSysExMessage(MidiUtilities.getXgModeOnSysExMessage());
         StatusDisplayer.getDefault().setStatusText(CTL_XGMidiMessageSent());
     }
 }

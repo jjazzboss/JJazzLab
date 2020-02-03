@@ -325,6 +325,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
         fbtn_mute.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/MuteOff_Icon-21x21.png"))); // NOI18N
         org.openide.awt.Mnemonics.setLocalizedText(fbtn_mute, org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_mute.text")); // NOI18N
+        fbtn_mute.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_mute.toolTipText_1")); // NOI18N
         fbtn_mute.setAlignmentX(0.5F);
         fbtn_mute.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/MuteDisabled_Icon-21x21.png"))); // NOI18N
         fbtn_mute.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/MuteOn_Icon-21x21.png"))); // NOI18N

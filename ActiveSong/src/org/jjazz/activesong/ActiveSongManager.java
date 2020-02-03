@@ -33,15 +33,19 @@ import static org.jjazz.activesong.Bundle.ERR_OtherSongPlaying;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.JJazzMidiSystem;
+import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.outputsynth.OutputSynth;
+import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.song.api.Song;
 import org.openide.util.NbBundle;
 
 /**
  * Manage the active song and MidiMix, and the related Midi messages (sent to JJazz Midi out device).
  * <p>
- * Midi messages are sent upon MidiMix changes depending on getSendMessagePolicy(). If song is closed, active song is reset to null.
+ * Midi messages are sent upon MidiMix changes depending on getSendMessagePolicy(). If song is closed, active song is reset to
+ * null.
  */
 @NbBundle.Messages(
         {
@@ -160,7 +164,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
             activeSong.addPropertyChangeListener(this);  // Listen to close song events
             if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.ACTIVATION))
             {
-                sendInitMessages();
+                sendActivationMessages();
                 sendAllMidiMixMessages();
             }
         }
@@ -179,7 +183,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     }
 
     /**
-     * Send the midi messages to initialize instruments of the active MidiMix.
+     * Send the midi messages to initialize all the instrument mixes of the active MidiMix.
      */
     public void sendAllMidiMixMessages()
     {
@@ -195,6 +199,9 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
         }
     }
 
+    /**
+     * Send the midi messages to set the volume of all the instruments of the active MidiMix.
+     */
     public void sendAllMidiVolumeMessages()
     {
         LOGGER.fine("sendAllMidiVolumeMessages()");
@@ -207,6 +214,14 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
                 JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(insSet.getVolumeMidiMessages(channel));
             }
         }
+    }
+
+    /**
+     * Send the Midi messages upon activation of a MidiMix.
+     */
+    public void sendActivationMessages()
+    {
+        // nothing
     }
 
     public void addPropertyListener(PropertyChangeListener l)
@@ -231,8 +246,8 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
             {
                 if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.PLAY))
                 {
-                    sendInitMessages();
                     sendAllMidiMixMessages();
+                    OutputSynthManager.getInstance().getOutputSynth().sendModeOnUponPlaySysexMessages();
                 }
             }
         }
@@ -288,7 +303,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
             if (evt.getPropertyName() == JJazzMidiSystem.PROP_MIDI_OUT)
             {
                 // Midi Out has changed, resend init messages on the new Midi device        
-                sendInitMessages();
+                sendActivationMessages();
                 sendAllMidiMixMessages();
             } else if (evt.getPropertyName() == JJazzMidiSystem.PROP_MASTER_VOL_FACTOR)
             {
@@ -357,14 +372,6 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     // Private methods
     // ----------------------------------------------------------------------------
     /**
-     * Send special init messages before sending the MidiMixMessages.
-     */
-    private void sendInitMessages()
-    {
-        LOGGER.fine("sendInitMessages() to be implemented. Placeholder for some init messages if ever needed.");
-    }
-
-    /**
      * Register the specified MidiMix and all its InstrumentMix and related Settings.
      *
      * @param mm
@@ -390,5 +397,4 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
             insMix.getSettings().removePropertyChangeListener(this);
         }
     }
-
 }
