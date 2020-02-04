@@ -37,19 +37,20 @@ import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.ui.mixconsole.spi.MixChannelInstrumentChooser;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.awt.StatusDisplayer;
 
 /**
  *
  */
 public class MixChannelPanelControllerImpl implements MixChannelPanelController
 {
-
+    
     private MidiMix midiMix;
     private int channelId;
     private static final Logger LOGGER = Logger.getLogger(MixChannelPanelControllerImpl.class.getSimpleName());
 
     /**
-     * @param mMix The MidiMix containing all data of our model.
+     * @param mMix    The MidiMix containing all data of our model.
      * @param channel Used to retrieve the InstrumentMix from mMix.
      */
     public MixChannelPanelControllerImpl(MidiMix mMix, int channel)
@@ -61,7 +62,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         channelId = channel;
         midiMix = mMix;
     }
-
+    
     @Override
     public void editChannelId(String strNewChannelId)
     {
@@ -98,13 +99,13 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
             midiMix.setInstrumentMix(channelId, replacedRvKey, replacedInsMix);
         }
     }
-
+    
     @Override
     public void editClose()
     {
         midiMix.setInstrumentMix(channelId, null, null);
     }
-
+    
     @Override
     public void editSettings()
     {
@@ -113,7 +114,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         dlg.preset(midiMix, channelId, title);
         dlg.setVisible(true);
     }
-
+    
     @Override
     public void editInstrument()
     {
@@ -148,13 +149,14 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
                 {
                     // Managed via conversion
                     LOGGER.info("editInstrument() channel=" + channelId + " ins=" + ins.getPatchName() + ": drum keymap conversion will be used " + srcKeyMap + ">" + destKeyMap);
+                    StatusDisplayer.getDefault().setStatusText("Using drum keymap conversion " + srcKeyMap + ">" + destKeyMap + " for " + ins.getPatchName() + " (channel " + channelId + ")");
                 }
             }
             insMix.setInstrument(ins);
             insMix.getSettings().setTransposition(dlg.getTransposition());
         }
     }
-
+    
     @Override
     public void editNextInstrument()
     {
@@ -163,7 +165,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         Instrument ins = bank.getNextInstrument(insMix.getInstrument());
         insMix.setInstrument(ins);
     }
-
+    
     @Override
     public void editPreviousInstrument()
     {
@@ -172,7 +174,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         Instrument ins = bank.getPreviousInstrument(insMix.getInstrument());
         insMix.setInstrument(ins);
     }
-
+    
     private String buildTitle()
     {
         StringBuilder title = new StringBuilder("Channel " + (channelId + 1));
