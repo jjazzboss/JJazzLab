@@ -26,6 +26,7 @@ package org.jjazz.outputsynth;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ import org.jjazz.util.Utilities;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
@@ -55,6 +57,11 @@ public class MidiSynthManager
 
     private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
     private static final String MIDISYNTH_FILES_RESOURCE_ZIP = "resources/MidiSynthFiles.zip";
+    private static final String JJAZZLAB_SOUNDFONT_SYNTH_PATH = "resources/JJazzLabSoundFontSynth.ins";
+    private static MidiSynth JJAZZLAB_SOUNDFONT_SYNTH = null;
+    private static final String YAMAHA_REF_SYNTH_PATH = "resources/YamahaRefSynth.ins";
+    private static MidiSynth YAMAHA_REF_SYNTH = null;
+
     private static MidiSynthManager INSTANCE;
     private File lastSynthDir;
     private List<WeakReference<MidiSynth>> midiSynthRefs = new ArrayList<>();
@@ -84,7 +91,7 @@ public class MidiSynthManager
                 @Override
                 public void run()
                 {
-                    File[] res = MidiSynthManager.this.copyBuiltinResourceFiles(dir);
+                    File[] res = MidiSynthManager.this.copyMidiSynthFilesFromZipResource(dir);
                     LOGGER.info("MidiSynthManager() First time initialization - copied " + res.length + " files into " + dir.getAbsolutePath());
                 }
             };
@@ -272,6 +279,60 @@ public class MidiSynthManager
         }
     }
 
+    /**
+     * The synth associated to the JJazzLab soundfont.
+     *
+     * @return
+     */
+    public MidiSynth getJJazzLabSoundFontSynth()
+    {
+        if (JJAZZLAB_SOUNDFONT_SYNTH == null)
+        {
+            // Read the synth from the .ins file
+            InputStream is = getClass().getResourceAsStream(JJAZZLAB_SOUNDFONT_SYNTH_PATH);
+            assert is != null : "JJAZZLAB_SOUNDFONT_SYNTH_PATH=" + JJAZZLAB_SOUNDFONT_SYNTH_PATH;
+            MidiSynthFileReader r = MidiSynthFileReader.Util.getReader("ins");
+            assert r != null;
+            try
+            {
+                List<MidiSynth> synths = r.readSynthsFromStream(is, null);
+                assert synths.size() == 1;
+                JJAZZLAB_SOUNDFONT_SYNTH = synths.get(0);
+            } catch (IOException ex)
+            {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+        return JJAZZLAB_SOUNDFONT_SYNTH;
+    }
+
+    /**
+     * The Yamaha Tyros/PSR reference synth which tries to contain most of the Yamaha instruments used in Yamaha styles.
+     *
+     * @return
+     */
+    public MidiSynth getYamahaRefSynth()
+    {
+        if (YAMAHA_REF_SYNTH == null)
+        {
+            // Read the synth from the .ins file
+            InputStream is = getClass().getResourceAsStream(YAMAHA_REF_SYNTH_PATH);
+            assert is != null : "TYROS_PSR_SYNTH=" + YAMAHA_REF_SYNTH_PATH;
+            MidiSynthFileReader r = MidiSynthFileReader.Util.getReader("ins");
+            assert r != null;
+            try
+            {
+                List<MidiSynth> synths = r.readSynthsFromStream(is, null);
+                assert synths.size() == 1;
+                YAMAHA_REF_SYNTH = synths.get(0);
+            } catch (IOException ex)
+            {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+        return YAMAHA_REF_SYNTH;
+    }
+
     // ===============================================================================
     // Private methods
     // ===============================================================================
@@ -304,7 +365,7 @@ public class MidiSynthManager
      * @param destPath
      *
      */
-    private File[] copyBuiltinResourceFiles(File destDir)
+    private File[] copyMidiSynthFilesFromZipResource(File destDir)
     {
         List<File> res = Utilities.extractZipResource(getClass(), MIDISYNTH_FILES_RESOURCE_ZIP, destDir.toPath());
         if (res.isEmpty())

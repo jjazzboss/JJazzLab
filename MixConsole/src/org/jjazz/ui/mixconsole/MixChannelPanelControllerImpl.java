@@ -49,7 +49,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     private static final Logger LOGGER = Logger.getLogger(MixChannelPanelControllerImpl.class.getSimpleName());
 
     /**
-     * @param mMix    The MidiMix containing all data of our model.
+     * @param mMix The MidiMix containing all data of our model.
      * @param channel Used to retrieve the InstrumentMix from mMix.
      */
     public MixChannelPanelControllerImpl(MidiMix mMix, int channel)
@@ -130,8 +130,12 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
             {
                 DrumKit.KeyMap srcKeyMap = rv.getPreferredInstrument().getDrumKit().getKeyMap();
                 DrumKit.KeyMap destKeyMap = ins.getDrumKit().getKeyMap();
-                if (!(destKeyMap.isContaining(srcKeyMap) || ConverterManager.getInstance().getKeyMapConverter(srcKeyMap, destKeyMap) != null))
+                if (destKeyMap.isContaining(srcKeyMap))
                 {
+                    // No problem, do nothing
+                } else if (ConverterManager.getInstance().getKeyMapConverter(srcKeyMap, destKeyMap) == null)
+                {
+                    // No conversion possible
                     String msg = "Selected instrument (" + ins.getPatchName() + ", drum keymap=" + destKeyMap.getName() + ") can't match the recommended original drum keymap " + srcKeyMap.getName() + "."
                             + "\n This may result in incorrect sounds. Do you want to continue ?";
                     NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
@@ -140,6 +144,10 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
                     {
                         return;
                     }
+                } else
+                {
+                    // Managed via conversion
+                    LOGGER.info("editInstrument() channel=" + channelId + " ins=" + ins.getPatchName() + ": drum keymap conversion will be used " + srcKeyMap + ">" + destKeyMap);
                 }
             }
             insMix.setInstrument(ins);

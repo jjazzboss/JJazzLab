@@ -74,14 +74,14 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        LOGGER.log(Level.FINE, "ChangeQuantization(context) context=" + context);
+        LOGGER.log(Level.FINE, "ChangeQuantization(context) context=" + context);       //NOI18N
         selectionChange(cap.getSelection());
     }
 
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
-        LOGGER.log(Level.FINE, "createContextAwareInstance(context)");
+        LOGGER.log(Level.FINE, "createContextAwareInstance(context)");           //NOI18N
         return new ChangeQuantization(context);
     }
 
@@ -95,20 +95,20 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
         // Selection must contain bars belonging to one section
         CLI_Section section = cls.getSection(selection.getMinBarIndexWithinCls());
         Quantization q = editor.getDisplayQuantizationValue(section);
-        LOGGER.log(Level.FINE, "actionPerformed() initialize dialog with section=" + section + " q=" + q);
+        LOGGER.log(Level.FINE, "actionPerformed() initialize dialog with section=" + section + " q=" + q);       //NOI18N
         ChangeQuantizationDialog dialog = ChangeQuantizationDialog.getInstance();
         dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dialog.preset(section, q);
         dialog.setVisible(true);
-        if (dialog.getExitStatus().equals(ChangeQuantizationDialog.ExitStatus.OK_CURRENT_SECTION))
+        if (dialog.getExitStatus().equals(ChangeQuantizationDialog.ExitStatus.OK_CURRENT_SECTION))       //NOI18N
         {
             q = dialog.getQuantization();
             editor.setDisplayQuantizationValue(section, q);
             LOGGER.log(Level.FINE, "actionPerformed() apply q=" + q + " for section=" + section);
-        } else if (dialog.getExitStatus().equals(ChangeQuantizationDialog.ExitStatus.OK_ALL_SECTIONS))
+        } else if (dialog.getExitStatus().equals(ChangeQuantizationDialog.ExitStatus.OK_ALL_SECTIONS))   //NOI18N
         {
             q = dialog.getQuantization();
-            LOGGER.log(Level.FINE, "actionPerformed() apply q=" + q + " for all sections");
+            LOGGER.log(Level.FINE, "actionPerformed() apply q=" + q + " for all sections");  //NOI18N
             for (CLI_Section aSection : cls.getItems(CLI_Section.class))
             {
                 editor.setDisplayQuantizationValue(aSection, q);
@@ -130,7 +130,7 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
             CLI_Section section = cls.getSection(selection.getMinBarIndexWithinCls());
             b = (section == cls.getSection(selection.getMaxBarIndexWithinCls()));
         }
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);
+        LOGGER.log(Level.FINE, "selectionChange() b=" + b);      //NOI18N
         setEnabled(b);
     }
 

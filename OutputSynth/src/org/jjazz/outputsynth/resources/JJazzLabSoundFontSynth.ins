@@ -1,0 +1,415 @@
+; =================================
+; JJazzLab Instrument Definition file for the JJazzLab SoundFont.
+; J. Lelasseux
+; =================================
+
+
+.Patch Names
+
+[GM Bank]
+0=Grand Piano   {{ SubGM1=0 }}
+1=Bright Grand   {{ SubGM1=1 }}
+2=Piano 3   {{ SubGM1=2 }}
+3=Honky-Tonk   {{ SubGM1=3 }}
+4=E.Piano 1   {{ SubGM1=4 }}
+5=E.Piano2   {{ SubGM1=5 }}
+6=Harpsichord   {{ SubGM1=6 }}
+7=Clav.   {{ SubGM1=7 }}
+8=Celesta   {{ SubGM1=8 }}
+9=Glockenspiel   {{ SubGM1=9 }}
+10=Music Box   {{ SubGM1=10 }}
+11=Vibraphone   {{ SubGM1=11 }}
+12=Marimba   {{ SubGM1=12 }}
+13=Xylophone   {{ SubGM1=13 }}
+14=Tubular Bells   {{ SubGM1=14 }}
+15=Dulcimer   {{ SubGM1=15 }}
+16=Organ 1   {{ SubGM1=16 }}
+17=Organ 2   {{ SubGM1=17 }}
+18=Organ 3   {{ SubGM1=18 }}
+19=Pipe Organ   {{ SubGM1=19 }}
+20=Reed Organ   {{ SubGM1=20 }}
+21=Accordion   {{ SubGM1=21 }}
+22=Harmonica   {{ SubGM1=22 }}
+23=Bandoneon   {{ SubGM1=23 }}
+24=Nylon Guitar   {{ SubGM1=24 }}
+25=Steel Guitar   {{ SubGM1=25 }}
+26=Jazz Guitar   {{ SubGM1=26 }}
+27=Clean Guitar   {{ SubGM1=27 }}
+28=Muted Guitar   {{ SubGM1=28 }}
+29=Overdrive Guitar   {{ SubGM1=29 }}
+30=Distortion Guitar   {{ SubGM1=30 }}
+31=Gt.Harmonics   {{ SubGM1=31 }}
+32=Acoustic Bass   {{ SubGM1=32 }}
+33=Fingered Bass   {{ SubGM1=33 }}
+34=Picked Bass   {{ SubGM1=34 }}
+35=Fretless Bass   {{ SubGM1=35 }}
+36=Slap Bass 1   {{ SubGM1=36 }}
+37=Slap Bass 2   {{ SubGM1=37 }}
+38=Synth Bass 1   {{ SubGM1=38 }}
+39=Synth Bass 2   {{ SubGM1=39 }}
+40=Violin   {{ SubGM1=40 }}
+41=Viola   {{ SubGM1=41 }}
+42=Cello   {{ SubGM1=42 }}
+43=Contrabass   {{ SubGM1=43 }}
+44=Tremolo Strings   {{ SubGM1=44 }}
+45=Pizzicato Strings   {{ SubGM1=45 }}
+46=Harp   {{ SubGM1=46 }}
+47=Timpani   {{ SubGM1=47 }}
+48=Strings   {{ SubGM1=48 }}
+49=Slow Strings   {{ SubGM1=49 }}
+50=Synth Strings 1   {{ SubGM1=50 }}
+51=Synth Strings 2   {{ SubGM1=51 }}
+52=Choir Aahs   {{ SubGM1=52 }}
+53=Voice Oohs   {{ SubGM1=53 }}
+54=Synth Vox   {{ SubGM1=54 }}
+55=OrchestraHit   {{ SubGM1=55 }}
+56=Trumpet   {{ SubGM1=56 }}
+57=Trombone   {{ SubGM1=57 }}
+58=Tuba   {{ SubGM1=58 }}
+59=MutedTrumpet   {{ SubGM1=59 }}
+60=French Horns   {{ SubGM1=60 }}
+61=Brass 1   {{ SubGM1=61 }}
+62=Synth Brass 1   {{ SubGM1=62 }}
+63=Synth Brass 2   {{ SubGM1=63 }}
+64=Soprano Sax   {{ SubGM1=64 }}
+65=Alto Sax   {{ SubGM1=65 }}
+66=Tenor Sax   {{ SubGM1=66 }}
+67=Baritone Sax   {{ SubGM1=67 }}
+68=Oboe   {{ SubGM1=68 }}
+69=English Horn   {{ SubGM1=69 }}
+70=Bassoon   {{ SubGM1=70 }}
+71=Clarinet   {{ SubGM1=71 }}
+72=Piccolo   {{ SubGM1=72 }}
+73=Flute   {{ SubGM1=73 }}
+74=Recorder   {{ SubGM1=74 }}
+75=Pan Flute   {{ SubGM1=75 }}
+76=Bottle Blow   {{ SubGM1=76 }}
+77=Shakuhachi   {{ SubGM1=77 }}
+78=Whistle   {{ SubGM1=78 }}
+79=Ocarina   {{ SubGM1=79 }}
+80=Square Wave   {{ SubGM1=80 }}
+81=Saw Wave   {{ SubGM1=81 }}
+82=Synth Calliope   {{ SubGM1=82 }}
+83=Chiffer Lead   {{ SubGM1=83 }}
+84=Charang   {{ SubGM1=84 }}
+85=Solo Vox   {{ SubGM1=85 }}
+86=5th Saw Wave   {{ SubGM1=86 }}
+87=Bass & Lead   {{ SubGM1=87 }}
+88=Fantasia   {{ SubGM1=88 }}
+89=Warm Pad   {{ SubGM1=89 }}
+90=Polysynth   {{ SubGM1=90 }}
+91=Space Voice   {{ SubGM1=91 }}
+92=Bowed Glass   {{ SubGM1=92 }}
+93=Metal Pad   {{ SubGM1=93 }}
+94=Halo Pad   {{ SubGM1=94 }}
+95=Sweep Pad   {{ SubGM1=95 }}
+96=Ice Rain   {{ SubGM1=96 }}
+97=Soundtrack   {{ SubGM1=97 }}
+98=Crystal   {{ SubGM1=98 }}
+99=Atmosphere   {{ SubGM1=99 }}
+100=Brightness   {{ SubGM1=100 }}
+101=Goblin   {{ SubGM1=101 }}
+102=Echo Drops   {{ SubGM1=102 }}
+103=Star Theme   {{ SubGM1=103 }}
+104=Sitar   {{ SubGM1=104 }}
+105=Banjo   {{ SubGM1=105 }}
+106=Shamisen   {{ SubGM1=106 }}
+107=Koto   {{ SubGM1=107 }}
+108=Kalimba   {{ SubGM1=108 }}
+109=Bagpipe   {{ SubGM1=109 }}
+110=Fiddle   {{ SubGM1=110 }}
+111=Shenai   {{ SubGM1=111 }}
+112=Tinkle Bell   {{ SubGM1=112 }}
+113=Agogo   {{ SubGM1=113 }}
+114=Steel Drums   {{ SubGM1=114 }}
+115=Woodblock   {{ SubGM1=115 }}
+116=Taiko   {{ SubGM1=116 }}
+117=Melodic Tom   {{ SubGM1=117 }}
+118=Synth Drum   {{ SubGM1=118 }}
+119=Reverse Cym.   {{ SubGM1=119 }}
+120=Gt.FretNoise   {{ SubGM1=120 }}
+121=Breath Noise   {{ SubGM1=121 }}
+122=Seashore   {{ SubGM1=122 }}
+123=Bird   {{ SubGM1=123 }}
+124=Telephone   {{ SubGM1=124 }}
+125=Helicopter   {{ SubGM1=125 }}
+126=Applause   {{ SubGM1=126 }}
+127=Gun Shot   {{ SubGM1=127 }}
+
+
+[Bank 1]
+5=12 String Guitar   {{ SubGM1=5 }}
+8=Pop Celesta   {{ SubGM1=8 }}
+25=12 String Guitar   {{ SubGM1=25 }}
+28=Muted Dis.Gt   {{ SubGM1=28 }}
+50=OB Strings   {{ SubGM1=50 }}
+73=Flute 2   {{ SubGM1=73 }}
+80=MG Square   {{ SubGM1=80 }}
+88=Fantasia 2   {{ SubGM1=88 }}
+122=Rain   {{ SubGM1=122 }}
+
+[Bank 1GM2]
+8=Pop Celesta   {{ SubGM1=8 }}
+25=12 String Guitar   {{ SubGM1=25 }}
+28=Muted Dis.Gt   {{ SubGM1=28 }}
+50=OB Strings   {{ SubGM1=50 }}
+73=Flute 2   {{ SubGM1=73 }}
+80=MG Square   {{ SubGM1=80 }}
+88=Fantasia 2   {{ SubGM1=88 }}
+122=Rain   {{ SubGM1=122 }}
+
+[Bank 2]
+50=StackStrings   {{ SubGM1=50 }}
+80=Hollow Mini   {{ SubGM1=80 }}
+82=Pure PanLead   {{ SubGM1=82 }}
+87=Fat & Perky   {{ SubGM1=87 }}
+92=JP8 Sqr Pad   {{ SubGM1=92 }}
+120=String Slap   {{ SubGM1=120 }}
+122=Thunder   {{ SubGM1=122 }}
+127=Laser Gun   {{ SubGM1=127 }}
+
+[Bank 2GM2]
+50=StackStrings   {{ SubGM1=50 }}
+80=Hollow Mini   {{ SubGM1=80 }}
+82=Pure PanLead   {{ SubGM1=82 }}
+87=Fat & Perky   {{ SubGM1=87 }}
+92=JP8 Sqr Pad   {{ SubGM1=92 }}
+120=String Slap   {{ SubGM1=120 }}
+122=Thunder   {{ SubGM1=122 }}
+127=Laser Gun   {{ SubGM1=127 }}
+
+[Bank 3]
+50=JP Strings   {{ SubGM1=50 }}
+55=Euro Hit   {{ SubGM1=55 }}
+80=Mellow FM   {{ SubGM1=80 }}
+98=Round Glock   {{ SubGM1=98 }}
+122=Wind   {{ SubGM1=122 }}
+123=Bird 2   {{ SubGM1=123 }}
+126=Punch   {{ SubGM1=126 }}
+127=Explosion   {{ SubGM1=127 }}
+
+[Bank 4]
+30=Dist.Fast :   {{ SubGM1=30 }}
+35=Syn Fretless   {{ SubGM1=35 }}
+80=CC Solo   {{ SubGM1=80 }}
+87=JP8 BsLead(sybs2sq)   {{ SubGM1=87 }}
+98=Loud Glock   {{ SubGM1=98 }}
+122=Stream   {{ SubGM1=122 }}
+124=Scratch   {{ SubGM1=124 }}
+125=Car-Crash   {{ SubGM1=125 }}
+126=Heart Beat   {{ SubGM1=126 }}
+
+[Bank 5]
+122=Bubble   {{ SubGM1=122 }}
+124=Windchimes   {{ SubGM1=124 }}
+125=Siren   {{ SubGM1=125 }}
+126=Footsteps   {{ SubGM1=126 }}
+
+[Bank 6]
+80=LM Square   {{ SubGM1=80 }}
+81=GR-300   {{ SubGM1=81 }}
+120=Pick Scrape   {{ SubGM1=120 }}
+125=Train   {{ SubGM1=125 }}
+
+[Bank 7]
+125=Jetplane   {{ SubGM1=125 }}
+
+[Bank 8]
+7=Comp Clav.   {{ SubGM1=7 }}
+31=Gt. Feedback   {{ SubGM1=31 }}
+38=Acid Bass   {{ SubGM1=38 }}
+52=St.ChoirAahs   {{ SubGM1=52 }}
+55=Impact Hit   {{ SubGM1=55 }}
+80=2600 Sine   {{ SubGM1=80 }}
+100=Org Bell   {{ SubGM1=100 }}
+103=Dream Pad   {{ SubGM1=103 }}
+115=Castanets   {{ SubGM1=115 }}
+116=Concert BD   {{ SubGM1=116 }}
+118=808 Tom   {{ SubGM1=118 }}
+125=Starship   {{ SubGM1=125 }}
+
+[Bank 9]
+11=Vibraphones   {{ SubGM1=11 }}
+52=Melted Choir   {{ SubGM1=52 }}
+80=Sine Lead   {{ SubGM1=80 }}
+103=Silky Pad   {{ SubGM1=103 }}
+
+[Bank 10]
+80=KG Lead   {{ SubGM1=80 }}
+98=Music Bell   {{ SubGM1=98 }}
+118=Sine Perc.   {{ SubGM1=118 }}
+124=Phono Noise   {{ SubGM1=124 }}
+
+[Bank 11]
+124=MC-500 Beep   {{ SubGM1=124 }}
+
+[Bank 16]
+12=Barafon   {{ SubGM1=12 }}
+18=Rotary Org.S   {{ SubGM1=18 }}
+25=Mandolin   {{ SubGM1=25 }}
+30=Power Guitar   {{ SubGM1=30 }}
+71=Multi Wind   {{ SubGM1=71 }}
+80=P5 Square   {{ SubGM1=80 }}
+84=P5 Sync Lead   {{ SubGM1=84 }}
+113=Tambourine   {{ SubGM1=113 }}
+117=Rash SD   {{ SubGM1=117 }}
+
+[Bank 17]
+80=OB Square   {{ SubGM1=80 }}
+90=ReverseSweep   {{ SubGM1=90 }}
+
+[Bank 18]
+80=JP-8 Square   {{ SubGM1=80 }}
+
+[Bank 20]
+38=Hammer   {{ SubGM1=38 }}
+
+[Bank 22]
+120=A.Bs Slap Nz (1)   {{ SubGM1=120 }}
+
+[Bank 23]
+120=A.Bs Slap Nz (2)   {{ SubGM1=120 }}
+
+[Bank 24]
+5=Hard FM EP   {{ SubGM1=5 }}
+30=Rock Rhythm			    {{ SubGM1=30 }}
+61=Octave Brass   {{ SubGM1=61 }}
+115=Finger Snaps   {{ SubGM1=115 }}
+120=A.Bs Slap Nz (3)   {{ SubGM1=120 }}
+
+[Bank 25]
+30=Rock Rhythm2		   {{ SubGM1=30 }}
+	
+[Bank 26]
+30=Dist Rtm GTR           {{ SubGM1=30 }}
+
+[Bank 35]
+81=Oct Saw Lead         {{ SubGM1=81 }}
+
+[Bank 40]
+81=SequencedSaw (1)     {{ SubGM1=81 }}
+
+[Bank 41]
+81=SequencedSaw (2)      {{ SubGM1=81 }}
+
+[Bank 46]
+81=SequencedSaw       {{ SubGM1=81 }}
+
+[GM2 Drums]     
+0=Yamaha Std Kit    {{DrumKit=STANDARD, GS_GM2}}
+1=Yamaha Live Kit    {{DrumKit=STANDARD, XG}}
+2=Yamaha Cuban Kit     {{DrumKit=STANDARD, XG_POPLATIN}}
+3=ROOM    {{DrumKit=ROOM, GS_GM2}}
+
+[Drums]				
+0=Yamaha Std Kit-1 {{DrumKit=STANDARD, GS_GM2}}   
+1=Yamaha Live Kit-1 {{DrumKit=STANDARD, XG}}   
+2=Yamaha Cuban Kit-1 {{DrumKit=STANDARD, XG_POPLATIN}}   
+8=ROOM   {{DrumKit=ROOM, GS_GM2}}   
+9=HIP HOP  {{DrumKit=ELECTRONIC, GS_GM2}}   
+10=JUNGLE   {{DrumKit=ELECTRONIC, GS_GM2}}   
+11=TECHNO   {{DrumKit=ELECTRONIC, GS_GM2}}   
+13=HOUSE   {{DrumKit=ELECTRONIC, GS_GM2}}   
+16=POWER  {{DrumKit=POWER, GS_GM2}}   
+24=ELECTRONIC  {{DrumKit=ELECTRONIC, GS_GM2}}   
+25=TR-808   {{DrumKit=ANALOG, GS_GM2}}   
+26=DANCE    {{DrumKit=ELECTRONIC, GS_GM2}}   
+27=CR-78		{{DrumKit=ANALOG, GS_GM2}}   
+29=TR-707   {{DrumKit=ANALOG, GS_GM2}}   
+30=TR-909 {{DrumKit=ANALOG, GS_GM2}}   
+32=JAZZ   {{DrumKit=JAZZ, GS_GM2}}   
+40=BRUSH   {{DrumKit=BRUSH, GS_GM2}}   
+48=ORCHESTRA   {{DrumKit=ORCHESTRA, GS_GM2}}   
+;49=ETHNIC
+;50=KICK & SNARE    
+56=SFX    {{DrumKit=SFX, GS_GM2}}  
+;64=SGM drum kits
+
+
+
+; ----------------------------------------------------------------------
+
+.Instrument Definitions
+
+[JJazzLab SoundFont]
+BankSelMethod=1			; Use Bank Select MSB only
+Patch[0]=GM Bank {{ UseGsInstruments }} 
+Patch[128]=Bank 1 {{ UseGsInstruments }} 
+Patch[256]=Bank 2 {{ UseGsInstruments }} 
+Patch[384]=Bank 3 {{ UseGsInstruments }} 
+Patch[512]=Bank 4 {{ UseGsInstruments }} 
+Patch[640]=Bank 5 {{ UseGsInstruments }} 
+Patch[768]=Bank 6 {{ UseGsInstruments }} 
+Patch[896]=Bank 7 {{ UseGsInstruments }} 
+Patch[1024]=Bank 8 {{ UseGsInstruments }} 
+Patch[1152]=Bank 9 {{ UseGsInstruments }} 
+Patch[1280]=Bank 10 {{ UseGsInstruments }} 
+Patch[1408]=Bank 11 {{ UseGsInstruments }} 
+Patch[2048]=Bank 16 {{ UseGsInstruments }} 
+Patch[2176]=Bank 17 {{ UseGsInstruments }} 
+Patch[2304]=Bank 18 {{ UseGsInstruments }} 
+Patch[2560]=Bank 20 {{ UseGsInstruments }} 
+Patch[2816]=Bank 22 {{ UseGsInstruments }} 
+Patch[2944]=Bank 23 {{ UseGsInstruments }} 
+Patch[3072]=Bank 24 {{ UseGsInstruments }} 
+Patch[3200]=Bank 25 {{ UseGsInstruments }} 
+Patch[3328]=Bank 26 {{ UseGsInstruments }} 
+Patch[4480]=Bank 35 {{ UseGsInstruments }} 
+Patch[5120]=Bank 40 {{ UseGsInstruments }} 
+Patch[5248]=Bank 41 {{ UseGsInstruments }} 
+Patch[5888]=Bank 46 {{ UseGsInstruments }} 
+Patch[*]=Drums {{ UseGsDrumsInstruments }} 
+
+;[GM2 JJazzLab SoundFont]
+;BankSelMethod=0			; Use Bank Select MSB + LSB
+;Patch[15616]=Bank 1GM2          
+;Patch[15744]=Bank 2GM2
+;Patch[15360]=GM2 Drums
+
+
+;[TestSynth2]
+;BankSelMethod=0        ; Bank Select MSB+LSB
+;Patch[*]=Drumsets
+;Drum[*,*]=1
+
+
+;127:0=GS STANDARD 1
+;127:1=GS STANDARD 2
+;127:2=GS STANDARD 3
+;127:3=-
+;127:4=--
+;127:5=---
+;127:6=----
+;127:7=-----
+;127:8=GS ROOM
+;127:9=GS HIP HOP
+;127:10=GS JUNGLE
+;127:11=GS TECHNO
+;127:12=------
+;127:13=GS HOUSE
+;127:16=GS POWER
+;127:17=-------
+;127:24=GS ELECTRONIC
+;127:25=GS TR-808
+;127:26=GS CR-78
+;127:27=GS DANCE
+;127:28=--------
+;127:29=GS TR-707
+;127:30=GS TR-909
+;127:31=---------
+;127:32=GS JAZZ
+;127:33=----------
+;127:40=GS BRUSH
+;127:41=-----------
+;127:48=GS ORCHESTRA
+;127:49=GS ETHNIC
+;127:50=GS KICK & SNARE
+;127:51=------------
+;127:56=GS SFX
+;127:57=-------------
+;127:64=--------------
+;127:65=----------------
+;127:66=-----------------
+;127:117=Taiko (sc55 map)
+;127:126=------------------
+;127:127=-------------------

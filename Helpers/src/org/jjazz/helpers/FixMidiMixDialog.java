@@ -136,6 +136,8 @@ public class FixMidiMixDialog extends javax.swing.JDialog
         lbl_reroutedChannels.setText(reroutedChannelsText);
 
         cb_rememberMyChoice.setSelected(false);
+        
+        pack();
     }
 
     /**
@@ -158,8 +160,6 @@ public class FixMidiMixDialog extends javax.swing.JDialog
         lbl_fixedInstruments = new javax.swing.JLabel();
         lbl_reroutedChannelsTitle = new javax.swing.JLabel();
         lbl_reroutedChannels = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
@@ -210,12 +210,6 @@ public class FixMidiMixDialog extends javax.swing.JDialog
         lbl_reroutedChannels.setForeground(new java.awt.Color(102, 0, 0));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_reroutedChannels, org.openide.util.NbBundle.getMessage(FixMidiMixDialog.class, "FixMidiMixDialog.lbl_reroutedChannels.text")); // NOI18N
 
-        jScrollPane1.setBorder(null);
-
-        helpTextArea1.setColumns(20);
-        helpTextArea1.setRows(1);
-        jScrollPane1.setViewportView(helpTextArea1);
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -224,12 +218,11 @@ public class FixMidiMixDialog extends javax.swing.JDialog
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(pnl_buttons, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(lbl_firstLine, javax.swing.GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE)
+                    .addComponent(lbl_firstLine, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
                     .addComponent(lbl_reroutedChannelsTitle, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lbl_fixInstrumentTitle, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jScrollPane1)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(cb_rememberMyChoice)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -255,11 +248,9 @@ public class FixMidiMixDialog extends javax.swing.JDialog
                 .addComponent(lbl_reroutedChannelsTitle)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lbl_reroutedChannels)
-                .addGap(30, 30, 30)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
                 .addComponent(pnl_buttons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(21, 21, 21)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btn_Cancel, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(cb_rememberMyChoice, javax.swing.GroupLayout.Alignment.TRAILING))
@@ -293,8 +284,6 @@ public class FixMidiMixDialog extends javax.swing.JDialog
     private javax.swing.JButton btn_fix;
     private javax.swing.JButton btn_skip;
     private javax.swing.JCheckBox cb_rememberMyChoice;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbl_firstLine;
     private javax.swing.JLabel lbl_fixInstrumentTitle;
     private javax.swing.JLabel lbl_fixedInstruments;

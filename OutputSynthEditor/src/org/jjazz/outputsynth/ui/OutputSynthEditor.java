@@ -439,8 +439,6 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         rbtn_setGm2ModeOnUponStartup = new javax.swing.JRadioButton();
         rbtn_setXgModeOnUponStartup = new javax.swing.JRadioButton();
         rbtn_setGsModeOnUponStartup = new javax.swing.JRadioButton();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        helpTextArea2 = new org.jjazz.ui.utilities.HelpTextArea();
         pnl_Compatibility = new javax.swing.JPanel();
         cb_GM = new javax.swing.JCheckBox();
         cb_GM2 = new javax.swing.JCheckBox();
@@ -646,6 +644,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         tabPane.addTab(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.pnl_defaultInstruments.TabConstraints.tabTitle"), pnl_defaultInstruments); // NOI18N
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jPanel2.border.title"))); // NOI18N
+        jPanel2.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jPanel2.toolTipText")); // NOI18N
 
         rbtnGroup_SendMsgUponStartup.add(rbtn_setModeOnUponStartupOFF);
         org.openide.awt.Mnemonics.setLocalizedText(rbtn_setModeOnUponStartupOFF, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.rbtn_setModeOnUponStartupOFF.text")); // NOI18N
@@ -728,13 +727,6 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 .addContainerGap())
         );
 
-        jScrollPane4.setBorder(null);
-
-        helpTextArea2.setColumns(20);
-        helpTextArea2.setRows(5);
-        helpTextArea2.setText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.helpTextArea2.text")); // NOI18N
-        jScrollPane4.setViewportView(helpTextArea2);
-
         javax.swing.GroupLayout pnl_advancedLayout = new javax.swing.GroupLayout(pnl_advanced);
         pnl_advanced.setLayout(pnl_advancedLayout);
         pnl_advancedLayout.setHorizontalGroup(
@@ -742,20 +734,13 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             .addGroup(pnl_advancedLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 534, Short.MAX_VALUE)
-                .addContainerGap())
+                .addContainerGap(562, Short.MAX_VALUE))
         );
         pnl_advancedLayout.setVerticalGroup(
             pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_advancedLayout.createSequentialGroup()
-                .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnl_advancedLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(pnl_advancedLayout.createSequentialGroup()
-                        .addGap(27, 27, 27)
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap()
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(249, Short.MAX_VALUE))
         );
 
@@ -1196,7 +1181,6 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JCheckBox cb_GS;
     private javax.swing.JCheckBox cb_XG;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea2;
     private org.jjazz.ui.utilities.HelpTextArea hlp_area;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -1206,7 +1190,6 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JScrollPane jScrollPane7;

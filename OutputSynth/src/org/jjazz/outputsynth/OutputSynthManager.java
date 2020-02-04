@@ -37,9 +37,9 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
+import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.ui.utilities.SingleRootFileSystemView;
 import org.jjazz.util.Utilities;
-import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.NbPreferences;
@@ -53,13 +53,13 @@ public class OutputSynthManager implements PropertyChangeListener
 
     public final static String PROP_DEFAULT_OUTPUTSYNTH = "OutputSynth";
     public final static String DEFAULT_OUTPUT_SYNTH_FILENAME = "Default.cfg";
-    public final static String JJAZZLAB_OUTPUT_SYNTH_FILENAME = "JJazzLab-SoundFont.cfg";
+
     public final static String OUTPUT_SYNTH_FILES_DIR = "OutputSynthFiles";
     public final static String OUTPUT_SYNTH_FILES_EXT = "cfg";
 
-    private static final String OUTPUT_SYNTH_FILES_ZIP = "resources/OutputSynthFiles.zip";
-
     private static OutputSynthManager INSTANCE;
+    private static OutputSynth JJAZZLAB_SOUNDFONT_OUTPUT_SYNTH_INSTANCE;
+    private static OutputSynth YAMAHA_REF_OUTPUT_SYNTH_INSTANCE;
     private static JFileChooser CHOOSER_INSTANCE;
     private OutputSynth outputSynth;
     private static Preferences prefs = NbPreferences.forModule(MidiSynthManager.class);
@@ -80,23 +80,6 @@ public class OutputSynthManager implements PropertyChangeListener
 
     private OutputSynthManager()
     {
-        // Copy the default OutputSynth config files if not done
-        final File dir = getOutputSynthFilesDir();
-        final File[] files = dir.listFiles();
-        if (files.length == 0)
-        {
-            Runnable run = new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    File[] res = OutputSynthManager.this.copyBuiltinResourceFiles(dir);
-                    LOGGER.info("OutputSynthManager() First time initialization - copied " + res.length + " files into " + dir.getAbsolutePath());
-                }
-            };
-            BaseProgressUtils.showProgressDialogAndRun(run, "First time initialization - copying builtin Output Synth config files...");
-        }
-
         // Load the saved output synth file
         String fileName = prefs.get(PROP_DEFAULT_OUTPUTSYNTH, null);        // Only the filename is stored in the preferences (no path)
         if (fileName != null)
@@ -106,18 +89,21 @@ public class OutputSynthManager implements PropertyChangeListener
         }
         if (outputSynth == null)
         {
-            // Try reading the default config file
+            // Try reading the default config file if not already done
             File f = new File(getOutputSynthFilesDir(), DEFAULT_OUTPUT_SYNTH_FILENAME);
-            outputSynth = loadOutputSynth(f, false);
+            if (!DEFAULT_OUTPUT_SYNTH_FILENAME.equals(fileName) && f.exists())
+            {
+                outputSynth = loadOutputSynth(f, false);
+            }
             if (outputSynth == null)
             {
                 outputSynth = new OutputSynth();
                 outputSynth.setFile(f);
             }
         }
-        
+
         // Listen to file changes
-        outputSynth.addPropertyChangeListener(this); 
+        outputSynth.addPropertyChangeListener(this);
     }
 
     /**
@@ -128,6 +114,30 @@ public class OutputSynthManager implements PropertyChangeListener
     public OutputSynth getOutputSynth()
     {
         return outputSynth;
+    }
+
+    public OutputSynth getJJazzLabSoundFontOutputSynth()
+    {
+        if (JJAZZLAB_SOUNDFONT_OUTPUT_SYNTH_INSTANCE == null)
+        {
+            JJAZZLAB_SOUNDFONT_OUTPUT_SYNTH_INSTANCE = new OutputSynth();
+            JJAZZLAB_SOUNDFONT_OUTPUT_SYNTH_INSTANCE.addCustomSynth(MidiSynthManager.getInstance().getJJazzLabSoundFontSynth());
+            JJAZZLAB_SOUNDFONT_OUTPUT_SYNTH_INSTANCE.removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());
+            JJAZZLAB_SOUNDFONT_OUTPUT_SYNTH_INSTANCE.setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.GS);
+        }
+        return JJAZZLAB_SOUNDFONT_OUTPUT_SYNTH_INSTANCE;
+    }
+
+    public OutputSynth getYamahaRefOutputSynth()
+    {
+        if (YAMAHA_REF_OUTPUT_SYNTH_INSTANCE == null)
+        {
+            YAMAHA_REF_OUTPUT_SYNTH_INSTANCE = new OutputSynth();
+            YAMAHA_REF_OUTPUT_SYNTH_INSTANCE.addCustomSynth(MidiSynthManager.getInstance().getYamahaRefSynth());
+            YAMAHA_REF_OUTPUT_SYNTH_INSTANCE.removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());            
+            YAMAHA_REF_OUTPUT_SYNTH_INSTANCE.addCompatibleStdBank(StdSynth.getInstance().getGM2Bank());            
+        }
+        return YAMAHA_REF_OUTPUT_SYNTH_INSTANCE;
     }
 
     /**
@@ -161,7 +171,7 @@ public class OutputSynthManager implements PropertyChangeListener
      *
      * @param save If true show a save dialog, if false an open dialog.
      * @return The selected file. Null if user cancelled or no valid selection. File is guaranteed to have appropriate location
-     *         and extension.
+     * and extension.
      */
     public File showSelectOutputSynthFileDialog(boolean save)
     {
@@ -294,20 +304,5 @@ public class OutputSynthManager implements PropertyChangeListener
         return CHOOSER_INSTANCE;
     }
 
-    /**
-     * Copy the builtin OutputSynth configuration files within the JAR to destPath.
-     * <p>
-     *
-     * @param destPath
-     *
-     */
-    private File[] copyBuiltinResourceFiles(File destDir)
-    {
-        List<File> res = Utilities.extractZipResource(getClass(), OutputSynthManager.OUTPUT_SYNTH_FILES_ZIP, destDir.toPath());
-        if (res.isEmpty())
-        {
-            LOGGER.warning("copyBuiltinResourceFiles() No output synth definition file found in " + OUTPUT_SYNTH_FILES_ZIP);
-        }
-        return res.toArray(new File[0]);
-    }
+  
 }

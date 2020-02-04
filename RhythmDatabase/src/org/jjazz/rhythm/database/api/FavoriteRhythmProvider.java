@@ -80,6 +80,7 @@ public class FavoriteRhythmProvider implements RhythmProvider
      * @param prevList
      * @return
      */
+    @SuppressWarnings("unchecked")
     @Override
     public List<Rhythm> getFileRhythms(List<Rhythm> prevList)
     {
