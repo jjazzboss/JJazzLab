@@ -701,7 +701,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         btn_TxtFilter.setEnabled(false);
         btn_TxtClear.setEnabled(true);
         tf_Filter.setEnabled(false);
-        lbl_Filtered.setText("(FILTERED '" + Utilities.truncateWithDots(s, 10) + "')");
+        lbl_Filtered.setText("(FILTERED '" + Utilities.truncateWithDots(s, 20) + "')");
     }//GEN-LAST:event_tf_FilterActionPerformed
 
     private void btn_TxtClearActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_TxtClearActionPerformed

@@ -91,7 +91,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
         MidiMix midiMix = context.getMidiMix();
 
         OutputSynth outputSynth = OutputSynthManager.getInstance().getOutputSynth();
-        HashMap<Integer, Instrument> mapNewInstruments = outputSynth.getFixedInstruments(midiMix);
+        HashMap<Integer, Instrument> mapNewInstruments = outputSynth.getNeedFixInstruments(midiMix);
         List<Integer> reroutableChannels = getChannelsToBeRerouted(midiMix, mapNewInstruments);
 
         if (!mapNewInstruments.isEmpty() || !reroutableChannels.isEmpty())

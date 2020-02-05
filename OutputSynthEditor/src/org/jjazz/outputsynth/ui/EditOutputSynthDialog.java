@@ -35,6 +35,8 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
+import org.jjazz.outputsynth.OS_JJazzLabSoundFont;
+import org.jjazz.outputsynth.OS_YamahaRef;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
@@ -376,7 +378,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
         {
             File f=outputSynth.getFile();
             OutputSynthManager osm = OutputSynthManager.getInstance();
-            OutputSynth outSynth = new OutputSynth(osm.getJJazzLabSoundFontOutputSynth());
+            OutputSynth outSynth = new OutputSynth(OS_JJazzLabSoundFont.getInstance());
             outSynth.setFile(f);
             osm.setOutputSynth(outSynth);
         }
@@ -388,7 +390,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
         {
             File f=outputSynth.getFile();
             OutputSynthManager osm = OutputSynthManager.getInstance();
-            OutputSynth outSynth = new OutputSynth(osm.getYamahaRefOutputSynth());
+            OutputSynth outSynth = new OutputSynth(OS_YamahaRef.getInstance());
             outSynth.setFile(f);
             osm.setOutputSynth(outSynth);
         }

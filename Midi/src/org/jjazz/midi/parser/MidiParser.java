@@ -431,7 +431,7 @@ public class MidiParser
             // Safer to ignore it
             if (!skipUselessNoteError)
             {
-                LOGGER.log(Level.INFO,
+                LOGGER.log(Level.FINE,
                         name + " - noteOn() useless Midi note velocity={0} channel={1} posInBeats={2}. Skipping similar errors...",
                         new Object[]
                         {

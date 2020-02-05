@@ -382,7 +382,7 @@ public class OutputSynth implements Serializable
      * @param mm
      * @return The channels which need to be fixed and the associated new instrument. HashMap can be empty.
      */
-    public HashMap<Integer, Instrument> getFixedInstruments(MidiMix mm)
+    public HashMap<Integer, Instrument> getNeedFixInstruments(MidiMix mm)
     {
         HashMap<Integer, Instrument> res = new HashMap<>();
         for (int channel : mm.getUsedChannels())

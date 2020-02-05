@@ -29,7 +29,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -37,7 +36,6 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.ui.utilities.SingleRootFileSystemView;
 import org.jjazz.util.Utilities;
 import org.openide.DialogDisplayer;
@@ -58,8 +56,6 @@ public class OutputSynthManager implements PropertyChangeListener
     public final static String OUTPUT_SYNTH_FILES_EXT = "cfg";
 
     private static OutputSynthManager INSTANCE;
-    private static OutputSynth JJAZZLAB_SOUNDFONT_OUTPUT_SYNTH_INSTANCE;
-    private static OutputSynth YAMAHA_REF_OUTPUT_SYNTH_INSTANCE;
     private static JFileChooser CHOOSER_INSTANCE;
     private OutputSynth outputSynth;
     private static Preferences prefs = NbPreferences.forModule(MidiSynthManager.class);
@@ -116,29 +112,7 @@ public class OutputSynthManager implements PropertyChangeListener
         return outputSynth;
     }
 
-    public OutputSynth getJJazzLabSoundFontOutputSynth()
-    {
-        if (JJAZZLAB_SOUNDFONT_OUTPUT_SYNTH_INSTANCE == null)
-        {
-            JJAZZLAB_SOUNDFONT_OUTPUT_SYNTH_INSTANCE = new OutputSynth();
-            JJAZZLAB_SOUNDFONT_OUTPUT_SYNTH_INSTANCE.addCustomSynth(MidiSynthManager.getInstance().getJJazzLabSoundFontSynth());
-            JJAZZLAB_SOUNDFONT_OUTPUT_SYNTH_INSTANCE.removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());
-            JJAZZLAB_SOUNDFONT_OUTPUT_SYNTH_INSTANCE.setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.GS);
-        }
-        return JJAZZLAB_SOUNDFONT_OUTPUT_SYNTH_INSTANCE;
-    }
-
-    public OutputSynth getYamahaRefOutputSynth()
-    {
-        if (YAMAHA_REF_OUTPUT_SYNTH_INSTANCE == null)
-        {
-            YAMAHA_REF_OUTPUT_SYNTH_INSTANCE = new OutputSynth();
-            YAMAHA_REF_OUTPUT_SYNTH_INSTANCE.addCustomSynth(MidiSynthManager.getInstance().getYamahaRefSynth());
-            YAMAHA_REF_OUTPUT_SYNTH_INSTANCE.removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());            
-            YAMAHA_REF_OUTPUT_SYNTH_INSTANCE.addCompatibleStdBank(StdSynth.getInstance().getGM2Bank());            
-        }
-        return YAMAHA_REF_OUTPUT_SYNTH_INSTANCE;
-    }
+ 
 
     /**
      * Set the current OutputSynth.

@@ -138,7 +138,7 @@
             </module-dependencies>
             <public-packages>
                 <package>org.jjazz.outputsynth</package>
-                <package>org.jjazz.outputsynth.ui.spi</package>
+                <package>org.jjazz.outputsynth.builtin</package>
             </public-packages>
         </data>
     </configuration>
