@@ -73,12 +73,11 @@ public class UserChannelRvKey extends RhythmVoice
 
     /**
      * Set the preferred Midi channel for the user channel.
-     *
-     * @param c Can't be the channel reserved for drums (10/9)
+     * <p>
      */
     public void setPreferredUserChannel(int c)
     {
-        if (!MidiConst.checkMidiChannel(c) || c == MidiConst.CHANNEL_DRUMS)
+        if (!MidiConst.checkMidiChannel(c))
         {
             throw new IllegalArgumentException("c=" + c);
         }

@@ -221,7 +221,8 @@ public class OutputSynth implements Serializable
      * Remove a standard bank compatible with this OutputSynth.
      * <p>
      * If the only remaining bank is the GM bank, then don't remove it. If removal makes the output synth empty (no instruments)
-     * then automatically add first the GM standard bank.
+     * then automatically add the GM standard bank. Update the UserInstrument if required, so that it's always an instrument from
+     * this OutputSynth.
      *
      * @param stdBank
      * @return True if stdBank could be successfully removed.
@@ -247,6 +248,21 @@ public class OutputSynth implements Serializable
         }
         if (compatibleStdBanks.remove(stdBank))
         {
+            if (this.userInstrument.getBank() == stdBank)
+            {
+                // Need to update the user instrument
+                Instrument newUserIns;
+                if (compatibleStdBanks.isEmpty())
+                {
+                    // There must be a custom synth, use the first instrument
+                    newUserIns = customSynths.get(0).getInstruments().get(0);
+                } else
+                {
+                    // There is another standard bank, use the first instrument
+                    newUserIns = compatibleStdBanks.get(0).getInstrument(0);
+                }
+                this.setUserInstrument(newUserIns);
+            }
             pcs.firePropertyChange(PROP_STD_BANK, false, stdBank);
             return true;
         } else
@@ -295,7 +311,8 @@ public class OutputSynth implements Serializable
     /**
      * Remove a custom MidiSynth compatible with this OutputSynth.
      * <p>
-     * If removal makes the output synth empty (no instruments) then automatically add the GM standard bank.
+     * If removal makes the output synth empty (no instruments) then automatically add the GM standard bank. Update the User
+     * Instrument if required.
      *
      * @param synth
      */
@@ -312,6 +329,22 @@ public class OutputSynth implements Serializable
         }
         if (customSynths.remove(synth))
         {
+            if (this.userInstrument.getBank().getMidiSynth() == synth)
+            {
+                // Need to update the user instrument
+                Instrument newUserIns;
+                if (compatibleStdBanks.isEmpty())
+                {
+                    // There must be a custom synth, use the first instrument
+                    newUserIns = customSynths.get(0).getInstruments().get(0);
+
+                } else
+                {
+                    // There is another standard bank
+                    newUserIns = compatibleStdBanks.get(0).getInstrument(0);
+                }
+                setUserInstrument(newUserIns);
+            }
             pcs.firePropertyChange(PROP_CUSTOM_SYNTH, false, synth);
         }
     }
@@ -632,17 +665,22 @@ public class OutputSynth implements Serializable
      * Set the instrument for the user channel.
      * <p>
      *
-     * @param ins Can't be null. It must an instrument of this OutputSynth.
+     * @param ins Can't be null. It must be an instrument of this OutputSynth.
      */
     public void setUserInstrument(Instrument ins)
     {
-        if (ins == null)
+        InstrumentBank<?> bank = ins.getBank();
+        if (ins == null || bank == null || bank.getMidiSynth() == null)
         {
-            throw new IllegalArgumentException("ins=" + ins);
+            throw new IllegalArgumentException("ins=" + ins.toLongString());
         }
-        if ()
+        MidiSynth synth = bank.getMidiSynth();
+        if (!this.compatibleStdBanks.contains(bank) && !this.customSynths.contains(synth))
+        {
+            throw new IllegalArgumentException("ins=" + ins.toLongString());
+        }
         Instrument oldIns = userInstrument;
-        if (oldIns != userInstrument)
+        if (oldIns != ins)
         {
             userInstrument = ins;
             pcs.firePropertyChange(PROP_USER_INSTRUMENT, oldIns, ins);

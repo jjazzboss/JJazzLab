@@ -74,7 +74,7 @@ import org.openide.util.Exceptions;
  */
 public class OutputSynthEditor extends javax.swing.JPanel implements PropertyChangeListener, ListSelectionListener
 {
-    
+
     private OutputSynth outputSynth;
     private MidiSynth editorStdSynth = new StdSynthProxy("Standard", "");
     private static final Logger LOGGER = Logger.getLogger(OutputSynthEditor.class.getSimpleName());
@@ -109,7 +109,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 handleTableMouseClicked(e);
             }
         });
-        
+
     }
 
     /**
@@ -125,11 +125,9 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         {
             throw new IllegalArgumentException("outSynth=" + outSynth);
         }
-        if (outputSynth != null)
-        {
-            clean();
-        }
-        
+
+        clean();        // Unregister outputSynth
+
         outputSynth = outSynth;
 
         // Register for changes
@@ -140,7 +138,8 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         refreshSynthList();
         refreshCompatibilityCheckBoxes();
         combo_sendMessageUponPlay.setSelectedItem(outputSynth.getSendModeOnUponPlay());
-        tf_userInstrument.setText(outputSynth.getUserInstrument().getFullName());
+        btn_userInstrument.setText(outputSynth.getUserInstrument().getFullName());
+        btn_userInstrument.setToolTipText(outputSynth.getUserInstrument().getFullName());
         btn_Hear.setEnabled(false);
         tbl_Remap.setPrimaryModel(outputSynth.getGMRemapTable());
     }
@@ -185,7 +184,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     {
         if (evt.getSource() == outputSynth)
         {
-            if (evt.getPropertyName() == OutputSynth.PROP_STD_BANK)
+            if (evt.getPropertyName().equals(OutputSynth.PROP_STD_BANK))
             {
                 refreshCompatibilityCheckBoxes();
                 // Stdsynth must be the first : make sure it is repaint to have the right size displayed
@@ -194,15 +193,16 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 {
                     refreshBankList();
                 }
-            } else if (evt.getPropertyName() == OutputSynth.PROP_CUSTOM_SYNTH)
+            } else if (evt.getPropertyName().equals(OutputSynth.PROP_CUSTOM_SYNTH))
             {
                 refreshSynthList();
-            } else if (evt.getPropertyName() == OutputSynth.PROP_SEND_MSG_UPON_STARTUP)
+            } else if (evt.getPropertyName().equals(OutputSynth.PROP_SEND_MSG_UPON_STARTUP))
             {
                 this.combo_sendMessageUponPlay.setSelectedItem(outputSynth.getSendModeOnUponPlay());
-            } else if (evt.getPropertyName() == OutputSynth.PROP_USER_INSTRUMENT)
+            } else if (evt.getPropertyName().equals(OutputSynth.PROP_USER_INSTRUMENT))
             {
-                this.tf_userInstrument.setText(outputSynth.getUserInstrument().getFullName());
+                this.btn_userInstrument.setText(outputSynth.getUserInstrument().getFullName());
+                this.btn_userInstrument.setToolTipText(outputSynth.getUserInstrument().getFullName());
             }
         } else if (evt.getSource() == outputSynth.getGMRemapTable())
         {
@@ -240,7 +240,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             }
         }
     }
-    
+
     private void refreshCompatibilityCheckBoxes()
     {
         // The compatibility checkboxes
@@ -249,12 +249,12 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         cb_GM2.setSelected(stdBanks.contains(StdSynth.getInstance().getGM2Bank()));
         cb_XG.setSelected(stdBanks.contains(StdSynth.getInstance().getXGBank()));
         cb_GS.setSelected(stdBanks.contains(GSSynth.getInstance().getGSBank()));
-        
+
         cb_GS.setEnabled(!(cb_GM2.isSelected() || cb_XG.isSelected()));
         cb_GM2.setEnabled(!cb_GS.isSelected());
         cb_XG.setEnabled(!cb_GS.isSelected());
     }
-    
+
     private void refreshSynthList()
     {
         List<MidiSynth> synths = new ArrayList<>();
@@ -291,7 +291,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             list_Banks.setSelectedIndex(0);
         }
     }
-    
+
     private void refreshRemapButtons()
     {
         Instrument remappedIns = tbl_Remap.getSelectedRemappedInstrument();
@@ -323,12 +323,12 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
      */
     private class StdSynthProxy extends MidiSynth
     {
-        
+
         public StdSynthProxy(String name, String manufacturer)
         {
             super(name, manufacturer);
         }
-        
+
         @Override
         public List<InstrumentBank<?>> getBanks()
         {
@@ -339,16 +339,16 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 public int compare(InstrumentBank<?> b, InstrumentBank<?> b1)
                 {
                     return b.getName().compareTo(b1.getName());
-                    
+
                 }
             });
             return banks;
         }
     }
-    
+
     private class SynthCellRenderer extends DefaultListCellRenderer
     {
-        
+
         @Override
         @SuppressWarnings("rawtypes")
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
@@ -367,10 +367,10 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             return c;
         }
     }
-    
+
     private class BankCellRenderer extends DefaultListCellRenderer
     {
-        
+
         @Override
         @SuppressWarnings("rawtypes")
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
@@ -426,7 +426,6 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         jLabel1 = new javax.swing.JLabel();
         btn_userInstrument = new javax.swing.JButton();
         jLabel6 = new javax.swing.JLabel();
-        tf_userInstrument = new javax.swing.JTextField();
         pnl_Compatibility = new javax.swing.JPanel();
         cb_GM = new javax.swing.JCheckBox();
         cb_GM2 = new javax.swing.JCheckBox();
@@ -641,7 +640,6 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jLabel1.text")); // NOI18N
-        jLabel1.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jLabel1.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_userInstrument, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_userInstrument.text")); // NOI18N
         btn_userInstrument.addActionListener(new java.awt.event.ActionListener()
@@ -654,27 +652,20 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel6, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jLabel6.text")); // NOI18N
 
-        tf_userInstrument.setEditable(false);
-        tf_userInstrument.setText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.tf_userInstrument.text")); // NOI18N
-
         javax.swing.GroupLayout pnl_advancedLayout = new javax.swing.GroupLayout(pnl_advanced);
         pnl_advanced.setLayout(pnl_advancedLayout);
         pnl_advancedLayout.setHorizontalGroup(
             pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_advancedLayout.createSequentialGroup()
                 .addContainerGap()
+                .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(btn_userInstrument, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(combo_sendMessageUponPlay, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnl_advancedLayout.createSequentialGroup()
-                        .addComponent(combo_sendMessageUponPlay, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel1))
-                    .addGroup(pnl_advancedLayout.createSequentialGroup()
-                        .addComponent(tf_userInstrument, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel6)
-                        .addGap(18, 18, 18)
-                        .addComponent(btn_userInstrument)))
-                .addContainerGap(437, Short.MAX_VALUE))
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel6))
+                .addContainerGap(391, Short.MAX_VALUE))
         );
         pnl_advancedLayout.setVerticalGroup(
             pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -685,7 +676,6 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                     .addComponent(jLabel1))
                 .addGap(18, 18, 18)
                 .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(tf_userInstrument, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel6)
                     .addComponent(btn_userInstrument))
                 .addContainerGap(352, Short.MAX_VALUE))
@@ -958,7 +948,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         cb_GM2.setEnabled(false);
         cb_XG.setEnabled(false);
         cb_GS.setEnabled(false);
-        
+
         Runnable endAction = new Runnable()
         {
             @Override
@@ -1033,7 +1023,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         tbl_Remap.setEnabled(false);
         btn_HearRemap.setEnabled(false);
         btn_changeRemappedIns.setEnabled(false);
-        
+
         Runnable endAction = new Runnable()
         {
             @Override
@@ -1053,7 +1043,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             final int TRANSPOSE = ins.isDrumKit() ? -24 : 0;
             JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(CHANNEL));
             mc.playTestNotes(CHANNEL, -1, TRANSPOSE, endAction);
-            
+
         } catch (MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -1151,6 +1141,5 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JTabbedPane tabPane;
     private org.jjazz.midi.ui.InstrumentTable tbl_Instruments;
     private org.jjazz.outputsynth.ui.RemapTableUI tbl_Remap;
-    private javax.swing.JTextField tf_userInstrument;
     // End of variables declaration//GEN-END:variables
 }

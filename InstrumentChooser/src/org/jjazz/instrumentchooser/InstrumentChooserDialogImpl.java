@@ -412,21 +412,6 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         this.rbtn_showRecommended.setText(text);
     }
 
-    private void toggleFavoriteInstrument()
-    {
-        LOGGER.fine("toggleFavoriteInstrument() selectedInstrument=" + selectedInstrument);
-        if (selectedInstrument != null)
-        {
-//            FavoriteInstruments fi = FavoriteInstruments.getInstance();
-//            if (fi.contains(selectedInstrument))
-//            {
-//                fi.removeInstrument(selectedInstrument);
-//            } else
-//            {
-//                fi.addInstrument(selectedInstrument);
-//            }
-        }
-    }
 
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
@@ -510,7 +495,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             }
         });
 
-        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/Speaker-20x20.png"))); // NOI18N
+        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/instrumentchooser/resources/Speaker-20x20.png"))); // NOI18N
         btn_Hear.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.btn_Hear.toolTipText")); // NOI18N
         btn_Hear.addActionListener(new java.awt.event.ActionListener()
         {
@@ -587,7 +572,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
                                 .addComponent(spn_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(lbl_transpose, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(btn_Hear, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(btn_Hear)))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()

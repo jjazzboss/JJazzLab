@@ -55,7 +55,7 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="lbl_transpose" min="-2" pref="107" max="-2" attributes="0"/>
                           </Group>
-                          <Component id="btn_Hear" min="-2" pref="34" max="-2" attributes="0"/>
+                          <Component id="btn_Hear" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                   <Group type="102" attributes="0">
@@ -210,7 +210,7 @@
     <Component class="javax.swing.JButton" name="btn_Hear">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/Speaker-20x20.png"/>
+          <Image iconType="3" name="/org/jjazz/instrumentchooser/resources/Speaker-20x20.png"/>
         </Property>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/instrumentchooser/Bundle.properties" key="InstrumentChooserDialogImpl.btn_Hear.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
