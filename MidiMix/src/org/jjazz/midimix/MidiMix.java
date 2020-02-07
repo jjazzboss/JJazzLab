@@ -92,7 +92,6 @@ import org.openide.util.NbPreferences;
 public class MidiMix implements SgsChangeListener, PropertyChangeListener, Serializable
 {
 
-    public static final String PREF_USER_CHANNEL = "PrefUserChannel";
     public static final String MIX_FILE_EXTENSION = "mix";
     /**
      * New or removed InstrumentMix.
@@ -148,7 +147,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * Saved Mute configuration on first soloed channel
      */
     private transient boolean[] saveMuteConfiguration = new boolean[MidiConst.CHANNEL_MIN + NB_AVAILABLE_CHANNELS];
-    private static Preferences prefs = NbPreferences.forModule(MidiMix.class);
     private transient List<UndoableEditListener> undoListeners = new ArrayList<>();
     /**
      * The file where MidiMix was saved.
@@ -225,7 +223,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             {
                 RhythmVoice rvKey = getKey(channel);
                 List<RhythmVoice> songRvs = SongStructure.Util.getUniqueRhythmVoices(sgs);
-                if (!(rvKey instanceof UserChannelRhythmVoiceKey) && !songRvs.contains(rvKey))
+                if (!(rvKey instanceof UserChannelRvKey) && !songRvs.contains(rvKey))
                 {
                     throw new IllegalArgumentException("channel=" + channel + " rvKey=" + rvKey + " songRvs=" + songRvs);
                 }
@@ -236,27 +234,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     public Song getSong()
     {
         return song;
-    }
-
-    /**
-     * The default Midi channel to be used when User channel is enabled.
-     * <p>
-     * 0 by default.
-     *
-     * @return
-     */
-    static public int getPreferredUserChannel()
-    {
-        return prefs.getInt(PREF_USER_CHANNEL, 0);
-    }
-
-    static public void setPreferredUserChannel(int c)
-    {
-        if (!MidiConst.checkMidiChannel(c))
-        {
-            throw new IllegalArgumentException("c=" + c);
-        }
-        prefs.putInt(PREF_USER_CHANNEL, c);
     }
 
     /**
@@ -279,7 +256,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         {
             throw new IllegalStateException("User channel already enabled on channel " + getCurrentUserChannel());
         }
-        final int channel = getUsedChannels().contains(getPreferredUserChannel()) ? findFreeChannel(false) : getPreferredUserChannel();
+        int prefUserChannel = UserChannelRvKey.getInstance().getPreferredUserChannel();
+        final int channel = getUsedChannels().contains(prefUserChannel) ? findFreeChannel(false) : prefUserChannel;
         if (channel == -1)
         {
             throw new MidiUnavailableException("No Midi channels available");
@@ -289,7 +267,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         insMix.setSolo(false);
 
         // Perform the change
-        changeInstrumentMix(channel, insMix, UserChannelRhythmVoiceKey.getInstance());
+        changeInstrumentMix(channel, insMix, UserChannelRvKey.getInstance());
 
     }
 
@@ -312,7 +290,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      */
     public int getCurrentUserChannel()
     {
-        int channel = getChannel(UserChannelRhythmVoiceKey.getInstance());
+        int channel = getChannel(UserChannelRvKey.getInstance());
         return channel;
     }
 
@@ -330,7 +308,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      */
     public void setInstrumentMix(int channel, RhythmVoice rvKey, InstrumentMix insMix)
     {
-        if (!MidiConst.checkMidiChannel(channel) || (rvKey instanceof UserChannelRhythmVoiceKey) || (rvKey == null && insMix != null) || (rvKey != null && insMix == null))
+        if (!MidiConst.checkMidiChannel(channel) || (rvKey instanceof UserChannelRvKey) || (rvKey == null && insMix != null) || (rvKey != null && insMix == null))
         {
             throw new IllegalArgumentException("channel=" + channel + " rvKey=" + rvKey + " insMix=" + insMix);
         }
@@ -624,7 +602,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         {
             RhythmVoice fromRvKey = fromMm.getKey(fromChannel);
             InstrumentMix fromInsMix = fromMm.getInstrumentMixFromChannel(fromChannel);
-            if (fromRvKey == UserChannelRhythmVoiceKey.getInstance())
+            if (fromRvKey == UserChannelRvKey.getInstance())
             {
                 // Copy the user channel by remove/add
                 removeUserChannel();
@@ -688,7 +666,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             // Try first on matching RhythmVoices from same rhythm
             for (RhythmVoice rv : rvs.toArray(new RhythmVoice[0]))
             {
-                if (!(rv instanceof UserChannelRhythmVoiceKey) && mmRv == rv)
+                if (!(rv instanceof UserChannelRvKey) && mmRv == rv)
                 {
                     mapMatchingVoices.put(mmRv, rv);
                     rvs.remove(rv);
@@ -701,7 +679,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                 // If no match, try any channel with the same RvType
                 for (RhythmVoice rv : rvs.toArray(new RhythmVoice[0]))
                 {
-                    if (!(rv instanceof UserChannelRhythmVoiceKey) && !(mmRv instanceof UserChannelRhythmVoiceKey) && mmRv.getType().equals(rv.getType()))
+                    if (!(rv instanceof UserChannelRvKey) && !(mmRv instanceof UserChannelRvKey) && mmRv.getType().equals(rv.getType()))
                     {
                         mapMatchingVoices.put(mmRv, rv);
                         rvs.remove(rv);
@@ -924,8 +902,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             mm.setFile(f);
         } catch (XStreamException e)
         {
-            // Translate into an IOException to be handled by the Netbeans framework 
-            throw new IOException("XStream loading error", e);
+            LOGGER.warning("loadFromFile() XStreamException e=" + e);   // Important in order to get the details of the XStream error
+            throw new IOException("XStream loading error", e);         // Translate into an IOException to be handled by the Netbeans framework 
         }
         return mm;
     }
@@ -1448,7 +1426,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                 {
                     // Restore the mute status so it can be saved
                     InstrumentMix originalInsMix = mm.getInstrumentMixFromChannel(i);
-                    if (!(rv instanceof UserChannelRhythmVoiceKey))
+                    if (!(rv instanceof UserChannelRvKey))
                     {
                         spInsMixes[i].setMute(originalInsMix.isMute());
                     }
@@ -1456,7 +1434,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                     // Store the RhythmVoice using a RvStorage object
                     RvStorage rvs;
                     String rhythmId;
-                    if (rv instanceof UserChannelRhythmVoiceKey)
+                    if (rv instanceof UserChannelRvKey)
                     {
                         rhythmId = SP_USER_CHANNEL_RHYTHM_ID;
                     } else

@@ -241,6 +241,8 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         btn_rhythmMixDir = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         hlp_rhythmMixDir = new org.jjazz.ui.utilities.HelpTextArea();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_rhythmDir, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.lbl_rhythmDir.text")); // NOI18N
 
@@ -374,9 +376,18 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         jScrollPane3.setOpaque(false);
 
         hlp_rhythmMixDir.setColumns(20);
-        hlp_rhythmMixDir.setRows(5);
+        hlp_rhythmMixDir.setRows(3);
         hlp_rhythmMixDir.setText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.hlp_rhythmMixDir.text")); // NOI18N
         jScrollPane3.setViewportView(hlp_rhythmMixDir);
+
+        jScrollPane4.setBackground(null);
+        jScrollPane4.setBorder(null);
+
+        helpTextArea1.setBackground(null);
+        helpTextArea1.setColumns(20);
+        helpTextArea1.setRows(3);
+        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.helpTextArea1.text")); // NOI18N
+        jScrollPane4.setViewportView(helpTextArea1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -398,32 +409,30 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_setDefaultRhythm)
                         .addGap(133, 133, 133))
+                    .addComponent(lbl_rhythmDir)
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(75, 75, 75)
+                        .addComponent(jLabel2))
+                    .addComponent(cmb_timeSignature, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btn_rhythmProviderSettings)
+                    .addComponent(jLabel4)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(tf_rhythmUserDir, javax.swing.GroupLayout.DEFAULT_SIZE, 252, Short.MAX_VALUE)
+                            .addComponent(tf_rhythmMixDir))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lbl_rhythmDir)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel1)
-                                .addGap(75, 75, 75)
-                                .addComponent(jLabel2))
-                            .addComponent(cmb_timeSignature, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btn_rhythmProviderSettings)
-                            .addComponent(jLabel4)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(tf_rhythmUserDir, javax.swing.GroupLayout.DEFAULT_SIZE, 252, Short.MAX_VALUE)
-                                    .addComponent(tf_rhythmMixDir))
+                                .addComponent(btn_rhythmMixDir)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(btn_rhythmDir)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(btn_rescan)
-                                        .addGap(303, 303, 303))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(btn_rhythmMixDir)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jScrollPane3)))))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                                .addComponent(jScrollPane3))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(btn_rhythmDir)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btn_rescan)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jScrollPane4)))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -432,12 +441,15 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
                 .addContainerGap()
                 .addComponent(lbl_rhythmDir)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(tf_rhythmUserDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_rescan)
-                    .addComponent(btn_rhythmDir))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel4)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(tf_rhythmUserDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btn_rescan)
+                            .addComponent(btn_rhythmDir))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel4))
+                    .addComponent(jScrollPane4))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -676,6 +688,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     private javax.swing.JButton btn_rhythmProviderSettings;
     private javax.swing.JButton btn_setDefaultRhythm;
     private javax.swing.JComboBox<TimeSignature> cmb_timeSignature;
+    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
     private org.jjazz.ui.utilities.HelpTextArea hlp_rhythmMixDir;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -683,6 +696,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JLabel lbl_defaultRhythm;
     private javax.swing.JLabel lbl_rhythmDir;
     private javax.swing.JLabel lbl_timeSignature;

@@ -35,6 +35,7 @@ import javax.swing.SwingUtilities;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midimix.MidiMix;
+import org.jjazz.outputsynth.OutputSynthManager;
 import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -119,15 +120,15 @@ public class ToggleUserChannel extends AbstractAction implements Presenter.Menu
             songMidiMix.removeUserChannel();
         } else
         {
-//            InstrumentMix insMix = new InstrumentMix(JJazzSynth.getDelegate2DefaultInstrumentUser(), new InstrumentSettings());
-//            try
-//            {
-//                songMidiMix.addUserChannel(insMix);
-//            } catch (MidiUnavailableException ex)
-//            {
-//                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.WARNING_MESSAGE);
-//                DialogDisplayer.getDefault().notify(d);
-//            }
+            InstrumentMix insMix = new InstrumentMix(OutputSynthManager.getInstance().getOutputSynth().getUserInstrument(), new InstrumentSettings());
+            try
+            {
+                songMidiMix.addUserChannel(insMix);
+            } catch (MidiUnavailableException ex)
+            {
+                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.WARNING_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+            }
         }
     }
 

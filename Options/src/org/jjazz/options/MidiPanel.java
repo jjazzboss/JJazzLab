@@ -274,7 +274,7 @@ final class MidiPanel extends javax.swing.JPanel
        File previousFile = jms.getDefaultJavaSynthPreferredSoundFontFile();
        if (previousFile == null)
        {
-           chooser.setCurrentDirectory(fdm.getLastSongDirectory());
+           chooser.setCurrentDirectory(null);       // System user directory
        } else
        {
            chooser.setSelectedFile(previousFile);

@@ -20,17 +20,18 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.instrumentchooser.api;
+package org.jjazz.instrumentchooser.spi;
 
 import javax.swing.JDialog;
 import org.jjazz.instrumentchooser.InstrumentChooserDialogImpl;
 import org.jjazz.midi.Instrument;
-import org.jjazz.util.Filter;
+import org.jjazz.outputsynth.OutputSynth;
+import org.jjazz.rhythm.api.RhythmVoice;
 import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;
 
 /**
- * A dialog to select a non-drums instrument in the instrument banks available on the system.
+ * A dialog to select an instrument for a MidiMix channel.
  */
 public abstract class InstrumentChooserDialog extends JDialog
 {
@@ -56,35 +57,19 @@ public abstract class InstrumentChooserDialog extends JDialog
     /**
      * Initialize the dialog.
      *
-     * @param ins A default selected instrument. If null no selection is done.
-     * @param transpose The transposition in semitons.
-     * @param channel Use this Midi channel to send the Midi patch changes. If -1 no midi messages sent.
-     * @param title Dialog title.
-     * @param filter Filtered instruments must not be shown by the dialog. If null accept all instruments
+     * @param outSynth The OutputSynth which contains the available instruments to choose from.
+     * @param rv The RhythmVoice for which we're choosing an instrument.
+     * @param preselectedIns
+     * @param transpose The initial transposition in semi-tons.
+     * @param channel The Midi channel for this RhythmVoice.
      */
-    public abstract void preset(Instrument ins, int transpose, int channel, String title, Filter<Instrument> filter);
+    public abstract void preset(OutputSynth outSynth, RhythmVoice rv, Instrument preselectedIns, int transpose, int channel);
 
-    /**
-     * Initialize the dialog.
-     *
-     * @param ins A default selected instrument. If null no selection is done.
-     * @param transpose The transposition in semitons.
-     * @param channel Use this Midi channel to send the Midi patch changes. If -1 no midi messages sent.
-     * @param title Dialog title.
-     * @param filter Filtered instruments must not be shown by the dialog. If null accept all instruments
-     */
-    // public abstract void preset(Instrument ins, int transpose, int channel, String title, Filter<Instrument> filter);
-
-    
     /**
      * @return The selected instrument, or null if no selection or dialog cancelled.
      */
     public abstract Instrument getSelectedInstrument();
-
-    /**
-     * The transposition for the seleced instrument.
-     *
-     * @return
-     */
+    
     public abstract int getTransposition();
+
 }

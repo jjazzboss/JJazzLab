@@ -34,7 +34,7 @@ import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.UserChannelRhythmVoiceKey;
+import org.jjazz.midimix.UserChannelRvKey;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 
@@ -97,7 +97,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     @Override
     public boolean isUserChannel()
     {
-        return midiMix.getKey(channelId) instanceof UserChannelRhythmVoiceKey;
+        return midiMix.getKey(channelId) instanceof UserChannelRvKey;
     }
 
     @Override

@@ -22,37 +22,67 @@
  */
 package org.jjazz.midimix;
 
+import java.util.prefs.Preferences;
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.InstrumentSettings;
+import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.synths.Family;
 import org.jjazz.rhythm.api.DummyRhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.openide.util.NbPreferences;
 
 /**
  * A special RhythmVoice instance used by MidiMix as the RhythmVoice key for the special User channel.
  */
-public class UserChannelRhythmVoiceKey extends RhythmVoice
+public class UserChannelRvKey extends RhythmVoice
 {
 
-    private static UserChannelRhythmVoiceKey INSTANCE;
+    private static final String PREF_USER_CHANNEL = "PrefUserChannel";
+    private static UserChannelRvKey INSTANCE;
+    private static Preferences prefs = NbPreferences.forModule(UserChannelRvKey.class);
 
-    static public UserChannelRhythmVoiceKey getInstance()
+    static public UserChannelRvKey getInstance()
     {
-        synchronized (UserChannelRhythmVoiceKey.class)
+        synchronized (UserChannelRvKey.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new UserChannelRhythmVoiceKey();
+                INSTANCE = new UserChannelRvKey();
             }
         }
         return INSTANCE;
     }
 
-    private UserChannelRhythmVoiceKey()
+    private UserChannelRvKey()
     {
-        super(new DummyRhythm("UserChannelDummyRhythm", TimeSignature.FOUR_FOUR), Type.CHORD1, "USER_CHANNEL", StdSynth.getInstance().getGM1Bank().getDefaultInstrument(Family.Piano), new InstrumentSettings(), 0);
+        super(new DummyRhythm("UserChannelDummyRhythm", TimeSignature.FOUR_FOUR), Type.CHORD1, "User", StdSynth.getInstance().getGM1Bank().getDefaultInstrument(Family.Piano), new InstrumentSettings(), 0);
+    }
+
+    /**
+     * The default Midi channel to be used when User channel is enabled.
+     * <p>
+     * 0 by default.
+     *
+     * @return
+     */
+    public int getPreferredUserChannel()
+    {
+        return prefs.getInt(PREF_USER_CHANNEL, 0);
+    }
+
+    /**
+     * Set the preferred Midi channel for the user channel.
+     *
+     * @param c Can't be the channel reserved for drums (10/9)
+     */
+    public void setPreferredUserChannel(int c)
+    {
+        if (!MidiConst.checkMidiChannel(c) || c == MidiConst.CHANNEL_DRUMS)
+        {
+            throw new IllegalArgumentException("c=" + c);
+        }
+        prefs.putInt(PREF_USER_CHANNEL, c);
     }
 
 }

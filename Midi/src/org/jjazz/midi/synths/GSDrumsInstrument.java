@@ -23,11 +23,14 @@
  */
 package org.jjazz.midi.synths;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
-import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
@@ -42,7 +45,7 @@ import org.openide.util.Exceptions;
  * <p>
  * GS expects drums channel only on channel 10. To set a drums channel on other channels, SysEx messages must be sent.
  */
-public class GSDrumsInstrument extends Instrument
+public class GSDrumsInstrument extends Instrument implements Serializable
 {
 
     /**
@@ -165,4 +168,50 @@ public class GSDrumsInstrument extends Instrument
         return messages;
     }
 
+    
+    // --------------------------------------------------------------------- 
+    // Serialization
+    // --------------------------------------------------------------------- 
+    private Object writeReplace()
+    {
+        return new SerializationProxy(this);
+    }
+
+    private void readObject(ObjectInputStream stream)
+            throws InvalidObjectException
+    {
+        throw new InvalidObjectException("Serialization proxy required");
+    }
+
+    /**
+     * Rely on Instrument serialization mechanism.
+     */
+    private static class SerializationProxy implements Serializable
+    {
+
+        private static final long serialVersionUID = -9269L;
+        private final int spVERSION = 1;
+        private String spSaveString;
+
+        private SerializationProxy(GSDrumsInstrument ins)
+        {
+            if (ins.getBank() == null || ins.getBank().getMidiSynth() == null)
+            {
+                throw new IllegalStateException("ins=" + ins + " ins.getBank()=" + ins.getBank());
+            }
+            spSaveString = ins.saveAsString();
+        }
+
+        private Object readResolve() throws ObjectStreamException
+        {
+            Instrument ins = Instrument.loadFromString(spSaveString);
+            if (ins == null || !(ins instanceof GSDrumsInstrument))
+            {
+                throw new InvalidObjectException("readResolve() Can not retrieve a GSDrumsInstrument from saved string=" + spSaveString + ", ins=" + ins);
+            }
+            return (GSDrumsInstrument) ins;
+        }
+    }
+
+    
 }

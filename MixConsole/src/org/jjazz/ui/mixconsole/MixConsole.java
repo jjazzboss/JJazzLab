@@ -60,7 +60,7 @@ import org.jjazz.savablesong.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
-import org.jjazz.midimix.UserChannelRhythmVoiceKey;
+import org.jjazz.midimix.UserChannelRvKey;
 import org.jjazz.rhythm.api.DummyRhythm;
 import org.jjazz.songeditormanager.SongEditorManager;
 import static org.jjazz.ui.mixconsole.Bundle.CTL_AllRhythms;
@@ -553,7 +553,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     {
         MixChannelPanel mcp;
         RhythmVoice rvKey = songMidiMix.getKey(channel);
-        if (rvKey instanceof UserChannelRhythmVoiceKey)
+        if (rvKey instanceof UserChannelRvKey)
         {
             // User channel
             mcp = createMixChannelPanelForUserVoice(mm, channel);

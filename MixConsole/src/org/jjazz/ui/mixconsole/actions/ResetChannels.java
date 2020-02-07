@@ -30,7 +30,7 @@ import static javax.swing.Action.NAME;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
-import org.jjazz.midimix.UserChannelRhythmVoiceKey;
+import org.jjazz.midimix.UserChannelRvKey;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.rhythm.api.Rhythm;
@@ -84,7 +84,7 @@ public class ResetChannels extends AbstractAction
         for (Integer channel : songMidiMix.getUsedChannels())
         {
             RhythmVoice rv = songMidiMix.getKey(channel);
-            if (rhythm == null || rv instanceof UserChannelRhythmVoiceKey || rhythm == rv.getContainer())
+            if (rhythm == null || rv instanceof UserChannelRvKey || rhythm == rv.getContainer())
             {
                 InstrumentMix insMix = new InstrumentMix(songMidiMix.getInstrumentMixFromChannel(channel));
                 resetInstrument(insMix, rv);
@@ -113,7 +113,7 @@ public class ResetChannels extends AbstractAction
     {
         Instrument ins;
         OutputSynth outSynth = OutputSynthManager.getInstance().getOutputSynth();
-        if (!(rv instanceof UserChannelRhythmVoiceKey))
+        if (!(rv instanceof UserChannelRvKey))
         {
             ins = outSynth.findInstrument(rv);
 

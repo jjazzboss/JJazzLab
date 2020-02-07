@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.Action;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JList;
@@ -38,9 +37,9 @@ import org.jjazz.base.actions.ShowLogWindow;
 import org.jjazz.midi.device.MidiFilter;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midimix.MidiMix;
+import org.jjazz.midimix.UserChannelRvKey;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.songeditormanager.SongEditorManager;
-import org.openide.awt.Actions;
 import org.openide.util.NbBundle.Messages;
 
 @Messages(
@@ -315,7 +314,7 @@ final class GeneralPanel extends javax.swing.JPanel
         cb_loadLastRecentFile.setSelected(SongEditorManager.getInstance().isOpenRecentFilesUponStartup());
         cb_logMidiOut.setSelected(JJazzMidiSystem.getInstance().getMidiOutLogConfig().contains(MidiFilter.ConfigLog.LOG_PASSED_MESSAGES));
         cb_debugBuiltSequence.setSelected(MusicController.getInstance().isDebugBuiltSequence());
-        spn_preferredUserChannel.setValue(Integer.valueOf(MidiMix.getPreferredUserChannel()) + 1);
+        spn_preferredUserChannel.setValue(UserChannelRvKey.getInstance().getPreferredUserChannel() + 1);
     }
 
     void store()
@@ -337,7 +336,7 @@ final class GeneralPanel extends javax.swing.JPanel
             JJazzMidiSystem.getInstance().getMidiOutLogConfig().remove(MidiFilter.ConfigLog.LOG_PASSED_MESSAGES);
         }
         MusicController.getInstance().setDebugBuiltSequence(cb_debugBuiltSequence.isSelected());
-        MidiMix.setPreferredUserChannel(((Integer) spn_preferredUserChannel.getValue()) - 1);
+        UserChannelRvKey.getInstance().setPreferredUserChannel(((Integer) spn_preferredUserChannel.getValue()) - 1);
     }
 
     boolean valid()

@@ -23,6 +23,7 @@
 package org.jjazz.ui.mixconsole;
 
 import java.util.logging.Logger;
+import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
@@ -32,9 +33,8 @@ import org.jjazz.midi.synths.Family;
 import org.jjazz.midiconverters.api.ConverterManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.UserChannelRhythmVoiceKey;
+import org.jjazz.midimix.UserChannelRvKey;
 import org.jjazz.outputsynth.OutputSynthManager;
-import org.jjazz.ui.mixconsole.spi.MixChannelInstrumentChooser;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
@@ -44,13 +44,13 @@ import org.openide.awt.StatusDisplayer;
  */
 public class MixChannelPanelControllerImpl implements MixChannelPanelController
 {
-    
+
     private MidiMix midiMix;
     private int channelId;
     private static final Logger LOGGER = Logger.getLogger(MixChannelPanelControllerImpl.class.getSimpleName());
 
     /**
-     * @param mMix    The MidiMix containing all data of our model.
+     * @param mMix The MidiMix containing all data of our model.
      * @param channel Used to retrieve the InstrumentMix from mMix.
      */
     public MixChannelPanelControllerImpl(MidiMix mMix, int channel)
@@ -62,7 +62,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         channelId = channel;
         midiMix = mMix;
     }
-    
+
     @Override
     public void editChannelId(String strNewChannelId)
     {
@@ -99,13 +99,13 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
             midiMix.setInstrumentMix(channelId, replacedRvKey, replacedInsMix);
         }
     }
-    
+
     @Override
     public void editClose()
     {
         midiMix.setInstrumentMix(channelId, null, null);
     }
-    
+
     @Override
     public void editSettings()
     {
@@ -114,13 +114,13 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         dlg.preset(midiMix, channelId, title);
         dlg.setVisible(true);
     }
-    
+
     @Override
     public void editInstrument()
     {
         InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channelId);
         RhythmVoice rv = midiMix.getKey(channelId);
-        MixChannelInstrumentChooser dlg = MixChannelInstrumentChooser.getDefault();
+        InstrumentChooserDialog dlg = InstrumentChooserDialog.getDefault();
         dlg.preset(OutputSynthManager.getInstance().getOutputSynth(), rv, insMix.getInstrument(), insMix.getSettings().getTransposition(), channelId);
         dlg.setVisible(true);
         Instrument ins = dlg.getSelectedInstrument();
@@ -156,7 +156,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
             insMix.getSettings().setTransposition(dlg.getTransposition());
         }
     }
-    
+
     @Override
     public void editNextInstrument()
     {
@@ -165,7 +165,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         Instrument ins = bank.getNextInstrument(insMix.getInstrument());
         insMix.setInstrument(ins);
     }
-    
+
     @Override
     public void editPreviousInstrument()
     {
@@ -174,12 +174,12 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         Instrument ins = bank.getPreviousInstrument(insMix.getInstrument());
         insMix.setInstrument(ins);
     }
-    
+
     private String buildTitle()
     {
         StringBuilder title = new StringBuilder("Channel " + (channelId + 1));
         RhythmVoice rv = midiMix.getKey(channelId);
-        if (rv instanceof UserChannelRhythmVoiceKey)
+        if (rv instanceof UserChannelRvKey)
         {
             title.append(" - User");
         } else

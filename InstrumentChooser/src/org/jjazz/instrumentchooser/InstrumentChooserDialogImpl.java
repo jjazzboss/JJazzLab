@@ -22,61 +22,53 @@
  */
 package org.jjazz.instrumentchooser;
 
-import org.jjazz.midi.synths.FavoriteMidiSynth;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
-import java.util.Collections;
-import javax.swing.DefaultListCellRenderer;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.WeakHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
-import javax.swing.JList;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
+import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import org.jjazz.instrumentchooser.api.InstrumentChooserDialog;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
+import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.synths.GM1Instrument;
+import org.jjazz.midi.synths.StdSynth;
+import org.jjazz.midi.ui.InstrumentTable;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.outputsynth.GMRemapTable;
+import org.jjazz.outputsynth.OutputSynth;
+import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
-import org.jjazz.ui.utilities.HelpTextArea;
-import org.jjazz.util.Filter;
+import org.jjazz.util.Utilities;
 import org.openide.*;
 import org.openide.windows.WindowManager;
 
-public class InstrumentChooserDialogImpl extends InstrumentChooserDialog implements ChangeListener
+public class InstrumentChooserDialogImpl extends InstrumentChooserDialog implements ListSelectionListener
 {
-
     private static InstrumentChooserDialogImpl INSTANCE;
-    private static Color[] COLORS =
-    {
-        Color.BLACK, Color.DARK_GRAY, Color.BLUE, Color.RED.darker(), Color.GREEN.darker().darker()
-    };
-    private DefaultListModel<InstrumentBank<?>> banks = new DefaultListModel<>();
-    private DefaultListModel<Instrument> instruments = new DefaultListModel<>();
-    private DefaultListModel<MidiSynth> midiSynths = new DefaultListModel<>();
-    private Instrument selectedInstrument;
-    private WeakHashMap<MidiSynth, Color> mapSynthColor = new WeakHashMap<>();       // Safe to use WeakHashMap
-    private FavoriteMidiSynth favoriteSynth;
-    private int colorIndex;
+    private OutputSynth outputSynth;
     private int channel;
-    private Instrument initInstrument;
-    private Filter<Instrument> instrumentFilter;
-    /**
-     * If not null, is used to select only instruments that contain this string.
-     */
-    private String instrumentSelectString;
+    private Instrument selectedInstrument;
+    private Instrument preferredInstrument;
+    private List<Instrument> allInstruments;
+    private List<Instrument> recommendedInstruments;
     private static final Logger LOGGER = Logger.getLogger(InstrumentChooserDialogImpl.class.getSimpleName());
 
     static public InstrumentChooserDialogImpl getInstance()
@@ -96,68 +88,104 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
     {
         setModal(true);
         initComponents();
-        this.setTitle("Instrument selection dialog");
-        this.list_MidiSynths.setCellRenderer(new SynthCellRenderer());
-        this.list_Instruments.setCellRenderer(new InstrumentCellRenderer());
-        this.list_Banks.setCellRenderer(new BankCellRenderer());
-        favoriteSynth = FavoriteMidiSynth.getInstance();
-        // Listen to added/removed favorites
-        favoriteSynth.addChangeListener(this);
-    }
-
-    @Override
-    public void preset(Instrument ins, int transpose, int chan, String title, Filter<Instrument> filter)
-    {
-        if (filter == null)
+        tbl_Instruments.setHiddenColumns(Arrays.asList(InstrumentTable.Model.COL_LSB,
+                InstrumentTable.Model.COL_MSB,
+                InstrumentTable.Model.COL_PC,
+                InstrumentTable.Model.COL_DRUMKIT
+        ));
+        tbl_Instruments.getSelectionModel().addListSelectionListener(this);
+        tbl_Instruments.addMouseListener(new MouseAdapter()
         {
-            instrumentFilter = new Filter<Instrument>()
+            @Override
+            public void mouseClicked(MouseEvent e)
             {
-                @Override
-                public boolean accept(Instrument ins)
-                {
-                    return true;
-                }
-            };
-        } else
-        {
-            instrumentFilter = filter;
-        }
-        fillSynthList();
-        initInstrument = ins;
-        channel = chan;
-        if (initInstrument != null)
-        {
-            list_MidiSynths.setSelectedValue(ins.getBank().getMidiSynth(), true);
-            list_Banks.setSelectedValue(ins.getBank(), true);
-            list_Instruments.setSelectedValue(ins, true);
-        } else
-        {
-            list_MidiSynths.setSelectedIndex(0);
-        }
-        lbl_Title.setText(title);
-        spn_transposition.setValue(transpose);
-    }
-
-    private void fillSynthList()
-    {
-        this.midiSynths.clear();
-        this.midiSynths.addElement(favoriteSynth);
-//        for (MidiSynth synth : MidiSynthManager.getInstance().getSynths())
-//        {
-//            this.midiSynths.addElement(synth);
-//        }
+                handleTableMouseClicked(e);
+            }
+        });
     }
 
     @Override
-    public int getTransposition()
+    public void preset(OutputSynth outSynth, RhythmVoice rv, Instrument preselectedIns, int transpose, int channel)
     {
-        return (int) spn_transposition.getValue();
+        if (outSynth == null || rv == null || !MidiConst.checkMidiChannel(channel))
+        {
+            throw new IllegalArgumentException("outSynth=" + outSynth + " rv=" + rv + " preselectedIns=" + preselectedIns + " channel=" + channel);
+        }
+        this.outputSynth = outSynth;
+        this.channel = channel;
+        this.preferredInstrument = rv.getPreferredInstrument();
+        GM1Instrument gmSubstitute = this.preferredInstrument.getSubstitute();
+
+        // Prepare title labels
+        String rvType = "";
+        if (!rv.isDrums() && !gmSubstitute.getFamily().toString().equalsIgnoreCase(rv.getName()))
+        {
+            rvType = " (family=" + gmSubstitute.getFamily().toString() + ")";
+        }
+        String myTitle = "Select instrument for channel " + (channel + 1) + " - " + rv.getName() + rvType;
+        lbl_Title.setText(myTitle);
+
+        // Prepare recommended instrument label
+        String prefInsTxt = preferredInstrument.getFullName();
+        this.lbl_preferredInstrument.setText(prefInsTxt);
+        DrumKit kit = rv.getDrumKit();
+        String tt = null;
+        if (!(preferredInstrument instanceof GM1Instrument))
+        {
+            tt = rv.isDrums() ? "DrumKit type=" + kit.getType().toString() + ", keymap= " + kit.getKeyMap().getName()
+                    : "GM substitute: " + gmSubstitute.getSubstitute().getPatchName();
+        }
+        this.lbl_preferredInstrument.setToolTipText(tt);
+
+        // OutputSynth label
+        String outSynthTxt = outputSynth.getFile() == null ? null : "Output synth config: " + outputSynth.getFile().getName();
+        this.lbl_outputSynthConfig.setText(outSynthTxt);
+
+        // Reset text filter
+        btn_TxtClearActionPerformed(null);
+
+        btn_Hear.setEnabled(false);
+
+        allInstruments = this.getAllInstruments(outputSynth, rv.isDrums());
+        recommendedInstruments = this.getRecommendedInstruments(allInstruments, preferredInstrument);
+
+        if (!recommendedInstruments.isEmpty()
+                && (preselectedIns == null || preselectedIns == StdSynth.getInstance().getVoidInstrument() || recommendedInstruments.contains(preselectedIns)))
+        {
+            rbtn_showRecommended.setSelected(true);
+            rbtn_showRecommendedActionPerformed(null);
+        } else
+        {
+            rbtn_showAll.setSelected(true);
+            rbtn_showAllActionPerformed(null);
+        }
+        if (preselectedIns != null)
+        {
+            tbl_Instruments.setSelectedInstrument(preselectedIns);
+        }
+
+        String txtType;
+        if (rv.isDrums())
+        {
+            txtType = rv.getType().equals(RhythmVoice.Type.DRUMS) ? "Drums" : "Percussion";
+        } else
+        {
+            txtType = gmSubstitute.getFamily().toString();
+        }
+        updateRbtnShowRecommendedText(txtType);
+        spn_transposition.setValue(transpose);
     }
 
     @Override
     public Instrument getSelectedInstrument()
     {
         return selectedInstrument;
+    }
+
+    @Override
+    public int getTransposition()
+    {
+        return (int) spn_transposition.getValue();
     }
 
     /**
@@ -193,32 +221,210 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         return contentPane;
     }
 
-    // ----------------------------------------------------------------------------
-    // ChangeListener interface
-    // ----------------------------------------------------------------------------
+    // ===================================================================================
+    // ListSelectionListener interfacce
+    // ===================================================================================
     @Override
-    public void stateChanged(ChangeEvent evt)
+    public void valueChanged(ListSelectionEvent e)
     {
-        if (evt.getSource() == favoriteSynth)
+        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);
+        if (e.getValueIsAdjusting())
         {
-            LOGGER.fine("stateChanged()");
-
-            // Favorite synth must be the first : make sure it is repaint to have the right size displayed
-            list_MidiSynths.repaint(list_MidiSynths.getCellBounds(0, 0));
-
-            // A favorite instrument was added or removed, make sure lists are refreshed.    
-            if (list_MidiSynths.getSelectedValuesList().contains(favoriteSynth))
-            {
-                // If favorite synth is selected, need to update the list of instruments (+1 or -1)
-                List<InstrumentBank<?>> lBanks = Collections.list(banks.elements());
-                updateListInstruments(lBanks);
-            }
+            return;
+        }
+        if (e.getSource() == tbl_Instruments.getSelectionModel())
+        {
+            selectedInstrument = tbl_Instruments.getSelectedInstrument();
+            btn_Hear.setEnabled(selectedInstrument != null);
             if (selectedInstrument != null)
             {
-                // Restore the selection to make sure cell is repainted
-                // list_Instruments.setSelectedValue(selectedInstrument, false);
-                list_Instruments.setSelectedValue(selectedInstrument, true);
+                JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(selectedInstrument.getMidiMessages(channel));
             }
+        }
+    }
+
+    // ----------------------------------------------------------------------------
+    // Private methods
+    // ----------------------------------------------------------------------------
+    /**
+     * Get all the instruments for melodic voices or drums voices.
+     *
+     * @param outSynth
+     * @param drumsMode If true return drums instruments first
+     * @return
+     */
+    private List<Instrument> getAllInstruments(OutputSynth outSynth, boolean drumsMode)
+    {
+        ArrayList<Instrument> res = new ArrayList<>();
+        if (drumsMode)
+        {
+            for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
+            {
+                res.addAll(bank.getDrumsInstruments());
+            }
+            for (MidiSynth synth : outSynth.getCustomSynths())
+            {
+                res.addAll(synth.getDrumsInstruments());
+            }
+            for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
+            {
+                res.addAll(bank.getNonDrumsInstruments());
+            }
+            for (MidiSynth synth : outSynth.getCustomSynths())
+            {
+                res.addAll(synth.getNonDrumsInstruments());
+            }
+        } else
+        {
+            for (InstrumentBank<?> bank : outSynth.getCompatibleStdBanks())
+            {
+                res.addAll(bank.getInstruments());
+            }
+            for (MidiSynth synth : outSynth.getCustomSynths())
+            {
+                res.addAll(synth.getInstruments());
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Get only the recommended instruments for prefIns.
+     *
+     * @param allInsts
+     * @param prefIns The preferredInstrument for the RhythmVoice
+     * @return
+     */
+    private List<Instrument> getRecommendedInstruments(List<Instrument> allInsts, Instrument prefIns)
+    {
+        List<Instrument> res = new ArrayList<>();
+        if (!prefIns.isDrumKit())
+        {
+            GM1Instrument gm1PrefIns = prefIns.getSubstitute();
+
+            // First add instruments whose substitute is gm1PrefIns
+            for (Instrument ins : allInsts)
+            {
+                if (ins.getSubstitute() == gm1PrefIns)
+                {
+                    res.add(ins);
+                }
+            }
+
+            // Second add instruments whose substitute family matches mappedInx family
+            for (Instrument ins : allInsts)
+            {
+                if (ins.getSubstitute() == null)
+                {
+                    continue;
+                }
+                if (ins.getSubstitute().getFamily().equals(gm1PrefIns.getFamily()))
+                {
+                    if (!res.contains(ins))
+                    {
+                        res.add(ins);
+                    }
+                }
+            }
+
+            // Is there a mapped instrument ? If yes add it first
+            Instrument mappedIns = outputSynth.getGMRemapTable().getInstrument(gm1PrefIns);
+            if (mappedIns == null)
+            {
+                mappedIns = outputSynth.getGMRemapTable().getInstrument(gm1PrefIns.getFamily());
+            }
+            if (mappedIns != null)
+            {
+                res.remove(mappedIns);
+                res.add(0, mappedIns);
+            }
+
+        } else
+        {
+            // Drums
+            List<Instrument> second = new ArrayList<>();
+            List<Instrument> third = new ArrayList<>();
+            DrumKit kit = prefIns.getDrumKit();
+            for (Instrument ins : allInsts)
+            {
+                DrumKit insKit = ins.getDrumKit();
+                if (insKit == null)
+                {
+                    continue;
+                }
+                if (insKit.getType().equals(kit.getType()) && kit.getKeyMap().isContaining(insKit.getKeyMap()))
+                {
+                    // First : full match
+                    res.add(ins);
+                } else if (kit.getKeyMap().isContaining(insKit.getKeyMap()))
+                {
+                    // Second : keymap match
+                    second.add(ins);
+                } else
+                {
+                    // Third other drums instruments
+                    third.add(ins);
+                }
+            }
+            res.addAll(second);
+            res.addAll(third);
+
+            // If mapped drums/perc instruments are defined, put them first
+            Instrument mappedDrumsIns = outputSynth.getGMRemapTable().getInstrument(GMRemapTable.DRUMS_INSTRUMENT);
+            Instrument mappedPercIns = outputSynth.getGMRemapTable().getInstrument(GMRemapTable.PERCUSSION_INSTRUMENT);
+            if (mappedPercIns != null)
+            {
+                res.remove(mappedPercIns);
+                res.add(0, mappedPercIns);
+            }
+            if (mappedDrumsIns != null)
+            {
+                res.remove(mappedDrumsIns);
+                res.add(0, mappedDrumsIns);
+            }
+
+        }
+        return res;
+    }
+
+    private void handleTableMouseClicked(MouseEvent evt)
+    {
+        boolean ctrl = (evt.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
+        boolean shift = (evt.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK;
+        if (evt.getSource() == tbl_Instruments)
+        {
+            if (SwingUtilities.isLeftMouseButton(evt))
+            {
+                if (evt.getClickCount() == 1 && shift)
+                {
+                    btn_HearActionPerformed(null);
+                } else if (evt.getClickCount() == 2 && !shift)
+                {
+                    btn_OkActionPerformed(null);
+                }
+            }
+        }
+    }
+
+    private void updateRbtnShowRecommendedText(String txtType)
+    {
+        String text = "Show only recommended instruments (" + txtType + ")";
+        this.rbtn_showRecommended.setText(text);
+    }
+
+    private void toggleFavoriteInstrument()
+    {
+        LOGGER.fine("toggleFavoriteInstrument() selectedInstrument=" + selectedInstrument);
+        if (selectedInstrument != null)
+        {
+//            FavoriteInstruments fi = FavoriteInstruments.getInstance();
+//            if (fi.contains(selectedInstrument))
+//            {
+//                fi.removeInstrument(selectedInstrument);
+//            } else
+//            {
+//                fi.addInstrument(selectedInstrument);
+//            }
         }
     }
 
@@ -231,69 +437,29 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
     private void initComponents()
     {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        list_MidiSynths = new JList<>(midiSynths);
-        jScrollPane2 = new javax.swing.JScrollPane();
-        list_Banks = new JList<>(banks);
-        jScrollPane3 = new javax.swing.JScrollPane();
-        list_Instruments = new JList<>(instruments);
-        lbl_BankList = new javax.swing.JLabel();
-        lbl_FamilyList = new javax.swing.JLabel();
-        lbl_InstrumentList = new javax.swing.JLabel();
+        btn_showInstruments = new javax.swing.ButtonGroup();
+        jLabel1 = new javax.swing.JLabel();
         btn_Ok = new javax.swing.JButton();
         btn_Cancel = new javax.swing.JButton();
-        txt_Filter = new javax.swing.JTextField();
-        btn_Filter = new javax.swing.JButton();
-        btn_Clear = new javax.swing.JButton();
+        tf_Filter = new javax.swing.JTextField();
+        btn_TxtFilter = new javax.swing.JButton();
+        btn_TxtClear = new javax.swing.JButton();
         btn_Hear = new javax.swing.JButton();
-        lbl_Transpose = new javax.swing.JLabel();
         lbl_Title = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tbl_Instruments = new org.jjazz.midi.ui.InstrumentTable();
+        rbtn_showRecommended = new javax.swing.JRadioButton();
+        rbtn_showAll = new javax.swing.JRadioButton();
+        lbl_Filtered = new javax.swing.JLabel();
+        lbl_recIns = new javax.swing.JLabel();
         spn_transposition = new org.jjazz.ui.utilities.WheelSpinner();
-        jTextArea1 = new HelpTextArea();
+        lbl_transpose = new javax.swing.JLabel();
+        lbl_preferredInstrument = new javax.swing.JLabel();
+        lbl_outputSynthConfig = new javax.swing.JLabel();
 
-        list_MidiSynths.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.list_MidiSynths.toolTipText")); // NOI18N
-        list_MidiSynths.addListSelectionListener(new javax.swing.event.ListSelectionListener()
-        {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt)
-            {
-                list_MidiSynthsValueChanged(evt);
-            }
-        });
-        jScrollPane1.setViewportView(list_MidiSynths);
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.jLabel1.text")); // NOI18N
 
-        list_Banks.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.list_Banks.toolTipText")); // NOI18N
-        list_Banks.addListSelectionListener(new javax.swing.event.ListSelectionListener()
-        {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt)
-            {
-                list_BanksValueChanged(evt);
-            }
-        });
-        jScrollPane2.setViewportView(list_Banks);
-
-        list_Instruments.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        list_Instruments.addMouseListener(new java.awt.event.MouseAdapter()
-        {
-            public void mouseClicked(java.awt.event.MouseEvent evt)
-            {
-                list_InstrumentsMouseClicked(evt);
-            }
-        });
-        list_Instruments.addListSelectionListener(new javax.swing.event.ListSelectionListener()
-        {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt)
-            {
-                list_InstrumentsValueChanged(evt);
-            }
-        });
-        jScrollPane3.setViewportView(list_Instruments);
-
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_BankList, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_BankList.text")); // NOI18N
-        lbl_BankList.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_BankList.toolTipText")); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_FamilyList, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_FamilyList.text")); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_InstrumentList, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_InstrumentList.text")); // NOI18N
+        setTitle(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.title")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.btn_Ok.text")); // NOI18N
         btn_Ok.addActionListener(new java.awt.event.ActionListener()
@@ -313,36 +479,38 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             }
         });
 
-        txt_Filter.setText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.txt_Filter.text")); // NOI18N
-        txt_Filter.addActionListener(new java.awt.event.ActionListener()
+        tf_Filter.setText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.tf_Filter.text")); // NOI18N
+        tf_Filter.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.tf_Filter.toolTipText")); // NOI18N
+        tf_Filter.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                txt_FilterActionPerformed(evt);
+                tf_FilterActionPerformed(evt);
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Filter, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.btn_Filter.text")); // NOI18N
-        btn_Filter.addActionListener(new java.awt.event.ActionListener()
+        org.openide.awt.Mnemonics.setLocalizedText(btn_TxtFilter, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.btn_TxtFilter.text")); // NOI18N
+        btn_TxtFilter.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.btn_TxtFilter.toolTipText")); // NOI18N
+        btn_TxtFilter.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                btn_FilterActionPerformed(evt);
+                btn_TxtFilterActionPerformed(evt);
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Clear, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.btn_Clear.text")); // NOI18N
-        btn_Clear.setEnabled(false);
-        btn_Clear.addActionListener(new java.awt.event.ActionListener()
+        org.openide.awt.Mnemonics.setLocalizedText(btn_TxtClear, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.btn_TxtClear.text")); // NOI18N
+        btn_TxtClear.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.btn_TxtClear.toolTipText")); // NOI18N
+        btn_TxtClear.setEnabled(false);
+        btn_TxtClear.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                btn_ClearActionPerformed(evt);
+                btn_TxtClearActionPerformed(evt);
             }
         });
 
-        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/instrumentchooser/resources/Speaker-20x20.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Hear, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.btn_Hear.text")); // NOI18N
+        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/Speaker-20x20.png"))); // NOI18N
         btn_Hear.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.btn_Hear.toolTipText")); // NOI18N
         btn_Hear.addActionListener(new java.awt.event.ActionListener()
         {
@@ -352,25 +520,52 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_Transpose, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_Transpose.text")); // NOI18N
-        lbl_Transpose.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_Transpose.toolTipText")); // NOI18N
-
         lbl_Title.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         org.openide.awt.Mnemonics.setLocalizedText(lbl_Title, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_Title.text")); // NOI18N
 
-        spn_transposition.setModel(new javax.swing.SpinnerNumberModel(0, -48, 48, 1));
+        jScrollPane1.setViewportView(tbl_Instruments);
+
+        btn_showInstruments.add(rbtn_showRecommended);
+        rbtn_showRecommended.setSelected(true);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_showRecommended, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.rbtn_showRecommended.text")); // NOI18N
+        rbtn_showRecommended.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.rbtn_showRecommended.toolTipText")); // NOI18N
+        rbtn_showRecommended.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                rbtn_showRecommendedActionPerformed(evt);
+            }
+        });
+
+        btn_showInstruments.add(rbtn_showAll);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_showAll, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.rbtn_showAll.text")); // NOI18N
+        rbtn_showAll.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.rbtn_showAll.toolTipText")); // NOI18N
+        rbtn_showAll.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                rbtn_showAllActionPerformed(evt);
+            }
+        });
+
+        lbl_Filtered.setForeground(new java.awt.Color(153, 0, 0));
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_Filtered, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_Filtered.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_recIns, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_recIns.text")); // NOI18N
+        lbl_recIns.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_recIns.toolTipText")); // NOI18N
+
+        spn_transposition.setModel(new javax.swing.SpinnerNumberModel(0, 0, 48, 1));
         spn_transposition.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.spn_transposition.toolTipText")); // NOI18N
         spn_transposition.setColumns(2);
-        spn_transposition.setLoopValues(false);
 
-        jTextArea1.setEditable(false);
-        jTextArea1.setColumns(20);
-        jTextArea1.setFont(new java.awt.Font("Arial", 0, 10)); // NOI18N
-        jTextArea1.setLineWrap(true);
-        jTextArea1.setRows(5);
-        jTextArea1.setText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.jTextArea1.text")); // NOI18N
-        jTextArea1.setWrapStyleWord(true);
-        jTextArea1.setOpaque(false);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_transpose, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_transpose.text")); // NOI18N
+        lbl_transpose.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_transpose.toolTipText")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_preferredInstrument, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_preferredInstrument.text")); // NOI18N
+        lbl_preferredInstrument.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_preferredInstrument.toolTipText")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_outputSynthConfig, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_outputSynthConfig.text")); // NOI18N
+        lbl_outputSynthConfig.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_outputSynthConfig.toolTipText")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -379,167 +574,102 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(lbl_Title, javax.swing.GroupLayout.PREFERRED_SIZE, 375, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 188, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 188, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(lbl_FamilyList)
-                            .addComponent(lbl_BankList, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lbl_InstrumentList, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lbl_Title, javax.swing.GroupLayout.DEFAULT_SIZE, 654, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(lbl_Filtered))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(spn_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lbl_transpose, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(btn_Hear, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(txt_Filter, javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                        .addGap(0, 0, Short.MAX_VALUE)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                                .addComponent(btn_Clear)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(btn_Filter))
-                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                                .addComponent(btn_Cancel)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(btn_Ok))))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(btn_Hear, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, Short.MAX_VALUE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(spn_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(lbl_Transpose, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                    .addComponent(jTextArea1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                                .addContainerGap())))))
+                                    .addComponent(rbtn_showRecommended)
+                                    .addComponent(rbtn_showAll))
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(btn_TxtClear)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_TxtFilter))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(tf_Filter, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lbl_recIns)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lbl_preferredInstrument)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(lbl_outputSynthConfig)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btn_Ok)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_Cancel)))
+                .addContainerGap())
         );
+
+        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btn_Cancel, btn_Ok});
+
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(lbl_Title, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(12, 12, 12)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lbl_BankList)
-                    .addComponent(lbl_InstrumentList))
+                    .addComponent(lbl_recIns, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lbl_preferredInstrument))
+                .addGap(18, 18, 18)
+                .addComponent(rbtn_showAll)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(rbtn_showRecommended)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(lbl_Filtered)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(lbl_FamilyList)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane2))
-                    .addComponent(jScrollPane3)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(txt_Filter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 353, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(btn_Filter)
-                            .addComponent(btn_Clear))
-                        .addGap(27, 27, 27)
-                        .addComponent(btn_Hear)
-                        .addGap(30, 30, 30)
+                            .addComponent(btn_Ok)
+                            .addComponent(btn_Cancel)
+                            .addComponent(lbl_outputSynthConfig)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(tf_Filter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btn_TxtFilter)
+                            .addComponent(btn_TxtClear))
+                        .addGap(50, 50, 50)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(spn_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(lbl_Transpose))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 142, Short.MAX_VALUE)
-                        .addComponent(jTextArea1, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(btn_Cancel)
-                            .addComponent(btn_Ok))))
+                            .addComponent(lbl_transpose))
+                        .addGap(27, 27, 27)
+                        .addComponent(btn_Hear)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btn_FilterActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_FilterActionPerformed
-    {//GEN-HEADEREND:event_btn_FilterActionPerformed
-        txt_FilterActionPerformed(null);
-    }//GEN-LAST:event_btn_FilterActionPerformed
+    private void btn_TxtFilterActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_TxtFilterActionPerformed
+    {//GEN-HEADEREND:event_btn_TxtFilterActionPerformed
+        tf_FilterActionPerformed(null);
+    }//GEN-LAST:event_btn_TxtFilterActionPerformed
 
-    private void list_MidiSynthsValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_list_MidiSynthsValueChanged
-    {//GEN-HEADEREND:event_list_MidiSynthsValueChanged
-        LOGGER.finer("list_BanksValueChanged() evt.firstIndex=" + evt.getFirstIndex() + " evt.lastIndex=" + evt.getLastIndex());
-        if (!evt.getValueIsAdjusting())
-        {
-            List<MidiSynth> selectedSynths = list_MidiSynths.getSelectedValuesList();
-
-            banks.clear();
-            if (!selectedSynths.isEmpty())
-            {
-                for (MidiSynth synth : selectedSynths)
-                {
-                    for (InstrumentBank<?> bank : synth.getBanks())
-                    {
-                        banks.addElement(bank);
-                    }
-                }
-                // Select the first bank for this synth to limit the nb of displayed instruments (thousands on some synths !)
-                list_Banks.setSelectedIndex(0);
-            }
-        }
-    }//GEN-LAST:event_list_MidiSynthsValueChanged
-
-    private void list_BanksValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_list_BanksValueChanged
-    {//GEN-HEADEREND:event_list_BanksValueChanged
-        LOGGER.fine("list_FamiliesValueChanged() evt=" + evt);
-        if (evt == null || !evt.getValueIsAdjusting())
-        {
-            List<InstrumentBank<?>> selectedBanks = list_Banks.getSelectedValuesList();
-            updateListInstruments(selectedBanks);
-        }
-    }//GEN-LAST:event_list_BanksValueChanged
-
-    private void updateListInstruments(List<InstrumentBank<?>> selectedBanks)
-    {
-        instruments.clear();
-        for (InstrumentBank<?> bank : selectedBanks)
-        {
-            for (Instrument ins : bank.getInstruments())
-            {
-                if (!instrumentFilter.accept(ins))
-                {
-                    continue;
-                }
-                if (instrumentSelectString == null || ins.getPatchName().toLowerCase().contains(instrumentSelectString.toLowerCase()))
-                {
-                    instruments.addElement(ins);
-                }
-            }
-        }
-    }
-
-    private void list_InstrumentsValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_list_InstrumentsValueChanged
-    {//GEN-HEADEREND:event_list_InstrumentsValueChanged
-        LOGGER.finer("list_InstrumentsValueChanged()");
-        if (!evt.getValueIsAdjusting())
-        {
-            selectedInstrument = list_Instruments.getSelectedValue();
-            if (selectedInstrument != null && channel >= MidiConst.CHANNEL_MIN)
-            {
-                JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(selectedInstrument.getMidiMessages(channel));
-                btn_Hear.setEnabled(true);
-            } else
-            {
-                btn_Hear.setEnabled(false);
-            }
-        }
-    }//GEN-LAST:event_list_InstrumentsValueChanged
 
     private void btn_CancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_CancelActionPerformed
     {//GEN-HEADEREND:event_btn_CancelActionPerformed
-        if (initInstrument != null && channel >= MidiConst.CHANNEL_MIN)
-        {
-            // Send the Midi message to restore the original instrument
-            JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(initInstrument.getMidiMessages(channel));
-        }
         selectedInstrument = null;
         setVisible(false);
     }//GEN-LAST:event_btn_CancelActionPerformed
@@ -551,10 +681,14 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
 
     private void btn_HearActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_HearActionPerformed
     {//GEN-HEADEREND:event_btn_HearActionPerformed
+        Instrument ins = tbl_Instruments.getSelectedInstrument();
+        if (ins == null || !ins.getMidiAddress().isFullyDefined())
+        {
+            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + ins.getMidiAddress());
+            return;
+        }
 
-        list_MidiSynths.setEnabled(false);
-        list_Banks.setEnabled(false);
-        list_Instruments.setEnabled(false);
+        tbl_Instruments.setEnabled(false);
         btn_Hear.setEnabled(false);
         btn_Ok.setEnabled(false);
         btn_Cancel.setEnabled(false);
@@ -564,9 +698,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             @Override
             public void run()
             {
-                list_MidiSynths.setEnabled(true);
-                list_Banks.setEnabled(true);
-                list_Instruments.setEnabled(true);
+                tbl_Instruments.setEnabled(true);
                 btn_Hear.setEnabled(true);
                 btn_Ok.setEnabled(true);
                 btn_Cancel.setEnabled(true);
@@ -576,7 +708,9 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         MusicController mc = MusicController.getInstance();
         try
         {
-            mc.playTestNotes(channel, -1, getTransposition(), endAction);
+            final int TRANSPOSE = ins.isDrumKit() ? -24 : 0;
+            JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(channel));
+            mc.playTestNotes(channel, -1, TRANSPOSE, endAction);
         } catch (MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -585,196 +719,82 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
 
     }//GEN-LAST:event_btn_HearActionPerformed
 
-    private void txt_FilterActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_txt_FilterActionPerformed
-    {//GEN-HEADEREND:event_txt_FilterActionPerformed
-
-        LOGGER.fine("txt_SearchActionPerformed()");
-        String txt = txt_Filter.getText();
-        if (txt.trim().isEmpty())
+    private void tf_FilterActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tf_FilterActionPerformed
+    {//GEN-HEADEREND:event_tf_FilterActionPerformed
+        LOGGER.fine("tf_FilterActionPerformed()");
+        String s = tf_Filter.getText().trim();
+        if (s.isEmpty())
         {
             return;
         }
-        btn_Clear.setEnabled(true);
-        txt_Filter.setEnabled(false);
-        btn_Filter.setEnabled(false);
-        String s = lbl_InstrumentList.getText();
-        lbl_InstrumentList.setText(s + "* (FILTERED)");
-        setInstrumentFilter(txt);
-    }//GEN-LAST:event_txt_FilterActionPerformed
-
-    private void btn_ClearActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_ClearActionPerformed
-    {//GEN-HEADEREND:event_btn_ClearActionPerformed
-        btn_Clear.setEnabled(false);
-        txt_Filter.setEnabled(true);
-        btn_Filter.setEnabled(true);
-        String s = lbl_InstrumentList.getText();
-        int i = s.indexOf("*");
-        lbl_InstrumentList.setText(s.substring(0, i));
-        setInstrumentFilter(null);
-    }//GEN-LAST:event_btn_ClearActionPerformed
-
-    private void list_InstrumentsMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_list_InstrumentsMouseClicked
-    {//GEN-HEADEREND:event_list_InstrumentsMouseClicked
-        boolean ctrl = (evt.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
-        boolean shift = (evt.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK;
-        LOGGER.fine("list_InstrumentsMouseClicked() ctrl=" + ctrl + " shift=" + shift + " evt.getClickCount()=" + evt.getClickCount());
-        if (SwingUtilities.isLeftMouseButton(evt))
+        RowFilter<TableModel, Object> rf = null;
+        try
         {
-            if (evt.getClickCount() == 1 && !ctrl && shift)
-            {
-                toggleFavoriteInstrument();
-            } else if (evt.getClickCount() == 2 && !ctrl && !shift)
-            {
-                btn_OkActionPerformed(null);
-            }
-        }
-    }//GEN-LAST:event_list_InstrumentsMouseClicked
-
-    private void toggleFavoriteInstrument()
-    {
-        LOGGER.fine("toggleFavoriteInstrument() selectedInstrument=" + selectedInstrument);
-        if (selectedInstrument != null)
+            rf = RowFilter.regexFilter("(?i)" + s);
+        } catch (java.util.regex.PatternSyntaxException e)
         {
-//            FavoriteInstruments fi = FavoriteInstruments.getInstance();
-//            if (fi.contains(selectedInstrument))
-//            {
-//                fi.removeInstrument(selectedInstrument);
-//            } else
-//            {
-//                fi.addInstrument(selectedInstrument);
-//            }
+            LOGGER.warning("tf_FilterActionPerformed() invalid filter regex string e=" + e.getLocalizedMessage());
+            return;
         }
-    }
+        TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) tbl_Instruments.getRowSorter();
+        sorter.setRowFilter(rf);
+        btn_TxtFilter.setEnabled(false);
+        btn_TxtClear.setEnabled(true);
+        tf_Filter.setEnabled(false);
+        lbl_Filtered.setText("(FILTERED '" + Utilities.truncateWithDots(s, 10) + "')");
+    }//GEN-LAST:event_tf_FilterActionPerformed
 
-    /**
-     * Calculate the total nb of instruments, excluding the filtered instruments.
-     *
-     * @param synth
-     * @return
-     */
-    private int getSynthSize(MidiSynth synth)
-    {
+    private void btn_TxtClearActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_TxtClearActionPerformed
+    {//GEN-HEADEREND:event_btn_TxtClearActionPerformed
+        TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) tbl_Instruments.getRowSorter();
+        sorter.setRowFilter(null);
+        btn_TxtFilter.setEnabled(true);
+        btn_TxtClear.setEnabled(false);
+        tf_Filter.setEnabled(true);
+        lbl_Filtered.setText(" ");   // Not ""
+    }//GEN-LAST:event_btn_TxtClearActionPerformed
 
-        int size = 0;
-        for (InstrumentBank<?> bank : synth.getBanks())
+    private void rbtn_showAllActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_showAllActionPerformed
+    {//GEN-HEADEREND:event_rbtn_showAllActionPerformed
+        Instrument sel = tbl_Instruments.getSelectedInstrument();
+        tbl_Instruments.getModel().setInstruments(this.allInstruments);
+        if (sel != null && allInstruments.contains(sel))
         {
-            size += getBankSize(bank);
+            tbl_Instruments.setSelectedInstrument(sel);
         }
-        return size;
-    }
+    }//GEN-LAST:event_rbtn_showAllActionPerformed
 
-    private int getBankSize(InstrumentBank<? extends Instrument> bank)
-    {
-        int size = 0;
-        for (Instrument ins : bank.getInstruments())
+    private void rbtn_showRecommendedActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_showRecommendedActionPerformed
+    {//GEN-HEADEREND:event_rbtn_showRecommendedActionPerformed
+        Instrument sel = tbl_Instruments.getSelectedInstrument();
+        tbl_Instruments.getModel().setInstruments(this.recommendedInstruments);
+        if (sel != null && recommendedInstruments.contains(sel))
         {
-            if (instrumentFilter.accept(ins))
-            {
-                size++;
-            }
+            tbl_Instruments.setSelectedInstrument(sel);
         }
-        return size;
-    }
+	}//GEN-LAST:event_rbtn_showRecommendedActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_Cancel;
-    private javax.swing.JButton btn_Clear;
-    private javax.swing.JButton btn_Filter;
     private javax.swing.JButton btn_Hear;
     private javax.swing.JButton btn_Ok;
+    private javax.swing.JButton btn_TxtClear;
+    private javax.swing.JButton btn_TxtFilter;
+    private javax.swing.ButtonGroup btn_showInstruments;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JLabel lbl_BankList;
-    private javax.swing.JLabel lbl_FamilyList;
-    private javax.swing.JLabel lbl_InstrumentList;
+    private javax.swing.JLabel lbl_Filtered;
     private javax.swing.JLabel lbl_Title;
-    private javax.swing.JLabel lbl_Transpose;
-    private javax.swing.JList<InstrumentBank<?>> list_Banks;
-    private javax.swing.JList<Instrument> list_Instruments;
-    private javax.swing.JList<MidiSynth> list_MidiSynths;
+    private javax.swing.JLabel lbl_outputSynthConfig;
+    private javax.swing.JLabel lbl_preferredInstrument;
+    private javax.swing.JLabel lbl_recIns;
+    private javax.swing.JLabel lbl_transpose;
+    private javax.swing.JRadioButton rbtn_showAll;
+    private javax.swing.JRadioButton rbtn_showRecommended;
     private org.jjazz.ui.utilities.WheelSpinner spn_transposition;
-    private javax.swing.JTextField txt_Filter;
+    private org.jjazz.midi.ui.InstrumentTable tbl_Instruments;
+    private javax.swing.JTextField tf_Filter;
     // End of variables declaration//GEN-END:variables
-
-    private Color getSynthColor(MidiSynth synth, Instrument ins)
-    {
-        MidiSynth ms = synth;
-        Color c = mapSynthColor.get(ms);
-        if (c == null)
-        {
-            c = COLORS[colorIndex];
-            mapSynthColor.put(ms, c);
-            colorIndex++;
-            if (colorIndex == COLORS.length)
-            {
-                colorIndex = 0;
-            }
-        }
-        return c;
-    }
-
-    private void setInstrumentFilter(String s)
-    {
-        instrumentSelectString = s;
-        list_BanksValueChanged(null);  // Force a refresh of list_Banks and then related instruments
-
-    }
-
-    private class SynthCellRenderer extends DefaultListCellRenderer
-    {
-
-        @Override
-        @SuppressWarnings("rawtypes")
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
-        {
-            Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-            MidiSynth synth = (MidiSynth) value;
-            setText(synth.getName() + " (" + getSynthSize(synth) + ")");
-            String tooltip = !synth.getManufacturer().trim().isEmpty() ? synth.getManufacturer() : null;
-            setToolTipText(tooltip);
-            setForeground(getSynthColor(synth, null));
-            return c;
-        }
-    }
-
-    private class BankCellRenderer extends DefaultListCellRenderer
-    {
-
-        @Override
-        @SuppressWarnings("rawtypes")
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
-        {
-            Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-            InstrumentBank<?> bank = (InstrumentBank<?>) value;
-            setText(bank.getName() + " (" + getBankSize(bank) + ")");
-            return c;
-        }
-    }
-
-    private class InstrumentCellRenderer extends DefaultListCellRenderer
-    {
-
-        @Override
-        @SuppressWarnings("rawtypes")
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
-        {
-            Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-            Instrument ins = (Instrument) value;
-            InstrumentBank bank = ins.getBank();
-//            FavoriteInstruments fi = FavoriteInstruments.getInstance();
-//            if (fi.contains(ins))
-//            {
-//                Font f = c.getFont();
-//                Font newFont = f.deriveFont(Font.BOLD);
-//                setFont(newFont);
-//            }
-            setText(ins.getPatchName());
-            setToolTipText("Synth:" + bank.getMidiSynth().getName() + ", Bank:" + bank.getName() + ", Program Change:" + ins.getMidiAddress().getProgramChange());
-            setForeground(getSynthColor(ins.getBank().getMidiSynth(), ins));
-            return c;
-        }
-    }
 
 }

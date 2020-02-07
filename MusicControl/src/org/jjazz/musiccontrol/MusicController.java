@@ -49,7 +49,7 @@ import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.UserChannelRhythmVoiceKey;
+import org.jjazz.midimix.UserChannelRvKey;
 import static org.jjazz.musiccontrol.Bundle.*;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
@@ -713,7 +713,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         boolean b = insMix.isMute();
         RhythmVoice rv = mgContext.getMidiMix().getKey(insMix);
-        if (rv instanceof UserChannelRhythmVoiceKey)
+        if (rv instanceof UserChannelRvKey)
         {
             return;
         }
@@ -897,7 +897,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             for (RhythmVoice rv : mm.getRvKeys())
             {
-                if (!(rv instanceof UserChannelRhythmVoiceKey))
+                if (!(rv instanceof UserChannelRvKey))
                 {
                     InstrumentMix insMix = mm.getInstrumentMixFromKey(rv);
                     Integer trackId = mapRvTrackId.get(rv);

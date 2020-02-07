@@ -353,7 +353,7 @@ public class Instrument implements Serializable
      * <p>
      * Do not directly serialize Instrument instances because we need to reuse instances provided by the local InstrumentBanks.
      */
-    protected static class SerializationProxy implements Serializable
+    private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 2792087126L;

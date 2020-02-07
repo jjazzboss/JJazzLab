@@ -23,6 +23,10 @@
  */
 package org.jjazz.midi.synths;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
@@ -42,7 +46,7 @@ import org.openide.util.Exceptions;
  * Because GSDrumsInstruments send SysEx to turn channel into drums mode, normal GS Instruments must also do the same to make sure
  * channel is in normal mode (if channel was previously used in drums mode).
  */
-public class GSInstrument extends Instrument
+public class GSInstrument extends Instrument implements Serializable
 {
 
     /**
@@ -107,7 +111,7 @@ public class GSInstrument extends Instrument
      *
      * @param patchName
      * @param bank
-     * @param ma         Must have BankSelectMethod set to MSB_ONLY
+     * @param ma Must have BankSelectMethod set to MSB_ONLY
      * @param kit
      * @param substitute
      */
@@ -158,6 +162,50 @@ public class GSInstrument extends Instrument
         messages[2] = msgs[1];
         LOGGER.log(Level.FINE, "getMidiMessages() Sending SysEx messages to set melodic mode on channel " + channel);
         return messages;
+    }
+
+    // --------------------------------------------------------------------- 
+    // Serialization
+    // --------------------------------------------------------------------- 
+    private Object writeReplace()
+    {
+        return new SerializationProxy(this);
+    }
+
+    private void readObject(ObjectInputStream stream)
+            throws InvalidObjectException
+    {
+        throw new InvalidObjectException("Serialization proxy required");
+    }
+
+    /**
+     * Rely on Instrument serialization mechanism.
+     */
+    private static class SerializationProxy implements Serializable
+    {
+
+        private static final long serialVersionUID = 872001761L;
+        private final int spVERSION = 1;
+        private String spSaveString;
+
+        private SerializationProxy(GSInstrument ins)
+        {
+            if (ins.getBank() == null || ins.getBank().getMidiSynth() == null)
+            {
+                throw new IllegalStateException("ins=" + ins + " ins.getBank()=" + ins.getBank());
+            }
+            spSaveString = ins.saveAsString();
+        }
+
+        private Object readResolve() throws ObjectStreamException
+        {
+            Instrument ins = Instrument.loadFromString(spSaveString);
+            if (ins == null || !(ins instanceof GSInstrument))
+            {
+                throw new InvalidObjectException("readResolve() Can not retrieve a GSInstrument from saved string=" + spSaveString + ", ins=" + ins);
+            }
+            return (GSInstrument) ins;
+        }
     }
 
 }

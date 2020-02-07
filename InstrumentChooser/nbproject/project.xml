@@ -23,6 +23,22 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
+                    <code-name-base>org.jjazz.outputsynth</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.jjazz.rhythm</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.jjazz.rhythmmusicgeneration</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -97,7 +113,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.instrumentchooser.api</package>
+                <package>org.jjazz.instrumentchooser.spi</package>
             </public-packages>
         </data>
     </configuration>

@@ -319,7 +319,7 @@ public class OutputSynth implements Serializable
     /**
      * Get 'Send XX Mode ON upon play' feature.
      *
-     * @return 
+     * @return
      */
     public SendModeOnUponStartup getSendModeOnUponPlay()
     {
@@ -345,7 +345,7 @@ public class OutputSynth implements Serializable
         }
         SendModeOnUponStartup old = this.sendModeOnUponPlay;
         this.sendModeOnUponPlay = mode;
-        sendModeOnUponPlaySysexMessages();        
+        sendModeOnUponPlaySysexMessages();
         pcs.firePropertyChange(PROP_SEND_MSG_UPON_STARTUP, old, sendModeOnUponPlay);
     }
 
@@ -630,8 +630,9 @@ public class OutputSynth implements Serializable
 
     /**
      * Set the instrument for the user channel.
+     * <p>
      *
-     * @param ins Can't be null
+     * @param ins Can't be null. It must an instrument of this OutputSynth.
      */
     public void setUserInstrument(Instrument ins)
     {
@@ -639,6 +640,7 @@ public class OutputSynth implements Serializable
         {
             throw new IllegalArgumentException("ins=" + ins);
         }
+        if ()
         Instrument oldIns = userInstrument;
         if (oldIns != userInstrument)
         {
