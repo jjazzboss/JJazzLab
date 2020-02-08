@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
+import javax.swing.JMenuItem;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import org.jjazz.outputsynth.OutputSynth;
@@ -366,7 +367,8 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
 
     private void mi_defaultGMActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_mi_defaultGMActionPerformed
     {//GEN-HEADEREND:event_mi_defaultGMActionPerformed
-        if (askUserApplyPredefinedConfig("Default GM"))
+        JMenuItem mi = (JMenuItem) evt.getSource();
+        if (askUserApplyPredefinedConfig(mi.getText()))
         {
             outputSynth.reset();
         }
@@ -374,9 +376,10 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
 
     private void mi_jjazzlabSoundFontActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_mi_jjazzlabSoundFontActionPerformed
     {//GEN-HEADEREND:event_mi_jjazzlabSoundFontActionPerformed
-        if (askUserApplyPredefinedConfig("JJazzLab SoundFont"))
+        JMenuItem mi = (JMenuItem) evt.getSource();
+        if (askUserApplyPredefinedConfig(mi.getText()))
         {
-            File f=outputSynth.getFile();
+            File f = outputSynth.getFile();
             OutputSynthManager osm = OutputSynthManager.getInstance();
             OutputSynth outSynth = new OutputSynth(OS_JJazzLabSoundFont.getInstance());
             outSynth.setFile(f);
@@ -386,9 +389,10 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
 
     private void mi_yamahaActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_mi_yamahaActionPerformed
     {//GEN-HEADEREND:event_mi_yamahaActionPerformed
-        if (askUserApplyPredefinedConfig("Yamaha Tyros/PSR"))
+        JMenuItem mi = (JMenuItem) evt.getSource();
+        if (askUserApplyPredefinedConfig(mi.getText()))
         {
-            File f=outputSynth.getFile();
+            File f = outputSynth.getFile();
             OutputSynthManager osm = OutputSynthManager.getInstance();
             OutputSynth outSynth = new OutputSynth(OS_YamahaRef.getInstance());
             outSynth.setFile(f);

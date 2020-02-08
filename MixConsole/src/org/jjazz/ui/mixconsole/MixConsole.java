@@ -423,6 +423,10 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                     if (mcp != null)
                     {
                         removeMixChannelPanel(mcp);
+                        if (getMixChannelPanels().isEmpty())
+                        {
+                            setVisibleRhythm(null);     // Make all rhythms visible
+                        }
                     }
                 } else if (oldInsMix == null)
                 {
@@ -657,7 +661,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     {
         mcp.cleanup();
         panel_mixChannels.remove(mcp);
-        panel_mixChannels.revalidate();;
+        panel_mixChannels.revalidate();
         panel_mixChannels.repaint();
     }
 

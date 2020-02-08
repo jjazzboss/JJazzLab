@@ -181,7 +181,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * New MidiMix will be initialized with copies of the InstrumentMixes of mm. RhythmVoice keys are directly reused.
      *
      * @param mm
-     * @param r If not null, keep only the data RhythmVoices/InstrumentMixes related to r
+     * @param r  If not null, keep only the data RhythmVoices/InstrumentMixes related to r
      */
     public MidiMix(MidiMix mm, Rhythm r)
     {
@@ -244,7 +244,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      *
      * @param insMix The instrument mix to be used for the user channel
      * @throws MidiUnavailableException If no Midi channel available.
-     * @throws IllegalStateException If a user channel is already added.
+     * @throws IllegalStateException    If a user channel is already added.
      */
     public void addUserChannel(final InstrumentMix insMix) throws MidiUnavailableException
     {
@@ -302,8 +302,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * Fire a PROP_CHANNEL_INSTRUMENT_MIX change event for this channel, and one UndoableEvent.
      *
      * @param channel A valid midi channel number.
-     * @param rvKey Can be null if insMix is also null. If a song is set, must be a RhythmVoice of song's rhythms.
-     * @param insMix Can be null if rvKey is also null.
+     * @param rvKey   Can be null if insMix is also null. If a song is set, must be a RhythmVoice of song's rhythms.
+     * @param insMix  Can be null if rvKey is also null.
      * @throws IllegalArgumentException if insMix is already part of this MidiMix for a different channel
      */
     public void setInstrumentMix(int channel, RhythmVoice rvKey, InstrumentMix insMix)
@@ -583,7 +583,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * The operation will fire UndoableEvent edits.
      *
      * @param fromMm
-     * @param r If non null, copy fromMm instrumentMixes only if they belong to rhythm r
+     * @param r      If non null, copy fromMm instrumentMixes only if they belong to rhythm r
      * @throws MidiUnavailableException If not enough channels available to accommodate mm instruments.
      */
     public final void addInstrumentMixes(MidiMix fromMm, Rhythm r) throws MidiUnavailableException
@@ -775,7 +775,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      *
      * @param f
      * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no PROP_MODIFIED_OR_SAVED state
-     * change)
+     *               change)
      * @throws java.io.IOException
      */
     public void saveToFile(File f, boolean isCopy) throws IOException
@@ -1266,32 +1266,56 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     {
         HashMap<String, InstrumentMix> mapKeyMix = new HashMap<>();
         HashMap<Family, InstrumentMix> mapFamilyMix = new HashMap<>();
-        // First try to match InstrumentMixes using key=3 first char of Rv.getName() + GM1 family
+        InstrumentMix r0InsMixDrums = null;
+        InstrumentMix r0InsMixPerc = null;
+        // First try to match InstrumentMixes using a "key" = "3 first char of Rv.getName() + GM1 family"
         for (int channel : getUsedChannels(r0))
         {
+            // Build the keys from r0
             RhythmVoice rv = rvKeys[channel];
             InstrumentMix insMix = instrumentMixes[channel];
-            GM1Instrument insGM1 = insMix.getInstrument().getSubstitute();  // Can be null            
+            if (rv.getType().equals(RhythmVoice.Type.DRUMS))
+            {
+                r0InsMixDrums = insMix;
+                continue;
+            } else if (rv.getType().equals(RhythmVoice.Type.PERCUSSION))
+            {
+                r0InsMixPerc = insMix;
+                continue;
+            }
+            GM1Instrument insGM1 = insMix.getInstrument().getSubstitute();  // Might be null            
             Family family = insGM1 != null ? insGM1.getFamily() : null;
             String mapKey = Utilities.truncate(rv.getName().toLowerCase(), 3) + "-" + ((family != null) ? family.name() : "");
             if (mapKeyMix.get(mapKey) == null)
             {
                 mapKeyMix.put(mapKey, insMix);  // If several instruments have the same Type, save only the first one
             }
-            if (mapFamilyMix.get(family) == null)
+            if (family != null && mapFamilyMix.get(family) == null)
             {
                 mapFamilyMix.put(family, insMix);       // If several instruments have the same family, save only the first one
             }
         }
+
+        // Try to convert using the keys
         HashSet<Integer> doneChannels = new HashSet<>();
         for (int mmChannel : mm.getUsedChannels())
         {
             RhythmVoice mmRv = mm.rvKeys[mmChannel];
             InstrumentMix mmInsMix = mm.instrumentMixes[mmChannel];
-            GM1Instrument mmInsGM1 = mmInsMix.getInstrument().getSubstitute();  // Can be null            
-            Family mmFamily = mmInsGM1 != null ? mmInsGM1.getFamily() : null;
-            String mapKey = Utilities.truncate(mmRv.getName().toLowerCase(), 3) + "-" + ((mmFamily != null) ? mmFamily.name() : "");
-            InstrumentMix insMix = mapKeyMix.get(mapKey);
+            InstrumentMix insMix = null;
+            if (mmRv.getType().equals(RhythmVoice.Type.DRUMS))
+            {
+                insMix = r0InsMixDrums;
+            } else if (mmRv.getType().equals(RhythmVoice.Type.PERCUSSION))
+            {
+                insMix = r0InsMixPerc;
+            } else
+            {
+                GM1Instrument mmInsGM1 = mmInsMix.getInstrument().getSubstitute();  // Can be null            
+                Family mmFamily = mmInsGM1 != null ? mmInsGM1.getFamily() : null;
+                String mapKey = Utilities.truncate(mmRv.getName().toLowerCase(), 3) + "-" + ((mmFamily != null) ? mmFamily.name() : "");
+                insMix = mapKeyMix.get(mapKey);
+            }
             if (insMix != null)
             {
                 // Copy InstrumentMix data
@@ -1309,7 +1333,12 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                 continue;
             }
             InstrumentMix mmInsMix = mm.instrumentMixes[mmChannel];
-            Family mmFamily = mmInsMix.getInstrument().getSubstitute().getFamily(); // Can be null for drums/perc
+            GM1Instrument mmInsGM1 = mmInsMix.getInstrument().getSubstitute();  // Can be null          
+            if (mmInsGM1 == null)
+            {
+                continue;
+            }
+            Family mmFamily = mmInsMix.getInstrument().getSubstitute().getFamily();
             InstrumentMix insMix = mapFamilyMix.get(mmFamily);
             if (insMix != null)
             {
