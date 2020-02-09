@@ -138,7 +138,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         refreshSynthList();
         refreshCompatibilityCheckBoxes();
         combo_sendMessageUponPlay.setSelectedItem(outputSynth.getSendModeOnUponPlay());
-        btn_userInstrument.setText(outputSynth.getUserInstrument().getFullName());
+        btn_userInstrument.setText(outputSynth.getUserInstrument().getPatchName());
         btn_userInstrument.setToolTipText(outputSynth.getUserInstrument().getFullName());
         btn_Hear.setEnabled(false);
         tbl_Remap.setPrimaryModel(outputSynth.getGMRemapTable());
@@ -201,7 +201,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 this.combo_sendMessageUponPlay.setSelectedItem(outputSynth.getSendModeOnUponPlay());
             } else if (evt.getPropertyName().equals(OutputSynth.PROP_USER_INSTRUMENT))
             {
-                this.btn_userInstrument.setText(outputSynth.getUserInstrument().getFullName());
+                this.btn_userInstrument.setText(outputSynth.getUserInstrument().getPatchName());
                 this.btn_userInstrument.setToolTipText(outputSynth.getUserInstrument().getFullName());
             }
         } else if (evt.getSource() == outputSynth.getGMRemapTable())
@@ -657,15 +657,15 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         pnl_advancedLayout.setHorizontalGroup(
             pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_advancedLayout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(10, 10, 10)
                 .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(btn_userInstrument, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(combo_sendMessageUponPlay, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(combo_sendMessageUponPlay, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btn_userInstrument, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel1)
                     .addComponent(jLabel6))
-                .addContainerGap(391, Short.MAX_VALUE))
+                .addContainerGap(429, Short.MAX_VALUE))
         );
         pnl_advancedLayout.setVerticalGroup(
             pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
