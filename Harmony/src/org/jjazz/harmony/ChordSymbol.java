@@ -409,22 +409,24 @@ public class ChordSymbol implements Serializable, Cloneable
         private static final long serialVersionUID = 199237687633L;
         private final int spVERSION = 1;
         private final String spName;
+        // XStream can't deserialize the ° char : little hack to avoid the issue
+        private static final String DOT_REPLACEMENT = "_UpperDot_";
 
         private SerializationProxy(ChordSymbol cs)
         {
-            spName = cs.getOriginalName();
+            spName = cs.getOriginalName().replace("°", DOT_REPLACEMENT);
         }
 
         private Object readResolve() throws ObjectStreamException
         {
+            String s = spName.replace(DOT_REPLACEMENT, "°");
             ChordSymbol cs;
             try
             {
-                cs = new ChordSymbol(spName);
+                cs = new ChordSymbol(s);
             } catch (ParseException e)
             {
-                LOGGER.
-                        log(Level.WARNING, spName + ": Invalid chord symbol, " + e.getLocalizedMessage() + ". Using 'C' ChordSymbol instead.");
+                LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol, " + e.getLocalizedMessage() + ". Using 'C' ChordSymbol instead.");
                 cs = new ChordSymbol();
             }
             return cs;

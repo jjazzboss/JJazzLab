@@ -89,10 +89,10 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
      * @param rootDg
      * @param bassDg
      * @param ct
-     * @param rInfo If null create an empty ChordRenderingInfo.
+     * @param rInfo          If null create an empty ChordRenderingInfo.
      * @param altChordSymbol Optional alternate chord symbol. If not null altFilter must be also non-null.
-     * @param altFilter Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be also
-     * non-null.
+     * @param altFilter      Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be
+     *                       also non-null.
      */
     public ExtChordSymbol(Note rootDg, Note bassDg, ChordType ct, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
     {
@@ -120,11 +120,11 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     /**
      * Create a ChordSymbol from a chord string specification, with the specified RenderingInfo and alternate chord symbol.
      *
-     * @param s Eg 'C7'
-     * @param rInfo If null create an empty ChordRenderingInfo.
+     * @param s              Eg 'C7'
+     * @param rInfo          If null create an empty ChordRenderingInfo.
      * @param altChordSymbol Optional alternate chord symbol. If not null altFilter must be also non-null.
-     * @param altFilter Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be also
-     * non-null.
+     * @param altFilter      Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be
+     *                       also non-null.
      *
      * @throws ParseException
      */
@@ -300,11 +300,6 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     // --------------------------------------------------------------------- 
     // Private methods
     // ---------------------------------------------------------------------    
-    private ChordSymbol superGetTransposed(int t)
-    {
-        return super.getTransposedChordSymbol(t);
-    }
-
     // --------------------------------------------------------------------- 
     // Serialization
     // ---------------------------------------------------------------------
@@ -328,10 +323,12 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         private final ChordRenderingInfo spRenderingInfo;
         private final AltExtChordSymbol spAltChordSymbol;
         private final AltDataFilter spAltFilter;
+        // XStream can't deserialize the ° char : little hack to avoid the issue
+        private static final String DOT_REPLACEMENT = "_UpperDot_";
 
         private SerializationProxy(ExtChordSymbol cs)
         {
-            spName = cs.getOriginalName();
+            spName = cs.getOriginalName().replace("°", DOT_REPLACEMENT);
             spRenderingInfo = cs.getRenderingInfo();
             spAltChordSymbol = cs.getAlternateChordSymbol();
             spAltFilter = cs.getAlternateFilter();
@@ -339,10 +336,11 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
 
         private Object readResolve() throws ObjectStreamException
         {
+            String s = spName.replace(DOT_REPLACEMENT, "°");
             ChordSymbol cs = null;
             try
             {
-                cs = new ExtChordSymbol(spName, spRenderingInfo, spAltChordSymbol, spAltFilter);
+                cs = new ExtChordSymbol(s, spRenderingInfo, spAltChordSymbol, spAltFilter);
             } catch (ParseException e)
             {
                 LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol. Using 'C' ChordSymbol instead.");
