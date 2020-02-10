@@ -37,7 +37,6 @@ import org.openide.util.lookup.ServiceProviders;
     @ServiceProvider(service = RhythmProvider.class)            // So that it appears in the Rhythm selection dialog box
 }
 )
-
 public class RhythmStubProviderImpl implements StubRhythmProvider
 {
 

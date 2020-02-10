@@ -456,6 +456,13 @@ public class OutputSynth implements Serializable
         Instrument ins = null;
         LOGGER.log(Level.FINE, "findInstrument() -- rv={0}", rv.toString());
 
+        if (rvIns == StdSynth.getInstance().getVoidInstrument())
+        {
+            // Special case: no conversion possible
+            LOGGER.log(Level.FINE, "findInstrument() No conversion possible for VoidInstrument, return VoidInstrument");
+            return rvIns;
+        }
+
         // Try first with custom converters for custom synths
         for (MidiSynth synth : customSynths)
         {
