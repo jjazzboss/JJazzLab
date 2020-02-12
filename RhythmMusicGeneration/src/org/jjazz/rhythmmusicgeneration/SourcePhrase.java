@@ -34,6 +34,7 @@ import static org.jjazz.harmony.Degree.SIXTH_OR_THIRTEENTH;
 import org.jjazz.harmony.Note;
 import org.jjazz.harmony.StandardScaleInstance;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.util.Filter;
 
 /**
  * A source Phrase is Phrase associated to a source chord symbol and possibly with some client properties.
@@ -61,6 +62,12 @@ public class SourcePhrase extends Phrase
         chordSymbol = ecs;
     }
 
+    /**
+     * Build a new SourcePhrase .
+     *
+     * @param p
+     * @param ecs
+     */
     public SourcePhrase(Phrase p, ExtChordSymbol ecs)
     {
         super(p.getChannel());
@@ -70,6 +77,26 @@ public class SourcePhrase extends Phrase
         }
         chordSymbol = ecs;
         add(p);
+    }
+
+    /**
+     * Get a new SourcePhrase with only the events accepted by the specified filter.
+     *
+     * @param f
+     * @return SourcePhrase does not have client properties set
+     */
+    @Override
+    public SourcePhrase getFilteredPhrase(Filter f)
+    {
+        SourcePhrase res = new SourcePhrase(getChannel(), chordSymbol);
+        for (NoteEvent ne : events)
+        {
+            if (f.accept(f))
+            {
+                res.add(ne);
+            }
+        }
+        return res;
     }
 
     /**

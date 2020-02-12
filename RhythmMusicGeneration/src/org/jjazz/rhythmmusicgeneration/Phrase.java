@@ -32,6 +32,7 @@ import javax.sound.midi.Track;
 import org.jjazz.harmony.Chord;
 import org.jjazz.harmony.Note;
 import org.jjazz.midi.MidiConst;
+import org.jjazz.util.Filter;
 
 /**
  * A list of NoteEvents sorted by start position.
@@ -45,7 +46,7 @@ public class Phrase implements Cloneable
     public static final String PARENT_NOTE = "PARENT_NOTE";
     private final int channel;
     // We will make many inserts in the sorted list: linked list avoids the shifting of all subsequent elements.
-    private final LinkedList<NoteEvent> events = new LinkedList<>();
+    protected final LinkedList<NoteEvent> events = new LinkedList<>();
     private static final Logger LOGGER = Logger.getLogger(Phrase.class.getSimpleName());
 
     /**
@@ -230,6 +231,25 @@ public class Phrase implements Cloneable
                 tNe.putClientProperty(PARENT_NOTE, ne);         // If no previous PARENT_NOTE client property we can add one
             }
             res.add(tNe);
+        }
+        return res;
+    }
+
+    /**
+     * Get a phrase with only the events accepted by the specified filter.
+     *
+     * @param f
+     * @return
+     */
+    public Phrase getFilteredPhrase(Filter f)
+    {
+        Phrase res = new Phrase(channel);
+        for (NoteEvent ne : this.events)
+        {
+            if (f.accept(f))
+            {
+                res.add(ne);
+            }
         }
         return res;
     }
@@ -460,7 +480,7 @@ public class Phrase implements Cloneable
     /**
      * Get all NoteEvents sorted by startPosition.
      * <p>
-     * Be careful: returned LinkedList is the internal data structure of the Phrase. 
+     * Be careful: returned LinkedList is the internal data structure of the Phrase.
      *
      * @return
      */

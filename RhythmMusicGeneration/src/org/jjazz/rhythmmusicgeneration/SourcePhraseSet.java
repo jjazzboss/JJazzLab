@@ -35,7 +35,6 @@ import org.jjazz.midi.MidiConst;
  */
 public class SourcePhraseSet
 {
-
     public final static String PROP_ID = "PropId";
     private final HashMap<Integer, SourcePhrase> mapChannelPhrase = new HashMap<>();
     private HashMap<String, String> clientProperties;
