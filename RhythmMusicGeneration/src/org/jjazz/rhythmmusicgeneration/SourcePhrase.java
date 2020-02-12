@@ -91,7 +91,7 @@ public class SourcePhrase extends Phrase
         SourcePhrase res = new SourcePhrase(getChannel(), chordSymbol);
         for (NoteEvent ne : events)
         {
-            if (f.accept(f))
+            if (f.accept(ne))
             {
                 res.add(ne);
             }
