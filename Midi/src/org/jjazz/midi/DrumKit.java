@@ -26,6 +26,7 @@ package org.jjazz.midi;
 import org.jjazz.midi.keymap.KeyRange;
 import java.util.List;
 import java.util.Objects;
+import org.jjazz.midi.keymap.KeyMapGM;
 
 /**
  * The main parameters of a drum kit instrument: a drum/key map and its ambience type.
@@ -34,7 +35,6 @@ import java.util.Objects;
  */
 public class DrumKit
 {
-
 
     /**
      * Defines a key map for a drumkit: associate a percussion name to a note pitch.
@@ -106,6 +106,15 @@ public class DrumKit
 
     private Type type;
     private KeyMap map;
+
+    /**
+     * Create a DrumKit with type=STANDARD and keyMap=GM
+     */
+    public DrumKit()
+    {
+        type = Type.STANDARD;
+        map = KeyMapGM.getInstance();
+    }
 
     public DrumKit(Type type, KeyMap map)
     {

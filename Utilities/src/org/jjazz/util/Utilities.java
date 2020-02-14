@@ -160,14 +160,14 @@ public class Utilities
      * <p>
      *
      * @param <T>
-     * @param smallArray Size must be &lt;= 8, otherwise use too much memory (result size grow like N!).
+     * @param smallArray Size must be &lt;= 10, otherwise use too much memory (result size grow like N!).
      * @param size
      * @param n
      * @param result     The li s t o f all smallArray permutations.
      */
     public static <T> void heapPermutation(T smallArray[], int size, int n, List<T[]> result)
     {
-        if (smallArray.length > 8)
+        if (smallArray.length > 10)
         {
             throw new IllegalArgumentException("smallArray.size()=" + smallArray.length + " size=" + size + " result=" + result);
         }

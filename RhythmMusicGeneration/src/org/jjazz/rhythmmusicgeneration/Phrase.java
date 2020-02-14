@@ -183,7 +183,7 @@ public class Phrase implements Cloneable
      *
      * @param posInBeats
      * @return The list of notes (with their index) whose startPos is strictly before posInBeats and endPos strictly after
-     * posInBeats
+     *         posInBeats
      */
     public List<NoteAndIndex> getCrossingNotes(float posInBeats)
     {
@@ -286,10 +286,10 @@ public class Phrase implements Cloneable
      * <p>
      * If a note is starting before startPos and ending after startPos: <br>
      * - if keepLeft is false, the note is removed.<br>
-     * - if keepLeft is true, the note is removed but a shorter identical one is created from startPos.<br>
+     * - if keepLeft is true, the note is replaced by a shorter identical one starting at startPos.<br>
      * If a note is starting before endPos and ending after endPos: <br>
      * - if cutRight is false, the note is not removed.<br>
-     * - if cutRight is true, the note is removed but a shorter identical one is created that ends at endPos.<br>
+     * - if cutRight is true, the note is replaced by a shorter identical that ends at endPos.<br>
      *
      * @param startPos
      * @param endPos
@@ -351,7 +351,7 @@ public class Phrase implements Cloneable
         // Add the new NoteEvents
         for (NoteEvent ne : toBeAdded)
         {
-            events.add(ne);
+            add(ne);
         }
 
     }
@@ -626,20 +626,16 @@ public class Phrase implements Cloneable
     }
 
     /**
-     * Check all phrases notes and correct notes (+1/-1 octave) whose pitch is above highLimit or below lowLimit.
+     * Transpose notes (+/- octaves)whose pitch is above highLimit or below lowLimit.
      * <p>
      * Fixed new notes's PARENT_NOTE client property is preserved.
      *
-     * @param lowLimit [0-115] Use special value -1 to not check the low limit.
-     * @param highLimit [12-127] Use special value -1 to not check the high limit.
+     * @param lowLimit  There must be at least 1 octave between lowLimit and highLimit
+     * @param highLimit There must be at least 1 octave between lowLimit and highLimit
      */
-    public void limitPitch(int lowLimit, int highLimit)
+    public void limitPitchRange(int lowLimit, int highLimit)
     {
-        if ((lowLimit != -1 && lowLimit < 0)
-                || lowLimit > 115
-                || (highLimit != -1 && highLimit < 12)
-                || highLimit > 127
-                || (highLimit != -1 && lowLimit > highLimit))
+        if (lowLimit < 0 || highLimit > 127 || lowLimit > highLimit || highLimit - lowLimit < 11)
         {
             throw new IllegalArgumentException("lowLimit=" + lowLimit + " highLimit=" + highLimit);
         }
@@ -647,15 +643,17 @@ public class Phrase implements Cloneable
         {
             NoteEvent ne = events.get(i);
             int pitch = ne.getPitch();
-            if (lowLimit != -1 && pitch < lowLimit)
+
+            while (pitch < lowLimit)
             {
-                NoteEvent nne = new NoteEvent(ne, pitch + 12);
-                events.set(i, nne);
-            } else if (highLimit != -1 && pitch > highLimit)
-            {
-                NoteEvent nne = new NoteEvent(ne, pitch - 12);
-                events.set(i, nne);
+                pitch += 12;
             }
+            while (pitch > highLimit)
+            {
+                pitch -= 12;
+            }
+            NoteEvent nne = new NoteEvent(ne, pitch);
+            events.set(i, nne);
         }
     }
 
