@@ -61,7 +61,7 @@ import org.jjazz.songstructure.api.SongPart;
 //        {
 //           @ActionReference(path = "Menu/Edit", position = 50200),
 //        })
-public final class TesAllRhythmsGenerateSequence implements ActionListener
+//public final class TesAllRhythmsGenerateSequence implements ActionListener
 {
 
     private static final Logger LOGGER = Logger.getLogger(TesAllRhythmsGenerateSequence.class.getSimpleName());
@@ -128,7 +128,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
                     try
                     {
                         Sequence sequence = seqBuilder.buildSequence(false);       // Can raise MusicGenerationException               
-                        LOGGER.severe("sequence resolution=" + sequence.getResolution());
+                        // LOGGER.severe("sequence resolution=" + sequence.getResolution());
                     } catch (MusicGenerationException ex)
                     {
                         Exceptions.printStackTrace(ex);
