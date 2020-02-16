@@ -38,12 +38,14 @@ import org.openide.util.NbPreferences;
 public class FileDirectoryManager
 {
 
+    public static final String APP_CONFIG_PREFIX_DIR = ".jjazz";
     public static final String TEMPLATE_SONG_NAME = "NewSongTemplate";
     public static final String MIX_FILE_EXTENSION = "mix";
     public static final String SONG_EXTENSION = "sng";
     public static final String PROP_LAST_SONG_DIRECTORY = "PropLastSongDirectory";
     public static final String PROP_RHYTHM_USER_DIRECTORY = "PropRhythmUserDirectory";
     public static final String PROP_RHYTHM_MIX_DIRECTORY = "PropRhythmMixDirectory";
+    public static final String PROP_USE_RHYTHM_USER_DIR_FOR_RHYTHM_DEFAULT_MIX = "PropUseRhythmUserDirForRhythmDefaultMix";
 
     private static FileDirectoryManager INSTANCE;
     /**
@@ -175,24 +177,26 @@ public class FileDirectoryManager
     }
 
     /**
-     * Get the directory used for default rhythm mix files.
+     * Get the directory used for rhythm's default mix files.
      * <p>
-     * If not set use the same default value than getUserRhythmDirectory().
+     * If isUseRhyhtmUserDirAsRhythmDefaultMixDir() is true use the same default value than getUserRhythmDirectory().
      *
      * @return Can't be null.
      */
     public File getRhythmMixDirectory()
     {
-        String uh = System.getProperty("user.home");
-        String s = prefs.get(PROP_RHYTHM_MIX_DIRECTORY, uh);
+        if (isUseRhyhtmUserDirAsRhythmDefaultMixDir())
+        {
+            return getUserRhythmDirectory();
+        }
+        String s = prefs.get(PROP_RHYTHM_MIX_DIRECTORY, getUserRhythmDirectory().getAbsolutePath());
         File f = new File(s);
         if (!f.isDirectory())
         {
-            LOGGER.warning("getRhythmMixDirectory() rhythm mix directory not found: " + s + " Using: " + uh + " instead.");
-            f = new File(uh);
+            f = getUserRhythmDirectory();
             if (!f.isDirectory())
             {
-                LOGGER.severe("getRhythmMixDirectory() No valid rhythm mix directory found. Can't reuse system user directory because it does not exist: " + f.getAbsolutePath());
+                LOGGER.severe("getRhythmMixDirectory() No valid rhythm mix directory found : " + f.getAbsolutePath());
             }
         }
         LOGGER.fine("getRhythmMixDirectory() f=" + f);
@@ -201,7 +205,7 @@ public class FileDirectoryManager
     }
 
     /**
-     * Set the user directory where to find rhythm mix files.
+     * Set the user directory where to find rhythm default mix files.
      *
      * @param dir
      */
@@ -213,18 +217,35 @@ public class FileDirectoryManager
         }
         File old = getRhythmMixDirectory();
         prefs.put(PROP_RHYTHM_MIX_DIRECTORY, dir.getAbsolutePath());
-        LOGGER.fine("setUserRhythmMixDirectory() old=" + old + " new=" + dir);
+        LOGGER.fine("setRhythmMixDirectory() old=" + old + " new=" + dir);
         pcs.firePropertyChange(PROP_RHYTHM_MIX_DIRECTORY, old, dir);
+    }
+
+    public boolean isUseRhyhtmUserDirAsRhythmDefaultMixDir()
+    {
+        return prefs.getBoolean(PROP_USE_RHYTHM_USER_DIR_FOR_RHYTHM_DEFAULT_MIX, true);
+    }
+
+    /**
+     * If b is true getRhythmMixDirectory() will return the same value as getUserRhythmDirectory().
+     *
+     * @param b
+     */
+    public void setUseRhyhtmUserDirAsRhythmDefaultMixDir(boolean b)
+    {
+        boolean old = isUseRhyhtmUserDirAsRhythmDefaultMixDir();
+        prefs.putBoolean(PROP_USE_RHYTHM_USER_DIR_FOR_RHYTHM_DEFAULT_MIX, b);
+        pcs.firePropertyChange(PROP_USE_RHYTHM_USER_DIR_FOR_RHYTHM_DEFAULT_MIX, old, b);
     }
 
     /**
      * Get the user specific JJazz configuration directory.
      * <p>
      * <p>
-     * Use the ".jjazz" subdir of the Netbeans user directory, or if not set of the user.home system property. Create the
+     * Use the APP_CONFIG_PREFIX_DIR subdir of the Netbeans user directory, or if not set of the user.home system property. Create the
      * directory if it does not exist.
      *
-     * @param subDirName An optional extra subdirectory name (".jjazz/subDir"). Ignored if null or empty.
+     * @param subDirName An optional extra subdirectory name (APP_CONFIG_PREFIX_DIR/subDir). Ignored if null or empty.
      * @return Could be null if no user directory found.
      */
     public File getAppConfigDirectory(String subDirName)
@@ -242,7 +263,7 @@ public class FileDirectoryManager
             LOGGER.severe("getAppConfigDirectory() Can't find a valid user directory userDir=" + userDir);
             return null;
         }
-        File appConfigDir = userDir.toPath().resolve(".jjazz").toFile();
+        File appConfigDir = userDir.toPath().resolve(APP_CONFIG_PREFIX_DIR).toFile();
         if (!appConfigDir.isDirectory())
         {
             try

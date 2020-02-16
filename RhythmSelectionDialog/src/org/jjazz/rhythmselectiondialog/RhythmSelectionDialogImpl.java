@@ -24,11 +24,12 @@ package org.jjazz.rhythmselectiondialog;
 
 import org.jjazz.rhythm.database.api.FavoriteRhythmProvider;
 import org.jjazz.rhythmselectiondialog.ui.RhythmProviderList;
-import org.jjazz.rhythmselectiondialog.ui.RhythmTable;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,11 +47,13 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.FavoriteRhythms;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
+import org.jjazz.rhythmselectiondialog.ui.RhythmTable;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.lookup.ServiceProvider;
@@ -103,7 +106,6 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         list_RhythmProviders.addListSelectionListener(this);
 
         // Prepare table
-        rhythmTable.setHighlightFavorite(true);
         rhythmTable.getSelectionModel().addListSelectionListener(this);
         rhythmTable.addMouseListener(new MouseAdapter()
         {
@@ -133,7 +135,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         {
             throw new IllegalArgumentException("r=" + r);
         }
-        LOGGER.fine("preset() -- r=" + r);
+        LOGGER.log(Level.FINE, "preset() -- r={0}", r);
         exitOk = false;
 
         cleanup();
@@ -156,10 +158,13 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         list_RhythmProviders.setSelectedValue(presetRhythmProvider, true);  // This will update the rhythm table        
 
         // Select the preset rhythm and make it visible
-        rhythmTable.setSelected(presetRhythm);
+        rhythmTable.setSelectedRhythm(presetRhythm);
         int row = rhythmTable.getSelectedRow();
         assert row != -1;
         rhythmTable.scrollRectToVisible(rhythmTable.getCellRect(row, 0, true));
+
+        tf_userRhythmDir.setText(FileDirectoryManager.getInstance().getUserRhythmDirectory().getAbsolutePath());
+        rhythmTable.requestFocusInWindow();
     }
 
     @Override
@@ -260,6 +265,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
      */
     private void rhythmDatabaseChanged()
     {
+        LOGGER.fine("rhythmDatabaseChanged()");
         RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
         List<RhythmProvider> rps = new ArrayList<>();
         rps.add(FavoriteRhythmProvider.getInstance());          // Always first
@@ -272,7 +278,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         }
         if (presetRhythm != null)
         {
-            rhythmTable.setSelected(presetRhythm);
+            rhythmTable.setSelectedRhythm(presetRhythm);
             int row = rhythmTable.getSelectedRow();
             if (row != -1)
             {
@@ -291,6 +297,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
      */
     private void updateRhythmTable(RhythmProvider rp)
     {
+        LOGGER.fine("updateRhythmTable() -- rp=" + rp.getInfo().getName());
         // We don't want to react on table change events here, this would mess up our data
         rhythmTable.getSelectionModel().removeListSelectionListener(this);
 
@@ -303,7 +310,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         rhythms = rdb.getRhythms(timeSignature, rhythms);
 
         // Update the table
-        rhythmTable.populate(rhythms);
+        rhythmTable.getModel().setRhythms(rhythms);
 
         // Restore table selection listening
         rhythmTable.getSelectionModel().addListSelectionListener(this);
@@ -312,7 +319,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         Rhythm ri = mapRpSelectedrythm.get(rp);
         if (ri != null)
         {
-            rhythmTable.setSelected(ri);
+            rhythmTable.setSelectedRhythm(ri);
         }
     }
 
@@ -365,12 +372,19 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         if (r != null)
         {
             FavoriteRhythms fr = FavoriteRhythms.getInstance();
-            if (fr.contains(r))
+            if (selectedRhythmProvider == FavoriteRhythmProvider.getInstance())
             {
                 fr.removeRhythm(r);
+                updateRhythmTable(selectedRhythmProvider);
             } else
             {
-                fr.addRhythm(r);
+                if (fr.contains(r))
+                {
+                    fr.removeRhythm(r);
+                } else
+                {
+                    fr.addRhythm(r);
+                }
             }
         }
     }
@@ -379,8 +393,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     // Private classes
     // ===================================================================================
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
+     * method is always regenerated by the Form Editor.
      */
     @SuppressWarnings(
             {
@@ -408,6 +422,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         lbl_Title = new javax.swing.JLabel();
         cb_applyRhythmToNextSpts = new javax.swing.JCheckBox();
         cb_useRhythmTempo = new javax.swing.JCheckBox();
+        tf_userRhythmDir = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
 
         setTitle(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.title")); // NOI18N
         setModal(true);
@@ -446,63 +462,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         jScrollPane1.setViewportView(list_RhythmProviders);
 
         jScrollPane2.setAutoscrolls(true);
-
-        tbl_rhythms.setAutoCreateRowSorter(true);
-        tbl_rhythms.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][]
-            {
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null}
-            },
-            new String []
-            {
-                "Name", "Description", "Tempo", "Feel", "Tags", "File name"
-            }
-        )
-        {
-            Class[] types = new Class []
-            {
-                java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
-            };
-            boolean[] canEdit = new boolean []
-            {
-                false, false, false, false, false, false
-            };
-
-            public Class getColumnClass(int columnIndex)
-            {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex)
-            {
-                return canEdit [columnIndex];
-            }
-        });
-        tbl_rhythms.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        tbl_rhythms.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane2.setViewportView(tbl_rhythms);
-        if (tbl_rhythms.getColumnModel().getColumnCount() > 0)
-        {
-            tbl_rhythms.getColumnModel().getColumn(0).setHeaderValue(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.tbl_rhythms.columnModel.title0")); // NOI18N
-            tbl_rhythms.getColumnModel().getColumn(1).setHeaderValue(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.tbl_rhythms.columnModel.title1")); // NOI18N
-            tbl_rhythms.getColumnModel().getColumn(2).setHeaderValue(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.tbl_rhythms.columnModel.title2")); // NOI18N
-            tbl_rhythms.getColumnModel().getColumn(3).setHeaderValue(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.tbl_rhythms.columnModel.title3")); // NOI18N
-        }
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_rhythms, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.lbl_rhythms.text")); // NOI18N
 
@@ -527,10 +487,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_timeSignature, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.lbl_timeSignature.text")); // NOI18N
 
-        jScrollPane3.setBackground(null);
         jScrollPane3.setBorder(null);
 
-        helpTextArea1.setBackground(null);
         helpTextArea1.setColumns(20);
         helpTextArea1.setRows(2);
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.helpTextArea1.text")); // NOI18N
@@ -547,7 +505,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 546, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 690, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addComponent(lbl_timeSignature)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -561,7 +519,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(10, 10, 10)
                         .addComponent(jScrollPane3)))
-                .addContainerGap())
+                .addGap(0, 0, 0))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -576,11 +534,10 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                     .addComponent(lbl_timeSignature))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 350, Short.MAX_VALUE)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0))
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         lbl_Title.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
@@ -594,6 +551,11 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         cb_useRhythmTempo.setSelected(true);
         org.openide.awt.Mnemonics.setLocalizedText(cb_useRhythmTempo, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_useRhythmTempo.text")); // NOI18N
         cb_useRhythmTempo.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_useRhythmTempo.toolTipText")); // NOI18N
+
+        tf_userRhythmDir.setEditable(false);
+        tf_userRhythmDir.setText(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.tf_userRhythmDir.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.jLabel1.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -615,15 +577,21 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                     .addGroup(layout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addComponent(lbl_Title)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(99, 99, 99)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tf_userRhythmDir)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(lbl_Title)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lbl_Title)
+                    .addComponent(jLabel1)
+                    .addComponent(tf_userRhythmDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(9, 9, 9)
                 .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(9, 9, 9)
                 .addComponent(cb_applyRhythmToNextSpts)
@@ -701,6 +669,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     private javax.swing.JCheckBox cb_applyRhythmToNextSpts;
     private javax.swing.JCheckBox cb_useRhythmTempo;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
@@ -712,6 +681,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     private javax.swing.JList<RhythmProvider> list_RhythmProviders;
     private javax.swing.JTable tbl_rhythms;
     private javax.swing.JTextField tf_filter;
+    private javax.swing.JTextField tf_userRhythmDir;
     // End of variables declaration//GEN-END:variables
 
 }

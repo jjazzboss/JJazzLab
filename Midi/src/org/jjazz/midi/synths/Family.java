@@ -30,7 +30,24 @@ package org.jjazz.midi.synths;
  */
 public enum Family
 {
-    Piano, Chromatic_Percussion, Organ, Guitar, Bass, Strings, Ensemble, Brass, Reed, Pipe, Synth_Lead, Synth_Pad, Synth_Effects, Ethnic, Percussive, Sound_Effects;
+    Piano("piano"), Chromatic_Percussion("cperc"), Organ("organ"), Guitar("guit"), Bass("bass"), Strings(""), Ensemble("strgs"), Brass("brass"), Reed("reed"), Pipe("wind"), Synth_Lead("lead"), Synth_Pad("pad"), Synth_Effects("synth"), Ethnic("ethnc"), Percussive("perc"), Sound_Effects("sfx");
+
+    private String shortName;
+
+    private Family(String shortName)
+    {
+        this.shortName = shortName;
+    }
+
+    /**
+     * A 5 chars max. string.
+     *
+     * @return
+     */
+    public String getShortName()
+    {
+        return this.shortName;
+    }
 
     @Override
     public String toString()
@@ -84,7 +101,7 @@ public enum Family
     public static boolean couldBeDrums(String patchName)
     {
         String s = patchName.toLowerCase();
-        return s.contains("drums") || s.contains("kit");
+        return (s.contains("drums") && !s.contains("steel")) || s.contains("kit") || s.contains("dr:") || s.contains("drm");
     }
 
 }

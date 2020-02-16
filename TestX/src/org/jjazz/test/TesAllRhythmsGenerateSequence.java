@@ -61,7 +61,7 @@ import org.jjazz.songstructure.api.SongPart;
 //        {
 //           @ActionReference(path = "Menu/Edit", position = 50200),
 //        })
-//public final class TesAllRhythmsGenerateSequence implements ActionListener
+public final class TesAllRhythmsGenerateSequence implements ActionListener
 {
 
     private static final Logger LOGGER = Logger.getLogger(TesAllRhythmsGenerateSequence.class.getSimpleName());

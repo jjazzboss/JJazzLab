@@ -27,9 +27,13 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileVisitResult;
+import static java.nio.file.FileVisitResult.CONTINUE;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -447,12 +451,12 @@ public class Utilities
     /**
      * Gets the base location of the given class. Manage all OS variations and possible problems in characters...
      * <p>
-     * If the class is directly on the file system (e.g., "/path/to/my/package/MyClass.class") then it will return the base
-     * directory (e.g., "file:/path/to").
+     * If the class is directly on the file system (e.g., "/path/to/my/package/MyClass.class") then it will return the base directory (e.g.,
+     * "file:/path/to").
      * </p>
      * <p>
-     * If the class is within a JAR file (e.g., "/path/to/my-jar.jar!/my/package/MyClass.class") then it will return the path to
-     * the JAR (e.g., "file:/path/to/my-jar.jar").
+     * If the class is within a JAR file (e.g., "/path/to/my-jar.jar!/my/package/MyClass.class") then it will return the path to the JAR
+     * (e.g., "file:/path/to/my-jar.jar").
      * </p>
      *
      * @param c The class whose location is desired.
@@ -518,8 +522,8 @@ public class Utilities
     /**
      * Converts the given {@link URL} to its corresponding {@link File}.
      * <p>
-     * This method is similar to calling {@code new File(url.toURI())} except that it also handles "jar:file:" U Sgs, returning
-     * the path to the JAR file.
+     * This method is similar to calling {@code new File(url.toURI())} except that it also handles "jar:file:" U Sgs, returning the path to
+     * the JAR file.
      * </p>
      *
      * @param url The URL to convert.
@@ -592,6 +596,49 @@ public class Utilities
         }
 
         return result.toString();
+    }
+
+    /**
+     * Get all the files matching fnFilter in dirTree (and its subdirectories).
+     * <p>
+     *
+     * @param dirTree
+     * @param fnFilter        If null accept all files.
+     * @param ignoreDirPrefix Subdirs starting with this prefix are not traversed. If null accept all subdirectories.
+     * @return
+     */
+    static public HashSet<Path> listFiles(File dirTree, final FilenameFilter fnFilter, final String ignoreDirPrefix)
+    {
+        if (dirTree == null)
+        {
+            throw new IllegalArgumentException("dirTree=" + dirTree + " fnFilter=" + fnFilter + " ignoreDirPrefix=" + ignoreDirPrefix);
+        }
+        final HashSet<Path> pathSet = new HashSet<>();
+        try
+        {
+            Files.walkFileTree(dirTree.toPath(), new SimpleFileVisitor<Path>()
+            {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+                {
+                    return ignoreDirPrefix == null || !dir.getFileName().toString().startsWith(ignoreDirPrefix) ? FileVisitResult.CONTINUE : FileVisitResult.SKIP_SUBTREE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs)
+                {
+                    if (fnFilter == null || fnFilter.accept(filePath.getParent().toFile(), filePath.getFileName().toString()))
+                    {
+                        pathSet.add(filePath);
+                    }
+                    return CONTINUE;
+                }
+            });
+        } catch (IOException ex)
+        {
+            LOGGER.warning("listFile() IOException ex=" + ex.getLocalizedMessage() + ". Some files may have not been listed.");
+        }
+        return pathSet;
     }
 
 }

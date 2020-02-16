@@ -24,20 +24,23 @@ package org.jjazz.rhythm.spi;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.util.Utilities;
 import org.openide.*;
 import org.openide.util.NbPreferences;
 
 /**
  * A base class to help build a RhythmProvider.
  * <p>
- * Analyze the rhythm directory for rhythm files. <br>
+ * Analyze the rhythm directory and its subdirectories for rhythm files. <br>
  * Manage a list of blacklisted files saved as Preferences to avoid re-opening them.
  * <p>
  * Subclasses need only to implement the abstract methods and call the constructor with the appropriate arguments.
@@ -45,6 +48,7 @@ import org.openide.util.NbPreferences;
 public abstract class AbstractRhythmProvider implements RhythmProvider
 {
 
+    public static final String PREFIX_IGNORED_SUBDIR = "_";
     private Info info;
     private FilenameFilter filenameFilter;
     private static final Logger LOGGER = Logger.getLogger(AbstractRhythmProvider.class.getSimpleName());
@@ -58,7 +62,7 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
      * @param desc
      * @param author
      * @param version
-     * @param fileExtensions The allowed rhythm files extensions. Can be null if no files.
+     * @param fileExtensions The recognized rhythm files extensions. Can be null if no files.
      */
     protected AbstractRhythmProvider(String uniqueId, String name, String desc, String author, int version, String... fileExtensions)
     {
@@ -81,99 +85,103 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
     }
 
     /**
-     * Get the rhythms of this object.
+     * Get the file-based rhythms provided by this object.
      * <p>
-     * If prevList is null then use readFast() to fast scan all rhythms files found in directory returned by
-     * getRhythmDirectory().<br>
-     * If prevList is non null then fast scan only the added files (present in the directory but not in prevList). Also check for
-     * files which have been removed from the directory (present in prevList but not in the directory)
+     * If prevList is null then use readFast() to fast scan all rhythms files found in getRhythmFilesDir() and subdirs -except the subdirs
+     * starting with PREFIX_IGNORED_SUBDIR.<br>
+     * If prevList is non null then fast scan only the new files. Also check for files which have been removed from the directory (present
+     * in prevList but not in the getRhythmFilesDir() tree)
      * .<p>
      * Files which can't be read are added to a blacklist which is saved as a Preferences.
      *
-     * @param prevList A list of non-builtin rhythms
+     * @param prevRhythmList A list of file-based rhythms.
      * @return
      */
     @Override
-    public List<Rhythm> getFileRhythms(List<Rhythm> prevList)
+    public List<Rhythm> getFileRhythms(List<Rhythm> prevRhythmList)
     {
-        LOGGER.fine("getRhythms() -- prevList=" + prevList);
+        LOGGER.fine("getRhythms() -- prevRhythmList=" + prevRhythmList);
         ArrayList<Rhythm> result = new ArrayList<>();
 
-        // Prepare a workable sorted prevList
-        ArrayList<InfoFileName> prevListWork = new ArrayList<>();
-        if (prevList != null)
+        File rDir = getRhythmFilesDir();
+        if (getFilenameFilter() == null || rDir == null)
         {
-            for (Rhythm r : prevList)
+            LOGGER.fine("getRhythms() RhythmProvider=" + info.getName() + " - Return an empty list because filenameFilter=" + filenameFilter + ", rDir=" + rDir);
+            return result;
+        }
+
+        if (!rDir.isDirectory())
+        {
+            LOGGER.warning("getRhythms() RhythmProvider=" + info.getName() + " - Rhythm file directory does not exist : " + rDir.getAbsolutePath());
+            return result;
+        }
+
+        // The HashSet of RhythmFiles built from the prevRhythmList
+        HashSet<RhythmPathPair> prevListSet = new HashSet<>();
+        if (prevRhythmList != null)
+        {
+            for (Rhythm r : prevRhythmList)
             {
                 String fn = r.getFile().getName();       // ri.getFile() can't return null
                 if (!fn.equals(""))
                 {
-                    prevListWork.add(new InfoFileName(fn, r));
+                    prevListSet.add(new RhythmPathPair(r.getFile().toPath(), r));
                 } else
                 {
                     // It's a builtin rhythm !
-                    throw new IllegalArgumentException("r=" + r + " prevList=" + prevList);
+                    throw new IllegalArgumentException("r=" + r + " prevList=" + prevRhythmList);
                 }
             }
         }
-        Collections.sort(prevListWork);
 
-        // Get the sorted filename list in the rhythm directory
-        ArrayList<String> dirFilenames = new ArrayList<>();
-        File dirFiles = getRhythmFilesDir();
-        if (filenameFilter != null && dirFiles != null)
-        {
-            dirFilenames.addAll(Arrays.asList(dirFiles.list(filenameFilter)));          // Arrays.asList returns a fix-size list
-        }
-        Collections.sort(dirFilenames);
-        LOGGER.fine("getRhythms()   dirFilenames BEFORE=" + dirFilenames);
+        // Get the rhythm files in the directory tree
+        HashSet<Path> rhythmFiles = Utilities.listFiles(rDir, getFilenameFilter(), PREFIX_IGNORED_SUBDIR);
+        LOGGER.fine("getRhythms()   rhythmFiles=" + rhythmFiles);
 
-        // Remove the black listed files from the directory list
-        ArrayList<String> blackList = new ArrayList<>(getFileBlackList());
-        LOGGER.fine("getRhythms()   blackList BEFORE=" + blackList);
-        for (String s : blackList.toArray(new String[0]))
+        // Remove the black listed files
+        HashSet<Path> blackListedFiles = getBlackListedFiles();
+        LOGGER.fine("getRhythms()   blackList=" + blackListedFiles);
+        for (Path blackListedFile : blackListedFiles.toArray(new Path[0]))
         {
-            int index = Collections.binarySearch(dirFilenames, s);
-            if (index >= 0)
+            if (rhythmFiles.contains(blackListedFile))
             {
                 // File is still there, remove it 
-                dirFilenames.remove(index);
+                rhythmFiles.remove(blackListedFile);
             } else
             {
                 // File is no more here, update our black list
-                blackList.remove(s);
+                blackListedFiles.remove(blackListedFile);
             }
         }
-        if (!blackList.isEmpty())
+        if (!blackListedFiles.isEmpty())
         {
-            LOGGER.info("getRhythms() Ignoring previously blacklisted files: " + blackList);
+            LOGGER.info("getRhythms() Ignoring previously blacklisted files: " + blackListedFiles);
         }
 
-        // Compare the previous list to what's in the directory: detect deleted files in the dir
-        for (InfoFileName ifn : prevListWork)
+        // Compare the previous list to what's in the directory
+        // Detect deleted files in the dir and subdirs, leave only new files in rhythmFiles
+        for (RhythmPathPair rpp : prevListSet)
         {
-            // Do we find the previous name in the directory ?
-            int index = Collections.binarySearch(dirFilenames, ifn.filename);
-            if (index >= 0)
+            // Do we find the previous file in the dir. tree ? 
+            if (rhythmFiles.contains(rpp.path))
             {
-                // Yes, keep the Rhythm in the result
-                result.add(ifn.rhythm);
-                // Remove the processed data 
-                dirFilenames.remove(index);
+                // Yes: add directly the Rhythm in the result and remove the path from rhythmFiles
+                result.add(rpp.rhythm);
+                rhythmFiles.remove(rpp.path);
             } else
             {
                 // No, prevFile must have been deleted during execution, don't add it to the result
             }
         }
 
-        LOGGER.fine("getRhythms()   dirFilenames AFTER=" + dirFilenames);
+        LOGGER.fine("getRhythms()   rhythmFiles after processing of prevList=" + rhythmFiles);
 
-        // Now dirFilenames contains only new filenames, ie which are not in prevList
-        ArrayList<String> blackListUpdate = new ArrayList<>();
-        for (String filename : dirFilenames)
+        // Now rhythmFiles contains only NEW rhythm files, ie which are not in prevList
+        HashSet<Path> blackListUpdate = new HashSet<>();
+        for (Path rhythmFile : rhythmFiles)
         {
             // Read the file to create the appropriate Rhythm, then add to result
-            File f = new File(dirFiles, filename);
+            File f = rhythmFile.toFile();
             Rhythm r = readFast(f);
             if (r != null)
             {
@@ -181,7 +189,7 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
             } else
             {
                 // Problem occured, black list file
-                blackListUpdate.add(filename);
+                blackListUpdate.add(rhythmFile);
             }
         }
 
@@ -198,17 +206,13 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
             DialogDisplayer.getDefault().notify(d);
 
             // Update the blacklist
-            for (String fileName : blackListUpdate)
-            {
-                if (!blackList.contains(fileName))      // For robustness
-                {
-                    blackList.add(fileName);
-                }
-            }
+            blackListedFiles.addAll(blackListUpdate);
         }
 
         // Save update blacklist
-        storeFileBlackList(blackList);
+        storeFileBlackList(blackListedFiles);
+
+        LOGGER.fine("getRhythms()   result=" + result);
 
         return result;
     }
@@ -222,8 +226,7 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
     public abstract List<Rhythm> getBuiltinRhythms();
 
     /**
-     * A fast method to read specified file and extract only the description Rhythm object complete enough for description
-     * purposes.
+     * A fast method to read specified file and extract only the description Rhythm object complete enough for description purposes.
      * <p>
      * If the returned rhythm uses a heavy-memory MidiMusicGenerator, it should delay its memory-loading in the lookup in its
      * loadResources() method.
@@ -234,13 +237,18 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
     protected abstract Rhythm readFast(File f);
 
     /**
+     * Get the blacked listed files.
      *
-     * @return A fixed-size list.
+     * @return
      */
-    public List<String> getFileBlackList()
+    public HashSet<Path> getBlackListedFiles()
     {
+        HashSet<Path> res = new HashSet<>();
         String strs = prefs.get(getBlackListPreferenceKey(), "").trim();
-        List<String> res = Arrays.asList(strs.split("\\s*,\\s*"));
+        for (String s : strs.split("\\s*,\\s*"))
+        {
+            res.add(Paths.get(s));
+        }
         LOGGER.fine("getFileBlackList() res=" + res);
         return res;
     }
@@ -289,7 +297,12 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
     // ===================================================================================
     // Private mehods
     // ===================================================================================
-    private void storeFileBlackList(List<String> blackList)
+    /**
+     * Store the list by RhythmProvider.
+     *
+     * @param blackList
+     */
+    private void storeFileBlackList(HashSet<Path> blackList)
     {
         if (blackList.isEmpty())
         {
@@ -297,10 +310,11 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
             prefs.put(getBlackListPreferenceKey(), "");
             return;
         }
-        StringBuilder sb = new StringBuilder(blackList.get(0));
-        for (int i = 1; i < blackList.size(); i++)
+        Iterator<Path> it = blackList.iterator();
+        StringBuilder sb = new StringBuilder(it.next().toString());
+        while (it.hasNext())
         {
-            sb.append(",").append(blackList.get(i));
+            sb.append(",").append(it.next().toString());
         }
         LOGGER.fine("storeFileBlackList() key=" + getBlackListPreferenceKey() + " value=" + sb.toString());
         prefs.put(getBlackListPreferenceKey(), sb.toString());
@@ -317,22 +331,16 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
     /**
      * A pair class to help perform diff operations on Rhythm lists.
      */
-    private class InfoFileName implements Comparable<InfoFileName>
+    private class RhythmPathPair
     {
 
-        String filename;
+        Path path;
         Rhythm rhythm;
 
-        InfoFileName(String f, Rhythm r)
+        RhythmPathPair(Path p, Rhythm r)
         {
-            filename = f;
+            path = p;
             rhythm = r;
-        }
-
-        @Override
-        public int compareTo(InfoFileName o)
-        {
-            return filename.compareTo(o.filename);
         }
     }
 
@@ -354,7 +362,7 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
         {
             for (String ext : fileExtensions)
             {
-                if (name.toLowerCase().endsWith(ext))
+                if (name.toLowerCase().endsWith(ext.toLowerCase()))
                 {
                     return true;
                 }

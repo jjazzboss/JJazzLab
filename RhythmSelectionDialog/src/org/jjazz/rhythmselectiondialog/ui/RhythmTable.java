@@ -24,180 +24,65 @@ package org.jjazz.rhythmselectiondialog.ui;
 
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.util.Arrays;
-import java.util.Enumeration;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.database.api.FavoriteRhythms;
 
 /**
- * A non-editable JTable to show or select Rhythms.
- * <p>
- * Favorite rhythms are rendered differently.
+ * A JTable to show a list of rhythms.
  */
 public class RhythmTable extends JTable implements PropertyChangeListener
 {
 
-    private final String[] COL_NAMES = new String[]
-    {
-        "Name", "Tempo", "Feel", "Tags", "File"
-    };
-    private final int[] preferredWidth = new int[COL_NAMES.length];
-    private List<Rhythm> model;
-    private boolean highlightFavorite = false;
+    private Model model = new Model();
+    private List<Integer> hiddenColumnIndexes = new ArrayList<Integer>();
     private static final Logger LOGGER = Logger.getLogger(RhythmTable.class.getSimpleName());
 
-    /**
-     * By default don't highlight favorite rhythms.
-     */
     public RhythmTable()
     {
-        setDefaultEditor(Object.class, null);       // Prevent cell editing
+        setModel(model);
         setAutoCreateRowSorter(true);
-        setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_NEXT_COLUMN);
+        setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        // Prevent column dragging
-        getTableHeader().setReorderingAllowed(false);
-        // To detect 1st display of the dialog
-        preferredWidth[0] = -1;
+        getTableHeader().setReorderingAllowed(false);               // Prevent column dragging        
+        setDefaultRenderer(String.class, new MyCellRenderer());
+        setDefaultRenderer(Integer.class, new MyCellRenderer());
+
         FavoriteRhythms fr = FavoriteRhythms.getInstance();
         fr.addPropertyListener(this);
     }
 
     /**
-     * Clear all the table contents.
-     */
-    public void clear()
-    {
-        DefaultTableModel dtm = (DefaultTableModel) getModel();
-        dtm.setRowCount(0);
-        dtm.fireTableDataChanged();
-        preferredWidth[0] = -1;     // To force reapplying column width setting next time populate() is called
-    }
-
-    /**
-     * If b is true highlight the display of the favorite rhythms.
      *
-     * @param b
+     * @param hiddenColumns The indexes of the columns to hide. Can be null.
      */
-    public void setHighlightFavorite(boolean b)
+    public void setHiddenColumns(List<Integer> hiddenColumns)
     {
-        highlightFavorite = b;
-        repaint();
+        hiddenColumnIndexes = (hiddenColumns == null) ? new ArrayList<Integer>() : hiddenColumns;
+        adjustWidths();
     }
 
-    public boolean isHighlightFavorite()
+    @Override
+    public Model getModel()
     {
-        return highlightFavorite;
-    }
-
-    /**
-     * Populate the table with a list of rhythms.
-     * <p>
-     * Optimize columns width on first use, otherwise reuse previous columns width.<br>
-     *
-     * @param rhythms
-     */
-    public void populate(List<Rhythm> rhythms)
-    {
-        if (rhythms == null)
-        {
-            throw new IllegalArgumentException("rhythms=" + rhythms);
-        }
-        LOGGER.log(Level.FINE, "populate() -- rhythms={0}", rhythms);
-        model = rhythms;
-        Object[][] data = new Object[model.size()][COL_NAMES.length];
-        for (int row = 0; row < model.size(); row++)
-        {
-            Rhythm r = model.get(row);
-            data[row][0] = r.getName();
-            data[row][1] = Integer.valueOf(r.getPreferredTempo());
-            data[row][2] = r.getFeel().toString();
-            data[row][3] = Arrays.toString(r.getTags());
-            data[row][4] = getFileValue(r.getFile());
-        }
-
-        TableColumnModel tcm = getColumnModel();
-        if (preferredWidth[0] != -1)
-        {
-            // Dialog was shown before, save preferred columns width
-            LOGGER.fine("populate() NOT first, save column width");
-            preferredWidth[0] = tcm.getColumn(0).getWidth();
-            preferredWidth[1] = tcm.getColumn(1).getWidth();
-            preferredWidth[2] = tcm.getColumn(2).getWidth();
-            preferredWidth[3] = tcm.getColumn(3).getWidth();
-            preferredWidth[4] = tcm.getColumn(4).getWidth();
-        }
-
-        // Update the table content
-        DefaultTableModel tm = new DefaultTableModel(data, COL_NAMES)
-        {
-            @Override
-            public Class getColumnClass(int column)
-            {
-                switch (column)
-                {
-                    case 0:
-                        return String.class;
-                    case 1:
-                        return Integer.class;
-                    case 2:
-                        return String.class;
-                    default:
-                        return String.class;
-                }
-            }
-        };
-        setModel(tm);
-
-        // Refresh the column model
-        tcm = getColumnModel();
-
-        // If it's the first time display set the column size as a percentage
-        if (preferredWidth[0] == -1)
-        {
-            int w = getWidth();
-            LOGGER.log(Level.FINE, "populate() FIRST, set percent column width w={0}", w);
-            if (w == 0)
-            {
-                w = 450;          // HACK! in Options Panel w=0 I don't understand why... (though in JDialog it works OK)
-            }
-            for (int i = 0; i < COL_NAMES.length; i++)
-            {
-                preferredWidth[0] = (int) (w * 0.4f);     // Name
-                preferredWidth[1] = (int) (w * 0.075f);    // Tempo
-                preferredWidth[2] = (int) (w * 0.075f);    // Feel
-                preferredWidth[3] = (int) (w * 0.1f);     // Tags
-                preferredWidth[4] = (int) (w * 0.35f);     // File                
-            }
-        }
-
-        // Set (or restore) columns width
-        tcm.getColumn(0).setPreferredWidth(preferredWidth[0]);
-        tcm.getColumn(1).setPreferredWidth(preferredWidth[1]);
-        tcm.getColumn(2).setPreferredWidth(preferredWidth[2]);
-        tcm.getColumn(3).setPreferredWidth(preferredWidth[3]);
-        tcm.getColumn(4).setPreferredWidth(preferredWidth[4]);
-
-        // Set cell renderers
-        MyCellRenderer mcr = new MyCellRenderer(model);
-        Enumeration<TableColumn> e = tcm.getColumns();
-        while (e.hasMoreElements())
-        {
-            e.nextElement().setCellRenderer(mcr);
-        }
+        return model;
     }
 
     /**
@@ -212,29 +97,171 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             if (rowIndex != -1)
             {
                 int modelIndex = convertRowIndexToModel(rowIndex);
-                r = model.get(modelIndex);
+                r = model.getRhythms().get(modelIndex);
             }
         }
         return r;
     }
 
     /**
-     * Select the row corresponding to specified rhythm.
+     * Select the row corresponding to the specified rhythm.
+     * <p>
+     * The method also scroll the table to make the selected instrument visible.
      *
      * @param r
      */
-    public void setSelected(Rhythm r)
+    public void setSelectedRhythm(Rhythm r)
     {
-        int index = model.indexOf(r);
-        if (index != -1)
+        int mIndex = model.getRhythms().indexOf(r);
+        if (mIndex != -1)
         {
-            int vIndex = convertRowIndexToView(index);      // Take into account sorting/filtering 
+            TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) this.getRowSorter();
+            int vIndex = convertRowIndexToView(mIndex);      // Take into account sorting/filtering 
             if (vIndex != -1)
             {
                 // Select if row is not filtered out
+
                 setRowSelectionInterval(vIndex, vIndex);
+                // Scroll to make it visible
+                Rectangle cellRect = getCellRect(vIndex, 1, true);
+                scrollRectToVisible(cellRect);
             }
         }
+    }
+
+    public class Model extends AbstractTableModel
+    {
+
+        public static final int COL_ID = 0;
+        public static final int COL_NAME = 1;
+        public static final int COL_FEEL = 3;
+        public static final int COL_TEMPO = 2;
+        public static final int COL_NB_VOICES = 4;
+        public static final int COL_DIR = 5;
+        private List<? extends Rhythm> rhythms = new ArrayList<>();
+
+        public void setRhythms(List<Rhythm> rhythms)
+        {
+            if (rhythms == null)
+            {
+                throw new NullPointerException("rhythms");
+            }
+            LOGGER.fine("setRhythms() rhythms.size()=" + rhythms.size());
+            this.rhythms = rhythms;
+            fireTableDataChanged();
+            adjustWidths();
+        }
+
+        List<? extends Rhythm> getRhythms()
+        {
+            return rhythms;
+        }
+
+        @Override
+        public Class<?> getColumnClass(int col)
+        {
+            switch (col)
+            {
+                case COL_TEMPO:
+                case COL_ID:
+                case COL_NB_VOICES:
+                    return Integer.class;
+                case COL_NAME:
+                case COL_FEEL:
+                case COL_DIR:
+                    return String.class;
+                default:
+                    throw new IllegalStateException("columnIndex=" + col);
+            }
+        }
+
+        @Override
+        public String getColumnName(int columnIndex)
+        {
+            String s;
+            switch (columnIndex)
+            {
+                case COL_TEMPO:
+                    s = "Tempo ";
+                    break;
+                case COL_NAME:
+                    s = "Name ";
+                    break;
+                case COL_NB_VOICES:
+                    s = "Nb Inst. ";
+                    break;
+                case COL_FEEL:
+                    s = "Feel ";
+                    break;
+                case COL_DIR:
+                    s = "Directory ";
+                    break;
+                case COL_ID:
+                    s = "#   ";
+                    break;
+                default:
+                    throw new IllegalStateException("columnIndex=" + columnIndex);
+            }
+            return s;
+        }
+
+        @Override
+        public int getRowCount()
+        {
+            return rhythms.size();
+        }
+
+        @Override
+        public int getColumnCount()
+        {
+            return 6;
+        }
+
+        @Override
+        public Object getValueAt(int row, int col)
+        {
+            Rhythm r = rhythms.get(row);
+            switch (col)
+            {
+                case COL_TEMPO:
+                    return r.getPreferredTempo();
+                case COL_DIR:
+                    // Show the file path relative to the user rhythm directory
+                    FileDirectoryManager fdm = FileDirectoryManager.getInstance();
+                    if (r.getFile() == null || "".equals(r.getFile().getPath()))
+                    {
+                        return " - ";
+                    } else if (r.getFile().getAbsolutePath().contains(FileDirectoryManager.APP_CONFIG_PREFIX_DIR))
+                    {
+                        // Don't show path of the builtin files
+                        return "builtin";
+                    }
+                    Path pDir = fdm.getUserRhythmDirectory().toPath();
+                    Path pFile = r.getFile().getParentFile().toPath();
+                    String s = null;
+                    try
+                    {
+                        Path relPath = pDir.relativize(pFile);
+                        s = "./"+relPath.toString();
+                    } catch (IllegalArgumentException ex)
+                    {
+                        LOGGER.warning("getValueAt() Can't relativize pFile=" + pFile + " to pDir=" + pDir);
+                        s = pFile.toString();
+                    }
+                    return s;
+                case COL_NB_VOICES:
+                    return r.getRhythmVoices().size();
+                case COL_NAME:
+                    return r.getName();
+                case COL_FEEL:
+                    return r.getFeel().toString();
+                case COL_ID:
+                    return row + 1;
+                default:
+                    throw new IllegalStateException("col=" + col);
+            }
+        }
+
     }
 
     // =================================================================================
@@ -249,7 +276,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             // A favorite rhythm was removed or added
             // Repaint the corresponding cell
             Rhythm r = (Rhythm) (e.getNewValue() == null ? e.getOldValue() : e.getNewValue());
-            int row = model.indexOf(r);
+            int row = model.getRhythms().indexOf(r);
             if (row != -1)
             {
                 int vRow = convertRowIndexToView(row);
@@ -258,68 +285,156 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         }
     }
 
-    // ============================================================================================
+    // ============================================================================
     // Private methods
-    // ============================================================================================    
-    private String getFileValue(File f)
+    // ============================================================================
+    /**
+     * Pre-adjust the columns size parameters to have a correct display.
+     */
+    private void adjustWidths()
     {
-        return "".equals(f.getPath()) ? "buillt-in" : f.getAbsolutePath();
+        final TableColumnModel colModel = getColumnModel();
+        final int EXTRA = 5;
+        for (int colIndex = 0; colIndex < getColumnCount(); colIndex++)
+        {
+            if (hiddenColumnIndexes.contains(colIndex))
+            {
+                colModel.getColumn(colIndex).setMinWidth(0);
+                colModel.getColumn(colIndex).setMaxWidth(0);
+                colModel.getColumn(colIndex).setPreferredWidth(0);
+                continue;
+            }
+            // Handle header
+            TableCellRenderer renderer = getTableHeader().getDefaultRenderer();
+            Component comp = renderer.getTableCellRendererComponent(this, model.getColumnName(colIndex), true, true, 0, colIndex);
+            int headerWidth = comp.getPreferredSize().width;
+
+            int width = 20; // Min width
+
+            // Handle data
+            for (int row = 0; row < getRowCount(); row++)
+            {
+                renderer = getCellRenderer(row, colIndex);
+                comp = prepareRenderer(renderer, row, colIndex);
+                width = Math.max(comp.getPreferredSize().width, width);
+            }
+            width = Math.max(width, headerWidth);
+            width = Math.min(width, 400);
+            width += EXTRA;
+
+            // We have our preferred width
+            colModel.getColumn(colIndex).setPreferredWidth(width);
+
+            // Also set max size
+            switch (colIndex)
+            {
+                case Model.COL_NB_VOICES:
+                case Model.COL_TEMPO:
+                case Model.COL_ID:
+                    colModel.getColumn(colIndex).setMaxWidth(width);
+                    break;
+                case Model.COL_NAME:
+                    colModel.getColumn(colIndex).setMaxWidth(width + 20);
+                    break;
+                case Model.COL_FEEL:
+                    colModel.getColumn(colIndex).setMaxWidth(width);
+                    break;
+                case Model.COL_DIR:
+                    // Nothing
+                    break;
+                default:
+                    throw new IllegalStateException("col=" + colIndex);
+            }
+        }
     }
 
     /**
-     * <p>
-     * Used to update cell's tooltip.
+     * Get a string representing the instruments used by the specified rhythm.
+     *
+     * @param r
+     * @return
      */
+    private String getInstrumentsString(Rhythm r)
+    {
+        List<String> list = new ArrayList<>();
+        for (RhythmVoice rv : r.getRhythmVoices())
+        {
+            switch (rv.getType())
+            {
+                case DRUMS:
+                    list.add("drums");
+                    break;
+                case PERCUSSION:
+                    list.add("perc.");
+                    break;
+                default:    // VOICE       
+                    list.add(rv.getPreferredInstrument().getSubstitute().getFamily().getShortName());
+            }
+        }
+        return list.toString();
+    }
+
     private class MyCellRenderer extends DefaultTableCellRenderer
     {
-
-        private final List<Rhythm> rhythms;
-
-        public MyCellRenderer(List<Rhythm> rhythms)
-        {
-            this.rhythms = rhythms;
-        }
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
         {
-            JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
-            if (rhythms != null && row < rhythms.size() && col < COL_NAMES.length)
+            JLabel lbl = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+            // Same component is reused for several cells : need to reset some default settings
+            lbl.setToolTipText(null);
+            if (value == null)
             {
-                Rhythm r = rhythms.get(row);
-                String tooltip = null;
-                switch (col)
-                {
-                    case 0:
-                        tooltip = "Description=" + r.getDescription() + ", Author=" + r.getAuthor() + ", Version=" + r.getVersion();
-                        break;
-                    case 1:
-                        tooltip = r.getTempoRange().toString();
-                        break;
-                    case 2:
-                        tooltip = "Possible values=" + Arrays.asList(Rhythm.Feel.values());
-                        break;
-                    case 3:
-                        tooltip = Arrays.asList(r.getTags()).toString();
-                        break;
-                    case 4:
-                        tooltip = getFileValue(r.getFile());
-                        break;
-                    default:
-                    // Nothing
-                }
-                c.setToolTipText(tooltip);
-
-                // Different rendering if it's a favorite
-                FavoriteRhythms fr = FavoriteRhythms.getInstance();
-                if (highlightFavorite && fr.contains(r))
-                {
-                    Font f = c.getFont();
-                    Font newFont = f.deriveFont(Font.BOLD);
-                    c.setFont(newFont);
-                }
+                return lbl;
             }
-            return c;
+            int modelRow = table.convertRowIndexToModel(row);
+            Rhythm r = model.getRhythms().get(modelRow);
+            switch (col)
+            {
+                case Model.COL_NB_VOICES:
+                    lbl.setToolTipText(RhythmTable.this.getInstrumentsString(r));
+                    break;
+                case Model.COL_NAME:
+                    lbl.setToolTipText("Decription: " + r.getDescription());
+                    break;
+                case Model.COL_DIR:
+                    lbl.setToolTipText("Relative file path to the User Rhythm Directory");
+//                    // Left dots and the right part of the string visible in the cell
+//                    int availableWidth = table.getColumnModel().getColumn(col).getWidth();
+//                    availableWidth -= table.getIntercellSpacing().getWidth();
+//                    Insets borderInsets = lbl.getBorder().getBorderInsets((Component) this);
+//                    availableWidth -= (borderInsets.left + borderInsets.right);
+//                    String cellText = lbl.getText();
+//                    FontMetrics fm = lbl.getFontMetrics(getFont());
+//                    if (fm.stringWidth(cellText) > availableWidth)
+//                    {
+//                        String dots = "...";
+//                        int textWidth = fm.stringWidth(dots);
+//                        int nChars = cellText.length() - 1;
+//                        for (; nChars > 0; nChars--)
+//                        {
+//                            textWidth += fm.charWidth(cellText.charAt(nChars));
+//                            if (textWidth > availableWidth)
+//                            {
+//                                break;
+//                            }
+//                        }
+//                        lbl.setText(dots + cellText.substring(nChars + 1));
+//                    }                  
+                    break;
+                default:
+                    break;
+            }
+
+            // Different rendering if it's a favorite
+            FavoriteRhythms fr = FavoriteRhythms.getInstance();
+            if (fr.contains(r))
+            {
+                Font f = lbl.getFont();
+                Font newFont = f.deriveFont(Font.BOLD);
+                lbl.setFont(newFont);
+            }
+            return lbl;
         }
     }
 }

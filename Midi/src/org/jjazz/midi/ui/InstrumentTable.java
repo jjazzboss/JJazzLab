@@ -329,7 +329,7 @@ public class InstrumentTable extends JTable
             {
                 return c;
             }
-            Instrument ins = tblModel.getInstruments().get(row);
+            Instrument ins = tblModel.getInstruments().get(table.convertRowIndexToModel(row));
             String tt = buildToolTipText(ins);
             c.setToolTipText(tt);
             return c;

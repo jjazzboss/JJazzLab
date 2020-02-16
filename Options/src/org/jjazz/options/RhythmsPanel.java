@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -41,22 +40,19 @@ import javax.swing.event.ListSelectionListener;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.harmony.TimeSignature;
 import static org.jjazz.options.Bundle.CTL_SelectRhythmDir;
-import static org.jjazz.options.Bundle.CTL_SelectRhythmMixDir;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythmselectiondialog.ui.RhythmProviderList;
 import org.jjazz.rhythmselectiondialog.ui.RhythmTable;
-import static org.jjazz.ui.utilities.Utilities.getFileChooserInstance;
+import org.jjazz.ui.utilities.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.NbBundle;
-import org.openide.windows.WindowManager;
 
 @NbBundle.Messages(
         {
-            "CTL_SelectRhythmDir=Directory for rhythm files",
-            "CTL_SelectRhythmMixDir=Directory for rhythm mix files",
+            "CTL_SelectRhythmDir=Directory for rhythm files"
         })
 final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeListener, ChangeListener, ListSelectionListener, ActionListener
 {
@@ -83,7 +79,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
 
         // Listen to rdb changes
         RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
-        rdb.addChangeListener(this);         // Database changes
+        rdb.addChangeListener(this);
 
         // Listen to selection changes
         list_rhythmProviders.addListSelectionListener(this);
@@ -111,9 +107,6 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
             if (evt.getPropertyName() == FileDirectoryManager.PROP_RHYTHM_USER_DIRECTORY)
             {
                 updateRhythmUserDirField();
-            } else if (evt.getPropertyName() == FileDirectoryManager.PROP_RHYTHM_MIX_DIRECTORY)
-            {
-                updateRhythmMixDirField();
             }
         }
     }
@@ -178,7 +171,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
                 list_rhythmProviders.setSelectedValue(rp, true);     // Selection will repopulate the rhythm via our listener
                 if (r != null)
                 {
-                    rhythmTable.setSelected(r);
+                    rhythmTable.setSelectedRhythm(r);
                 }
             }
         }
@@ -236,11 +229,6 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         lbl_defaultRhythm = new javax.swing.JLabel();
         btn_rhythmProviderSettings = new javax.swing.JButton();
         lbl_timeSignature = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        tf_rhythmMixDir = new javax.swing.JTextField();
-        btn_rhythmMixDir = new javax.swing.JButton();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        hlp_rhythmMixDir = new org.jjazz.ui.utilities.HelpTextArea();
         jScrollPane4 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
 
@@ -283,55 +271,8 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
             }
         });
 
-        tbl_rhythms.setAutoCreateRowSorter(true);
-        tbl_rhythms.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][]
-            {
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null}
-            },
-            new String []
-            {
-                "Title 1", "Title 2", "Title 3", "Title 4", "Title 5", "Title 6"
-            }
-        )
-        {
-            Class[] types = new Class []
-            {
-                java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
-            };
-            boolean[] canEdit = new boolean []
-            {
-                false, false, false, false, false, false
-            };
-
-            public Class getColumnClass(int columnIndex)
-            {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex)
-            {
-                return canEdit [columnIndex];
-            }
-        });
-        tbl_rhythms.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_NEXT_COLUMN);
-        tbl_rhythms.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         tbl_rhythms.setMaximumSize(new java.awt.Dimension(2147483647, 202020));
         tbl_rhythms.setMinimumSize(new java.awt.Dimension(60, 30));
-        tbl_rhythms.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(tbl_rhythms);
 
         list_rhythmProviders.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
@@ -357,35 +298,10 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_timeSignature, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.lbl_timeSignature.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel4, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.jLabel4.text")); // NOI18N
-
-        tf_rhythmMixDir.setEditable(false);
-        tf_rhythmMixDir.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.tf_rhythmMixDir.toolTipText")); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(btn_rhythmMixDir, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_rhythmMixDir.text")); // NOI18N
-        btn_rhythmMixDir.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.btn_rhythmMixDir.toolTipText")); // NOI18N
-        btn_rhythmMixDir.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                btn_rhythmMixDirActionPerformed(evt);
-            }
-        });
-
-        jScrollPane3.setBorder(null);
-        jScrollPane3.setOpaque(false);
-
-        hlp_rhythmMixDir.setColumns(20);
-        hlp_rhythmMixDir.setRows(3);
-        hlp_rhythmMixDir.setText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.hlp_rhythmMixDir.text")); // NOI18N
-        jScrollPane3.setViewportView(hlp_rhythmMixDir);
-
-        jScrollPane4.setBackground(null);
         jScrollPane4.setBorder(null);
 
-        helpTextArea1.setBackground(null);
         helpTextArea1.setColumns(20);
-        helpTextArea1.setRows(3);
+        helpTextArea1.setRows(2);
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.helpTextArea1.text")); // NOI18N
         jScrollPane4.setViewportView(helpTextArea1);
 
@@ -397,42 +313,39 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 556, Short.MAX_VALUE))
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 461, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(lbl_timeSignature)
-                        .addGap(89, 89, 89)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lbl_defaultRhythm)
-                            .addComponent(tf_defaultRhythm))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_setDefaultRhythm)
-                        .addGap(133, 133, 133))
-                    .addComponent(lbl_rhythmDir)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(75, 75, 75)
-                        .addComponent(jLabel2))
-                    .addComponent(cmb_timeSignature, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_rhythmProviderSettings)
-                    .addComponent(jLabel4)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(tf_rhythmUserDir, javax.swing.GroupLayout.DEFAULT_SIZE, 252, Short.MAX_VALUE)
-                            .addComponent(tf_rhythmMixDir))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lbl_rhythmDir)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(btn_rhythmMixDir)
+                                .addComponent(jLabel1)
+                                .addGap(123, 123, 123)
+                                .addComponent(jLabel2))
+                            .addComponent(btn_rhythmProviderSettings)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(tf_rhythmUserDir, javax.swing.GroupLayout.PREFERRED_SIZE, 398, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jScrollPane3))
-                            .addGroup(layout.createSequentialGroup()
                                 .addComponent(btn_rhythmDir)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btn_rescan)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jScrollPane4)))))
+                                .addComponent(btn_rescan)))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane4)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lbl_timeSignature)
+                            .addComponent(cmb_timeSignature, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(134, 134, 134)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(tf_defaultRhythm)
+                                .addGap(6, 6, 6))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lbl_defaultRhythm)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(btn_setDefaultRhythm)
+                        .addGap(133, 133, 133)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -441,22 +354,13 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
                 .addContainerGap()
                 .addComponent(lbl_rhythmDir)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(tf_rhythmUserDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btn_rescan)
-                            .addComponent(btn_rhythmDir))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel4))
-                    .addComponent(jScrollPane4))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(tf_rhythmMixDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(btn_rhythmMixDir))
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(tf_rhythmUserDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btn_rescan)
+                    .addComponent(btn_rhythmDir))
+                .addGap(2, 2, 2)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lbl_defaultRhythm)
                     .addComponent(lbl_timeSignature))
@@ -471,8 +375,8 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
                     .addComponent(jLabel2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 372, Short.MAX_VALUE)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 372, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 414, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 414, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btn_rhythmProviderSettings)
                 .addContainerGap())
@@ -483,21 +387,10 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
    {//GEN-HEADEREND:event_btn_rhythmDirActionPerformed
        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
        File oldDir = fdm.getUserRhythmDirectory();
-       File newDir = showDirChooser(tf_rhythmUserDir.getText(), CTL_SelectRhythmDir());
+       File newDir = Utilities.showDirChooser(tf_rhythmUserDir.getText(), CTL_SelectRhythmDir());
        if (newDir != null && !oldDir.equals(newDir))
        {
-           fdm.setUserRhythmDirectory(newDir);   // RhythmDatabase should get refreshed itself and possibly trigger change event
-           File mixDir = fdm.getRhythmMixDirectory();
-           if (!newDir.equals(mixDir))
-           {
-               // Propose to also update the RhythmMix directory
-               NotifyDescriptor nd = new NotifyDescriptor.Confirmation("Use directory " + newDir.getAbsolutePath() + " also for rhythm mix files ?", NotifyDescriptor.YES_NO_CANCEL_OPTION);
-               Object result = DialogDisplayer.getDefault().notify(nd);
-               if (result == NotifyDescriptor.YES_OPTION)
-               {
-                   fdm.setRhythmMixDirectory(newDir);
-               }
-           }
+           fdm.setUserRhythmDirectory(newDir);   // RhythmDatabase should get refreshed itself and possibly trigger change event    
        }
    }//GEN-LAST:event_btn_rhythmDirActionPerformed
 
@@ -527,16 +420,6 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         }
     }//GEN-LAST:event_btn_rhythmProviderSettingsActionPerformed
 
-    private void btn_rhythmMixDirActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_rhythmMixDirActionPerformed
-    {//GEN-HEADEREND:event_btn_rhythmMixDirActionPerformed
-        File f = showDirChooser(tf_rhythmMixDir.getText(), CTL_SelectRhythmMixDir());
-        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-        if (f != null)
-        {
-            fdm.setRhythmMixDirectory(f);
-        }
-    }//GEN-LAST:event_btn_rhythmMixDirActionPerformed
-
     void load()
     {
         // TODO read settings and initialize GUI
@@ -551,7 +434,6 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         updateDefaultRhythmField();
         updateRhythmUserDirField();
         updateRhythmProviderList();
-        updateRhythmMixDirField();
     }
 
     void store()
@@ -592,21 +474,13 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         tf_rhythmUserDir.setText(s);
     }
 
-    private void updateRhythmMixDirField()
-    {
-        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-        File f = fdm.getRhythmMixDirectory();
-        String s = f.getAbsolutePath();
-        tf_rhythmMixDir.setText(s);
-    }
-
     /**
      * Update the list of RhythmProviders.
      */
     private void updateRhythmProviderList()
     {
         // Reset the rhythm table
-        rhythmTable.clear();
+        // rhythmTable.clear();
 
         // Refresh rhythm providers list
         RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
@@ -631,12 +505,13 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         {
             throw new IllegalArgumentException("rp=" + rp);
         }
-        // Refresh the list of rhythms
+        // Refresh the list of rhythms        
         RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
         List<Rhythm> rhythms = rdb.getRhythms(rp);    // All rp's rhythms
         rhythms = rdb.getRhythms(selectedTimeSignature, rhythms);   // only for the current timesignature
         // Update the table
-        rhythmTable.populate(rhythms);
+        LOGGER.fine("updateRhythmTable() rp=" + rp.getInfo().getName() + " rhythms.size()=" + rhythms.size());
+        rhythmTable.getModel().setRhythms(rhythms);
     }
 
     private void updateDefaultRhythmField()
@@ -649,53 +524,18 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         tf_defaultRhythm.setToolTipText(t);
     }
 
-    /**
-     * Show the JFileChooser to select a directory.
-     *
-     * @param dirPath Initialize chooser with this directory.
-     * @return The selected dir or null.
-     */
-    private File showDirChooser(String dirPath, String title)
-    {
-        JFileChooser chooser = getFileChooserInstance();
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        chooser.setMultiSelectionEnabled(false);
-        chooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
-        chooser.setDialogTitle(title);
-        File f = new File(dirPath);
-        File parent = f.getParentFile();
-        if (parent != null)
-        {
-            chooser.setCurrentDirectory(parent);
-        }
-        chooser.setSelectedFile(f);
-        File newDir = null;
-        if (chooser.showDialog(WindowManager.getDefault().getMainWindow(), "Select") == JFileChooser.APPROVE_OPTION)
-        {
-            newDir = chooser.getSelectedFile();
-            if (newDir != null && !newDir.isDirectory())
-            {
-                newDir = null;
-            }
-        }
-        return newDir;
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_rescan;
     private javax.swing.JButton btn_rhythmDir;
-    private javax.swing.JButton btn_rhythmMixDir;
     private javax.swing.JButton btn_rhythmProviderSettings;
     private javax.swing.JButton btn_setDefaultRhythm;
     private javax.swing.JComboBox<TimeSignature> cmb_timeSignature;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
-    private org.jjazz.ui.utilities.HelpTextArea hlp_rhythmMixDir;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JLabel lbl_defaultRhythm;
     private javax.swing.JLabel lbl_rhythmDir;
@@ -703,7 +543,6 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     private javax.swing.JList<RhythmProvider> list_rhythmProviders;
     private javax.swing.JTable tbl_rhythms;
     private javax.swing.JTextField tf_defaultRhythm;
-    private javax.swing.JTextField tf_rhythmMixDir;
     private javax.swing.JTextField tf_rhythmUserDir;
     // End of variables declaration//GEN-END:variables
 

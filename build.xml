@@ -32,4 +32,42 @@
     <target name="javadoc-view-jjazzlabx" depends="javadoc-build-jjazzlabx">
         <nbbrowse file="${suite.build.dir}/javadoc/index.html" />
     </target>    
+        
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+        <classpath>
+            <pathelement location="Build-Lib/ant-contrib-1.0b3.jar"/>
+        </classpath>
+    </taskdef>
+    
+    <target name="-init" depends="suite.-init">
+        <!--Create/Update keystore-->
+        <!--  COMMENTED OUT: we use our own keystore 
+        <delete file="${keystore.location}${keystore.name}"/>
+        <mkdir dir="${keystore.location}"/>
+        <genkey alias="${keystore.alias}" storepass="${keystore.password}"
+                dname="${keystore.dname}"
+                keystore="${keystore.location}${keystore.name}"/> 
+        -->
+        <!--Update keystore info in projects-->
+        <antcall target="update-keystore-info"/>
+    </target>
+
+    <target name="update-keystore-info">
+        <for list="${modules}" delimiter=":" param="cur" trim="true">
+            <sequential>
+                <mkdir dir="@{cur}/nbproject/"/>
+                <!--Place the information in the properties file-->
+                <propertyfile file="@{cur}/nbproject/project.properties">
+                    <entry  key="keystore" value="../${keystore.location}${keystore.name}"/>
+                    <entry  key="nbm_alias" value="${keystore.alias}"/>
+                </propertyfile>
+                <mkdir dir="@{cur}/nbproject/private/"/>
+                <!--Place the password in the private properties file-->
+                <propertyfile file="@{cur}/nbproject/private/platform-private.properties">
+                    <entry  key="storepass" value="${keystore.password}"/>
+                </propertyfile>
+            </sequential>
+        </for>    
+    </target>
+    
 </project>

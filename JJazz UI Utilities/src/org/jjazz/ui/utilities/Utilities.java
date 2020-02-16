@@ -26,6 +26,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.Toolkit;
+import java.io.File;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
@@ -35,6 +36,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import org.openide.awt.MenuBar;
+import org.openide.windows.WindowManager;
 
 public class Utilities
 {
@@ -189,5 +191,37 @@ public class Utilities
             Font newFont = f.deriveFont(newSize);
             c.setFont(newFont);
         }
+    }
+
+    /**
+     * Show the JFileChooser to select a directory.
+     *
+     * @param dirPath Initialize chooser with this directory.
+     * @return The selected dir or null.
+     */
+    static public File showDirChooser(String dirPath, String title)
+    {
+        JFileChooser chooser = getFileChooserInstance();
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setMultiSelectionEnabled(false);
+        chooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
+        chooser.setDialogTitle(title);
+        File f = new File(dirPath);
+        File parent = f.getParentFile();
+        if (parent != null)
+        {
+            chooser.setCurrentDirectory(parent);
+        }
+        chooser.setSelectedFile(f);
+        File newDir = null;
+        if (chooser.showDialog(WindowManager.getDefault().getMainWindow(), "Select") == JFileChooser.APPROVE_OPTION)
+        {
+            newDir = chooser.getSelectedFile();
+            if (newDir != null && !newDir.isDirectory())
+            {
+                newDir = null;
+            }
+        }
+        return newDir;
     }
 }
