@@ -24,7 +24,6 @@ package org.jjazz.helpers.midiwizard;
 
 public class MidiWizardSettings
 {
-
     public enum SoundDevice
     {
         SYNTHESIZER, VIRTUAL_INSTRUMENT, OTHER

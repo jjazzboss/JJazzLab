@@ -180,10 +180,8 @@ public class UseJJazzLabSoundFontDialog extends javax.swing.JDialog
 
         jPanel2.add(jPanel1);
 
-        jScrollPane1.setBackground(null);
         jScrollPane1.setBorder(null);
 
-        helpTextArea1.setBackground(null);
         helpTextArea1.setColumns(20);
         helpTextArea1.setRows(5);
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(UseJJazzLabSoundFontDialog.class, "UseJJazzLabSoundFontDialog.helpTextArea1.text")); // NOI18N
