@@ -35,14 +35,19 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JComponent;
 import org.jjazz.helpers.midiwizard.MidiWizardSettings.SoundDevice;
 import org.jjazz.midi.JJazzMidiSystem;
+import org.jjazz.outputsynth.OS_JJazzLabSoundFont;
+import org.jjazz.outputsynth.OutputSynthManager;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.WizardDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
+import org.openide.util.Utilities;
 import org.openide.windows.OnShowing;
+import org.openide.windows.WindowManager;
 
 /**
  * Start the Midi configuration wizard.
@@ -92,6 +97,22 @@ public final class MidiWizardAction implements ActionListener, Runnable
         // {0} will be replaced by WizardDesriptor.Panel.getComponent().getName()
         wiz.setTitleFormat(new MessageFormat("{0}"));
         wiz.setTitle("Midi configuration wizard");
+
+        // First show the special use JJazzLab soundfont dialog
+        UseJJazzLabSoundFontDialog dlg = new UseJJazzLabSoundFontDialog(WindowManager.getDefault().getMainWindow(), true);
+        dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
+        dlg.setVisible(true);
+        if (!dlg.isExitOk())
+        {
+            return;
+        }
+        if (dlg.isYesAnswer())
+        {
+            useJJazzLabSoundFont();
+            return;
+        }
+
+        // Wizard
         if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION)
         {
             // Retrieve configuration then apply it
@@ -133,4 +154,64 @@ public final class MidiWizardAction implements ActionListener, Runnable
         prefs.putBoolean(PREF_CLEAN_START, false);
     }
 
+    /**
+     * Do what's required to use the JJazzLab SoundFont.
+     */
+    private void useJJazzLabSoundFont()
+    {
+        // Set the output synth
+        OutputSynthManager osm = OutputSynthManager.getInstance();
+        osm.setOutputSynth(OS_JJazzLabSoundFont.getInstance());
+
+        // Check the midi out device
+        if (Utilities.isWindows())
+        {
+            // Check if VirtualMidi port is there
+            boolean virtualMidiSynthSet = false;
+            JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
+            MidiDevice md = jms.getDefaultOutDevice();
+            if (isVirtualMidiSynthDevice(md))
+            {
+                // GOOD: VirtualMidi port is already the out device
+                virtualMidiSynthSet = true;
+            } else
+            {
+                // Check if it's installed, if yes use it
+                for (MidiDevice mdi : jms.getOutDeviceList())
+                {
+                    if (isVirtualMidiSynthDevice(mdi))
+                    {
+                        try
+                        {
+                            jms.setDefaultOutDevice(mdi);
+                            virtualMidiSynthSet = true;
+                        } catch (MidiUnavailableException ex)
+                        {
+                            NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                            DialogDisplayer.getDefault().notify(nd);
+                        }
+                    }
+                }
+            }
+
+            //if (virtualMidiSynthSet)
+            if (true)
+            {
+                String msg = "JJazzLab is now configured to use VirtualMidiSynth. Please make sure VirtualMidiSynth has loaded the JJazzLab SoundFont."
+                        + "\nConsult <html><a href=www.jjazzlab.com/en/doc>www.jjazzlab.com/en/doc</a></html> for details how to download the SoundFont and how to configure VirtualMidiSynth.";
+                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
+                DialogDisplayer.getDefault().notify(nd);
+                return;
+            }
+
+        } else
+        {
+
+        }
+    }
+
+    private boolean isVirtualMidiSynthDevice(MidiDevice md)
+    {
+        return md != null && md.getDeviceInfo().getName().toLowerCase().contains("virtualmidisynt");
+    }
 }
