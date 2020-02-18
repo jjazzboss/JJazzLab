@@ -24,32 +24,33 @@ package org.jjazz.helpers.midiwizard;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.helpers.midiwizard.MidiWizardAction.SoundDevice;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 
-public class MidiWizardPanel2 implements WizardDescriptor.Panel<WizardDescriptor>
+public class MidiWizardPanel_SfWin_2 implements WizardDescriptor.Panel<WizardDescriptor>
 {
 
+    private Set<ChangeListener> listeners = new HashSet<ChangeListener>(2);
+    private static final Logger LOGGER = Logger.getLogger(MidiWizardPanel_SfWin_2.class.getSimpleName());
     /**
      * The visual component that displays this panel. If you need to access the component from this class, just use
      * getComponent().
      */
-    private MidiWizardVisualPanel2 component;
-    private Set<ChangeListener> listeners = new HashSet<ChangeListener>(1);
+    private MidiWizardVisualPanel_SfWin_2 component;
 
     // Get the visual component for the panel. In this template, the component
     // is kept separate. This can be more efficient: if the wizard is created
     // but never displayed, or not all panels are displayed, it is better to
     // create only those which really need to be visible.
     @Override
-    public MidiWizardVisualPanel2 getComponent()
+    public MidiWizardVisualPanel_SfWin_2 getComponent()
     {
         if (component == null)
         {
-            component = new MidiWizardVisualPanel2();
+            component = new MidiWizardVisualPanel_SfWin_2();
         }
         return component;
     }
@@ -104,20 +105,14 @@ public class MidiWizardPanel2 implements WizardDescriptor.Panel<WizardDescriptor
     @Override
     public void readSettings(WizardDescriptor wiz)
     {
-        SoundDevice sd = (SoundDevice) wiz.getProperty(MidiWizardAction.PROP_SOUND_DEVICE);
-        if (sd == null)
-        {
-            sd = SoundDevice.SYNTHESIZER;
-        }
-        component.setSelectedSoundDevice(sd);
+    
     }
 
     @Override
     public void storeSettings(WizardDescriptor wiz)
     {
-        // use wiz.putProperty to remember current panel state
-        SoundDevice sd = component.getSelectedSoundDevice();
-        wiz.putProperty(MidiWizardAction.PROP_SOUND_DEVICE, sd);
+        // see readSettings()
     }
 
+ 
 }

@@ -86,12 +86,12 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
 
         sfSequenceWin = new WizardDescriptor.Panel[]
         {
-            panelStart, new MidiWizardPanel_SfWin_1(), panelFinal
+            panelStart, new MidiWizardPanel_SfWin_1(), new MidiWizardPanel_SfWin_2(), panelFinal
         };
         setPanelStdProperties(sfSequenceWin);
         midiSequence = new WizardDescriptor.Panel[]
         {
-            panelStart, new MidiWizardPanel1(), new MidiWizardPanel2(), new MidiWizardPanelSelectMidiOut(), new MidiWizardPanel4(), new MidiWizardPanel5(), panelFinal
+            panelStart, new MidiWizardPanelSelectMidiOut(), new MidiWizardPanel4(), new MidiWizardPanel5(), panelFinal
         };
         setPanelStdProperties(midiSequence);
         index = 0;

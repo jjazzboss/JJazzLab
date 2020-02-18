@@ -32,8 +32,7 @@ public class MidiWizardPanelFinal implements WizardDescriptor.Panel<WizardDescri
 {
 
     /**
-     * The visual component that displays this panel. If you need to access the component from this class, just use
-     * getComponent().
+     * The visual component that displays this panel. If you need to access the component from this class, just use getComponent().
      */
     private MidiWizardVisualFinal component;
 
@@ -88,22 +87,36 @@ public class MidiWizardPanelFinal implements WizardDescriptor.Panel<WizardDescri
         boolean useJJazzLabSoundFont = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_USE_JJAZZLAB_SOUNDFONT);
         MidiDevice md = (MidiDevice) wiz.getProperty(MidiWizardAction.PROP_MIDI_OUT_DEVICE);
         String mdName = md != null ? JJazzMidiSystem.getInstance().getDeviceFriendlyName(md) : "";
-        boolean gm2DrumsSupport = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_GM2_DRUMS_SUPPORT);
-        String drumKit = gm2DrumsSupport ? "GM2 Drum Kit Standard" : "Not Set";
+        boolean gm2Support = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_GM2_SUPPORT);
+        boolean xgSupport = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_XG_SUPPORT);
+        boolean gsSupport = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_GS_SUPPORT);
 
         StringBuilder sb = new StringBuilder();
         if (useJJazzLabSoundFont)
         {
-            sb.append("Output synth config : use the JJazzLab SoundFont preset\n\n");
+            sb.append("- Set Output synth config. : JJazzLab SoundFont preset\n\n");
             if (md != null)
             {
-                sb.append("Set Midi Out device to : " + mdName + "\n\n");
+                sb.append("- Set Midi Out device : " + mdName + "\n\n");
             }
         } else
         {
-            sb.append("Set Midi Out device to : " + mdName + "\n\n");
+            String stdSupport = "GM ";
+            if (gm2Support)
+            {
+                stdSupport += ", GM2 ";
+            }
+            if (xgSupport)
+            {
+                stdSupport += ", XG ";
+            }
+            if (gsSupport && !xgSupport)
+            {
+                stdSupport += ", GS ";
+            }
+            sb.append("- Set Output synth config. : ").append(stdSupport).append("\n\n");
+            sb.append("- Set Midi Out device : ").append(mdName).append("\n\n");
         }
-
         component.setChangesDescription(sb.toString());
     }
 

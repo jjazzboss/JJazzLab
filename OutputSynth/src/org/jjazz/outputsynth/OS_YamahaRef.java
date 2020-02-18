@@ -22,6 +22,7 @@
  */
 package org.jjazz.outputsynth;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -100,4 +101,14 @@ public class OS_YamahaRef extends OutputSynth
         return midiSynth.getInstrument(new MidiAddress(0, 127, 0, MidiAddress.BankSelectMethod.MSB_LSB));
     }
 
+    /**
+     * Overridden : forbidden method on this preset object.
+     *
+     * @param f
+     */
+    @Override
+    public void setFile(File f)
+    {
+        throw new UnsupportedOperationException();
+    }
 }

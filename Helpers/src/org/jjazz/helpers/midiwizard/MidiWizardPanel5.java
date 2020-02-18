@@ -31,8 +31,7 @@ public class MidiWizardPanel5 implements WizardDescriptor.Panel<WizardDescriptor
 {
 
     /**
-     * The visual component that displays this panel. If you need to access the component from this class, just use
-     * getComponent().
+     * The visual component that displays this panel. If you need to access the component from this class, just use getComponent().
      */
     private MidiWizardVisualPanel5 component;
 
@@ -84,14 +83,17 @@ public class MidiWizardPanel5 implements WizardDescriptor.Panel<WizardDescriptor
     public void readSettings(WizardDescriptor wiz)
     {
         component.setMidiDeviceOut((MidiDevice) wiz.getProperty(MidiWizardAction.PROP_MIDI_OUT_DEVICE));
-        Boolean b = (Boolean) wiz.getProperty(MidiWizardAction.PROP_GM2_DRUMS_SUPPORT);
-        component.setDrumsOnOtherChannelOK(b != null ? b : false);
+        component.setGM2Support(MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_GM2_SUPPORT));
+        component.setXGSupport(MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_XG_SUPPORT));
+        component.setGSSupport(MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_GS_SUPPORT));
     }
 
     @Override
     public void storeSettings(WizardDescriptor wiz)
     {
-        wiz.putProperty(MidiWizardAction.PROP_GM2_DRUMS_SUPPORT, Boolean.valueOf(component.isDrumsOnOtherChannelOK()));
+        wiz.putProperty(MidiWizardAction.PROP_GM2_SUPPORT, Boolean.valueOf(component.isGM2support()));
+        wiz.putProperty(MidiWizardAction.PROP_XG_SUPPORT, Boolean.valueOf(component.isXGsupport()));
+        wiz.putProperty(MidiWizardAction.PROP_GS_SUPPORT, Boolean.valueOf(component.isGSsupport()));
     }
 
 }

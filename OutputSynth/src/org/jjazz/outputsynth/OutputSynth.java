@@ -109,6 +109,8 @@ public class OutputSynth implements Serializable
 
     /**
      * Construct a new OutputSynth which copies the values from os.
+     * <p>
+     * File is not copied.
      *
      * @param os
      */
@@ -220,9 +222,9 @@ public class OutputSynth implements Serializable
     /**
      * Remove a standard bank compatible with this OutputSynth.
      * <p>
-     * If the only remaining bank is the GM bank, then don't remove it. If removal makes the output synth empty (no instruments)
-     * then automatically add the GM standard bank. Update the UserInstrument if required, so that it's always an instrument from
-     * this OutputSynth.
+     * If the only remaining bank is the GM bank, then don't remove it. If removal makes the output synth empty (no instruments) then
+     * automatically add the GM standard bank. Update the UserInstrument if required, so that it's always an instrument from this
+     * OutputSynth.
      *
      * @param stdBank
      * @return True if stdBank could be successfully removed.
@@ -311,8 +313,8 @@ public class OutputSynth implements Serializable
     /**
      * Remove a custom MidiSynth compatible with this OutputSynth.
      * <p>
-     * If removal makes the output synth empty (no instruments) then automatically add the GM standard bank. Update the User
-     * Instrument if required.
+     * If removal makes the output synth empty (no instruments) then automatically add the GM standard bank. Update the User Instrument if
+     * required.
      *
      * @param synth
      */

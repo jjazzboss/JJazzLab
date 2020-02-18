@@ -22,6 +22,7 @@
  */
 package org.jjazz.outputsynth;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -74,6 +75,16 @@ public class OS_JJazzLabSoundFont extends OutputSynth
         addCustomSynth(midiSynth);
         removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());
         setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.GS);
+    }
+    
+    /**
+     * Overridden : forbidden method on this preset object.
+     * @param f 
+     */
+    @Override
+    public void setFile(File f)
+    {
+        throw new UnsupportedOperationException();
     }
 
     /**
