@@ -25,13 +25,13 @@ package org.jjazz.helpers.midiwizard;
 import javax.swing.AbstractButton;
 import javax.swing.JPanel;
 
-public final class MidiWizardVisualPanel0 extends JPanel
+public final class MidiWizardVisualPanelStart extends JPanel
 {    
     
     /**
      * Creates new form StartupWizardVisualPanel1
      */
-    public MidiWizardVisualPanel0()
+    public MidiWizardVisualPanelStart()
     {
         initComponents();
     }
@@ -39,7 +39,7 @@ public final class MidiWizardVisualPanel0 extends JPanel
     @Override
     public String getName()
     {
-        return "Use JJazzLab SoundFont";
+        return "Use JJazzLab SoundFont?";
     }
 
     public boolean useSoundFont()
@@ -83,10 +83,10 @@ public final class MidiWizardVisualPanel0 extends JPanel
 
         buttonGroup1.add(rbtn_yes);
         rbtn_yes.setSelected(true);
-        org.openide.awt.Mnemonics.setLocalizedText(rbtn_yes, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel0.class, "MidiWizardVisualPanel0.rbtn_yes.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_yes, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanelStart.class, "MidiWizardVisualPanelStart.rbtn_yes.text")); // NOI18N
 
         buttonGroup1.add(rbtn_no);
-        org.openide.awt.Mnemonics.setLocalizedText(rbtn_no, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel0.class, "MidiWizardVisualPanel0.rbtn_no.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_no, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanelStart.class, "MidiWizardVisualPanelStart.rbtn_no.text")); // NOI18N
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -112,21 +112,19 @@ public final class MidiWizardVisualPanel0 extends JPanel
         jPanel3.add(jPanel2);
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel0.class, "MidiWizardVisualPanel0.jLabel1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanelStart.class, "MidiWizardVisualPanelStart.jLabel1.text")); // NOI18N
 
         jPanel4.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
         lbl_image.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/helpers/midiwizard/resources/MidiWizard-image0.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_image, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel0.class, "MidiWizardVisualPanel0.lbl_image.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_image, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanelStart.class, "MidiWizardVisualPanelStart.lbl_image.text")); // NOI18N
         jPanel4.add(lbl_image);
 
-        jScrollPane1.setBackground(null);
         jScrollPane1.setBorder(null);
 
-        helpTextArea1.setBackground(null);
         helpTextArea1.setColumns(20);
         helpTextArea1.setRows(5);
-        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel0.class, "MidiWizardVisualPanel0.helpTextArea1.text")); // NOI18N
+        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(MidiWizardVisualPanelStart.class, "MidiWizardVisualPanelStart.helpTextArea1.text")); // NOI18N
         jScrollPane1.setViewportView(helpTextArea1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);

@@ -55,25 +55,52 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
     // }
     private int index;
     private WizardDescriptor wizardDesc;
-    private MidiWizardPanel0 panelStart;
-    private WizardDescriptor.Panel<WizardDescriptor>[] allPanels;
     private WizardDescriptor.Panel<WizardDescriptor>[] currentPanels;
-    private WizardDescriptor.Panel<WizardDescriptor>[] soundfontSequence;
+    private WizardDescriptor.Panel<WizardDescriptor>[] sfSequenceWin;
+    private WizardDescriptor.Panel<WizardDescriptor>[] sfSequenceOther;
     private WizardDescriptor.Panel<WizardDescriptor>[] midiSequence;
-    private String[] soundFontSequenceSteps;
-    private String[] midiSequenceSteps;
     private Set<ChangeListener> listeners = new HashSet<>(2);
     private static final Logger LOGGER = Logger.getLogger(MidiWizardIterator.class.getSimpleName());
 
+    /**
+     * Must be called right after object creation.
+     *
+     * @param wizardDescriptor
+     */
     public void setWizardDescriptor(WizardDescriptor wizardDescriptor)
     {
         wizardDesc = wizardDescriptor;
+
+        // Initialize all the panels and sequences
+        final MidiWizardPanelStart panelStart = new MidiWizardPanelStart();        // Special first common panel to decide which panel sequence to go
+        final MidiWizardPanelFinal panelFinal = new MidiWizardPanelFinal();        // Last common panel
+        panelStart.addChangeListener(new ChangeListener()
+        {
+            @Override
+            public void stateChanged(ChangeEvent e)
+            {
+                // Update the sequence
+                setPanelSequence(!panelStart.getComponent().useSoundFont());
+            }
+        });
+
+        sfSequenceWin = new WizardDescriptor.Panel[]
+        {
+            panelStart, new MidiWizardPanel_SfWin_1(), panelFinal
+        };
+        setPanelStdProperties(sfSequenceWin);
+        midiSequence = new WizardDescriptor.Panel[]
+        {
+            panelStart, new MidiWizardPanel1(), new MidiWizardPanel2(), new MidiWizardPanelSelectMidiOut(), new MidiWizardPanel4(), new MidiWizardPanel5(), panelFinal
+        };
+        setPanelStdProperties(midiSequence);
+        index = 0;
+        setPanelSequence(false);
     }
 
     @Override
     public WizardDescriptor.Panel<WizardDescriptor> current()
     {
-        initializePanels();
         return currentPanels[index];
     }
 
@@ -86,7 +113,6 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
     @Override
     public boolean hasNext()
     {
-        initializePanels();
         return index < currentPanels.length - 1;
     }
 
@@ -139,6 +165,10 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
         }
     }
 
+    // If something changes dynamically (besides moving between panels), e.g.
+    // the number of panels changes in response to user input, then use
+    // ChangeSupport to implement add/removeChangeListener and call fireChange
+    // when needed
     protected final void fireChangeEvent()
     {
         ChangeEvent ev = new ChangeEvent(this);
@@ -148,86 +178,45 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
         }
     }
 
-    // If something changes dynamically (besides moving between panels), e.g.
-    // the number of panels changes in response to user input, then use
-    // ChangeSupport to implement add/removeChangeListener and call fireChange
-    // when needed
-    private void initializePanels()
-    {
-        if (allPanels == null)
-        {
-            panelStart = new MidiWizardPanel0();        // Special first panel to decide which panel sequence to go
-            panelStart.addChangeListener(new ChangeListener()
-            {
-                @Override
-                public void stateChanged(ChangeEvent e)
-                {
-                    // Update the sequence and fire a change event to update UI (the part managed by the Wizard framework)
-                    setPanelSequence(!panelStart.getComponent().useSoundFont());
-                    fireChangeEvent();
-                }
-            });
-            allPanels = new WizardDescriptor.Panel[]
-            {
-                panelStart,
-                new MidiWizardPanel1(),
-                new MidiWizardPanel2(),
-                new MidiWizardPanel3(),
-                new MidiWizardPanel4(),
-                new MidiWizardPanel5()
-            };
-            String[] steps = new String[allPanels.length];
-            for (int i = 0; i < allPanels.length; i++)
-            {
-                Component c = allPanels[i].getComponent();
-                // Default step name to component name of panel.
-                steps[i] = c.getName();
-                if (c instanceof JComponent)
-                { // assume Swing components
-                    JComponent jc = (JComponent) c;
-                    jc.putClientProperty(WizardDescriptor.PROP_CONTENT_SELECTED_INDEX, i);
-                    // PROP_CONTENT_DATA: useless because panel index is not fixed, it might change depending on the sequence
-                    // jc.putClientProperty(WizardDescriptor.PROP_CONTENT_DATA, steps); 
-                    jc.putClientProperty(WizardDescriptor.PROP_AUTO_WIZARD_STYLE, true);
-                    jc.putClientProperty(WizardDescriptor.PROP_CONTENT_DISPLAYED, true);
-                    jc.putClientProperty(WizardDescriptor.PROP_CONTENT_NUMBERED, true);
-                }
-            }
-            soundfontSequence = new WizardDescriptor.Panel[]
-            {
-                panelStart, allPanels[1]
-            };
-            midiSequence = new WizardDescriptor.Panel[]
-            {
-                panelStart, allPanels[2], allPanels[3], allPanels[4]
-            };
-            soundFontSequenceSteps = new String[]
-            {
-                steps[0], steps[1]
-            };
-            midiSequenceSteps = new String[]
-            {
-                steps[0], steps[2], steps[3], steps[4]
-            };
-            currentPanels = soundfontSequence;
-            wizardDesc.putProperty(WizardDescriptor.PROP_CONTENT_DATA, soundFontSequenceSteps);
-        }
-    }
-
     private void setPanelSequence(boolean useMidiSequence)
     {
-        String[] contentData;
         if (useMidiSequence)
         {
             currentPanels = midiSequence;
-            contentData = midiSequenceSteps;
         } else
         {
-            currentPanels = soundfontSequence;
-            contentData = soundFontSequenceSteps;
+            currentPanels = sfSequenceWin;
         }
-        // Update the list of displayed steps
-        wizardDesc.putProperty(WizardDescriptor.PROP_CONTENT_DATA, contentData);
+        wizardDesc.putProperty(WizardDescriptor.PROP_CONTENT_DATA, getStepNames(currentPanels));
+        fireChangeEvent();
+    }
+
+    private String[] getStepNames(WizardDescriptor.Panel<WizardDescriptor>[] panels)
+    {
+        String[] stepNames = new String[panels.length];
+        for (int i = 0; i < panels.length; i++)
+        {
+            stepNames[i] = panels[i].getComponent().getName();
+        }
+        return stepNames;
+    }
+
+    private void setPanelStdProperties(WizardDescriptor.Panel<WizardDescriptor>[] panels)
+    {
+        for (WizardDescriptor.Panel<WizardDescriptor> panel : panels)
+        {
+            Component c = panel.getComponent();
+            if (c instanceof JComponent)
+            { // assume Swing components
+                JComponent jc = (JComponent) c;
+                // jc.putClientProperty(WizardDescriptor.PROP_CONTENT_SELECTED_INDEX, i);
+                // PROP_CONTENT_DATA: useless because panel index is not fixed, it will change depending on the sequence
+                // jc.putClientProperty(WizardDescriptor.PROP_CONTENT_DATA, steps); 
+                jc.putClientProperty(WizardDescriptor.PROP_AUTO_WIZARD_STYLE, true);
+                jc.putClientProperty(WizardDescriptor.PROP_CONTENT_DISPLAYED, true);
+                jc.putClientProperty(WizardDescriptor.PROP_CONTENT_NUMBERED, true);
+            }
+        }
     }
 
 }

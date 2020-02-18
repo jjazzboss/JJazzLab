@@ -83,7 +83,7 @@ public class MidiWizardPanel4 implements WizardDescriptor.Panel<WizardDescriptor
     @Override
     public void readSettings(WizardDescriptor wiz)
     {
-        component.setMidiDeviceOut((MidiDevice) wiz.getProperty(MidiWizardSettings.PROP_MIDI_OUT_DEVICE));
+        component.setMidiDeviceOut((MidiDevice) wiz.getProperty(MidiWizardAction.PROP_MIDI_OUT_DEVICE));
     }
 
     @Override

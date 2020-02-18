@@ -22,32 +22,49 @@
  */
 package org.jjazz.helpers.midiwizard;
 
+import java.util.HashSet;
+import java.util.Set;
 import javax.sound.midi.MidiDevice;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import org.jjazz.midi.JJazzMidiSystem;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 
-public class MidiWizardPanel5 implements WizardDescriptor.Panel<WizardDescriptor>
+public class MidiWizardPanelSelectMidiOut implements WizardDescriptor.Panel<WizardDescriptor>, ListSelectionListener
 {
 
     /**
      * The visual component that displays this panel. If you need to access the component from this class, just use
      * getComponent().
      */
-    private MidiWizardVisualPanel5 component;
+    private MidiWizardVisualPanelSelectMidiOut component;
+    private Set<ChangeListener> listeners = new HashSet<ChangeListener>(1);
 
     // Get the visual component for the panel. In this template, the component
     // is kept separate. This can be more efficient: if the wizard is created
     // but never displayed, or not all panels are displayed, it is better to
     // create only those which really need to be visible.
     @Override
-    public MidiWizardVisualPanel5 getComponent()
+    public MidiWizardVisualPanelSelectMidiOut getComponent()
     {
         if (component == null)
         {
-            component = new MidiWizardVisualPanel5();
+            component = new MidiWizardVisualPanelSelectMidiOut();
+            component.getOutDeviceList().addListSelectionListener(this);
         }
         return component;
+    }
+
+    @Override
+    public void valueChanged(ListSelectionEvent e)
+    {
+        if (!e.getValueIsAdjusting())
+        {
+            fireChangeEvent();
+        }
     }
 
     @Override
@@ -62,36 +79,52 @@ public class MidiWizardPanel5 implements WizardDescriptor.Panel<WizardDescriptor
     @Override
     public boolean isValid()
     {
-        // If it is always OK to press Next or Finish, then:
-        return true;
-        // If it depends on some condition (form filled out...) and
-        // this condition changes (last form field filled in...) then
-        // use ChangeSupport to implement add/removeChangeListener below.
-        // WizardDescriptor.ERROR/WARNING/INFORMATION_MESSAGE will also be useful.
+        return component.getSelectedOutDevice() != null;
     }
 
     @Override
-    public void addChangeListener(ChangeListener l)
+    public final void addChangeListener(ChangeListener l)
     {
+        synchronized (listeners)
+        {
+            listeners.add(l);
+        }
     }
 
     @Override
-    public void removeChangeListener(ChangeListener l)
+    public final void removeChangeListener(ChangeListener l)
     {
+        synchronized (listeners)
+        {
+            listeners.remove(l);
+        }
+    }
+
+    protected final void fireChangeEvent()
+    {
+        ChangeEvent ev = new ChangeEvent(this);
+        for (ChangeListener cl : listeners)
+        {
+            cl.stateChanged(ev);
+        }
     }
 
     @Override
     public void readSettings(WizardDescriptor wiz)
     {
-        component.setMidiDeviceOut((MidiDevice) wiz.getProperty(MidiWizardAction.PROP_MIDI_OUT_DEVICE));
-        Boolean b = (Boolean) wiz.getProperty(MidiWizardAction.PROP_GM2_DRUMS_SUPPORT);
-        component.setDrumsOnOtherChannelOK(b != null ? b : false);
+        // use wiz.getProperty to retrieve previous panel state
+        MidiDevice md = (MidiDevice) wiz.getProperty(MidiWizardAction.PROP_MIDI_OUT_DEVICE);
+        if (md == null)
+        {
+            md = JJazzMidiSystem.getInstance().getDefaultOutDevice();
+        }
+        component.setSelectedOutDevice(md);
     }
 
     @Override
     public void storeSettings(WizardDescriptor wiz)
     {
-        wiz.putProperty(MidiWizardAction.PROP_GM2_DRUMS_SUPPORT, Boolean.valueOf(component.isDrumsOnOtherChannelOK()));
+        wiz.putProperty(MidiWizardAction.PROP_MIDI_OUT_DEVICE, component.getSelectedOutDevice());
     }
 
 }

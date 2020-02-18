@@ -26,7 +26,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.helpers.midiwizard.MidiWizardSettings.SoundDevice;
+import org.jjazz.helpers.midiwizard.MidiWizardAction.SoundDevice;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 
@@ -104,7 +104,7 @@ public class MidiWizardPanel2 implements WizardDescriptor.Panel<WizardDescriptor
     @Override
     public void readSettings(WizardDescriptor wiz)
     {
-        SoundDevice sd = (SoundDevice) wiz.getProperty(MidiWizardSettings.PROP_SOUND_DEVICE);
+        SoundDevice sd = (SoundDevice) wiz.getProperty(MidiWizardAction.PROP_SOUND_DEVICE);
         if (sd == null)
         {
             sd = SoundDevice.SYNTHESIZER;
@@ -117,7 +117,7 @@ public class MidiWizardPanel2 implements WizardDescriptor.Panel<WizardDescriptor
     {
         // use wiz.putProperty to remember current panel state
         SoundDevice sd = component.getSelectedSoundDevice();
-        wiz.putProperty(MidiWizardSettings.PROP_SOUND_DEVICE, sd);
+        wiz.putProperty(MidiWizardAction.PROP_SOUND_DEVICE, sd);
     }
 
 }

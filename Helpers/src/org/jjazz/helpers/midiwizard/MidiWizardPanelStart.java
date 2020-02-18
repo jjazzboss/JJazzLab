@@ -29,25 +29,25 @@ import javax.swing.event.ChangeListener;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 
-public class MidiWizardPanel0 implements WizardDescriptor.Panel<WizardDescriptor>
+public class MidiWizardPanelStart implements WizardDescriptor.Panel<WizardDescriptor>
 {
 
     private Set<ChangeListener> listeners = new HashSet<ChangeListener>(2);
     /**
      * The visual component that displays this panel. If you need to access the component from this class, just use getComponent().
      */
-    private MidiWizardVisualPanel0 component;
+    private MidiWizardVisualPanelStart component;
 
     // Get the visual component for the panel. In this template, the component
     // is kept separate. This can be more efficient: if the wizard is created
     // but never displayed, or not all panels are displayed, it is better to
     // create only those which really need to be visible.
     @Override
-    public MidiWizardVisualPanel0 getComponent()
+    public MidiWizardVisualPanelStart getComponent()
     {
         if (component == null)
         {
-            component = new MidiWizardVisualPanel0();
+            component = new MidiWizardVisualPanelStart();
             component.getYesButton().addChangeListener(new ChangeListener()
             {
                 @Override

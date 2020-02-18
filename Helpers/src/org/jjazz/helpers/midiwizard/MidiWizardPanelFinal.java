@@ -28,25 +28,25 @@ import org.jjazz.midi.JJazzMidiSystem;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 
-public class MidiWizardPanel6 implements WizardDescriptor.Panel<WizardDescriptor>
+public class MidiWizardPanelFinal implements WizardDescriptor.Panel<WizardDescriptor>
 {
 
     /**
      * The visual component that displays this panel. If you need to access the component from this class, just use
      * getComponent().
      */
-    private MidiWizardVisualPanel6 component;
+    private MidiWizardVisualFinal component;
 
     // Get the visual component for the panel. In this template, the component
     // is kept separate. This can be more efficient: if the wizard is created
     // but never displayed, or not all panels are displayed, it is better to
     // create only those which really need to be visible.
     @Override
-    public MidiWizardVisualPanel6 getComponent()
+    public MidiWizardVisualFinal getComponent()
     {
         if (component == null)
         {
-            component = new MidiWizardVisualPanel6();
+            component = new MidiWizardVisualFinal();
         }
         return component;
     }
@@ -84,14 +84,25 @@ public class MidiWizardPanel6 implements WizardDescriptor.Panel<WizardDescriptor
     @Override
     public void readSettings(WizardDescriptor wiz)
     {
-        StringBuilder sb = new StringBuilder();
-        MidiDevice md = (MidiDevice) wiz.getProperty(MidiWizardSettings.PROP_MIDI_OUT_DEVICE);
-        String mdName = JJazzMidiSystem.getInstance().getDeviceFriendlyName(md);
-        boolean gm2DrumsSupport = (Boolean) wiz.getProperty(MidiWizardSettings.PROP_GM2_DRUMS_SUPPORT);
+        // Retrieve Wizard data
+        boolean useJJazzLabSoundFont = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_USE_JJAZZLAB_SOUNDFONT);
+        MidiDevice md = (MidiDevice) wiz.getProperty(MidiWizardAction.PROP_MIDI_OUT_DEVICE);
+        String mdName = md != null ? JJazzMidiSystem.getInstance().getDeviceFriendlyName(md) : "";
+        boolean gm2DrumsSupport = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_GM2_DRUMS_SUPPORT);
         String drumKit = gm2DrumsSupport ? "GM2 Drum Kit Standard" : "Not Set";
 
-        sb.append("Set Midi Out device to : " + mdName + "\n\n");
-        sb.append("Set drums and percussion default instruments to : " + drumKit);
+        StringBuilder sb = new StringBuilder();
+        if (useJJazzLabSoundFont)
+        {
+            sb.append("Output synth config : use the JJazzLab SoundFont preset\n\n");
+            if (md != null)
+            {
+                sb.append("Set Midi Out device to : " + mdName + "\n\n");
+            }
+        } else
+        {
+            sb.append("Set Midi Out device to : " + mdName + "\n\n");
+        }
 
         component.setChangesDescription(sb.toString());
     }

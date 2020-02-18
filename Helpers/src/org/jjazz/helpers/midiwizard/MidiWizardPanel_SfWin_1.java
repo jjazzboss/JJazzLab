@@ -24,47 +24,38 @@ package org.jjazz.helpers.midiwizard;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 import javax.sound.midi.MidiDevice;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
+import org.openide.util.Utilities;
 
-public class MidiWizardPanel3 implements WizardDescriptor.Panel<WizardDescriptor>, ListSelectionListener
+public class MidiWizardPanel_SfWin_1 implements WizardDescriptor.Panel<WizardDescriptor>
 {
 
+    private Set<ChangeListener> listeners = new HashSet<ChangeListener>(2);
+    private static final Logger LOGGER = Logger.getLogger(MidiWizardPanel_SfWin_1.class.getSimpleName());
     /**
      * The visual component that displays this panel. If you need to access the component from this class, just use
      * getComponent().
      */
-    private MidiWizardVisualPanel3 component;
-    private Set<ChangeListener> listeners = new HashSet<ChangeListener>(1);
+    private MidiWizardVisualPanel_SfWin_1 component;
 
     // Get the visual component for the panel. In this template, the component
     // is kept separate. This can be more efficient: if the wizard is created
     // but never displayed, or not all panels are displayed, it is better to
     // create only those which really need to be visible.
     @Override
-    public MidiWizardVisualPanel3 getComponent()
+    public MidiWizardVisualPanel_SfWin_1 getComponent()
     {
         if (component == null)
         {
-            component = new MidiWizardVisualPanel3();
-            component.getOutDeviceList().addListSelectionListener(this);
+            component = new MidiWizardVisualPanel_SfWin_1();
         }
         return component;
-    }
-
-    @Override
-    public void valueChanged(ListSelectionEvent e)
-    {
-        if (!e.getValueIsAdjusting())
-        {
-            fireChangeEvent();
-        }
     }
 
     @Override
@@ -79,7 +70,12 @@ public class MidiWizardPanel3 implements WizardDescriptor.Panel<WizardDescriptor
     @Override
     public boolean isValid()
     {
-        return component.getSelectedOutDevice() != null;
+        // If it is always OK to press Next or Finish, then:
+        return true;
+        // If it depends on some condition (form filled out...) and
+        // this condition changes (last form field filled in...) then
+        // use ChangeSupport to implement add/removeChangeListener below.
+        // WizardDescriptor.ERROR/WARNING/INFORMATION_MESSAGE will also be useful.
     }
 
     @Override
@@ -112,19 +108,45 @@ public class MidiWizardPanel3 implements WizardDescriptor.Panel<WizardDescriptor
     @Override
     public void readSettings(WizardDescriptor wiz)
     {
-        // use wiz.getProperty to retrieve previous panel state
-        MidiDevice md = (MidiDevice) wiz.getProperty(MidiWizardSettings.PROP_MIDI_OUT_DEVICE);
-        if (md == null)
-        {
-            md = JJazzMidiSystem.getInstance().getDefaultOutDevice();
-        }
-        component.setSelectedOutDevice(md);
+        // We store the property here instead of in storeSettings() because property only depends on external context and we need
+        // the info to update the panel display
+        MidiDevice md = getVirtualMidiSynthDevice();
+        wiz.putProperty(MidiWizardAction.PROP_MIDI_OUT_DEVICE, md);     
+        getComponent().setVmsDevice(md);
     }
 
     @Override
     public void storeSettings(WizardDescriptor wiz)
     {
-        wiz.putProperty(MidiWizardSettings.PROP_MIDI_OUT_DEVICE, component.getSelectedOutDevice());
+        // see readSettings()
     }
 
+  private MidiDevice getVirtualMidiSynthDevice()
+    {
+        assert Utilities.isWindows();
+        JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
+        MidiDevice res = null;
+        MidiDevice md = jms.getDefaultOutDevice();
+        if (isVirtualMidiSynthDevice(md))
+        {
+            res = md;
+        } else
+        {
+            // Search the available MidiDevices
+            for (MidiDevice mdi : jms.getOutDeviceList())
+            {
+                if (isVirtualMidiSynthDevice(mdi))
+                {
+                    md = mdi;
+                    break;
+                }
+            }
+        }
+        return res;
+    }
+
+    private boolean isVirtualMidiSynthDevice(MidiDevice md)
+    {
+        return md != null && md.getDeviceInfo().getName().toLowerCase().contains("virtualmidisynt");
+    }
 }

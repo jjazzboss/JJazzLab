@@ -23,7 +23,7 @@
 package org.jjazz.helpers.midiwizard;
 
 import javax.swing.JPanel;
-import org.jjazz.helpers.midiwizard.MidiWizardSettings.SoundDevice;
+import org.jjazz.helpers.midiwizard.MidiWizardAction.SoundDevice;
 
 public final class MidiWizardVisualPanel2 extends JPanel
 {

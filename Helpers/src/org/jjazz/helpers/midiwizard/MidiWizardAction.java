@@ -22,21 +22,14 @@
  */
 package org.jjazz.helpers.midiwizard;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
-import javax.swing.JComponent;
-import org.jjazz.helpers.midiwizard.MidiWizardSettings.SoundDevice;
 import org.jjazz.midi.JJazzMidiSystem;
-import org.jjazz.outputsynth.OS_JJazzLabSoundFont;
-import org.jjazz.outputsynth.OutputSynthManager;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.WizardDescriptor;
@@ -44,9 +37,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.NbPreferences;
-import org.openide.util.Utilities;
 import org.openide.windows.OnShowing;
-import org.openide.windows.WindowManager;
 
 /**
  * Start the Midi configuration wizard.
@@ -61,7 +52,17 @@ import org.openide.windows.WindowManager;
 public final class MidiWizardAction implements ActionListener, Runnable
 {
 
+    // SoundFont sequence data
     public static final String PROP_USE_JJAZZLAB_SOUNDFONT = "UseJJazzLabSoundFont";
+
+    // Midi config sequence data
+    public enum SoundDevice
+    {
+        SYNTHESIZER, VIRTUAL_INSTRUMENT, OTHER
+    }
+    public static String PROP_SOUND_DEVICE = "PropSoundDevice";
+    public static String PROP_MIDI_OUT_DEVICE = "PropMidiOutDevice";
+    public static String PROP_GM2_DRUMS_SUPPORT = "PropGM2DrumsChannel";
 
     private static Preferences prefs = NbPreferences.forModule(MidiWizardAction.class);
 
@@ -80,37 +81,10 @@ public final class MidiWizardAction implements ActionListener, Runnable
         wiz.setTitle("Midi configuration wizard");
         if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION)
         {
-
-        }
-        if (true)
-        {
-            return;
-        }
-
-        // {0} will be replaced by WizardDesriptor.Panel.getComponent().getName()
-        wiz.setTitleFormat(new MessageFormat("{0}"));
-
-        // First show the special use JJazzLab soundfont dialog
-        UseJJazzLabSoundFontDialog dlg = new UseJJazzLabSoundFontDialog(WindowManager.getDefault().getMainWindow(), true);
-        dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
-        dlg.setVisible(true);
-        if (!dlg.isExitOk())
-        {
-            return;
-        }
-        if (dlg.isYesAnswer())
-        {
-            useJJazzLabSoundFont();
-            return;
-        }
-
-        // Wizard
-        if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION)
-        {
             // Retrieve configuration then apply it
-            SoundDevice sd = (SoundDevice) wiz.getProperty(MidiWizardSettings.PROP_SOUND_DEVICE);
-            MidiDevice md = (MidiDevice) wiz.getProperty(MidiWizardSettings.PROP_MIDI_OUT_DEVICE);
-            boolean gm2DrumsSupport = (Boolean) wiz.getProperty(MidiWizardSettings.PROP_GM2_DRUMS_SUPPORT);
+            SoundDevice sd = (SoundDevice) wiz.getProperty(PROP_SOUND_DEVICE);
+            MidiDevice md = (MidiDevice) wiz.getProperty(PROP_MIDI_OUT_DEVICE);
+            boolean gm2DrumsSupport = getBooleanProp(wiz, PROP_GM2_DRUMS_SUPPORT);
 
             // Midi device OUT
             JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
@@ -124,16 +98,13 @@ public final class MidiWizardAction implements ActionListener, Runnable
                 DialogDisplayer.getDefault().notify(nd);
             }
 
-            // Default Drums instruments
-//            Instrument ins = JJazzSynth.getInstance().getNotSetBank().getVoidInstrument();
-//            if (gm2DrumsSupport)
-//            {
-//                ins = StdSynth.getInstance().getGM2Bank().getDefaultDrumsInstrument();
-//            }
-//            DefaultInstruments di = DefaultInstruments.getInstance();
-//            di.setInstrument(RvType.Drums, ins);
-//            di.setInstrument(RvType.Percussion, ins);
         }
+    }
+
+    public static boolean getBooleanProp(WizardDescriptor wiz, String prop)
+    {
+        Boolean b = (Boolean) wiz.getProperty(prop);
+        return b == null ? false : b;
     }
 
     @Override
@@ -146,64 +117,4 @@ public final class MidiWizardAction implements ActionListener, Runnable
         prefs.putBoolean(PREF_CLEAN_START, false);
     }
 
-    /**
-     * Do what's required to use the JJazzLab SoundFont.
-     */
-    private void useJJazzLabSoundFont()
-    {
-        // Set the output synth
-        OutputSynthManager osm = OutputSynthManager.getInstance();
-        osm.setOutputSynth(OS_JJazzLabSoundFont.getInstance());
-
-        // Check the midi out device
-        if (Utilities.isWindows())
-        {
-            // Check if VirtualMidi port is there
-            boolean virtualMidiSynthSet = false;
-            JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-            MidiDevice md = jms.getDefaultOutDevice();
-            if (isVirtualMidiSynthDevice(md))
-            {
-                // GOOD: VirtualMidi port is already the out device
-                virtualMidiSynthSet = true;
-            } else
-            {
-                // Check if it's installed, if yes use it
-                for (MidiDevice mdi : jms.getOutDeviceList())
-                {
-                    if (isVirtualMidiSynthDevice(mdi))
-                    {
-                        try
-                        {
-                            jms.setDefaultOutDevice(mdi);
-                            virtualMidiSynthSet = true;
-                        } catch (MidiUnavailableException ex)
-                        {
-                            NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
-                            DialogDisplayer.getDefault().notify(nd);
-                        }
-                    }
-                }
-            }
-
-            //if (virtualMidiSynthSet)
-            if (true)
-            {
-                String msg = "JJazzLab is now configured to use VirtualMidiSynth. Please make sure VirtualMidiSynth has loaded the JJazzLab SoundFont."
-                        + "\nConsult <html><a href=www.jjazzlab.com/en/doc>www.jjazzlab.com/en/doc</a></html> for details how to download the SoundFont and how to configure VirtualMidiSynth.";
-                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
-                DialogDisplayer.getDefault().notify(nd);
-                return;
-            }
-
-        } else
-        {
-
-        }
-    }
-
-    private boolean isVirtualMidiSynthDevice(MidiDevice md)
-    {
-        return md != null && md.getDeviceInfo().getName().toLowerCase().contains("virtualmidisynt");
-    }
 }

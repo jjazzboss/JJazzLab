@@ -32,13 +32,13 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.jjazz.midi.ui.MidiOutDeviceList;
 
-public final class MidiWizardVisualPanel3 extends JPanel
+public final class MidiWizardVisualPanelSelectMidiOut extends JPanel
 {
 
     /**
      * Creates new form StartupWizardVisualPanel3
      */
-    public MidiWizardVisualPanel3()
+    public MidiWizardVisualPanelSelectMidiOut()
     {
         initComponents();
     }
@@ -154,9 +154,9 @@ public final class MidiWizardVisualPanel3 extends JPanel
 
         jScrollPane1.setViewportView(list_outDevices);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_top, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel3.class, "MidiWizardVisualPanel3.lbl_top.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_top, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanelSelectMidiOut.class, "MidiWizardVisualPanelSelectMidiOut.lbl_top.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_test, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel3.class, "MidiWizardVisualPanel3.btn_test.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_test, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanelSelectMidiOut.class, "MidiWizardVisualPanelSelectMidiOut.btn_test.text")); // NOI18N
         btn_test.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -167,14 +167,13 @@ public final class MidiWizardVisualPanel3 extends JPanel
 
         jScrollPane2.setBorder(null);
 
-        hlptxt.setBorder(null);
         hlptxt.setColumns(20);
         hlptxt.setRows(5);
-        hlptxt.setText(org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel3.class, "MidiWizardVisualPanel3.hlptxt.text")); // NOI18N
+        hlptxt.setText(org.openide.util.NbBundle.getMessage(MidiWizardVisualPanelSelectMidiOut.class, "MidiWizardVisualPanelSelectMidiOut.hlptxt.text")); // NOI18N
         jScrollPane2.setViewportView(hlptxt);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_refresh, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel3.class, "MidiWizardVisualPanel3.btn_refresh.text")); // NOI18N
-        btn_refresh.setToolTipText(org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel3.class, "MidiWizardVisualPanel3.btn_refresh.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_refresh, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanelSelectMidiOut.class, "MidiWizardVisualPanelSelectMidiOut.btn_refresh.text")); // NOI18N
+        btn_refresh.setToolTipText(org.openide.util.NbBundle.getMessage(MidiWizardVisualPanelSelectMidiOut.class, "MidiWizardVisualPanelSelectMidiOut.btn_refresh.toolTipText")); // NOI18N
         btn_refresh.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
