@@ -31,33 +31,16 @@ import javax.swing.JComponent;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.openide.WizardDescriptor;
+import org.openide.util.Utilities;
 
 public final class MidiWizardIterator implements WizardDescriptor.Iterator<WizardDescriptor>
-{
-
-    // Example of invoking this wizard:
-    // @ActionID(category="...", id="...")
-    // @ActionRegistration(displayName="...")
-    // @ActionReference(path="Menu/...")
-    // public static ActionListener run() {
-    //     return new ActionListener() {
-    //         @Override public void actionPerformed(ActionEvent e) {
-    //             WizardDescriptor wiz = new WizardDescriptor(new Midi2WizardIterator());
-    //             // {0} will be replaced by WizardDescriptor.Panel.getComponent().getName()
-    //             // {1} will be replaced by WizardDescriptor.Iterator.name()
-    //             wiz.setTitleFormat(new MessageFormat("{0} ({1})"));
-    //             wiz.setTitle("...dialog title...");
-    //             if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION) {
-    //                 ...do something...
-    //             }
-    //         }
-    //     };
-    // }
+{ 
     private int index;
     private WizardDescriptor wizardDesc;
     private WizardDescriptor.Panel<WizardDescriptor>[] currentPanels;
     private WizardDescriptor.Panel<WizardDescriptor>[] sfSequenceWin;
-    private WizardDescriptor.Panel<WizardDescriptor>[] sfSequenceOther;
+    private WizardDescriptor.Panel<WizardDescriptor>[] sfSequenceLinux;
+    private WizardDescriptor.Panel<WizardDescriptor>[] sfSequenceMac;
     private WizardDescriptor.Panel<WizardDescriptor>[] midiSequence;
     private Set<ChangeListener> listeners = new HashSet<>(2);
     private static final Logger LOGGER = Logger.getLogger(MidiWizardIterator.class.getSimpleName());
@@ -88,12 +71,26 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
         {
             panelStart, new MidiWizardPanel_SfWin_1(), new MidiWizardPanel_SfWin_2(), panelFinal
         };
-        setPanelStdProperties(sfSequenceWin);
+        initPanels(sfSequenceWin);
+        
+        sfSequenceLinux = new WizardDescriptor.Panel[]
+        {
+            panelStart, new MidiWizardPanel_SfLinux_1(), panelFinal
+        };
+        initPanels(sfSequenceLinux);
+        
+        sfSequenceMac = new WizardDescriptor.Panel[]
+        {
+            panelStart, new MidiWizardPanel_SfMac_1(), panelFinal
+        };
+        initPanels(sfSequenceMac);
+        
         midiSequence = new WizardDescriptor.Panel[]
         {
             panelStart, new MidiWizardPanelSelectMidiOut(), new MidiWizardPanel4(), new MidiWizardPanel5(), panelFinal
         };
-        setPanelStdProperties(midiSequence);
+        initPanels(midiSequence);
+        
         index = 0;
         setPanelSequence(false);
     }
@@ -178,14 +175,23 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
         }
     }
 
-    private void setPanelSequence(boolean useMidiSequence)
+    private void setPanelSequence(boolean useStdSequence)
     {
-        if (useMidiSequence)
+        if (useStdSequence)
         {
             currentPanels = midiSequence;
         } else
         {
-            currentPanels = sfSequenceWin;
+            if (Utilities.isUnix())
+            {
+                currentPanels = sfSequenceLinux;
+            } else if (Utilities.isMac())
+            {
+                currentPanels = sfSequenceMac;
+            } else
+            {                
+                currentPanels = sfSequenceWin;
+            }
         }
         wizardDesc.putProperty(WizardDescriptor.PROP_CONTENT_DATA, getStepNames(currentPanels));
         fireChangeEvent();
@@ -201,7 +207,7 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
         return stepNames;
     }
 
-    private void setPanelStdProperties(WizardDescriptor.Panel<WizardDescriptor>[] panels)
+    private void initPanels(WizardDescriptor.Panel<WizardDescriptor>[] panels)
     {
         for (WizardDescriptor.Panel<WizardDescriptor> panel : panels)
         {

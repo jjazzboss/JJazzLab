@@ -32,29 +32,29 @@ import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midi.synths.StdSynth;
 
 /**
- * The builtin OutputSynth for the JJazzLabSoundFont.
+ * The builtin OutputSynth for the JJazzLabSoundFont in XG mode.
  */
-public class OS_JJazzLabSoundFont extends OutputSynth
+public class OS_JJazzLabSoundFont_XG extends OutputSynth
 {
-    
-    private static final String JJAZZLAB_SOUNDFONT_SYNTH_PATH = "resources/JJazzLabSoundFontSynth.ins";
-    private static OS_JJazzLabSoundFont INSTANCE;
+
+    private static final String JJAZZLAB_SOUNDFONT_SYNTH_PATH = "resources/JJazzLabSoundFontSynth_XG.ins";
+    private static OS_JJazzLabSoundFont_XG INSTANCE;
     private final MidiSynth midiSynth;
-    private static final Logger LOGGER = Logger.getLogger(OS_JJazzLabSoundFont.class.getSimpleName());
-    
-    public static OS_JJazzLabSoundFont getInstance()
+    private static final Logger LOGGER = Logger.getLogger(OS_JJazzLabSoundFont_XG.class.getSimpleName());
+
+    public static OS_JJazzLabSoundFont_XG getInstance()
     {
-        synchronized (OS_JJazzLabSoundFont.class)
+        synchronized (OS_JJazzLabSoundFont_XG.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new OS_JJazzLabSoundFont();
+                INSTANCE = new OS_JJazzLabSoundFont_XG();
             }
         }
         return INSTANCE;
     }
-    
-    private OS_JJazzLabSoundFont()
+
+    private OS_JJazzLabSoundFont_XG()
     {
         // Read the synth from the .ins file
         InputStream is = getClass().getResourceAsStream(JJAZZLAB_SOUNDFONT_SYNTH_PATH);
@@ -74,12 +74,13 @@ public class OS_JJazzLabSoundFont extends OutputSynth
         // Adjust settings
         addCustomSynth(midiSynth);
         removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());
-        setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.GS);
+        setSendModeOnUponPlay(OutputSynth.SendModeOnUponStartup.XG);
     }
-    
+
     /**
      * Overridden : forbidden method on this preset object.
-     * @param f 
+     *
+     * @param f
      */
     @Override
     public void setFile(File f)
@@ -93,8 +94,8 @@ public class OS_JJazzLabSoundFont extends OutputSynth
      * @return
      */
     public MidiSynth getJJazzLabSoundFontSynth()
-    {        
+    {
         return midiSynth;
     }
-    
+
 }

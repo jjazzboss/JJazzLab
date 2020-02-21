@@ -22,11 +22,13 @@
  */
 package org.jjazz.helpers.midiwizard;
 
+import java.io.File;
 import javax.sound.midi.MidiDevice;
 import javax.swing.event.ChangeListener;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
+import org.openide.util.Utilities;
 
 public class MidiWizardPanelFinal implements WizardDescriptor.Panel<WizardDescriptor>
 {
@@ -90,14 +92,27 @@ public class MidiWizardPanelFinal implements WizardDescriptor.Panel<WizardDescri
         boolean gm2Support = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_GM2_SUPPORT);
         boolean xgSupport = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_XG_SUPPORT);
         boolean gsSupport = MidiWizardAction.getBooleanProp(wiz, MidiWizardAction.PROP_GS_SUPPORT);
+        File soundFontFile = (File) wiz.getProperty(MidiWizardAction.PROP_JJAZZLAB_SOUNDFONT_FILE);
 
         StringBuilder sb = new StringBuilder();
         if (useJJazzLabSoundFont)
         {
-            sb.append("- Set Output synth config. : JJazzLab SoundFont preset\n\n");
+            String presetName = "JJazzLab SoundFont/VirtualMidiSynth (Windows)";
+            if (Utilities.isUnix())
+            {
+                presetName = "JJazzLab SoundFont/FluidSynth (Linux)";
+            } else if (Utilities.isMac())
+            {
+                presetName = "JJazzLab SoundFont/Java Internal Synth (Mac)";
+            }
+            sb.append("- Set Output synth config. : " + presetName + "\n\n");
             if (md != null)
             {
                 sb.append("- Set Midi Out device : " + mdName + "\n\n");
+            }
+            if (Utilities.isMac() && soundFontFile != null)
+            {
+                sb.append("- Load sound file : " + soundFontFile.getAbsolutePath());
             }
         } else
         {

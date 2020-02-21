@@ -102,7 +102,7 @@ public class MidiSynthManager
     public List<MidiSynth> getBuiltinSynths()
     {
         ArrayList<MidiSynth> res = new ArrayList<>();
-        res.add(OS_JJazzLabSoundFont.getInstance().getJJazzLabSoundFontSynth());
+        res.add(OS_JJazzLabSoundFont_GS.getInstance().getJJazzLabSoundFontSynth());
         res.add(OS_YamahaRef.getInstance().getYamahaRefSynth());
         return res;
     }

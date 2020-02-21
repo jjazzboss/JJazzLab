@@ -106,7 +106,7 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * Create a Note with a pitch and a beat duration and standard velocity. Use FLAT symbol by default.
      *
-     * @param p The pitch of the note.
+     * @param p  The pitch of the note.
      * @param bd The beat duration of the note.
      */
     public Note(int p, float bd)
@@ -130,8 +130,8 @@ public class Note implements Comparable<Note>, Cloneable
      * Create a Note with a pitch, a duration in beat, a velocity and an alteration if any.
      *
      * @param p
-     * @param bd Must be &gt; 0
-     * @param v velocity
+     * @param bd  Must be &gt; 0
+     * @param v   velocity
      * @param alt
      */
     public Note(int p, float bd, int v, Alteration alt)
@@ -312,6 +312,10 @@ public class Note implements Comparable<Note>, Cloneable
         return symbolicDuration;
     }
 
+    /**
+     * The octave starting at 0 for pitch=0 (which is different from the Midi convention, where pitch=0 is octave=-1).
+     * @return 
+     */
     public final int getOctave()
     {
         return pitch / 12;
@@ -396,7 +400,7 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * Change the octave of this note so that pitch is within the pitch limits (included).
      *
-     * @param lowPitch Must be &lt; (highPitch-12)
+     * @param lowPitch  Must be &lt; (highPitch-12)
      * @param highPitch
      * @return The new note with correct ed pitch.
      */
@@ -422,8 +426,8 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * Get a new transposed note.
      * <p>
-     * If the new note is beyond pitchLimit, the note's octave is changed to remain below (pitchShift &gt; 0) or above (pitchSshift
-     * &lt; 0) pitchLimit.
+     * If the new note is beyond pitchLimit, the note's octave is changed to remain below (pitchShift &gt; 0) or above (pitchSshift &lt; 0)
+     * pitchLimit.
      * <p>
      * @param pitchShift A negative or positive value i semi-tons.
      * @param pitchLimit Authorized values are [13, 119]
@@ -696,11 +700,11 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * @return E.g. "D!3" (D of the 3rd octave).
+     * @return "D!-1" "D!3". This is the Midi octave convention: pitch=0-11 corresponds to Midi octave -1, C!0 is Midi pitch=12.
      */
     public String toAbsoluteNoteString()
     {
-        return toRelativeNoteString() + "!" + getOctave();
+        return toRelativeNoteString() + "!" + (getOctave() - 1);
     }
 
     //----------------------------------------------------------------------------------------------
@@ -778,11 +782,11 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * Return a pitch which is guaranteed to be between lowPitch and highPitch. If pitch is out of bounds, go up/down 1 octave
-     * until we're within the limits.
+     * Return a pitch which is guaranteed to be between lowPitch and highPitch. If pitch is out of bounds, go up/down 1 octave until we're
+     * within the limits.
      *
      * @param pitch
-     * @param lowPitch Constraint: highPitch-lowPitch must be &gt; 11.
+     * @param lowPitch  Constraint: highPitch-lowPitch must be &gt; 11.
      * @param highPitch Constraint: highPitch-lowPitch must be &gt; 11.
      * @return A pitch between lowPitch and highPitch
      */
@@ -809,7 +813,7 @@ public class Note implements Comparable<Note>, Cloneable
      * E.g., if pitchFrom=0 and pitchTo=12, return the array ["C0", "C#0", "D0"...."C1"]
      *
      * @param pitchFrom A positive integer.
-     * @param pitchTo A positive integer.
+     * @param pitchTo   A positive integer.
      *
      * @return An array of Note objects.
      */

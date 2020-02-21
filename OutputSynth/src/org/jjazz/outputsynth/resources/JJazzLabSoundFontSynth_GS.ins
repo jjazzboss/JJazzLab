@@ -1,6 +1,7 @@
 ; =================================
 ; JJazzLab Instrument Definition file for the JJazzLab SoundFont.
 ; J. Lelasseux
+; GS MODE
 ; =================================
 
 
@@ -222,13 +223,6 @@
 [Bank 46]
 81=SequencedSaw       {{ SubGM1=81 }}
 
-[GM2 Drums]     
-0=Yamaha Std Kit    {{DrumKit=STANDARD, GS_GM2}}
-1=Yamaha Live Kit    {{DrumKit=STANDARD, XG}}
-2=Yamaha Cuban Kit     {{DrumKit=STANDARD, XG_POPLATIN}}
-3=ROOM    {{DrumKit=ROOM, GS_GM2}}
-
-
 [Drums]	
 0=Std Kit 1    {{DrumKit=STANDARD, XG}}  
 1=Std Kit 2    {{DrumKit=STANDARD, XG}}  
@@ -251,7 +245,7 @@
 
 .Instrument Definitions
 
-[JJazzLab SoundFont]
+[JJazzLab SoundFont (GS)]
 BankSelMethod=1			; Use Bank Select MSB only
 Patch[0]=GM Bank {{ UseGsInstruments }} 
 Patch[128]=Bank 1 {{ UseGsInstruments }} 
@@ -271,8 +265,3 @@ Patch[4480]=Bank 35 {{ UseGsInstruments }}
 Patch[5888]=Bank 46 {{ UseGsInstruments }} 
 Patch[*]=Drums {{ UseGsDrumsInstruments }} 
 
-;[GM2 JJazzLab SoundFont]
-;BankSelMethod=0			; Use Bank Select MSB + LSB
-;Patch[15616]=Bank 1GM2          
-;Patch[15744]=Bank 2GM2
-;Patch[15360]=GM2 Drums

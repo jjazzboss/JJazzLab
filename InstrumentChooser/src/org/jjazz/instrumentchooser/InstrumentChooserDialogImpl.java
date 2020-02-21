@@ -539,7 +539,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         org.openide.awt.Mnemonics.setLocalizedText(lbl_recIns, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_recIns.text")); // NOI18N
         lbl_recIns.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_recIns.toolTipText")); // NOI18N
 
-        spn_transposition.setModel(new javax.swing.SpinnerNumberModel(0, 0, 48, 1));
+        spn_transposition.setModel(new javax.swing.SpinnerNumberModel(0, -48, 48, 1));
         spn_transposition.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.spn_transposition.toolTipText")); // NOI18N
         spn_transposition.setColumns(2);
 

@@ -659,8 +659,8 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             .addGroup(pnl_advancedLayout.createSequentialGroup()
                 .addGap(10, 10, 10)
                 .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(combo_sendMessageUponPlay, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_userInstrument, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btn_userInstrument, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(combo_sendMessageUponPlay, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel1)
@@ -678,7 +678,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 .addGroup(pnl_advancedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
                     .addComponent(btn_userInstrument))
-                .addContainerGap(352, Short.MAX_VALUE))
+                .addContainerGap(351, Short.MAX_VALUE))
         );
 
         tabPane.addTab(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.pnl_advanced.TabConstraints.tabTitle"), pnl_advanced); // NOI18N

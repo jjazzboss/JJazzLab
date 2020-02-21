@@ -22,20 +22,17 @@
  */
 package org.jjazz.helpers.midiwizard;
 
-import javax.sound.midi.MidiDevice;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 
-public final class MidiWizardVisualPanel_SfWin_1 extends JPanel
+public final class MidiWizardVisualPanel_SfLinux_1 extends JPanel
 {
-
-    private MidiDevice vmsDevice = null;
 
     /**
      * Creates new form StartupWizardVisualPanel1
      */
-    public MidiWizardVisualPanel_SfWin_1()
+    public MidiWizardVisualPanel_SfLinux_1()
     {
         initComponents();
     }
@@ -43,30 +40,7 @@ public final class MidiWizardVisualPanel_SfWin_1 extends JPanel
     @Override
     public String getName()
     {
-        return "VirtualMidiSynth";
-    }
-
-    /**
-     * @param md Can be null if not detected.
-     */
-    public void setVmsDevice(MidiDevice md)
-    {
-        vmsDevice = md;
-        String msg1 = "JJazzLab must be connected to the VirtualMIDISynth Midi out device.<br/><br/><br/>";
-        String msg2 = "VirtualMIDISynth Midi device:&nbsp;&nbsp;&nbsp;"
-                + ((vmsDevice == null) ? "<b>NOT DETECTED</b>" : "'" + md.getDeviceInfo().getName() + "'&nbsp;&nbsp;<b>OK</b>")
-                + "<br/><br/>";
-        String msg3 = "";
-        String msg4 = "";
-        String msgLast="";
-        if (vmsDevice == null)
-        {
-            msg3 = "You must download and install VirtualMIDISynth from <a href=\"https://coolsoft.altervista.org/virtualmidisynth\">www.coolsoft.altervista.org/virtualmidisynth</a>. ";
-            msg4 = "Once installed go to JJazzLab/Tools menu/Options/Midi and select the VirtualMIDISynth Midi out device.";
-            msgLast = "<br/><br/><br/><br/>Consult the <a href=\"https://www.jjazzlab.com/en/doc\">online doc</a> for more info about JJazzLab and VirtualMIDISynth.";
-        }
-        
-        editorPane.setText(msg1 + msg2 + msg3 + msg4 + msgLast);
+        return "FluidSynth";
     }
 
     /**
@@ -95,7 +69,7 @@ public final class MidiWizardVisualPanel_SfWin_1 extends JPanel
         editorPane.setBorder(null);
         editorPane.setEditorKit(JEditorPane.createEditorKitForContentType("text/html"));
         editorPane.setFont(ta_notUserOnlyToGetFont.getFont());
-        editorPane.setText(org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel_SfWin_1.class, "MidiWizardVisualPanel_SfWin_1.editorPane.text")); // NOI18N
+        editorPane.setText(org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel_SfLinux_1.class, "MidiWizardVisualPanel_SfLinux_1.editorPane.text")); // NOI18N
         editorPane.addHyperlinkListener(new javax.swing.event.HyperlinkListener()
         {
             public void hyperlinkUpdate(javax.swing.event.HyperlinkEvent evt)
@@ -115,14 +89,14 @@ public final class MidiWizardVisualPanel_SfWin_1 extends JPanel
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(ta_notUserOnlyToGetFont, javax.swing.GroupLayout.PREFERRED_SIZE, 143, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 305, Short.MAX_VALUE)))
+                        .addGap(0, 281, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 172, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 182, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(ta_notUserOnlyToGetFont, javax.swing.GroupLayout.PREFERRED_SIZE, 13, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
