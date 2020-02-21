@@ -135,7 +135,7 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
         }
 
         // Get the rhythm files in the directory tree
-        HashSet<Path> rhythmFiles = Utilities.listFiles(rDir, getFilenameFilter(), PREFIX_IGNORED_SUBDIR, 3);
+        HashSet<Path> rhythmFiles = Utilities.listFiles(rDir, getFilenameFilter(), PREFIX_IGNORED_SUBDIR, 2);
         LOGGER.fine("getRhythms()   rhythmFiles=" + rhythmFiles);
 
         // Remove the black listed files

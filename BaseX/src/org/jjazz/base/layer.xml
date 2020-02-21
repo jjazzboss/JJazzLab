@@ -62,6 +62,17 @@
         <file name="General.instance_hidden"/>
         <file name="Keymaps.instance_hidden"/>
     </folder>
+    <folder name="Services">
+        <folder name="AutoupdateType">
+            <file name="org_jjazz_base_update_center.instance">
+                <attr name="displayName" bundlevalue="org.jjazz.base.Bundle#Services/AutoupdateType/org_jjazz_base_update_center.instance"/>
+                <attr name="enabled" boolvalue="true"/>
+                <attr name="instanceCreate" methodvalue="org.netbeans.modules.autoupdate.updateprovider.AutoupdateCatalogFactory.createUpdateProvider"/>
+                <attr name="instanceOf" stringvalue="org.netbeans.spi.autoupdate.UpdateProvider"/>
+                <attr name="url" bundlevalue="org.jjazz.base.Bundle#org_jjazz_base_update_center"/>
+            </file>
+        </folder>
+    </folder>
     <folder name="Toolbars">
         <file name="MyToolBarConfig.xml" url="MyToolBarConfig.xml"/>      
         <folder name="File">
