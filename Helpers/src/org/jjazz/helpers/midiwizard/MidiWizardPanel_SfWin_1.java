@@ -137,7 +137,7 @@ public class MidiWizardPanel_SfWin_1 implements WizardDescriptor.Panel<WizardDes
             {
                 if (isVirtualMidiSynthDevice(mdi))
                 {
-                    md = mdi;
+                    res = mdi;
                     break;
                 }
             }
