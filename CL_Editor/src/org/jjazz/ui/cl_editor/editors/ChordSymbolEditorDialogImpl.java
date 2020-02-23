@@ -734,7 +734,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 .addGroup(pnl_altConditionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnl_altConditionLayout.createSequentialGroup()
                         .addComponent(rbtn_random)
-                        .addContainerGap(188, Short.MAX_VALUE))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(pnl_altConditionLayout.createSequentialGroup()
                         .addComponent(rbtn_marker)
                         .addGap(18, 18, 18)
@@ -866,9 +866,9 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 .addContainerGap()
                 .addComponent(lbl_Note)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btn_Cancel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btn_Ok, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btn_Cancel)
                 .addContainerGap())
         );
         pnl_OkButtonsLayout.setVerticalGroup(
