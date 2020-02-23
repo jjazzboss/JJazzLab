@@ -74,16 +74,16 @@ public class Utilities
     /**
      * Return the extension (without the ".")
      *
-     * @param path
-     * @return
+     * @param fileName
+     * @return Empty string if no dot.
      */
-    public static String getExtension(String path)
+    public static String getExtension(String fileName)
     {
         String extension = "";
-        int i = path.lastIndexOf('.');
+        int i = fileName.lastIndexOf('.');
         if (i >= 0)
         {
-            extension = path.substring(i + 1);
+            extension = fileName.substring(i + 1);
         }
         return extension;
     }
@@ -341,9 +341,10 @@ public class Utilities
      * @param myClass     The class used to find the zipResource.
      * @param zipResource Must end with ".zip".
      * @param destDir     The path of the destination directory, which must exist.
+     * @param overwrite   If true overwrite files in the destination directory
      * @return The list of created files in the destination directory.
      */
-    public static <T> List<File> extractZipResource(Class<T> myClass, String zipResource, Path destDir)
+    public static <T> List<File> extractZipResource(Class<T> myClass, String zipResource, Path destDir, boolean overwrite)
     {
         if (myClass == null || zipResource == null || !zipResource.toLowerCase().endsWith(".zip") || !Files.isDirectory(destDir))
         {
@@ -362,7 +363,10 @@ public class Utilities
             {
                 // Build destination file
                 File destFile = destDir.resolve(entry.getName()).toFile();
-                LOGGER.fine("extractZipResource() processing zipEntry=" + entry.getName() + " destFile=" + destFile.getAbsolutePath());
+                LOGGER.log(Level.FINE, "extractZipResource() processing zipEntry={0} destFile={1}", new Object[]
+                {
+                    entry.getName(), destFile.getAbsolutePath()
+                });
                 if (entry.isDirectory())
                 {
                     // Directory, recreate if not present
@@ -373,6 +377,10 @@ public class Utilities
                     continue;
                 }
                 // Plain file, copy it
+                if (!overwrite && destFile.exists())
+                {
+                    continue;
+                }
                 try (FileOutputStream fos = new FileOutputStream(destFile);
                         BufferedOutputStream bos = new BufferedOutputStream(fos, buffer.length))
                 {

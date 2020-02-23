@@ -27,6 +27,7 @@ import java.awt.Font;
 import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -242,7 +243,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                     try
                     {
                         Path relPath = pDir.relativize(pFile);
-                        s = "./"+relPath.toString();
+                        s = "./" + relPath.toString();
                     } catch (IllegalArgumentException ex)
                     {
                         LOGGER.warning("getValueAt() Can't relativize pFile=" + pFile + " to pDir=" + pDir);
@@ -389,13 +390,15 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             }
             int modelRow = table.convertRowIndexToModel(row);
             Rhythm r = model.getRhythms().get(modelRow);
+            File f = r.getFile();
             switch (col)
             {
                 case Model.COL_NB_VOICES:
                     lbl.setToolTipText(RhythmTable.this.getInstrumentsString(r));
                     break;
                 case Model.COL_NAME:
-                    lbl.setToolTipText("Decription: " + r.getDescription());
+                    String s = f == null ? "" : ", File: " + f.getName();
+                    lbl.setToolTipText("Desc.: " + r.getDescription() + s);
                     break;
                 case Model.COL_DIR:
                     lbl.setToolTipText("Relative file path to the User Rhythm Directory");
@@ -430,8 +433,8 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             FavoriteRhythms fr = FavoriteRhythms.getInstance();
             if (fr.contains(r))
             {
-                Font f = lbl.getFont();
-                Font newFont = f.deriveFont(Font.BOLD);
+                Font font = lbl.getFont();
+                Font newFont = font.deriveFont(Font.BOLD);
                 lbl.setFont(newFont);
             }
             return lbl;

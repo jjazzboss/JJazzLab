@@ -22,6 +22,8 @@
  */
 package org.jjazz.rhythm.database.api;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import org.jjazz.rhythm.api.Rhythm;
@@ -97,6 +99,18 @@ public class FavoriteRhythmProvider implements RhythmProvider
     public boolean hasUserSettings()
     {
         return false;
+    }
+
+    @Override
+    public String[] getSupportedFileExtensions()
+    {
+        return new String[0];
+    }
+
+    @Override
+    public Rhythm readFast(File f) throws IOException
+    {
+        throw new IOException("This RhythmProvider (" + getInfo().getName() + ") does not support file reading.");
     }
 
     // ======================================================================

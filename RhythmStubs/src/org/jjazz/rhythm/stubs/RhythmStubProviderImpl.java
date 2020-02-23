@@ -22,6 +22,8 @@
  */
 package org.jjazz.rhythm.stubs;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.jjazz.harmony.TimeSignature;
@@ -111,6 +113,19 @@ public class RhythmStubProviderImpl implements StubRhythmProvider
     public List<Rhythm> getFileRhythms(List<Rhythm> prevList)
     {
         return new ArrayList<Rhythm>();
+    }
+    
+    
+    @Override
+    public String[] getSupportedFileExtensions()
+    {
+        return new String[0];
+    }
+
+    @Override
+    public Rhythm readFast(File f) throws IOException
+    {
+        throw new IOException("This RhythmProvider (" + getInfo().getName() + ") does not support file reading.");
     }
 
 }

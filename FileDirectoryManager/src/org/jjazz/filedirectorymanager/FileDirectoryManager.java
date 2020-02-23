@@ -71,15 +71,6 @@ public class FileDirectoryManager
         return INSTANCE;
     }
 
-//   /**
-//    *
-//    * @return
-//    */
-//   public File getJJazzResourcesDirectory()
-//   {
-//      Path curDir = Paths.get(".").toAbsolutePath().resolve(RESOURCES_DIR_NAME);
-//      return curDir.toFile();
-//   }
     /**
      * Build the song mix File object for specified song file.
      * <p>
@@ -158,7 +149,7 @@ public class FileDirectoryManager
         LOGGER.fine("getUserRhythmDirectory() f=" + f);
         return f;
     }
-
+    
     /**
      * Set the user directory where to find rhythm files.
      *

@@ -36,11 +36,30 @@ import org.jjazz.rhythm.database.RhythmDatabaseImpl;
 public interface RhythmDatabase
 {
 
+    public class RpRhythmPair
+    {
+
+        public RhythmProvider rp;
+        public Rhythm r;
+
+        public RpRhythmPair(RhythmProvider rp, Rhythm r)
+        {
+            if (rp == null || r == null)
+            {
+                throw new IllegalArgumentException("rp=" + rp + " r=" + r);
+            }
+            this.rp = rp;
+            this.r = r;
+        }
+    }
+
     public static class Utilities
     {
 
         /**
-         * Use the first implementation present in the global lookup. If nothing found, use the default one.
+         * Use the first implementation present in the global lookup.
+         * <p>
+         * If nothing found, use the default one.
          *
          * @return
          */
@@ -58,7 +77,7 @@ public interface RhythmDatabase
     /**
      * Listeners are notified when the rhythm database has changed.
      * <p>
-     * Note that listeners will be notified out of the Event Dispatch Thread.
+     * Note that listeners might be notified out of the Event Dispatch Thread.
      *
      * @param l
      */
@@ -88,7 +107,7 @@ public interface RhythmDatabase
     /**
      * Get the rhythms which match the specified time signature.
      *
-     * @param ts TimeSignature
+     * @param ts         TimeSignature
      * @param optRhythms List If not null perform the search on optRhythms, otherwise search the database.
      * @return All rhythms corresponding to TimeSignature ts.
      */
@@ -97,7 +116,7 @@ public interface RhythmDatabase
     /**
      * Get the rhythms whose temporange match the specified tempo.
      *
-     * @param tempo int
+     * @param tempo      int
      * @param optRhythms List If not null perform the search on optRhythms, otherwise search the database.
      * @return All rhythm corresponding to tempo.
      */
@@ -121,8 +140,8 @@ public interface RhythmDatabase
     /**
      * Try to find a rhythm in the database which is "similar" to the specified rhythm info.
      * <p>
-     * "similar" means at least share the same time signature. Then algorithm can use other Info fields (temporange, tags, ...) to
-     * calculate how "similar" we are.
+     * "similar" means at least share the same time signature. Then algorithm can use other Info fields (temporange, tags, ...) to calculate
+     * how "similar" we are.
      *
      * @param rhythm
      * @return A "similar" rhythm which at least share the same timesignature. Null if nothing relevant found.
@@ -155,7 +174,7 @@ public interface RhythmDatabase
     /**
      * Set the default rhythm for this TimeSignature.
      *
-     * @param ts TimeSignature
+     * @param ts     TimeSignature
      * @param rhythm
      * @exception IllegalArgumentException If rhythm is not part of this database.
      */
@@ -187,11 +206,22 @@ public interface RhythmDatabase
     /**
      * Scan all the RhythmProviders available in the lookup to add rhythms in the database.
      * <p>
-     * Note: once added in the database, a RhythmProvider and its Rhythms can't be removed (until program restarts).
+     * Note: once added in the database, a RhythmProvider and its Rhythms can't be removed (until program restarts).<br>
+     * Fire a change event if database has changed after the refresh.
      *
-     * @param forceRescan If true force a complete rescan for each RhythmProvider. If false RhythmProviders are provided with the
-     * previous list so they can only update possible added rhythms.
+     * @param forceRescan If true force a complete rescan for each RhythmProvider. If false RhythmProviders are provided with the previous
+     *                    list so they can only update possible added rhythms.
      */
     public void refresh(boolean forceRescan);
+
+    /**
+     * Add some rhythms to the database (if not already present).
+     * <p>
+     * Fire a change event after rhythms have been added.
+     *
+     * @param pairs
+     * @return The nb of rhythms actually added.
+     */
+    public int addRhythms(List<RpRhythmPair> pairs);
 
 }

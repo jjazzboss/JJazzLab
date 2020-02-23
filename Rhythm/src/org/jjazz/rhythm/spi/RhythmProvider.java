@@ -22,6 +22,8 @@
  */
 package org.jjazz.rhythm.spi;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import org.jjazz.rhythm.api.Rhythm;
@@ -51,8 +53,8 @@ public interface RhythmProvider
     /**
      * Get the non built-in rhythms (each rhythm is associated to a file).
      * <p>
-     * If prevList is non-null and non-empty, prevList must be used to detect added or removed Rhythm Infos. They might be
-     * hundreds of rhythm files in a directory, so this allows to only parse new added files.
+     * If prevList is non-null and non-empty, prevList must be used to detect added or removed Rhythm Infos. They might be hundreds of
+     * rhythm files in a directory, so this allows to only parse new added files.
      *
      * @param prevList Can be null to force a rescan of all Rhythm Infos.
      * @return All non builtin rhythms infos provided by this RhythmProvider. List can be empty but not null.
@@ -60,10 +62,29 @@ public interface RhythmProvider
     public List<Rhythm> getFileRhythms(List<Rhythm> prevList);
 
     /**
+     * Get the file extensions accepted by readFast().
+     * <p>
+     * No dot, lowercase.
+     *
+     * @return E.g. "prs", "sty". Can be an empty list if RhythmProvider has only builtin rhythms.
+     */
+    public String[] getSupportedFileExtensions();
+
+    /**
+     * A fast method to read specified file and extract only the description Rhythm information for description/catalog purposes.
+     * <p>
+     * Call the loadResources() on the returned rhythm to make it ready to generate music.
+     *
+     * @param f
+     * @return
+     * @throws java.io.IOException
+     */
+    public Rhythm readFast(File f) throws IOException;
+
+    /**
      * Show a modal dialog to modify the user settings of this RhythmProvider.
      * <p>
-     * The RhythmProvider is responsible for the persistence of its settings. The method does nothing if hasUserSettings() returns
-     * false.
+     * The RhythmProvider is responsible for the persistence of its settings. The method does nothing if hasUserSettings() returns false.
      *
      * @see hasUserSettings()
      */
@@ -91,7 +112,7 @@ public interface RhythmProvider
 
         /**
          * @param uniqueId
-         * @param name Must be a non empty string (spaces are trimmed).
+         * @param name        Must be a non empty string (spaces are trimmed).
          * @param description
          * @param author
          * @param version

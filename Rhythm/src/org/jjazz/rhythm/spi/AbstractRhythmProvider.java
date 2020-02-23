@@ -24,6 +24,7 @@ package org.jjazz.rhythm.spi;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -62,7 +63,8 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
      * @param desc
      * @param author
      * @param version
-     * @param fileExtensions The recognized rhythm files extensions. Can be null if no files.
+     * @param fileExtensions The recognized rhythm files extensions. E.g. "sty", "prs". Can be null if this provider has only builtin
+     *                       rhythms.
      */
     protected AbstractRhythmProvider(String uniqueId, String name, String desc, String author, int version, String... fileExtensions)
     {
@@ -182,15 +184,17 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
         {
             // Read the file to create the appropriate Rhythm, then add to result
             File f = rhythmFile.toFile();
-            Rhythm r = readFast(f);
-            if (r != null)
+            Rhythm r;
+            try
             {
-                result.add(r);
-            } else
+                r = readFast(f);
+            } catch (IOException ex)
             {
-                // Problem occured, black list file
+                LOGGER.warning("getFileRhythms() ex=" + ex.getLocalizedMessage());
                 blackListUpdate.add(rhythmFile);
+                continue;
             }
+            result.add(r);
         }
 
         if (!blackListUpdate.isEmpty())
@@ -224,17 +228,6 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
      */
     @Override
     public abstract List<Rhythm> getBuiltinRhythms();
-
-    /**
-     * A fast method to read specified file and extract only the description Rhythm object complete enough for description purposes.
-     * <p>
-     * If the returned rhythm uses a heavy-memory MidiMusicGenerator, it should delay its memory-loading in the lookup in its
-     * loadResources() method.
-     *
-     * @param f
-     * @return Can be null if problem.
-     */
-    protected abstract Rhythm readFast(File f);
 
     /**
      * Get the blacked listed files.
@@ -362,6 +355,10 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
         {
             for (String ext : fileExtensions)
             {
+                if (ext.charAt(0) != '.')
+                {
+                    ext = "." + ext;
+                }
                 if (name.toLowerCase().endsWith(ext.toLowerCase()))
                 {
                     return true;

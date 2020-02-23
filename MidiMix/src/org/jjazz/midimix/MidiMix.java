@@ -81,8 +81,8 @@ import org.openide.util.NbPreferences;
  * <p>
  * The object manages the solo functionality between the InstrumentMixes.<p>
  * A Song can be associated to the MidiMix so that InstrumentMixes are kept up to date with song's songStructure changes.<p>
- * If MidiMix is modified the corresponding property change event is fired (e.g. PROP_INSTRUMENT_MUTE) then the
- * PROP_MODIFIED_OR_SAVED change event is also fired.
+ * If MidiMix is modified the corresponding property change event is fired (e.g. PROP_INSTRUMENT_MUTE) then the PROP_MODIFIED_OR_SAVED
+ * change event is also fired.
  * <p>
  */
 @Messages(
@@ -195,8 +195,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     }
 
     /**
-     * Associate a song to this MidiMix : rhythm changes in the song's songStructure are listened to keep our instrumentMix up to
-     * date.
+     * Associate a song to this MidiMix : rhythm changes in the song's songStructure are listened to keep our instrumentMix up to date.
      * <p>
      * Throw an exception if one of the current RhythmVoice keys does not belong to specified song.
      *
@@ -239,8 +238,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     /**
      * Add the special user channel/InstrumentMix to the mix.
      * <p>
-     * Use the PREF_USER_CHANNEL if possible. If channel is already used, find the first channel available. The user channel will
-     * use the UserChannelRhythmVoiceKey instance as key.
+     * Use the PREF_USER_CHANNEL if possible. If channel is already used, find the first channel available. The user channel will use the
+     * UserChannelRhythmVoiceKey instance as key.
      *
      * @param insMix The instrument mix to be used for the user channel
      * @throws MidiUnavailableException If no Midi channel available.
@@ -268,7 +267,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
 
         // Perform the change
         changeInstrumentMix(channel, insMix, UserChannelRvKey.getInstance());
-
     }
 
     /**
@@ -292,7 +290,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     {
         int channel = getChannel(UserChannelRvKey.getInstance());
         return channel;
-    }
+    }  
 
     /**
      * Assign an InstrumentMix to a midi channel and to a key.
@@ -304,7 +302,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * @param channel A valid midi channel number.
      * @param rvKey   Can be null if insMix is also null. If a song is set, must be a RhythmVoice of song's rhythms.
      * @param insMix  Can be null if rvKey is also null.
-     * @throws IllegalArgumentException if insMix is already part of this MidiMix for a different channel
+     * @throws IllegalArgumentException if insMix is already part of this MidiMix for a different channel, or if rvKey is a
+     *                                  UserChannelRvKey.
      */
     public void setInstrumentMix(int channel, RhythmVoice rvKey, InstrumentMix insMix)
     {
@@ -542,8 +541,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     /**
      * Return a free channel to be used in this MidiMix.
      * <p>
-     * Try to keep channels in one section above the drums channel reserved to Drums. If not enough channels extend to channel
-     * below the drums channel.
+     * Try to keep channels in one section above the drums channel reserved to Drums. If not enough channels extend to channel below the
+     * drums channel.
      *
      * @param findDrumsChannel If true try to use CHANNEL_DRUMS if it is available.
      * @return -1 if no channel found
@@ -774,8 +773,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * This will fire a PROP_MODIFIED_OR_SAVED change event (true=&gt;false).
      *
      * @param f
-     * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no PROP_MODIFIED_OR_SAVED state
-     *               change)
+     * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no PROP_MODIFIED_OR_SAVED state change)
      * @throws java.io.IOException
      */
     public void saveToFile(File f, boolean isCopy) throws IOException
@@ -1233,8 +1231,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     /**
      * Add a rhythm to this MidiMix.
      * <p>
-     * Manage the case where r is not the unique rhythm of the MidiMix: need to maintain instruments consistency to avoid
-     * poor-sounding rhythms transitions.
+     * Manage the case where r is not the unique rhythm of the MidiMix: need to maintain instruments consistency to avoid poor-sounding
+     * rhythms transitions.
      *
      * @param r
      * @throws MidiUnavailableException
@@ -1413,8 +1411,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     }
 
     /**
-     * RhythmVoices depend on a (potentially system dependent) rhythm, therefore it must be stored in a special way: just save
-     * rhythm serial id + RhythmVoice name, and it will be reconstructed at deserialization.
+     * RhythmVoices depend on a (potentially system dependent) rhythm, therefore it must be stored in a special way: just save rhythm serial
+     * id + RhythmVoice name, and it will be reconstructed at deserialization.
      * <p>
      * MidiMix is saved with Drums rerouting disabled and all solo status OFF, but all Mute status are saved.
      */

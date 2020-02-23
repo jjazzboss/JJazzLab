@@ -25,6 +25,7 @@ package org.jjazz.ui.mixconsole.actions;
 import org.jjazz.midimix.MidiMix;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import org.jjazz.midi.Instrument;
@@ -45,6 +46,7 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
+import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.resetchannels")
@@ -77,24 +79,38 @@ public class ResetChannels extends AbstractAction
     {
         LOGGER.fine("actionPerformed() songMidiMix=" + songMidiMix);
         MixConsole mixConsole = MixConsoleTopComponent.getInstance().getEditor();
-        Rhythm rhythm = mixConsole.getVisibleRhythm();
+        Rhythm visibleRhythm = mixConsole.getVisibleRhythm();
         Song song = mixConsole.getSong();
         assert song != null;
         JJazzUndoManagerFinder.getDefault().get(song).startCEdit(undoText);
         for (Integer channel : songMidiMix.getUsedChannels())
         {
             RhythmVoice rv = songMidiMix.getKey(channel);
-            if (rhythm == null || rv instanceof UserChannelRvKey || rhythm == rv.getContainer())
+            if (visibleRhythm == null || rv instanceof UserChannelRvKey || visibleRhythm == rv.getContainer())
             {
                 InstrumentMix insMix = new InstrumentMix(songMidiMix.getInstrumentMixFromChannel(channel));
                 resetInstrument(insMix, rv);
                 resetSettings(insMix.getSettings(), rv);
-                songMidiMix.setInstrumentMix(channel, rv, insMix);
+                if (rv instanceof UserChannelRvKey)
+                {
+                    songMidiMix.removeUserChannel();
+                    try
+                    {
+                        songMidiMix.addUserChannel(insMix);
+                    } catch (MidiUnavailableException ex)
+                    {
+                        // Should never happen since we removed it just before
+                        Exceptions.printStackTrace(ex);
+                    }
+                } else
+                {
+                    songMidiMix.setInstrumentMix(channel, rv, insMix);
+                }
                 songMidiMix.setDrumsReroutedChannel(false, channel);
             }
         }
         JJazzUndoManagerFinder.getDefault().get(song).endCEdit(undoText);
-        String s = (rhythm == null) ? "All channels reset" : rhythm.getName() + " channels reset";
+        String s = (visibleRhythm == null) ? "All channels reset" : visibleRhythm.getName() + " channels reset";
         StatusDisplayer.getDefault().setStatusText(s);
     }
 

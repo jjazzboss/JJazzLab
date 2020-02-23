@@ -108,8 +108,7 @@ public class MidiSynthManager
     }
 
     /**
-     * Search the standard synths, the builtin synths and then through our active MidiSynth references to find a synth with
-     * synthName.
+     * Search the standard synths, the builtin synths and then through our active MidiSynth references to find a synth with synthName.
      *
      * @param synthName
      * @return Can be null.
@@ -259,8 +258,8 @@ public class MidiSynthManager
          * Search the MidiSynthManager instance.
          *
          * @param synthName
-         * @param synthFile If null, search the builtin synths. If no parent directory, search the MidiSynthManager default
-         * directory for output synth config files.
+         * @param synthFile If null, search the builtin synths. If no parent directory, search the MidiSynthManager default directory for
+         *                  output synth config files.
          * @return
          */
         @Override
@@ -330,11 +329,8 @@ public class MidiSynthManager
      */
     private File[] copyMidiSynthFilesFromZipResource(File destDir)
     {
-        List<File> res = Utilities.extractZipResource(getClass(), MIDISYNTH_FILES_RESOURCE_ZIP, destDir.toPath());
-        if (res.isEmpty())
-        {
-            LOGGER.warning("copyBuiltinResourceFiles() No synth definition files found in " + MIDISYNTH_FILES_RESOURCE_ZIP);
-        }
+        List<File> res = Utilities.extractZipResource(getClass(), MIDISYNTH_FILES_RESOURCE_ZIP, destDir.toPath(), true);
+        LOGGER.info("copyBuiltinResourceFiles() Copied " + res.size() + " instrument definition files found in " + destDir.getAbsolutePath());
         return res.toArray(new File[0]);
     }
 
