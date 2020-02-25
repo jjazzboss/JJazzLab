@@ -433,6 +433,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         cb_GS = new javax.swing.JCheckBox();
         jScrollPane1 = new javax.swing.JScrollPane();
         hlp_area = new org.jjazz.ui.utilities.HelpTextArea();
+        jLabel5 = new javax.swing.JLabel();
 
         setLayout(new java.awt.CardLayout());
 
@@ -754,6 +755,9 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         hlp_area.setText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.hlp_area.text")); // NOI18N
         jScrollPane1.setViewportView(hlp_area);
 
+        jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/OutputSynth2.png"))); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel5, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jLabel5.text")); // NOI18N
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -765,6 +769,8 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(pnl_Compatibility, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jScrollPane1)))
                 .addContainerGap())
         );
@@ -774,9 +780,8 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(pnl_Compatibility, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(29, 29, 29)))
+                    .addComponent(jLabel5)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addComponent(tabPane)
                 .addContainerGap())
         );
@@ -1123,6 +1128,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;

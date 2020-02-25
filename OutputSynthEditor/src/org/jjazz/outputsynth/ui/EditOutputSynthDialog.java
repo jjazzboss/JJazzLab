@@ -115,7 +115,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
     // ==============================================================================
     private void updateUI()
     {
-        String title = "Output Synth Configuration Editor";
+        String title = "Output Synth Editor";
         String cfgName = outputSynth.getFile() == null ? "-" : outputSynth.getFile().getName();
         if (outputSynth.getFile() != null)
         {
@@ -192,6 +192,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
         mi_yamaha = new javax.swing.JMenuItem();
 
         setTitle(org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.title")); // NOI18N
+        setIconImage(null);
 
         btn_Save.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         org.openide.awt.Mnemonics.setLocalizedText(btn_Save, org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.btn_Save.text")); // NOI18N
@@ -269,7 +270,6 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
         submnu_JJazzLabSoundFont.add(mi_jjazzlabSoundFontXG);
 
         org.openide.awt.Mnemonics.setLocalizedText(mi_jjazzlabSoundFontGM2, org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.mi_jjazzlabSoundFontGM2.text")); // NOI18N
-        mi_jjazzlabSoundFontGM2.setToolTipText(org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.mi_jjazzlabSoundFontGM2.toolTipText")); // NOI18N
         mi_jjazzlabSoundFontGM2.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
