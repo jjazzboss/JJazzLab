@@ -35,6 +35,7 @@ import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequence;
+import javax.sound.midi.SysexMessage;
 import javax.sound.midi.Track;
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
@@ -45,6 +46,8 @@ import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
+import org.jjazz.outputsynth.OutputSynth;
+import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
@@ -112,7 +115,7 @@ public class ExportToMidiFile extends AbstractAction
         {
             return;
         }
-        
+
         midiFile = chooser.getSelectedFile();
         saveExportDir = midiFile.getParentFile();
 
@@ -251,6 +254,32 @@ public class ExportToMidiFile extends AbstractAction
         me = new MidiEvent(MidiUtilities.getTempoMessage(0, song.getTempo()), 0);
         firstTrack.add(me);
 
+        // Add XX mode ON initialization message
+        OutputSynth os = OutputSynthManager.getInstance().getOutputSynth();
+        SysexMessage sm = null;
+        switch (os.getSendModeOnUponPlay())
+        {
+            case GM:
+                sm = MidiUtilities.getGmModeOnSysExMessage();
+                break;
+            case GM2:
+                sm = MidiUtilities.getGm2ModeOnSysExMessage();
+                break;
+            case GS:
+                sm = MidiUtilities.getGsModeOnSysExMessage();
+                break;
+            case XG:
+                sm = MidiUtilities.getXgModeOnSysExMessage();
+                break;
+            default:
+            // Nothing
+        }
+        if (sm != null)
+        {
+            me = new MidiEvent(sm, 0);
+            firstTrack.add(me);
+        }
+
         // Add reset all controllers + instruments initialization messages for each track
         for (RhythmVoice rv : mapRvTrackId.keySet())
         {
@@ -276,7 +305,6 @@ public class ExportToMidiFile extends AbstractAction
     // ======================================================================
     // Private methods
     // ======================================================================   
-    
     /**
      *
      * @param sg
