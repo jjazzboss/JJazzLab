@@ -40,7 +40,7 @@ public class GM1Bank extends InstrumentBank<GM1Instrument>
     public static final String GM1_BANKNAME = "GM Bank";
     public static final int DEFAULT_BANK_SELECT_LSB = 0;
     public static final int DEFAULT_BANK_SELECT_MSB = 0;
-    public static final BankSelectMethod DEFAULT_BANK_SELECT_METHOD = BankSelectMethod.MSB_LSB;
+    public static final BankSelectMethod DEFAULT_BANK_SELECT_METHOD = BankSelectMethod.PC_ONLY;
     private static GM1Bank INSTANCE;
     private static Patterns pInst = null;
     private static final Logger LOGGER = Logger.getLogger(GM1Bank.class.getSimpleName());
