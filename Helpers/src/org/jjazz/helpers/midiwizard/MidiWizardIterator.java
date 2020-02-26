@@ -182,13 +182,14 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
             currentPanels = midiSequence;
         } else
         {
-            if (Utilities.isUnix())
-            {
-                currentPanels = sfSequenceLinux;
-            } else if (Utilities.isMac())
+            if (Utilities.isMac())
             {
                 currentPanels = sfSequenceMac;
-            } else
+            } 
+            else if (Utilities.isUnix())
+            {
+                currentPanels = sfSequenceLinux;
+            } else 
             {                
                 currentPanels = sfSequenceWin;
             }

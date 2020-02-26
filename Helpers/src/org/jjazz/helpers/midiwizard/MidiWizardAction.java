@@ -123,10 +123,7 @@ public final class MidiWizardAction implements ActionListener, Runnable
             if (useJJazzLabSoundFont)
             {
                 // Use the preset output synth
-                if (Utilities.isUnix())
-                {
-                    os = new OutputSynth(OS_JJazzLabSoundFont_XG.getInstance());
-                } else if (Utilities.isMac())
+                if (Utilities.isMac())
                 {
                     os = new OutputSynth(OS_JJazzLabSoundFont_GM2.getInstance());
                     if (jms.getDefaultOutDevice() == jms.getDefaultJavaSynth() && soundFontFile != null)
@@ -134,6 +131,9 @@ public final class MidiWizardAction implements ActionListener, Runnable
                         // Load the soundfont file
                         jms.loadSoundbankFileOnSynth(soundFontFile, false);
                     }
+                } else if (Utilities.isUnix())
+                {
+                    os = new OutputSynth(OS_JJazzLabSoundFont_XG.getInstance());
                 } else
                 {
                     // Win

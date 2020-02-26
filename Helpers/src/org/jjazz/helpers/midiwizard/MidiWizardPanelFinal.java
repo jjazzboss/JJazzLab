@@ -98,12 +98,12 @@ public class MidiWizardPanelFinal implements WizardDescriptor.Panel<WizardDescri
         if (useJJazzLabSoundFont)
         {
             String presetName = "JJazzLab SoundFont/VirtualMidiSynth (Windows)";
-            if (Utilities.isUnix())
-            {
-                presetName = "JJazzLab SoundFont/FluidSynth (Linux)";
-            } else if (Utilities.isMac())
+            if (Utilities.isMac())
             {
                 presetName = "JJazzLab SoundFont/Java Internal Synth (Mac)";
+            } else if (Utilities.isUnix())
+            {
+                presetName = "JJazzLab SoundFont/FluidSynth (Linux)";
             }
             sb.append("- Set Output synth config. : " + presetName + "\n\n");
             if (md != null)
