@@ -160,7 +160,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             LOGGER.severe(ERR_SequencerLimited());
         }
-        sequencer.setTempoInBPM(TEMPO_DEFAULT);
+        sequencer.setTempoInBPM(TEMPO_DEFAULT);        
 
         // Listen to click settings changes
         ClickManager.getInstance().addPropertyChangeListener(this);

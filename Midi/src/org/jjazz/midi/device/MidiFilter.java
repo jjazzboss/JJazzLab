@@ -160,6 +160,7 @@ public class MidiFilter extends JJazzMidiDevice
             if (configFilter.isEmpty())
             {
                 passed(msg, timestamp);
+                return;
             }
 
             if (configFilter.contains(Config.FILTER_EVERYTHING))

@@ -193,6 +193,11 @@ public class ChordSymbol implements Serializable, Cloneable
         return rootNote;        // Clone() not needed, immutable class
     }
 
+    /**
+     * If no bass note defined return getRootNote().
+     *
+     * @return
+     */
     public Note getBassNote()
     {
         return bassNote;        // Clone() not needed, immutable class
