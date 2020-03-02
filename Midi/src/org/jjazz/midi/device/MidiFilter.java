@@ -29,8 +29,8 @@ import java.util.logging.Logger;
 import org.jjazz.midi.MidiUtilities;
 
 /**
- * This MidiDevice simply forwards MidiMessages from in to out, except for messages that are filtered out (discarded). Filtering
- * is adjusted by setting the public EnumSet.
+ * This MidiDevice simply forwards MidiMessages from in to out, except for messages that are filtered out (discarded).
+ * <p>
  */
 public class MidiFilter extends JJazzMidiDevice
 {
@@ -57,7 +57,7 @@ public class MidiFilter extends JJazzMidiDevice
     private static final Logger LOGGER = Logger.getLogger(MidiFilter.class.getSimpleName());
 
     /**
-     * By default does not filter anything.
+     * By default does not filter nor log anything.
      *
      * @param s String
      */
@@ -105,7 +105,7 @@ public class MidiFilter extends JJazzMidiDevice
     }
 
     /**
-     * Operation called when a MidiMessage has been not been filtered
+     * Operation called when a MidiMessage has not been filtered
      */
     private synchronized void passed(MidiMessage msg, long timestamp)
     {
@@ -155,6 +155,11 @@ public class MidiFilter extends JJazzMidiDevice
             if (!isOpen)
             {
                 throw new IllegalStateException("FilterReceiver object is closed");
+            }
+
+            if (configFilter.isEmpty())
+            {
+                passed(msg, timestamp);
             }
 
             if (configFilter.contains(Config.FILTER_EVERYTHING))
