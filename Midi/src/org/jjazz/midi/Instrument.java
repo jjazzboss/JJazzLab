@@ -368,7 +368,7 @@ public class Instrument implements Serializable
                 throw new IllegalStateException("ins=" + ins + " ins.getBank()=" + ins.getBank());
             }
             spSaveString = ins.saveAsString();
-            spPatchname = ins.getPatchName();
+            spPatchname = ins.getPatchName();       // Robustness, if spSaveString not usable
         }
 
         private Object readResolve() throws ObjectStreamException
