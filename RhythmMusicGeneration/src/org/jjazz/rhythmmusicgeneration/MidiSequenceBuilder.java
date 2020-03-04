@@ -48,7 +48,6 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.parameters.RP_SYS_Mute;
 import org.jjazz.rhythmmusicgeneration.spi.MidiMusicGenerator;
 import org.netbeans.api.progress.BaseProgressUtils;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.openide.util.Exceptions;
 
@@ -84,8 +83,8 @@ public class MidiSequenceBuilder
      * <p>
      * 1/ Create a first empty track with song name.<br>
      * 2/ Ask each used rhythm in the song to produce tracks.<br>
-     * 3/ Perform some checks and cleanup on produced tracks: check for possible errors in the context, adjust end of track, check
-     * that generator produces music only for the relevant bars, set each track's name.
+     * 3/ Perform some checks and cleanup on produced tracks: check for possible errors in the context, adjust end of track, check that
+     * generator produces music only for the relevant bars, set each track's name.
      *
      * @param silent If true do not show a progress dialog
      * @return A Sequence containing accompaniment tracks for the context.
@@ -119,6 +118,9 @@ public class MidiSequenceBuilder
 
     /**
      * A map giving the track id (index in the sequence) for each rhythm voice.
+     * <p>
+     * Must be called AFTER call to buildSequence(). The returned map contains data only for the generated tracks in the given context. In a
+     * song with 2 rhythms R1 and R2, if context only uses R2, then only the id and tracks for R2 are returned.
      *
      * @return
      */

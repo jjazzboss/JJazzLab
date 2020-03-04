@@ -278,7 +278,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
      */
     private void rhythmDatabaseChanged()
     {
-        LOGGER.severe("rhythmDatabaseChanged()");
+        LOGGER.fine("rhythmDatabaseChanged() --");
 
         // Save selection
         RhythmProvider saveSelRp = selectedRhythmProvider;

@@ -66,8 +66,8 @@ import org.openide.util.NbBundle.Messages;
  * - pre-playback : vetoable change, ie listeners can fire a PropertyVetoException to prevent playback to start<br>
  * - click and loop ON/OFF changes<br>
  * <p>
- * Use PlaybackListener to get notified of other events (bar/beat changes etc.) during playback. Note that PlaybackListeners will
- * be notified out of the Swing EDT.
+ * Use PlaybackListener to get notified of other events (bar/beat changes etc.) during playback. Note that PlaybackListeners will be
+ * notified out of the Swing EDT.
  */
 @Messages(
         {
@@ -78,8 +78,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
     public static final String PROP_PLAYBACK_STATE = "PropPlaybackState";
     /**
-     * This vetoable property is changed/fired just before starting playback and can be vetoed by vetoables listeners to cancel
-     * playback start.
+     * This vetoable property is changed/fired just before starting playback and can be vetoed by vetoables listeners to cancel playback
+     * start.
      * <p>
      * NewValue=MusicGenerationContext object.
      */
@@ -160,7 +160,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             LOGGER.severe(ERR_SequencerLimited());
         }
-        sequencer.setTempoInBPM(TEMPO_DEFAULT);        
+        sequencer.setTempoInBPM(TEMPO_DEFAULT);
 
         // Listen to click settings changes
         ClickManager.getInstance().addPropertyChangeListener(this);
@@ -208,10 +208,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      *
      * @param fromBarIndex Play the song from this bar. Bar must be within the context's range.
      *
-     * @throws java.beans.PropertyVetoException If a vetoable listener vetoed the playback start. A listener who has already
-     *                                          notified user should throw an exception with a null message.
-     * @throws MusicGenerationException         If a problem occurred which prevents song playing: no Midi out, song is already
-     *                                          playing, rhythm music generation problem, etc.
+     * @throws java.beans.PropertyVetoException If a vetoable listener vetoed the playback start. A listener who has already notified user
+     *                                          should throw an exception with a null message.
+     * @throws MusicGenerationException         If a problem occurred which prevents song playing: no Midi out, song is already playing,
+     *                                          rhythm music generation problem, etc.
      * @throws IllegalStateException            If context is null.
      *
      * @see #getPlayingSongCopy()
@@ -263,8 +263,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Resume playback from the pause state.
      * <p>
-     * If played/paused song was modified, then resume() will just redirect to the play() method. If state is not PLAYBACK_PAUSED,
-     * nothing is done.
+     * If played/paused song was modified, then resume() will just redirect to the play() method. If state is not PLAYBACK_PAUSED, nothing
+     * is done.
      *
      * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException
      * @throws java.beans.PropertyVetoException
@@ -443,8 +443,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Listeners will be notified via the PROPVETO_PRE_PLAYBACK property change before a playback is started.
      * <p>
-     * The NewValue is a MusicGenerationContext object. Note that listener is responsible for informing the user if the change was
-     * vetoed.
+     * The NewValue is a MusicGenerationContext object. Note that listener is responsible for informing the user if the change was vetoed.
      *
      * @param listener
      */
@@ -461,15 +460,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Send a short sequence of notes on specified channel.
      * <p>
-     * If fixPitch &lt; 0 then fixPitch is ignored: play a series of notes starting at 60+transpose. If fixPitch&gt;=0 then play a
-     * series of notes with same pitch=fixPitch.
+     * If fixPitch &lt; 0 then fixPitch is ignored: play a series of notes starting at 60+transpose. If fixPitch&gt;=0 then play a series of
+     * notes with same pitch=fixPitch.
      *
      * @param channel
      * @param fixPitch  -1 means not used.
      * @param transpose Transposition value in semi-tons to be added. Ignored if fixPitch&gt;=0.
      * @param endAction Called when sequence is over. Can be null.
-     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException If a problem occurred. endAction.run() is called before
-     *                                                                  throwing the exception.
+     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException If a problem occurred. endAction.run() is called before throwing the
+     *                                                                  exception.
      */
     public void playTestNotes(int channel, int fixPitch, int transpose, final Runnable endAction) throws MusicGenerationException
     {
@@ -730,7 +729,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             }
         } else
         {
-            // Might be null if mapRvTrack was reset because of a MidiMix change and sequence has not been rebuilt yet
+            // Might be null if mapRvTrack was reset because of a MidiMix change and sequence has not been rebuilt yet.
+            // Also if multi-song and play with a context on only 1 rhythm.
         }
     }
 
@@ -816,7 +816,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         private boolean dirty;
 
         /**
-         * The sequence track id (index) for each rhythm voice
+         * The sequence track id (index) for each rhythm voice, for the given context.
+         * <p>
+         * If a song uses rhythms R1 and R2 and context is only on R2 bars, then the map only contains R2 rhythm voices and track id.
          */
         private HashMap<RhythmVoice, Integer> mapRvTrackId;
 
@@ -838,8 +840,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         /**
          * Prepare the sequencer to play the specified song.
          * <p>
-         * Create the sequence and load it in the sequencer. Store all the other related sequence-dependent data in this object.
-         * Object is now "clean".
+         * Create the sequence and load it in the sequencer. Store all the other related sequence-dependent data in this object. Object is
+         * now "clean".
          *
          * @param song
          * @throws MusicGenerationException If problem occurs when creating the sequence.
@@ -901,8 +903,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 {
                     InstrumentMix insMix = mm.getInstrumentMixFromKey(rv);
                     Integer trackId = mapRvTrackId.get(rv);
-                    assert trackId != null : "rv=" + rv + " insMix=" + insMix + " mapRvTrackId=" + mapRvTrackId;
-                    sequencer.setTrackMute(trackId, insMix.isMute());
+                    if (trackId != null)
+                    {
+                        sequencer.setTrackMute(trackId, insMix.isMute());
+                    } else
+                    {
+                        // It can be null, e.g. if multi-rhythm song and context is only on one of the rhythms.
+                    }
                 }
             }
         }

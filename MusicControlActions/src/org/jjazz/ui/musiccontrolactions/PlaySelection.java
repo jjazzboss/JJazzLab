@@ -131,14 +131,14 @@ public class PlaySelection extends AbstractAction
         SS_Editor ssEditor = ssTc.getSS_Editor();
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
 
-        Range r = null;
+        Range rg = null;
         String errMsg = "Selected bars/songs parts need to be contiguous.";     // By default
         TopComponent activeTc = TopComponent.getRegistry().getActivated();
         if (clTc == activeTc && clSelection.isContiguousBarboxSelectionWithinCls())
         {
             // Focus in the CL_Editor            
-            r = toSgsRange(ss, cls, new Range(clSelection.getMinBarIndexWithinCls(), clSelection.getMaxBarIndexWithinCls()));   // Can be null
-            if (r == null)
+            rg = toSgsRange(ss, cls, new Range(clSelection.getMinBarIndexWithinCls(), clSelection.getMaxBarIndexWithinCls()));   // Can be null
+            if (rg == null)
             {
                 errMsg = "First and last selected bars don't correctly match song parts.";
             }
@@ -148,10 +148,10 @@ public class PlaySelection extends AbstractAction
             List<SongPart> spts = ssSelection.getIndirectlySelectedSongParts();
             SongPart firstSpt = spts.get(0);
             SongPart lastSpt = spts.get(spts.size() - 1);
-            r = new Range(firstSpt.getStartBarIndex(), lastSpt.getRange().to);
+            rg = new Range(firstSpt.getStartBarIndex(), lastSpt.getRange().to);
         }
 
-        if (r == null)
+        if (rg == null)
         {
             String msg = "Can't play this selection. " + errMsg;
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
@@ -166,9 +166,9 @@ public class PlaySelection extends AbstractAction
         try
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
-            MusicGenerationContext context = new MusicGenerationContext(song, midiMix, r);
+            MusicGenerationContext context = new MusicGenerationContext(song, midiMix, rg);
             mc.setContext(context);
-            mc.play(r.from);
+            mc.play(rg.from);
         } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
         {
             if (ex.getMessage() != null)
