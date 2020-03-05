@@ -30,11 +30,8 @@ import java.io.File;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
-import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumnModel;
 import org.openide.awt.MenuBar;
 import org.openide.windows.WindowManager;
 
@@ -74,7 +71,7 @@ public class Utilities
     /**
      * Recursively enable/disable a JComponent and its JComponent children.
      *
-     * @param b  boolean
+     * @param b boolean
      * @param jc JComponent
      */
     public static void setRecursiveEnabled(boolean b, JComponent jc)
@@ -197,6 +194,7 @@ public class Utilities
      * Show the JFileChooser to select a directory.
      *
      * @param dirPath Initialize chooser with this directory.
+     * @param title Title of the dialog.
      * @return The selected dir or null.
      */
     static public File showDirChooser(String dirPath, String title)
