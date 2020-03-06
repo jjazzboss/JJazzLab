@@ -28,7 +28,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
@@ -36,7 +35,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.harmony.ChordSymbol;
 import org.jjazz.harmony.ChordType;
 import org.jjazz.harmony.ChordTypeDatabase;
@@ -53,53 +51,45 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import org.jjazz.song.spi.SongImporter;
-import org.openide.util.Lookup;
-import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Import from Improvisor leadsheet files.
+ * Improvisor leadsheet file reader.
  */
-@ServiceProvider(service = SongImporter.class)
-public class ImprovisorImporter implements SongImporter
+public class ImprovisorFileReader
 {
 
-    public static final String ID = "Impro-visor leadsheet (.ls) importer";
-    // Parameters for the SongImporter.PostProcessor interface
-    public static final String PARAM_STYLE = "Style";
-    public static final String PARAM_TEMPO = "Tempo";
-    public static final String PARAM_COMPOSER = "Composer";
-    private final FileNameExtensionFilter FILTER = new FileNameExtensionFilter("Impro-visor files (.ls)", "ls");
-    private final ChordSymbol REPEAT_CHORD_SYMBOL = new ChordSymbol();            // Used to represent the '/' or 'NC' symbol
-    private final HashMap<String, String> mapChordTypeConversion = new HashMap<>(); // Map special improvisor chordtypes to JJazz ChordTypes
-    private static final Logger LOGGER = Logger.getLogger(ImprovisorImporter.class.getSimpleName());
+    private File file;
+    private String style;
+    private final ChordSymbol REPEAT_CHORD_SYMBOL = new ChordSymbol();                      // Used to represent the '/' or 'NC' symbol
+    private static final HashMap<String, String> mapChordTypeConversion = new HashMap<>();  // Map special improvisor chordtypes to JJazz ChordTypes
+    private static final Logger LOGGER = Logger.getLogger(ImprovisorFileReader.class.getSimpleName());
 
-    @Override
-    public String getId()
-    {
-        return ID;
-    }
-
-    @Override
-    public List<FileNameExtensionFilter> getSupportedFileTypes()
-    {
-        return Arrays.asList(FILTER);
-    }
-
-    @Override
-    public Song importFromFile(File f) throws IOException
+    public ImprovisorFileReader(File f)
     {
         if (f == null)
         {
             throw new NullPointerException("f");
         }
+        this.initMap();
+        this.file = f;
+    }
+
+    /**
+     * Get the song from the current file.
+     * <p>
+     * Construct a basic Song from the elements available in the file.
+     *
+     * @return
+     * @throws IOException
+     */
+    public Song readSong() throws IOException
+    {
         String title = "No Title";
         String composer = null;
-        String style = null;
         int tempo = 120;
         TimeSignature ts = TimeSignature.FOUR_FOUR;
         ChordLeadSheet cls = null;
-        try (BufferedReader reader = new BufferedReader(new FileReader(f)))
+        try (BufferedReader reader = new BufferedReader(new FileReader(file)))
         {
             int lineCount = 0;
             int barIndex = 0;
@@ -145,7 +135,7 @@ public class ImprovisorImporter implements SongImporter
                         }
                     } catch (NumberFormatException ex)
                     {
-                        LOGGER.warning("importFromFile() file=" + f.getName() + ", line " + lineCount + ", ex=" + ex.getLocalizedMessage());
+                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getLocalizedMessage());
                     }
                 } else if (mMeter.find())
                 {
@@ -156,14 +146,14 @@ public class ImprovisorImporter implements SongImporter
                         upper = Integer.parseUnsignedInt(mMeter.group(1));
                     } catch (NumberFormatException ex)
                     {
-                        LOGGER.warning("importFromFile() file=" + f.getName() + ", line " + lineCount + ", ex=" + ex.getLocalizedMessage());
+                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getLocalizedMessage());
                     }
                     try
                     {
                         lower = Integer.parseUnsignedInt(mMeter.group(2));
                     } catch (NumberFormatException ex)
                     {
-                        LOGGER.warning("importFromFile() file=" + f.getName() + ", line " + lineCount + ", ex=" + ex.getLocalizedMessage());
+                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getLocalizedMessage());
                     }
                     ts = TimeSignature.get(upper, lower);
                     if (ts == null)
@@ -188,7 +178,7 @@ public class ImprovisorImporter implements SongImporter
                         } catch (UnsupportedEditException ex)
                         {
                             // We should not get here
-                            Logger.getLogger(ImprovisorImporter.class.getName()).log(Level.SEVERE, null, ex);   // user notif. + log
+                            Logger.getLogger(ImprovisorFileReader.class.getName()).log(Level.SEVERE, null, ex);   // user notif. + log
                         }
                     }
                 } else if (mChord.find())
@@ -200,14 +190,14 @@ public class ImprovisorImporter implements SongImporter
                         cls = clsf.createEmptyLeadSheet(String.valueOf(sectionIndex), ts, 1);
                         cls.removeItem(cls.getItems(CLI_ChordSymbol.class).get(0));
                     }
-                    barIndex = fillInChordLeadSheet(cls, ts, barIndex, line, f, lineCount);
+                    barIndex = fillInChordLeadSheet(cls, ts, barIndex, line, file, lineCount);
                     // LOGGER.severe("importFromFile() chord line=" + line);
                 } else if (mStyle.find())
                 {
                     style = mStyle.group(1);
                 }
             } // End while
-        } // End try
+        } // End try // End try
 
         // Create the song object from the collected data
         SongFactory sf = SongFactory.getInstance();
@@ -217,32 +207,26 @@ public class ImprovisorImporter implements SongImporter
             song = sf.createSong(title, cls);  // Throw exception        
         } catch (UnsupportedEditException ex)
         {
-            LOGGER.log(Level.WARNING, null, ex);        // Log + user notification
+            throw new IOException(ex);
         }
-
-        assert song != null;
-
-        // Post process
-        SongImporter.PostProcessor postProcessor = Lookup.getDefault().lookup(SongImporter.PostProcessor.class);
-        if (postProcessor != null)
+        song.setTempo(tempo);
+        if (composer != null && composer.isEmpty())
         {
-            HashMap<String, Object> params = new HashMap<>();
-            params.put(PARAM_STYLE, style);
-            params.put(PARAM_TEMPO, tempo);
-            params.put(PARAM_COMPOSER, composer);
-            postProcessor.postProcessImportedSong(this, song, params);
-        } else
-        {
-            // Default
-            song.setTempo(tempo);
-            if (composer != null && composer.isEmpty())
-            {
-                song.setComments("Composer: " + composer);
-            }
+            song.setComments("Composer: " + composer);
         }
-
         return song;
+    }
 
+    /**
+     * The "style" string value found in the Improvisor file.
+     * <p>
+     * Must be callsed after readSong().
+     *
+     * @return Can be null.
+     */
+    public String getStyle()
+    {
+        return style;
     }
 
     // ==========================================================================================
@@ -418,6 +402,10 @@ public class ImprovisorImporter implements SongImporter
 
     private void initMap()
     {
+        if (!mapChordTypeConversion.isEmpty())
+        {
+            return;
+        }
         // Put in the map only Improvisor chord symbols for which we don't want to add an ChordType alias 
         // because chordtype is too exotic, eg '7b9b13sus4' !!!!
         mapChordTypeConversion.put("phryg", "m7");
@@ -434,10 +422,10 @@ public class ImprovisorImporter implements SongImporter
         mapChordTypeConversion.put("M9#5", "M7#5");
         mapChordTypeConversion.put("M69#11", "M9#11");
         mapChordTypeConversion.put("M7#9#11", "M9#11");
-        mapChordTypeConversion.put("6#11", "M7#11");        
+        mapChordTypeConversion.put("6#11", "M7#11");
         mapChordTypeConversion.put("+add9", "+");
         mapChordTypeConversion.put("add9no3", "2");
-        mapChordTypeConversion.put("addb9", "7b9b5");        
+        mapChordTypeConversion.put("addb9", "7b9b5");
         mapChordTypeConversion.put("7b13", "7");
         mapChordTypeConversion.put("7b5#9", "7alt");
         mapChordTypeConversion.put("7b5b13", "7b5");

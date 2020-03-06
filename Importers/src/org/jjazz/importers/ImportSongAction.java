@@ -65,12 +65,12 @@ import org.openide.windows.WindowManager;
         {
             "CTL_ImportSong=Import Songs..."
         })
-public final class ImportSong implements ActionListener
+public final class ImportSongAction implements ActionListener
 {
 
     public static final String PREF_LAST_IMPORT_DIRECTORY = "LastImportDirectory";
-    private static Preferences prefs = NbPreferences.forModule(ImportSong.class);
-    private static final Logger LOGGER = Logger.getLogger(ImportSong.class.getSimpleName());
+    private static Preferences prefs = NbPreferences.forModule(ImportSongAction.class);
+    private static final Logger LOGGER = Logger.getLogger(ImportSongAction.class.getSimpleName());
 
     @Override
     public void actionPerformed(ActionEvent e)
