@@ -51,9 +51,7 @@ import org.openide.windows.WindowManager;
 
 /**
  * The import song action.
- * 
- * @todo If several SongImporter.PostProcessor instances are available in the lookup, the UI should ask the user which one should be used.
- * 
+ * <p>
  */
 @ActionID(category = "File", id = "org.jjazz.songeditormanager.ImportSong")
 @ActionRegistration(displayName = "#CTL_ImportSong", lazy = true)
@@ -75,7 +73,7 @@ public final class ImportSongAction implements ActionListener
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        List<SongImporter> importers = getProviders();
+        final List<SongImporter> importers = getAllImporters();
         if (importers.isEmpty())
         {
             NotifyDescriptor d = new NotifyDescriptor.Message("Can't import song : no importer found on the system.", NotifyDescriptor.ERROR_MESSAGE);
@@ -83,29 +81,16 @@ public final class ImportSongAction implements ActionListener
             return;
         }
 
-        // Collect supported file extensions
-        // First collect all file extensions managed by the SongImporters
-        final HashMap<String, SongImporter> mapExtImporter = new HashMap<>();
-        List<FileNameExtensionFilter> allFilters = new ArrayList<>();
-        for (SongImporter p : Lookup.getDefault().lookupAll(SongImporter.class))
-        {
-            List<FileNameExtensionFilter> filters = p.getSupportedFileTypes();
-            for (FileNameExtensionFilter filter : filters)
-            {
-                allFilters.add(filter);
-                for (String s : filter.getExtensions())
-                {
-                    mapExtImporter.put(s.toLowerCase(), p);
-                }
-            }
-        }
-
         // Initialize the file chooser
         JFileChooser chooser = org.jjazz.ui.utilities.Utilities.getFileChooserInstance();
         chooser.resetChoosableFileFilters();
-        for (FileNameExtensionFilter filter : allFilters)
+        for (SongImporter importer : importers)
         {
-            chooser.addChoosableFileFilter(filter);
+            List<FileNameExtensionFilter> filters = importer.getSupportedFileTypes();
+            for (FileNameExtensionFilter filter : filters)
+            {
+                chooser.addChoosableFileFilter(filter);
+            }
         }
         chooser.setAcceptAllFileFilterUsed(false);
         chooser.setMultiSelectionEnabled(true);
@@ -119,7 +104,7 @@ public final class ImportSongAction implements ActionListener
             return;
         }
 
-        // Use thread because possible import of many files
+        // Save directory for future imports
         final File[] files = chooser.getSelectedFiles();
         if (files.length > 0)
         {
@@ -129,40 +114,73 @@ public final class ImportSongAction implements ActionListener
                 prefs.put(PREF_LAST_IMPORT_DIRECTORY, dir.getAbsolutePath());
             }
         }
+
+        // Prepare data
+        final HashMap<File, SongImporter> mapFileImporter = new HashMap<>();
+        HashMap<String, SongImporter> mapExtImporter = new HashMap<>();
+        for (File f : files)
+        {
+            String ext = org.jjazz.util.Utilities.getExtension(f.getAbsolutePath());
+            SongImporter importer = mapExtImporter.get(ext);
+            if (importer == null)
+            {
+                // No association yet, search the compatible importers
+                List<SongImporter> fImporters = getMatchingImporters(importers, ext);
+                if (fImporters.isEmpty())
+                {
+                    // Extension not managed by any SongImporter
+                    String msg = "File type is not supported : " + f.getAbsolutePath();
+                    LOGGER.log(Level.WARNING, "actionPerformed() " + msg);
+                    NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+                    DialogDisplayer.getDefault().notify(nd);
+                    return;
+                } else if (fImporters.size() > 1)
+                {
+                    // Ask user to choose the provider
+                    ChooseImporterDialog dlg = new ChooseImporterDialog(WindowManager.getDefault().getMainWindow(), true);
+                    dlg.preset(ext, fImporters);
+                    dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
+                    dlg.setVisible(true);
+                    importer = dlg.getSelectedImporter();
+                    if (importer == null)
+                    {
+                        return;
+                    }
+                } else
+                {
+                    // Easy only one provider
+                    importer = fImporters.get(0);
+                }
+            }
+            // Save the association
+            mapFileImporter.put(f, importer);
+            mapExtImporter.put(ext, importer);
+        }
+
+        // Use a different thread because possible import of many files
         Runnable r = new Runnable()
         {
             @Override
             public void run()
             {
-                importFiles(files, mapExtImporter);
+                importFiles(mapFileImporter);
             }
         };
         new Thread(r).start();
     }
 
-    private void importFiles(File[] files, HashMap<String, SongImporter> mapExtImporter)
+    private void importFiles(HashMap<File, SongImporter> mapFileImporter)
     {
-        for (File f : files)
+        for (File f : mapFileImporter.keySet())
         {
-            String ext = org.jjazz.util.Utilities.getExtension(f.getAbsolutePath());
-            SongImporter sp = mapExtImporter.get(ext.toLowerCase());
-            if (sp == null)
-            {
-                // Extension not managed by any SongImporter
-                String msg = "File type is not supported : " + f.getAbsolutePath();
-                LOGGER.log(Level.WARNING, "actionPerformed() " + msg + ", supportedFileExtensions=" + mapExtImporter.keySet());
-                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(nd);
-                continue;
-            }
-
+            SongImporter importer = mapFileImporter.get(f);
             Song song = null;
             try
             {
-                song = sp.importFromFile(f);
+                song = importer.importFromFile(f);
             } catch (IOException ex)
             {
-                LOGGER.log(Level.WARNING, "actionPerformed() sp=" + sp.getId() + ", ex=" + ex.getLocalizedMessage());
+                LOGGER.log(Level.WARNING, "actionPerformed() importer=" + importer.getId() + ", ex=" + ex.getLocalizedMessage());
                 NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
                 continue;
@@ -170,7 +188,7 @@ public final class ImportSongAction implements ActionListener
 
             if (song == null)
             {
-                LOGGER.log(Level.WARNING, "actionPerformed() song=null, sp=" + sp.getId() + " f=" + f.getAbsolutePath());
+                LOGGER.log(Level.WARNING, "actionPerformed() song=null, importer=" + importer.getId() + " f=" + f.getAbsolutePath());
                 NotifyDescriptor nd = new NotifyDescriptor.Message("An unexpected problem occured", NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
             } else
@@ -186,7 +204,7 @@ public final class ImportSongAction implements ActionListener
     // ================================================================================================
     // Private methods
     // ================================================================================================
-    private List<SongImporter> getProviders()
+    private List<SongImporter> getAllImporters()
     {
         ArrayList<SongImporter> providers = new ArrayList<>();
         for (SongImporter p : Lookup.getDefault().lookupAll(SongImporter.class))
@@ -194,6 +212,35 @@ public final class ImportSongAction implements ActionListener
             providers.add(p);
         }
         return providers;
+    }
+
+    /**
+     * Select the importers which accept fileExtesion.
+     *
+     * @param importers
+     * @param fileExtension
+     * @return
+     */
+    private List<SongImporter> getMatchingImporters(List<SongImporter> importers, String fileExtension)
+    {
+        ArrayList<SongImporter> res = new ArrayList<>();
+        for (SongImporter importer : importers)
+        {
+            for (FileNameExtensionFilter f : importer.getSupportedFileTypes())
+            {
+                for (String ext : f.getExtensions())
+                {
+                    if (ext.toLowerCase().equals(fileExtension.toLowerCase()))
+                    {
+                        if (!res.contains(importer))
+                        {
+                            res.add(importer);
+                        }
+                    }
+                }
+            }
+        }
+        return res;
     }
 
     /**

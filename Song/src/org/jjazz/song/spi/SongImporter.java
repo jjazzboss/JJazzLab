@@ -44,7 +44,7 @@ public interface SongImporter
     /**
      * Get the list of file types which can be read by this object.
      *
-     * @return
+     * @return Can't be empty.
      */
     public List<FileNameExtensionFilter> getSupportedFileTypes();
 
