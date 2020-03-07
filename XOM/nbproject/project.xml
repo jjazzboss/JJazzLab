@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.netbeans.org/ns/project/1">
+    <type>org.netbeans.modules.apisupport.project</type>
+    <configuration>
+        <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
+            <code-name-base>org.jjazz.lib.xom</code-name-base>
+            <suite-component/>
+            <module-dependencies/>
+            <public-packages>
+                <package>nu.xom</package>
+                <package>nu.xom.canonical</package>
+                <package>nu.xom.converters</package>
+                <package>nu.xom.jaxen</package>
+                <package>nu.xom.jaxen.expr</package>
+                <package>nu.xom.jaxen.expr.iter</package>
+                <package>nu.xom.jaxen.function</package>
+                <package>nu.xom.jaxen.function.ext</package>
+                <package>nu.xom.jaxen.function.xslt</package>
+                <package>nu.xom.jaxen.saxpath</package>
+                <package>nu.xom.jaxen.saxpath.base</package>
+                <package>nu.xom.jaxen.saxpath.helpers</package>
+                <package>nu.xom.jaxen.util</package>
+                <package>nu.xom.tests</package>
+                <package>nu.xom.xinclude</package>
+                <package>nu.xom.xslt</package>
+            </public-packages>
+            <class-path-extension>
+                <runtime-relative-path>ext/xom-1.3.4.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/xom-1.3.4.jar</binary-origin>
+            </class-path-extension>
+        </data>
+    </configuration>
+</project>

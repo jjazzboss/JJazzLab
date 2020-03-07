@@ -27,7 +27,9 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -81,9 +83,28 @@ public final class ImportSongAction implements ActionListener
             return;
         }
 
+        // Prepare a special filter that show all accepted extensions
+        FileNameExtensionFilter allExtensionsFilter = null;
+        HashSet<String> allExtensions = new HashSet<>();
+        for (SongImporter importer : importers)
+        {
+            for (FileNameExtensionFilter filter : importer.getSupportedFileTypes())
+            {
+                allExtensions.addAll(Arrays.asList(filter.getExtensions()));
+            }
+        }
+        if (allExtensions.size() > 1)
+        {
+            allExtensionsFilter = new FileNameExtensionFilter("All importable files "+allExtensions.toString(), allExtensions.toArray(new String[0]));
+        }
+
         // Initialize the file chooser
         JFileChooser chooser = org.jjazz.ui.utilities.Utilities.getFileChooserInstance();
         chooser.resetChoosableFileFilters();
+        if (allExtensionsFilter != null)
+        {
+            chooser.addChoosableFileFilter(allExtensionsFilter);
+        }
         for (SongImporter importer : importers)
         {
             List<FileNameExtensionFilter> filters = importer.getSupportedFileTypes();
