@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
 OpenIDE-Module: org.jjazz.song
 OpenIDE-Module-Localizing-Bundle: org/jjazz/song/Bundle.properties
-OpenIDE-Module-Specification-Version: 1.0
+OpenIDE-Module-Specification-Version: 1.1
 
