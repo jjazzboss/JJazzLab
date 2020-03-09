@@ -53,8 +53,8 @@ import org.openide.windows.WindowManager;
 @ActionRegistration(displayName = "Play Midi File", lazy=true)
 @ActionReferences(
         {
-            // @ActionReference(path = "Menu/Edit", position = 37893),
-            // @ActionReference(path = "Shortcuts", name = "SD-P")
+             // @ActionReference(path = "Menu/Edit", position = 37893),
+             @ActionReference(path = "Shortcuts", name = "SD-P")    // ctrl-shift-P
         })
 public final class PlayMidiFile implements ActionListener, MetaEventListener
 {

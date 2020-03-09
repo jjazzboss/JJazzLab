@@ -142,6 +142,25 @@ public class ExportToMidiFile extends AbstractAction
             return;
         }
 
+        // Check there is at least one unmuted track
+        boolean allMuted = true;
+        for (InstrumentMix insMix : midiMix.getInstrumentMixes())
+        {
+            if (!insMix.isMute())
+            {
+                allMuted = false;
+                break;
+            }
+        }
+        if (allMuted)
+        {
+            String msg = "Can't export to Midi file: all channels are muted.";
+            LOGGER.warning(msg);
+            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(nd);
+            return;
+        }
+
         // Work on a copy
         SongFactory sf = SongFactory.getInstance();
         Song songCopy = sf.getCopy(song);
@@ -163,10 +182,6 @@ public class ExportToMidiFile extends AbstractAction
             songCopy.close(false);
         }
 
-        // Apply Drums channel rerouting        
-        List<Integer> toBeRerouted = midiMix.getDrumsReroutedChannels();
-        MidiUtilities.rerouteShortMessages(sequence, toBeRerouted, MidiConst.CHANNEL_DRUMS);
-
         // Check Midi export capabilities
         int[] fileTypes = MidiSystem.getMidiFileTypes(sequence);
         boolean fileTypeOK = false;
@@ -187,7 +202,21 @@ public class ExportToMidiFile extends AbstractAction
             return;
         }
 
-        // Modify sequence so that Midi file can be as portable as possible
+        // Remove elements from muted tracks (don't remove track because impact on mapRvTrack + drumsrerouting)
+        for (RhythmVoice rv : midiMix.getRvKeys())
+        {
+            if (midiMix.getInstrumentMixFromKey(rv).isMute())
+            {
+                Track track = sequence.getTracks()[mapRvTrackId.get(rv)];
+                emptyTrack(track);
+            }
+        }
+
+        // Apply Drums channel rerouting        
+        List<Integer> toBeRerouted = midiMix.getDrumsReroutedChannels();
+        MidiUtilities.rerouteShortMessages(sequence, toBeRerouted, MidiConst.CHANNEL_DRUMS);
+
+        // Modify sequence to make Midi file as portable as possible
         prepareForMidiFile(sequence, mapRvTrackId, midiMix);
 
         // Finally write to file
@@ -200,6 +229,43 @@ public class ExportToMidiFile extends AbstractAction
         {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
         }
+    }
+
+    // ======================================================================
+    // Private methods
+    // ======================================================================   
+    /**
+     *
+     * @param sg
+     * @return Can be null
+     */
+    private File getMidiFile(Song sg)
+    {
+        File f = null;
+        File songFile = sg.getFile();
+        String midiFilename = (songFile == null) ? sg.getName() + ".mid" : org.jjazz.util.Utilities.replaceExtension(songFile.getName(), ".mid");
+        if (saveExportDir != null && !saveExportDir.isDirectory())
+        {
+            saveExportDir = null;
+        }
+        File dir = saveExportDir;
+        if (dir == null)
+        {
+            if (songFile != null)
+            {
+                dir = songFile.getParentFile();         // Can be null
+            }
+            if (dir == null)
+            {
+                FileDirectoryManager fdm = FileDirectoryManager.getInstance();
+                dir = fdm.getLastSongDirectory();       // Can be null                       
+            }
+        }
+        if (dir != null)
+        {
+            f = new File(dir, midiFilename);
+        }
+        return f;
     }
 
     /**
@@ -302,41 +368,17 @@ public class ExportToMidiFile extends AbstractAction
 
     }
 
-    // ======================================================================
-    // Private methods
-    // ======================================================================   
     /**
-     *
-     * @param sg
-     * @return Can be null
+     * Remove all events from the specified track.
+     * <p>
      */
-    private File getMidiFile(Song sg)
+    private void emptyTrack(Track track)
     {
-        File f = null;
-        File songFile = sg.getFile();
-        String midiFilename = (songFile == null) ? sg.getName() + ".mid" : org.jjazz.util.Utilities.replaceExtension(songFile.getName(), ".mid");
-        if (saveExportDir != null && !saveExportDir.isDirectory())
+        // Track uses a simple List to store MidiEvents
+        for (int i = track.size() - 1; i >= 0; i--)
         {
-            saveExportDir = null;
+            track.remove(track.get(i));
         }
-        File dir = saveExportDir;
-        if (dir == null)
-        {
-            if (songFile != null)
-            {
-                dir = songFile.getParentFile();         // Can be null
-            }
-            if (dir == null)
-            {
-                FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-                dir = fdm.getLastSongDirectory();       // Can be null                       
-            }
-        }
-        if (dir != null)
-        {
-            f = new File(dir, midiFilename);
-        }
-        return f;
     }
 
 }
