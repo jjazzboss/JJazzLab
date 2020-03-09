@@ -23,6 +23,9 @@
 package org.jjazz.rhythmmusicgeneration;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -46,13 +49,15 @@ import org.jjazz.midimix.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.parameters.RP_SYS_Mute;
-import org.jjazz.rhythmmusicgeneration.spi.MidiMusicGenerator;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.jjazz.songstructure.api.SongPart;
 import org.openide.util.Exceptions;
+import org.openide.util.Lookup;
 
 /**
  * Ask all the rhythms of a song to produce music and integrate the results to make a Midi sequence.
+ * <p>
  */
 public class MidiSequenceBuilder
 {
@@ -61,14 +66,16 @@ public class MidiSequenceBuilder
      * The context.
      */
     private MusicGenerationContext context;
+    private MusicGenerator.PostProcessor[] postProcessors;  // Can be null
     private final HashMap<RhythmVoice, Integer> mapRvTrackId = new HashMap<>();
 
     private static final Logger LOGGER = Logger.getLogger(MidiSequenceBuilder.class.getSimpleName());
 
     /**
      * @param context The context to build the sequence. Song's SongStructure can not be empty.
+     * @param postProcessors Optional postProcessors to run on the generated phrases.
      */
-    public MidiSequenceBuilder(MusicGenerationContext context)
+    public MidiSequenceBuilder(MusicGenerationContext context, MusicGenerator.PostProcessor... postProcessors)
     {
         if (context == null)
         {
@@ -76,6 +83,7 @@ public class MidiSequenceBuilder
         }
         this.context = context;
         assert !context.getSong().getSongStructure().getSongParts().isEmpty();
+        this.postProcessors = postProcessors;
     }
 
     /**
@@ -83,8 +91,8 @@ public class MidiSequenceBuilder
      * <p>
      * 1/ Create a first empty track with song name.<br>
      * 2/ Ask each used rhythm in the song to produce tracks.<br>
-     * 3/ Perform some checks and cleanup on produced tracks: check for possible errors in the context, adjust end of track, check that
-     * generator produces music only for the relevant bars, set each track's name.
+     * 3/ Perform some checks and cleanup on produced tracks: check for possible errors in the context, adjust end of track, check
+     * that generator produces music only for the relevant bars, set each track's name.
      *
      * @param silent If true do not show a progress dialog
      * @return A Sequence containing accompaniment tracks for the context.
@@ -119,8 +127,8 @@ public class MidiSequenceBuilder
     /**
      * A map giving the track id (index in the sequence) for each rhythm voice.
      * <p>
-     * Must be called AFTER call to buildSequence(). The returned map contains data only for the generated tracks in the given context. In a
-     * song with 2 rhythms R1 and R2, if context only uses R2, then only the id and tracks for R2 are returned.
+     * Must be called AFTER call to buildSequence(). The returned map contains data only for the generated tracks in the given
+     * context. In a song with 2 rhythms R1 and R2, if context only uses R2, then only the id and tracks for R2 are returned.
      *
      * @return
      */
@@ -151,24 +159,19 @@ public class MidiSequenceBuilder
      * Get the rhythm's MidiMusicGenerator and ask him to generate music.
      *
      * @param r
-     * @param mapRvTrack The tracks to fill, one per rhythmvoice.
-     * @return false if there was a problem generating music.
      */
-    private boolean generateRhythmTracks(Rhythm r, HashMap<RhythmVoice, Track> mapRvTrack) throws MusicGenerationException
+    private HashMap<RhythmVoice, Phrase> generateRhythmPhrases(Rhythm r) throws MusicGenerationException
     {
-        boolean b = false;
-        MidiMusicGenerator generator = r.getLookup().lookup(MidiMusicGenerator.class);
+        MusicGenerator generator = r.getLookup().lookup(MusicGenerator.class);
         if (generator != null)
         {
             LOGGER.fine("fillRhythmTracks() calling generateMusic() for rhythm r=" + r.getName());
             r.loadResources();
-            generator.generateMusic(context, mapRvTrack);
-            b = true;
+            return generator.generateMusic(context);
         } else
         {
-            LOGGER.severe("buildSequence() no MidiMusicGenerator object found in rhythm's lookup. rhythm=" + r.getName());
+            throw new MusicGenerationException("No MidiMusicGenerator object found in rhythm's lookup. rhythm=" + r.getName());
         }
-        return b;
     }
 
     /**
@@ -517,6 +520,26 @@ public class MidiSequenceBuilder
         }
     }
 
+    /**
+     * The PostProcessors instance found in the global lookup sorted by priority.
+     *
+     * @return
+     */
+    List<MusicGenerator.PostProcessor> getPostProcessorsSorted()
+    {
+        List<MusicGenerator.PostProcessor> res = new ArrayList<>((Collection<MusicGenerator.PostProcessor>) Lookup.getDefault().lookupAll(MusicGenerator.PostProcessor.class));
+        Collections.sort(res, new Comparator<MusicGenerator.PostProcessor>()
+        {
+            @Override
+            public int compare(MusicGenerator.PostProcessor o1, MusicGenerator.PostProcessor o2)
+            {
+                return Integer.valueOf(o1.getPriority()).compareTo(o2.getPriority());
+            }
+        }
+        );
+        return res;
+    }
+
     // ===================================================================================
     // Private classes
     // ===================================================================================
@@ -589,6 +612,30 @@ public class MidiSequenceBuilder
         @Override
         public void run()
         {
+            // Get the generated phrases for each used rhythm
+            // This can take some time to compute
+            HashMap<RhythmVoice, Phrase> res = new HashMap<>();
+            for (Rhythm r : context.getUniqueRhythms())
+            {
+                try
+                {
+                    HashMap<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r);         // Possible MusicGenerationException here
+                    // Merge into the final result
+                    res.putAll(rMap);
+                } catch (MusicGenerationException ex)
+                {
+                    musicException = ex;
+                    return;
+                }
+            }
+
+            // Optional Post-process
+            for (MusicGenerator.PostProcessor pp : getPostProcessorsSorted())
+            {
+                pp.postProcess(res);
+            }
+
+            // Convert to Midi sequence
             try
             {
                 sequence = new Sequence(Sequence.PPQ, MidiConst.PPQ_RESOLUTION);

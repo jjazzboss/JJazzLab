@@ -25,15 +25,38 @@ package org.jjazz.rhythmmusicgeneration.spi;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import java.util.HashMap;
-import javax.sound.midi.Track;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythmmusicgeneration.Phrase;
 
 /**
- * A music generator producing Midi sequence tracks.
+ * A music generator for a given rhythm.
  */
-public interface MidiMusicGenerator
+public interface MusicGenerator
 {
+
+    /**
+     * Post-processor of Phrases returned by generateMusic().
+     */
+    public interface PostProcessor
+    {
+
+        /**
+         * If several PostProcessor instances exist, use the priority to set the order of execution.
+         *
+         * @return 0 is highest priority, Integer.MAX is lowest priority
+         */
+        int getPriority();
+
+        /**
+         * Apply some post-processing to the specified phrases.
+         *
+         * @param mapRvPhrase
+         * @return True if some changes have been done.
+         * @throws MusicGenerationException
+         */
+        boolean postProcess(HashMap<RhythmVoice, Phrase> mapRvPhrase) throws MusicGenerationException;
+    }
 
     /**
      * @return The Rhythm for which we generate music.
@@ -41,35 +64,36 @@ public interface MidiMusicGenerator
     Rhythm getRhythm();
 
     /**
-     * Fill the specified Midi tracks with Midi events to produce a rhythm accompaniment.
+     * Generate the note Phrases which correspond to a musical accompaniment for a given rhythm.
      * <p>
-     * The service provider must compute Midi music data (notes) for the specified context. Resulting Midi messages must be stored
-     * in the tracks provided by the mapRvTracks map, one track per RhythmVoice/Midi channel.
+     * The service provider must compute notes for the specified context, one Phrase per RhythmVoice/Midi channel.
      * <p>
-     * The authorized Midi events are note on/off and pitch wheel changes. Midi events timing must be based on a PPQ
-     * resolution=MidiConst.PPQ_RESOLUTION. The first note of the first bar (usually on beat 0) should start at tick 0, even if
-     * the context specifies a first bar (fromBar) which is greater than 0.
+     * The first note of the first bar (usually on beat 0) must start at position 0, even if the context specifies a first bar
+     * (fromBar) which is greater than 0.
      * <p>
-     * The MidiMix from the context is used to retrieve the unique Midi channel associated to each RhythmVoice (see method
-     * MidiMix.getChannel(RhythmVoice)). If the context song contains several rhythms, the method must add Midi events ONLY for
+     * The MidiMix from <code>context</code> is used to retrieve the unique Midi channel associated to each RhythmVoice (see
+     * method MidiMix.getChannel(RhythmVoice)). If the context song contains several rhythms, the method must add notes ONLY for
      * bars which use this MidiMusicGenerator's rhythm.
      * <p>
-     * If context bar range
-     * <p>
-     * Some features are directly managed by the framework (for example by post-processing the generated Midi tracks), so the
-     * method shall NOT implement them:<br>
+     * Note that some features are directly managed by the JJazzLab framework :<br>
      * - Instrument selection and settings (Program changes, Midi controller messages such as bank select, volume, reverb,
      * panoramic, etc.) <br>
      * - RP_SYS_Mute rhythm parameter handling (muting a specific track for a specific SongPart)<br>
      * - Handling of the channel's specific velocity shift<br>
      * - Handling of the instrument's specific transposition<br>
+     * - Post-processing<br - etc. <p>
+     * @p
      *
-     * @param context     The information to be used for music generation
-     * @param mapRvTracks The tracks ready to be filled, one track per rhythm voice/channel.
+     *
+     *
+     *
+     *
+     * aram context The information to be used for music generation
+     * @return One Phrase per rhythm voice/channel.
      *
      * @throws MusicGenerationException If generator could not produce the expected music. The framework is responsible for
-     *                                  notifying the user of the error message associated to the exception.
+     * notifying the user of the error message associated to the exception.
      *
      */
-    void generateMusic(MusicGenerationContext context, HashMap<RhythmVoice, Track> mapRvTracks) throws MusicGenerationException;
+    HashMap<RhythmVoice, Phrase> generateMusic(MusicGenerationContext context) throws MusicGenerationException;
 }

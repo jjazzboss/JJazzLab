@@ -167,13 +167,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Set the music context on which this controller's methods (play/pause/etc.) will operate.
+     * Set the music context on which this controller's methods (play/pause/etc.) will operate and build the sequence.
      * <p>
-     * Stop any playback. Tempo is set to song's tempo.
+     * Stop the playback if it was on. Tempo is set to song's tempo.
      *
      * @param context Can be null.
+     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException
      */
-    public void setContext(MusicGenerationContext context)
+    public void setContext(MusicGenerationContext context) throws MusicGenerationException
     {
         if (context != null && context.equals(this.mgContext))
         {
@@ -197,6 +198,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             this.mgContext.getSong().addPropertyChangeListener(this);
             setTempo(this.mgContext.getSong().getTempo());
             playbackContext = new PlaybackContext(this.mgContext);
+            playbackContext.buildSequence();
         }
     }
 
@@ -243,7 +245,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         // Regenerate the sequence and the related data if needed
         if (playbackContext.isDirty())
         {
-            playbackContext.update();
+            playbackContext.buildSequence();
         }
 
         // Set start position
@@ -846,12 +848,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
          * @param song
          * @throws MusicGenerationException If problem occurs when creating the sequence.
          */
-        void update() throws MusicGenerationException
+        void buildSequence() throws MusicGenerationException
         {
             try
             {
                 // Build the sequence
-                MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(context);
+                MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(context );
                 sequence = seqBuilder.buildSequence(false);                  // Can raise MusicGenerationException
                 mapRvTrackId = seqBuilder.getRvTrackIdMap();                 // Used to identify a RhythmVoice's track
 
