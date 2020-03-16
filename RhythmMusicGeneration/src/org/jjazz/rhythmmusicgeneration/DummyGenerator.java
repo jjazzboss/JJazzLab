@@ -23,12 +23,12 @@
 package org.jjazz.rhythmmusicgeneration;
 
 import java.util.HashMap;
-import org.jjazz.rhythmmusicgeneration.spi.MidiMusicGenerator;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import java.util.logging.Logger;
-import javax.sound.midi.Track;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.synths.Family;
-import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.rhythm.api.*;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.Range;
@@ -36,7 +36,7 @@ import org.jjazz.util.Range;
 /**
  * A dummy generator that generate simple tracks for test purposes.
  */
-public class DummyGenerator implements MidiMusicGenerator
+public class DummyGenerator implements MusicGenerator
 {
 
     private Rhythm rhythm;
@@ -58,45 +58,126 @@ public class DummyGenerator implements MidiMusicGenerator
     }
 
     @Override
-    public void generateMusic(MusicGenerationContext context, HashMap<RhythmVoice, Track> mapRvTracks) throws MusicGenerationException
+    public HashMap<RhythmVoice, Phrase> generateMusic(MusicGenerationContext context)
     {
+        HashMap<RhythmVoice, Phrase> res = new HashMap<>();
+
         // Loop only on song parts belonging to context
         for (SongPart spt : context.getSongParts())
         {
             Rhythm r = spt.getRhythm();
+            if (!r.equals(rhythm))
+            {
+                // Not for us
+                continue;
+            }
+
             TimeSignature ts = r.getTimeSignature();
             Range sptRange = context.getSptRange(spt); // Context bars can start/end in the middle of a song part
-            long tick = context.getSptStartTick(spt);
-            if (r.equals(rhythm))
+            float sptPosInBeats = context.getSong().getSongStructure().getPositionInNaturalBeats(sptRange.from);
+
+            // Get the ChordSequence corresponding to the song part
+            MusicGenerationContext rContext = new MusicGenerationContext(context, sptRange);
+            ContextChordSequence cSeq = new ContextChordSequence(rContext);
+            for (RhythmVoice rv : rhythm.getRhythmVoices())
             {
-                // This is our rhythm         
-                // Get the ChordSequence corresponding to the song part
-                MusicGenerationContext rContext = new MusicGenerationContext(context, sptRange);
-                ContextChordSequence cSeq = new ContextChordSequence(rContext);
-                for (RhythmVoice rv : rhythm.getRhythmVoices())
+                // Get or create the resulting phrase for this RhythmVoice
+                int destChannel = context.getMidiMix().getChannel(rv);
+                Phrase pRes = res.get(rv);
+                if (pRes == null)
                 {
-                    // Fill the track for each supported RhythmVoice
-                    Track track = mapRvTracks.get(rv);
-                    int channel = context.getMidiMix().getChannel(rv);
-                    if (rv.isDrums())
+                    pRes = new Phrase(destChannel);
+                    res.put(rv, pRes);
+                }
+                if (rv.isDrums())
+                {
+                    LOGGER.fine("generateMusic() generate dummy drums track for RhythmVoice: " + rv.getName());
+                    Phrase p = getBasicDrumPhrase(sptPosInBeats, sptRange.size(), ts, destChannel);
+                    pRes.add(p);
+                } else
+                {
+                    if (rv.getPreferredInstrument().getSubstitute().getFamily().equals(Family.Bass))
                     {
-                        LOGGER.fine("generateMusic() generate dummy drums track for RhythmVoice: " + rv.getName() + " size=" + track.size());
-                        Utilities.addDrumsNoteEvents(track, channel, tick, sptRange.size(), ts);
+                        LOGGER.fine("generateMusic() generate dummy bass track for RhythmVoice: " + rv.getName());
+                        Phrase p = getBasicBassPhrase(sptPosInBeats, cSeq, ts, destChannel);
+                        pRes.add(p);
                     } else
                     {
-                        if (rv.getPreferredInstrument().getSubstitute().getFamily().equals(Family.Bass))
-                        {
-                            LOGGER.fine("generateMusic() generate dummy bass track for RhythmVoice: " + rv.getName() + " size=" + track.size());
-                            Utilities.addBassNoteEvents(track, channel, tick, cSeq, ts);
-                        } else
-                        {
-                            LOGGER.fine("generateMusic() music generation not supported for this RhythmVoice: " + rv.getName());
-                        }
+                        LOGGER.fine("generateMusic() music generation not supported for this RhythmVoice: " + rv.getName());
                     }
-
                 }
             }
         }
+
+        return res;
+    }
+
+    /**
+     * Get a basic drums phrase.
+     *
+     * @param startPosInBeats
+     * @param nbBars
+     * @param ts
+     * @param channel         The channel of the returned phrase
+     * @return
+     */
+    static public Phrase getBasicDrumPhrase(float startPosInBeats, int nbBars, TimeSignature ts, int channel)
+    {
+        if (ts == null || !MidiConst.checkMidiChannel(channel))
+        {
+            throw new IllegalArgumentException("nbBars=" + nbBars + " ts=" + ts + " channel=" + channel);
+        }
+        Phrase p = new Phrase(channel);
+        float duration = 0.25f;
+        for (int bar = 0; bar < nbBars; bar++)
+        {
+            for (int beat = 0; beat < ts.getNbNaturalBeats(); beat++)
+            {
+                int pitch = MidiConst.CLOSED_HI_HAT;
+                switch (beat)
+                {
+                    case 0:
+                        pitch = MidiConst.ACOUSTIC_BASS_DRUM;
+                        break;
+                    case 1:
+                        pitch = MidiConst.ACOUSTIC_SNARE;
+                        break;
+                    default:
+                    // Nothing
+                    }
+                NoteEvent ne = new NoteEvent(pitch, duration, 70, startPosInBeats++);
+                p.add(ne);
+            }
+        }
+        return p;
+    }
+
+    /**
+     * Get a basic bass phrase.
+     *
+     * @param startPosInBeats
+     * @param cSeq
+     * @param ts
+     * @param channel         The channel of the returned phrase
+     * @return
+     */
+    static public Phrase getBasicBassPhrase(float startPosInBeats, ChordSequence cSeq, TimeSignature ts, int channel)
+    {
+        if (cSeq == null || ts == null || !MidiConst.checkMidiChannel(channel))
+        {
+            throw new IllegalArgumentException("cSeq=" + cSeq + " ts=" + ts + " channel=" + channel);
+        }
+        Phrase p = new Phrase(channel);
+        for (int i = 0; i < cSeq.size(); i++)
+        {
+            CLI_ChordSymbol cli = cSeq.get(i);
+            int bassPitch = 3 * 12 + cli.getData().getBassNote().getRelativePitch(); // stay on the 3rd octave            
+            float duration = cSeq.getChordDuration(i, ts);
+            float posInBeats = cSeq.getChordAbsolutePosition(i, ts, startPosInBeats);
+            NoteEvent ne = new NoteEvent(bassPitch, duration, 80, posInBeats);
+            p.add(ne);
+        }
+        return p;
     }
 
 // ====================================================================================================

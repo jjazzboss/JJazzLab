@@ -72,7 +72,7 @@ public class MidiSequenceBuilder
     private static final Logger LOGGER = Logger.getLogger(MidiSequenceBuilder.class.getSimpleName());
 
     /**
-     * @param context The context to build the sequence. Song's SongStructure can not be empty.
+     * @param context        The context to build the sequence. Song's SongStructure can not be empty.
      * @param postProcessors Optional postProcessors to run on the generated phrases.
      */
     public MidiSequenceBuilder(MusicGenerationContext context, MusicGenerator.PostProcessor... postProcessors)
@@ -91,8 +91,8 @@ public class MidiSequenceBuilder
      * <p>
      * 1/ Create a first empty track with song name.<br>
      * 2/ Ask each used rhythm in the song to produce tracks.<br>
-     * 3/ Perform some checks and cleanup on produced tracks: check for possible errors in the context, adjust end of track, check
-     * that generator produces music only for the relevant bars, set each track's name.
+     * 3/ Perform some checks and cleanup on produced tracks: check for possible errors in the context, adjust end of track, check that
+     * generator produces music only for the relevant bars, set each track's name.
      *
      * @param silent If true do not show a progress dialog
      * @return A Sequence containing accompaniment tracks for the context.
@@ -127,8 +127,8 @@ public class MidiSequenceBuilder
     /**
      * A map giving the track id (index in the sequence) for each rhythm voice.
      * <p>
-     * Must be called AFTER call to buildSequence(). The returned map contains data only for the generated tracks in the given
-     * context. In a song with 2 rhythms R1 and R2, if context only uses R2, then only the id and tracks for R2 are returned.
+     * Must be called AFTER call to buildSequence(). The returned map contains data only for the generated tracks in the given context. In a
+     * song with 2 rhythms R1 and R2, if context only uses R2, then only the id and tracks for R2 are returned.
      *
      * @return
      */
@@ -279,11 +279,11 @@ public class MidiSequenceBuilder
     }
 
     /**
-     * Remove some NoteOn/Off depending on the RP_SYS_Mute parameter on each SongPart.<br>
+     * For each SongPart remove notes for muted RhythmVoices depending on the RP_SYS_Mute value.<br>
      *
-     * @param sequence
+     * @param rvPhrases
      */
-    private void muteNotes(Sequence sequence)
+    private void muteNotes(HashMap<RhythmVoice, Phrase> rvPhrases)
     {
         for (SongPart spt : context.getSongParts())
         {
@@ -304,9 +304,29 @@ public class MidiSequenceBuilder
             List<RhythmVoice> mutedRvs = RP_SYS_Mute.getMutedRhythmVoices(r, muteValues);
             for (RhythmVoice rv : mutedRvs)
             {
-                removeSptEvents(sequence, spt, rv);
+                Phrase p = rvPhrases.get(rv);
+                if (p == null)
+                {
+                    LOGGER.warning("muteNotes() Unexpected null phase. rv=" + rv + " rvPhrases=" + rvPhrases);
+                    continue;
+                }
+                context.getSong().getSongStructure().get
+                p.sliceReverse(spt.);
+                removeSptNotes(p, spt);
             }
         }
+    }
+
+    /**
+     * Remove all the Notes corresponding to the specified RhythmVoice in the song part.
+     *
+     * @param rvPhrases
+     * @param spt
+     * @param rv
+     */
+    private void removeSptNotes(Phrase p, SongPart spt)
+    {
+        Phrase p = rvP
     }
 
     /**
@@ -520,26 +540,6 @@ public class MidiSequenceBuilder
         }
     }
 
-    /**
-     * The PostProcessors instance found in the global lookup sorted by priority.
-     *
-     * @return
-     */
-    List<MusicGenerator.PostProcessor> getPostProcessorsSorted()
-    {
-        List<MusicGenerator.PostProcessor> res = new ArrayList<>((Collection<MusicGenerator.PostProcessor>) Lookup.getDefault().lookupAll(MusicGenerator.PostProcessor.class));
-        Collections.sort(res, new Comparator<MusicGenerator.PostProcessor>()
-        {
-            @Override
-            public int compare(MusicGenerator.PostProcessor o1, MusicGenerator.PostProcessor o2)
-            {
-                return Integer.valueOf(o1.getPriority()).compareTo(o2.getPriority());
-            }
-        }
-        );
-        return res;
-    }
-
     // ===================================================================================
     // Private classes
     // ===================================================================================
@@ -613,7 +613,6 @@ public class MidiSequenceBuilder
         public void run()
         {
             // Get the generated phrases for each used rhythm
-            // This can take some time to compute
             HashMap<RhythmVoice, Phrase> res = new HashMap<>();
             for (Rhythm r : context.getUniqueRhythms())
             {
@@ -630,11 +629,22 @@ public class MidiSequenceBuilder
             }
 
             // Optional Post-process
-            for (MusicGenerator.PostProcessor pp : getPostProcessorsSorted())
+            if (postProcessors != null)
             {
-                pp.postProcess(res);
+                for (MusicGenerator.PostProcessor pp : postProcessors)
+                {
+                    try
+                    {
+                        pp.postProcess(context, res);
+                    } catch (MusicGenerationException ex)
+                    {
+                        musicException = ex;
+                        return;
+                    }
+                }
             }
 
+            // Handle muted instruments
             // Convert to Midi sequence
             try
             {
@@ -669,15 +679,6 @@ public class MidiSequenceBuilder
                     mapRvTrack.put(rv, track);
                     mapRvTrackId.put(rv, trackId);
                     trackId++;
-                }
-                try
-                {
-                    // Have the tracks filled
-                    generateRhythmTracks(r, mapRvTrack);         // Possible MusicGenerationException here
-                } catch (MusicGenerationException ex)
-                {
-                    musicException = ex;
-                    return;
                 }
             }
 

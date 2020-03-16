@@ -29,6 +29,9 @@ import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.beans.VetoableChangeSupport;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -55,7 +58,9 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
+import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -68,6 +73,8 @@ import org.openide.util.NbBundle.Messages;
  * <p>
  * Use PlaybackListener to get notified of other events (bar/beat changes etc.) during playback. Note that PlaybackListeners will be
  * notified out of the Swing EDT.
+ * <p>
+ * When calling
  */
 @Messages(
         {
@@ -171,10 +178,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * <p>
      * Stop the playback if it was on. Tempo is set to song's tempo.
      *
-     * @param context Can be null.
+     * @param context        Can be null.
+     * @param postProcessors Optional PostProcessors to use when generating the backing track.
      * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException
      */
-    public void setContext(MusicGenerationContext context) throws MusicGenerationException
+    public void setContext(MusicGenerationContext context, MusicGenerator.PostProcessor... postProcessors) throws MusicGenerationException
     {
         if (context != null && context.equals(this.mgContext))
         {
@@ -197,7 +205,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             this.mgContext.getMidiMix().addPropertyListener(this);
             this.mgContext.getSong().addPropertyChangeListener(this);
             setTempo(this.mgContext.getSong().getTempo());
-            playbackContext = new PlaybackContext(this.mgContext);
+            playbackContext = new PlaybackContext(this.mgContext, postProcessors);
             playbackContext.buildSequence();
         }
     }
@@ -816,6 +824,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         long songTickEnd;
         int controlTrackId;
         private boolean dirty;
+        MusicGenerator.PostProcessor[] postProcessors;
 
         /**
          * The sequence track id (index) for each rhythm voice, for the given context.
@@ -828,8 +837,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
          * Create a "dirty" object (needs to be updated).
          *
          * @param context
+         * @param MusicGenerator.PostProcessor[] Optional postprocessors
          */
-        private PlaybackContext(MusicGenerationContext context)
+        private PlaybackContext(MusicGenerationContext context, MusicGenerator.PostProcessor... postProcessors)
         {
             if (context == null)
             {
@@ -837,6 +847,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             }
             this.context = context;
             dirty = true;
+            this.postProcessors = postProcessors;
         }
 
         /**
@@ -853,7 +864,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             try
             {
                 // Build the sequence
-                MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(context );
+                MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(context, postProcessors);
                 sequence = seqBuilder.buildSequence(false);                  // Can raise MusicGenerationException
                 mapRvTrackId = seqBuilder.getRvTrackIdMap();                 // Used to identify a RhythmVoice's track
 
@@ -1002,7 +1013,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         void setDirty()
         {
             dirty = true;
-        }
+        }     
     }
 
 }

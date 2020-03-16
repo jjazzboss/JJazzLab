@@ -125,9 +125,9 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
      */
     public float getChordDuration(int chordIndex, TimeSignature ts)
     {
-        if (chordIndex < 0 || chordIndex >= size())
+        if (chordIndex < 0 || chordIndex >= size() || ts == null)
         {
-            throw new IllegalArgumentException("chordIndex=" + chordIndex);
+            throw new IllegalArgumentException("chordIndex=" + chordIndex + " ts=" + ts);
         }
         Position pos = get(chordIndex).getPosition();
         Position nextPos;
@@ -142,6 +142,25 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
         }
         float duration = pos.getDuration(nextPos, ts);
         return duration;
+    }
+
+    /**
+     * Get the absolution position in beats of the specified chord symbol.
+     *
+     * @param chordIndex
+     * @param ts
+     * @param startBarPosInBeats The position in beats of the start of this ChordSequence.
+     * @return
+     */
+    public float getChordAbsolutePosition(int chordIndex, TimeSignature ts, float startBarPosInBeats)
+    {
+        if (chordIndex < 0 || chordIndex >= size() || ts == null || startBarPosInBeats < 0)
+        {
+            throw new IllegalArgumentException("chordIndex=" + chordIndex + " ts=" + ts + " startBarPosInBeats=" + startBarPosInBeats);
+        }
+        Position pos = get(chordIndex).getPosition();
+        float relPosInBeats = (pos.getBar() - startBar) * ts.getNbNaturalBeats() + pos.getBeat();
+        return startBarPosInBeats + relPosInBeats;
     }
 
     /**
@@ -171,8 +190,8 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
      *
      * @param subStartBar        Chords from startBar are included
      * @param subEndBar          Chords until endBar (included) are included
-     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the
-     *                           last chord symbol before subStartBar.
+     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the last
+     *                           chord symbol before subStartBar.
      * @return
      */
     public ChordSequence subSequence(int subStartBar, int subEndBar, boolean addInitChordSymbol)
