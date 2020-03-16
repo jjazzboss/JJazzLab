@@ -37,6 +37,7 @@ public enum TimeSignature
     SIX_FOUR(6, 4, 1),
     SEVEN_FOUR(7, 4, 1),
     SIX_EIGHT(6, 8, 3),
+    SEVEN_EIGHT(7, 8, 2),
     TWELVE_EIGHT(12, 8, 3);
 
     /**
@@ -70,7 +71,7 @@ public enum TimeSignature
     }
 
     /**
-     * Get the TimeSignature object represented by a string representation as the one returned by toString(, e.g. "3/4".
+     * Get the TimeSignature object represented by a string representation as the one returned by toString(), e.g. "3/4".
      *
      * @param s The string representation
      * @throws ParseException If syntax error encountered in the string.
@@ -140,9 +141,14 @@ public enum TimeSignature
     }
 
     /**
-     * Calculate the most appropriate "half of the bar" position in terms of logical beats. It is used for instance to know where
-     * to put the 2nd chord for a 2 chords bar. For even bars (e.g. 4/4) : half, e.g. beat 2 (start at 0) For 3/4 : 1.5 others odd
-     * bars : ceil(half), e.g. beat 3 (start at 0) for a 5/4 bar.
+     * Calculate the most appropriate "half of the bar" position in terms of logical beats.
+     * <p>
+     * It is used for instance to know where to put the 2nd chord for a 2 chords bar.
+     * <p>
+     * - For even bars (e.g. 4/4) : half, e.g. beat 2(start at 0)<br>
+     * - For 3/4 : 1.5 <br>
+     * - Other odd bars : ceil(half), e.g. beat 3 (start at 0) for a 5/4 bar.
+     * @return 
      */
     public float getHalfBarBeat()
     {
@@ -156,15 +162,22 @@ public enum TimeSignature
     }
 
     /**
-     * @return how many logical beats is there in a bar (e.g. 4/4=&gt;4, 7/4=&gt;7 12/8=&gt;4).
+     * How many "logical" beats there is in a bar.
+     * <p>
+     * E.g. 4 for 4/4, 7 for 7/4, 4 for 12/8, 3.5 for 7/8.
+     *
+     * @return
      */
-    public int getNbNaturalBeats()
+    public float getNbNaturalBeats()
     {
         return upper / naturalBeat;
     }
 
     /**
      * Tell whether it's a valid beat for that time signature.
+     *
+     * @param beat
+     * @return
      */
     public boolean checkBeat(float beat)
     {
@@ -211,8 +224,11 @@ public enum TimeSignature
     }
 
     /**
-     * The previous TimeSignature if decreased by 1 unit. For instance 4/4 =&gt; 3/4.
+     * The previous TimeSignature if decreased by 1 unit.
+     * <p>
+     * For instance 4/4 =&gt; 3/4
      *
+     * @return
      */
     public TimeSignature getPreviousTimeSignature()
     {
