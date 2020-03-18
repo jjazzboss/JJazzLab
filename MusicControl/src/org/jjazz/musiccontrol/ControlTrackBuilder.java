@@ -40,7 +40,7 @@ import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.Range;
+import org.jjazz.util.IntRange;
 
 /**
  * Methods to prepare a control track.
@@ -93,14 +93,14 @@ public class ControlTrackBuilder
         // Scan all SongParts in context
         for (SongPart spt : context.getSongParts())
         {
-            tick = fillControlTrack(track, tick, spt, context.getSptRange(spt));
+            tick = fillControlTrack(track, tick, spt);
         }
 
         // Add the Midi Activity controller messages
         addActivityMessages(sequence, track);
 
         // Set EndOfTrack
-        long lastTick = context.getSizeInBeats() * MidiConst.PPQ_RESOLUTION;
+        long lastTick = (long) (context.getBeatRange().size() * MidiConst.PPQ_RESOLUTION) + 1;
         MidiUtilities.setEndOfTrackPosition(track, lastTick);
 
         return Arrays.asList(sequence.getTracks()).indexOf(track);
@@ -122,60 +122,60 @@ public class ControlTrackBuilder
     // =================================================================================
     /**
      * Fill the track with control events for the specified SongPart.
+     * <p>
+     * Update the naturalBeatPositions list.
      *
      * @param track
      * @param tickOffset
      * @param spt
-     * @param sptRange   The actual bar range for which to add control messages
      * @return The tick position corresponding to the start of next spt.
      */
-    private long fillControlTrack(Track track, long tickOffset, SongPart spt, Range sptRange)
+    private long fillControlTrack(Track track, long tickOffset, SongPart spt)
     {
-        CLI_Section section = spt.getParentSection();
-        ChordLeadSheet cls = section.getContainer();
-        int sectionStartBar = section.getPosition().getBar();
+        IntRange sptRange = context.getSptBarRange(spt);    // Use only the relevant bars for the context
         int sptStartBar = sptRange.from;
-        int nbNaturalBeatsPerBar = spt.getRhythm().getTimeSignature().getNbNaturalBeats();
-        int nbNaturalBeats = sptRange.size() * nbNaturalBeatsPerBar;
+        float nbNaturalBeatsPerBar = spt.getRhythm().getTimeSignature().getNbNaturalBeats();
+        float nbNaturalBeats = sptRange.size() * nbNaturalBeatsPerBar;
+
+        LOGGER.fine("fillControlTrack() -- tickOffset=" + tickOffset + " spt=" + spt + " sptRange=" + sptRange);
 
         // Add CTRL_CHG_JJAZZ_BEAT_CHANGE events every beat change
-        for (int beat = 0; beat < nbNaturalBeats; beat++)
+        for (float beat = 0; beat < nbNaturalBeats; beat++)
         {
-            long tick = tickOffset + beat * MidiConst.PPQ_RESOLUTION;
-            int bar = beat / nbNaturalBeatsPerBar;
-            int inbarBeat = beat - (bar * nbNaturalBeatsPerBar);
+            long tick = (long) (tickOffset + beat * MidiConst.PPQ_RESOLUTION);
+            int bar = (int) Math.floor(beat / nbNaturalBeatsPerBar);
+            float inbarBeat = beat - (bar * nbNaturalBeatsPerBar);
             Position pos = new Position(bar + sptStartBar, inbarBeat);
             naturalBeatPositions.add(pos);
-            LOGGER.log(Level.FINE, "fillControlTrack() beat={0} bar={1} nbNaturalBeats={2} pos={3}", new Object[]
-            {
-                beat, bar, nbNaturalBeatsPerBar, pos
-            });
             ShortMessage sm = MidiUtilities.getJJazzBeatChangeControllerMessage(MidiConst.CHANNEL_MIN);
             track.add(new MidiEvent(sm, tick));
         }
 
         // Add CTRL_CHG_JJAZZ_CHORD_CHANGE events every chord
-        long barTickSize = nbNaturalBeatsPerBar * MidiConst.PPQ_RESOLUTION;
+        CLI_Section section = spt.getParentSection();
+        ChordLeadSheet cls = section.getContainer();
         for (CLI_ChordSymbol cli : cls.getItems(section, CLI_ChordSymbol.class))
         {
-            int relativeBarIndex = cli.getPosition().getBar() - sectionStartBar;
-            if (sptRange.isIn(spt.getStartBarIndex() + relativeBarIndex))
+            Position ssPos = context.getSong().getSongStructure().getSptItemPosition(spt, cli);
+            long tick = context.getRelativeTick(ssPos); 
+            LOGGER.log(Level.FINE, "fillControlTrack() cli={0} tick={1} ssPos={2}", new Object[]
             {
-                float beat = cli.getPosition().getBeat();
-                long tick = tickOffset + relativeBarIndex * barTickSize + (long) (beat * MidiConst.PPQ_RESOLUTION);
+                cli, tick, ssPos
+            });
+            if (tick != -1)
+            {
                 ShortMessage sm = MidiUtilities.getJJazzChordChangeControllerMessage(MidiConst.CHANNEL_MIN);
                 track.add(new MidiEvent(sm, tick));
             }
         }
 
-        return tickOffset + nbNaturalBeats * MidiConst.PPQ_RESOLUTION;
+        return (long) (tickOffset + nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
     }
 
     /**
      * Add CTRL_CHG_JJAZZ_ACTIVITY controller messages for each NOTE_ON on each channel.
      * <p>
-     * For a given channel add a single CTRL_CHG_JJAZZ_ACTIVITY message if several NOTE_ONs start within the same
-     * ACTIVITY_MIN_PERIOD.
+     * For a given channel add a single CTRL_CHG_JJAZZ_ACTIVITY message if several NOTE_ONs start within the same ACTIVITY_MIN_PERIOD.
      *
      * @param sequence  The track to analyze
      * @param ctrlTrack Where CTRL_CHG_JJAZZ_ACTIVITY messages will be added

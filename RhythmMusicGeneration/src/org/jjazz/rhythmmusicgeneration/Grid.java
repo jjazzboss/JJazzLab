@@ -37,7 +37,7 @@ import org.jjazz.util.Filter;
  * The class assigns Phrase notes in fixed-sized "cells" (eg 4 cells per beats=1/16) which can then be directly accessed or
  * modified using the cell index.
  * <p>
- * To accomodate real time playing notes starting just before a cell are included in that cell.
+ * To accomodate real time playing, notes starting just before a cell are included in that cell.
  */
 public class Grid
 {

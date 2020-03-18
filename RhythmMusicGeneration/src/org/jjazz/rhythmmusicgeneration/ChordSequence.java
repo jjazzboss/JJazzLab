@@ -31,7 +31,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.util.Range;
+import org.jjazz.util.IntRange;
 
 /*
  * A convenience class to manipulate chord symbols sequences.
@@ -85,9 +85,9 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
         return startBar;
     }
 
-    public final Range getRange()
+    public final IntRange getRange()
     {
-        return new Range(startBar, startBar + nbBars - 1);
+        return new IntRange(startBar, startBar + nbBars - 1);
     }
 
     /**

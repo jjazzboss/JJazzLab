@@ -49,7 +49,7 @@ public class SongUtils
         {
             int bar = cli.getPosition().getBar();
             float beat = cli.getPosition().getBeat();
-            int nbBeats = cls.getSection(bar).getData().getTimeSignature().getNbNaturalBeats();
+            float nbBeats = cls.getSection(bar).getData().getTimeSignature().getNbNaturalBeats();
             int newBar = bar / 2;
             float newBeat = (bar % 2 == 0) ? beat / 2f : (nbBeats + beat) / 2f;
             if (cli instanceof CLI_Section)
@@ -103,7 +103,7 @@ public class SongUtils
             ChordLeadSheetItem<?> cli = items.get(i);
             int bar = cli.getPosition().getBar();
             float beat = cli.getPosition().getBeat();
-            int nbBeats = cls.getSection(bar).getData().getTimeSignature().getNbNaturalBeats();
+            float nbBeats = cls.getSection(bar).getData().getTimeSignature().getNbNaturalBeats();
             int newBar = bar * 2;
             float newBeat = beat * 2;
             if (newBeat >= nbBeats)

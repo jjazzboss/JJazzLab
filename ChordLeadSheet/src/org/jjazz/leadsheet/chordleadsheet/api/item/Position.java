@@ -243,7 +243,7 @@ public final class Position implements Comparable<Position>, Serializable
     public Position getAdjustedPosition(TimeSignature ts)
     {
         Position newPos = new Position(this);
-        int lastBeat = ts.getNbNaturalBeats() - 1;
+        float lastBeat = ts.getNbNaturalBeats() - 1;
         if ((newPos.getBeat() - lastBeat) >= 1)
         {
             newPos.setBeat(lastBeat);

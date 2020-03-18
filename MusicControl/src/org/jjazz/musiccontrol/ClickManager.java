@@ -39,7 +39,6 @@ import org.jjazz.harmony.TimeSignature;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
-import org.jjazz.song.api.Song;
 import org.openide.util.NbPreferences;
 import org.jjazz.songstructure.api.SongPart;
 
@@ -114,28 +113,17 @@ public class ClickManager
         {
             throw new IllegalArgumentException("ts=" + ts + " tempo=" + tempo);
         }
-        int res = 2;
-        switch (ts.getNbNaturalBeats())
+        float nBeats = ts.getNbNaturalBeats();
+        int res;
+        if (nBeats <= 3)
         {
-            case 2:
-                break;
-            case 3:
-                res = tempo < 55 ? 1 : 2;
-                break;
-            case 4:
-                res = tempo < 100 ? 1 : 2;
-                break;
-            case 5:
-                res = tempo < 120 ? 1 : 2;
-                break;
-            case 6:
-                res = tempo < 120 ? 1 : 2;
-                break;
-            case 7:
-                res = tempo < 120 ? 1 : 2;
-                break;
-            default:
-                res = 2;
+            res = tempo < 55 ? 1 : 2;
+        } else if (nBeats <= 4)
+        {
+            res = tempo < 100 ? 1 : 2;
+        } else
+        {
+            res = tempo < 120 ? 1 : 2;
         }
         return res;
     }
@@ -249,7 +237,7 @@ public class ClickManager
         for (SongPart spt : context.getSongParts())
         {
             TimeSignature ts = spt.getRhythm().getTimeSignature();
-            int nbBars = context.getSptRange(spt).size();
+            int nbBars = context.getSptBarRange(spt).size();
             tick = addClickEvents(track, getChannel(), tick, nbBars, ts);
         }
 
@@ -280,7 +268,7 @@ public class ClickManager
 
         TimeSignature ts = context.getSongParts().get(0).getRhythm().getTimeSignature();
         int nbPrecountBars = getClickPrecountNbBars(ts, context.getSong().getTempo());
-        long songStartTick = (nbPrecountBars * ts.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION);
+        long songStartTick = (long) (nbPrecountBars * ts.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION);
 
         // Shift all existing MidiEvents except some meta events
         for (Track track : sequence.getTracks())
@@ -338,8 +326,8 @@ public class ClickManager
         {
             throw new IllegalArgumentException("track=" + track + " channel=" + channel + " tickOffset=" + tickOffset);
         }
-        int nbNaturalBeatsPerBar = ts.getNbNaturalBeats();
-        int nbNaturalBeats = nbBars * nbNaturalBeatsPerBar;
+        float nbNaturalBeatsPerBar = ts.getNbNaturalBeats();
+        float nbNaturalBeats = nbBars * nbNaturalBeatsPerBar;
         try
         {
             for (int beat = 0; beat < nbNaturalBeats; beat++)
@@ -356,7 +344,7 @@ public class ClickManager
             LOGGER.log(Level.SEVERE, null, ex);
         }
         // Next section tick
-        long nextTick = tickOffset + nbNaturalBeats * MidiConst.PPQ_RESOLUTION;
+        long nextTick = tickOffset + (long)(nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
         return nextTick;
     }
 

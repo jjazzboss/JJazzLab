@@ -29,9 +29,6 @@ import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.beans.VetoableChangeSupport;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -60,7 +57,6 @@ import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
-import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -232,7 +228,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             throw new IllegalStateException("context=" + mgContext + ", fromBarIndex=" + fromBarIndex);
         }
-        if (!mgContext.getRange().isIn(fromBarIndex))
+        if (!mgContext.getBarRange().contains(fromBarIndex))
         {
             throw new IllegalArgumentException("context=" + mgContext + ", fromBarIndex=" + fromBarIndex);
         }
@@ -241,7 +237,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         checkPlaybackNotStarted();  // throws MusicGenerationException
 
         // If we're here then playbackState = PAUSE or STOPPED
-        if (mgContext.getRange().isEmpty())
+        if (mgContext.getBarRange().isEmpty())
         {
             // Throw an exception to let the UI roll back (eg play button)
             throw new MusicGenerationException("Nothing to play");
@@ -288,7 +284,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         if (playbackContext.isDirty())
         {
             // Song was modified during playback, do play() instead
-            play(mgContext.getRange().from);
+            play(mgContext.getBarRange().from);
             return;
         }
 
@@ -322,7 +318,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         playbackState = State.PLAYBACK_STOPPED;
         pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, playbackState);
         // Position must be reset after the stop so that playback beat change tracking listeners are not reset upon stop
-        int bar = mgContext != null ? mgContext.getRange().from : 0;
+        int bar = mgContext != null ? mgContext.getBarRange().from : 0;
         setPosition(bar);
     }
 
@@ -702,11 +698,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         long tick = 0;       // Default when fromBar==0 and click precount is true
         if (mgContext != null)
         {
-            int relativeBar = fromBar - mgContext.getRange().from;
+            int relativeBar = fromBar - mgContext.getBarRange().from;
             if (relativeBar > 0 || !ClickManager.getInstance().isClickPrecount())
             {
                 // No precount
-                tick = playbackContext.songTickStart + mgContext.getTick(new Position(relativeBar, 0));
+                tick = playbackContext.songTickStart + mgContext.getRelativeTick(new Position(relativeBar, 0));
             }
         }
         sequencer.setTickPosition(tick);
@@ -876,7 +872,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 // Add the click track
                 clickTrackId = prepareClickTrack(sequence, context);
 
-                // Add the click precount track, this will shift all song events
+                // Add the click precount track - this must be done last because it will shift all song events
                 songTickStart = preparePrecountClickTrack(sequence, context);
                 precountTrackId = sequence.getTracks().length - 1;
 
@@ -899,7 +895,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
                 // Set position and loop points
                 sequencer.setLoopStartPoint(songTickStart);
-                songTickEnd = songTickStart + mgContext.getSizeInBeats() * MidiConst.PPQ_RESOLUTION;
+                songTickEnd = (long) (songTickStart + mgContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
                 sequencer.setLoopEndPoint(songTickEnd);
                 dirty = false;
             } catch (MusicGenerationException | InvalidMidiDataException ex)

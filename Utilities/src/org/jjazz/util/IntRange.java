@@ -28,20 +28,22 @@ package org.jjazz.util;
  * <p>
  * This is an immutable class.
  */
-public class Range
+public class IntRange
 {
 
-    /** The special shared instance for the empty range. */
-    public static final Range EMPTY_RANGE = new VoidRange();
+    /**
+     * The special shared instance for the empty range.
+     */
+    public static final IntRange EMPTY_RANGE = new VoidRange();
     public final int from, to;
 
     /**
      * A range representing [from; to].
      *
      * @param from Must be &gt;= 0
-     * @param to   Must be &gt;= from
+     * @param to Must be &gt;= from
      */
-    public Range(int from, int to)
+    public IntRange(int from, int to)
     {
         if (from < 0 || from > to)
         {
@@ -72,7 +74,7 @@ public class Range
      * @param x
      * @return
      */
-    public boolean isIn(int x)
+    public boolean contains(int x)
     {
         return this == EMPTY_RANGE ? false : x >= from && x <= to;
     }
@@ -82,7 +84,7 @@ public class Range
      * @param r
      * @return Can return the EMPTY_RANGE if no intersection.
      */
-    public Range getIntersectRange(Range r)
+    public IntRange getIntersectRange(IntRange r)
     {
         if (!intersect(r))
         {
@@ -90,12 +92,12 @@ public class Range
         }
         int maxFrom = Math.max(from, r.from);
         int minTo = Math.min(to, r.to);
-        return new Range(maxFrom, minTo);
+        return new IntRange(maxFrom, minTo);
     }
 
-    public boolean intersect(Range r)
+    public boolean intersect(IntRange r)
     {
-        return !(this == EMPTY_RANGE || r == EMPTY_RANGE || r.from > to || r.to < from);
+        return !(this == EMPTY_RANGE || r == EMPTY_RANGE || r.from > to || from > r.to);
     }
 
     @Override
@@ -124,11 +126,11 @@ public class Range
         {
             return false;
         }
-        if (!(obj instanceof Range))
+        if (!(obj instanceof IntRange))
         {
             return false;
         }
-        final Range other = (Range) obj;
+        final IntRange other = (IntRange) obj;
         if (this.from != other.from)
         {
             return false;
@@ -140,7 +142,7 @@ public class Range
         return true;
     }
 
-    private static class VoidRange extends Range
+    private static class VoidRange extends IntRange
     {
 
         private VoidRange()

@@ -287,7 +287,7 @@ public class ExportToMidiFile extends AbstractAction
             return;
         }
         TimeSignature ts0 = song.getSongStructure().getSongPart(0).getRhythm().getTimeSignature();
-        long oneBarInTicks = ts0.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION;
+        long oneBarInTicks = (long) (ts0.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION);
         // Shift one bar except track names/tempo/time signature        
         for (Track track : tracks)
         {

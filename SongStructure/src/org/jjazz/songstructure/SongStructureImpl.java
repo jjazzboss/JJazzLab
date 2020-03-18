@@ -50,10 +50,13 @@ import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.undomanager.SimpleEdit;
 import org.jjazz.util.SmallMap;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.Range;
+import org.jjazz.util.FloatRange;
+import org.jjazz.util.IntRange;
 
 public class SongStructureImpl implements SongStructure, Serializable
 {
@@ -93,7 +96,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     /**
      *
-     * @param cls The parent chordleadsheet
+     * @param cls         The parent chordleadsheet
      * @param keepUpdated If true listen to cls changes to remain uptodate
      */
     public SongStructureImpl(ChordLeadSheet cls, boolean keepUpdated)
@@ -139,19 +142,36 @@ public class SongStructureImpl implements SongStructure, Serializable
     }
 
     @Override
-    public int getSizeInBeats(Range r)
+    public FloatRange getBeatRange(IntRange rg)
     {
-        if (r == null)
+        IntRange songRange = new IntRange(0, getSizeInBars() - 1);
+        if (rg == null)
         {
-            r = new Range(0, getSizeInBars() - 1);
+            rg = songRange;
+        } else if (!rg.intersect(songRange))
+        {
+            return FloatRange.EMPTY_FLOAT_RANGE;
         }
-        int size = 0;
+        float startPos = -1;
+        float endPos = -1;
         for (SongPart spt : songParts)
         {
-            int nbBars = r.getIntersectRange(spt.getRange()).size();
-            size += nbBars * spt.getRhythm().getTimeSignature().getNbNaturalBeats();
+            TimeSignature ts = spt.getRhythm().getTimeSignature();
+            IntRange ir = rg.getIntersectRange(spt.getBarRange());
+            if (ir.isEmpty())
+            {
+                continue;
+            }
+            if (startPos == -1)
+            {
+                startPos = getPositionInNaturalBeats(ir.from);
+                endPos = startPos + ir.size() * ts.getNbNaturalBeats();
+            } else
+            {
+                endPos = getPositionInNaturalBeats(spt.getStartBarIndex()) + ir.size() * ts.getNbNaturalBeats();
+            }
         }
-        return size;
+        return new FloatRange(startPos, endPos);
     }
 
     @Override
@@ -374,13 +394,13 @@ public class SongStructureImpl implements SongStructure, Serializable
     }
 
     /**
-     * We need a method that works with a list of SongParts because replacing a single spt at a time may cause problems when there
-     * is an unsupportedEditException.
+     * We need a method that works with a list of SongParts because replacing a single spt at a time may cause problems when there is an
+     * unsupportedEditException.
      * <p>
      * Example: We have spt1=rhythm0, spt2=rhythm0, spt3=rhythm1. There are enough Midi channels for both rhythms.<br>
-     * We want to change rhythm of both spt1 and spt2. If we do one spt at a time, after the first replacement on spt0 we'll have
-     * 3 rhythms and possibly our VetoableListeners will trigger an UnsupportedEditException (if not enough Midi channels), though
-     * there should be no problem since we want to change both spt1 AND spt2 !
+     * We want to change rhythm of both spt1 and spt2. If we do one spt at a time, after the first replacement on spt0 we'll have 3 rhythms
+     * and possibly our VetoableListeners will trigger an UnsupportedEditException (if not enough Midi channels), though there should be no
+     * problem since we want to change both spt1 AND spt2 !
      *
      * @param oldSpts
      * @param newSpts
@@ -640,6 +660,29 @@ public class SongStructureImpl implements SongStructure, Serializable
     }
 
     @Override
+    public Position getPosition(float posInBeats)
+    {
+        if (posInBeats < 0)
+        {
+            throw new IllegalArgumentException("posInBeats=" + posInBeats);
+        }
+        for (SongPart spt : songParts)
+        {
+            FloatRange rg = getBeatRange(spt.getBarRange());
+            if (rg.contains(posInBeats))
+            {
+                TimeSignature ts = spt.getRhythm().getTimeSignature();
+                float beatInSpt = posInBeats - rg.from;
+                int barOffset = (int) Math.floor(beatInSpt / ts.getNbNaturalBeats());
+                int bar = spt.getStartBarIndex() + barOffset;
+                float beatInBar = posInBeats - rg.from - barOffset * ts.getNbNaturalBeats();
+                return new Position(bar, beatInBar);
+            }
+        }
+        return null;
+    }
+
+    @Override
     public float getPositionInNaturalBeats(int barIndex)
     {
         if (barIndex < 0 || barIndex > getSizeInBars())
@@ -649,7 +692,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         float posInBeats = 0;
         if (barIndex == getSizeInBars())
         {
-            // Special case : barIndex is the bar righ after the end of the songStructure
+            // Special case : barIndex is the bar right after the end of the songStructure
             for (SongPart spt : songParts)
             {
                 TimeSignature ts = spt.getParentSection().getData().getTimeSignature();
@@ -671,6 +714,24 @@ public class SongStructureImpl implements SongStructure, Serializable
             }
         }
         return posInBeats;
+    }
+
+    @Override
+    public Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem)
+    {
+        if (parentCls == null)
+        {
+            throw new IllegalStateException("parentCls is null. spt=" + spt + " clsItem=" + clsItem);
+        }
+        CLI_Section section = spt.getParentSection();
+        if (!parentCls.getItems(spt.getParentSection(), clsItem.getClass()).contains(clsItem))
+        {
+            throw new IllegalArgumentException("clsItem=" + clsItem + " not found in parent section items. section=" + section + ", spt=" + spt);
+        }
+        Position pos = clsItem.getPosition();
+        int relBar = pos.getBar() - section.getPosition().getBar();
+        Position res = new Position(spt.getStartBarIndex() + relBar, pos.getBeat());
+        return res;
     }
 
     @Override
@@ -764,8 +825,8 @@ public class SongStructureImpl implements SongStructure, Serializable
     }
 
     /**
-     * Convenience method, identitical to fireVetoableChangeEvent, except that caller considers that an UnsupportedEditException
-     * will never be thrown.
+     * Convenience method, identitical to fireVetoableChangeEvent, except that caller considers that an UnsupportedEditException will never
+     * be thrown.
      *
      * @param event
      * @throws IllegalStateException If an UnsupportedEditException was catched.

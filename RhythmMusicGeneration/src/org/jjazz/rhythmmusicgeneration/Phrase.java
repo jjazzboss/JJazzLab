@@ -183,7 +183,7 @@ public class Phrase implements Cloneable
      *
      * @param posInBeats
      * @return The list of notes (with their index) whose startPos is strictly before posInBeats and endPos strictly after
-     *         posInBeats
+     * posInBeats
      */
     public List<NoteAndIndex> getCrossingNotes(float posInBeats)
     {
@@ -310,7 +310,7 @@ public class Phrase implements Cloneable
             float nePosTo = nePosFrom + ne.getDurationInBeats();
             if (nePosFrom < startPos)
             {
-                toBeRemoved.add(ne);
+                it.remove();
                 if (keepLeft && nePosTo > startPos)
                 {
                     if (cutRight && nePosTo > endPos)
@@ -325,26 +325,77 @@ public class Phrase implements Cloneable
             {
                 if (cutRight && nePosTo > endPos)
                 {
-                    toBeRemoved.add(ne);
                     float newDur = endPos - nePosFrom;
                     NoteEvent newNe = new NoteEvent(ne, newDur, nePosFrom);
+                    it.set(newNe);
+                }
+            } else
+            {
+                // nePosFrom is after endPost
+                it.remove();
+            }
+        }   
+
+        // Add the new NoteEvents
+        for (NoteEvent ne : toBeAdded)
+        {
+            add(ne);
+        }
+
+    }
+
+    /**
+     * Remove all events whose start position is equal/after startPos or before endPos.
+     * <p>
+     * If a note is starting before startPos and ending after startPos: <br>
+     * - if cutLeft is false, the note is not removed.<br>
+     * - if cutLeft is true, the note is replaced by a shorter identical that ends at startPos.<br>
+     * If a note is starting before endPos and ending after endPos: <br>
+     * - if keepRight is false, the note is removed.<br>
+     * - if keepRight is true, the note is replaced by a shorter identical one starting at endPos.<br>
+     *
+     * @param startPos
+     * @param endPos
+     * @param cutLeft
+     * @param keepRight
+     */
+    public void split(float startPos, float endPos, boolean cutLeft, boolean keepRight)
+    {
+        ArrayList<NoteEvent> toBeAdded = new ArrayList<>();
+
+        ListIterator<NoteEvent> it = events.listIterator();
+        while (it.hasNext())
+        {
+            NoteEvent ne = it.next();
+            float nePosFrom = ne.getPositionInBeats();
+            float nePosTo = nePosFrom + ne.getDurationInBeats();
+            if (nePosFrom < startPos)
+            {
+                if (cutLeft && nePosTo > startPos)
+                {
+                    if (keepRight && nePosTo > endPos)
+                    {
+                        float newDur = nePosTo - endPos;
+                        NoteEvent newNe = new NoteEvent(ne, newDur, endPos);
+                        toBeAdded.add(newNe);
+                    }
+                    float newDur = startPos - nePosFrom;
+                    NoteEvent newNe = new NoteEvent(ne, newDur, nePosFrom);
+                    it.set(newNe);
+                }
+            } else if (nePosFrom < endPos)
+            {
+                it.remove();
+                if (keepRight && nePosTo > endPos)
+                {
+                    float newDur = nePosTo - endPos;
+                    NoteEvent newNe = new NoteEvent(ne, newDur, endPos);
                     toBeAdded.add(newNe);
                 }
             } else
             {
                 // nePosFrom is after endPost
-                toBeRemoved.add(ne);
-            }
-        }
-
-        // Now remove what's need to be removed
-        it = events.listIterator();
-        while (it.hasNext())
-        {
-            NoteEvent ne = it.next();
-            if (toBeRemoved.contains(ne))
-            {
-                it.remove();
+                // Nothing
             }
         }
 
@@ -353,7 +404,6 @@ public class Phrase implements Cloneable
         {
             add(ne);
         }
-
     }
 
     /**
@@ -630,7 +680,7 @@ public class Phrase implements Cloneable
      * <p>
      * Fixed new notes's PARENT_NOTE client property is preserved.
      *
-     * @param lowLimit  There must be at least 1 octave between lowLimit and highLimit
+     * @param lowLimit There must be at least 1 octave between lowLimit and highLimit
      * @param highLimit There must be at least 1 octave between lowLimit and highLimit
      */
     public void limitPitchRange(int lowLimit, int highLimit)

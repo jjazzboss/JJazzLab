@@ -28,7 +28,7 @@ import java.beans.PropertyChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RhythmParameter;
-import org.jjazz.util.Range;
+import org.jjazz.util.IntRange;
 
 /**
  * A song part defines how a rhythm is played for a number of bars starting at startBarIndex.
@@ -62,7 +62,7 @@ public interface SongPart extends Transferable
      *
      * @return The range [getStartBarIndex(); getStartBarIndex()+getNbBars()-1]
      */
-    public Range getRange();
+    public IntRange getBarRange();
 
     /**
      * By default set to the parentSection's name

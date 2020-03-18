@@ -23,26 +23,20 @@
 package org.jjazz.rhythmmusicgeneration;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MetaMessage;
-import javax.sound.midi.MidiEvent;
-import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Sequence;
-import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.InstrumentMix;
+import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midimix.MidiMix;
@@ -52,8 +46,7 @@ import org.jjazz.rhythm.parameters.RP_SYS_Mute;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.jjazz.songstructure.api.SongPart;
-import org.openide.util.Exceptions;
-import org.openide.util.Lookup;
+import org.jjazz.util.FloatRange;
 
 /**
  * Ask all the rhythms of a song to produce music and integrate the results to make a Midi sequence.
@@ -90,9 +83,10 @@ public class MidiSequenceBuilder
      * Build the music accompaniment sequence for the defined context.
      * <p>
      * 1/ Create a first empty track with song name.<br>
-     * 2/ Ask each used rhythm in the song to produce tracks.<br>
-     * 3/ Perform some checks and cleanup on produced tracks: check for possible errors in the context, adjust end of track, check that
-     * generator produces music only for the relevant bars, set each track's name.
+     * 2/ Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation. <br>
+     * 3/ Perform some checks and assemble the produced phrases into a sequence.<p>
+     * <p>
+     * If context range start bar is &gt; 0, the Midi events are shifted to start at sequence tick 0.
      *
      * @param silent If true do not show a progress dialog
      * @return A Sequence containing accompaniment tracks for the context.
@@ -221,69 +215,11 @@ public class MidiSequenceBuilder
     }
 
     /**
-     * Apply the channel's specific transposition and velocity shift.<br>
-     *
-     * @param sequence
-     */
-    private void updatePitchAndVelocity(Sequence sequence)
-    {
-        MidiMix midiMix = context.getMidiMix();
-
-        // We assume that one track = one Midi channel only
-        for (Track track : sequence.getTracks())
-        {
-            int velocityShift = 9999;
-            int transposition = 0;
-            int channel = 0;
-            for (int i = 0; i < track.size(); i++)
-            {
-                MidiEvent me = track.get(i);
-                MidiMessage mm = me.getMessage();
-                if (!(mm instanceof ShortMessage))
-                {
-                    continue;
-                }
-                ShortMessage sm = (ShortMessage) mm;
-                if (sm.getCommand() == ShortMessage.NOTE_ON || sm.getCommand() == ShortMessage.NOTE_OFF)
-                {
-                    if (velocityShift == 9999)
-                    {
-                        channel = sm.getChannel();
-                        InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channel);
-                        velocityShift = insMix.getSettings().getVelocityShift();
-                        transposition = insMix.getSettings().getTransposition();
-                        if (velocityShift == 0 && transposition == 0)
-                        {
-                            // Nothing to change, skip this track
-                            break;
-                        }
-                    }
-                    // We must transpose or/and update velocity
-                    int newPitch = sm.getData1() + transposition;
-                    newPitch = Math.min(newPitch, 127);
-                    newPitch = Math.max(newPitch, 0);
-                    int newVel = sm.getCommand() == ShortMessage.NOTE_ON ? sm.getData2() + velocityShift : 0;
-                    newVel = Math.min(newVel, 127);
-                    newVel = Math.max(newVel, 0);
-                    try
-                    {
-                        sm.setMessage(sm.getCommand(), channel, newPitch, newVel);
-                    } catch (InvalidMidiDataException ex)
-                    {
-                        // Should never occur
-                        Exceptions.printStackTrace(ex);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * For each SongPart remove notes for muted RhythmVoices depending on the RP_SYS_Mute value.<br>
      *
      * @param rvPhrases
      */
-    private void muteNotes(HashMap<RhythmVoice, Phrase> rvPhrases)
+    private void processMutedInstruments(HashMap<RhythmVoice, Phrase> rvPhrases)
     {
         for (SongPart spt : context.getSongParts())
         {
@@ -301,6 +237,7 @@ public class MidiSequenceBuilder
             }
 
             // At least one RhythmVoice/Track is muted
+            FloatRange sptRange = context.getSptBeatRange(spt);
             List<RhythmVoice> mutedRvs = RP_SYS_Mute.getMutedRhythmVoices(r, muteValues);
             for (RhythmVoice rv : mutedRvs)
             {
@@ -310,148 +247,94 @@ public class MidiSequenceBuilder
                     LOGGER.warning("muteNotes() Unexpected null phase. rv=" + rv + " rvPhrases=" + rvPhrases);
                     continue;
                 }
-                context.getSong().getSongStructure().get
-                p.sliceReverse(spt.);
-                removeSptNotes(p, spt);
+                p.split(sptRange.from, sptRange.to, true, false);
             }
         }
     }
 
     /**
-     * Remove all the Notes corresponding to the specified RhythmVoice in the song part.
+     * Apply transposition/velocity offset to match the InstrumentSettings of each RhythmVoice.
      *
      * @param rvPhrases
-     * @param spt
-     * @param rv
      */
-    private void removeSptNotes(Phrase p, SongPart spt)
+    private void processInstrumentsSettings(HashMap<RhythmVoice, Phrase> rvPhrases)
     {
-        Phrase p = rvP
-    }
-
-    /**
-     * Remove all the MidiEvents corresponding to the specified spt and rhythm voice.
-     *
-     * @param sequence
-     * @param spt
-     * @param rv
-     */
-    private void removeSptEvents(Sequence sequence, SongPart spt, RhythmVoice rv)
-    {
-        long sptTickStart = context.getSptStartTick(spt);
-        long sptTickEnd = sptTickStart + context.getSptTickLength(spt) - 1;
-
-        int trackId = mapRvTrackId.get(rv);
-        Track track = sequence.getTracks()[trackId];
-
-        ArrayList<MidiEvent> needRemove = new ArrayList<>(20);
-
-        // Loop on each MidiEvent of the track
-        for (int i = 0; i < track.size(); i++)
+        LOGGER.fine("processInstrumentsSettings() -- ");
+        MidiMix midiMix = context.getMidiMix();
+        for (RhythmVoice rv : rvPhrases.keySet())
         {
-            MidiEvent me = track.get(i);
-            long tick = me.getTick();
-            if (tick < sptTickStart)
+            Phrase p = rvPhrases.get(rv);
+            InstrumentMix insMix = midiMix.getInstrumentMixFromKey(rv);
+            if (insMix == null)
             {
-                // We're not yet in the spt tick range
-                // Nothing
-            } else if (tick <= sptTickEnd)
+                LOGGER.warning("applyInstrumentsSettings() Unexpected null InstrumentMix for rv=" + rv + " midMix=" + midiMix);
+                continue;
+            }
+            InstrumentSettings insSet = insMix.getSettings();
+            if (insSet.getTransposition() != 0)
             {
-                // We're in the current spt tick range, is it a NoteOn or NoteOff on mutedChannels ?
-                MidiMessage mm = me.getMessage();
-                if (!(mm instanceof ShortMessage))
-                {
-                    continue;
-                }
-                ShortMessage sm = (ShortMessage) mm;
-                if (sm.getCommand() == ShortMessage.NOTE_ON || sm.getCommand() == ShortMessage.NOTE_OFF)
-                {
-                    needRemove.add(me);
-                }
-            } else
+                rvPhrases.put(rv, p.getTransposedPhrase(insSet.getTransposition()));
+                LOGGER.fine("processInstrumentsSettings()    Adjusting transposition=" + insSet.getTransposition() + " for rv=" + rv);
+            }
+            if (insSet.getVelocityShift() != 0)
             {
-                // We past the end
-                break;
+                rvPhrases.put(rv, p.getVelocityShiftedPhrase(insSet.getVelocityShift()));
+                LOGGER.fine("processInstrumentsSettings()    Adjusting velocity=" + insSet.getVelocityShift() + " for rv=" + rv);
             }
         }
-
-        // Finally remove what needs to be removed
-        for (MidiEvent me : needRemove)
-        {
-            track.remove(me);
-        }
     }
 
     /**
-     * If sequence uses more than 1 rhythm, check that each generator produced music only for the relevant bars.
+     * Check that rvPhrases contain music notes only for the relevant bars of rhythm r.
      *
-     * @param seq
+     * @param r
+     * @param rvPhrases
      * @throws MusicGenerationException
      */
-    private void checkRhythmSlices(Sequence seq) throws MusicGenerationException
+    private void checkRhythmPhrasesScope(Rhythm r, HashMap<RhythmVoice, Phrase> rvPhrases) throws MusicGenerationException
     {
-        if (context.getUniqueRhythms().size() == 1)
+        // Get the bar ranges used by r
+        List<FloatRange> sptRanges = new ArrayList<>();
+        List<SongPart> spts = context.getSongParts();
+        for (int i = 0; i < spts.size(); i++)
         {
-            // Only 1 rhythm, nothing to check
-            return;
-        }
-
-        // Get the tick ranges used by each rhythm        
-        HashMap<Rhythm, TickRanges> mapRhythmTr = new HashMap<>();
-        for (SongPart spt : context.getSongParts())
-        {
-            long sptTickStart = context.getSptStartTick(spt);
-            long sptTickEnd = sptTickStart + context.getSptTickLength(spt) - 1;
-            Rhythm r = spt.getRhythm();
-            TickRanges tr = mapRhythmTr.get(r);
-            if (tr == null)
+            SongPart spt = spts.get(i);
+            if (spt.getRhythm() == r)
             {
-                tr = new TickRanges();
-                mapRhythmTr.put(r, tr);
-            }
-            tr.addRange(sptTickStart, sptTickEnd);
-        }
-
-        // Check the notes Vs tick ranges
-        for (Rhythm r : mapRhythmTr.keySet())
-        {
-            TickRanges tRanges = mapRhythmTr.get(r);
-            for (RhythmVoice rv : r.getRhythmVoices())
-            {
-                int trackId = mapRvTrackId.get(rv);
-                assert trackId != -1 : "rv=" + rv;
-                Track track = seq.getTracks()[trackId];
-                for (int eventId = 0; eventId < track.size(); eventId++)
+                FloatRange rg = context.getSptBeatRange(spt);
+                if (!sptRanges.isEmpty() && sptRanges.get(sptRanges.size() - 1).to == rg.from)
                 {
-                    // Check that each NOTE_ON event is within the track's rhythm tick ranges
-                    MidiEvent me = track.get(eventId);
-                    long tick = me.getTick();
-                    MidiMessage mm = me.getMessage();
-                    if (mm instanceof ShortMessage)
+                    // Extend previous range
+                    rg = new FloatRange(sptRanges.get(sptRanges.size() - 1).from, rg.to);
+                    sptRanges.set(sptRanges.size() - 1, rg);
+                } else
+                {
+                    sptRanges.add(rg);
+                }
+            }
+        }
+
+        // Check if all rhythm notes are within the allowed range
+        for (RhythmVoice rv : rvPhrases.keySet())
+        {
+            Phrase p = rvPhrases.get(rv);
+            for (NoteEvent ne : p.getEvents())
+            {
+                boolean inRange = false;
+                for (FloatRange rg : sptRanges)
+                {
+                    if (rg.contains(ne.getPositionInBeats()))
                     {
-                        ShortMessage sm = (ShortMessage) mm;
-                        if (sm.getCommand() == ShortMessage.NOTE_ON && !tRanges.isIn(tick))
-                        {
-                            // Position pos = SongStructure.Util.getPosition(sgs, tick);
-                            Position pos = context.getPosition(tick);
-                            Rhythm expectedRhythmAtPos = context.getSong().getSongStructure().getSongPart(pos.getBar()).getRhythm();
-                            String msg = "There was a problem in the generated Midi data. Consult log for more details.";
-                            LOGGER.warning(msg);
-                            LOGGER.log(Level.WARNING, "checkSequence() Unexpected NOTE_ON Midi event: {0}", MidiUtilities.toString(mm, tick));
-                            LOGGER.log(Level.WARNING, "...at SongStructure position: {0}", pos);
-                            LOGGER.log(Level.WARNING, "...on track {0} generated by Rhythm: {1}, and RhythmVoice: {2}", new Object[]
-                            {
-                                trackId, r.getName(), rv
-                            });
-                            LOGGER.log(Level.WARNING, "...==> this is not the rhythm data expected at bar {0}, it should be:{1}",
-                                    new Object[]
-                                    {
-                                        pos.getBar(), expectedRhythmAtPos.getName()
-                                    });
-                            LOGGER.log(Level.INFO, "tRanges={0}", tRanges);
-                            throw new MusicGenerationException(msg);
-                        }
+                        inRange = true;
+                        break;
                     }
+                }
+                if (!inRange)
+                {
+                    // context.getPosition(0)
+                    String msg = "Invalid note position " + ne.toString() + " for rhythm " + r.getName();
+                    LOGGER.log(Level.INFO, "checkRhythmPhrasesScope() " + msg);
+                    throw new MusicGenerationException(msg);
                 }
             }
         }
@@ -464,7 +347,7 @@ public class MidiSequenceBuilder
      */
     private void fixEndOfTracks(Sequence seq)
     {
-        long lastTick = context.getSizeInBeats() * MidiConst.PPQ_RESOLUTION;
+        long lastTick = (long) (context.getBeatRange().size() * MidiConst.PPQ_RESOLUTION) + 1;
         for (Track t : seq.getTracks())
         {
             // Make sure all tracks have the same EndOfTrack
@@ -475,129 +358,13 @@ public class MidiSequenceBuilder
         }
     }
 
-    /**
-     * Check Midi events consistency.
-     * <p>
-     * Check that only authorized events are used : trackname, EndOfTrack, Note ON/OFF and PitchBend.<br>
-     * Check that there is only 1 channel used per track.
-     *
-     * @param sequence
-     */
-    private void checkMidiEventsConsistency(Sequence seq) throws MusicGenerationException
-    {
-        for (Track track : seq.getTracks())
-        {
-            int channel = -1;
-            for (int i = 0; i < track.size(); i++)
-            {
-                MidiEvent me = track.get(i);
-                MidiMessage mm = me.getMessage();
-                if (mm instanceof MetaMessage)
-                {
-                    MetaMessage metaMsg = (MetaMessage) mm;
-                    switch (metaMsg.getType())
-                    {
-                        case 3: // Track name event
-                        case 47: // End of track event
-                            // OK, do nothing
-                            break;
-                        default:
-                            String msg = "Unauthorized Midi event in generated Midi track #" + i + ": MidiEvent=" + MidiUtilities.toString(mm, me.getTick());
-                            LOGGER.warning(msg);
-                            throw new MusicGenerationException(msg);
-                    }
-                    // END event: OK do nothing
-                } else if (mm instanceof ShortMessage)
-                {
-                    ShortMessage sm = (ShortMessage) mm;
-                    switch (sm.getCommand())
-                    {
-                        case ShortMessage.NOTE_ON:
-                        case ShortMessage.NOTE_OFF:
-                        case ShortMessage.PITCH_BEND:
-                            if (channel == -1)
-                            {
-                                channel = sm.getChannel();
-                            } else if (sm.getChannel() != channel)
-                            {
-                                String msg = "Invalid channel used in Midi track #" + i + ": expected channel=" + channel + " MidiEvent=" + MidiUtilities.toString(mm, me.getTick());
-                                LOGGER.warning(msg);
-                                throw new MusicGenerationException(msg);
-                            }
-                            break;
-                        default:
-                            String msg = "Unauthorized Midi event in generated Midi track #" + i + ": MidiEvent=" + MidiUtilities.toString(mm, me.getTick());
-                            LOGGER.warning(msg);
-                            throw new MusicGenerationException(msg);
-                    }
-                } else
-                {
-                    String msg = "Unauthorized Midi event in generated Midi track #" + i + ": MidiEvent=" + MidiUtilities.toString(mm, me.getTick());
-                    LOGGER.warning(msg);
-                    throw new MusicGenerationException(msg);
-                }
-            }
-        }
-    }
-
-    // ===================================================================================
-    // Private classes
-    // ===================================================================================
-    /**
-     * Store some ticks intervals.
-     */
-    private class TickRanges
-    {
-
-        private final ArrayList<Long> froms = new ArrayList<>();
-        private final ArrayList<Long> tos = new ArrayList<>();
-
-        public final void addRange(long from, long to)
-        {
-            if (from > to)
-            {
-                throw new IllegalArgumentException("from=" + from + " to=" + to);
-            }
-            froms.add(from);
-            tos.add(to);
-        }
-
-        /**
-         * @param tick
-         * @return True if tick is within one of the tick range.
-         */
-        public boolean isIn(long tick)
-        {
-            for (int i = 0; i < froms.size(); i++)
-            {
-                if (tick >= froms.get(i) && tick <= tos.get(i))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public String toString()
-        {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < froms.size(); i++)
-            {
-                sb.append("[" + froms.get(i) + "," + tos.get(i) + "]");
-            }
-            return sb.toString();
-        }
-
-    }
-
     // ====================================================================================================
     // Private classes
     // ====================================================================================================
     /**
      * Does the real job of building the sequence.
      * <p>
-     * If musicException field is not null there was an exception. Result sequence is in the sequence field.
+     * If musicException field is not null it means an exception occured. Created sequence is available in the sequence field.
      */
     private class SequenceBuilderTask implements Runnable
     {
@@ -614,11 +381,17 @@ public class MidiSequenceBuilder
         {
             // Get the generated phrases for each used rhythm
             HashMap<RhythmVoice, Phrase> res = new HashMap<>();
+
             for (Rhythm r : context.getUniqueRhythms())
             {
                 try
                 {
-                    HashMap<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r);         // Possible MusicGenerationException here
+                    HashMap<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r);          // Possible MusicGenerationException here
+                    if (context.getUniqueRhythms().size() > 1)
+                    {
+                        checkRhythmPhrasesScope(r, rMap);                                  // Possible MusicGenerationException here
+                    }
+
                     // Merge into the final result
                     res.putAll(rMap);
                 } catch (MusicGenerationException ex)
@@ -644,59 +417,53 @@ public class MidiSequenceBuilder
                 }
             }
 
-            // Handle muted instruments
+            // Handle muted instruments via the RP_SYS_Mute parameter
+            processMutedInstruments(res);
+
+            // Handle instrument settings which impact the phrases: transposition, velocity shift, ...
+            processInstrumentsSettings(res);
+
+            // Shift phrases to start at position 0
+            for (Phrase p : res.values())
+            {
+                p.shiftEvents(-context.getBeatRange().from);
+            }
+
             // Convert to Midi sequence
             try
             {
                 sequence = new Sequence(Sequence.PPQ, MidiConst.PPQ_RESOLUTION);
             } catch (InvalidMidiDataException ex)
             {
-                musicException = new MusicGenerationException("SequenceBuilderTask() Can't create initial sequence : " + ex.getLocalizedMessage());
+                musicException = new MusicGenerationException("SequenceBuilderTask() Can't create the initial empty sequence : " + ex.getLocalizedMessage());
                 return;
             }
-
             // First track is really useful only when exporting to Midi file type 1
             // Contain song name
             Track track0 = sequence.createTrack();
             MidiUtilities.addTrackNameEvent(track0, context.getSong().getName() + " (JJazzLab song)");
 
-            // Other tracks
-            // Main loop on each song's rhythm
+            // Other tracks : create one per RhythmVoice
             int trackId = 1;
             mapRvTrackId.clear();
-            List<Rhythm> uniqueContextRhythms = context.getUniqueRhythms();    // Only the rhythms used in the context
-            for (Rhythm r : uniqueContextRhythms)
+            for (Rhythm r : context.getUniqueRhythms())
             {
-                // Create the empty tracks
-                HashMap<RhythmVoice, Track> mapRvTrack = new HashMap<>();
+                // Group tracks per rhythm
                 for (RhythmVoice rv : r.getRhythmVoices())
                 {
                     Track track = sequence.createTrack();
                     // First event will be the name of the track
                     String name = rv.getContainer().getName() + "-" + rv.getName();
                     MidiUtilities.addTrackNameEvent(track, name);
+                    // Fill the track
+                    Phrase p = res.get(rv);
+                    p.fillTrack(track);
                     // Store the track with the RhythmVoice
-                    mapRvTrack.put(rv, track);
                     mapRvTrackId.put(rv, trackId);
                     trackId++;
                 }
             }
-
-            // Post-process operations
             fixEndOfTracks(sequence);
-            muteNotes(sequence);
-            updatePitchAndVelocity(sequence);
-
-            // Finally perform some consistency checks
-            try
-            {
-                checkRhythmSlices(sequence);                                 // Possible MusicGenerationException here
-                checkMidiEventsConsistency(sequence);                        // Possible MusicGenerationException here
-            } catch (MusicGenerationException ex)
-            {
-                musicException = ex;
-                return;
-            }
         }
     }
 

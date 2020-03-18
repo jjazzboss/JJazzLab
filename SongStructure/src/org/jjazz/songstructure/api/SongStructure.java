@@ -29,10 +29,13 @@ import javax.swing.event.UndoableEditListener;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.parameters.RhythmParameter;
-import org.jjazz.util.Range;
+import org.jjazz.util.FloatRange;
+import org.jjazz.util.IntRange;
 import org.jjazz.util.SmallMap;
 
 /**
@@ -89,7 +92,7 @@ public interface SongStructure
      * <p>
      * The SongStructure might listen to ChordLeadSheet changes to update itself accordingly.
      *
-     * @return
+     * @return Can be null.
      */
     public ChordLeadSheet getParentChordLeadSheet();
 
@@ -128,28 +131,48 @@ public interface SongStructure
     /**
      * Get the size in bars of the song.
      *
-     * @return The total size in bars.
+     * @return
      */
     public int getSizeInBars();
 
     /**
-     * Get the size in beats of the song range.
+     * Convert the specified bar range into a natural beat range.
      * <p>
      * The method must take into account song with possibly different time signatures.
      *
-     * @param r If null use the whole song structure.
-     * @return The total size in beats.
+     * @param barRange If null use the whole song structure.
+     * @return
      */
-    public int getSizeInBeats(Range r);
+    public FloatRange getBeatRange(IntRange barRange);
 
     /**
-     * The position of the specified bar in natural beats: take into account the possible different time signatures before
-     * specified bar.
+     * The position of the specified bar in natural beats: take into account the possible different time signatures before specified bar.
      *
      * @param absoluteBarIndex A value in the range [0 - getSizeInBars()]
      * @return
      */
     public float getPositionInNaturalBeats(int absoluteBarIndex);
+
+    /**
+     * The position in bars/beats converted from a position specified in natural beats.
+     * <p>
+     * Take into account the possible different time signatures of the song.
+     *
+     * @param posInBeats
+     * @return Null if posInBeats is beyond the end of the song.
+     */
+    public Position getPosition(float posInBeats);
+
+    /**
+     * Get the absolute position in the song structure of a chordleadsheet item referred to by the specified song part.
+     *
+     * @param spt
+     * @param clsItem
+     * @return A position within spt range
+     * @throws IllegalArgumentException If clsItem does not belong to spt's parent Section.
+     * @throws IllegalStateException    If getParentChordLeadSheet() returns null.
+     */
+    public Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem);
 
     /**
      * Add a SongPart.
@@ -160,8 +183,7 @@ public interface SongStructure
      * The startBarIndex of the trailing SongParts is shifted accordingly. The SongPart container will be set to this object.
      *
      * @param spt the value of spt
-     * @throws org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException If new rhythm could not be accepted and no
-     * replacement done.
+     * @throws org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException If new rhythm could not be accepted and no replacement done.
      */
     public void addSongPart(SongPart spt) throws UnsupportedEditException;
 
@@ -186,13 +208,12 @@ public interface SongStructure
     /**
      * Replace SongParts by other SongParts.
      * <p>
-     * Typically used to changed rhythm. The size and startBarIndex of new SongParts must be the same than the replaced ones. The
-     * container of newSpt will be set to this object.
+     * Typically used to changed rhythm. The size and startBarIndex of new SongParts must be the same than the replaced ones. The container
+     * of newSpt will be set to this object.
      *
      * @param oldSpts
      * @param newSpts size must match oldSpts
-     * @throws UnsupportedEditException If replacement was impossible, typically because not enough Midi channels for a new
-     * rhythm.
+     * @throws UnsupportedEditException If replacement was impossible, typically because not enough Midi channels for a new rhythm.
      */
     public void replaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException;
 
@@ -208,8 +229,8 @@ public interface SongStructure
      * Change the value of a specific RhythmParameter.
      *
      * @param <T>
-     * @param spt The SongPart rp belongs to.
-     * @param rp The RhythmParameter.
+     * @param spt   The SongPart rp belongs to.
+     * @param rp    The RhythmParameter.
      * @param value The new value to apply for rp.
      */
     public <T> void setRhythmParameterValue(SongPart spt, RhythmParameter<T> rp, T value);

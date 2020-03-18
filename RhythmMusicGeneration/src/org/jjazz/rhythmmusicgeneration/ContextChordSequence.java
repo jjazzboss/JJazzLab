@@ -37,7 +37,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RP_SYS_Marker;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.Range;
+import org.jjazz.util.IntRange;
 
 /**
  * A ChordSequence built for a given MusicGenerationContext.
@@ -65,7 +65,7 @@ public class ContextChordSequence extends ChordSequence
      */
     public ContextChordSequence(MusicGenerationContext context)
     {
-        super(context.getRange().from, context.getRange().to - context.getRange().from + 1);
+        super(context.getBarRange().from, context.getBarRange().to - context.getBarRange().from + 1);
 
         this.context = context;
 
@@ -75,7 +75,7 @@ public class ContextChordSequence extends ChordSequence
         // Process all SongParts in the range
         for (SongPart spt : this.context.getSongParts())
         {
-            Range clsRange = toClsRange(spt);
+            IntRange clsRange = toClsRange(spt);
             RP_SYS_Marker rpMarker = RP_SYS_Marker.getMarkerRp(spt.getRhythm());
             String sptMarker = (rpMarker == null) ? null : spt.getRPValue(rpMarker);
 
@@ -109,7 +109,7 @@ public class ContextChordSequence extends ChordSequence
         {
             // This must be because the range starts in the middle of the first section                
             SongPart spt0 = this.context.getSongParts().get(0);
-            Range clsRange = toClsRange(spt0);
+            IntRange clsRange = toClsRange(spt0);
             assert clsRange.from > 0 : "clsRange=" + clsRange;
             List<? extends CLI_ChordSymbol> items = cls.getItems(0, clsRange.from - 1, CLI_ChordSymbol.class);
             CLI_ChordSymbol prevCliCs = items.get(items.size() - 1);        // Take the last chord before the range
@@ -150,7 +150,7 @@ public class ContextChordSequence extends ChordSequence
         T lastRpValue = null;
         for (SongPart spt : context.getSongParts())
         {
-            Range sptCsRange = context.getSptRange(spt);
+            IntRange sptCsRange = context.getSptBarRange(spt);
             if (spt.getRhythm() == r)
             {
                 // Song part is covered by this ChordSequence and it's our rhythm
@@ -200,12 +200,12 @@ public class ContextChordSequence extends ChordSequence
     // ====================================================================================
     // Private methods
     // ====================================================================================
-    private Range toClsRange(SongPart spt)
+    private IntRange toClsRange(SongPart spt)
     {
-        Range sptRange = context.getSptRange(spt);
+        IntRange sptRange = context.getSptBarRange(spt);
         CLI_Section section = spt.getParentSection();
         int sectionStartBar = section.getPosition().getBar();
-        Range r = new Range(sectionStartBar + sptRange.from - spt.getStartBarIndex(), sectionStartBar + sptRange.to - spt.getStartBarIndex());
+        IntRange r = new IntRange(sectionStartBar + sptRange.from - spt.getStartBarIndex(), sectionStartBar + sptRange.to - spt.getStartBarIndex());
         return r;
     }
 

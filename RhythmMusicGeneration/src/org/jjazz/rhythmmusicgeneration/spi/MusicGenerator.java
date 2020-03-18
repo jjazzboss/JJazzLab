@@ -68,10 +68,9 @@ public interface MusicGenerator
     /**
      * Generate the note Phrases which correspond to a musical accompaniment for a given rhythm.
      * <p>
-     * The service provider must compute notes for the specified context, one Phrase per RhythmVoice/Midi channel.
-     * <p>
-     * The first note of the first bar (usually on beat 0) must start at position 0, even if the context specifies a first bar (fromBar)
-     * which is greater than 0.
+     * The service provider must compute notes for the specified context, one Phrase per RhythmVoice/Midi channel. Notes must be generated
+     * for the context bars which use this generator's rhythm. For example, if context range is bars 3-4 with rhythm1 on bar3 and rhythm2 on
+     * bar4, then the rhythm1 generator must add notes for bar 3 only.
      * <p>
      * The MidiMix from <code>context</code> is used to retrieve the unique Midi channel associated to each RhythmVoice (see method
      * MidiMix.getChannel(RhythmVoice)). If the context song contains several rhythms, the method must add notes ONLY for bars which use
@@ -84,11 +83,12 @@ public interface MusicGenerator
      * - Handling of the channel's specific velocity shift<br>
      * - Handling of the instrument's specific transposition<br>
      * - Post-processing
+     *
      * @param context The information to be used for music generation
      * @return One Phrase per rhythm voice/channel.
      *
      * @throws MusicGenerationException If generator could not produce the expected music. The framework is responsible for notifying the
-     *                                  user of the error message associated to the exception.
+     * user of the error message associated to the exception.
      *
      */
     HashMap<RhythmVoice, Phrase> generateMusic(MusicGenerationContext context) throws MusicGenerationException;

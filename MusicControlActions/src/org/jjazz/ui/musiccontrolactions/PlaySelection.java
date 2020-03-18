@@ -57,7 +57,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.util.Range;
+import org.jjazz.util.IntRange;
 import org.openide.windows.TopComponent;
 
 /**
@@ -131,13 +131,13 @@ public class PlaySelection extends AbstractAction
         SS_Editor ssEditor = ssTc.getSS_Editor();
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
 
-        Range rg = null;
+        IntRange rg = null;
         String errMsg = "Selected bars/songs parts need to be contiguous.";     // By default
         TopComponent activeTc = TopComponent.getRegistry().getActivated();
         if (clTc == activeTc && clSelection.isContiguousBarboxSelectionWithinCls())
         {
             // Focus in the CL_Editor            
-            rg = toSgsRange(ss, cls, new Range(clSelection.getMinBarIndexWithinCls(), clSelection.getMaxBarIndexWithinCls()));   // Can be null
+            rg = toSgsRange(ss, cls, new IntRange(clSelection.getMinBarIndexWithinCls(), clSelection.getMaxBarIndexWithinCls()));   // Can be null
             if (rg == null)
             {
                 errMsg = "First and last selected bars don't correctly match song parts.";
@@ -148,7 +148,7 @@ public class PlaySelection extends AbstractAction
             List<SongPart> spts = ssSelection.getIndirectlySelectedSongParts();
             SongPart firstSpt = spts.get(0);
             SongPart lastSpt = spts.get(spts.size() - 1);
-            rg = new Range(firstSpt.getStartBarIndex(), lastSpt.getRange().to);
+            rg = new IntRange(firstSpt.getStartBarIndex(), lastSpt.getBarRange().to);
         }
 
         if (rg == null)
@@ -216,7 +216,7 @@ public class PlaySelection extends AbstractAction
      * @param clsRange
      * @return Null if no valid range could be constructed
      */
-    private Range toSgsRange(SongStructure ss, ChordLeadSheet cls, Range clsRange)
+    private IntRange toSgsRange(SongStructure ss, ChordLeadSheet cls, IntRange clsRange)
     {
         if (ss == null || cls == null || clsRange.to > cls.getSize() - 1)
         {
@@ -226,7 +226,7 @@ public class PlaySelection extends AbstractAction
         int fromBar = -1;
         CLI_Section toSection = cls.getSection(clsRange.to);
         int toBar = -1;
-        Range r = null;
+        IntRange r = null;
         for (SongPart spt : ss.getSongParts())
         {
             if (fromBar == -1 && spt.getParentSection() == fromSection)
@@ -243,7 +243,7 @@ public class PlaySelection extends AbstractAction
             }
             if (toBar != -1 && fromBar != -1)
             {
-                r = new Range(fromBar, toBar);
+                r = new IntRange(fromBar, toBar);
                 break;
             }
         }

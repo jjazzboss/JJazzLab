@@ -31,7 +31,7 @@ import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.synths.Family;
 import org.jjazz.rhythm.api.*;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.Range;
+import org.jjazz.util.IntRange;
 
 /**
  * A dummy generator that generate simple tracks for test purposes.
@@ -73,7 +73,7 @@ public class DummyGenerator implements MusicGenerator
             }
 
             TimeSignature ts = r.getTimeSignature();
-            Range sptRange = context.getSptRange(spt); // Context bars can start/end in the middle of a song part
+            IntRange sptRange = context.getSptBarRange(spt); // Context bars can start/end in the middle of a song part
             float sptPosInBeats = context.getSong().getSongStructure().getPositionInNaturalBeats(sptRange.from);
 
             // Get the ChordSequence corresponding to the song part
