@@ -54,6 +54,8 @@ import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.synths.Family;
+import org.jjazz.midi.synths.StdSynth;
+import org.jjazz.midi.synths.VoidInstrument;
 import static org.jjazz.midimix.Bundle.ERR_NotEnoughChannels;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -290,13 +292,13 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     {
         int channel = getChannel(UserChannelRvKey.getInstance());
         return channel;
-    }  
+    }
 
     /**
      * Assign an InstrumentMix to a midi channel and to a key.
      * <p>
-     * Replace any existing InstrumentMix associated to the midi channel. The solo and "drums rerouted channel" status of the new
-     * InstrumentMix are reset to off. <br>
+     * Replace any existing InstrumentMix associated to the midi channel. The solo and "drums rerouted channel" status are reset to off for
+     * the channel. <br>
      * Fire a PROP_CHANNEL_INSTRUMENT_MIX change event for this channel, and one UndoableEvent.
      *
      * @param channel A valid midi channel number.
@@ -502,6 +504,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      */
     public void setDrumsReroutedChannel(boolean b, int channel)
     {
+        LOGGER.fine("setDrumsReroutedChannel() -- b=" + b + " channel=" + channel);
         if (instrumentMixes[channel] == null)
         {
             throw new IllegalArgumentException("b=" + b + " channel=" + channel + " instrumentMixes=" + getInstrumentMixesPerChannel());
@@ -789,7 +792,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             file = f;
         }
 
-        try (FileOutputStream fos = new FileOutputStream(f))
+        try ( FileOutputStream fos = new FileOutputStream(f))
         {
             XStream xstream = new XStream();
             xstream.alias("MidiMix", MidiMix.class);
@@ -1125,6 +1128,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      */
     private void changeInstrumentMix(final int channel, final InstrumentMix insMix, final RhythmVoice rvKey)
     {
+        LOGGER.fine("changeInstrumentMix() -- channel=" + channel + " rvKey=" + rvKey + " insMix=" + insMix);
         final InstrumentMix oldInsMix = instrumentMixes[channel];
         final RhythmVoice oldRvKey = rvKeys[channel];
         if (oldInsMix == null && insMix == null)
@@ -1170,6 +1174,13 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                     oldInsMix.addPropertyChangeListener(MidiMix.this);
                     oldInsMix.getSettings().addPropertyChangeListener(MidiMix.this);
                 }
+                if (oldInsMix != null)
+                {
+                    // Safety call because drumsrerouted state is not saved in the undo command 
+                    // Not doing this caused some problems in some cases with undo/redo when changing rhythm in a multi-ryhtm song
+                    setDrumsReroutedChannel(false, channel);
+                }
+                LOGGER.fine("changeInstrumentMix().undoBody() oldInsMix=" + oldInsMix + " insMix=" + insMix);
                 pcs.firePropertyChange(PROP_CHANNEL_INSTRUMENT_MIX, insMix, channel);
                 fireIsModified();
             }
@@ -1189,6 +1200,13 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                     insMix.addPropertyChangeListener(MidiMix.this);
                     insMix.getSettings().addPropertyChangeListener(MidiMix.this);
                 }
+                if (insMix != null)
+                {
+                    // Safety call because drumsrerouted state is not saved in the undo command 
+                    // Not doing this caused some problems in some cases with undo/redo when changing rhythm in a multi-ryhtm song
+                    setDrumsReroutedChannel(false, channel);
+                }
+                LOGGER.fine("changeInstrumentMix().redoBody() oldInsMix=" + oldInsMix + " insMix=" + insMix);
                 pcs.firePropertyChange(PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix, channel);
                 fireIsModified();
             }
@@ -1251,7 +1269,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             adaptInstrumentMixes(mm, r0);
         }
         addInstrumentMixes(mm, r);
-
     }
 
     /**
@@ -1262,6 +1279,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      */
     private void adaptInstrumentMixes(MidiMix mm, Rhythm r0)
     {
+        LOGGER.fine("adaptInstrumentMixes() mm=" + mm + " r0=" + r0);
         HashMap<String, InstrumentMix> mapKeyMix = new HashMap<>();
         HashMap<Family, InstrumentMix> mapFamilyMix = new HashMap<>();
         InstrumentMix r0InsMixDrums = null;
@@ -1272,13 +1290,18 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             // Build the keys from r0
             RhythmVoice rv = rvKeys[channel];
             InstrumentMix insMix = instrumentMixes[channel];
-            if (rv.getType().equals(RhythmVoice.Type.DRUMS))
+            if (rv.isDrums())
             {
-                r0InsMixDrums = insMix;
-                continue;
-            } else if (rv.getType().equals(RhythmVoice.Type.PERCUSSION))
-            {
-                r0InsMixPerc = insMix;
+                // Special case, use the 2 special variables for Drums or Percussion
+                // Use the saved InstrumentMix if channel is drums rerouted
+                InstrumentMix insMixDrums = getDrumsReroutedChannels().contains(channel) ? drumsReroutedChannels.get(channel) : insMix;
+                if (rv.getType().equals(RhythmVoice.Type.DRUMS))
+                {
+                    r0InsMixDrums = insMixDrums;
+                } else
+                {
+                    r0InsMixPerc = insMixDrums;
+                }
                 continue;
             }
             GM1Instrument insGM1 = insMix.getInstrument().getSubstitute();  // Might be null            
@@ -1320,6 +1343,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                 mmInsMix.setInstrument(insMix.getInstrument());
                 mmInsMix.getSettings().set(insMix.getSettings());
                 doneChannels.add(mmChannel);
+                LOGGER.fine("adaptInstrumentMixes() set (1) channel " + mmChannel + " instrument setting to : " + insMix.getSettings());
             }
         }
 
@@ -1332,17 +1356,18 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             }
             InstrumentMix mmInsMix = mm.instrumentMixes[mmChannel];
             GM1Instrument mmInsGM1 = mmInsMix.getInstrument().getSubstitute();  // Can be null          
-            if (mmInsGM1 == null)
+            if (mmInsGM1 == null || mmInsGM1 == StdSynth.getInstance().getVoidInstrument())
             {
                 continue;
             }
-            Family mmFamily = mmInsMix.getInstrument().getSubstitute().getFamily();
+            Family mmFamily = mmInsGM1.getFamily();
             InstrumentMix insMix = mapFamilyMix.get(mmFamily);
             if (insMix != null)
             {
                 // Copy InstrumentMix data
                 mmInsMix.setInstrument(insMix.getInstrument());
                 mmInsMix.getSettings().set(insMix.getSettings());
+                LOGGER.fine("adaptInstrumentMixes() set (2) channel " + mmChannel + " instrument setting to : " + insMix.getSettings());
             }
         }
     }
