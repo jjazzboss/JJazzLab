@@ -38,7 +38,8 @@ import org.openide.util.actions.BooleanStateAction;
  */
 public class FlatToggleButton extends FlatButton
 {
-    private Icon saveIcon;
+
+    private Icon unselectedIcon;
     private Icon selectedIcon;
     private Color saveForeground;
     private Color selectedForeground;
@@ -78,13 +79,12 @@ public class FlatToggleButton extends FlatButton
         isSelected = b;
         if (isSelected)
         {
-            saveIcon = getIcon();
             setIcon(selectedIcon);
             saveForeground = getForeground();
             setForeground(selectedForeground);
         } else
         {
-            setIcon(saveIcon);
+            setIcon(unselectedIcon);
             setForeground(saveForeground);
         }
     }
@@ -112,8 +112,27 @@ public class FlatToggleButton extends FlatButton
     public void setAction(BooleanStateAction bsa)
     {
         super.setAction(bsa);
+        setUnselectedIcon((Icon) bsa.getValue(Action.SMALL_ICON));
         setSelectedIcon((Icon) bsa.getValue(Action.LARGE_ICON_KEY));
         setSelected(bsa.getBooleanState());
+    }
+
+    public void setUnselectedIcon(Icon icon)
+    {
+        if (icon == null)
+        {
+            throw new NullPointerException("icon");
+        }
+        this.unselectedIcon = icon;
+        if (!isSelected())
+        {
+            setIcon(icon);
+        }
+    }
+
+    public Icon getUnselectedIcon()
+    {
+        return unselectedIcon;
     }
 
     public void setSelectedIcon(Icon selectedIcon)
@@ -164,12 +183,16 @@ public class FlatToggleButton extends FlatButton
     public void propertyChange(PropertyChangeEvent evt)
     {
         super.propertyChange(evt);
-        // LOGGER.fine("propertyChange() this.action=" + (getAction() != null ? getAction().getValue(Action.NAME) : "") + ", evt=" + evt);
+
+        LOGGER.fine("propertyChange() this.action=" + (getAction() != null ? getAction().getValue(Action.NAME) : "") + ", evt=" + evt);
         if (evt.getSource() == getAction())
         {
             if (evt.getPropertyName() == Action.LARGE_ICON_KEY)
             {
                 setSelectedIcon((Icon) evt.getNewValue());
+            } else if (evt.getPropertyName() == Action.SMALL_ICON)
+            {
+                setUnselectedIcon((Icon) evt.getNewValue());
             } else if (evt.getPropertyName() == BooleanStateAction.PROP_BOOLEAN_STATE)
             {
                 setSelected(evt.getNewValue().equals(Boolean.TRUE));
