@@ -178,16 +178,12 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
     {
         JMenuItem mi = new JMenuItem(f.getName());
         mi.setToolTipText(f.getAbsolutePath());
-        mi.addActionListener(new ActionListener()
+        mi.addActionListener((ActionEvent e) ->
         {
-            @Override
-            public void actionPerformed(ActionEvent e)
+            if (!rfProvider.open(f))
             {
-                if (!rfProvider.open(f))
-                {
-                    // There was a problem opening this file, remove it from the recent list
-                    fileOpened(f);
-                }
+                // There was a problem opening this file, remove it from the recent list
+                fileOpened(f);
             }
         });
         return mi;

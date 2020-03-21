@@ -55,12 +55,10 @@ import org.openide.util.actions.BooleanStateAction;
         })
 @NbBundle.Messages(
         {
-            "CTL_Precount=Precount",
-            "CTL_PrecountTooltip=Precount before playback"
+            "CTL_Precount=Precount"
         })
 public class Precount extends BooleanStateAction implements PropertyChangeListener, LookupListener
 {
-
     private Lookup.Result<Song> lookupResult;
     private Song currentSong;
     private static final Logger LOGGER = Logger.getLogger(Precount.class.getSimpleName());
@@ -68,15 +66,12 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
     public Precount()
     {
         setBooleanState(false);
-
-        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/precount-OFF-24x24.png")));
-        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/precount-ON-24x24.png")));
-        putValue(Action.SHORT_DESCRIPTION, Bundle.CTL_PrecountTooltip());
-        putValue("hideActionText", true);
-
         ClickManager cm = ClickManager.getInstance();
         cm.addPropertyChangeListener(this);
-        setSelected(cm.isClickPrecount());
+        updateUI(cm.getClickPrecountMode());
+        putValue("hideActionText", true);
+
+        setSelected(cm.isClickPrecountEnabled());
 
         // Listen to the Midi active song changes
         ActiveSongManager.getInstance().addPropertyListener(this);
@@ -100,7 +95,7 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
             return;
         }
         ClickManager cm = ClickManager.getInstance();
-        cm.setClickPrecount(b);
+        cm.setClickPrecountEnabled(b);
         setBooleanState(b);  // Notify action listeners
     }
 
@@ -159,9 +154,12 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
         ClickManager cm = ClickManager.getInstance();
         if (evt.getSource() == cm)
         {
-            if (evt.getPropertyName().equals(ClickManager.PROP_CLICK_PRECOUNT))
+            if (evt.getPropertyName().equals(ClickManager.PROP_CLICK_PRECOUNT_ENABLED))
             {
                 setBooleanState((boolean) evt.getNewValue());
+            } else if (evt.getPropertyName().equals(ClickManager.PROP_CLICK_PRECOUNT_MODE))
+            {
+                updateUI(cm.getClickPrecountMode());
             }
         } else if (evt.getSource() == ActiveSongManager.getInstance())
         {
@@ -198,6 +196,32 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
         currentSong.removePropertyChangeListener(this);
         currentSong = null;
         currentSongChanged();
+    }
+
+    private void updateUI(ClickManager.PrecountMode mode)
+    {
+        switch (mode)
+        {
+            case ONE_BAR:
+                putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/precount1-OFF-24x24.png")));
+                putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/precount1-ON-24x24.png")));
+                putValue(Action.SHORT_DESCRIPTION, "Precount 1 bar - Use shift-click to change precount mode");
+                break;
+            case TWO_BARS:
+                putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/precount2-OFF-24x24.png")));
+                putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/precount2-ON-24x24.png")));
+                putValue(Action.SHORT_DESCRIPTION, "Precount 2 bars - Use shift-click to change precount mode");
+                break;
+            case AUTO:
+                putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/precountA-OFF-24x24.png")));
+                putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/precountA-ON-24x24.png")));
+                putValue(Action.SHORT_DESCRIPTION, "Precount Auto mode - Use shift-click to change precount mode");
+                break;
+            default:
+                throw new AssertionError(mode.name());
+
+        }
+
     }
 
 }

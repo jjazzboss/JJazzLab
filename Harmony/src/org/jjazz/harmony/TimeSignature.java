@@ -37,7 +37,6 @@ public enum TimeSignature
     SIX_FOUR(6, 4, 1),
     SEVEN_FOUR(7, 4, 1),
     SIX_EIGHT(6, 8, 3),
-    SEVEN_EIGHT(7, 8, 2),
     TWELVE_EIGHT(12, 8, 3);
 
     /**

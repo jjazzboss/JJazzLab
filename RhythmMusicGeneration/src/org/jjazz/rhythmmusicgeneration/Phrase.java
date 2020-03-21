@@ -182,8 +182,7 @@ public class Phrase implements Cloneable
      * <p>
      *
      * @param posInBeats
-     * @return The list of notes (with their index) whose startPos is strictly before posInBeats and endPos strictly after
-     * posInBeats
+     * @return The list of notes (with their index) whose startPos is strictly before posInBeats and endPos strictly after posInBeats
      */
     public List<NoteAndIndex> getCrossingNotes(float posInBeats)
     {
@@ -210,8 +209,7 @@ public class Phrase implements Cloneable
     /**
      * Add delta to the velocity of this Phrase notes.
      * <p>
-     * Velocity is always maintained between 0 and 127. Notes of the returned phrase will have their PARENT_NOTE client property
-     * set to:<br>
+     * Velocity is always maintained between 0 and 127. Notes of the returned phrase will have their PARENT_NOTE client property set to:<br>
      * - source note's PARENT_NOTE client property if this property is not null, or<br>
      * - the source note from this phrase
      *
@@ -258,8 +256,7 @@ public class Phrase implements Cloneable
      * Make sure there is no note ringing after the specified position.
      * <p>
      * Notes starting after posInBeats are removed.<br>
-     * If a note starts before posInBeats but is still ON beyond posInBeats, note duration is shortened to have Note OFF at
-     * posInBeats.
+     * If a note starts before posInBeats but is still ON beyond posInBeats, note duration is shortened to have Note OFF at posInBeats.
      *
      * @param posInBeats
      */
@@ -334,7 +331,7 @@ public class Phrase implements Cloneable
                 // nePosFrom is after endPost
                 it.remove();
             }
-        }   
+        }
 
         // Add the new NoteEvents
         for (NoteEvent ne : toBeAdded)
@@ -513,6 +510,8 @@ public class Phrase implements Cloneable
 
     /**
      * Create MidiEvents for each note and add it to the specified track.
+     * <p>
+     * Tick resolution used is MidiConst.PPQ_RESOLUTION.
      *
      * @param track
      */
@@ -634,8 +633,8 @@ public class Phrase implements Cloneable
     /**
      * Remove overlapped notes with identical pitch.
      * <p>
-     * A note N1 is overlapped by N2 if N1's noteOn event occurs after N2's noteOn event and N1's noteOff event occurs before N2's
-     * noteOff event.
+     * A note N1 is overlapped by N2 if N1's noteOn event occurs after N2's noteOn event and N1's noteOff event occurs before N2's noteOff
+     * event.
      */
     public void removeOverlappedNotes()
     {
@@ -680,7 +679,7 @@ public class Phrase implements Cloneable
      * <p>
      * Fixed new notes's PARENT_NOTE client property is preserved.
      *
-     * @param lowLimit There must be at least 1 octave between lowLimit and highLimit
+     * @param lowLimit  There must be at least 1 octave between lowLimit and highLimit
      * @param highLimit There must be at least 1 octave between lowLimit and highLimit
      */
     public void limitPitchRange(int lowLimit, int highLimit)

@@ -36,8 +36,11 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
+import org.jjazz.midimix.MidiMix;
+import static org.jjazz.musiccontrol.ClickManager.PROP_CLICK_PITCH_LOW;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.openide.util.NbPreferences;
 import org.jjazz.songstructure.api.SongPart;
@@ -48,15 +51,40 @@ import org.jjazz.songstructure.api.SongPart;
 public class ClickManager
 {
 
+    public enum PrecountMode
+    {
+        ONE_BAR, TWO_BARS, AUTO;
+
+        /**
+         * Same as valueOf except it can't fail whatever s.
+         *
+         * @param name
+         * @param defValue Returned value if name is not valid
+         * @return
+         */
+        static public PrecountMode valueOf(String name, PrecountMode defValue)
+        {
+            PrecountMode mode = defValue;
+            try
+            {
+                mode = PrecountMode.valueOf(name);
+            } catch (IllegalArgumentException | NullPointerException ex)
+            {
+                // Nothing
+            }
+            return mode;
+        }
+    }
     public static String CLICK_TRACK_NAME = "JJazzClickTrack";
     public static String PRECOUNT_CLICK_TRACK_NAME = "JJazzPreCountClickTrack";
     private static ClickManager INSTANCE = null;
-
-    public static String PROP_CLICK_PITCH = "ClickPitch";
+    public static String PROP_CLICK_PITCH_HIGH = "ClickPitchHigh";
+    public static String PROP_CLICK_PITCH_LOW = "ClickPitchLow";
     public static String PROP_CLICK_VELOCITY_HIGH = "ClickVelocityHigh";
     public static String PROP_CLICK_VELOCITY_LOW = "ClickVelocityLow";
-    public static String PROP_CLICK_CHANNEL = "ClickChannel";
-    public static String PROP_CLICK_PRECOUNT = "ClickPrecount";
+    public static String PROP_CLICK_PREFERRED_CHANNEL = "ClickChannel";
+    public static String PROP_CLICK_PRECOUNT_ENABLED = "ClickPrecountEnabled";
+    public static String PROP_CLICK_PRECOUNT_MODE = "ClickPrecountMode";
 
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static Preferences prefs = NbPreferences.forModule(ClickManager.class);
@@ -83,95 +111,186 @@ public class ClickManager
      *
      * @param b If true a click precount is used before playing the song.
      */
-    public void setClickPrecount(boolean b)
+    public void setClickPrecountEnabled(boolean b)
     {
-        boolean old = isClickPrecount();
+        boolean old = isClickPrecountEnabled();
         if (old != b)
         {
-            prefs.putBoolean(PROP_CLICK_PRECOUNT, b);
-            pcs.firePropertyChange(PROP_CLICK_PRECOUNT, old, b);
+            prefs.putBoolean(PROP_CLICK_PRECOUNT_ENABLED, b);
+            pcs.firePropertyChange(PROP_CLICK_PRECOUNT_ENABLED, old, b);
         }
     }
 
-    public boolean isClickPrecount()
+    public boolean isClickPrecountEnabled()
     {
-        return prefs.getBoolean(PROP_CLICK_PRECOUNT, true);
+        return prefs.getBoolean(PROP_CLICK_PRECOUNT_ENABLED, true);
     }
 
     /**
-     * Get the number of precount bars for a song using specified parameters.
-     * <p>
-     * For example: a very fast tempo song will use 2 bars, a 4/4 will use 1 bar up to mid-range tempo etc.
+     * Set the precount mode.
      *
-     * @param ts
-     * @param tempo
+     * @param mode
+     */
+    public void setClickPrecountMode(PrecountMode mode)
+    {
+        if (mode == null)
+        {
+            throw new NullPointerException("mode");
+        }
+        PrecountMode old = getClickPrecountMode();
+        if (old != mode)
+        {
+            prefs.put(PROP_CLICK_PRECOUNT_MODE, mode.name());
+            pcs.firePropertyChange(PROP_CLICK_PRECOUNT_MODE, old, mode);
+        }
+    }
+
+    /**
+     * Get the precount mode.
+     * <p>
+     * @return
+     */
+    public PrecountMode getClickPrecountMode()
+    {
+        String s = prefs.get(PROP_CLICK_PRECOUNT_MODE, PrecountMode.ONE_BAR.name());
+        PrecountMode mode = PrecountMode.valueOf(s, PrecountMode.ONE_BAR);
+        return mode;
+    }
+
+    /**
+     * Get the number of precount bars.
+     * <p>
+     * The parameters are only used if precount mode is set to AUTO.<br>
+     * Example in AUTO mode: a very fast tempo song will use 2 bars, a 4/4 will use 1 bar up to mid-range tempo etc.
+     *
+     * @param ts    Ignored if precount mode is not AUTO.
+     * @param tempo Ignored if precount mode is not AUTO.
      * @return Can be 1 or 2 bars.
      */
     public int getClickPrecountNbBars(TimeSignature ts, int tempo)
     {
-        if (ts == null || tempo < 0)
+        switch (getClickPrecountMode())
         {
-            throw new IllegalArgumentException("ts=" + ts + " tempo=" + tempo);
+            case ONE_BAR:
+                return 1;
+            case TWO_BARS:
+                return 2;
+            case AUTO:
+                if (ts == null || tempo < 0)
+                {
+                    throw new IllegalArgumentException("ts=" + ts + " tempo=" + tempo);
+                }
+                float nBeats = ts.getNbNaturalBeats();
+                int res;
+                if (nBeats <= 3)
+                {
+                    res = tempo < 55 ? 1 : 2;
+                } else if (nBeats <= 4)
+                {
+                    res = tempo < 100 ? 1 : 2;
+                } else
+                {
+                    res = tempo < 120 ? 1 : 2;
+                }
+                return res;
+            default:
+                throw new IllegalStateException("getClickPrecountMode()=" + getClickPrecountMode());
         }
-        float nBeats = ts.getNbNaturalBeats();
-        int res;
-        if (nBeats <= 3)
-        {
-            res = tempo < 55 ? 1 : 2;
-        } else if (nBeats <= 4)
-        {
-            res = tempo < 100 ? 1 : 2;
-        } else
-        {
-            res = tempo < 120 ? 1 : 2;
-        }
-        return res;
     }
 
     /**
      *
      * @param channel
      */
-    public void setChannel(int channel)
+    public void setPreferredClickChannel(int channel)
     {
         if (channel < MidiConst.CHANNEL_MIN || channel > MidiConst.CHANNEL_MAX)
         {
             throw new IllegalArgumentException("channel=" + channel);
         }
-        int old = getChannel();
+        int old = getPreferredClickChannel();
         if (old != channel)
         {
-            prefs.putInt(PROP_CLICK_CHANNEL, channel);
-            pcs.firePropertyChange(PROP_CLICK_CHANNEL, old, channel);
+            prefs.putInt(PROP_CLICK_PREFERRED_CHANNEL, channel);
+            pcs.firePropertyChange(PROP_CLICK_PREFERRED_CHANNEL, old, channel);
         }
     }
 
-    public int getChannel()
+    /**
+     * The preferred click channel.
+     *
+     * @return
+     */
+    public int getPreferredClickChannel()
     {
-        return prefs.getInt(PROP_CLICK_CHANNEL, MidiConst.CHANNEL_DRUMS);
+        return prefs.getInt(PROP_CLICK_PREFERRED_CHANNEL, MidiConst.CHANNEL_DRUMS);
+    }
+
+    /**
+     * The actual Midi channel to be used with he specified MidiMix.
+     * <p>
+     * If in the midiMix channel=getPreferredClickChannel() is used and is not a drums/percussion instrument, return the Midi channel
+     * MidiConst.CHANNEL_DRUMS. Otherwise return getPreferredClickChannel().
+     *
+     * @param midiMix
+     * @return
+     */
+    public int getClickChannel(MidiMix midiMix)
+    {
+        int prefChannel = getPreferredClickChannel();
+        InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(prefChannel);
+        if (insMix == null || midiMix.getKey(prefChannel).isDrums())
+        {
+            return prefChannel;
+        }
+        LOGGER.warning("getClickChannel() Can't use preferred click channel " + (prefChannel + 1) + ", using channel " + (MidiConst.CHANNEL_DRUMS + 1) + " instead");
+        return MidiConst.CHANNEL_DRUMS;
     }
 
     /**
      *
      * @param pitch value must be [35-81] (GM1 drum map)
      */
-    public void setClickPitch(int pitch)
+    public void setClickPitchHigh(int pitch)
     {
         if (pitch < 35 || pitch > 81)
         {
             throw new IllegalArgumentException("pitch=" + pitch);
         }
-        int old = getClickPitch();
+        int old = getClickPitchHigh();
         if (old != pitch)
         {
-            prefs.putInt(PROP_CLICK_PITCH, pitch);
-            pcs.firePropertyChange(PROP_CLICK_PITCH, old, pitch);
+            prefs.putInt(PROP_CLICK_PITCH_HIGH, pitch);
+            pcs.firePropertyChange(PROP_CLICK_PITCH_HIGH, old, pitch);
         }
     }
 
-    public int getClickPitch()
+    public int getClickPitchHigh()
     {
-        return prefs.getInt(PROP_CLICK_PITCH, MidiConst.SIDE_STICK);
+        return prefs.getInt(PROP_CLICK_PITCH_HIGH, MidiConst.SIDE_STICK);
+    }
+
+    /**
+     *
+     * @param pitch value must be [35-81] (GM1 drum map)
+     */
+    public void setClickPitchLow(int pitch)
+    {
+        if (pitch < 35 || pitch > 81)
+        {
+            throw new IllegalArgumentException("pitch=" + pitch);
+        }
+        int old = getClickPitchLow();
+        if (old != pitch)
+        {
+            prefs.putInt(PROP_CLICK_PITCH_LOW, pitch);
+            pcs.firePropertyChange(PROP_CLICK_PITCH_LOW, old, pitch);
+        }
+    }
+
+    public int getClickPitchLow()
+    {
+        return prefs.getInt(PROP_CLICK_PITCH_LOW, MidiConst.SIDE_STICK);
     }
 
     public void setClickVelocityHigh(int v)
@@ -190,7 +309,7 @@ public class ClickManager
 
     public int getClickVelocityHigh()
     {
-        return prefs.getInt(PROP_CLICK_VELOCITY_HIGH, 95);
+        return prefs.getInt(PROP_CLICK_VELOCITY_HIGH, 120);
     }
 
     public void setClickVelocityLow(int v)
@@ -209,7 +328,7 @@ public class ClickManager
 
     public int getClickVelocityLow()
     {
-        return prefs.getInt(PROP_CLICK_VELOCITY_LOW, 60);
+        return prefs.getInt(PROP_CLICK_VELOCITY_LOW, 90);
     }
 
     /**
@@ -238,7 +357,7 @@ public class ClickManager
         {
             TimeSignature ts = spt.getRhythm().getTimeSignature();
             int nbBars = context.getSptBarRange(spt).size();
-            tick = addClickEvents(track, getChannel(), tick, nbBars, ts);
+            tick = addClickEvents(track, getClickChannel(context.getMidiMix()), tick, nbBars, ts);
         }
 
         // Set EndOfTrack
@@ -250,8 +369,8 @@ public class ClickManager
     /**
      * Add a precount click track to the sequence for the specified song.
      * <p>
-     * Except for the cases below, all existing sequence MidiEvents are shifted 1 or 2 bars later in order to leave room for the
-     * precount bars.
+     * Except for the cases below, all existing sequence MidiEvents are shifted 1 or 2 bars later in order to leave room for the precount
+     * bars.
      * <p>
      * Not moved Meta events: Track name, Tempo and Time signature.
      *
@@ -294,8 +413,7 @@ public class ClickManager
         Track track = sequence.createTrack();
         MidiEvent me = new MidiEvent(MidiUtilities.getTrackNameMetaMessage(PRECOUNT_CLICK_TRACK_NAME), 0);
         track.add(me);
-        addClickEvents(track, getChannel(), 0, nbPrecountBars, ts);
-
+        addClickEvents(track, getClickChannel(context.getMidiMix()), 0, nbPrecountBars, ts);
         return songStartTick;
     }
 
@@ -332,9 +450,10 @@ public class ClickManager
         {
             for (int beat = 0; beat < nbNaturalBeats; beat++)
             {
-                int velocity = ((beat % nbNaturalBeatsPerBar) == 0) ? getClickVelocityHigh() : getClickVelocityLow();  // First bar beat is stronger
-                ShortMessage smOn = new ShortMessage(ShortMessage.NOTE_ON, channel, getClickPitch(), velocity);
-                ShortMessage smOff = new ShortMessage(ShortMessage.NOTE_OFF, channel, getClickPitch(), 0);
+                int velocity = ((beat % nbNaturalBeatsPerBar) == 0) ? getClickVelocityHigh() : getClickVelocityLow();
+                int pitch = ((beat % nbNaturalBeatsPerBar) == 0) ? getClickPitchHigh() : getClickPitchLow();
+                ShortMessage smOn = new ShortMessage(ShortMessage.NOTE_ON, channel, pitch, velocity);
+                ShortMessage smOff = new ShortMessage(ShortMessage.NOTE_OFF, channel, pitch, 0);
                 long tick = tickOffset + beat * MidiConst.PPQ_RESOLUTION;
                 track.add(new MidiEvent(smOn, tick));
                 track.add(new MidiEvent(smOff, tick + MidiConst.PPQ_RESOLUTION / 2));  // Half-beat duration
@@ -344,8 +463,7 @@ public class ClickManager
             LOGGER.log(Level.SEVERE, null, ex);
         }
         // Next section tick
-        long nextTick = tickOffset + (long)(nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
+        long nextTick = tickOffset + (long) (nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
         return nextTick;
     }
-
 }

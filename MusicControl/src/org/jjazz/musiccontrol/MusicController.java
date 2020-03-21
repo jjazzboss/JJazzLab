@@ -55,6 +55,8 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
+import org.jjazz.rhythmmusicgeneration.NoteEvent;
+import org.jjazz.rhythmmusicgeneration.Phrase;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
 import org.openide.util.NbBundle.Messages;
@@ -464,27 +466,56 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Send a short sequence of notes on specified channel.
+     * Send a short sequence of Midi notes on specified channel.
      * <p>
      * If fixPitch &lt; 0 then fixPitch is ignored: play a series of notes starting at 60+transpose. If fixPitch&gt;=0 then play a series of
      * notes with same pitch=fixPitch.
      *
      * @param channel
      * @param fixPitch  -1 means not used.
-     * @param transpose Transposition value in semi-tons to be added. Ignored if fixPitch&gt;=0.
+     * @param transpose Transposition value in semi-tons to be added to test notes. Ignored if fixPitch&gt;=0.
      * @param endAction Called when sequence is over. Can be null.
      * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException If a problem occurred. endAction.run() is called before throwing the
      *                                                                  exception.
      */
     public void playTestNotes(int channel, int fixPitch, int transpose, final Runnable endAction) throws MusicGenerationException
     {
+        Phrase p = new Phrase(channel);
+        float beat = 0;
+        for (int i = 60; i <= 72; i += 3)
+        {
+            int pitch = fixPitch >= 0 ? fixPitch : i + transpose;
+            p.add(new NoteEvent(pitch, 0.5f, 64, beat));
+            beat += 0.5f;
+        }
+        playTestNotes(p, endAction);
+    }
+
+    /**
+     * Play the test notes from specified phrase.
+     * <p>
+     *
+     * @param p
+     * @param endAction Called when sequence is over. Can be null.
+     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException If a problem occurred. endAction.run() is called before throwing the
+     *                                                                  exception.
+     */
+    public void playTestNotes(Phrase p, final Runnable endAction) throws MusicGenerationException
+    {
+        if (p == null)
+        {
+            throw new NullPointerException("p=" + p + " endAction=" + endAction);
+        }
         try
         {
             checkMidi();
             checkPlaybackNotStarted();
         } catch (MusicGenerationException ex)
         {
-            endAction.run();
+            if (endAction != null)
+            {
+                endAction.run();
+            }
             throw ex;
         }
         if (playbackContext != null)
@@ -495,19 +526,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         try
         {
             // build a track to hold the notes to send
-            Sequence seq = new Sequence(Sequence.PPQ, 16);
+            Sequence seq = new Sequence(Sequence.PPQ, MidiConst.PPQ_RESOLUTION);
             Track track = seq.createTrack();
-            ShortMessage sm;
-            for (int i = 60; i <= 72; i += 3)
-            {
-                sm = new ShortMessage();
-                int pitch = fixPitch >= 0 ? fixPitch : i + transpose;
-                sm.setMessage(ShortMessage.NOTE_ON, channel, pitch, 60);
-                track.add(new MidiEvent(sm, i - 57));
-                sm = new ShortMessage();
-                sm.setMessage(ShortMessage.NOTE_OFF, channel, pitch, 60);
-                track.add(new MidiEvent(sm, i - 52));
-            }
+            p.fillTrack(track);
+
             // create an object to listen to the End of Track MetaEvent and stop the sequencer
             MetaEventListener stopSequencer = new MetaEventListener()
             {
@@ -666,14 +688,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             }
         } else if (e.getSource() == ClickManager.getInstance())
         {
-            // Make sure click track is recalculated if click features have changed
-            if (e.getPropertyName() == ClickManager.PROP_CLICK_CHANNEL
-                    || e.getPropertyName() == ClickManager.PROP_CLICK_PITCH
-                    || e.getPropertyName() == ClickManager.PROP_CLICK_VELOCITY_HIGH
-                    || e.getPropertyName() == ClickManager.PROP_CLICK_VELOCITY_LOW)
-            {
-                playbackContext.setDirty();
-            }
+            // Make sure click track is recalculated if click features have changed           
+            playbackContext.setDirty();
         }
 
         if (playbackContext.isDirty() && playbackState == State.PLAYBACK_PAUSED)
@@ -699,7 +715,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         if (mgContext != null)
         {
             int relativeBar = fromBar - mgContext.getBarRange().from;
-            if (relativeBar > 0 || !ClickManager.getInstance().isClickPrecount())
+            if (relativeBar > 0 || !ClickManager.getInstance().isClickPrecountEnabled())
             {
                 // No precount
                 tick = playbackContext.songTickStart + mgContext.getRelativeTick(new Position(relativeBar, 0));
@@ -937,7 +953,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             int trackId = cm.addClickTrack(sequence, context);
 
             // Send a Drums program change if Click channel is not used in the current MidiMix
-            int clickChannel = ClickManager.getInstance().getChannel();
+            int clickChannel = ClickManager.getInstance().getPreferredClickChannel();
             if (context.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
             {
 //                Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
@@ -961,7 +977,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             long tickPos = cm.addPreCountClickTrack(sequence, context);
 
             // Send a Drums program change if Click channel is not used in the current MidiMix
-            int clickChannel = ClickManager.getInstance().getChannel();
+            int clickChannel = ClickManager.getInstance().getPreferredClickChannel();
             if (context.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
             {
 //                Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
@@ -1009,7 +1025,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         void setDirty()
         {
             dirty = true;
-        }     
+        }
     }
 
 }

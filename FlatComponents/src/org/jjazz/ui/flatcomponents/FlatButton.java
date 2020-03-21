@@ -23,11 +23,15 @@
 package org.jjazz.ui.flatcomponents;
 
 import java.awt.Color;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -71,6 +75,7 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
     private Color saveForeground;
     private String saveTooltip;
     private Action action;
+    protected HashMap<Integer, ExtraAction> extraActions = new HashMap<>();
     private ArrayList<ChangeListener> listeners = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(FlatButton.class.getSimpleName());
 
@@ -90,8 +95,7 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
     }
 
     /**
-     * Add a change listener which will be called each time button is pressed. When called listeners will be passed an
-     * ExtendedChangeEvent.
+     * Add a change listener which will be called each time button is pressed. When called listeners will be passed an ExtendedChangeEvent.
      *
      * @param l
      */
@@ -141,6 +145,36 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
         }
         setToolTipText((String) action.getValue(Action.SHORT_DESCRIPTION));
         setEnabled(action.isEnabled());
+    }
+
+    /**
+     * Add an extra ActionListener associated to a combination of ctrl/shift/alt modifiers.
+     * <p>
+     * The specified ActionListener will be called when user clicks the button with a combination of shift/ctrl/alt, as defined by the
+     * parameters. Unless overrideDefaultAction is true, the button's default action (returned by getAction()) is also executed.
+     * <p>
+     *
+     * @param al                    
+     * @param overrideDefaultAction
+     * @param shift
+     * @param ctrl
+     * @param alt
+     * @IllegalArgumentException If al is null or the shift, ctrl and alt are all false.
+     */
+    public void addActionListener(ActionListener al, boolean overrideDefaultAction, boolean shift, boolean ctrl, boolean alt)
+    {
+        if (al == null || (!shift && !ctrl && !alt))
+        {
+            throw new IllegalArgumentException("al=" + al + " shift=" + shift + " ctrl=" + ctrl + " alt=" + alt);
+        }
+        int hash = computeModifiersHash(shift, ctrl, alt);
+        ExtraAction ea = new ExtraAction(al, overrideDefaultAction, shift, ctrl, alt);
+        extraActions.put(hash, ea);
+    }
+
+    public void removeActionListener(ActionListener al)
+    {
+        extraActions.values().removeIf(ea -> ea.actionListener == al);
     }
 
     /**
@@ -302,12 +336,23 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
     // ================================================================================
     /**
      * Notify change listeners and perform the action if present.
+     * <p>
+     * Also perform the corresponding ExtraAction
      *
      * @param e
      */
     protected void buttonClicked(MouseEvent e)
     {
         fireChanged(e);
+        ExtraAction ea = getExtraAction(e.isShiftDown(), e.isControlDown(), e.isAltDown());
+        if (ea != null)
+        {
+            ea.actionListener.actionPerformed(null);
+            if (ea.overrideDefaultAction)
+            {
+                return;
+            }
+        }
         if (action != null)
         {
             action.actionPerformed(null);
@@ -324,6 +369,44 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
         for (ChangeListener l : listeners)
         {
             l.stateChanged(new ExtendedChangeEvent(this, e));
+        }
+    }
+
+    protected int computeModifiersHash(boolean shift, boolean ctrl, boolean alt)
+    {
+        return (shift ? 0 : 1) + (ctrl ? 0 : 2) + (alt ? 0 : 4);
+    }
+
+    /**
+     * @param shift
+     * @param ctrl
+     * @param alt
+     * @return Can be null
+     */
+    protected ExtraAction getExtraAction(boolean shift, boolean ctrl, boolean alt)
+    {
+        return extraActions.get(computeModifiersHash(shift, ctrl, alt));
+    }
+
+    // ========================================================================================
+    // Private classes
+    // ========================================================================================
+    protected final class ExtraAction
+    {
+
+        ActionListener actionListener;
+        boolean overrideDefaultAction;
+        boolean shift;
+        boolean ctrl;
+        boolean alt;
+
+        ExtraAction(ActionListener al, boolean override, boolean shift, boolean ctrl, boolean alt)
+        {
+            actionListener = al;
+            this.overrideDefaultAction = override;
+            this.shift = shift;
+            this.ctrl = ctrl;
+            this.alt = alt;
         }
     }
 }

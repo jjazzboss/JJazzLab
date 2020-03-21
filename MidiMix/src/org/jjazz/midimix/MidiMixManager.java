@@ -51,7 +51,7 @@ public class MidiMixManager implements PropertyChangeListener
      * Need WeakReferences: we don't want to maintain a strong reference if song is no more used.
      */
     private WeakHashMap<Song, MidiMix> mapSongMix = new WeakHashMap<>();
-
+    
     private static final Logger LOGGER = Logger.getLogger(MidiMixManager.class.getSimpleName());
 
     public static MidiMixManager getInstance()

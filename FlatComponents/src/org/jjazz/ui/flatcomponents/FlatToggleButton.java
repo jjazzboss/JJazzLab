@@ -213,6 +213,15 @@ public class FlatToggleButton extends FlatButton
     @Override
     protected void buttonClicked(MouseEvent e)
     {
+        ExtraAction ea = getExtraAction(e.isShiftDown(), e.isControlDown(), e.isAltDown());
+        if (ea != null)
+        {
+            ea.actionListener.actionPerformed(null);
+            if (ea.overrideDefaultAction)
+            {
+                return;
+            }
+        }                
         if (getAction() != null)
         {
             getAction().actionPerformed(new ActionEvent(this, 0, "click"));
