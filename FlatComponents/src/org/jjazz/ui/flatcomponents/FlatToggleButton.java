@@ -79,12 +79,12 @@ public class FlatToggleButton extends FlatButton
         isSelected = b;
         if (isSelected)
         {
-            setIcon(selectedIcon);
+            super.setIcon(selectedIcon);
             saveForeground = getForeground();
             setForeground(selectedForeground);
         } else
         {
-            setIcon(unselectedIcon);
+            super.setIcon(unselectedIcon);
             setForeground(saveForeground);
         }
     }
@@ -95,6 +95,17 @@ public class FlatToggleButton extends FlatButton
     public void doClick()
     {
         buttonClicked(null);
+    }
+
+    /**
+     * Redirected to setUnselectedIcon(icon).
+     *
+     * @param icon
+     */
+    @Override
+    public void setIcon(Icon icon)
+    {
+        setUnselectedIcon(icon);
     }
 
     /**
@@ -112,21 +123,16 @@ public class FlatToggleButton extends FlatButton
     public void setAction(BooleanStateAction bsa)
     {
         super.setAction(bsa);
-        setUnselectedIcon((Icon) bsa.getValue(Action.SMALL_ICON));
         setSelectedIcon((Icon) bsa.getValue(Action.LARGE_ICON_KEY));
         setSelected(bsa.getBooleanState());
     }
 
     public void setUnselectedIcon(Icon icon)
     {
-        if (icon == null)
-        {
-            throw new NullPointerException("icon");
-        }
         this.unselectedIcon = icon;
         if (!isSelected())
         {
-            setIcon(icon);
+            super.setIcon(unselectedIcon);
         }
     }
 
@@ -144,7 +150,7 @@ public class FlatToggleButton extends FlatButton
         this.selectedIcon = selectedIcon;
         if (isSelected())
         {
-            setIcon(selectedIcon);
+            super.setIcon(selectedIcon);
         }
     }
 
@@ -221,7 +227,7 @@ public class FlatToggleButton extends FlatButton
             {
                 return;
             }
-        }                
+        }
         if (getAction() != null)
         {
             getAction().actionPerformed(new ActionEvent(this, 0, "click"));

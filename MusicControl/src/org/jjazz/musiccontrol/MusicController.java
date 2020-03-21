@@ -118,7 +118,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * The current beat position during playback.
      */
     Position currentBeatPosition = new Position();
-    private Sequencer sequencer;
+    private final Sequencer sequencer;
     private int loopCount;
     private boolean isClickEnabled;
 
@@ -135,8 +135,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private boolean debugBuiltSequence = false;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-    private VetoableChangeSupport vcs = new VetoableChangeSupport(this);
-    private List<PlaybackListener> playbackListeners = new ArrayList<>();
+    private final VetoableChangeSupport vcs = new VetoableChangeSupport(this);
+    private final List<PlaybackListener> playbackListeners = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(MusicController.class.getSimpleName());
 
     public static MusicController getInstance()

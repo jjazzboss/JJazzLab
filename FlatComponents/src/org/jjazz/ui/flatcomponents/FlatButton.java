@@ -30,8 +30,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Optional;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.BorderFactory;

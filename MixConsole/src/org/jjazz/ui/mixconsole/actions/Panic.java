@@ -32,6 +32,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.awt.StatusDisplayer;
 import org.openide.util.NbBundle;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.panic")
@@ -64,5 +65,6 @@ public class Panic extends AbstractAction
     public void actionPerformed(ActionEvent e)
     {
         JJazzMidiSystem.getInstance().panic();
+        StatusDisplayer.getDefault().setStatusText("Sending reset Midi messages on all channels...");
     }
 }

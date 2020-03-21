@@ -261,9 +261,6 @@
           <SubComponents>
             <Component class="org.jjazz.ui.flatcomponents.FlatToggleButton" name="fbtn_mute">
               <Properties>
-                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/MuteOff_Icon-21x21.png"/>
-                </Property>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.fbtn_mute.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
@@ -276,6 +273,9 @@
                 </Property>
                 <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/MuteOn_Icon-21x21.png"/>
+                </Property>
+                <Property name="unselectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                  <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/MuteOff_Icon-21x21.png"/>
                 </Property>
               </Properties>
               <Events>
@@ -294,9 +294,6 @@
             <Component class="org.jjazz.ui.flatcomponents.FlatToggleButton" name="fbtn_solo">
               <Properties>
                 <Property name="horizontalAlignment" type="int" value="0"/>
-                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/SoloOff_Icon-21x21.png"/>
-                </Property>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.fbtn_solo.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
@@ -309,6 +306,9 @@
                 </Property>
                 <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/SoloOn_Icon-21x21.png"/>
+                </Property>
+                <Property name="unselectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                  <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/SoloOff_Icon-21x21.png"/>
                 </Property>
               </Properties>
               <Events>

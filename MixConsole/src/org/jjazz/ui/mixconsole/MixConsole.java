@@ -117,10 +117,10 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     };
     private static final Color CHANNEL_COLOR_USER = new Color(102, 102, 0);
     private static Rhythm RHYTHM_ALL;
-    private WeakHashMap<Rhythm, Color> mapRhythmColor = new WeakHashMap<>();
-    private InstanceContent instanceContent;
-    private Lookup lookup;
-    private Lookup.Result<Song> songLkpResult;
+    private final WeakHashMap<Rhythm, Color> mapRhythmColor = new WeakHashMap<>();
+    private final InstanceContent instanceContent;
+    private final Lookup lookup;
+    private final Lookup.Result<Song> songLkpResult;
     private LookupListener songLkpListener;
     /**
      * The song currently edited by this editor.
@@ -128,10 +128,10 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private Song songModel;
     private MidiMix songMidiMix;
     // WeakHashMap for safety/robustness: normally not needed, we remove the song entry upon song closing
-    private WeakHashMap<Song, Rhythm> mapVisibleRhythm;
-    private MixConsoleSettings settings;
+    private final WeakHashMap<Song, Rhythm> mapVisibleRhythm;
+    private final MixConsoleSettings settings;
     private int colorIndex;
-    private MenuBar menuBar;
+    private final MenuBar menuBar;
     private SavableSong savableSong;
     private SaveAsCapableSong saveAsCapableSong;
 
@@ -174,13 +174,9 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         // By default not active
         updateActiveState(false);
 
-        songLkpListener = new LookupListener()
+        songLkpListener = (LookupEvent le) ->
         {
-            @Override
-            public void resultChanged(LookupEvent le)
-            {
-                songPresenceChanged();
-            }
+            songPresenceChanged();
         };
 
         // Our general lookup : store our action map plus the currently edited song and a Savable object when needed
