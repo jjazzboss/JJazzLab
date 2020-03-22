@@ -34,6 +34,7 @@ import org.jjazz.midiconverters.api.ConverterManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.UserChannelRvKey;
+import org.jjazz.musiccontrol.ClickManager;
 import org.jjazz.outputsynth.OutputSynthManager;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -50,7 +51,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     private static final Logger LOGGER = Logger.getLogger(MixChannelPanelControllerImpl.class.getSimpleName());
 
     /**
-     * @param mMix The MidiMix containing all data of our model.
+     * @param mMix    The MidiMix containing all data of our model.
      * @param channel Used to retrieve the InstrumentMix from mMix.
      */
     public MixChannelPanelControllerImpl(MidiMix mMix, int channel)
@@ -80,12 +81,28 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         }
         InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channelId);
         RhythmVoice rvKey = midiMix.getKey(channelId);
+
+        // Check if we use drums channel for a non drums instrument
         if (newChannelId == MidiConst.CHANNEL_DRUMS && !rvKey.isDrums() && !Family.couldBeDrums(insMix.getInstrument().getPatchName()))
         {
-            LOGGER.warning("Instrument " + insMix.getInstrument().getPatchName() + " might not be a 'Drums' instrument, though it is assigned to a channel usually reserved for Drums.");
+            String msg = "Channel 10 is reserved for Drums instruments.";
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            return;
         }
         InstrumentMix replacedInsMix = midiMix.getInstrumentMixFromChannel(newChannelId);
         RhythmVoice replacedRvKey = midiMix.getKey(newChannelId);
+
+        // Can't override the click channel
+        int clickChannel = ClickManager.getInstance().getClickChannel(midiMix);
+        if (newChannelId == clickChannel && !rvKey.isDrums())
+        {
+            String msg = "Channel " + (clickChannel + 1)+" is reserved for the click channel. See Click Options/Preferences to change this setting.";
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            return;
+        }
+
         if (replacedInsMix == null)
         {
             // We don't replace an existing InstrumentMix, remove old and add new one

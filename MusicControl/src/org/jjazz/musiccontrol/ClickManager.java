@@ -36,11 +36,16 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
+import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midimix.MidiMix;
 import static org.jjazz.musiccontrol.ClickManager.PROP_CLICK_PITCH_LOW;
+import org.jjazz.outputsynth.OutputSynth;
+import org.jjazz.outputsynth.OutputSynthManager;
+import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.openide.util.NbPreferences;
 import org.jjazz.songstructure.api.SongPart;
@@ -345,8 +350,10 @@ public class ClickManager
         {
             throw new IllegalArgumentException("seq=" + sequence + " context=" + context);
         }
+        MidiMix midiMix = context.getMidiMix();
         Track track = sequence.createTrack();
-
+        int clickChannel = getClickChannel(midiMix);     
+        
         // Add track name
         MidiEvent me = new MidiEvent(MidiUtilities.getTrackNameMetaMessage(CLICK_TRACK_NAME), 0);
         track.add(me);
@@ -357,7 +364,7 @@ public class ClickManager
         {
             TimeSignature ts = spt.getRhythm().getTimeSignature();
             int nbBars = context.getSptBarRange(spt).size();
-            tick = addClickEvents(track, getClickChannel(context.getMidiMix()), tick, nbBars, ts);
+            tick = addClickEvents(track, clickChannel, tick, nbBars, ts);
         }
 
         // Set EndOfTrack

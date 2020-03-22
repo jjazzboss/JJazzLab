@@ -37,6 +37,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.midi.DrumKit;
@@ -222,9 +223,9 @@ public class OutputSynth implements Serializable
     /**
      * Remove a standard bank compatible with this OutputSynth.
      * <p>
-     * If the only remaining bank is the GM bank, then don't remove it. If removal makes the output synth empty (no instruments)
-     * then automatically add the GM standard bank. Update the UserInstrument if required, so that it's always an instrument from
-     * this OutputSynth.
+     * If the only remaining bank is the GM bank, then don't remove it. If removal makes the output synth empty (no instruments) then
+     * automatically add the GM standard bank. Update the UserInstrument if required, so that it's always an instrument from this
+     * OutputSynth.
      *
      * @param stdBank
      * @return True if stdBank could be successfully removed.
@@ -313,8 +314,8 @@ public class OutputSynth implements Serializable
     /**
      * Remove a custom MidiSynth compatible with this OutputSynth.
      * <p>
-     * If removal makes the output synth empty (no instruments) then automatically add the GM standard bank. Update the User
-     * Instrument if required.
+     * If removal makes the output synth empty (no instruments) then automatically add the GM standard bank. Update the User Instrument if
+     * required.
      *
      * @param synth
      */
@@ -542,7 +543,7 @@ public class OutputSynth implements Serializable
 
             // Search in the std banks for instruments whose GMSubstitute match
             assert gmSubstitute != null : "rv=" + rv;
-            for (InstrumentBank<? extends Instrument> bank : compatibleStdBanks)
+            for (var bank : compatibleStdBanks)
             {
                 List<? extends Instrument> inss = bank.getInstrumentsFromSubstitute(gmSubstitute);
                 if (!inss.isEmpty())
@@ -719,6 +720,39 @@ public class OutputSynth implements Serializable
             }
         }
         return false;
+    }
+
+    /**
+     * Return the first drums instrument found.
+     *
+     * @return Can be the VoidInstrument if no drums instrument found.
+     */
+    public Instrument getDrumsInstrumentSample()
+    {
+        Instrument ins = StdSynth.getInstance().getVoidInstrument();
+        for (MidiSynth synth : customSynths)
+        {
+            List<Instrument> drumsInstruments = synth.getDrumsInstruments();
+            if (!drumsInstruments.isEmpty())
+            {
+                ins = drumsInstruments.get(0);
+                break;
+            }
+        }
+        if (ins == StdSynth.getInstance().getVoidInstrument())
+        {
+            // Try the standard banks
+            for (var bank : compatibleStdBanks)
+            {
+                var drumsInstruments = bank.getDrumsInstruments();
+                if (!drumsInstruments.isEmpty())
+                {
+                    ins = drumsInstruments.get(0);
+                    break;
+                }
+            }
+        }
+        return ins;
     }
 
     /**
