@@ -60,7 +60,6 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         fbtn_Stop.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.stop"));
         fbtn_Click.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.click"));
         fbtn_Precount.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.precount"));
-        fbtn_Precount.addActionListener(al -> nextPrecountMode(), true, true, false, false);    // specific shift click action 
         fbtn_Loop.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.loop"));
         fbtn_PlaybackPoint.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.showplaybackpoint"));
 
@@ -209,25 +208,6 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         // Nothing
     }
 
-    private void nextPrecountMode()
-    {
-        ClickManager cm = ClickManager.getInstance();
-        PrecountMode mode = cm.getClickPrecountMode();
-        switch (mode)
-        {
-            case ONE_BAR:
-                cm.setClickPrecountMode(PrecountMode.TWO_BARS);
-                break;
-            case TWO_BARS:
-                cm.setClickPrecountMode(PrecountMode.AUTO);
-                break;
-            case AUTO:
-                cm.setClickPrecountMode(PrecountMode.ONE_BAR);
-                break;
-            default:
-                throw new AssertionError(mode.name());
-        }
-    }
 
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this

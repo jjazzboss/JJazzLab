@@ -69,7 +69,7 @@
                 </Property>
               </Properties>
               <Events>
-                <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="fbtn_sptNameStateChanged"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fbtn_sptNameActionPerformed"/>
               </Events>
             </Component>
             <Container class="org.jjazz.ui.sptviewer.MultiSelectBar" name="multiSelectBar">
@@ -123,7 +123,7 @@
                 </Property>
               </Properties>
               <Events>
-                <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="fbtn_rhythmStateChanged"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fbtn_rhythmActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>

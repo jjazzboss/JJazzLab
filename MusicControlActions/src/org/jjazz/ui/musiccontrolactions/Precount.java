@@ -24,6 +24,7 @@ package org.jjazz.ui.musiccontrolactions;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
@@ -31,6 +32,7 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.musiccontrol.ClickManager;
+import org.jjazz.musiccontrol.ClickManager.PrecountMode;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.FlatToggleButton;
 import org.openide.awt.ActionID;
@@ -59,6 +61,7 @@ import org.openide.util.actions.BooleanStateAction;
         })
 public class Precount extends BooleanStateAction implements PropertyChangeListener, LookupListener
 {
+
     private Lookup.Result<Song> lookupResult;
     private Song currentSong;
     private static final Logger LOGGER = Logger.getLogger(Precount.class.getSimpleName());
@@ -83,9 +86,32 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    public void actionPerformed(ActionEvent ae)
     {
-        setSelected(!getBooleanState());
+        boolean shift = (ae.getModifiers() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK;
+        if (shift)
+        {
+            // If shift used just change the precount mode
+            ClickManager cm = ClickManager.getInstance();
+            PrecountMode mode = cm.getClickPrecountMode();
+            switch (mode)
+            {
+                case ONE_BAR:
+                    cm.setClickPrecountMode(PrecountMode.TWO_BARS);
+                    break;
+                case TWO_BARS:
+                    cm.setClickPrecountMode(PrecountMode.AUTO);
+                    break;
+                case AUTO:
+                    cm.setClickPrecountMode(PrecountMode.ONE_BAR);
+                    break;
+                default:
+                    throw new AssertionError(mode.name());
+            }
+        } else
+        {
+            setSelected(!getBooleanState());
+        }
     }
 
     public void setSelected(boolean b)

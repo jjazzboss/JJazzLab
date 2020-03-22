@@ -181,7 +181,7 @@ public class FlatToggleButton extends FlatButton
     // PropertyChangeListener interface
     // ======================================================================    
     /**
-     * Overridden to add the support of the LARGE_ICON_KEY and property.
+     * Overridden to add the support of the LARGE_ICON_KEY and BooleanState property.
      *
      * @param evt
      */
@@ -196,9 +196,6 @@ public class FlatToggleButton extends FlatButton
             if (evt.getPropertyName() == Action.LARGE_ICON_KEY)
             {
                 setSelectedIcon((Icon) evt.getNewValue());
-            } else if (evt.getPropertyName() == Action.SMALL_ICON)
-            {
-                setUnselectedIcon((Icon) evt.getNewValue());
             } else if (evt.getPropertyName() == BooleanStateAction.PROP_BOOLEAN_STATE)
             {
                 setSelected(evt.getNewValue().equals(Boolean.TRUE));
@@ -212,29 +209,21 @@ public class FlatToggleButton extends FlatButton
      * If a BooleanStateAction is associated to this button, just call its actionPerformed(): this button listens to the action's
      * PROP_BOOLEAN_STATE and will update itself if action actually switches its state.<br>
      * If no action defined directly change the button's state.<br>
-     * All change listeners are also notified.
+     * All ActionListeners are also notified.
      *
      * @param e
      */
     @Override
     protected void buttonClicked(MouseEvent e)
     {
-        ExtraAction ea = getExtraAction(e.isShiftDown(), e.isControlDown(), e.isAltDown());
-        if (ea != null)
-        {
-            ea.actionListener.actionPerformed(null);
-            if (ea.overrideDefaultAction)
-            {
-                return;
-            }
-        }
+        ActionEvent ae = new ActionEvent(this, 0, "Click", e.getModifiersEx());
         if (getAction() != null)
         {
-            getAction().actionPerformed(new ActionEvent(this, 0, "click"));
+            getAction().actionPerformed(ae);
         } else
         {
             setSelected(!isSelected());
         }
-        fireChanged(e);
+        fireActionPerformed(ae);        
     }
 }
