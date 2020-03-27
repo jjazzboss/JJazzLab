@@ -146,7 +146,7 @@ public class DummyGenerator implements MusicGenerator
                     // Nothing
                     }
                 NoteEvent ne = new NoteEvent(pitch, duration, 70, startPosInBeats++);
-                p.add(ne);
+                p.addOrdered(ne);
             }
         }
         return p;
@@ -175,7 +175,7 @@ public class DummyGenerator implements MusicGenerator
             float duration = cSeq.getChordDuration(i, ts);
             float posInBeats = cSeq.getChordAbsolutePosition(i, ts, startPosInBeats);
             NoteEvent ne = new NoteEvent(bassPitch, duration, 80, posInBeats);
-            p.add(ne);
+            p.addOrdered(ne);
         }
         return p;
     }

@@ -28,6 +28,7 @@ import javax.sound.midi.MidiEvent;
 import javax.sound.midi.ShortMessage;
 import org.jjazz.harmony.Note;
 import org.jjazz.midi.MidiConst;
+import org.jjazz.util.FloatRange;
 import org.openide.util.Exceptions;
 
 /**
@@ -54,83 +55,93 @@ public class NoteEvent extends Note implements Cloneable
     /**
      * Create a MidiNoteEvent from an existing one but using the specified pitch.
      * <p>
-     * Client properties are cloned from mne.
+     * Client properties are cloned from ne.
      *
-     * @param mne
+     * @param ne
      * @param pitch
      */
-    public NoteEvent(NoteEvent mne, int pitch)
+    public NoteEvent(NoteEvent ne, int pitch)
     {
-        this(pitch, mne.getDurationInBeats(), mne.getVelocity(), mne.getPositionInBeats());
-        clientProperties = (mne.clientProperties == null) ? null : new HashMap<>(mne.clientProperties);
+        this(pitch, ne.getDurationInBeats(), ne.getVelocity(), ne.getPositionInBeats());
+        setClientProperties(ne);
     }
 
     /**
      * Create a MidiNoteEvent from an existing one but using the specified duration.
      * <p>
-     * Client properties are cloned from mne.
+     * Client properties are cloned from ne.
      *
-     * @param mne
+     * @param ne
      * @param durationInBeats
      */
-    public NoteEvent(NoteEvent mne, float durationInBeats)
+    public NoteEvent(NoteEvent ne, float durationInBeats)
     {
-        this(mne.getPitch(), durationInBeats, mne.getVelocity(), mne.getPositionInBeats());
-        clientProperties = (mne.clientProperties == null) ? null : new HashMap<>(mne.clientProperties);
+        this(ne.getPitch(), durationInBeats, ne.getVelocity(), ne.getPositionInBeats());
+        setClientProperties(ne);
     }
 
     /**
      * Create a MidiNoteEvent from an existing one but using the specified duration and position.
      * <p>
-     * Client properties are cloned from mne.
+     * Client properties are cloned from ne.
      *
-     * @param mne
+     * @param ne
      * @param durationInBeats
      * @param posInBeats
      */
-    public NoteEvent(NoteEvent mne, float durationInBeats, float posInBeats)
+    public NoteEvent(NoteEvent ne, float durationInBeats, float posInBeats)
     {
-        this(mne.getPitch(), durationInBeats, mne.getVelocity(), posInBeats);
-        clientProperties = (mne.clientProperties == null) ? null : new HashMap<>(mne.clientProperties);
+        this(ne.getPitch(), durationInBeats, ne.getVelocity(), posInBeats);
+        setClientProperties(ne);
     }
 
     /**
      * Create a MidiNoteEvent from an existing one but using the specified pitch, duration and position.
      * <p>
-     * Client properties are cloned from mne.
+     * Client properties are cloned from ne.
      *
-     * @param mne
+     * @param ne
      * @param pitch
      * @param durationInBeats
      * @param posInBeats
      */
-    public NoteEvent(NoteEvent mne, int pitch, float durationInBeats, float posInBeats)
+    public NoteEvent(NoteEvent ne, int pitch, float durationInBeats, float posInBeats)
     {
-        this(pitch, durationInBeats, mne.getVelocity(), posInBeats);
-        clientProperties = (mne.clientProperties == null) ? null : new HashMap<>(mne.clientProperties);
+        this(pitch, durationInBeats, ne.getVelocity(), posInBeats);
+        setClientProperties(ne);
     }
 
     /**
      * Create a MidiNoteEvent from an existing one but using the specified pitch, duration, velocity.
      * <p>
-     * Client properties are cloned from mne.
+     * Client properties are cloned from ne.
      *
-     * @param mne
+     * @param ne
      * @param pitch
      * @param durationInBeats
      * @param velocity
      */
-    public NoteEvent(NoteEvent mne, int pitch, float durationInBeats, int velocity)
+    public NoteEvent(NoteEvent ne, int pitch, float durationInBeats, int velocity)
     {
-        this(pitch, durationInBeats, velocity, mne.getPositionInBeats());
-        clientProperties = (mne.clientProperties == null) ? null : new HashMap<>(mne.clientProperties);
+        this(pitch, durationInBeats, velocity, ne.getPositionInBeats());
+        setClientProperties(ne);
+    }
+
+    /**
+     * Reset all current properties and copy all properties from ne.
+     *
+     * @param ne
+     */
+    public final void setClientProperties(NoteEvent ne)
+    {
+        clientProperties = (ne.clientProperties == null) ? null : new HashMap<>(ne.clientProperties);
     }
 
     /**
      * Put a client property.
      *
      * @param propertyName
-     * @param value If null, the property is removed.
+     * @param value        If null, the property is removed.
      */
     public void putClientProperty(String propertyName, Object value)
     {
@@ -193,6 +204,11 @@ public class NoteEvent extends Note implements Cloneable
     public float getPositionInBeats()
     {
         return position;
+    }
+
+    public FloatRange getBeatRange()
+    {
+        return new FloatRange(position, position + getDurationInBeats());
     }
 
     /**

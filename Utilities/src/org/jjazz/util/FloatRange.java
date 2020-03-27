@@ -32,6 +32,8 @@ public class FloatRange
     public float to;
     /**
      * The special shared instance for the empty range.
+     * <p>
+     * EMPTY_FLOAT_RANGE.size() returns 0.
      */
     public static final FloatRange EMPTY_FLOAT_RANGE = new VoidFloatRange();
 
@@ -41,7 +43,7 @@ public class FloatRange
      * Use the EMPTY_FLOAT_RANGE instance for empty range.
      *
      * @param from Must be &gt;= 0
-     * @param to Must be &gt; from
+     * @param to   Must be &gt; from
      * @throws IllegalArgumentException If from==to
      */
     public FloatRange(float from, float to)
@@ -148,7 +150,7 @@ public class FloatRange
 
         private VoidFloatRange()
         {
-            super(Float.MAX_VALUE /100, Float.MAX_VALUE);
+            super(Float.MAX_VALUE / 100, Float.MAX_VALUE);
         }
 
         @Override

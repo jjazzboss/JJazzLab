@@ -23,21 +23,34 @@
 package org.jjazz.rhythmmusicgeneration;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.Chord;
 import org.jjazz.harmony.Note;
 import org.jjazz.midi.MidiConst;
-import org.jjazz.util.Filter;
+import org.jjazz.midi.MidiUtilities;
+import org.jjazz.util.FloatRange;
 
 /**
  * A list of NoteEvents sorted by start position.
+ * <p>
+ * Use addOrdered() to add a NoteEvent: this will ensure NoteEvents are kept ordered by position. Use of add() methods should be used for
+ * optimization only and not change the NoteEvents order.
+ * <p>
+ * LinkedList implementation to speed up item insertion/remove rather than random access.
  */
-public class Phrase implements Cloneable
+public class Phrase extends LinkedList<NoteEvent>
 {
 
     /**
@@ -45,19 +58,7 @@ public class Phrase implements Cloneable
      */
     public static final String PARENT_NOTE = "PARENT_NOTE";
     private final int channel;
-    // We will make many inserts in the sorted list: linked list avoids the shifting of all subsequent elements.
-    protected final LinkedList<NoteEvent> events = new LinkedList<>();
     private static final Logger LOGGER = Logger.getLogger(Phrase.class.getSimpleName());
-
-    /**
-     * Class used as return value type by getCrossingNotes().
-     */
-    public class NoteAndIndex
-    {
-
-        public NoteEvent noteEvent;
-        public int index;
-    }
 
     /**
      *
@@ -72,16 +73,57 @@ public class Phrase implements Cloneable
         this.channel = channel;
     }
 
+    /**
+     * Add a clone of each p's events to this phrase.
+     *
+     * @param p
+     */
+    public void add(Phrase p)
+    {
+        for (NoteEvent mne : p)
+        {
+            add(mne.clone());
+        }
+    }
+
+    /**
+     * Add a NoteEvent at the correct index depending on its position.
+     * <p>
+     * @param mne
+     */
+    public void addOrdered(NoteEvent mne)
+    {
+        if (isEmpty())
+        {
+            add(mne);
+
+        } else
+        {
+            // There are more chances to find the right place near the end...
+            ListIterator<NoteEvent> it = listIterator(size());
+            boolean beforeEvent = true;
+            while (it.hasPrevious() && (beforeEvent = mne.isBefore(it.previous())))
+            {
+                // Nothing
+            }
+            if (!beforeEvent)
+            {
+                // We exited the loop because we're after the next event
+                it.next();
+            }
+            it.add(mne);
+        }
+    }
+
+    /**
+     * A deep clone: returned phrase contains clones of the original NoteEvents.
+     *
+     * @return
+     */
     @Override
     public Phrase clone()
     {
-        Phrase p = new Phrase(channel);
-        for (NoteEvent mne : events)
-        {
-            NoteEvent mne2 = mne.clone();
-            p.add(mne2);
-        }
-        return p;
+        return getFilteredPhrase(ne -> true);
     }
 
     /**
@@ -94,18 +136,20 @@ public class Phrase implements Cloneable
     }
 
     /**
-     * The number of beats between start of first event and end of last event.
+     * Get the beat range from start of first note to end of last note.
      *
-     * @return 0 if size is less than 2
+     * @return FloatRange.EMPTY_FLOAT_RANGE if phrase is empty.
      */
-    public float getSizeInBeats()
+    public FloatRange getBeatRange()
     {
-        if (events.size() < 2)
+        if (isEmpty())
         {
-            return 0;
+            return FloatRange.EMPTY_FLOAT_RANGE;
         }
-        NoteEvent last = events.get(events.size() - 1);
-        return last.getPositionInBeats() + last.getDurationInBeats() - getFirstEventPosition();
+        float startPos = isEmpty() ? 0 : getFirst().getPositionInBeats();
+        NoteEvent lastNote = getLast();
+        FloatRange fr = new FloatRange(startPos, lastNote.getPositionInBeats() + lastNote.getDurationInBeats());
+        return fr;
     }
 
     /**
@@ -114,15 +158,7 @@ public class Phrase implements Cloneable
      */
     public NoteEvent getHighestPitchNote()
     {
-        NoteEvent res = null;
-        for (NoteEvent event : events)
-        {
-            if (res == null || event.getPitch() > res.getPitch())
-            {
-                res = event;
-            }
-        }
-        return res;
+        return stream().max(Comparator.comparing(NoteEvent::getPitch)).orElse(null);
     }
 
     /**
@@ -131,15 +167,7 @@ public class Phrase implements Cloneable
      */
     public NoteEvent getLowestPitchNote()
     {
-        NoteEvent res = null;
-        for (NoteEvent event : events)
-        {
-            if (res == null || event.getPitch() < res.getPitch())
-            {
-                res = event;
-            }
-        }
-        return res;
+        return stream().min(Comparator.comparing(NoteEvent::getPitch)).orElse(null);
     }
 
     /**
@@ -148,24 +176,7 @@ public class Phrase implements Cloneable
      */
     public NoteEvent getHighestVelocityNote()
     {
-        NoteEvent res = null;
-        for (NoteEvent event : events)
-        {
-            if (res == null || event.getVelocity() > res.getVelocity())
-            {
-                res = event;
-            }
-        }
-        return res;
-    }
-
-    /**
-     *
-     * @return 0 If phrase is empty.
-     */
-    public float getFirstEventPosition()
-    {
-        return events.isEmpty() ? 0 : events.get(0).getPositionInBeats();
+        return stream().max(Comparator.comparing(NoteEvent::getVelocity)).orElse(null);
     }
 
     /**
@@ -174,82 +185,164 @@ public class Phrase implements Cloneable
      */
     public float getLastEventPosition()
     {
-        return events.isEmpty() ? 0 : events.get(events.size() - 1).getPositionInBeats();
+        return isEmpty() ? 0 : getLast().getPositionInBeats();
     }
 
     /**
-     * Get the notes still ringing at specified position.
+     * Get a new phrase from the NoteEvents who match the specified predicate.
      * <p>
+     * New phrase contains clones of the filtered NoteEvents.
      *
-     * @param posInBeats
-     * @return The list of notes (with their index) whose startPos is strictly before posInBeats and endPos strictly after posInBeats
+     * @param predicate
+     * @return
      */
-    public List<NoteAndIndex> getCrossingNotes(float posInBeats)
+    public Phrase getFilteredPhrase(Predicate<NoteEvent> predicate)
     {
-        ArrayList<NoteAndIndex> res = new ArrayList<>();
-        for (int i = 0; i < events.size(); i++)
+        Phrase res = new Phrase(channel);
+        stream().filter(predicate)
+                .forEach(ne -> res.add(ne.clone()));      // Don't need addOrdered here
+        return res;
+    }
+
+    /**
+     * Remove the NoteEvents which does not meet the specified predicate.
+     *
+     * @param p
+     */
+    public void filterPhrase(Predicate<NoteEvent> p)
+    {
+        for (var it = listIterator(); it.hasNext();)
         {
-            NoteEvent ne = events.get(i);
-            float pos = ne.getPositionInBeats();
-            if (pos >= posInBeats)
+            if (!p.test(it.next()))
             {
-                break;
+                it.remove();
             }
-            if (pos + ne.getDurationInBeats() > posInBeats)
+        }
+    }
+
+    /**
+     * Return a new Phrase with filtered notes processed by the specified mapper.
+     * <p>
+     * Notes of the returned phrase will have their PARENT_NOTE client property set to:<br>
+     * - source note's PARENT_NOTE client property if this property is not null, or<br>
+     * - the source note from this phrase.
+     *
+     * @param tester
+     * @param mapper The mapper must NOT change the position
+     * @return
+     */
+    public Phrase getProcessedPhrase(Predicate<NoteEvent> tester, Function<NoteEvent, NoteEvent> mapper)
+    {
+        Phrase res = new Phrase(channel);
+        for (NoteEvent ne : this)
+        {
+            if (tester.test(ne))
             {
-                NoteAndIndex npi = new NoteAndIndex();
-                npi.index = i;
-                npi.noteEvent = ne;
-                res.add(npi);
+                NoteEvent newNe = mapper.apply(ne);
+                newNe.setClientProperties(ne);
+                if (newNe.getClientProperty(PARENT_NOTE) == null)
+                {
+                    newNe.putClientProperty(PARENT_NOTE, ne);         // If no previous PARENT_NOTE client property we can add one
+                }
+                res.add(newNe);
             }
         }
         return res;
     }
 
     /**
-     * Add delta to the velocity of this Phrase notes.
+     * Modify this phrase with filtered notes processed by the specified mapper.
+     * <p>
+     *
+     * @param tester
+     * @param mapper The mapper must NOT change the position
+     */
+    public void processEvents(Predicate<NoteEvent> tester, Function<NoteEvent, NoteEvent> mapper)
+    {
+        for (var it = listIterator(); it.hasNext();)
+        {
+            NoteEvent ne = it.next();
+            if (tester.test(ne))
+            {
+                NoteEvent newNe = mapper.apply(ne);
+                newNe.setClientProperties(ne);
+                it.set(newNe);
+            }
+        }
+    }
+
+    /**
+     * Get a new phrase with notes velocity changed.
      * <p>
      * Velocity is always maintained between 0 and 127. Notes of the returned phrase will have their PARENT_NOTE client property set to:<br>
      * - source note's PARENT_NOTE client property if this property is not null, or<br>
      * - the source note from this phrase
      *
-     * @param delta eg -5 or +10
+     * @param f A function modifying the velocity.
      * @return A new phrase
      */
-    public Phrase getVelocityShiftedPhrase(int delta)
+    public Phrase getVelocityProcessedPhrase(Function<Integer, Integer> f)
     {
-        Phrase res = new Phrase(channel);
-        for (NoteEvent ne : events)
+        return getProcessedPhrase(ne -> true, ne ->
         {
-            int newVelocity = Math.min(ne.getVelocity() + delta, 127);
-            newVelocity = Math.max(newVelocity, 0);
-            NoteEvent tNe = new NoteEvent(ne, ne.getPitch(), ne.getDurationInBeats(), newVelocity);       // This clone also the clientProperties
-            if (tNe.getClientProperty(PARENT_NOTE) == null)
-            {
-                tNe.putClientProperty(PARENT_NOTE, ne);         // If no previous PARENT_NOTE client property we can add one
-            }
-            res.add(tNe);
-        }
-        return res;
+            int v = MidiUtilities.limit(f.apply(ne.getVelocity()));
+            NoteEvent newNe = new NoteEvent(ne, ne.getPitch(), ne.getDurationInBeats(), v);
+            return newNe;
+        });
     }
 
     /**
-     * Get a phrase with only the events accepted by the specified filter.
+     * Change the velocity of all notes of this Phrase.
+     * <p>
+     * Velocity is always maintained between 0 and 127.
      *
-     * @param f
-     * @return
+     * @param f A function modifying the velocity.
      */
-    public Phrase getFilteredPhrase(Filter f)
+    public void processVelocity(Function<Integer, Integer> f)
     {
-        Phrase res = new Phrase(channel);
-        for (NoteEvent ne : this.events)
+        processEvents(ne -> true, ne ->
         {
-            if (f.accept(f))
-            {
-                res.add(ne);
-            }
-        }
-        return res;
+            int v = MidiUtilities.limit(f.apply(ne.getVelocity()));
+            NoteEvent newNe = new NoteEvent(ne, ne.getPitch(), ne.getDurationInBeats(), v);
+            return newNe;
+        });
+    }
+
+    /**
+     * Get a new phrase with all notes changed.
+     * <p>
+     * Pitch is always maintained between 0 and 127. Notes of the returned phrase will have their PARENT_NOTE client property set to:<br>
+     * - source note's PARENT_NOTE client property if this property is not null, or<br>
+     * - the source note from this phrase
+     *
+     * @param f A function modifying the pitch.
+     * @return A new phrase
+     */
+    public Phrase getPitchProcessedPhrase(Function<Integer, Integer> f)
+    {
+        return getProcessedPhrase(ne -> true, ne ->
+        {
+            int p = MidiUtilities.limit(f.apply(ne.getPitch()));
+            NoteEvent newNe = new NoteEvent(ne, p, ne.getDurationInBeats(), ne.getVelocity());
+            return newNe;
+        });
+    }
+
+    /**
+     * Change the pitch of all notes of this Phrase.
+     * <p>
+     * Pitch is always maintained between 0 and 127.
+     *
+     * @param f A function modifying the pitch.
+     */
+    public void processPitch(Function<Integer, Integer> f)
+    {
+        processEvents(ne -> true, ne ->
+        {
+            int p = MidiUtilities.limit(f.apply(ne.getPitch()));
+            NoteEvent newNe = new NoteEvent(ne, p, ne.getDurationInBeats(), ne.getVelocity());
+            return newNe;
+        });
     }
 
     /**
@@ -262,18 +355,22 @@ public class Phrase implements Cloneable
      */
     public void silenceAfter(float posInBeats)
     {
-        for (int i = events.size() - 1; i >= 0; i--)
+        // Use an iterator to avoid using get(i) which is O(n) for a linkedlist
+        ListIterator<NoteEvent> it = listIterator(size());
+        while (it.hasPrevious())
         {
-            NoteEvent ne = events.get(i);
+            NoteEvent ne = it.previous();
             float pos = ne.getPositionInBeats();
             if (pos >= posInBeats)
             {
-                events.remove(i);
+                // Remove notes after posInBeats
+                it.remove();
             } else if (pos + ne.getDurationInBeats() > posInBeats)
             {
+                // Shorten notes before posInBeats but ending after posInBeats
                 float newDuration = posInBeats - pos;
                 NoteEvent ne2 = new NoteEvent(ne, newDuration);
-                events.set(i, ne2);
+                it.set(ne2);
             }
         }
     }
@@ -295,11 +392,9 @@ public class Phrase implements Cloneable
      */
     public void slice(float startPos, float endPos, boolean keepLeft, boolean cutRight)
     {
-        // Proceed in steps to speed up processing of the linkedlist
-        ArrayList<NoteEvent> toBeRemoved = new ArrayList<>();
         ArrayList<NoteEvent> toBeAdded = new ArrayList<>();
 
-        ListIterator<NoteEvent> it = events.listIterator();
+        ListIterator<NoteEvent> it = listIterator();
         while (it.hasNext())
         {
             NoteEvent ne = it.next();
@@ -336,7 +431,7 @@ public class Phrase implements Cloneable
         // Add the new NoteEvents
         for (NoteEvent ne : toBeAdded)
         {
-            add(ne);
+            addOrdered(ne);
         }
 
     }
@@ -360,7 +455,7 @@ public class Phrase implements Cloneable
     {
         ArrayList<NoteEvent> toBeAdded = new ArrayList<>();
 
-        ListIterator<NoteEvent> it = events.listIterator();
+        ListIterator<NoteEvent> it = listIterator();
         while (it.hasNext())
         {
             NoteEvent ne = it.next();
@@ -399,113 +494,36 @@ public class Phrase implements Cloneable
         // Add the new NoteEvents
         for (NoteEvent ne : toBeAdded)
         {
-            add(ne);
+            addOrdered(ne);
         }
     }
 
     /**
-     * Transpose all notes of t semitons.
+     * Get the notes still ringing at specified position.
      * <p>
-     * Transposed notes are limited to pitch [0-127]. <br>
-     * Notes of the returned phrase will have their PARENT_NOTE client property set to:<br>
-     * - source note's PARENT_NOTE client property if this property is not null, or<br>
-     * - the source note from this phrase
      *
-     * @return The new transposed Phrase.
+     * @param posInBeats
+     * @return The list of notes whose startPos is strictly before posInBeats and endPos strictly after posInBeats
      */
-    public Phrase getTransposedPhrase(int t)
+    public List<NoteEvent> getCrossingNotes(float posInBeats)
     {
-        Phrase mnp = new Phrase(channel);
-        for (NoteEvent ne : events)
+        ArrayList<NoteEvent> res = new ArrayList<>();
+        var it = this.listIterator();
+        int i = 0;
+        while (it.hasNext())
         {
-            int newPitch = ne.getPitch() + t;
-            if (newPitch < 0)
+            NoteEvent ne = it.next();
+            float pos = ne.getPositionInBeats();
+            if (pos >= posInBeats)
             {
-                LOGGER.fine("getTransposed() pitch out of range note newPitch=" + newPitch + ". Changed to 0");
-                newPitch = 0;
-            } else if (newPitch > 127)
-            {
-                LOGGER.fine("getTransposed() pitch out of range note newPitch=" + newPitch + ". Changed to 127");
-                newPitch = 127;
+                break;
             }
-            NoteEvent tNe = new NoteEvent(ne, newPitch);       // This clone also the clientProperties
-            if (tNe.getClientProperty(PARENT_NOTE) == null)
+            if (pos + ne.getDurationInBeats() > posInBeats)
             {
-                tNe.putClientProperty(PARENT_NOTE, ne);         // If no previous PARENT_NOTE client property we can add one
+                res.add(ne);
             }
-            mnp.add(tNe);
         }
-        return mnp;
-    }
-
-    /**
-     * Copy all the events of the specified phrase and add them to this phrase.
-     *
-     * @param phrase
-     */
-    public void add(Phrase phrase)
-    {
-        for (NoteEvent mne : phrase.getEvents())
-        {
-            NoteEvent mne2 = mne.clone();
-            add(mne2);
-        }
-    }
-
-    /**
-     * Add a MidiNoteEvent.
-     * <p>
-     * The NoteEvent is added at the correct index depending on its position.
-     *
-     * @param mne
-     */
-    public void add(NoteEvent mne)
-    {
-        if (events.isEmpty())
-        {
-            events.add(mne);
-        } else
-        {
-            // There are more chances to find the right place near the end...
-            ListIterator<NoteEvent> it = events.listIterator(events.size());
-            boolean beforeEvent = true;
-            while (it.hasPrevious() && (beforeEvent = mne.isBefore(it.previous())))
-            {
-                // Nothing
-            }
-            if (!beforeEvent)
-            {
-                // We exited the loop because we're after the next event
-                it.next();
-            }
-            it.add(mne);
-        }
-    }
-
-    /**
-     * Replace NoteEvent at specified index with NoteEvent ne.
-     *
-     * @param index
-     * @param ne
-     */
-    public void replaceNote(int index, NoteEvent ne)
-    {
-        if (index < 0 || index >= events.size() || ne == null)
-        {
-            throw new IllegalArgumentException("index=" + index + " ne=" + ne);
-        }
-        events.set(index, ne);
-    }
-
-    /**
-     * Remove a MidiNoteEvent.
-     *
-     * @param ne
-     * @return
-     */
-    public boolean remove(NoteEvent ne)
-    {
-        return events.remove(ne);
+        return res;
     }
 
     /**
@@ -517,54 +535,13 @@ public class Phrase implements Cloneable
      */
     public void fillTrack(Track track)
     {
-        for (NoteEvent ne : events)
+        for (NoteEvent ne : this)
         {
             for (MidiEvent me : ne.toMidiEvents(channel))
             {
                 track.add(me);
             }
         }
-    }
-
-    /**
-     * Get all NoteEvents sorted by startPosition.
-     * <p>
-     * Be careful: returned LinkedList is the internal data structure of the Phrase.
-     *
-     * @return
-     */
-    public LinkedList<NoteEvent> getEvents()
-    {
-        return events;
-    }
-
-    /**
-     * Get all NoteEvents sorted by startPosition as a List.
-     *
-     * @return
-     */
-    public List<NoteEvent> getEventsAsList()
-    {
-        return new ArrayList<>(events);
-    }
-
-    /**
-     * Get the events matching the specified relative pitch.
-     *
-     * @param relPitch
-     * @return
-     */
-    public List<NoteEvent> getEvents(int relPitch)
-    {
-        ArrayList<NoteEvent> res = new ArrayList<>();
-        for (NoteEvent ne : events)
-        {
-            if (ne.getRelativePitch() == relPitch)
-            {
-                res.add(ne);
-            }
-        }
-        return res;
     }
 
     /**
@@ -575,22 +552,18 @@ public class Phrase implements Cloneable
      */
     public void shiftEvents(float shiftInBeats)
     {
-        for (int i = 0; i < events.size(); i++)
+        var it = listIterator();
+        while (it.hasNext())
         {
-            NoteEvent ne = events.get(i);
+            NoteEvent ne = it.next();
             float newPosInBeats = ne.getPositionInBeats() + shiftInBeats;
             if (newPosInBeats < 0)
             {
                 throw new IllegalArgumentException("ne=" + ne + " shiftInBeats=" + shiftInBeats);
             }
             NoteEvent shiftedNe = new NoteEvent(ne, ne.getDurationInBeats(), newPosInBeats);
-            events.set(i, shiftedNe);
+            it.set(shiftedNe);
         }
-    }
-
-    public boolean isEmpty()
-    {
-        return events.isEmpty();
     }
 
     /**
@@ -600,7 +573,7 @@ public class Phrase implements Cloneable
      */
     public Chord getChord()
     {
-        Chord c = new Chord(events);
+        Chord c = new Chord(this);
         return c;
     }
 
@@ -608,7 +581,7 @@ public class Phrase implements Cloneable
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
-        sb.append("Phrase[ch=").append(channel).append("] size=").append(events.size()).append(" notes=").append(events);
+        sb.append("Phrase[ch=").append(channel).append("] size=").append(size()).append(" notes=").append(super.toString());
 //      if (events.size() >= 1)
 //      {
 //         sb.append(" ne[0]=").append(events.get(0));
@@ -624,9 +597,9 @@ public class Phrase implements Cloneable
     public void dump()
     {
         LOGGER.info(toString());
-        for (NoteEvent mne : events)
+        for (NoteEvent ne : this)
         {
-            LOGGER.info(mne.toString());
+            LOGGER.info(ne.toString());
         }
     }
 
@@ -638,61 +611,81 @@ public class Phrase implements Cloneable
      */
     public void removeOverlappedNotes()
     {
-        for (Note n : getChord().getNotes())
+        // Get all the notes grouped per pitch
+        HashMap<Integer, List<NoteEvent>> mapPitchNotes = new HashMap<>();
+        for (NoteEvent ne : this)
         {
-            ArrayList<NoteEvent> onNotes = new ArrayList<>();
-            for (NoteEvent ne : events.toArray(new NoteEvent[0]))
+            int pitch = ne.getPitch();
+            List<NoteEvent> nes = mapPitchNotes.get(pitch);
+            if (nes == null)
             {
-                if (ne.getPitch() == n.getPitch())
+                nes = new ArrayList<>();
+                mapPitchNotes.put(pitch, nes);
+            }
+            nes.add(ne);
+        }
+
+        // Search for overlapped notes
+        HashSet<NoteEvent> overlappedNotes = new HashSet<>();
+        for (Integer pitch : mapPitchNotes.keySet())
+        {
+            List<NoteEvent> notes = mapPitchNotes.get(pitch);
+            if (notes.size() == 1)
+            {
+                continue;
+            }
+            ArrayList<NoteEvent> noteOnBuffer = new ArrayList<>();
+            for (NoteEvent ne : notes)
+            {
+                FloatRange fr = ne.getBeatRange();
+                boolean removed = false;
+                Iterator<NoteEvent> itOn = noteOnBuffer.iterator();
+                while (itOn.hasNext())
                 {
-                    float curStartPos = ne.getPositionInBeats();
-                    float curEndPos = curStartPos + ne.getDurationInBeats();
-                    boolean needRemove = false;
-                    for (NoteEvent onNote : onNotes.toArray(new NoteEvent[0]))
+                    NoteEvent noteOn = itOn.next();
+                    FloatRange frOn = noteOn.getBeatRange();
+                    if (frOn.to < fr.from)
                     {
-                        float onNoteEndPos = onNote.getPositionInBeats() + onNote.getDurationInBeats();
-                        if (onNoteEndPos < curStartPos)
-                        {
-                            // Remove noteOns which are now Off                     
-                            onNotes.remove(onNote);
-                        } else if (curEndPos <= onNoteEndPos)
-                        {
-                            // Cur note is overlapped !
-                            needRemove = true;
-                            break;
-                        }
+                        // Remove noteOns which are now Off
+                        itOn.remove();
+                    } else if (frOn.to >= fr.to)
+                    {
+                        // Cur note is overlapped !
+                        overlappedNotes.add(ne);
+                        removed = true;
+                        break;
                     }
-                    if (needRemove)
-                    {
-                        remove(ne);
-                    } else
-                    {
-                        onNotes.add(ne);
-                    }
+                }
+                if (!removed)
+                {
+                    noteOnBuffer.add(ne);
                 }
             }
         }
+
+        // Now remove the notes
+        removeAll(overlappedNotes);
     }
 
     /**
-     * Transpose notes (+/- octaves)whose pitch is above highLimit or below lowLimit.
+     * Change the octave of notes whose pitch is above highLimit or below lowLimit.
      * <p>
      * Fixed new notes's PARENT_NOTE client property is preserved.
      *
      * @param lowLimit  There must be at least 1 octave between lowLimit and highLimit
      * @param highLimit There must be at least 1 octave between lowLimit and highLimit
      */
-    public void limitPitchRange(int lowLimit, int highLimit)
+    public void limitPitch(int lowLimit, int highLimit)
     {
         if (lowLimit < 0 || highLimit > 127 || lowLimit > highLimit || highLimit - lowLimit < 11)
         {
             throw new IllegalArgumentException("lowLimit=" + lowLimit + " highLimit=" + highLimit);
         }
-        for (int i = 0; i < events.size(); i++)
+        var it = listIterator();
+        while (it.hasNext())
         {
-            NoteEvent ne = events.get(i);
+            NoteEvent ne = it.next();
             int pitch = ne.getPitch();
-
             while (pitch < lowLimit)
             {
                 pitch += 12;
@@ -701,8 +694,8 @@ public class Phrase implements Cloneable
             {
                 pitch -= 12;
             }
-            NoteEvent nne = new NoteEvent(ne, pitch);
-            events.set(i, nne);
+            NoteEvent newNe = new NoteEvent(ne, pitch);
+            it.set(newNe);
         }
     }
 

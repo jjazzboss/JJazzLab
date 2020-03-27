@@ -23,19 +23,20 @@
 package org.jjazz.rhythmmusicgeneration;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jjazz.harmony.Chord;
 import org.jjazz.harmony.ChordType;
 import org.jjazz.harmony.Degree;
 import org.jjazz.harmony.Note;
 import org.jjazz.harmony.ScaleManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.midi.MidiConst;
 import static org.jjazz.rhythmmusicgeneration.Phrase.PARENT_NOTE;
 import static org.jjazz.util.Utilities.heapPermutation;
 import org.jjazz.rhythmmusicgeneration.SourcePhrase.ChordMode;
@@ -65,11 +66,11 @@ public class Phrases
         {
             NoteEvent ne = new NoteEvent(n.getPitch() + 60, noteDur, n.getVelocity(), pos);
             pos += noteDur;
-            p.add(ne);
+            p.addOrdered(ne);
         }
         // Add octave note at this end
         NoteEvent ne = new NoteEvent(72, noteDur, Note.VELOCITY_STD, pos);
-        p.add(ne);
+        p.addOrdered(ne);
         return p;
     }
 
@@ -80,8 +81,8 @@ public class Phrases
      * Ex: if pSrc=C3,G3,B3,E4 and ecsSrc=C7M and ecsDest=F7b5, then destination phrase=F3,B3,Eb4,Ab4<p>
      * Each destination note of the resulting phrase stores its corresponding source note in the PARENT_NOTE client property.
      *
-     * @param pSrc The source phrase
-     * @param ecsDest The destination extended chord symbol.
+     * @param pSrc      The source phrase
+     * @param ecsDest   The destination extended chord symbol.
      * @param chordMode True if source phrase is a chord phrase for which we want the melodic handling.
      * @return A new phrase with destination notes.
      */
@@ -105,13 +106,13 @@ public class Phrases
         if (ecsSrc.isSameChordType(ecsDest))
         {
             // Special case, same chord types, just transpose notes to destination key
-            for (NoteEvent srcNote : pSrc.getEvents())
+            for (NoteEvent srcNote : pSrc)
             {
                 int destRelPitch = ecsSrc.getRelativePitch(srcNote.getRelativePitch(), ecsDest);
                 int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
                 NoteEvent destNote = new NoteEvent(srcNote, destPitch);
                 destNote.putClientProperty(PARENT_NOTE, srcNote);
-                pDest.add(destNote);
+                pDest.add(destNote);  // Don't need addOrdered here
             }
             return pDest;
         }
@@ -120,7 +121,7 @@ public class Phrases
         HashMap<Degree, Degree> mapSrcDestDegrees = pSrc.getDestDegrees(ecsDest, chordMode ? ChordMode.NO_INVERSION : ChordMode.OFF);
 
         // Create the result phrase
-        for (NoteEvent srcNote : pSrc.getEvents())
+        for (NoteEvent srcNote : pSrc)
         {
             int srcRelPitchToRoot = Note.getNormalizedRelPitch(srcNote.getRelativePitch() - ecsSrc.getRootNote().getRelativePitch());
             Degree srcDegree = ecsSrc.getChordType().getDegreeMostProbable(srcRelPitchToRoot);
@@ -130,7 +131,7 @@ public class Phrases
             int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
             NoteEvent destNote = new NoteEvent(srcNote, destPitch);
             destNote.putClientProperty(PARENT_NOTE, srcNote);
-            pDest.add(destNote);
+            pDest.add(destNote);        // Don't need addOrdered here
         }
         return pDest;
     }
@@ -144,7 +145,7 @@ public class Phrases
      * <p>
      * Each destination note of the resulting phrase stores its corresponding source note in the PARENT_NOTE client property.
      *
-     * @param pSrc The source phrase
+     * @param pSrc    The source phrase
      * @param ecsDest The destination extended chord symbol.
      * @return A new phrase with destination notes.
      */
@@ -167,7 +168,7 @@ public class Phrases
         if (ecsSrc.isSameChordType(ecsDest))
         {
             // Special case, same chord types, just transpose notes to destination key
-            for (NoteEvent srcNote : pSrc.getEvents())
+            for (NoteEvent srcNote : pSrc)
             {
                 int destRelPitch = ecsSrc.getRelativePitch(srcNote.getRelativePitch(), ecsDest);
                 if (destRelPitch == ecsDest.getRootNote().getRelativePitch())
@@ -178,7 +179,7 @@ public class Phrases
                 int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
                 NoteEvent destNote = new NoteEvent(srcNote, destPitch);
                 destNote.putClientProperty(PARENT_NOTE, srcNote);
-                pDest.add(destNote);
+                pDest.add(destNote);         // Don't need addOrdered here
             }
             return pDest;
         }
@@ -188,7 +189,7 @@ public class Phrases
         LOGGER.fine("fitBassPhrase2ChordSymbol() mapSrcDestDegrees=" + mapSrcDestDegrees);
 
         // Create the result phrase      
-        for (NoteEvent srcNote : pSrc.getEvents())
+        for (NoteEvent srcNote : pSrc)
         {
             int srcRelPitchToRoot = Note.getNormalizedRelPitch(srcNote.getRelativePitch() - ecsSrc.getRootNote().getRelativePitch());
             Degree srcDegree = ecsSrc.getChordType().getDegreeMostProbable(srcRelPitchToRoot);
@@ -203,7 +204,7 @@ public class Phrases
             int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
             NoteEvent destNote = new NoteEvent(srcNote, destPitch);
             destNote.putClientProperty(PARENT_NOTE, srcNote);
-            pDest.add(destNote);
+            pDest.add(destNote);         // Don't need addOrdered here
         }
         return pDest;
     }
@@ -219,7 +220,7 @@ public class Phrases
      * Ex: if pSrc=C3,G3,B3,E4 and ecsSrc=C7M and ecsDest=F7b5, then destination phrase=F3,B3,Eb4,Ab4<p>
      * Each destination note of the resulting phrase stores its corresponding source note in the PARENT_NOTE client property.
      *
-     * @param pSrc The source phrase
+     * @param pSrc    The source phrase
      * @param ecsDest The destination extended chord symbol.
      * @return A new phrase with destination notes.
      */
@@ -283,7 +284,7 @@ public class Phrases
         assert bestDestChord != null : "pSrc=" + pSrc + " ecsDest=" + ecsDest;
 
         // Create the destination phrase with the best matching chord
-        for (NoteEvent srcNote : pSrc.getEvents())
+        for (NoteEvent srcNote : pSrc)
         {
             int srcPitch = srcNote.getPitch();
             int srcIndex = pSrcChord.indexOfPitch(srcPitch);
@@ -291,7 +292,7 @@ public class Phrases
             int destPitch = bestDestChord.getNote(srcIndex).getPitch();
             NoteEvent destNote = new NoteEvent(srcNote, destPitch);
             destNote.putClientProperty(PARENT_NOTE, srcNote);
-            pDest.add(destNote);
+            pDest.add(destNote);     // Don't need addOrdered here
         }
 
         return pDest;
@@ -304,8 +305,8 @@ public class Phrases
     /**
      * Compute a score indicating the "compatibility" between the notes of the 2 chords for chord-oriented voicings or melodies.
      * <p>
-     * Best score is 0, 1 is less good, etc. Both chords should be same size. If not, return a score of 10000. Score is also
-     * impacted by musical problems in the destination chord, such as 2 top contiguous notes for example.
+     * Best score is 0, 1 is less good, etc. Both chords should be same size. If not, return a score of 10000. Score is also impacted by
+     * musical problems in the destination chord, such as 2 top contiguous notes for example.
      *
      * @param cSrc
      * @param cDest
@@ -376,13 +377,34 @@ public class Phrases
         if (!Note.checkPitch(rootPitch) || degrees == null)
         {
             throw new IllegalArgumentException("rootPitch=" + rootPitch + " degrees=" + degrees);
-        }
-        ArrayList<Integer> res = new ArrayList<>();
-        for (Degree d : degrees)
-        {
-            int relPitch = Note.getNormalizedRelPitch(rootPitch + d.getPitch());
-            res.add(relPitch);
-        }
+        }        
+        List<Integer> res = Stream.of(degrees)
+                .map(d -> Note.getNormalizedRelPitch(rootPitch + d.getPitch()))
+                .collect(Collectors.toList());
         return res;
     }
+
+    /**
+     * A predicate to test velocity if within the specified bounds.
+     *
+     * @param min
+     * @param max
+     * @return
+     */
+    static public Predicate<NoteEvent> testVelocityRange(final int min, final int max)
+    {
+        return ne -> ne.getVelocity() >= min && ne.getVelocity() <= max;
+    }
+
+    /**
+     * A predicate to test if the notes have one of the specified pitches.
+     *
+     * @param pitches
+     * @return
+     */
+    static public Predicate<NoteEvent> testPitches(List<Integer> pitches)
+    {
+        return ne -> pitches.contains(ne.getPitch());
+    }
+   
 }

@@ -273,12 +273,12 @@ public class MidiSequenceBuilder
             InstrumentSettings insSet = insMix.getSettings();
             if (insSet.getTransposition() != 0)
             {
-                rvPhrases.put(rv, p.getTransposedPhrase(insSet.getTransposition()));
+                p.processPitch(pitch -> pitch +insSet.getTransposition() );
                 LOGGER.fine("processInstrumentsSettings()    Adjusting transposition=" + insSet.getTransposition() + " for rv=" + rv);
             }
             if (insSet.getVelocityShift() != 0)
             {
-                rvPhrases.put(rv, p.getVelocityShiftedPhrase(insSet.getVelocityShift()));
+                p.processVelocity(v -> v +insSet.getVelocityShift() );
                 LOGGER.fine("processInstrumentsSettings()    Adjusting velocity=" + insSet.getVelocityShift() + " for rv=" + rv);
             }
         }
@@ -318,7 +318,7 @@ public class MidiSequenceBuilder
         for (RhythmVoice rv : rvPhrases.keySet())
         {
             Phrase p = rvPhrases.get(rv);
-            for (NoteEvent ne : p.getEvents())
+            for (NoteEvent ne : p)
             {
                 boolean inRange = false;
                 for (FloatRange rg : sptRanges)

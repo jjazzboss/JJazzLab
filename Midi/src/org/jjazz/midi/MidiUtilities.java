@@ -42,6 +42,19 @@ public class MidiUtilities
     private static String[] COMMAND_STRINGS;
     private static final Logger LOGGER = Logger.getLogger(MidiUtilities.class.getSimpleName());
 
+    /**
+     * Make sure x is a in the range [0-127].
+     *
+     * @param x
+     * @return
+     */
+    static public int limit(int x)
+    {
+        x = Math.min(x, 127);
+        x = Math.max(x, 0);
+        return x;
+    }
+
     static public SysexMessage getGmModeOnSysExMessage()
     {
         SysexMessage sm = new SysexMessage();

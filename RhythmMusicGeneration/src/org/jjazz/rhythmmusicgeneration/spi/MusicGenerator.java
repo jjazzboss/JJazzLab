@@ -50,6 +50,20 @@ public interface MusicGenerator
         int getPriority(MusicGenerationContext context);
 
         /**
+         * Identifier of the PostProcessor.
+         *
+         * @return
+         */
+        String getId();
+
+        /**
+         * Description of the PostProcessor.
+         *
+         * @return
+         */
+        String getDescription();
+
+        /**
          * Apply some post-processing to the specified phrases.
          *
          * @param context
@@ -88,7 +102,7 @@ public interface MusicGenerator
      * @return One Phrase per rhythm voice/channel.
      *
      * @throws MusicGenerationException If generator could not produce the expected music. The framework is responsible for notifying the
-     * user of the error message associated to the exception.
+     *                                  user of the error message associated to the exception.
      *
      */
     HashMap<RhythmVoice, Phrase> generateMusic(MusicGenerationContext context) throws MusicGenerationException;

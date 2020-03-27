@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jjazz.harmony.ChordType;
 import org.jjazz.harmony.ChordType.DegreeIndex;
@@ -34,7 +35,6 @@ import static org.jjazz.harmony.Degree.SIXTH_OR_THIRTEENTH;
 import org.jjazz.harmony.Note;
 import org.jjazz.harmony.StandardScaleInstance;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.util.Filter;
 
 /**
  * A source Phrase is Phrase associated to a source chord symbol and possibly with some client properties.
@@ -80,22 +80,16 @@ public class SourcePhrase extends Phrase
     }
 
     /**
-     * Get a new SourcePhrase with only the events accepted by the specified filter.
+     * Overridden to return a SourcePhrase.
      *
-     * @param f
-     * @return SourcePhrase does not have client properties set
+     * @param predicate
+     * @return
      */
     @Override
-    public SourcePhrase getFilteredPhrase(Filter f)
+    public SourcePhrase getFilteredPhrase(Predicate<NoteEvent> predicate)
     {
         SourcePhrase res = new SourcePhrase(getChannel(), chordSymbol);
-        for (NoteEvent ne : events)
-        {
-            if (f.accept(ne))
-            {
-                res.add(ne);
-            }
-        }
+        stream().filter(predicate).forEach(ne -> res.add(ne));
         return res;
     }
 
@@ -170,18 +164,17 @@ public class SourcePhrase extends Phrase
     }
 
     /**
-     * Map each degree of this source phrase (as returned by getUsedDegrees()) to a degree of the specified destination chord
-     * symbol.
+     * Map each degree of this source phrase (as returned by getUsedDegrees()) to a degree of the specified destination chord symbol.
      * <p>
      * If chordMode==false:<br>
      * Destination degrees are the source phrase degrees fitted to the destination chord symbol.
      * <p>
      * If chordMode==true:<br>
      * Destination degrees are the first most important notes of the destination chord symbol. <br>
-     * If destination chord symbol is less complex than the source chord symbol(eg C7M=&gt;C) then one or more destination degrees
-     * are reused.<br>
+     * If destination chord symbol is less complex than the source chord symbol(eg C7M=&gt;C) then one or more destination degrees are
+     * reused.<br>
      *
-     * @param ecsDest The destination chord symbol.
+     * @param ecsDest   The destination chord symbol.
      * @param chordMode
      * @return A map with key="a source chord symbol degree" and value="a destination chord symbol degree".
      */
@@ -255,16 +248,16 @@ public class SourcePhrase extends Phrase
     // Private methods
     //==================================================================================================
     /**
-     * In chord mode, identify the destination chord degrees which should be used to play the degrees (as returned by
-     * getUsedDegrees()) of the source phrase .
+     * In chord mode, identify the destination chord degrees which should be used to play the degrees (as returned by getUsedDegrees()) of
+     * the source phrase .
      * <p>
-     * Based on the use of the most important degrees of the destination chord symbol. Sizes may differ between the nb of source
-     * degrees and the nb of destination degrees. If a direct map sourceDegree=>destDegree is not possible, try to find the
-     * "closest" note depending on the closestToTransposedSrcNote parameter.
+     * Based on the use of the most important degrees of the destination chord symbol. Sizes may differ between the nb of source degrees and
+     * the nb of destination degrees. If a direct map sourceDegree=>destDegree is not possible, try to find the "closest" note depending on
+     * the closestToTransposedSrcNote parameter.
      * <p>
      * 3 cases:<br>
-     * 1/ Destination chord is identical or more complex than source chord symbol (C=>C7): use the first most important degrees of
-     * the destination chord as necessary.<br>
+     * 1/ Destination chord is identical or more complex than source chord symbol (C=>C7): use the first most important degrees of the
+     * destination chord as necessary.<br>
      * 2/ When dest. chord is simpler than source symbol (C7M=>C): same as 1 plus one or more dest. degrees must be reused.<br>
      * 3/ Special case if only 1 or 2 degrees in the source phrase, just reuse them.
      * <p>
@@ -285,10 +278,10 @@ public class SourcePhrase extends Phrase
      * result map=[ROOT=>ROOT, FIFTH=>FIFTH]
      * <p>
      *
-     * @param ecsDest The destination chord symbol.
+     * @param ecsDest   The destination chord symbol.
      * @param chordMode Can not be equal to "OFF".
-     * @return The source phrase degrees and the corresponding destination degrees. A destination degree may appear more than once
-     * (see case 2/ above).
+     * @return The source phrase degrees and the corresponding destination degrees. A destination degree may appear more than once (see case
+     *         2/ above).
      */
     private HashMap<Degree, Degree> getDestDegreesChordMode(ExtChordSymbol ecsDest, ChordMode chordMode)
     {

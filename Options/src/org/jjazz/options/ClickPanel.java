@@ -323,7 +323,7 @@ final class ClickPanel extends javax.swing.JPanel
                pitch = pitchHigh;
                vel = velHigh;
            }
-           p.add(new NoteEvent(pitch, 0.25f, vel, i * 0.5f));
+           p.addOrdered(new NoteEvent(pitch, 0.25f, vel, i * 0.5f));
        }
 
        MusicController mc = MusicController.getInstance();
