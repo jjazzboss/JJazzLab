@@ -158,7 +158,7 @@ public class ChordTypeDatabase
      * @param ct
      * @param alias e.g. "-7" for the "m7" chord type
      * @throws IllegalArgumentException If ct is not part of this database
-     * @throws InvalidAliasException If alias is invalid, e.g. it's already used by a different chord type.
+     * @throws InvalidAliasException    If alias is invalid, e.g. it's already used by a different chord type.
      */
     public void addAlias(ChordType ct, String alias) throws InvalidAliasException
     {
@@ -283,6 +283,29 @@ public class ChordTypeDatabase
             throw new IllegalArgumentException("s=" + s);
         }
         return mapAliasCt.get(s);
+    }
+
+    /**
+     * Get the ChordType which match the specified degrees.
+     *
+     * @param degrees
+     * @return Can be null
+     */
+    public ChordType getChordType(List<Degree> degrees)
+    {
+        if (degrees == null || degrees.isEmpty())
+        {
+            throw new IllegalArgumentException("degrees=" + degrees);
+        }
+        for (ChordType ct : chordTypes)
+        {
+            var ctDegrees = ct.getDegrees();
+            if (ctDegrees.size() == degrees.size() && ctDegrees.containsAll(degrees))
+            {
+                return ct;
+            }
+        }
+        return null;
     }
 
     /**

@@ -46,7 +46,8 @@ import org.jjazz.songstructure.api.SongStructureFactory;
 /**
  * Manage the creation and the registration of the songs.
  * <p>
- * All songs created by this factory are automatically registered. Registered songs are unregistered when song is closed.
+ * All songs created by this factory are automatically registered. Registered songs are unregistered when song is
+ * closed.
  */
 public class SongFactory implements PropertyChangeListener
 {
@@ -219,8 +220,8 @@ public class SongFactory implements PropertyChangeListener
      * @param name
      * @param cls
      * @return
-     * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the
-     *                                  various rhythms.
+     * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi
+     * channels for the various rhythms.
      */
     public Song createSong(String name, ChordLeadSheet cls) throws UnsupportedEditException
     {
@@ -246,8 +247,10 @@ public class SongFactory implements PropertyChangeListener
 
     /**
      * Create an empty song of specified length.
+     * <p>
+     * Initial section is "A" with a C starting chord symbol.
      *
-     * @param name    The name of the song
+     * @param name The name of the song
      * @param clsSize The number of bars of the song.
      * @return
      */
@@ -347,10 +350,10 @@ public class SongFactory implements PropertyChangeListener
     /**
      * Return a copy of the song where the SongStructure does NOT listen to the ChordLeadsheet changes.
      * <p>
-     * WARNING: Because SongStructure and ChordLeadsheet are not linked, changing them might result in inconsistent states. This
-     * should be used only in special cases.<p>
-     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags. Listeners or file are NOT copied.
-     * Created song is registered.
+     * WARNING: Because SongStructure and ChordLeadsheet are not linked, changing them might result in inconsistent
+     * states. This should be used only in special cases.<p>
+     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags. Listeners or file are
+     * NOT copied. Created song is registered.
      *
      * @param song
      * @return

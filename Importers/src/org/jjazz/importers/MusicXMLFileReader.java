@@ -25,19 +25,25 @@ package org.jjazz.importers;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
 import nu.xom.ParsingException;
-import org.jjazz.harmony.ChordSymbol;
-import org.jjazz.harmony.ChordType;
-import org.jjazz.harmony.ChordTypeDatabase;
 import org.jjazz.harmony.Note;
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.importers.jfugue.MusicXmlParser;
+import org.jjazz.importers.musicxml.MusicXmlParser;
+import org.jjazz.importers.musicxml.MusicXmlParserListener;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 
 /**
  * MusicXML leadsheet file reader.
@@ -46,7 +52,6 @@ public class MusicXMLFileReader
 {
 
     private File file;
-    private static final HashMap<String, String> mapChordTypeConversion = new HashMap<>();  // Map special improvisor chordtypes to JJazz ChordTypes
     private static final Logger LOGGER = Logger.getLogger(MusicXMLFileReader.class.getSimpleName());
 
     public MusicXMLFileReader(File f)
@@ -55,7 +60,7 @@ public class MusicXMLFileReader
         {
             throw new NullPointerException("f");
         }
-        this.initMap();
+
         this.file = f;
     }
 
@@ -70,7 +75,10 @@ public class MusicXMLFileReader
     public Song readSong() throws IOException
     {
         MusicXmlParser parser = new MusicXmlParser();
-        parser.addParserListener(new MusicXMLParserListener());
+        var myListener = new MyXmlParserListener();
+        parser.addParserListener(myListener);
+
+
         try
         {
             parser.parse(file);
@@ -78,165 +86,164 @@ public class MusicXMLFileReader
         {
             throw new IOException(ex);
         }
-        if (true)
-        {
-            throw new IOException("YEAAH============");
-        }
-        String title = "No Title";
-        String composer = null;
-        int tempo = 120;
-        TimeSignature ts = TimeSignature.FOUR_FOUR;
-        ChordLeadSheet cls = null;
 
-        // Create the song object from the collected data
-        SongFactory sf = SongFactory.getInstance();
-        Song song = null;
-        try
+        // Result
+        Song song = myListener.song;
+
+        // Propose to remove useless bars (BIAB seems to systematically insert 2 bars at the beginning)                            
+        Position firstPos = myListener.firstChordPos;
+        if (firstPos != null && firstPos.isFirstBarBeat() && firstPos.getBar() > 0)
         {
-            song = sf.createSong(title, cls);  // Throw exception        
-        } catch (UnsupportedEditException ex)
-        {
-            throw new IOException(ex);
+            String msg = file.getName() + " import: first chord symbol is at bar " + (firstPos.getBar() + 1) + ". Do you want to make the song start on bar 1 ?";
+            NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
+            Object result = DialogDisplayer.getDefault().notify(d);
+            if (NotifyDescriptor.YES_OPTION == result)
+            {
+                song.getChordLeadSheet().deleteBars(0, firstPos.getBar() - 1);
+            }
         }
-        song.setTempo(tempo);
-        if (composer != null && composer.isEmpty())
-        {
-            song.setComments("Composer: " + composer);
-        }
+
+
+        int dotIndex = file.getName().lastIndexOf('.');
+        String name = dotIndex >= 0 ? file.getName().substring(0, dotIndex) : file.getName();
+        song.setName(name);
+
+
         return song;
     }
 
     // ==========================================================================================
     // Private methods
     // ==========================================================================================
-    /**
-     * Convert a Improvisor chord symbol string into a JJazzLab chord symbol.
-     *
-     * @param token
-     * @return Null if conversion failed.
-     */
-    private ChordSymbol getChordSymbol(String token)
+    // ============================================================================
+    // Private classes
+    // ============================================================================
+    private class MyXmlParserListener implements MusicXmlParserListener
     {
-        if (mapChordTypeConversion.isEmpty())
+
+        Song song;
+        ChordLeadSheet cls;
+        int songSizeInBars = 0;
+        char sectionChar = 'A';
+        Position firstChordPos = null;
+
+        MyXmlParserListener()
         {
-            initMap();
+            // Create a 4/4 empty song, C chord, "A" section
+            song = SongFactory.getInstance().createEmptySong("musicXML import", ChordLeadSheet.MAX_SIZE);  // Make room !
+            cls = song.getChordLeadSheet();
         }
-        ChordSymbol cs = null;
-        try
+
+        @Override
+        public void beforeParsingStarts()
         {
-            Note bassNote = null;
-            String str = token;
+            // Nothing
+        }
 
-            // Remove rare but possible poly chord like "E\FM"
-            int backslashIndex = token.indexOf(String.valueOf('\\'));
-            if (backslashIndex != -1)
+        @Override
+        public void afterParsingFinished()
+        {
+            // Update size
+            if (songSizeInBars == 0)
             {
-                str = str.substring(backslashIndex + 1, str.length());
+                songSizeInBars = 4;
             }
-
-            // Process possible bass note            
-            int slashIndex = token.indexOf("/");
-            if (slashIndex != -1)
+            song.getChordLeadSheet().setSize(songSizeInBars);
+            if (firstChordPos == null)
             {
-                String strBassNote = token.substring(slashIndex + 1, token.length());
-                bassNote = new Note(strBassNote);
-                str = token.substring(0, slashIndex);
+                LOGGER.warning("afterParsingFinished() No chord symbols found, importing an empty song.");
             }
+        }
 
-            // Bass note has been stripped from token
-            String strRootNote;
-            String strChordType;
-            boolean alteration = str.length() > 1 && (str.charAt(1) == 'b' || str.charAt(1) == '#');
-            if (alteration)
+        @Override
+        public void onTempoChanged(int tempoBPM, int barIndex)
+        {
+            if (barIndex == 0)
             {
-                strRootNote = str.substring(0, 2);
-                strChordType = str.substring(2, str.length());
+                song.setTempo(tempoBPM);
             } else
             {
-                strRootNote = str.substring(0, 1);
-                strChordType = str.substring(1, str.length());
+                LOGGER.warning("onTempoChanged() Tempo changed to " + tempoBPM + " at barIndex=" + barIndex + ": ignored");
             }
-
-            // Build root note
-            Note rootNote = new Note(strRootNote);
-
-            // Build chordtype : should we replace the Improvisor chordtype string by a JJazzLab compatible one?             
-            String strJJazzCt = mapChordTypeConversion.get(strChordType);  // yes by default
-            if (strJJazzCt == null)
-            {
-                // No, we can directly use the original chord type string
-                strJJazzCt = strChordType;
-            }
-            ChordType ct = ChordTypeDatabase.getInstance().getChordType(strJJazzCt);
-            if (ct == null)
-            {
-                throw new ParseException("Chord type '" + strJJazzCt + "' not recognized ", 0);
-            }
-
-            // Create the chord symbol eventually
-            cs = new ChordSymbol(rootNote, bassNote, ct);
-
-        } catch (ParseException ex)
-        {
-            LOGGER.warning("getChordSymbol() can't convert token=" + token + ". ex=" + ex.getLocalizedMessage());
         }
 
-        return cs;
-    }
-
-    private void initMap()
-    {
-        if (!mapChordTypeConversion.isEmpty())
+        @Override
+        public void onTimeSignatureParsed(TimeSignature ts, int barIndex)
         {
-            return;
+            CLI_Section cliSection = cls.getSection(barIndex);
+            Section section = cliSection.getData();
+            if (barIndex == 0)
+            {
+                // Special case
+                try
+                {
+                    cls.setSectionTimeSignature(cliSection, ts);
+                } catch (UnsupportedEditException ex)
+                {
+                    LOGGER.warning("onTimeSignatureParsed() Can't change time signature to " + ts + " at bar " + barIndex + " because: " + ex);
+                    return;
+                }
+            } else if (!section.getTimeSignature().equals(ts))
+            {
+                // Need to introduce a new section
+                sectionChar++;
+                cliSection = CLI_Factory.getDefault().createSection(cls, String.valueOf(sectionChar), ts, barIndex);
+                try
+                {
+                    cls.addSection(cliSection);
+                } catch (UnsupportedEditException ex)
+                {
+                    LOGGER.warning("onTimeSignatureParsed() Can't change time signature to " + ts + " at bar " + barIndex + " because: " + ex);
+                }
+            }
         }
-        // Put in the map only Improvisor chord symbols for which we don't want to add an ChordType alias 
-        // because chordtype is too exotic, eg '7b9b13sus4' !!!!
-        mapChordTypeConversion.put("phryg", "m7");
-        mapChordTypeConversion.put("m11#5", "m11");
-        mapChordTypeConversion.put("m7#5", "m7");
-        mapChordTypeConversion.put("m9#5", "m9");
-        mapChordTypeConversion.put("6b5", "13#11");
-        mapChordTypeConversion.put("mM7b6", "m7M");
-        mapChordTypeConversion.put("mb6", "m");
-        mapChordTypeConversion.put("mb6M7", "m7M");
-        mapChordTypeConversion.put("mb6b9", "m");
-        mapChordTypeConversion.put("M#5add9", "M7#5");
-        mapChordTypeConversion.put("M7+", "7M");
-        mapChordTypeConversion.put("M9#5", "M7#5");
-        mapChordTypeConversion.put("M69#11", "M9#11");
-        mapChordTypeConversion.put("M7#9#11", "M9#11");
-        mapChordTypeConversion.put("6#11", "M7#11");
-        mapChordTypeConversion.put("+add9", "+");
-        mapChordTypeConversion.put("add9no3", "2");
-        mapChordTypeConversion.put("addb9", "7b9b5");
-        mapChordTypeConversion.put("7b13", "7");
-        mapChordTypeConversion.put("7b5#9", "7alt");
-        mapChordTypeConversion.put("7b5b13", "7b5");
-        mapChordTypeConversion.put("7b5b9b13", "7b9b5");
-        mapChordTypeConversion.put("7b6", "7#5");
-        mapChordTypeConversion.put("+add#9", "7#9#5");
-        mapChordTypeConversion.put("7b9#11b13", "7b9b5");
-        mapChordTypeConversion.put("7b9b13#11", "7b9b5");
-        mapChordTypeConversion.put("7b9b13", "7b9");
-        mapChordTypeConversion.put("7no5", "7");
-        mapChordTypeConversion.put("7#11b13", "7#11");
-        mapChordTypeConversion.put("7#5b9#11", "7#5b9");
-        mapChordTypeConversion.put("7#9#11b13", "7#9#11");
-        mapChordTypeConversion.put("7#9b13", "7#9");
-        mapChordTypeConversion.put("9#11b13", "9#11");
-        mapChordTypeConversion.put("9#5#11", "9#11");
-        mapChordTypeConversion.put("9b13", "9#11");
-        mapChordTypeConversion.put("9b5b13", "9b5");
-        mapChordTypeConversion.put("9no5", "9");
-        mapChordTypeConversion.put("13#9#11", "13#11");
-        mapChordTypeConversion.put("Msus2", "sus");
-        mapChordTypeConversion.put("Msus4", "sus");
-        mapChordTypeConversion.put("sus2", "sus");
-        mapChordTypeConversion.put("sus24", "sus");
-        mapChordTypeConversion.put("susb9", "7susb9");
-        mapChordTypeConversion.put("7b9b13sus4", "7susb9");
-        mapChordTypeConversion.put("7sus4b9b13", "7susb9");
-    }
 
+        @Override
+        public void onBarLineParsed(int id, int barIndex)
+        {
+            songSizeInBars = barIndex + 1;
+        }
+
+        @Override
+        public void onLyricParsed(String lyric, Position pos)
+        {
+            // Nothing
+        }
+
+        @Override
+        public void onNoteParsed(Note note, Position pos)
+        {
+            // Nothing
+        }
+
+        @Override
+        public void onChordSymbolParsed(String strChord, Position pos)
+        {
+            if (pos.getBar() == 0 && pos.isFirstBarBeat())
+            {
+                // Special case, remove first the initial chord since it will be replaced
+                List<? extends CLI_ChordSymbol> clis = cls.getItems(0, 0, CLI_ChordSymbol.class);
+                if (!clis.isEmpty())
+                {
+                    cls.removeItem(clis.get(0));
+                }
+            }
+            ExtChordSymbol ecs;
+            try
+            {
+                ecs = new ExtChordSymbol(strChord);
+            } catch (ParseException ex)
+            {
+                LOGGER.warning("onChordSymbolParsed() Invalid chord string=" + strChord + "(" + ex.getLocalizedMessage() + "), can't insert chord at pos=" + pos);
+                return;
+            }
+            CLI_ChordSymbol cliCs = CLI_Factory.getDefault().createChordSymbol(cls, ecs, pos);
+            cls.addItem(cliCs);
+            if (firstChordPos == null)
+            {
+                firstChordPos = pos;
+            }
+        }
+
+    }
 }

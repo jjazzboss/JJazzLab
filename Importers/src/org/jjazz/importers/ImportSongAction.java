@@ -40,6 +40,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.SongEditorManager;
+import org.netbeans.api.progress.*;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -95,7 +96,7 @@ public final class ImportSongAction implements ActionListener
         }
         if (allExtensions.size() > 1)
         {
-            allExtensionsFilter = new FileNameExtensionFilter("All importable files "+allExtensions.toString(), allExtensions.toArray(new String[0]));
+            allExtensionsFilter = new FileNameExtensionFilter("All importable files " + allExtensions.toString(), allExtensions.toArray(new String[0]));
         }
 
         // Initialize the file chooser
@@ -187,7 +188,8 @@ public final class ImportSongAction implements ActionListener
                 importFiles(mapFileImporter);
             }
         };
-        new Thread(r).start();
+        // new Thread(r).start();
+        BaseProgressUtils.showProgressDialogAndRun(r, "Importing...");
     }
 
     private void importFiles(HashMap<File, SongImporter> mapFileImporter)
@@ -198,6 +200,7 @@ public final class ImportSongAction implements ActionListener
             Song song = null;
             try
             {
+                LOGGER.info("importFiles() -- Importing file " + f.getAbsolutePath() + "...");
                 song = importer.importFromFile(f);
             } catch (IOException ex)
             {
