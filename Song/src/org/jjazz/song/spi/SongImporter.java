@@ -55,7 +55,8 @@ public interface SongImporter
      * @param f
      * @return
      * @throws java.io.IOException
+     * @throws org.jjazz.song.spi.SongImportException
      */
-    public Song importFromFile(File f) throws IOException;
+    public Song importFromFile(File f) throws IOException, SongImportException;
 
 }

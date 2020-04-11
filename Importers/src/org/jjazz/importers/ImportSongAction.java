@@ -38,6 +38,7 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.spi.SongImportException;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.SongEditorManager;
 import org.netbeans.api.progress.*;
@@ -48,6 +49,7 @@ import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle.Messages;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
 import org.openide.windows.WindowManager;
@@ -200,11 +202,10 @@ public final class ImportSongAction implements ActionListener
             Song song = null;
             try
             {
-                LOGGER.info("importFiles() -- Importing file " + f.getAbsolutePath() + "...");
+                LOGGER.info("importFiles() -- Importing file " + f.getAbsolutePath() + "...  importerId=" + importer.getId());
                 song = importer.importFromFile(f);
-            } catch (IOException ex)
+            } catch (SongImportException | IOException ex)
             {
-                LOGGER.log(Level.WARNING, "actionPerformed() importer=" + importer.getId() + ", ex=" + ex.getLocalizedMessage());
                 NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
                 continue;
