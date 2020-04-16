@@ -124,8 +124,8 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         final ChordLeadSheet cls = selection.getChordLeadSheet();
         final CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
         char key = (char) 0;
-        LOGGER.log(Level.FINE, "e=" + e);
-        if (e != null && !e.getActionCommand().equalsIgnoreCase("Edit") && !e.getActionCommand().equalsIgnoreCase("Enter"))
+        LOGGER.log(Level.FINE, "e=" + e);        
+        if (e != null && !e.getActionCommand().substring(0, 4).equalsIgnoreCase("Edit") && !e.getActionCommand().substring(0, 5).equalsIgnoreCase("Enter"))
         {
             key = e.getActionCommand().charAt(0);
 
