@@ -22,7 +22,7 @@
  */
 package org.jjazz.ui.spteditor;
 
-import org.jjazz.ui.spteditor.spi.RpEditor;
+import org.jjazz.ui.spteditor.api.RpEditor;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -598,9 +598,8 @@ public class SptEditor extends JPanel implements PropertyChangeListener
 
     private RpEditor addRpEditor(SongPart spt, RhythmParameter<?> rp)
     {
-        // Add an editor for each rp
-        RpEditorFactory rpef = RpEditorFactory.getDefault();
-        RpEditor rpe = rpef.createRpEditor(spt, rp);
+        // Add an editor for each rp        
+        RpEditor rpe = RpEditorFactory.getCustomOrGenericRpEditor(songModel, spt, rp);
         rpe.addPropertyChangeListener(this);
         rpe.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
         // We use a boxlayout Y in panel_RhythmParameters. We must limit the maximum height so that

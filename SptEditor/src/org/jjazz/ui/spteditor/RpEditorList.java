@@ -30,13 +30,14 @@ import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
+import javax.swing.ListCellRenderer;
 
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.jjazz.rhythm.parameters.RP_StringSet;
 import org.jjazz.rhythm.parameters.RhythmParameter;
-import org.jjazz.ui.spteditor.spi.RpEditor;
+import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
@@ -51,7 +52,14 @@ public class RpEditorList extends RpEditor implements ListSelectionListener
     private final List<String> possibleValues = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(RpEditorList.class.getSimpleName());
 
-    public RpEditorList(SongPart spt, RhythmParameter<?> rp)
+    /**
+     * Create a JList renderer for a Rp_StringSet RhythmParameter.
+     *
+     * @param spt
+     * @param rp
+     * @param renderer Can be null
+     */
+    public RpEditorList(SongPart spt, RhythmParameter<?> rp, ListCellRenderer<? super String> renderer)
     {
         super(spt, rp);
 
@@ -62,6 +70,10 @@ public class RpEditorList extends RpEditor implements ListSelectionListener
 
         // Prepare our editor component
         list_rpValue = new JList<>();
+        if (renderer != null)
+        {
+            list_rpValue.setCellRenderer(renderer);
+        }
 
         list_rpValue.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         RP_StringSet rpss = (RP_StringSet) rp;

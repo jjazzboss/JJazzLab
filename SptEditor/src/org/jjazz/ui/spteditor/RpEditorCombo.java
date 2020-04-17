@@ -22,68 +22,52 @@
  */
 package org.jjazz.ui.spteditor;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.logging.Logger;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JTextField;
-import javax.swing.SpinnerListModel;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import org.jjazz.rhythm.parameters.RP_Integer;
 import org.jjazz.rhythm.parameters.RP_State;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.ui.spteditor.api.RpEditor;
-import org.jjazz.ui.utilities.WheelSpinner;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * A RpEditor using a JSpinner for RP_Integer and RP_State parameters.
+ * A RpEditor using a JComboBox for RP_State parameters.
  * <p>
  */
-public class RpEditorSpinner extends RpEditor implements ChangeListener
+public class RpEditorCombo extends RpEditor implements ActionListener
 {
-
-    private final WheelSpinner spinner_rpValue;
-    private static final Logger LOGGER = Logger.getLogger(RpEditorSpinner.class.getSimpleName());
-
-    public RpEditorSpinner(SongPart spt, RhythmParameter<?> rp)
+    
+    private final JComboBox combo_rpValue;
+    private static final Logger LOGGER = Logger.getLogger(RpEditorCombo.class.getSimpleName());
+    
+    public RpEditorCombo(SongPart spt, RhythmParameter<?> rp)
     {
         super(spt, rp);
-
-        // Prepare our editor component
-        spinner_rpValue = new WheelSpinner();
-        spinner_rpValue.addChangeListener(this);
-
-        SpinnerModel sm;
-        RhythmParameter<?> rpModel = getRpModel();
-        SongPart sptModel = getSptModel();
-        if (rpModel instanceof RP_Integer)
-        {
-            RP_Integer rpi = (RP_Integer) rpModel;
-            int minValue = rpi.getMinValue();
-            int maxValue = rpi.getMaxValue();
-            int step = rpi.getStep();
-            int value = sptModel.getRPValue(rpi);
-            sm = new SpinnerNumberModel(value, minValue, maxValue, step);
-        } else if (rpModel instanceof RP_State)
-        {
-            sm = new SpinnerListModel(rpModel.getPossibleValues());
-        } else
+        
+        if (!(rp instanceof RP_State))
         {
             throw new IllegalArgumentException("RhythmParameter type not supported for this editor. rp=" + rp);
         }
-        spinner_rpValue.setModel(sm);
-        spinner_rpValue.setValue(sptModel.getRPValue(rpModel));
-        spinner_rpValue.getDefaultEditor().getTextField().setHorizontalAlignment(JTextField.TRAILING);
 
-        setEditor(spinner_rpValue);
+        // Prepare our editor component
+        combo_rpValue = new JComboBox<String>();
+        combo_rpValue.addActionListener(this);
+        RhythmParameter<?> rpModel = getRpModel();
+        SongPart sptModel = getSptModel();        
+        ComboBoxModel<String> cbModel = new DefaultComboBoxModel<>(rpModel.getPossibleValues().toArray(new String[0]));
+        combo_rpValue.setModel(cbModel);
+        combo_rpValue.setSelectedItem(sptModel.getRPValue(rpModel));
+        setEditor(combo_rpValue);
     }
-
+    
     @Override
     protected JComponent getEditor()
     {
-        return spinner_rpValue;
+        return combo_rpValue;
     }
 
     /**
@@ -99,42 +83,42 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
         {
             if (!firePropChangeEvent)
             {
-                spinner_rpValue.removeChangeListener(this);
+                combo_rpValue.removeActionListener(this);
             }
-            spinner_rpValue.setValue(value);
+            combo_rpValue.setSelectedItem(value);
             if (!firePropChangeEvent)
             {
-                spinner_rpValue.addChangeListener(this);
+                combo_rpValue.addActionListener(this);
             }
         }
     }
-
+    
     @Override
     protected void showMultiValueMode(boolean b)
     {
-        showMultiModeUsingFont(isMultiValueMode(), spinner_rpValue.getDefaultEditor().getTextField());
+        showMultiModeUsingFont(isMultiValueMode(), combo_rpValue);
     }
-
+    
     @Override
     public Object getRpValue()
     {
-        return spinner_rpValue.getValue();
+        return combo_rpValue.getSelectedItem();
     }
-
+    
     @Override
     public void cleanup()
     {
-        spinner_rpValue.removeChangeListener(this);
+        combo_rpValue.removeActionListener(this);
     }
 
     // -----------------------------------------------------------------------------
-    // ChangeListener interface
+    // ActionListener interface
     // -----------------------------------------------------------------------------
     @Override
-    public void stateChanged(ChangeEvent e)
+    public void actionPerformed(ActionEvent e)
     {
-        Object newValue = spinner_rpValue.getValue();
-        spinner_rpValue.setToolTipText(newValue.toString());
+        Object newValue = combo_rpValue.getSelectedItem();
+        combo_rpValue.setToolTipText(newValue.toString());
         firePropertyChange(PROP_RPVALUE, null, newValue);
     }
 }

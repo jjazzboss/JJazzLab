@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.spteditor.spi;
+package org.jjazz.ui.spteditor.api;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -253,7 +253,7 @@ public abstract class RpEditor extends JPanel
     private class FixedWidthPanel extends JPanel
     {
 
-        static final int WIDTH = 100;
+        static final int WIDTH = 130;
 
         @Override
         public Dimension getPreferredSize()
