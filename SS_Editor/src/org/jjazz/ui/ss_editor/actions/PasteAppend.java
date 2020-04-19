@@ -53,11 +53,11 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
-@ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.pasteappend")
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.pasteappend")
 @ActionRegistration(displayName = "#CTL_PasteAppend", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/RL_Editor", position = 900)
+            @ActionReference(path = "Actions/SS_Editor", position = 900)
         })
 @NbBundle.Messages("CTL_PasteAppend=Paste At The End")
 public class PasteAppend extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, ChangeListener

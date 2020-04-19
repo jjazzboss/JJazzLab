@@ -53,7 +53,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
-@ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.insertspt")
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.insertspt")
 @ActionRegistration(displayName = "#CTL_InsertSpt", lazy = false)
 @ActionReferences(
         {

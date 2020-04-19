@@ -48,11 +48,11 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 
-@ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.appendspt")
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.appendspt")
 @ActionRegistration(displayName = "#CTL_AppendSpt", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/RL_Editor", position = 300)
+            @ActionReference(path = "Actions/SS_Editor", position = 300)
         })
 @NbBundle.Messages("CTL_AppendSpt=Insert At The End...")
 public class AppendSpt extends AbstractAction

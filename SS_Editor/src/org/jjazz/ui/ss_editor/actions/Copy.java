@@ -48,7 +48,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 
-@ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.copy")
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.copy")
 @ActionRegistration(displayName = "#CTL_Copy", lazy = false)
 @ActionReferences(
         {

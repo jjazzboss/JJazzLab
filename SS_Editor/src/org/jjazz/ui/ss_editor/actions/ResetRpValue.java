@@ -48,7 +48,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
-@ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.resetrpvalue")
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.resetrpvalue")
 @ActionRegistration(displayName = "#CTL_ResetRpValue", lazy = false)
 @ActionReferences(
         {

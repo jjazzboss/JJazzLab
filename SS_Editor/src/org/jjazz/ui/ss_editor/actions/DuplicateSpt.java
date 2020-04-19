@@ -50,7 +50,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
-@ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.duplicatespt")
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.duplicatespt")
 @ActionRegistration(displayName = "#CTL_DuplicateSpt", lazy = false)
 @ActionReferences(
         {

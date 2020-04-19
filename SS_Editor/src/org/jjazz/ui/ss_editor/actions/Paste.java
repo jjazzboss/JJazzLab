@@ -57,7 +57,7 @@ import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
  *
  * @author Administrateur
  */
-@ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.paste")
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.paste")
 @ActionRegistration(displayName = "#CTL_Paste", lazy = false)
 @ActionReferences(
         {

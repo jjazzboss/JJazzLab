@@ -47,7 +47,7 @@ import org.openide.util.actions.SystemAction;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 
-@ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.removespt")
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.removespt")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {

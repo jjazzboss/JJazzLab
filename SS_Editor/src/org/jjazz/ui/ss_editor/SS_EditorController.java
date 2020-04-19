@@ -106,32 +106,32 @@ public class SS_EditorController implements SS_EditorMouseListener
 
         // Actions created by annotations (equivalent to org.openide.awt.Actions.context())
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_DOWN), "PreviousRpValue");
-        editor.getActionMap().put("PreviousRpValue", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.previousrpvalue"));
+        editor.getActionMap().put("PreviousRpValue", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.previousrpvalue"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_UP), "NextRpValue");
-        editor.getActionMap().put("NextRpValue", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.nextrpvalue"));
+        editor.getActionMap().put("NextRpValue", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.nextrpvalue"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("I"), "InsertSpt");
-        editor.getActionMap().put("InsertSpt", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.insertspt"));
+        editor.getActionMap().put("InsertSpt", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.insertspt"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_I), "AppendSpt");
-        editor.getActionMap().put("AppendSpt", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.appendspt"));
+        editor.getActionMap().put("AppendSpt", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.appendspt"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_I,
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | InputEvent.SHIFT_DOWN_MASK), "PasteAppend");
-        editor.getActionMap().put("PasteAppend", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.pasteappend"));
+        editor.getActionMap().put("PasteAppend", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.pasteappend"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("R"), "EditRhythm");
         editor.getActionMap().put("EditRhythm", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editrhythm"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("D"), "Duplicate");
-        editor.getActionMap().put("Duplicate", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.duplicatespt"));
+        editor.getActionMap().put("Duplicate", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.duplicatespt"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Z"), "ResetRpValue");
-        editor.getActionMap().put("ResetRpValue", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.resetrpvalue"));
+        editor.getActionMap().put("ResetRpValue", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.resetrpvalue"));
 
         // Our delegates for standard Netbeans callback actions
-        editor.getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.cut"));
-        editor.getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.copy"));
-        editor.getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.paste"));
+        editor.getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.cut"));
+        editor.getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.copy"));
+        editor.getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.paste"));
 
         // Delegates for our callback actions        
-        editor.getActionMap().put("jjazz-delete", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.removespt"));
-        editor.getActionMap().put("jjazz-selectall", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.selectall"));
-        editor.getActionMap().put("jjazz-edit", Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.editsptname"));
+        editor.getActionMap().put("jjazz-delete", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.removespt"));
+        editor.getActionMap().put("jjazz-selectall", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.selectall"));
+        editor.getActionMap().put("jjazz-edit", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editsptname"));
         editor.getActionMap().put("jjazz-zoomfitwidth", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.zoomfitwidth"));
 
 //        // Add keybindings which would be otherwise consumed by enclosing JScrollPane or other enclosing components
@@ -180,10 +180,10 @@ public class SS_EditorController implements SS_EditorMouseListener
         editor.selectSongPart(spt, true);
         editor.setFocusOnSongPart(spt);
 
-        Action a = Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.editsptname");
+        Action a = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editsptname");
         if (a == null)
         {
-            LOGGER.log(Level.SEVERE, "Can't find the EditSptName action: org.jjazz.ui.rl_editor.actions.editsptname");
+            LOGGER.log(Level.SEVERE, "Can't find the EditSptName action: org.jjazz.ui.ss_editor.actions.editsptname");
         } else
         {
             a.actionPerformed(null);
@@ -276,10 +276,10 @@ public class SS_EditorController implements SS_EditorMouseListener
             // Don't assume the first click was on a SongPart, it can be on something else !
             // (for example it happens when double clicking while moving near the RhythmParameter editor boundaries)
             LOGGER.log(Level.FINE, "    DOUBLE click");
-            Action a = Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.editsptname");
+            Action a = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editsptname");
             if (a == null)
             {
-                LOGGER.log(Level.SEVERE, "Can't find the EditSptName action: org.jjazz.ui.rl_editor.actions.editsptname");
+                LOGGER.log(Level.SEVERE, "Can't find the EditSptName action: org.jjazz.ui.ss_editor.actions.editsptname");
             } else if (selection.isSongPartSelected())
             {
                 a.actionPerformed(null);
@@ -308,14 +308,14 @@ public class SS_EditorController implements SS_EditorMouseListener
     public void songPartReleased(MouseEvent e, SongPart spt)
     {
         LOGGER.log(Level.FINER, "songPartReleased() spt=" + spt);
-        // Managed by RL_EditorTransferHandler of the SongPart
+        // Managed by SS_EditorTransferHandler of the SongPart
     }
 
     @Override
     public void songPartDragged(MouseEvent e, SongPart spt)
     {
         LOGGER.log(Level.FINE, "songPartDragged() spt=" + spt);
-        // Managed by RL_EditorTransferHandler of the SongPart
+        // Managed by SS_EditorTransferHandler of the SongPart
     }
 
     @Override
@@ -337,7 +337,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         {
             if (popupEditorMenu == null)
             {
-                List<? extends Action> actions = Utilities.actionsForPath("Actions/RL_Editor");
+                List<? extends Action> actions = Utilities.actionsForPath("Actions/SS_Editor");
                 popupEditorMenu = Utilities.actionsToPopup(actions.toArray(new Action[actions.size()]), editor);
             }
             popupEditorMenu.show(e.getComponent(), e.getX(), e.getY());
@@ -520,7 +520,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         // Make sure our TopComponent is active so that global lookup represents our editor's selection. 
         // Because wheel action can be enabled even if the TopComponent is inactive, if editor's selection was indirectly 
         // changed while editor was not active (e.g. rhythm was changed from another TopComponent, or a chordleadsheet section was removed)
-        // the RL_ContextActionSupport which listens to selection via the global lookup will have missed the selection change, causing 
+        // the SS_ContextActionSupport which listens to selection via the global lookup will have missed the selection change, causing 
         // problems in actions.
         SongStructure sgs = editor.getModel();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(sgs);
@@ -546,11 +546,11 @@ public class SS_EditorController implements SS_EditorMouseListener
 
         if (e.getPreciseWheelRotation() < 0)
         {
-            Action action = Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.nextrpvalue");
+            Action action = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.nextrpvalue");
             action.actionPerformed(null);
         } else
         {
-            Action action = Actions.forID("JJazz", "org.jjazz.ui.rl_editor.actions.previousrpvalue");
+            Action action = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.previousrpvalue");
             action.actionPerformed(null);
         }
     }

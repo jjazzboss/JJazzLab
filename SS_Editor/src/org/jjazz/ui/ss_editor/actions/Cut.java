@@ -45,7 +45,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 
-@ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.cut")
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.cut")
 @ActionRegistration(displayName = "#CTL_Cut", lazy = false)
 @ActionReferences(
         {

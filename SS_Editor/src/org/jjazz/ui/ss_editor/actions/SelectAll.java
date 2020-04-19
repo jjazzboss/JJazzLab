@@ -49,7 +49,7 @@ import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 /**
  * SelectAll
  */
-@ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.selectall")
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.selectall")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {

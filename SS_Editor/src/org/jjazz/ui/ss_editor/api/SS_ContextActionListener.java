@@ -23,13 +23,13 @@
 package org.jjazz.ui.ss_editor.api;
 
 /**
- * Listener of events fired by RL_ContextActionSupport.
+ * Listener of events fired by SS_ContextActionSupport.
  */
 public interface SS_ContextActionListener
 {
 
     /**
-     * SongPart or SongPartParameter presence has changed in RL_ContextActionSupport's context.
+     * SongPart or SongPartParameter presence has changed in SS_ContextActionSupport's context.
      *
      * @param selection
      */

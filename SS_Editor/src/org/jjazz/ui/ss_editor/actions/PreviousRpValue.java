@@ -48,7 +48,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 
-@ActionID(category = "JJazz", id = "org.jjazz.ui.rl_editor.actions.previousrpvalue")
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.previousrpvalue")
 @ActionRegistration(displayName = "#CTL_PreviousRpValue", lazy = false)
 @ActionReferences(
         {
