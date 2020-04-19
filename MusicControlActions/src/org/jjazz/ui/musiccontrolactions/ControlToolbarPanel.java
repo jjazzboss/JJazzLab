@@ -27,8 +27,6 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.musiccontrol.ClickManager;
-import org.jjazz.musiccontrol.ClickManager.PrecountMode;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.musiccontrol.PlaybackListener;
 import org.jjazz.song.api.Song;

@@ -1,30 +1,31 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.songstructure.api;
 
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import javax.swing.event.UndoableEditListener;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -112,13 +113,14 @@ public interface SongStructure
      */
     public List<SongPart> getSongParts();
 
+
     /**
-     * Get all the SongParts which share the specified parent CLI_Section, sorted by their getStartBarIndex().
+     * Get the SongParts which match the tester.
      *
-     * @param parentSection
-     * @return Can be empty.
+     * @param tester
+     * @return
      */
-    public List<SongPart> getSongParts(CLI_Section parentSection);
+    public List<SongPart> getSongParts(Predicate<SongPart> tester);
 
     /**
      * Get the SongPart which contains a specific bar.
@@ -146,7 +148,8 @@ public interface SongStructure
     public FloatRange getBeatRange(IntRange barRange);
 
     /**
-     * The position of the specified bar in natural beats: take into account the possible different time signatures before specified bar.
+     * The position of the specified bar in natural beats: take into account the possible different time signatures before
+     * specified bar.
      *
      * @param absoluteBarIndex A value in the range [0 - getSizeInBars()]
      * @return
@@ -170,7 +173,7 @@ public interface SongStructure
      * @param clsItem
      * @return A position within spt range
      * @throws IllegalArgumentException If clsItem does not belong to spt's parent Section.
-     * @throws IllegalStateException    If getParentChordLeadSheet() returns null.
+     * @throws IllegalStateException If getParentChordLeadSheet() returns null.
      */
     public Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem);
 
@@ -183,7 +186,8 @@ public interface SongStructure
      * The startBarIndex of the trailing SongParts is shifted accordingly. The SongPart container will be set to this object.
      *
      * @param spt the value of spt
-     * @throws org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException If new rhythm could not be accepted and no replacement done.
+     * @throws org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException If new rhythm could not be accepted and no
+     * replacement done.
      */
     public void addSongPart(SongPart spt) throws UnsupportedEditException;
 
@@ -208,12 +212,13 @@ public interface SongStructure
     /**
      * Replace SongParts by other SongParts.
      * <p>
-     * Typically used to changed rhythm. The size and startBarIndex of new SongParts must be the same than the replaced ones. The container
-     * of newSpt will be set to this object.
+     * Typically used to changed rhythm. The size and startBarIndex of new SongParts must be the same than the replaced ones. The
+     * container of newSpt will be set to this object.
      *
      * @param oldSpts
      * @param newSpts size must match oldSpts
-     * @throws UnsupportedEditException If replacement was impossible, typically because not enough Midi channels for a new rhythm.
+     * @throws UnsupportedEditException If replacement was impossible, typically because not enough Midi channels for a new
+     * rhythm.
      */
     public void replaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException;
 
@@ -229,8 +234,8 @@ public interface SongStructure
      * Change the value of a specific RhythmParameter.
      *
      * @param <T>
-     * @param spt   The SongPart rp belongs to.
-     * @param rp    The RhythmParameter.
+     * @param spt The SongPart rp belongs to.
+     * @param rp The RhythmParameter.
      * @param value The new value to apply for rp.
      */
     public <T> void setRhythmParameterValue(SongPart spt, RhythmParameter<T> rp, T value);

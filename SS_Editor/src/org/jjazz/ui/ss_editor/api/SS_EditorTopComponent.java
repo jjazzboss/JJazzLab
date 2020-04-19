@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.ui.ss_editor.api;
 
@@ -43,6 +43,7 @@ import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.ui.ss_editor.SS_EditorToolBar;
 
 /**
  * Top component for the SongStructure editor.
@@ -53,8 +54,8 @@ import org.jjazz.songstructure.api.SongStructure;
  */
 @Messages(
         {
-            "HINT_RL_EditorTopComponent=This is a song structure editor window",
-            "CTL_RL_ConfirmClose=OK to close this song without saving changes ?"
+            "HINT_SS_EditorTopComponent=This is a song structure editor window",
+            "CTL_SS_ConfirmClose=OK to close this song without saving changes ?"
         })
 public final class SS_EditorTopComponent extends TopComponent implements PropertyChangeListener
 {
@@ -75,6 +76,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
      * The paired TopComponent.
      */
     private TopComponent pairedTc;
+    private SS_EditorToolBar ssToolBar;
     private static final Logger LOGGER = Logger.getLogger(SS_EditorTopComponent.class.getName());
 
     /**
@@ -106,11 +108,14 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         ssEditor = SS_EditorFactory.getDefault().createEditor(songModel);
         ssEditorController = new SS_EditorController(ssEditor);
         ssEditor.setController(ssEditorController);
+        
+        // Create the toolbar
+        ssToolBar = new SS_EditorToolBar(ssEditor);        
 
         initComponents();
 
         updateTabName();
-        setToolTipText(Bundle.HINT_RL_EditorTopComponent());
+        setToolTipText(Bundle.HINT_SS_EditorTopComponent());
     }
 
     /**
@@ -121,7 +126,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     @Override
     public Action[] getActions()
     {
-        List<? extends Action> newActions = Utilities.actionsForPath("Actions/RL_EditorTopComponent");
+        List<? extends Action> newActions = Utilities.actionsForPath("Actions/SS_EditorTopComponent");
         ArrayList<Action> actions = new ArrayList<>();
         actions.addAll(newActions);
         if (!newActions.isEmpty())
@@ -175,7 +180,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     /**
      * Return the active SS_EditorTopComponent.
      *
-     * @return Null if no active CL_EditorTopComponent found.
+     * @return Null if no active SS_EditorTopComponent found.
      */
     static public SS_EditorTopComponent getActive()
     {
@@ -215,13 +220,20 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     private void initComponents()
     {
 
-        scrollPane_RL_Editor = new javax.swing.JScrollPane(ssEditor);
+        scrollPane_SS_Editor = new javax.swing.JScrollPane(ssEditor);
+        toolbar = ssToolBar;
 
         setLayout(new java.awt.BorderLayout());
-        add(scrollPane_RL_Editor, java.awt.BorderLayout.CENTER);
+        add(scrollPane_SS_Editor, java.awt.BorderLayout.CENTER);
+
+        toolbar.setFloatable(false);
+        toolbar.setOrientation(javax.swing.SwingConstants.VERTICAL);
+        toolbar.setRollover(true);
+        add(toolbar, java.awt.BorderLayout.EAST);
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JScrollPane scrollPane_RL_Editor;
+    private javax.swing.JScrollPane scrollPane_SS_Editor;
+    private javax.swing.JToolBar toolbar;
     // End of variables declaration//GEN-END:variables
 
     @Override

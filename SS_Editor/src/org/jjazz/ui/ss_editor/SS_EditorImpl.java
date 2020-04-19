@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.ui.ss_editor;
 
@@ -40,8 +40,10 @@ import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.TooManyListenersException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -53,6 +55,8 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.base.actions.Savable;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.parameters.RP_SYS_Marker;
+import org.jjazz.rhythm.parameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.RpChangedEvent;
@@ -155,7 +159,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
      * Horizontal and Vertical zoom factor, between 0 and 100.
      */
     private int zoomHFactor, zoomVFactor;
-    private RL_EditorZoomable zoomable;
+    private SS_EditorZoomable zoomable;
     /**
      * Save the last Spt highlighted during song playback.
      */
@@ -171,7 +175,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     private static final Logger LOGGER = Logger.getLogger(SS_EditorImpl.class.getSimpleName());
 
     /**
-     * Creates new form RL_EditorImpl
+     * Creates new form SS_EditorImpl
      */
     public SS_EditorImpl(Song song)
     {
@@ -192,7 +196,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
         // Our implementation is made "Zoomable" by controllers
         // Initialize with actionmap, our Zoomable object   
-        zoomable = new RL_EditorZoomable();
+        zoomable = new SS_EditorZoomable();
         generalLookupContent.add(zoomable);
         generalLookupContent.add(getActionMap());
 
@@ -566,9 +570,8 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         List<RhythmParameter<?>> rps = mapRhythmVisibleRps.getValue(r);
         if (rps == null)
         {
-            // Initialize with all rhythm parameters by default
-            rps = new ArrayList<>();
-            rps.addAll(r.getRhythmParameters());
+            // Initialize the visible rhythm parameters by default
+            rps = new ArrayList<>(getInitialVisibleRps(r));
             mapRhythmVisibleRps.putValue(r, rps);
         }
         List<RhythmParameter<?>> newRps = new ArrayList<>();
@@ -774,7 +777,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             @Override
             public void run()
             {
-                LOGGER.log(Level.FINE, "RL_EditorImpl.songStructureChanged() e=" + e + " spts=" + e.getSongParts());
+                LOGGER.log(Level.FINE, "SS_EditorImpl.songStructureChanged() e=" + e + " spts=" + e.getSongParts());
                 if (e instanceof SptRemovedEvent)
                 {
                     for (SongPart spt : e.getSongParts())
@@ -1111,10 +1114,47 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         }
     }
 
+    /**
+     * Decide which RhythmParameters are visible by default for the specified rhythm.
+     *
+     * @param r
+     * @return
+     */
+    private List<RhythmParameter<?>> getInitialVisibleRps(Rhythm r)
+    {
+        var res = new ArrayList<RhythmParameter<?>>();
+        for (RhythmParameter rp : r.getRhythmParameters())
+        {
+            // Hide TempoFactor and Marker, except if there are used            
+            if ((rp instanceof RP_SYS_Marker) || (rp instanceof RP_SYS_TempoFactor))
+            {
+                for (SongPart spt : sgsModel.getSongParts(spt -> spt.getRhythm() == r))
+                {
+                    if (!spt.getRPValue(rp).equals(rp.getDefaultValue()))
+                    {
+                        if (!res.contains(rp))
+                        {
+                            res.add(rp);
+                        }
+                        continue;
+                    }
+                }
+                continue;
+            } else
+            {
+                if (!res.contains(rp))
+                {
+                    res.add(rp);
+                }
+            }
+        }
+        return res;
+    }
+
     //===========================================================================
     // Private classes
     //===========================================================================    
-    private class RL_EditorZoomable implements Zoomable
+    private class SS_EditorZoomable implements Zoomable
     {
 
         int yFactor = 50;

@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.songstructure;
 
@@ -36,8 +36,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
@@ -96,7 +98,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     /**
      *
-     * @param cls         The parent chordleadsheet
+     * @param cls The parent chordleadsheet
      * @param keepUpdated If true listen to cls changes to remain uptodate
      */
     public SongStructureImpl(ChordLeadSheet cls, boolean keepUpdated)
@@ -394,13 +396,13 @@ public class SongStructureImpl implements SongStructure, Serializable
     }
 
     /**
-     * We need a method that works with a list of SongParts because replacing a single spt at a time may cause problems when there is an
-     * unsupportedEditException.
+     * We need a method that works with a list of SongParts because replacing a single spt at a time may cause problems when there
+     * is an unsupportedEditException.
      * <p>
      * Example: We have spt1=rhythm0, spt2=rhythm0, spt3=rhythm1. There are enough Midi channels for both rhythms.<br>
-     * We want to change rhythm of both spt1 and spt2. If we do one spt at a time, after the first replacement on spt0 we'll have 3 rhythms
-     * and possibly our VetoableListeners will trigger an UnsupportedEditException (if not enough Midi channels), though there should be no
-     * problem since we want to change both spt1 AND spt2 !
+     * We want to change rhythm of both spt1 and spt2. If we do one spt at a time, after the first replacement on spt0 we'll have
+     * 3 rhythms and possibly our VetoableListeners will trigger an UnsupportedEditException (if not enough Midi channels), though
+     * there should be no problem since we want to change both spt1 AND spt2 !
      *
      * @param oldSpts
      * @param newSpts
@@ -646,17 +648,9 @@ public class SongStructureImpl implements SongStructure, Serializable
     }
 
     @Override
-    public List<SongPart> getSongParts(CLI_Section parentSection)
+    public List<SongPart> getSongParts(Predicate<SongPart> tester)
     {
-        ArrayList<SongPart> res = new ArrayList<>();
-        for (SongPart spt : songParts)
-        {
-            if (spt.getParentSection().equals(parentSection))
-            {
-                res.add(spt);
-            }
-        }
-        return res;
+        return songParts.stream().filter(tester).collect(Collectors.toList());
     }
 
     @Override
@@ -825,8 +819,8 @@ public class SongStructureImpl implements SongStructure, Serializable
     }
 
     /**
-     * Convenience method, identitical to fireVetoableChangeEvent, except that caller considers that an UnsupportedEditException will never
-     * be thrown.
+     * Convenience method, identitical to fireVetoableChangeEvent, except that caller considers that an UnsupportedEditException
+     * will never be thrown.
      *
      * @param event
      * @throws IllegalStateException If an UnsupportedEditException was catched.
