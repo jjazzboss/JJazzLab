@@ -489,7 +489,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
                 + "  - Close JJazzLab\n"
                 + "  - Delete directory " + userDir.getAbsolutePath() + "\n"
                 + "  - Restart JJazzLab\n"
-                + "Note: on Windows the 'roaming' folder is hidden by default";
+                + "Note: on Windows the 'AppData' folder is hidden by default";
         NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
         DialogDisplayer.getDefault().notify(nd);
     }//GEN-LAST:event_btn_resetSettingsActionPerformed
