@@ -144,7 +144,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         if (ins != null)
         {
             // Warning if drums keymap is not compatible even via a converter
-            if (rv.isDrums())
+            if (rv.isDrums() && ins.isDrumKit())
             {
                 DrumKit.KeyMap srcKeyMap = rv.getPreferredInstrument().getDrumKit().getKeyMap();
                 DrumKit.KeyMap destKeyMap = ins.getDrumKit().getKeyMap();
