@@ -222,7 +222,7 @@ public class RP_Integer implements RhythmParameter<Integer>
         if (possibleValues == null)
         {
             possibleValues = new ArrayList<>();
-            int count = 10000;
+            int count = 1000;
             Integer value = minValue;
             do
             {

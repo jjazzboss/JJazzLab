@@ -36,16 +36,11 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
-import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midimix.MidiMix;
 import static org.jjazz.musiccontrol.ClickManager.PROP_CLICK_PITCH_LOW;
-import org.jjazz.outputsynth.OutputSynth;
-import org.jjazz.outputsynth.OutputSynthManager;
-import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.openide.util.NbPreferences;
 import org.jjazz.songstructure.api.SongPart;
@@ -168,7 +163,7 @@ public class ClickManager
      * The parameters are only used if precount mode is set to AUTO.<br>
      * Example in AUTO mode: a very fast tempo song will use 2 bars, a 4/4 will use 1 bar up to mid-range tempo etc.
      *
-     * @param ts    Ignored if precount mode is not AUTO.
+     * @param ts Ignored if precount mode is not AUTO.
      * @param tempo Ignored if precount mode is not AUTO.
      * @return Can be 1 or 2 bars.
      */
@@ -234,7 +229,8 @@ public class ClickManager
     /**
      * The actual Midi channel to be used with he specified MidiMix.
      * <p>
-     * If in the midiMix channel=getPreferredClickChannel() is used and is not a drums/percussion instrument, return the Midi channel
+     * If in the midiMix channel=getPreferredClickChannel() is used and is not a drums/percussion instrument, return the Midi
+     * channel
      * MidiConst.CHANNEL_DRUMS. Otherwise return getPreferredClickChannel().
      *
      * @param midiMix
@@ -352,8 +348,8 @@ public class ClickManager
         }
         MidiMix midiMix = context.getMidiMix();
         Track track = sequence.createTrack();
-        int clickChannel = getClickChannel(midiMix);     
-        
+        int clickChannel = getClickChannel(midiMix);
+
         // Add track name
         MidiEvent me = new MidiEvent(MidiUtilities.getTrackNameMetaMessage(CLICK_TRACK_NAME), 0);
         track.add(me);
@@ -376,10 +372,11 @@ public class ClickManager
     /**
      * Add a precount click track to the sequence for the specified song.
      * <p>
-     * Except for the cases below, all existing sequence MidiEvents are shifted 1 or 2 bars later in order to leave room for the precount
+     * Except for the cases below, all existing sequence MidiEvents are shifted 1 or 2 bars later in order to leave room for the
+     * precount
      * bars.
      * <p>
-     * Not moved Meta events: Track name, Tempo and Time signature.
+     * Not moved Meta events: Track name and Time signature.
      *
      * @param sequence The sequence for which we add the precount click track.
      * @param context
@@ -406,8 +403,8 @@ public class ClickManager
                 if (mm instanceof MetaMessage)
                 {
                     int type = ((MetaMessage) mm).getType();
-                    // Track name=3, tempo=81, time signature=88                    
-                    if (type == 3 || type == 81 || type == 88)
+                    // Track name=3, time signature=88                    
+                    if (type == 3 || type == 88)
                     {
                         continue;
                     }

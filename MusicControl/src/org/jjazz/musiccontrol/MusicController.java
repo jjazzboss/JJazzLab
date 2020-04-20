@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.musiccontrol;
 
@@ -37,7 +37,6 @@ import javax.sound.midi.ControllerEventListener;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaEventListener;
 import javax.sound.midi.MetaMessage;
-import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
@@ -69,10 +68,9 @@ import org.openide.util.NbBundle.Messages;
  * - pre-playback : vetoable change, ie listeners can fire a PropertyVetoException to prevent playback to start<br>
  * - click and loop ON/OFF changes<br>
  * <p>
- * Use PlaybackListener to get notified of other events (bar/beat changes etc.) during playback. Note that PlaybackListeners will be
- * notified out of the Swing EDT.
+ * Use PlaybackListener to get notified of other events (bar/beat changes etc.) during playback. Note that PlaybackListeners will
+ * be notified out of the Swing EDT.
  * <p>
- * When calling
  */
 @Messages(
         {
@@ -83,15 +81,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
     public static final String PROP_PLAYBACK_STATE = "PropPlaybackState";
     /**
-     * This vetoable property is changed/fired just before starting playback and can be vetoed by vetoables listeners to cancel playback
-     * start.
+     * This vetoable property is changed/fired just before starting playback and can be vetoed by vetoables listeners to cancel
+     * playback start.
      * <p>
      * NewValue=MusicGenerationContext object.
      */
     public static final String PROPVETO_PRE_PLAYBACK = "PropVetoPrePlayback";
     public static final String PROP_CLICK = "PropClick";
     public static final String PROP_LOOPCOUNT = "PropLoopCount";
-    private static final int TEMPO_DEFAULT = 120;
+
 
     /**
      * The playback states.
@@ -121,6 +119,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private final Sequencer sequencer;
     private int loopCount;
     private boolean isClickEnabled;
+    /**
+     * The tempo factor to go from MidiConst.SEQUENCER_REF_TEMPO to song tempo.
+     */
+    private float songTempoFactor;
+    /**
+     * The tempo factor of the SongPart being played.
+     */
+    private float songPartTempoFactor = 1;
 
     /**
      * The list of the controller changes listened to
@@ -128,7 +134,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private static final int[] listenedControllers =
     {
         MidiConst.CTRL_CHG_JJAZZ_BEAT_CHANGE,
-        MidiConst.CTRL_CHG_JJAZZ_ACTIVITY
+        MidiConst.CTRL_CHG_JJAZZ_ACTIVITY,
+        MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR
     };
     /**
      * If true display built sequence when it is built
@@ -151,11 +158,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         return INSTANCE;
     }
 
+    /**
+     * The sequencer tempo must be set to 100.
+     */
     private MusicController()
     {
         loopCount = 0;
         playbackState = State.PLAYBACK_STOPPED;
         isClickEnabled = false;
+
 
         // Initialize the sequencer
         sequencer = JJazzMidiSystem.getInstance().getDefaultSequencer();
@@ -165,7 +176,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             LOGGER.severe(ERR_SequencerLimited());
         }
-        sequencer.setTempoInBPM(TEMPO_DEFAULT);
+        sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
 
         // Listen to click settings changes
         ClickManager.getInstance().addPropertyChangeListener(this);
@@ -176,7 +187,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * <p>
      * Stop the playback if it was on. Tempo is set to song's tempo.
      *
-     * @param context        Can be null.
+     * @param context Can be null.
      * @param postProcessors Optional PostProcessors to use when generating the backing track.
      * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException
      */
@@ -186,23 +197,32 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             return;
         }
+
+
         stop();
+        songPartTempoFactor = 1f;
+
+
         if (this.mgContext != null)
         {
             this.mgContext.getMidiMix().removePropertyListener(this);
             this.mgContext.getSong().removePropertyChangeListener(this);
         }
+
+
         if (playbackContext != null)
         {
             playbackContext.close();
             playbackContext = null;
         }
+
+
         this.mgContext = context;
         if (this.mgContext != null)
         {
             this.mgContext.getMidiMix().addPropertyListener(this);
             this.mgContext.getSong().addPropertyChangeListener(this);
-            setTempo(this.mgContext.getSong().getTempo());
+            songTempoChanged(mgContext.getSong().getTempo());
             playbackContext = new PlaybackContext(this.mgContext, postProcessors);
             playbackContext.buildSequence();
         }
@@ -216,11 +236,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      *
      * @param fromBarIndex Play the song from this bar. Bar must be within the context's range.
      *
-     * @throws java.beans.PropertyVetoException If a vetoable listener vetoed the playback start. A listener who has already notified user
-     *                                          should throw an exception with a null message.
-     * @throws MusicGenerationException         If a problem occurred which prevents song playing: no Midi out, song is already playing,
-     *                                          rhythm music generation problem, etc.
-     * @throws IllegalStateException            If context is null.
+     * @throws java.beans.PropertyVetoException If a vetoable listener vetoed the playback start. A listener who has already
+     * notified user should throw an exception with a null message.
+     * @throws MusicGenerationException If a problem occurred which prevents song playing: no Midi out, song is already playing,
+     * rhythm music generation problem, etc.
+     * @throws IllegalStateException If context is null.
      *
      * @see #getPlayingSongCopy()
      */
@@ -235,8 +255,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             throw new IllegalArgumentException("context=" + mgContext + ", fromBarIndex=" + fromBarIndex);
         }
 
+
         checkMidi();                // throws MusicGenerationException
         checkPlaybackNotStarted();  // throws MusicGenerationException
+
 
         // If we're here then playbackState = PAUSE or STOPPED
         if (mgContext.getBarRange().isEmpty())
@@ -245,8 +267,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             throw new MusicGenerationException("Nothing to play");
         }
 
+
         // Check that all listeners are OK to start playback
         vcs.fireVetoableChange(PROPVETO_PRE_PLAYBACK, null, mgContext);  // can raise PropertyVetoException
+
 
         // Regenerate the sequence and the related data if needed
         if (playbackContext.isDirty())
@@ -254,16 +278,18 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             playbackContext.buildSequence();
         }
 
+
         // Set start position
         setPosition(fromBarIndex);
 
+
         // Start or restart the sequencer
         sequencer.setLoopCount(loopCount);
-
-        sequencer.start();
+        seqStart();
 
         State old = this.getPlaybackState();
         playbackState = State.PLAYBACK_STARTED;
+
 
         pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, playbackState);
     }
@@ -271,8 +297,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Resume playback from the pause state.
      * <p>
-     * If played/paused song was modified, then resume() will just redirect to the play() method. If state is not PLAYBACK_PAUSED, nothing
-     * is done.
+     * If played/paused song was modified, then resume() will just redirect to the play() method. If state is not PLAYBACK_PAUSED,
+     * nothing is done.
      *
      * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException
      * @throws java.beans.PropertyVetoException
@@ -301,7 +327,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         vcs.fireVetoableChange(PROPVETO_PRE_PLAYBACK, null, mgContext.getSong());  // can raise PropertyVetoException
 
         // Let's go again
-        sequencer.start();
+        seqStart();
 
         State old = this.getPlaybackState();
         playbackState = State.PLAYBACK_STARTED;
@@ -316,6 +342,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     public void stop()
     {
         sequencer.stop();
+        songPartTempoFactor = 1;
         State old = this.getPlaybackState();
         playbackState = State.PLAYBACK_STOPPED;
         pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, playbackState);
@@ -451,7 +478,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Listeners will be notified via the PROPVETO_PRE_PLAYBACK property change before a playback is started.
      * <p>
-     * The NewValue is a MusicGenerationContext object. Note that listener is responsible for informing the user if the change was vetoed.
+     * The NewValue is a MusicGenerationContext object. Note that listener is responsible for informing the user if the change was
+     * vetoed.
      *
      * @param listener
      */
@@ -468,15 +496,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Send a short sequence of Midi notes on specified channel.
      * <p>
-     * If fixPitch &lt; 0 then fixPitch is ignored: play a series of notes starting at 60+transpose. If fixPitch&gt;=0 then play a series of
-     * notes with same pitch=fixPitch.
+     * If fixPitch &lt; 0 then fixPitch is ignored: play a series of notes starting at 60+transpose. If fixPitch&gt;=0 then play a
+     * series of notes with same pitch=fixPitch.
      *
      * @param channel
-     * @param fixPitch  -1 means not used.
+     * @param fixPitch -1 means not used.
      * @param transpose Transposition value in semi-tons to be added to test notes. Ignored if fixPitch&gt;=0.
      * @param endAction Called when sequence is over. Can be null.
-     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException If a problem occurred. endAction.run() is called before throwing the
-     *                                                                  exception.
+     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException If a problem occurred. endAction.run() is called before
+     * throwing the exception.
      */
     public void playTestNotes(int channel, int fixPitch, int transpose, final Runnable endAction) throws MusicGenerationException
     {
@@ -497,8 +525,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      *
      * @param p
      * @param endAction Called when sequence is over. Can be null.
-     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException If a problem occurred. endAction.run() is called before throwing the
-     *                                                                  exception.
+     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException If a problem occurred. endAction.run() is called before
+     * throwing the exception.
      */
     public void playTestNotes(Phrase p, final Runnable endAction) throws MusicGenerationException
     {
@@ -552,8 +580,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             sequencer.setTickPosition(0);
             sequencer.setLoopCount(0);
             sequencer.setSequence(seq);
-            setTempo(100);
-            sequencer.start();
+            seqStart();
         } catch (InvalidMidiDataException e)
         {
             throw new MusicGenerationException(e.getLocalizedMessage());
@@ -596,6 +623,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 }
                 Position newPos = playbackContext.naturalBeatPositions.get(index);
                 setCurrentBeatPosition(newPos.getBar(), newPos.getBeat());
+                break;
+            case MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR:
+                songPartTempoFactor = MidiUtilities.getTempoFactor(event);
+                updateTempoFactor();
                 break;
             default:
                 LOGGER.log(Level.WARNING, "controlChange() controller event not managed data1={0}", data1);
@@ -655,7 +686,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 }
             } else if (e.getPropertyName() == Song.PROP_TEMPO)
             {
-                setTempo((Integer) e.getNewValue());
+                songTempoChanged((Integer) e.getNewValue());
             } else if (e.getPropertyName() == Song.PROP_CLOSED)
             {
                 stop();
@@ -780,6 +811,18 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
     }
 
+
+    /**
+     * Start the sequencer with the bug fix (tempo reset at 120 upon each start).
+     */
+    private void seqStart()
+    {
+        sequencer.start();
+
+        // JDK -11 BUG: start() resets tempo at 120 !
+        sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
+    }
+
     private void setCurrentBeatPosition(int bar, float beat)
     {
         Position oldPos = new Position(currentBeatPosition);
@@ -792,11 +835,25 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
     }
 
-    private void setTempo(float bpm)
+    private void songTempoChanged(float tempoInBPM)
     {
-        // Recommanded way instead of setTempoInBpm() : works OK in java 7
-        // Plus in Java 5-6-7 there is a bug if calling setTempoInBpm() while in non-zero position, after one loop tempo is reset to 120 !!!
-        sequencer.setTempoFactor(bpm / TEMPO_DEFAULT);
+        songTempoFactor = tempoInBPM / MidiConst.SEQUENCER_REF_TEMPO;
+        updateTempoFactor();
+    }
+
+    /**
+     * Update the tempo factor of the sequencer.
+     * <p>
+     * Depends on songPartTempoFactor and songTempoFactor.<p>
+     * Sequencer tempo must always be MidiConst.SEQUENCER_REF_TEMPO.
+     *
+     * @param bpm
+     */
+    private void updateTempoFactor()
+    {
+        // Recommended way instead of setTempoInBpm() which cause problems when playback is looped
+        float f = songPartTempoFactor * songTempoFactor;
+        sequencer.setTempoFactor(f);
     }
 
     private void checkMidi() throws MusicGenerationException
@@ -841,7 +898,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         /**
          * The sequence track id (index) for each rhythm voice, for the given context.
          * <p>
-         * If a song uses rhythms R1 and R2 and context is only on R2 bars, then the map only contains R2 rhythm voices and track id.
+         * If a song uses rhythms R1 and R2 and context is only on R2 bars, then the map only contains R2 rhythm voices and track
+         * id.
          */
         private HashMap<RhythmVoice, Integer> mapRvTrackId;
 
@@ -865,8 +923,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         /**
          * Prepare the sequencer to play the specified song.
          * <p>
-         * Create the sequence and load it in the sequencer. Store all the other related sequence-dependent data in this object. Object is
-         * now "clean".
+         * Create the sequence and load it in the sequencer. Store all the other related sequence-dependent data in this object.
+         * Object is now "clean".
          *
          * @param song
          * @throws MusicGenerationException If problem occurs when creating the sequence.

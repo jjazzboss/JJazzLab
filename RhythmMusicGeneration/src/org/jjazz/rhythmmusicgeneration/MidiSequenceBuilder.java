@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.rhythmmusicgeneration;
 
@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -43,6 +44,7 @@ import org.jjazz.midimix.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.parameters.RP_SYS_Mute;
+import org.jjazz.rhythm.parameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.jjazz.songstructure.api.SongPart;
@@ -65,7 +67,7 @@ public class MidiSequenceBuilder
     private static final Logger LOGGER = Logger.getLogger(MidiSequenceBuilder.class.getSimpleName());
 
     /**
-     * @param context        The context to build the sequence. Song's SongStructure can not be empty.
+     * @param context The context to build the sequence. Song's SongStructure can not be empty.
      * @param postProcessors Optional postProcessors to run on the generated phrases.
      */
     public MidiSequenceBuilder(MusicGenerationContext context, MusicGenerator.PostProcessor... postProcessors)
@@ -83,8 +85,10 @@ public class MidiSequenceBuilder
      * Build the music accompaniment sequence for the defined context.
      * <p>
      * 1/ Create a first empty track with song name.<br>
-     * 2/ Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation. <br>
-     * 3/ Perform some checks and assemble the produced phrases into a sequence.<p>
+     * 2/ Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation.
+     * <br>
+     * 3/ Perform some checks and assemble the produced phrases into a sequence.<br>
+     * 4/ Add CTRL_CHG_JJAZZ_TEMPO_FACTOR Midi controller messages based on the RP_SYS_TempoFactor value (if used by a rhythm)
      * <p>
      * If context range start bar is &gt; 0, the Midi events are shifted to start at sequence tick 0.
      *
@@ -119,10 +123,10 @@ public class MidiSequenceBuilder
     }
 
     /**
-     * A map giving the track id (index in the sequence) for each rhythm voice.
+     * A map giving the track id (i7ndex in the sequence) for each rhythm voice.
      * <p>
-     * Must be called AFTER call to buildSequence(). The returned map contains data only for the generated tracks in the given context. In a
-     * song with 2 rhythms R1 and R2, if context only uses R2, then only the id and tracks for R2 are returned.
+     * Must be called AFTER call to buildSequence(). The returned map contains data only for the generated tracks in the given
+     * context. In a song with 2 rhythms R1 and R2, if context only uses R2, then only the id and tracks for R2 are returned.
      *
      * @return
      */
@@ -145,6 +149,7 @@ public class MidiSequenceBuilder
     {
         return "MidiSequenceBuilder context=" + context.toString();
     }
+
 
     // =========================================================================
     // Private methods
@@ -273,12 +278,12 @@ public class MidiSequenceBuilder
             InstrumentSettings insSet = insMix.getSettings();
             if (insSet.getTransposition() != 0)
             {
-                p.processPitch(pitch -> pitch +insSet.getTransposition() );
+                p.processPitch(pitch -> pitch + insSet.getTransposition());
                 LOGGER.fine("processInstrumentsSettings()    Adjusting transposition=" + insSet.getTransposition() + " for rv=" + rv);
             }
             if (insSet.getVelocityShift() != 0)
             {
-                p.processVelocity(v -> v +insSet.getVelocityShift() );
+                p.processVelocity(v -> v + insSet.getVelocityShift());
                 LOGGER.fine("processInstrumentsSettings()    Adjusting velocity=" + insSet.getVelocityShift() + " for rv=" + rv);
             }
         }
@@ -341,6 +346,48 @@ public class MidiSequenceBuilder
     }
 
     /**
+     * Add tempo factor change JJazz Midi controller messages in the specified track.
+     * <p>
+     *
+     * @param track
+     */
+    private void addTempoFactorChanges(Track track)
+    {
+        List<SongPart> spts = context.getSongParts();
+        float beatOffset = context.getBeatRange().from;
+        float firstTempoPercentChange = -1;
+        float lastTempoPercentChange = -1;
+        for (SongPart spt : spts)
+        {
+            float tempoPercentChange = 1;   // By default
+            RP_SYS_TempoFactor rp = RP_SYS_TempoFactor.getTempoFactorRp(spt.getRhythm());
+            if (rp != null)
+            {
+                tempoPercentChange = spt.getRPValue(rp) / 100f;
+            }
+            float beatPos = context.getSptBeatRange(spt).from - beatOffset;
+            long tickPos = Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
+            MidiEvent me = new MidiEvent(MidiUtilities.getJJazzTempoFactorControllerMessage(0, tempoPercentChange), tickPos);
+            track.add(me);
+            if (firstTempoPercentChange == -1)
+            {
+                firstTempoPercentChange = tempoPercentChange;
+            }
+            lastTempoPercentChange = tempoPercentChange;
+        }
+
+        // Add an extra tempo factor change event at the end if first and last songparts don't have the same TempoFactor
+        // Needed in order to avoid playback look delays
+        if (firstTempoPercentChange != lastTempoPercentChange)
+        {
+            float beatPos = context.getSptBeatRange(spts.get(spts.size() - 1)).to - beatOffset;
+            long tickPos = Math.round(beatPos * MidiConst.PPQ_RESOLUTION) - 2;  // Make sure it's before the End of Track
+            MidiEvent me = new MidiEvent(MidiUtilities.getJJazzTempoFactorControllerMessage(0, firstTempoPercentChange), tickPos);
+            track.add(me);
+        }
+    }
+
+    /**
      * Adjust the EndOfTrack Midi marker for all tracks.
      *
      * @param seq
@@ -379,6 +426,7 @@ public class MidiSequenceBuilder
         @Override
         public void run()
         {
+
             // Get the generated phrases for each used rhythm
             HashMap<RhythmVoice, Phrase> res = new HashMap<>();
 
@@ -401,6 +449,7 @@ public class MidiSequenceBuilder
                 }
             }
 
+
             // Optional Post-process
             if (postProcessors != null)
             {
@@ -417,17 +466,21 @@ public class MidiSequenceBuilder
                 }
             }
 
+
             // Handle muted instruments via the RP_SYS_Mute parameter
             processMutedInstruments(res);
 
+
             // Handle instrument settings which impact the phrases: transposition, velocity shift, ...
             processInstrumentsSettings(res);
+
 
             // Shift phrases to start at position 0
             for (Phrase p : res.values())
             {
                 p.shiftEvents(-context.getBeatRange().from);
             }
+
 
             // Convert to Midi sequence
             try
@@ -438,10 +491,14 @@ public class MidiSequenceBuilder
                 musicException = new MusicGenerationException("SequenceBuilderTask() Can't create the initial empty sequence : " + ex.getLocalizedMessage());
                 return;
             }
-            // First track is really useful only when exporting to Midi file type 1
-            // Contain song name
+
+
+            // First track is really useful only when exporting to Midi file type 1            
+            // Contain song name and tempo factor changes
             Track track0 = sequence.createTrack();
             MidiUtilities.addTrackNameEvent(track0, context.getSong().getName() + " (JJazzLab song)");
+            addTempoFactorChanges(track0);
+
 
             // Other tracks : create one per RhythmVoice
             int trackId = 1;

@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.ui.rpviewer;
 
@@ -31,6 +31,7 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
@@ -48,14 +49,25 @@ public class StringRpViewer extends RpViewer implements PropertyChangeListener
     private static final int TOP_BORDER = 2;
     // UI variables
     private final StringRpViewerSettings settings;
-
+    private final Function<Object, String> formatter;
     private static final Logger LOGGER = Logger.getLogger(StringRpViewer.class.getSimpleName());
 
-    public StringRpViewer(SongPart spt, RhythmParameter<?> rp)
+    /**
+     *
+     * @param spt
+     * @param rp
+     * @param formatter The string formatter of the rp value
+     */
+    public StringRpViewer(SongPart spt, RhythmParameter<?> rp, Function<Object, String> formatter)
     {
         super(spt, rp);
+        if (formatter == null)
+        {
+            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " formatter=" + formatter);
+        }
         settings = StringRpViewerSettings.getDefault();
         settings.addPropertyChangeListener(this);
+        this.formatter = formatter;
     }
 
     /**
@@ -68,7 +80,7 @@ public class StringRpViewer extends RpViewer implements PropertyChangeListener
     {
         // Calculate preferred size from string bounds
         Insets ins = this.getInsets();
-        String strValue = getSptModel().getRPValue(getRpModel()).toString();
+        String strValue = formatter.apply(getSptModel().getRPValue(getRpModel()));
         FontMetrics fontMetrics = getFontMetrics(settings.getFont());
         int strWidth = fontMetrics.stringWidth(strValue);
         int strHeight = fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
@@ -117,12 +129,7 @@ public class StringRpViewer extends RpViewer implements PropertyChangeListener
         g2.setColor(settings.getFontColor());
 
         Insets ins = getInsets();
-        String strValue = getSptModel().getRPValue(getRpModel()).toString();
-        if (strValue.equals("[]"))
-        {
-            // This can happen if rpValue is a empty collection
-            strValue = "";
-        }
+        String strValue = formatter.apply(getSptModel().getRPValue(getRpModel()));
         FontMetrics fontMetrics = getFontMetrics(settings.getFont());
         int strWidth = fontMetrics.stringWidth(strValue);
         int strHeight = fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();

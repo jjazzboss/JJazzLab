@@ -36,6 +36,16 @@ public class MidiConst
      */
     public static final int PPQ_RESOLUTION = 960;            // Some Midi file editors don't handle more than 960
 
+    /**
+     * Fixed sequencer reference tempo in BPM.
+     * <p>
+     * To enable interactive tempo changes during playback, sequencer tempo is set to a fixed value so that we
+     * can use Sequencer.setTempoFactor() instead of Sequencer.setTempoInBPM(). 
+     */
+    public static final int SEQUENCER_REF_TEMPO = 120;  // Must be 120: this avoids side effects with JDK RealTimeSequencer bug :
+                                                        // tempo resets at 120 upon start! 
+                                                        // See StackOverflow https://stackoverflow.com/questions/37935814/pausing-java-sequencer-resets-tempo
+
     // Control Changes values
     public static final int CTRL_CHG_BANK_SELECT_MSB = 0;
     public static final int CTRL_CHG_MODULATION_MSB = 1;
@@ -49,7 +59,8 @@ public class MidiConst
     public static final int CTRL_CHG_JJAZZ_MARKER_SYNC = 110;   // Used for the internal JJazz control track
     public static final int CTRL_CHG_JJAZZ_CHORD_CHANGE = 111;  // Used for the internal JJazz control track
     public static final int CTRL_CHG_JJAZZ_BEAT_CHANGE = 112;    // Used for the internal JJazz control track
-    public static final int CTRL_CHG_JJAZZ_ACTIVITY = 113;    // Used for the internal JJazz control track
+    public static final int CTRL_CHG_JJAZZ_ACTIVITY = 113;      // Used for the internal JJazz control track
+    public static final int CTRL_CHG_JJAZZ_TEMPO_FACTOR = 114;  // Used for tempo changes during song
     public static final int CTRL_CHG_ALL_SOUND_OFF = 120;
     public static final int CTRL_CHG_RESET_ALL_CONTROLLERS = 121;
     public static final int CTRL_CHG_ALL_NOTES_OFF = 123;
@@ -137,7 +148,8 @@ public class MidiConst
     /**
      * A String array (size=82) with percussion name for each note pitch.
      * <p>
-     * Names start at pitch 35 until 81, so for index &lt; 35 array contains null values. E.g. getGMPercussionMap()[35] = "Acoustic
+     * Names start at pitch 35 until 81, so for index &lt; 35 array contains null values. E.g. getGMPercussionMap()[35] =
+     * "Acoustic
      * Bass Drum" @return
      */
     static public String[] getGMPercussionMap()

@@ -600,7 +600,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
     {
         // Add an editor for each rp        
         RpEditor rpe = RpEditorFactory.getCustomOrGenericRpEditor(songModel, spt, rp);
-        rpe.addPropertyChangeListener(this);
+        rpe.addPropertyChangeListener(RpEditor.PROP_RPVALUE ,this);     // To avoid getting all UI property change events
         rpe.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
         // We use a boxlayout Y in panel_RhythmParameters. We must limit the maximum height so that
         // rp editors do not take all the vertical place.

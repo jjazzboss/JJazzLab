@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.midi;
 
@@ -221,13 +221,13 @@ public class MidiUtilities
         return mm;
     }
 
-    static public MetaMessage getTempoMessage(int channel, int tempo)
+    static public MetaMessage getTempoMessage(int channel, int bpm)
     {
-        if (!MidiConst.checkMidiChannel(channel) || tempo < 10 || tempo > 400)
+        if (!MidiConst.checkMidiChannel(channel) || bpm < 10 || bpm > 400)
         {
-            throw new IllegalArgumentException("channel=" + channel + " tempo=" + tempo);
+            throw new IllegalArgumentException("channel=" + channel + " tempo=" + bpm);
         }
-        long mspq = Math.round(60000000f / tempo);        // microseconds per quarter note
+        long mspq = Math.round(60000000f / bpm);        // microseconds per quarter note
         byte[] data = new byte[]
         {
             (byte) ((mspq & 0xFF0000) >> 16), (byte) ((mspq & 0xFF00) >> 8), (byte) ((mspq & 0xFF))
@@ -390,6 +390,39 @@ public class MidiUtilities
     }
 
     /**
+     * Get the Midi controller message to code a tempo factor.
+     *
+     * @param channel
+     * @param tempoFactor A percentage [.5;2.0]
+     * @return
+     */
+    static public ShortMessage getJJazzTempoFactorControllerMessage(int channel, float tempoFactor)
+    {
+        if (tempoFactor < .5 || tempoFactor > 2)
+        {
+            throw new IllegalArgumentException("channel=" + channel + " tempoFactor=" + tempoFactor);
+        }
+        int tempoFactorByte = Math.round((100 * tempoFactor - 50) * 127f / 150);
+        return buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR, tempoFactorByte);
+    }
+
+    /**
+     * Get the tempo factor [.5;2.0] from the specified Tempo Factor JJazz controller message.
+     *
+     * @param tempoFactorMsg
+     * @return
+     */
+    static public float getTempoFactor(ShortMessage tempoFactorMsg)
+    {
+        if (tempoFactorMsg.getData1() != MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR)
+        {
+            throw new IllegalArgumentException("tempoFactorMsg=" + tempoFactorMsg);
+        }
+        float res = (50 + tempoFactorMsg.getData2() * 150f / 127f) / 100;
+        return res;
+    }
+
+    /**
      * Search for the first TrackName MetaEvent in the specified track and return its name.
      *
      * @param track
@@ -530,9 +563,27 @@ public class MidiUtilities
     }
 
     /**
+     * Get the tempo in BPM coded in a Tempo Midi message.
+     *
+     * @param tempoMsg Must be a tempo MetaMessage (type=81)
+     * @return
+     */
+    static public int getTempoInBPM(MetaMessage tempoMsg)
+    {
+        byte[] data = tempoMsg.getData();
+        if (tempoMsg.getType() != 81 || data.length != 3)
+        {
+            throw new IllegalArgumentException("tempoMsg=" + tempoMsg);
+        }
+        int mspq = ((data[0] & 0xff) << 16) | ((data[1] & 0xff) << 8) | (data[2] & 0xff);
+        int tempo = Math.round(60000001f / mspq);
+        return tempo;
+    }
+
+    /**
      * Provide an explicit string for a MidiMessage.
      *
-     * @param msg  A MidiMessage.
+     * @param msg A MidiMessage.
      * @param tick The timestamp of the MidiMessage.
      * @return A string representing the MidiMessage.
      */
@@ -589,9 +640,7 @@ public class MidiUtilities
                     sb.append(" timeSignature=").append(ts);
                     break;
                 case 81:  // Tempo
-                    int mspq = ((mm.getData()[0] & 0xff) << 16) | ((mm.getData()[1] & 0xff) << 8) | (mm.getData()[2] & 0xff);
-                    int tempo = Math.round(60000000f / mspq);
-                    sb.append(" tempo=").append(tempo);
+                    sb.append(" tempo=").append(getTempoInBPM(mm));
                     break;
                 default:
                     sb.append(" type=").append(mm.getType());
@@ -744,6 +793,7 @@ public class MidiUtilities
         CONTROL_CHANGE_STRINGS[111] = "JJAZZ_CHORD_CHANGE";
         CONTROL_CHANGE_STRINGS[112] = "JJAZZ_BEAT_CHANGE";
         CONTROL_CHANGE_STRINGS[113] = "JJAZZ_ACTIVITY_CHANGE";
+        CONTROL_CHANGE_STRINGS[114] = "JJAZZ_TEMPO_FACTOR";
         CONTROL_CHANGE_STRINGS[120] = "ALL_SOUND_OFF";
         CONTROL_CHANGE_STRINGS[121] = "RESET_ALL_CONTROLLERS";
         CONTROL_CHANGE_STRINGS[123] = "ALL_NOTES_OFF";

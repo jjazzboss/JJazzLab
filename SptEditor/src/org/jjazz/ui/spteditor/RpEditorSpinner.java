@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.ui.spteditor;
 
@@ -65,7 +65,7 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
             int maxValue = rpi.getMaxValue();
             int step = rpi.getStep();
             int value = sptModel.getRPValue(rpi);
-            sm = new SpinnerNumberModel(value, minValue, maxValue, step);
+            sm = new MySpinnerNumberModel(value, minValue, maxValue, step);
         } else if (rpModel instanceof RP_State)
         {
             sm = new SpinnerListModel(rpModel.getPossibleValues());
@@ -76,6 +76,7 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
         spinner_rpValue.setModel(sm);
         spinner_rpValue.setValue(sptModel.getRPValue(rpModel));
         spinner_rpValue.getDefaultEditor().getTextField().setHorizontalAlignment(JTextField.TRAILING);
+        // ((DefaultEditor) spinner_rpValue.getEditor()).getTextField().setEditable(false);
 
         setEditor(spinner_rpValue);
     }
@@ -136,5 +137,33 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
         Object newValue = spinner_rpValue.getValue();
         spinner_rpValue.setToolTipText(newValue.toString());
         firePropertyChange(PROP_RPVALUE, null, newValue);
+    }
+
+
+    // -----------------------------------------------------------------------------
+    // Private methods
+    // -----------------------------------------------------------------------------    
+    /**
+     * Our model which enforces valid values.
+     * <p>
+     * Because SpinnerNumberModel setValue() does not enforce "correct" value.
+     */
+    private class MySpinnerNumberModel extends SpinnerNumberModel
+    {
+
+        public MySpinnerNumberModel(int value, int minValue, int maxValue, int step)
+        {
+            super(value, minValue, maxValue, step);
+        }
+
+        @Override
+        public void setValue(Object val)
+        {
+            if (!(val instanceof Integer) || !((RP_Integer) getRpModel()).isValidValue((Integer) val))
+            {
+                throw new IllegalArgumentException(); // Will be catched by the JSpinner code to revert to previous value
+            }
+            super.setValue(val);
+        }
     }
 }
