@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.util;
 
@@ -43,7 +43,7 @@ public class FloatRange
      * Use the EMPTY_FLOAT_RANGE instance for empty range.
      *
      * @param from Must be &gt;= 0
-     * @param to   Must be &gt; from
+     * @param to Must be &gt; from
      * @throws IllegalArgumentException If from==to
      */
     public FloatRange(float from, float to)
@@ -75,11 +75,16 @@ public class FloatRange
      * Check if value is within the range.
      *
      * @param x
+     * @param excludeUpperBound If true, return false if x == this.to.
      * @return
      */
-    public boolean contains(float x)
+    public boolean contains(float x, boolean excludeUpperBound)
     {
-        return this == EMPTY_FLOAT_RANGE ? false : x >= from && x <= to;
+        if (this == EMPTY_FLOAT_RANGE)
+        {
+            return false;
+        }
+        return x >= from && (excludeUpperBound ? x < to : x <= to);
     }
 
     /**

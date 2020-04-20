@@ -300,10 +300,8 @@ public class MidiSequenceBuilder
     {
         // Get the bar ranges used by r
         List<FloatRange> sptRanges = new ArrayList<>();
-        List<SongPart> spts = context.getSongParts();
-        for (int i = 0; i < spts.size(); i++)
-        {
-            SongPart spt = spts.get(i);
+        for (SongPart spt : context.getSongParts())
+        {            
             if (spt.getRhythm() == r)
             {
                 FloatRange rg = context.getSptBeatRange(spt);
@@ -328,7 +326,7 @@ public class MidiSequenceBuilder
                 boolean inRange = false;
                 for (FloatRange rg : sptRanges)
                 {
-                    if (rg.contains(ne.getPositionInBeats()))
+                    if (rg.contains(ne.getPositionInBeats(), true))
                     {
                         inRange = true;
                         break;

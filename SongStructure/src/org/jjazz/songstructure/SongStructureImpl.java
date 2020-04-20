@@ -169,11 +169,11 @@ public class SongStructureImpl implements SongStructure, Serializable
                 startPos = getPositionInNaturalBeats(ir.from);
                 endPos = startPos + ir.size() * ts.getNbNaturalBeats();
             } else
-            {
-                endPos = getPositionInNaturalBeats(spt.getStartBarIndex()) + ir.size() * ts.getNbNaturalBeats();
+            {                
+                endPos += ir.size() * ts.getNbNaturalBeats();
             }
         }
-        return new FloatRange(startPos, endPos);
+        return new FloatRange(startPos, endPos); 
     }
 
     @Override
@@ -663,7 +663,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         for (SongPart spt : songParts)
         {
             FloatRange rg = getBeatRange(spt.getBarRange());
-            if (rg.contains(posInBeats))
+            if (rg.contains(posInBeats, true))
             {
                 TimeSignature ts = spt.getRhythm().getTimeSignature();
                 float beatInSpt = posInBeats - rg.from;
