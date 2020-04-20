@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.songeditormanager;
 
@@ -97,6 +97,14 @@ public class ExportToMidiFile extends AbstractAction
     public void actionPerformed(ActionEvent e)
     {
         assert song != null;
+
+        if (song.getSongStructure().getSongParts().isEmpty())
+        {
+            String msg = "Can't export an empty song (no song parts)";
+            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(nd);
+            return;
+        }
 
         // Get the target midi file
         File midiFile = getMidiFile(song);
@@ -288,11 +296,14 @@ public class ExportToMidiFile extends AbstractAction
             LOGGER.warning("prepareForMidiFile() no track found in sequence ! mapRvTrackId=" + mapRvTrackId);
             return;
         }
-        TimeSignature ts0 = song.getSongStructure().getSongPart(0).getRhythm().getTimeSignature();
+
+        List<SongPart> spts = song.getSongStructure().getSongParts();
+        SongPart spt0 = spts.get(0);
+        TimeSignature ts0 = spt0.getRhythm().getTimeSignature();
         long initBarInTicks = (long) (ts0.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION);
 
 
-        // Shift one bar except track names/tempo/time signature        
+        // Shift one bar except track names/time signature        
         for (Track track : tracks)
         {
             for (int i = track.size() - 1; i >= 0; i--)
@@ -302,8 +313,8 @@ public class ExportToMidiFile extends AbstractAction
                 if (mm instanceof MetaMessage)
                 {
                     int type = ((MetaMessage) mm).getType();
-                    // Track name=3, tempo=81, time signature=88                    
-                    if (type == 3 || type == 81 || type == 88)
+                    // Track name=3,  time signature=88                    
+                    if (type == 3 || type == 88)
                     {
                         continue;
                     }
@@ -314,16 +325,24 @@ public class ExportToMidiFile extends AbstractAction
 
 
         // Add initialization messages on first track
+        // Copyright
         Track firstTrack = tracks[0];
         MidiMessage mmCopyright = MidiUtilities.getCopyrightMetaMessage("JJazzLab Midi Export file");
         MidiEvent me = new MidiEvent(mmCopyright, 0);
         firstTrack.add(me);
         me = new MidiEvent(MidiUtilities.getTimeSignatureMessage(0, ts0), 0);
+        // Initial time signature
         firstTrack.add(me);
-
-
-        // Should we convert tempo Midi message depending on TimeSignature (eg 4/4 or 6/8 don't have the same natural beat...) ?
-        me = new MidiEvent(MidiUtilities.getTempoMessage(0, song.getTempo()), 0);
+        // Initial tempo
+        int tempo = song.getTempo();
+        RP_SYS_TempoFactor rp = RP_SYS_TempoFactor.getTempoFactorRp(spt0.getRhythm());
+        int tempoFactor = -1;
+        if (rp != null)
+        {
+            tempoFactor = spt0.getRPValue(rp);
+            tempo = Math.round(tempoFactor / 100f * tempo);
+        }
+        me = new MidiEvent(MidiUtilities.getTempoMessage(0, tempo), 0);
         firstTrack.add(me);
 
 
@@ -375,10 +394,28 @@ public class ExportToMidiFile extends AbstractAction
         }
 
 
-        // Add possible tempo changes
-        MidiSequenceBuilder.addTempoChanges(song, firstTrack, song.getTempo(), initBarInTicks);        
-
+        // Add possible song part tempo changes
+        int lastTempoFactor = tempoFactor;
+        for (int i = 1; i < spts.size(); i++)
+        {
+            SongPart spt = spts.get(i);
+            rp = RP_SYS_TempoFactor.getTempoFactorRp(spt.getRhythm());
+            if (rp != null)
+            {
+                tempoFactor = spt.getRPValue(rp);
+                if (tempoFactor != lastTempoFactor)
+                {
+                    tempo = Math.round(tempoFactor / 100f * song.getTempo());
+                    float beatPos = song.getSongStructure().getPositionInNaturalBeats(spt.getStartBarIndex());
+                    long tickPos = initBarInTicks + Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
+                    me = new MidiEvent(MidiUtilities.getTempoMessage(0, tempo), tickPos);
+                    firstTrack.add(me);
+                    lastTempoFactor = tempoFactor;
+                }
+            }
+        }
     }
+
 
     /**
      * Remove all events from the specified track.

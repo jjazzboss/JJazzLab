@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.ui.spteditor;
 
@@ -69,6 +69,10 @@ public class RpEditorFactoryImpl implements RpEditorFactory
     @Override
     public RpEditor createRpEditor(Song song, SongPart spt, RhythmParameter<?> rp)
     {
+        if (song == null || spt == null || rp == null)
+        {
+            throw new NullPointerException("song=" + song + " spt=" + spt + " rp=" + rp);
+        }
         RpEditor rpe;
         if (rp instanceof RP_Integer) // || rp instanceof RP_State)
         {
@@ -92,14 +96,13 @@ public class RpEditorFactoryImpl implements RpEditorFactory
     /**
      * A cell renderer to provide more information for RP_SYS_Mute
      */
-    private static class RpMuteCellRenderer extends DefaultListCellRenderer
+    private class RpMuteCellRenderer extends DefaultListCellRenderer
     {
 
         Song song;
         SongPart spt;
         RP_SYS_Mute rp;
         HashMap<String, RhythmVoice> mapNameRv = new HashMap<>();
-        MidiMix midiMix;
 
         RpMuteCellRenderer(Song song, SongPart spt, RP_SYS_Mute rp)
         {
@@ -107,21 +110,7 @@ public class RpEditorFactoryImpl implements RpEditorFactory
             this.spt = spt;
             this.rp = rp;
 
-            if (spt != null)
-            {
-                spt.getRhythm().getRhythmVoices().forEach(rv -> mapNameRv.put(rv.getName(), rv));
-                if (song != null)
-                {
-                    try
-                    {
-                        midiMix = MidiMixManager.getInstance().findMix(song);
-                    } catch (MidiUnavailableException ex)
-                    {
-                        // MidiMix is supposed to be created, should never happen
-                        Exceptions.printStackTrace(ex);
-                    }
-                }
-            }
+            spt.getRhythm().getRhythmVoices().forEach(rv -> mapNameRv.put(rv.getName(), rv));
         }
 
         @Override
@@ -136,18 +125,9 @@ public class RpEditorFactoryImpl implements RpEditorFactory
             }
 
             // Adjust text
-            Instrument ins = (midiMix == null) ? null : midiMix.getInstrumentMixFromKey(rv).getInstrument();
-            String strIns = "";
-            if (ins != null && (!rv.isDrums() || ins != StdSynth.getInstance().getVoidInstrument()))
-            {
-                strIns = " (" + ins.getPatchName() + ")";
-            }
-            label.setText(muteValue + strIns);
-
-            // Adjust tooltip
-            String strFamily = rv.isDrums() ? rv.getType().toString() : rv.getPreferredInstrument().getSubstitute().getFamily().getShortName();
-            String strChannel = midiMix == null ? "" : " - channel " + (midiMix.getChannel(rv) + 1);
-            label.setToolTipText(strFamily + strChannel + " - " + label.getText());
+            String strFamily = rv.isDrums() ? "" : " (" + rv.getPreferredInstrument().getSubstitute().getFamily().getShortName() + ")";
+            label.setText(muteValue + strFamily);
+            label.setToolTipText(label.getText());
 
             return label;
         }
