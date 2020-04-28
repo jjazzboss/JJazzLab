@@ -382,7 +382,7 @@ public class ImprovisorFileReader
     {
         assert !barCsBuffer.isEmpty() : "barCsBuffer empty ! barIndex=" + barIndex;
         CLI_Factory clif = CLI_Factory.getDefault();
-        float beatStep = (float) ts.getNbNaturalBeats() / barCsBuffer.size();
+        float beatStep = ts.getNbNaturalBeats() / barCsBuffer.size();
         int i = 0;
         for (ChordSymbol cs : barCsBuffer)
         {

@@ -57,7 +57,7 @@ public class SongStructureImplTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        rdb = RhythmDatabase.Utilities.getDefault();
+        rdb = RhythmDatabase.getDefault();
         System.out.println("rdb=" + rdb);
     }
 

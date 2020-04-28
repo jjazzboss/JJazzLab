@@ -18,7 +18,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
  * 
- *  Contributor(s): 
+ *  Contributor(s):  
  */
 package org.jjazz.ui.ss_editor.editors;
 
@@ -87,7 +87,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
         updateRhythmInfo(selectedRhythm);
 
         // Populate the list of rhythms for this TimeSignature
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         Rhythm[] rInfos = rdb.getRhythms(timeSignature, null).toArray(new Rhythm[0]);
         list_Rhythms.setListData(rInfos);
         list_Rhythms.setSelectedValue(selectedRhythm, true);
@@ -122,7 +122,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
         }
         StringBuilder sb = new StringBuilder();
         TableModel tm = this.tbl_props.getModel();
-        TempoRange tr = ri.getTempoRange();
+        TempoRange tr = ri.getFeatures().getTempoRange();
         tm.setValueAt(CTL_Description(), 0, 0);
         tm.setValueAt(ri.getDescription(), 0, 1);
 
@@ -161,7 +161,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
         tm.setValueAt(ri.getAuthor(), 7, 1);
 
         tm.setValueAt(CTL_Feel(), 8, 0);
-        tm.setValueAt(ri.getFeel(), 8, 1);
+        tm.setValueAt(ri.getFeatures().getFeel(), 8, 1);
     }
 
     @Override

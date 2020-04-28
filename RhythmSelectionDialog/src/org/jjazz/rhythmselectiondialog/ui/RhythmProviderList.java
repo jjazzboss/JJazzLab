@@ -54,7 +54,7 @@ public class RhythmProviderList extends JList<RhythmProvider> implements ChangeL
     public RhythmProviderList()
     {
         setCellRenderer(new RhythmProviderRenderer());
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         // WeakListener just in case, I don't know how this component will be used
         rdb.addChangeListener(WeakListeners.change(this, rdb));
         FavoriteRhythms fr = FavoriteRhythms.getInstance();
@@ -116,7 +116,7 @@ public class RhythmProviderList extends JList<RhythmProvider> implements ChangeL
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
         {
             Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-            RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+            RhythmDatabase rdb = RhythmDatabase.getDefault();
             RhythmProvider rp = (RhythmProvider) value;
             RhythmProvider.Info rpi = rp.getInfo();
             List<Rhythm> rhythms = (rp == FavoriteRhythmProvider.getInstance()) ? FavoriteRhythmProvider.getInstance().getBuiltinRhythms() : rdb.getRhythms(rp);

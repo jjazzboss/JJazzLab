@@ -35,6 +35,7 @@ import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.synths.Family;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.rhythm.parameters.RP_STD_Variation;
@@ -178,6 +179,12 @@ public class RhythmStub implements Rhythm
     {
         return new File("");
     }
+    
+        @Override
+    public RhythmFeatures getFeatures()
+    {
+        return new RhythmFeatures();
+    }
 
     @Override
     public String getUniqueId()
@@ -189,18 +196,6 @@ public class RhythmStub implements Rhythm
     public String getDescription()
     {
         return "Dummy description";
-    }
-
-    @Override
-    public Feel getFeel()
-    {
-        return Feel.BINARY;
-    }
-
-    @Override
-    public TempoRange getTempoRange()
-    {
-        return TempoRange.MEDIUM;
     }
 
     @Override
@@ -222,12 +217,6 @@ public class RhythmStub implements Rhythm
     }
 
     @Override
-    public String getVersion()
-    {
-        return "1";
-    }
-
-    @Override
     public String[] getTags()
     {
         return new String[]
@@ -241,5 +230,7 @@ public class RhythmStub implements Rhythm
     {
         return getName();
     }
+    
+    
 
 }

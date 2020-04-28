@@ -19,7 +19,7 @@
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
  * 
  *  Contributor(s): 
- */
+ */ 
 package org.jjazz.ui.cl_editor;
 
 import java.awt.Component;
@@ -76,6 +76,7 @@ import org.jjazz.savablesong.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
 import org.jjazz.quantizer.Quantization;
 import org.jjazz.quantizer.Quantizer;
+import org.jjazz.rhythm.api.Feel;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.ui.cl_editor.api.SelectedBar;
 import org.openide.awt.UndoRedo;
@@ -346,7 +347,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             {
                 if (spt.getParentSection().equals(cliSection))
                 {
-                    q = (spt.getRhythm().getFeel() == Rhythm.Feel.BINARY) ? Quantization.ONE_QUARTER_BEAT : Quantization.ONE_THIRD_BEAT;
+                    q = (spt.getRhythm().getFeatures().getFeel() == Feel.BINARY) ? Quantization.ONE_QUARTER_BEAT : Quantization.ONE_THIRD_BEAT;
                     break;
                 }
             }

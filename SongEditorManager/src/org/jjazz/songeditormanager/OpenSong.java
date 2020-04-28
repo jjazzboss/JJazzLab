@@ -48,7 +48,7 @@ import org.openide.windows.WindowManager;
         })
 @Messages(
         {
-            "CTL_OpenSong=Open Song...",
+            "CTL_OpenSong=Open Songs...",
             "CTL_JJazzOpenSongs=JJazz Songs"
         })
 public final class OpenSong implements ActionListener

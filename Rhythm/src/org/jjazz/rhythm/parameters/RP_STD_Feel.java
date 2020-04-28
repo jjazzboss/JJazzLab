@@ -22,8 +22,9 @@
  */
 package org.jjazz.rhythm.parameters;
 
+import static org.jjazz.rhythm.parameters.Bundle.CTL_StdFeelDesc;
+import static org.jjazz.rhythm.parameters.Bundle.CTL_StdFeelName;
 import org.openide.util.NbBundle;
-import static org.jjazz.rhythm.parameters.Bundle.*;
 
 /**
  * Standard RhythmParameter: double feel

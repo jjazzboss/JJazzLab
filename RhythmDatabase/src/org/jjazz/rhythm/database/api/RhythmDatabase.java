@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.rhythm.database.api;
 
@@ -26,6 +26,7 @@ import java.util.List;
 import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.openide.util.Lookup;
 import org.jjazz.rhythm.database.RhythmDatabaseImpl;
@@ -36,7 +37,7 @@ import org.jjazz.rhythm.database.RhythmDatabaseImpl;
 public interface RhythmDatabase
 {
 
-    public class RpRhythmPair
+    class RpRhythmPair
     {
 
         public RhythmProvider rp;
@@ -53,25 +54,21 @@ public interface RhythmDatabase
         }
     }
 
-    public static class Utilities
+    /**
+     * Use the first implementation present in the global lookup.
+     * <p>
+     * If nothing found, use the default one.
+     *
+     * @return
+     */
+    public static RhythmDatabase getDefault()
     {
-
-        /**
-         * Use the first implementation present in the global lookup.
-         * <p>
-         * If nothing found, use the default one.
-         *
-         * @return
-         */
-        public static RhythmDatabase getDefault()
+        RhythmDatabase result = Lookup.getDefault().lookup(RhythmDatabase.class);
+        if (result == null)
         {
-            RhythmDatabase result = Lookup.getDefault().lookup(RhythmDatabase.class);
-            if (result == null)
-            {
-                return RhythmDatabaseImpl.getInstance();
-            }
-            return result;
+            return RhythmDatabaseImpl.getInstance();
         }
+        return result;
     }
 
     /**
@@ -81,9 +78,9 @@ public interface RhythmDatabase
      *
      * @param l
      */
-    public abstract void addChangeListener(ChangeListener l);
+    void addChangeListener(ChangeListener l);
 
-    public abstract void removeChangeListener(ChangeListener l);
+    void removeChangeListener(ChangeListener l);
 
     /**
      * Get the default Rhythm for TimeSignature ts.
@@ -91,7 +88,45 @@ public interface RhythmDatabase
      * @param ts TimeSignature
      * @return Can not be null: the database should provide at least a stub rhythm.
      */
-    public Rhythm getDefaultRhythm(TimeSignature ts);
+    Rhythm getDefaultRhythm(TimeSignature ts);
+
+    /**
+     * Set the default rhythm for this TimeSignature.
+     *
+     * @param ts TimeSignature
+     * @param rhythm
+     * @exception IllegalArgumentException If rhythm is not part of this database.
+     */
+    void setDefaultRhythm(TimeSignature ts, Rhythm rhythm);
+
+
+    /**
+     * Get a default Rhythm with the specified features.
+     * <p>
+     * Ask each RhythmProvider to get the default rhythm until we get a non-null return value.
+     *
+     * @param features
+     * @param ts
+     * @return Can be null
+     */
+    default Rhythm getDefaultRhythm(RhythmFeatures features, TimeSignature ts)
+    {
+        if (features == null || ts == null)
+        {
+            throw new IllegalArgumentException("features=" + features + " ts=" + ts);
+        }
+
+        for (var rp : getRhythmProviders())
+        {
+            Rhythm r = rp.getDefaultRhythm(features, ts);
+            if (r != null)
+            {
+                return r;
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Get the rhythms which match at least one of the specified tags.
@@ -102,25 +137,25 @@ public interface RhythmDatabase
      * @param optRhythms List If not null perform the search on optRhythms, otherwise search the database.
      * @return
      */
-    public List<Rhythm> getRhythms(List<String> tags, List<Rhythm> optRhythms);
+    List<Rhythm> getRhythms(List<String> tags, List<Rhythm> optRhythms);
 
     /**
      * Get the rhythms which match the specified time signature.
      *
-     * @param ts         TimeSignature
+     * @param ts TimeSignature
      * @param optRhythms List If not null perform the search on optRhythms, otherwise search the database.
      * @return All rhythms corresponding to TimeSignature ts.
      */
-    public List<Rhythm> getRhythms(TimeSignature ts, List<Rhythm> optRhythms);
+    List<Rhythm> getRhythms(TimeSignature ts, List<Rhythm> optRhythms);
 
     /**
      * Get the rhythms whose temporange match the specified tempo.
      *
-     * @param tempo      int
+     * @param tempo int
      * @param optRhythms List If not null perform the search on optRhythms, otherwise search the database.
      * @return All rhythm corresponding to tempo.
      */
-    public List<Rhythm> getRhythms(int tempo, List<Rhythm> optRhythms);
+    List<Rhythm> getRhythms(int tempo, List<Rhythm> optRhythms);
 
     /**
      * The rhythms associated to the specified RhythmProvider
@@ -129,56 +164,48 @@ public interface RhythmDatabase
      * @return
      * @exception IllegalArgumentException If rp is not a RhythmProvider available.
      */
-    public List<Rhythm> getRhythms(RhythmProvider rp);
+    List<Rhythm> getRhythms(RhythmProvider rp);
 
     /**
      * @param uniqueSerialId A unique id
      * @return The rhythm whose uniqueSerialId matches the specified id. Null if not found.
      */
-    public Rhythm getRhythm(String uniqueSerialId);
+    Rhythm getRhythm(String uniqueSerialId);
 
     /**
      * Try to find a rhythm in the database which is "similar" to the specified rhythm info.
      * <p>
-     * "similar" means at least share the same time signature. Then algorithm can use other Info fields (temporange, tags, ...) to calculate
-     * how "similar" we are.
+     * "similar" means at least share the same time signature. Then algorithm can use other Info fields (temporange, tags, ...) to
+     * calculate how "similar" we are.
      *
      * @param rhythm
      * @return A "similar" rhythm which at least share the same timesignature. Null if nothing relevant found.
      */
-    public Rhythm getSimilarRhythm(Rhythm rhythm);
+    Rhythm getSimilarRhythm(Rhythm rhythm);
 
     /**
      * @return All rhythms stored in the database.
      */
-    public List<Rhythm> getRhythms();
+    List<Rhythm> getRhythms();
 
     /**
      * @param rhythm
      * @return The RhythmProvider of the specified rhythm. Null if not found.
      */
-    public RhythmProvider getRhythmProvider(Rhythm rhythm);
+    RhythmProvider getRhythmProvider(Rhythm rhythm);
 
     /**
      * The RhythmProviders instances available, sorted by name.
      *
      * @return
      */
-    public List<RhythmProvider> getRhythmProviders();
+    List<RhythmProvider> getRhythmProviders();
 
     /**
      * @return The list of TimeSignature for which we have at least 1 rhythm in the database
      */
-    public List<TimeSignature> getTimeSignatures();
+    List<TimeSignature> getTimeSignatures();
 
-    /**
-     * Set the default rhythm for this TimeSignature.
-     *
-     * @param ts     TimeSignature
-     * @param rhythm
-     * @exception IllegalArgumentException If rhythm is not part of this database.
-     */
-    public void setDefaultRhythm(TimeSignature ts, Rhythm rhythm);
 
     /**
      * Get the next rhythm in the database with same timesignature.
@@ -187,7 +214,7 @@ public interface RhythmDatabase
      * @return The next rhythm. Can be rhythm if rhythm was not in the database or was the only one with this TimeSignature.
      * @exception IllegalArgumentException If rhythm is not part of this database.
      */
-    public Rhythm getNextRhythm(Rhythm rhythm);
+    Rhythm getNextRhythm(Rhythm rhythm);
 
     /**
      * Get the previous rhythm in the database with same timesignature.
@@ -196,12 +223,12 @@ public interface RhythmDatabase
      * @return The previous rhythm. Can be rhythm if rhythm was not in the database or was the only one with this TimeSignature.
      * @exception IllegalArgumentException If rhythm is not part of this database.
      */
-    public Rhythm getPreviousRhythm(Rhythm rhythm);
+    Rhythm getPreviousRhythm(Rhythm rhythm);
 
     /**
      * @return The number of rhythms in the database.
      */
-    public int size();
+    int size();
 
     /**
      * Scan all the RhythmProviders available in the lookup to add rhythms in the database.
@@ -209,10 +236,10 @@ public interface RhythmDatabase
      * Note: once added in the database, a RhythmProvider and its Rhythms can't be removed (until program restarts).<br>
      * Fire a change event if database has changed after the refresh.
      *
-     * @param forceRescan If true force a complete rescan for each RhythmProvider. If false RhythmProviders are provided with the previous
-     *                    list so they can only update possible added rhythms.
+     * @param forceRescan If true force a complete rescan for each RhythmProvider. If false RhythmProviders are provided with the
+     * previous list so they can only update possible added rhythms.
      */
-    public void refresh(boolean forceRescan);
+    void refresh(boolean forceRescan);
 
     /**
      * Add some rhythms to the database (if not already present).
@@ -222,6 +249,6 @@ public interface RhythmDatabase
      * @param pairs
      * @return The nb of rhythms actually added.
      */
-    public int addRhythms(List<RpRhythmPair> pairs);
+    int addRhythms(List<RpRhythmPair> pairs);
 
 }

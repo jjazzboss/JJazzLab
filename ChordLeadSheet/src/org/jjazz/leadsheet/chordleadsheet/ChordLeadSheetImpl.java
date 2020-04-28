@@ -213,7 +213,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         if (cliSection == null || cliSection.getPosition().getBar() >= getSize() || getSection(cliSection.getData().getName()) != null
                 || !(cliSection instanceof WritableItem))
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection + " getSize()=" + getSize() + (cliSection != null ? "getSection(cliSection.getData().getName())=" + getSection(cliSection.getData().getName()) : ""));
+            throw new IllegalArgumentException("cliSection=" + cliSection 
+                    + ", getSize()=" + getSize() 
+                    + (cliSection != null ? ", getSection(cliSection.getData().getName())=" + getSection(cliSection.getData().getName()) : ""));
         }
         final int barIndex = cliSection.getPosition().getBar();
         final WritableItem<Section> wSection = (WritableItem<Section>) cliSection;
@@ -606,14 +608,21 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     @Override
-    public void setSectionName(CLI_Section cliSection, String name) throws UnsupportedEditException
+    public void setSectionName(CLI_Section cliSection, String name) 
     {
         if (cliSection == null || items.indexOf(cliSection) == -1 || name == null || (getSection(name) != null && getSection(name) != cliSection)
                 || !(cliSection instanceof WritableItem))
         {
             throw new IllegalArgumentException("section=" + cliSection + " name=" + name);
         }
-        changeSection(cliSection, new Section(name, cliSection.getData().getTimeSignature()));
+        try
+        {
+            changeSection(cliSection, new Section(name, cliSection.getData().getTimeSignature()));
+        } catch (UnsupportedEditException ex)
+        {
+            // Should never happen
+            Exceptions.printStackTrace(ex);
+        }
     }
 
     @Override

@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.rhythm.api;
 
@@ -40,10 +40,12 @@ import org.openide.util.Lookup;
 public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
 {
 
-    public enum Feel
-    {
-        TERNARY, BINARY
-    };
+    /**
+     * The general features of this rhythm.
+     *
+     * @return
+     */
+    RhythmFeatures getFeatures();
 
     /**
      * Tell the rhythm it may load any memory-heavy resources.
@@ -53,28 +55,26 @@ public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
      * @return False if there was a problem loading resources.
      * @see releaseResources()
      */
-    public boolean loadResources();
+    boolean loadResources();
 
     /**
      * Ask the rhythm to release any memory-heavy resources.
      *
      * @see loadResources()
      */
-    public void releaseResources();
+    void releaseResources();
 
-    public boolean isResourcesLoaded();
+    boolean isResourcesLoaded();
 
     /**
      * @return The voices for which this rhythm can generate music. Each voice must have a unique name.
      */
-    public List<RhythmVoice> getRhythmVoices();
+    List<RhythmVoice> getRhythmVoices();
 
     /**
      * @return The RhythmParameters that influence the way this rhythm generates music.
      */
     List<RhythmParameter<?>> getRhythmParameters();
-
-    TimeSignature getTimeSignature();
 
     /**
      * Optional file from which this rhythm was loaded.
@@ -94,23 +94,33 @@ public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
 
     String getDescription();
 
-    Feel getFeel();
-
-    TempoRange getTempoRange();
-
     int getPreferredTempo();
+    
+    TimeSignature getTimeSignature();
 
     String getName();
 
     String getAuthor();
 
-    String getVersion();
+    /**
+     *
+     * @return Default to "1"
+     */
+
+    default String getVersion()
+    {
+        return "1";
+    }
+
 
     /**
      * Can be any keyword strings used to describe the rhythm.
      *
-     * @return
+     * @return Default to an empty array.
      */
-    String[] getTags();
+    default String[] getTags()
+    {
+        return new String[0];
+    }
 
 }

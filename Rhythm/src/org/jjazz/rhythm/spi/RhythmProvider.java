@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.rhythm.spi;
 
@@ -26,7 +26,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmFeatures;
 
 /**
  * An object that can provide Rhythms instances.
@@ -44,22 +46,24 @@ public interface RhythmProvider
     /**
      * Get the built-in rhythms.
      * <p>
-     * Builtin rhythms means the RhythmProvider does not have to read a file to create the rhythm.
      *
      * @return
      */
     public List<Rhythm> getBuiltinRhythms();
 
     /**
-     * Get the non built-in rhythms (each rhythm is associated to a file).
+     * Get the file-based rhythms.
      * <p>
-     * If prevList is non-null and non-empty, prevList must be used to detect added or removed Rhythm Infos. They might be hundreds of
-     * rhythm files in a directory, so this allows to only parse new added files.
+     * If prevList is non-null and non-empty, prevList must be used to detect added or removed Rhythm files. They might be
+     * hundreds of rhythm files in a directory, so this allows to only parse new added files.
      *
-     * @param prevList Can be null to force a rescan of all Rhythm Infos.
-     * @return All non builtin rhythms infos provided by this RhythmProvider. List can be empty but not null.
+     * @param prevList Can be null.
+     * @param forceRescan If true, force rescan of the files, possibly using prevList if not null. If false the method may return
+     * cached data.
+     * @return All non builtin rhythms provided by this RhythmProvider. List can be empty but not null.
      */
-    public List<Rhythm> getFileRhythms(List<Rhythm> prevList);
+    public List<Rhythm> getFileRhythms(List<Rhythm> prevList, boolean forceRescan);
+
 
     /**
      * Get the file extensions accepted by readFast().
@@ -71,7 +75,7 @@ public interface RhythmProvider
     public String[] getSupportedFileExtensions();
 
     /**
-     * A fast method to read specified file and extract only the description Rhythm information for description/catalog purposes.
+     * A fast method to read specified rhythm file and extract only information needed for description/catalog purposes.
      * <p>
      * Call the loadResources() on the returned rhythm to make it ready to generate music.
      *
@@ -84,11 +88,21 @@ public interface RhythmProvider
     /**
      * Show a modal dialog to modify the user settings of this RhythmProvider.
      * <p>
-     * The RhythmProvider is responsible for the persistence of its settings. The method does nothing if hasUserSettings() returns false.
+     * The RhythmProvider is responsible for the persistence of its settings. The method does nothing if hasUserSettings() returns
+     * false.
      *
      * @see hasUserSettings()
      */
     public void showUserSettingsDialog();
+
+    /**
+     * Return the default rhythm which best match the specified rhythm features and the time signature.
+     *
+     * @param rhythmFeatures
+     * @param ts
+     * @return Can be null
+     */
+    public Rhythm getDefaultRhythm(RhythmFeatures rhythmFeatures, TimeSignature ts);
 
     /**
      * Return true if RhythmProvider has settings which can be modified by end-user.
@@ -112,7 +126,7 @@ public interface RhythmProvider
 
         /**
          * @param uniqueId
-         * @param name        Must be a non empty string (spaces are trimmed).
+         * @param name Must be a non empty string (spaces are trimmed).
          * @param description
          * @param author
          * @param version

@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.rhythm.spi;
 
@@ -52,6 +52,7 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
     public static final String PREFIX_IGNORED_SUBDIR = "_";
     private Info info;
     private FilenameFilter filenameFilter;
+    private List<Rhythm> fileRhythms = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(AbstractRhythmProvider.class.getSimpleName());
     private static String PREF_FILES_BLACK_LIST = "FilesBlackList";
     private static Preferences prefs = NbPreferences.forModule(AbstractRhythmProvider.class);
@@ -63,8 +64,8 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
      * @param desc
      * @param author
      * @param version
-     * @param fileExtensions The recognized rhythm files extensions. E.g. "sty", "prs". Can be null if this provider has only builtin
-     *                       rhythms.
+     * @param fileExtensions The recognized rhythm files extensions. E.g. "sty", "prs". Can be null if this provider has only
+     * builtin rhythms.
      */
     protected AbstractRhythmProvider(String uniqueId, String name, String desc, String author, int version, String... fileExtensions)
     {
@@ -89,37 +90,47 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
     /**
      * Get the file-based rhythms provided by this object.
      * <p>
-     * If prevList is null then use readFast() to fast scan all rhythms files found in getRhythmFilesDir() and subdirs -except the subdirs
-     * starting with PREFIX_IGNORED_SUBDIR.<br>
-     * If prevList is non null then fast scan only the new files. Also check for files which have been removed from the directory (present
-     * in prevList but not in the getRhythmFilesDir() tree)
+     * If prevList is null then use readFast() to fast scan all rhythms files found in getRhythmFilesDir() and subdirs -except the
+     * subdirs starting with PREFIX_IGNORED_SUBDIR.<br>
+     * If prevList is non null then fast scan only the new files. Also check for files which have been removed from the directory
+     * (present in prevList but not in the getRhythmFilesDir() tree)
      * .<p>
      * Files which can't be read are added to a blacklist which is saved as a Preferences.
      *
      * @param prevRhythmList A list of file-based rhythms.
+     * @param forceRescan
      * @return
      */
     @Override
-    public List<Rhythm> getFileRhythms(List<Rhythm> prevRhythmList)
+    public List<Rhythm> getFileRhythms(List<Rhythm> prevRhythmList, boolean forceRescan)
     {
-        LOGGER.fine("getRhythms() -- prevRhythmList=" + prevRhythmList);
-        ArrayList<Rhythm> result = new ArrayList<>();
+        LOGGER.fine("getFileRhythms() -- prevRhythmList=" + prevRhythmList);
+
+        if (!forceRescan && !fileRhythms.isEmpty())
+        {
+            // Return cached data
+            return new ArrayList<>(fileRhythms);
+        }
+
+        fileRhythms.clear();
 
         File rDir = getRhythmFilesDir();
         if (getFilenameFilter() == null || rDir == null)
         {
-            LOGGER.fine("getRhythms() RhythmProvider=" + info.getName() + " - Return an empty list because filenameFilter=" + filenameFilter + ", rDir=" + rDir);
-            return result;
+            LOGGER.fine("getFileRhythms() RhythmProvider=" + info.getName() + " - Return an empty list because filenameFilter=" + filenameFilter + ", rDir=" + rDir);
+            return new ArrayList<>(fileRhythms);
         }
+
 
         if (!rDir.isDirectory())
         {
-            LOGGER.warning("getRhythms() RhythmProvider=" + info.getName() + " - Rhythm file directory does not exist : " + rDir.getAbsolutePath());
-            return result;
+            LOGGER.warning("getFileRhythms() RhythmProvider=" + info.getName() + " - Rhythm file directory does not exist : " + rDir.getAbsolutePath());
+            return new ArrayList<>(fileRhythms);
         }
 
+
         // The HashSet of RhythmFiles built from the prevRhythmList
-        HashSet<RhythmPathPair> prevListSet = new HashSet<>();
+        HashSet<RhythmPathPair> prevRhythmListSet = new HashSet<>();
         if (prevRhythmList != null)
         {
             for (Rhythm r : prevRhythmList)
@@ -127,7 +138,7 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
                 String fn = r.getFile().getName();       // ri.getFile() can't return null
                 if (!fn.equals(""))
                 {
-                    prevListSet.add(new RhythmPathPair(r.getFile().toPath(), r));
+                    prevRhythmListSet.add(new RhythmPathPair(r.getFile().toPath(), r));
                 } else
                 {
                     // It's a builtin rhythm !
@@ -136,13 +147,15 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
             }
         }
 
+
         // Get the rhythm files in the directory tree
         HashSet<Path> rhythmFiles = Utilities.listFiles(rDir, getFilenameFilter(), PREFIX_IGNORED_SUBDIR, 2);
-        LOGGER.fine("getRhythms()   rhythmFiles=" + rhythmFiles);
+        LOGGER.fine("getFileRhythms()   rhythmFiles=" + rhythmFiles);
+
 
         // Remove the black listed files
         HashSet<Path> blackListedFiles = getBlackListedFiles();
-        LOGGER.fine("getRhythms()   blackList=" + blackListedFiles);
+        LOGGER.fine("getFileRhythms()   blackList=" + blackListedFiles);
         for (Path blackListedFile : blackListedFiles.toArray(new Path[0]))
         {
             if (rhythmFiles.contains(blackListedFile))
@@ -157,18 +170,19 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
         }
         if (!blackListedFiles.isEmpty())
         {
-            LOGGER.info("getRhythms() Ignoring previously blacklisted files: " + blackListedFiles);
+            LOGGER.info("getFileRhythms() Ignoring previously blacklisted files: " + blackListedFiles);
         }
+
 
         // Compare the previous list to what's in the directory
         // Detect deleted files in the dir and subdirs, leave only new files in rhythmFiles
-        for (RhythmPathPair rpp : prevListSet)
+        for (RhythmPathPair rpp : prevRhythmListSet)
         {
             // Do we find the previous file in the dir. tree ? 
             if (rhythmFiles.contains(rpp.path))
             {
                 // Yes: add directly the Rhythm in the result and remove the path from rhythmFiles
-                result.add(rpp.rhythm);
+                fileRhythms.add(rpp.rhythm);
                 rhythmFiles.remove(rpp.path);
             } else
             {
@@ -176,7 +190,9 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
             }
         }
 
-        LOGGER.fine("getRhythms()   rhythmFiles after processing of prevList=" + rhythmFiles);
+
+        LOGGER.fine("getFileRhythms()   rhythmFiles after processing of prevList=" + rhythmFiles);
+
 
         // Now rhythmFiles contains only NEW rhythm files, ie which are not in prevList
         HashSet<Path> blackListUpdate = new HashSet<>();
@@ -194,13 +210,14 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
                 blackListUpdate.add(rhythmFile);
                 continue;
             }
-            result.add(r);
+            fileRhythms.add(r);
         }
+
 
         if (!blackListUpdate.isEmpty())
         {
             String strFiles = blackListUpdate.toString();
-            LOGGER.warning("getRhythms() The following rhythm file(s) could not be read : " + strFiles);
+            LOGGER.warning("getFileRhythms() The following rhythm file(s) could not be read : " + strFiles);
             String msg = "The following rhythm file(s) could not be read. Consult the log window for details.";
             if (strFiles.length() > 120)
             {
@@ -213,12 +230,13 @@ public abstract class AbstractRhythmProvider implements RhythmProvider
             blackListedFiles.addAll(blackListUpdate);
         }
 
+
         // Save update blacklist
         storeFileBlackList(blackListedFiles);
 
-        LOGGER.fine("getRhythms()   result=" + result);
+        LOGGER.fine("getFileRhythms()   fileRhythms=" + fileRhythms);
 
-        return result;
+        return new ArrayList<>(fileRhythms);
     }
 
     /**

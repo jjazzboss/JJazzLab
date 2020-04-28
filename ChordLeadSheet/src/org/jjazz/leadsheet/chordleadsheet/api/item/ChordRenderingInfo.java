@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.leadsheet.chordleadsheet.api.item;
 
@@ -59,6 +59,15 @@ public class ChordRenderingInfo implements Serializable
     public ChordRenderingInfo()
     {
         this(PlayStyle.NORMAL, true, null);
+    }
+
+    /**
+     * Create an object with specified PlayStyle with anticipateAllowed=true and no associated standard scales.
+     * @param pStyle
+     */
+    public ChordRenderingInfo(PlayStyle pStyle)
+    {
+        this(pStyle, true, null);
     }
 
     /**
@@ -111,10 +120,11 @@ public class ChordRenderingInfo implements Serializable
     }
 
     /*
-    * C I/MAJOR/Cmaj ou IV/LYDIAN/G major Cm II/DORIAN/Bbmaj ou III/PHRYGIAN/Abmaj ou VI/AEOLIAN/Ebmaj ou Im/Melodic ou Im/Harmonic Cm7
-    * II/DORIAN/Bbmaj ou III/PHRYGIAN/Abmaj ou VI/AEOLIAN/Ebmaj ou Im/Melodic Cm6 II/DORIAN/Bbmaj ou Im/Harmonic Cm7b5 VII/LOCRIAN/Dbmaj ou
-    * IIm/Melodic Cm7M Im/Harmonic C7 C7alt C7M I/MAJOR/Cmaj ou IV/LYDIAN/G major C7M#11 IV/LYDIAN/G major C7M#5 C7sus C° diminué
-    *
+     * C I/MAJOR/Cmaj ou IV/LYDIAN/G major Cm II/DORIAN/Bbmaj ou III/PHRYGIAN/Abmaj ou VI/AEOLIAN/Ebmaj ou Im/Melodic ou
+     * Im/Harmonic Cm7 II/DORIAN/Bbmaj ou III/PHRYGIAN/Abmaj ou VI/AEOLIAN/Ebmaj ou Im/Melodic Cm6 II/DORIAN/Bbmaj ou Im/Harmonic
+     * Cm7b5 VII/LOCRIAN/Dbmaj ou IIm/Melodic Cm7M Im/Harmonic C7 C7alt C7M I/MAJOR/Cmaj ou IV/LYDIAN/G major C7M#11 IV/LYDIAN/G
+     * major C7M#5 C7sus C° diminué
+     *
      */
     /**
      * The standard scale instance that should be used for this chord.

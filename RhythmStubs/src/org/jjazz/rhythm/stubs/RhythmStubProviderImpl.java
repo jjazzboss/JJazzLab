@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.rhythm.stubs;
 
@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.openide.util.lookup.ServiceProvider;
@@ -110,12 +111,12 @@ public class RhythmStubProviderImpl implements StubRhythmProvider
     }
 
     @Override
-    public List<Rhythm> getFileRhythms(List<Rhythm> prevList)
+    public List<Rhythm> getFileRhythms(List<Rhythm> prevList, boolean forceRescan)
     {
         return new ArrayList<Rhythm>();
     }
-    
-    
+
+
     @Override
     public String[] getSupportedFileExtensions()
     {
@@ -126,6 +127,12 @@ public class RhythmStubProviderImpl implements StubRhythmProvider
     public Rhythm readFast(File f) throws IOException
     {
         throw new IOException("This RhythmProvider (" + getInfo().getName() + ") does not support file reading.");
+    }
+
+    @Override
+    public Rhythm getDefaultRhythm(RhythmFeatures rhythmFeatures, TimeSignature ts)
+    {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

@@ -78,7 +78,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         fdm.addPropertyChangeListener(this); // RhythmDir changes        
 
         // Listen to rdb changes
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         rdb.addChangeListener(this);
 
         // Listen to selection changes
@@ -158,7 +158,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
             ((RhythmProviderList) list_rhythmProviders).setTimeSignatureFilter(selectedTimeSignature);
 
             // Select default rhythm if there is one         
-            RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+            RhythmDatabase rdb = RhythmDatabase.getDefault();
             Rhythm r = rdb.getDefaultRhythm(selectedTimeSignature);  // Can be null
             RhythmProvider rp = list_rhythmProviders.getSelectedValue();   // Can be null
             if (r != null)
@@ -396,7 +396,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
 
     private void btn_rescanActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_rescanActionPerformed
     {//GEN-HEADEREND:event_btn_rescanActionPerformed
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         rdb.refresh(false);
     }//GEN-LAST:event_btn_rescanActionPerformed
 
@@ -405,7 +405,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         Rhythm r = rhythmTable.getSelectedRhythm();
         if (r != null)
         {
-            RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+            RhythmDatabase rdb = RhythmDatabase.getDefault();
             rdb.setDefaultRhythm(selectedTimeSignature, r);
             updateDefaultRhythmField();        // Because previous line does not fire an event
         }
@@ -483,7 +483,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         // rhythmTable.clear();
 
         // Refresh rhythm providers list
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         RhythmProvider[] rps = rdb.getRhythmProviders().toArray(new RhythmProvider[0]);
         list_rhythmProviders.setListData(rps);
 
@@ -506,7 +506,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
             throw new IllegalArgumentException("rp=" + rp);
         }
         // Refresh the list of rhythms        
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         List<Rhythm> rhythms = rdb.getRhythms(rp);    // All rp's rhythms
         rhythms = rdb.getRhythms(selectedTimeSignature, rhythms);   // only for the current timesignature
         // Update the table
@@ -516,7 +516,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
 
     private void updateDefaultRhythmField()
     {
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         Rhythm r = rdb.getDefaultRhythm(selectedTimeSignature);
         String s = (r == null) ? "-" : rdb.getDefaultRhythm(selectedTimeSignature).getName();
         String t = (r == null) ? "-" : "Rhythm Provider: " + rdb.getRhythmProvider(r).getInfo().getName();

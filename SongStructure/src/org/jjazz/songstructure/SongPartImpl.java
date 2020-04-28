@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.songstructure;
 
@@ -86,8 +86,9 @@ public class SongPartImpl implements SongPart, Serializable
     private static final Logger LOGGER = Logger.getLogger(SongPartImpl.class.getSimpleName());
 
     /**
-     * Create a SongPartImpl with default value for each of the rhythm's RhythmParameters. Name is set to parentSection's name if
-     * parentSection not null.
+     * Create a SongPartImpl with default value for each of the rhythm's RhythmParameters.
+     * <p>
+     * Name is set to parentSection's name if parentSection not null.
      *
      * @param r
      * @param startBarIndex
@@ -482,7 +483,7 @@ public class SongPartImpl implements SongPart, Serializable
         {
             // Restore the rhythm
             String errRhythm = null;
-            RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+            RhythmDatabase rdb = RhythmDatabase.getDefault();
             Rhythm r = rdb.getRhythm(spRhythmId);
             if (r == null)
             {

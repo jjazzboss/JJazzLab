@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.util;
 
@@ -111,6 +111,24 @@ public class Utilities
             index = filename.length();
         }
         return filename.substring(0, index) + ext;
+    }
+
+    /**
+     * Get the string of all the collection elements in brackets [], but limited to maxLength.
+     *
+     * @param collection
+     * @param maxLength Must be &gt;= 5
+     * @return A string like [one,two,th...] if maxLength is 15
+     */
+    public static String truncateWithDots(Collection<?> collection, int maxLength)
+    {
+        if (maxLength < 5)
+        {
+            throw new IllegalArgumentException("collection=" + collection + " maxLength=" + maxLength);
+        }
+        String s = collection.toString();
+        s = s.substring(1, s.length() - 1);   // Remove the []        
+        return "[" + Utilities.truncateWithDots(s, maxLength - 2) + "]";
     }
 
     /**
@@ -463,7 +481,7 @@ public class Utilities
      * @param list
      * @return
      */
-    public static String toMultilineString(List list)
+    public static String toMultilineString(Collection<?> list)
     {
         if (list == null)
         {

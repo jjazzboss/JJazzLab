@@ -50,7 +50,7 @@ public class ChordTypeDatabase
     private static ChordTypeDatabase INSTANCE;
     private List<ChordType> chordTypes = new ArrayList<>();
     private HashMap<ChordType, String> mapCtDefaultAliases = new HashMap<>();
-    private HashMap<String, ChordType> mapAliasCt = new HashMap<>();
+    private HashMap<String, ChordType> mapAliasCt = new HashMap<>(450);     // Try to avoid rehash
     private Preferences prefs = NbPreferences.forModule(ChordTypeDatabase.class);
     private static final Logger LOGGER = Logger.getLogger(ChordTypeDatabase.class.getSimpleName());
 
@@ -66,19 +66,19 @@ public class ChordTypeDatabase
 
         // MAJOR
         addBuiltin("", "", MAJ, ":M:maj:MAJ:Maj:bass:Bass:BASS:1+8:1+5:5:", NP, 0, NP, 0, NP, NP);
-        addBuiltin("2", "", MAJ, ":add9:1+2+5:sus2:add2", 0, 0, NP, 0, NP, NP);
+        addBuiltin("2", "", MAJ, ":add9:1+2+5:sus2:add2:", 0, 0, NP, 0, NP, NP);
         addBuiltin("+", "", MAJ, ":maj#5:maj+5:M#5:ma#5:ma+5:aug:#5:", NP, 0, NP, 1, NP, NP);
         addBuiltin("6", "", MAJ, ":maj6:MAJ6:Maj6:M6:", NP, 0, NP, 0, 0, NP);
         addBuiltin("6", "9", MAJ, ":M69:ma69:maj69:MAJ69:Maj6(9):", 0, 0, NP, 0, 0, NP);
         addBuiltin("M7", "", MAJ, ":7M:maj7:ma7:MAJ7:Maj7:", NP, 0, NP, 0, NP, 0);
         addBuiltin("M7", "13", MAJ, ":maj713:ma713:MAJ713:M7add13:", NP, 0, NP, 0, 0, 0);
-        addBuiltin("M9", "", MAJ, ":9M:maj79:maj9:ma79:MAJ79:Maj(9):Maj7(9):", 0, 0, NP, 0, NP, 0);
-        addBuiltin("M13", "", MAJ, ":ma13:maj13:MAJ13:13M:", 0, 0, NP, 0, 0, 0);
-        addBuiltin("M7", "b5", MAJ, ":maj7b5:maj-5:Mb5:7M-5:7Mb5:ma7b5:ma-5:", NP, 0, NP, -1, NP, 0);
-        addBuiltin("M7", "#5", MAJ, ":maj7#5:7M+5:7M#5:ma7#5:Maj7aug:", NP, 0, NP, +1, NP, 0);
+        addBuiltin("M9", "", MAJ, ":9M:maj79:maj9:ma79:MAJ79:Maj9:Maj(9):Maj7(9):Maj9(no3):", 0, 0, NP, 0, NP, 0);
+        addBuiltin("M13", "", MAJ, ":ma13:maj13:MAJ13:13M:Maj13:", 0, 0, NP, 0, 0, 0);
+        addBuiltin("M7", "b5", MAJ, ":maj7b5:maj-5:Mb5:7M-5:7Mb5:ma7b5:ma-5:b5:Maj7b5:", NP, 0, NP, -1, NP, 0);
+        addBuiltin("M7", "#5", MAJ, ":maj7#5:7M+5:7M#5:ma7#5:Maj7aug:Maj7#5:", NP, 0, NP, +1, NP, 0);
         addBuiltin("M7", "#11", MAJ, ":maj7#11:7M#11:Maj7#11:ma7#11:", NP, 0, +1, 0, NP, 0);
-        addBuiltin("M9", "#11", MAJ, ":maj9#11:9M#11:ma9#11:", 0, 0, +1, 0, NP, 0);
-        addBuiltin("M13", "#11", MAJ, ":maj13#11:13M#11:ma13#11:", 0, 0, +1, 0, 0, 0);
+        addBuiltin("M9", "#11", MAJ, ":maj9#11:9M#11:ma9#11:Maj9#11:", 0, 0, +1, 0, NP, 0);
+        addBuiltin("M13", "#11", MAJ, ":maj13#11:13M#11:ma13#11:Maj13#11:", 0, 0, +1, 0, 0, 0);
 
         // SEVENTH
         addBuiltin("7", "", S, ":7th:", NP, 0, NP, 0, NP, -1);
@@ -86,33 +86,37 @@ public class ChordTypeDatabase
         addBuiltin("13", "", S, ":713:7(13):7add6:7add13:67:", NP, 0, NP, 0, 0, -1);
         addBuiltin("7", "b5", S, ":7-5:", NP, 0, NP, -1, NP, -1);
         addBuiltin("9", "b5", S, ":9-5:79b5:79-5:", 0, 0, NP, -1, NP, -1);
-        addBuiltin("7", "#5", S, ":7+5:+7:7+:7(b13):7aug:aug7:", NP, 0, NP, +1, NP, -1);
+        addBuiltin("7", "#5", S, ":7+5:+7:7+:7(b13):7aug:aug7:7b13:", NP, 0, NP, +1, NP, -1);
         addBuiltin("9", "#5", S, ":9+5:79#5:9+:", 0, 0, NP, +1, NP, -1);
         addBuiltin("7", "b9", S, ":7-9:7(b9):", -1, 0, NP, 0, NP, -1);
         addBuiltin("7", "#9", S, ":7+9:7(#9):", +1, 0, NP, 0, NP, -1);
         addBuiltin("7", "#9#5", S, ":7+5+9:7#5#9:7alt:", +1, 0, NP, +1, NP, -1);
         addBuiltin("7", "b9#5", S, ":7+5-9:7#5b9:", -1, 0, NP, +1, NP, -1);
         addBuiltin("7", "b9b5", S, ":7-5-9:7b5b9:", -1, 0, NP, -1, NP, -1);
-        addBuiltin("7", "#9b5", S, ":7-5+9:", +1, 0, NP, -1, NP, -1);
-        addBuiltin("7", "#11", S, ":7+11:", NP, 0, +1, 0, NP, -1);
+        addBuiltin("7", "#9b5", S, ":7-5+9:7b5#9:", +1, 0, NP, -1, NP, -1);
+        addBuiltin("7", "#11", S, ":7+11:Lyd:Maj7Lyd:", NP, 0, +1, 0, NP, -1);
         addBuiltin("9", "#11", S, ":9+11:", 0, 0, +1, 0, NP, -1);
         addBuiltin("7", "b9#11", S, ":7-9+11:", -1, 0, +1, 0, NP, -1);
         addBuiltin("7", "#9#11", S, ":7+9+11:", +1, 0, +1, 0, NP, -1);
         addBuiltin("13", "b5", S, ":13-5:713b5:713-5:", NP, 0, NP, -1, 0, -1);
         addBuiltin("13", "b9", S, ":13-9:713b9:713-9:", -1, 0, NP, 0, 0, -1);
+        addBuiltin("13", "b9b5", S, ":13-9-5:13b5b9:", -1, 0, NP, -1, 0, -1);
         addBuiltin("13", "#9", S, ":13+9:713#9:713+9:", +1, 0, NP, 0, 0, -1);
+        addBuiltin("13", "#9b5", S, ":13+9-5:13b5#9:", +1, 0, NP, -1, 0, -1);
         addBuiltin("13", "#11", S, ":13+11:713#11:713+11:", 0, 0, +1, 0, 0, -1);
         addBuiltin("13", "b9#11", S, ":13-9+11:", -1, 0, +1, 0, 0, -1);
 
         // MINOR
         addBuiltin("m", "", MIN, ":min:mi:-:", NP, -1, NP, 0, NP, NP);
-        addBuiltin("m+", "", MIN, ":m#5:mi#5:m+5:mi+:-#5:", NP, -1, NP, 1, NP, NP);
+        addBuiltin("m2", "", MIN, ":min2:mi2:-2:madd2:madd9:", 0, -1, NP, 0, NP, NP);
+        addBuiltin("m+", "", MIN, ":m#5:mi#5:m+5:mi+:-#5:maug:", NP, -1, NP, 1, NP, NP);
         addBuiltin("m6", "", MIN, ":min6:mi6:-6:", NP, -1, NP, 0, 0, NP);
         addBuiltin("m6", "9", MIN, ":min69:mi69:-69:", 0, -1, NP, 0, 0, NP);
         addBuiltin("m7", "", MIN, ":mi7:min7:-7:", NP, -1, NP, 0, NP, -1);
         addBuiltin("m7", "b9", MIN, ":mi7b9:min7b9:", -1, -1, NP, 0, NP, -1);
         addBuiltin("m7", "13", MIN, ":mi713:min713:-713:m7add13:", NP, -1, NP, 0, 0, -1);
-        addBuiltin("m9", "", MIN, ":mi9:min9:min(9):min7(9):-9:madd9:", 0, -1, NP, 0, NP, -1);
+        addBuiltin("m7", "#5", MIN, ":mi7#5:min7#5:-7#5:", NP, -1, NP, 1, NP, -1);
+        addBuiltin("m9", "", MIN, ":mi9:min9:min(9):min7(9):-9:", 0, -1, NP, 0, NP, -1);
         addBuiltin("m9", "11", MIN, ":m9(11):mi911:min911:-9(11):", 0, -1, 0, 0, NP, -1);
         addBuiltin("m11", "", MIN, ":m711:mi711:min711:-711:min7(11):m7add11:m7add4:madd4:", NP, -1, 0, 0, NP, -1);
         addBuiltin("m11", "b5", MIN, ":m11(b5):min11(b5):-11b5:-11(b5):", NP, -1, 0, -1, NP, -1);
@@ -123,7 +127,7 @@ public class ChordTypeDatabase
         addBuiltin("m9", "b5", MIN, ":m9-5:mi9b5:mi9-5:min9b5:min9-5:", 0, -1, NP, -1, NP, -1);
 
         // DIMINISHED
-        addBuiltin("", "dim", DIM, ":°:o:h:mb5:", NP, -1, NP, -1, NP, NP);
+        addBuiltin("", "dim", DIM, ":°:o:h:mb5:dim5:", NP, -1, NP, -1, NP, NP);
         addBuiltin("", "dim7", DIM, ":°7:o7:7dim:h7:", NP, -1, NP, -1, 0, NP);
         addBuiltin("", "dim7M", DIM, ":°7M:o7M:oM7:7dim7M:dimM7:", NP, -1, NP, -1, NP, 0);
 

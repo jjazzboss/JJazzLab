@@ -85,7 +85,7 @@ public class LoadDefaultRhythmMix extends AbstractAction
         List<Rhythm> rhythms = new ArrayList<>();
         if (rhythm == null)
         {
-            rhythms.addAll(SongStructure.Util.getUniqueRhythms(song.getSongStructure()));
+            rhythms.addAll(SongStructure.getUniqueRhythms(song.getSongStructure()));
         } else
         {
             rhythms.add(rhythm);

@@ -54,7 +54,7 @@ public class Note implements Comparable<Note>, Cloneable
 
     public enum Alteration
     {
-        FLAT, SHARP
+        FLAT, SHARP;
     }
     public static final String[] notesFlat =
     {

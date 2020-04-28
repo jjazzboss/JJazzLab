@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.ui.cl_editor.api;
 
@@ -55,7 +55,6 @@ import org.openide.util.Utilities;
  */
 @Messages(
         {
-            "HINT_CL_EditorTopComponent=This is a chord leadsheet editor window",
             "CTL_CL_ConfirmClose=OK to close this song without saving changes ?"
         })
 public final class CL_EditorTopComponent extends TopComponent implements PropertyChangeListener
@@ -110,7 +109,6 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         initComponents();
 
         updateTabName();
-        setToolTipText(Bundle.HINT_CL_EditorTopComponent());
     }
 
     @Override
@@ -337,5 +335,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         {
             setHtmlDisplayName("<html>" + name + "</html>");
         }
+        String tt = songModel.getFile() == null ? "No file" : songModel.getFile().getAbsolutePath();
+        setToolTipText(tt);
     }
 }

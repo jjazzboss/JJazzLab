@@ -70,7 +70,6 @@ public interface ChordLeadSheet
      * Trailing items' position might be adjusted if it results in a time signature change.
      *
      * @param section
-     * @throws org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException
      * @throws IllegalArgumentException If section already exists at specified position or invalid section.
      * @throws UnsupportedEditException If a ChordLeadSheet change listener veto this edit.
      */
@@ -91,10 +90,9 @@ public interface ChordLeadSheet
      *
      * @param section The section to be changed.
      * @param name
-     * @throws UnsupportedEditException
      * @throws IllegalArgumentException If name already exist, is a reserved name, or section does not belong to this leadsheet.
      */
-    public void setSectionName(CLI_Section section, String name) throws UnsupportedEditException;
+    public void setSectionName(CLI_Section section, String name);
 
     /**
      * Change the TimeSignature of a section.

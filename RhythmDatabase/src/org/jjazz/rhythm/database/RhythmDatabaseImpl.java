@@ -1,30 +1,29 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.rhythm.database;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import org.jjazz.rhythm.database.api.RhythmDatabase;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -37,10 +36,12 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.rhythm.api.MusicalGenre;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.api.TempoRange;
 import static org.jjazz.rhythm.database.Bundle.CTL_Scanning;
+import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.openide.util.Lookup;
 import org.netbeans.api.progress.BaseProgressUtils;
@@ -226,11 +227,11 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
         ArrayList<Rhythm> rhythms = new ArrayList<>();
         List<Rhythm> searchedRhythms = (optRhythms == null) ? getRhythms() : optRhythms;
-        for (Rhythm ri : searchedRhythms)
+        for (Rhythm r : searchedRhythms)
         {
-            if (ri.getTempoRange().contains(tempo))
+            if (r.getFeatures().getTempoRange().contains(tempo))
             {
-                rhythms.add(ri);
+                rhythms.add(r);
             }
         }
         return rhythms;
@@ -340,27 +341,19 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         return r;
     }
 
-    /**
-     * Set the default rhythm for this TimeSignature.
-     *
-     * @param ts TimeSignature
-     * @exception IllegalArgumentException If ri is not part of this database
-     */
     @Override
-    public void setDefaultRhythm(TimeSignature ts, Rhythm ri)
+    public void setDefaultRhythm(TimeSignature ts, Rhythm r)
     {
-        if (ts == null)
+        if (ts == null || r == null)
         {
-            throw new NullPointerException("ts=" + ts);
+            throw new NullPointerException("ts=" + ts + " r=" + null);
         }
-        ArrayList<Rhythm> rhythms = mapTsRhythms.get(ts);
-        if (rhythms == null || (rhythms.indexOf(ri)) == -1)
+        if (getRhythm(r.getUniqueId()) == null)
         {
-            throw new IllegalArgumentException("Rhythm ri unknown. ts=" + ts + " ri=" + ri);
+            throw new IllegalArgumentException("Rhythm r not in this database. ts=" + ts + " r=" + r);
         }
         // Store the uniqueId of the Rhythm as a preference
-        String prefName = getPrefString(ts);
-        prefs.put(prefName, ri.getUniqueId());
+        prefs.put(getPrefString(ts), r.getUniqueId());
     }
 
     /**
@@ -498,7 +491,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             }
 
             // Add file rhythms
-            List<Rhythm> rhythmsNotBuiltin = rp.getFileRhythms(forceRescan ? null : mapRpRhythms.get(rp));
+            List<Rhythm> rhythmsNotBuiltin = rp.getFileRhythms(mapRpRhythms.get(rp), forceRescan);
             for (Rhythm r : rhythmsNotBuiltin)
             {
                 addRhythm(rp, r);
@@ -509,6 +502,11 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     private String getPrefString(TimeSignature ts)
     {
         return PREF_DEFAULT_RHYTHM + "__" + ts.name();
+    }
+
+    private String getPrefString(MusicalGenre genre)
+    {
+        return PREF_DEFAULT_RHYTHM + "__" + genre.name();
     }
 
     protected void clear()

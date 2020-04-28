@@ -96,7 +96,7 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
     private void updateMenu(JMenu menu)
     {
         // Prepare the TimeSignature subMenu
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         menu.removeAll();
         for (final TimeSignature ts : TimeSignature.values())
         {
@@ -149,7 +149,7 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
         public MyDynamicMenu()
         {
             super(CTL_SetTimeSignature());
-            RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+            RhythmDatabase rdb = RhythmDatabase.getDefault();
             rdb.addChangeListener(this);
         }
 
@@ -157,7 +157,7 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
         public void stateChanged(ChangeEvent e)
         {
             // We can be outside the EDT
-            RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+            RhythmDatabase rdb = RhythmDatabase.getDefault();
             if (e.getSource() == rdb)
             {
                 Runnable run = new Runnable()

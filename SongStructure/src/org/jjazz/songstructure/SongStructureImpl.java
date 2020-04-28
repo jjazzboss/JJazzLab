@@ -169,11 +169,11 @@ public class SongStructureImpl implements SongStructure, Serializable
                 startPos = getPositionInNaturalBeats(ir.from);
                 endPos = startPos + ir.size() * ts.getNbNaturalBeats();
             } else
-            {                
+            {
                 endPos += ir.size() * ts.getNbNaturalBeats();
             }
         }
-        return new FloatRange(startPos, endPos); 
+        return new FloatRange(startPos, endPos);
     }
 
     @Override
@@ -182,7 +182,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         if (r == null || startBarIndex < 0 || nbBars < 0)
         {
             throw new IllegalArgumentException("r=" + r + " startBarIndex=" + startBarIndex + " nbBars=" + nbBars + " parentSection=" + parentSection);
-        }
+        }  
         SongPartImpl spt = new SongPartImpl(r, startBarIndex, nbBars, parentSection);
         spt.setContainer(this);
         return spt;
@@ -619,7 +619,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public Rhythm getDefaultRhythm(TimeSignature ts)
     {
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         Rhythm r = mapTsLastRhythm.getValue(ts);
         if (r == null)
         {
@@ -779,13 +779,13 @@ public class SongStructureImpl implements SongStructure, Serializable
     // -------------------------------------------------------------------------------------------
     // Private functions
     // -------------------------------------------------------------------------------------------
-    private int getSptLastBarIndex(int rpIndex)
+    private int getSptLastBarIndex(int sptIndex)
     {
-        if (rpIndex < 0 || rpIndex >= songParts.size())
+        if (sptIndex < 0 || sptIndex >= songParts.size())
         {
-            throw new IllegalArgumentException("rpIndex=" + rpIndex);
+            throw new IllegalArgumentException("rpIndex=" + sptIndex);
         }
-        SongPart spt = songParts.get(rpIndex);
+        SongPart spt = songParts.get(sptIndex);
         return spt.getStartBarIndex() + spt.getNbBars() - 1;
     }
 

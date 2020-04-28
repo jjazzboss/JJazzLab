@@ -225,7 +225,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
      */
     public void setVisibleRhythm(Rhythm r)
     {
-        if (songModel == null || (r != null && !SongStructure.Util.getUniqueRhythms(songModel.getSongStructure()).contains(r)))
+        if (songModel == null || (r != null && !SongStructure.getUniqueRhythms(songModel.getSongStructure()).contains(r)))
         {
             throw new IllegalStateException("songModel=" + songModel + " r=" + r);
         }
@@ -728,7 +728,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private void updateVisibleRhythmUI()
     {
         List<Rhythm> rhythms;
-        if (songModel == null || (rhythms = SongStructure.Util.getUniqueRhythms(songModel.getSongStructure())).size() < 2)
+        if (songModel == null || (rhythms = SongStructure.getUniqueRhythms(songModel.getSongStructure())).size() < 2)
         {
             // Hide the combo box
             if (cb_viewRhythms.getParent() != null)

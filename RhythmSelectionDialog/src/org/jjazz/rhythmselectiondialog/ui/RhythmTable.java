@@ -255,7 +255,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                 case COL_NAME:
                     return r.getName();
                 case COL_FEEL:
-                    return r.getFeel().toString();
+                    return r.getFeatures().getFeel().toString();
                 case COL_ID:
                     return row + 1;
                 default:

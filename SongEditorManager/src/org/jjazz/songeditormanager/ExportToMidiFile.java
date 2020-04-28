@@ -74,7 +74,7 @@ import org.openide.windows.WindowManager;
 @ActionRegistration(displayName = "#CTL_ExportToMidiFile", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/File", position = 1610)
+            @ActionReference(path = "Menu/File", position = 1580, separatorAfter=1590)
         })
 @NbBundle.Messages(
         {

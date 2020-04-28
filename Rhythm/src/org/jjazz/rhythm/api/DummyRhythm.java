@@ -6,8 +6,8 @@
  * This file is part of the JJazzLab-X software.
  *
  * JJazzLab-X is free software: you can redistribute it and/or modify
- * it under the terms of the Lesser GNU General Public License (LGPLv3) 
- * as published by the Free Software Foundation, either version 3 of the License, 
+ * it under the terms of the Lesser GNU General Public License (LGPLv3)
+ * as published by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
  * JJazzLab-X is distributed in the hope that it will be useful,
@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with JJazzLab-X.  If not, see <https://www.gnu.org/licenses/>
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  */
 package org.jjazz.rhythm.api;
@@ -47,6 +47,7 @@ public class DummyRhythm implements Rhythm
     protected String name;
     protected TimeSignature timeSignature;
     protected Lookup lookup;
+    protected RhythmFeatures features;
 
     /**
      * The default RhythmParameters associated to this rhythm.
@@ -72,13 +73,15 @@ public class DummyRhythm implements Rhythm
         }
 
         this.name = name;
-
+        this.timeSignature = ts;
         // Our Rhythm Parameters
         rhythmParameters.add(new RP_STD_Variation());
 
         // Rhythm voices
         GM1Bank gmb = StdSynth.getInstance().getGM1Bank();
-        rhythmVoices.add(new RhythmVoice(this, Type.BASS,"Bass", gmb.getDefaultInstrument(Family.Bass), 11));
+        rhythmVoices.add(new RhythmVoice(this, Type.BASS, "Bass", gmb.getDefaultInstrument(Family.Bass), 11));
+
+        features = new RhythmFeatures();
 
         // The music generator
         lookup = Lookups.fixed("dummy lookup");
@@ -94,6 +97,12 @@ public class DummyRhythm implements Rhythm
             res = ar.getUniqueId().equals(getUniqueId());
         }
         return res;
+    }
+
+    @Override
+    public TimeSignature getTimeSignature()
+    {
+        return timeSignature;
     }
 
     @Override
@@ -124,9 +133,9 @@ public class DummyRhythm implements Rhythm
     }
 
     @Override
-    public TimeSignature getTimeSignature()
+    public RhythmFeatures getFeatures()
     {
-        return timeSignature;
+        return features;
     }
 
     /**
@@ -183,18 +192,6 @@ public class DummyRhythm implements Rhythm
     }
 
     @Override
-    public Rhythm.Feel getFeel()
-    {
-        return Rhythm.Feel.BINARY;
-    }
-
-    @Override
-    public TempoRange getTempoRange()
-    {
-        return TempoRange.MEDIUM;
-    }
-
-    @Override
     public int getPreferredTempo()
     {
         return 120;
@@ -210,12 +207,6 @@ public class DummyRhythm implements Rhythm
     public String getAuthor()
     {
         return "JL";
-    }
-
-    @Override
-    public String getVersion()
-    {
-        return "1";
     }
 
     @Override

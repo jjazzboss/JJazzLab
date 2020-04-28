@@ -365,13 +365,7 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("setSectionName Yeaaaah section 0");
         CLI_Section cliSection0 = cls1.getSection(0);
-        try
-        {
-            cls1.setSectionName(cliSection0, "Yeaaah");
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
+        cls1.setSectionName(cliSection0, "Yeaaah");
         assertTrue(cliSection0.getData().getName() == "Yeaaah");
     }
 
@@ -380,13 +374,7 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("setSectionName name already exist");
         CLI_Section cliSection0 = cls1.getSection(0);
-        try
-        {
-            cls1.setSectionName(cliSection0, "Section3");
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
+        cls1.setSectionName(cliSection0, "Section3");
     }
 
     // SetSize() --------------------------------------------------

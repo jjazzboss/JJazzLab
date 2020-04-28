@@ -46,46 +46,38 @@ public interface SongStructure
 {
 
     /**
-     * Various utilities methods.
+     * Return the list of unique rhythms used in a SongStructure.
+     *
+     * @param sgs
+     * @return
      */
-    public static class Util
+    static public List<Rhythm> getUniqueRhythms(SongStructure sgs)
     {
-
-        /**
-         * Return the list of unique rhythms used in a SongStructure.
-         *
-         * @param sgs
-         * @return
-         */
-        static public List<Rhythm> getUniqueRhythms(SongStructure sgs)
+        ArrayList<Rhythm> res = new ArrayList<>();
+        for (SongPart spt : sgs.getSongParts())
         {
-            ArrayList<Rhythm> res = new ArrayList<>();
-            for (SongPart spt : sgs.getSongParts())
+            if (!res.contains(spt.getRhythm()))
             {
-                if (!res.contains(spt.getRhythm()))
-                {
-                    res.add(spt.getRhythm());
-                }
+                res.add(spt.getRhythm());
             }
-            return res;
         }
+        return res;
+    }
 
-        /**
-         * All the RhythmVoices of sgs.
-         *
-         * @param sgs
-         * @return
-         */
-        static public List<RhythmVoice> getUniqueRhythmVoices(SongStructure sgs)
+    /**
+     * All the RhythmVoices of sgs.
+     *
+     * @param sgs
+     * @return
+     */
+    static public List<RhythmVoice> getUniqueRhythmVoices(SongStructure sgs)
+    {
+        ArrayList<RhythmVoice> rvs = new ArrayList<>();
+        for (Rhythm r : getUniqueRhythms(sgs))
         {
-            ArrayList<RhythmVoice> rvs = new ArrayList<>();
-            for (Rhythm r : getUniqueRhythms(sgs))
-            {
-                rvs.addAll(r.getRhythmVoices());
-            }
-            return rvs;
+            rvs.addAll(r.getRhythmVoices());
         }
-
+        return rvs;
     }
 
     /**

@@ -86,7 +86,7 @@ public class ShowHideRp extends AbstractAction
         LOGGER.log(Level.FINE, "actionPerformed()");
         SongStructure sgs = editor.getModel();
         SmallMap<Rhythm, List<RhythmParameter<?>>> map = new SmallMap<>();
-        for (Rhythm r : SongStructure.Util.getUniqueRhythms(sgs))
+        for (Rhythm r : SongStructure.getUniqueRhythms(sgs))
         {
             map.putValue(r, editor.getVisibleRps(r));
         }
@@ -106,7 +106,7 @@ public class ShowHideRp extends AbstractAction
     private int getNbHiddenParameters()
     {
         int res = 0;
-        for (Rhythm r : SongStructure.Util.getUniqueRhythms(editor.getModel()))
+        for (Rhythm r : SongStructure.getUniqueRhythms(editor.getModel()))
         {
             res = Math.max(res, r.getRhythmParameters().size() - editor.getVisibleRps(r).size());
         }

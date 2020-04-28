@@ -97,7 +97,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         initComponents();
 
         // Register for rhythmdatabase changes
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         rdb.addChangeListener(new ChangeListener()              // RhythmDatabase events might not be sent on the EDT
         {
             @Override
@@ -159,7 +159,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         lbl_timeSignature.setText(timeSignature.toString());
 
         // Select the preset rhythm provider (this will populate the rhythm table)
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         presetRhythmProvider = rdb.getRhythmProvider(presetRhythm);
         if (!rhythmProvidersListContains(presetRhythmProvider))
         {
@@ -285,7 +285,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         RhythmProvider saveSelRp = selectedRhythmProvider;
 
         // Rebuild the RhythmProvider list
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         List<RhythmProvider> rps = new ArrayList<>();
         rps.add(FavoriteRhythmProvider.getInstance());          // Always first
         rps.addAll(rdb.getRhythmProviders());
@@ -316,7 +316,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         btn_clearFilterActionPerformed(null);
 
         // Refresh the list of rhythms
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         List<Rhythm> rhythms = (rp == FavoriteRhythmProvider.getInstance()) ? FavoriteRhythmProvider.getInstance().getBuiltinRhythms() : rdb.getRhythms(rp);
         rhythms = rdb.getRhythms(timeSignature, rhythms);
 
@@ -350,7 +350,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
     private void addRhythms()
     {
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
 
         if (!prefs.getBoolean(PREF_HIDE_ADDRHYTM_INFO_DIALOG, false))
         {

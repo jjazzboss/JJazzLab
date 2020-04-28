@@ -140,7 +140,7 @@ public class FavoriteRhythms
         {
             throw new NullPointerException("rp");
         }
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         ArrayList<Rhythm> res = new ArrayList<>();
         for (Rhythm r : rhythms)
         {
@@ -218,7 +218,7 @@ public class FavoriteRhythms
             {
                 continue;
             }
-            RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+            RhythmDatabase rdb = RhythmDatabase.getDefault();
             Rhythm r = rdb.getRhythm(rId);
             if (r != null)
             {

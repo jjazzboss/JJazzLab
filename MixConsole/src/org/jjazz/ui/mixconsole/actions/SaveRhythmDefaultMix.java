@@ -81,7 +81,7 @@ public class SaveRhythmDefaultMix extends AbstractAction
 
         // Save only the visible rhythms
         Song song = songMidiMix.getSong();
-        List<Rhythm> songRhythms = SongStructure.Util.getUniqueRhythms(song.getSongStructure());
+        List<Rhythm> songRhythms = SongStructure.getUniqueRhythms(song.getSongStructure());
         if (songRhythms.isEmpty())
         {
             // Can happen is songstructure is empty

@@ -223,7 +223,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             for (Integer channel : getUsedChannels())
             {
                 RhythmVoice rvKey = getKey(channel);
-                List<RhythmVoice> songRvs = SongStructure.Util.getUniqueRhythmVoices(sgs);
+                List<RhythmVoice> songRvs = SongStructure.getUniqueRhythmVoices(sgs);
                 if (!(rvKey instanceof UserChannelRvKey) && !songRvs.contains(rvKey))
                 {
                     throw new IllegalArgumentException("channel=" + channel + " rvKey=" + rvKey + " songRvs=" + songRvs);
@@ -317,7 +317,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         if (rvKey != null && song != null)
         {
             // Check that rvKey belongs to song
-            if (!SongStructure.Util.getUniqueRhythmVoices(song.getSongStructure()).contains(rvKey))
+            if (!SongStructure.getUniqueRhythmVoices(song.getSongStructure()).contains(rvKey))
             {
                 throw new IllegalArgumentException("channel=" + channel + " rvKey=" + rvKey + " insMix=" + insMix + ". rvKey does not belong to any of the song's rhythms.");
             }
@@ -926,12 +926,12 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             return;
         }
 
-        List<Rhythm> songRhythms = SongStructure.Util.getUniqueRhythms(song.getSongStructure());
+        List<Rhythm> songRhythms = SongStructure.getUniqueRhythms(song.getSongStructure());
         List<Rhythm> mixRhythms = getUniqueRhythms();
 
         if (e instanceof SptAddedEvent)
         {
-            if (SongStructure.Util.getUniqueRhythmVoices(song.getSongStructure()).size() > NB_AVAILABLE_CHANNELS)
+            if (SongStructure.getUniqueRhythmVoices(song.getSongStructure()).size() > NB_AVAILABLE_CHANNELS)
             {
                 // No need to go further, we don't have enough Midi channels
                 throw new UnsupportedEditException(ERR_NotEnoughChannels());
@@ -969,7 +969,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             }
         } else if (e instanceof SptReplacedEvent)
         {
-            if (SongStructure.Util.getUniqueRhythmVoices(song.getSongStructure()).size() > NB_AVAILABLE_CHANNELS)
+            if (SongStructure.getUniqueRhythmVoices(song.getSongStructure()).size() > NB_AVAILABLE_CHANNELS)
             {
                 // No need to go further, we don't have enough Midi channels
                 throw new UnsupportedEditException(ERR_NotEnoughChannels());
@@ -1553,7 +1553,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
 
         private RhythmVoice rebuildRhythmVoice(String rhythmId, String rvName)
         {
-            RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+            RhythmDatabase rdb = RhythmDatabase.getDefault();
             Rhythm r = rdb.getRhythm(rhythmId);
             if (r != null)
             {

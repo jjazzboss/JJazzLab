@@ -75,7 +75,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
     public SongStructure createSimpleSgs()
     {
         SongStructureImpl sgs = new SongStructureImpl();
-        RhythmDatabase rdb = RhythmDatabase.Utilities.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
         Rhythm r = rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR);
         assert r != null;
         SongPart spt = sgs.createSongPart(r, 0, 8, null);
