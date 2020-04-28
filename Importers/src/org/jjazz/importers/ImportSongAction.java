@@ -1,24 +1,24 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  *  Copyright @2019 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLabX software.
- *   
+ *
  *  JJazzLabX is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3)
+ *  as published by the Free Software Foundation, either version 3 of the License,
  *  or (at your option) any later version.
  *
  *  JJazzLabX is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+ *
+ *  Contributor(s):
  */
 package org.jjazz.importers;
 
@@ -49,7 +49,6 @@ import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle.Messages;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
 import org.openide.windows.WindowManager;
@@ -62,7 +61,7 @@ import org.openide.windows.WindowManager;
 @ActionRegistration(displayName = "#CTL_ImportSong", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/File", position = 1600, separatorBefore = 1590),
+            @ActionReference(path = "Menu/File", position = 10),
         })
 @Messages(
         {
@@ -86,7 +85,8 @@ public final class ImportSongAction implements ActionListener
             return;
         }
 
-        // Prepare a special filter that show all accepted extensions
+
+        // Prepare a special filter that shows all accepted extensions
         FileNameExtensionFilter allExtensionsFilter = null;
         HashSet<String> allExtensions = new HashSet<>();
         for (SongImporter importer : importers)
@@ -98,8 +98,9 @@ public final class ImportSongAction implements ActionListener
         }
         if (allExtensions.size() > 1)
         {
-            allExtensionsFilter = new FileNameExtensionFilter("All importable files " + allExtensions.toString(), allExtensions.toArray(new String[0]));
+            allExtensionsFilter = new FileNameExtensionFilter("All importable files", allExtensions.toArray(new String[0]));
         }
+
 
         // Initialize the file chooser
         JFileChooser chooser = org.jjazz.ui.utilities.Utilities.getFileChooserInstance();
@@ -128,6 +129,7 @@ public final class ImportSongAction implements ActionListener
             return;
         }
 
+
         // Save directory for future imports
         final File[] files = chooser.getSelectedFiles();
         if (files.length > 0)
@@ -138,6 +140,7 @@ public final class ImportSongAction implements ActionListener
                 prefs.put(PREF_LAST_IMPORT_DIRECTORY, dir.getAbsolutePath());
             }
         }
+
 
         // Prepare data
         final HashMap<File, SongImporter> mapFileImporter = new HashMap<>();
@@ -181,6 +184,7 @@ public final class ImportSongAction implements ActionListener
             mapExtImporter.put(ext, importer);
         }
 
+
         // Use a different thread because possible import of many files
         Runnable r = new Runnable()
         {
@@ -206,15 +210,17 @@ public final class ImportSongAction implements ActionListener
                 song = importer.importFromFile(f);
             } catch (SongImportException | IOException ex)
             {
+                LOGGER.warning("importFiles() ex=" + ex.getLocalizedMessage());
                 NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
                 continue;
             }
 
+
             if (song == null)
             {
                 LOGGER.log(Level.WARNING, "actionPerformed() song=null, importer=" + importer.getId() + " f=" + f.getAbsolutePath());
-                NotifyDescriptor nd = new NotifyDescriptor.Message("An unexpected problem occured", NotifyDescriptor.ERROR_MESSAGE);
+                NotifyDescriptor nd = new NotifyDescriptor.Message("An unexpected problem occured during the import operation.", NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
             } else
             {
