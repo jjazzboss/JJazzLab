@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -318,7 +319,10 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         // Refresh the list of rhythms
         RhythmDatabase rdb = RhythmDatabase.getDefault();
         List<Rhythm> rhythms = (rp == FavoriteRhythmProvider.getInstance()) ? FavoriteRhythmProvider.getInstance().getBuiltinRhythms() : rdb.getRhythms(rp);
-        rhythms = rdb.getRhythms(timeSignature, rhythms);
+        rhythms = rhythms
+                .stream()
+                .filter(r -> r.getTimeSignature().equals(timeSignature))
+                .collect(Collectors.toList());
 
         // Update the table
         rhythmTable.getModel().setRhythms(rhythms);

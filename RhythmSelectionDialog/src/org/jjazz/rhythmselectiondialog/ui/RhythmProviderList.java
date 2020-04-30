@@ -120,7 +120,8 @@ public class RhythmProviderList extends JList<RhythmProvider> implements ChangeL
             RhythmProvider rp = (RhythmProvider) value;
             RhythmProvider.Info rpi = rp.getInfo();
             List<Rhythm> rhythms = (rp == FavoriteRhythmProvider.getInstance()) ? FavoriteRhythmProvider.getInstance().getBuiltinRhythms() : rdb.getRhythms(rp);
-            int size = tsFilter == null ? rhythms.size() : rdb.getRhythms(tsFilter, rhythms).size();
+            //int size = tsFilter == null ? rhythms.size() : rdb.getRhythms(tsFilter, rhythms).size();
+            int size = tsFilter == null ? rhythms.size() : (int)rhythms.stream().filter(r -> r.getTimeSignature().equals(tsFilter)).count();
             setText(rpi.getName() + " (" + size + ")");
             setToolTipText(rpi.getDescription() + " - version " + rpi.getVersion());
             return c;

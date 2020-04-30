@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythm.parameters;
 
+import org.jjazz.rhythm.api.Rhythm;
 import org.openide.util.NbBundle.Messages;
 import static org.jjazz.rhythm.parameters.Bundle.*;
 
@@ -46,5 +47,18 @@ public final class RP_STD_Intensity extends RP_Integer
     public RP_STD_Intensity(int defaultVal, int minVal, int maxVal, int step)
     {
         super(ID, CTL_RpIntensityName(), CTL_RpIntensityDesc(), defaultVal, minVal, maxVal, step);
+    }
+    
+     static public RP_STD_Intensity getIntensityRp(Rhythm rhythm)
+    {
+        if (rhythm == null)
+        {
+            throw new NullPointerException("r");
+        }
+        return (RP_STD_Intensity) rhythm.getRhythmParameters()
+                .stream()
+                .filter(r -> (r instanceof RP_STD_Intensity))
+                .findAny()
+                .orElse(null);
     }
 }

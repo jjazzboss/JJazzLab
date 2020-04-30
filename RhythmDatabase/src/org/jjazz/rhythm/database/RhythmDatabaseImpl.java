@@ -29,14 +29,16 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.rhythm.api.MusicalGenre;
+import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.api.TempoRange;
@@ -123,27 +125,24 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         BaseProgressUtils.showProgressDialogAndRun(r, CTL_Scanning());
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public List<Rhythm> getRhythms(TimeSignature ts, List<Rhythm> optRhythms)
+    public List<Rhythm> getRhythms(Predicate<Rhythm> tester)
+    {
+        if (tester == null)
+        {
+            throw new NullPointerException("tester");
+        }
+        return getRhythms().stream().filter(tester).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Rhythm> getRhythms(TimeSignature ts)
     {
         if (ts == null)
         {
             throw new NullPointerException("ts=" + ts);
         }
-        ArrayList<Rhythm> result = new ArrayList<>();
-        List<Rhythm> rList = (optRhythms != null) ? optRhythms : mapTsRhythms.get(ts);
-        if (rList != null)
-        {
-            for (Rhythm r : rList)
-            {
-                if (r.getTimeSignature().equals(ts))
-                {
-                    result.add(r);
-                }
-            }
-        }
-        return result;
+        return getRhythms(r -> r.getTimeSignature().equals(ts));
     }
 
     /**
@@ -190,52 +189,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         return rhythms1.get(0);
     }
 
-    @Override
-    public List<Rhythm> getRhythms(List<String> tags, List<Rhythm> optRhythms)
-    {
-        if (tags == null)
-        {
-            throw new NullPointerException("tags=" + tags);
-        }
-        ArrayList<Rhythm> rhythms = new ArrayList<>();
-        List<Rhythm> searchedRhythms = (optRhythms == null) ? getRhythms() : optRhythms;
-        for (Rhythm ri : searchedRhythms)
-        {
-            if (org.jjazz.util.Utilities.indexOfStringIgnoreCase(tags, ri.getName()) != -1)
-            {
-                rhythms.add(ri);
-                continue;
-            }
-            for (String rTag : ri.getTags())
-            {
-                if (org.jjazz.util.Utilities.indexOfStringIgnoreCase(tags, rTag) != -1)
-                {
-                    rhythms.add(ri);
-                    break;
-                }
-            }
-        }
-        return rhythms;
-    }
-
-    @Override
-    public List<Rhythm> getRhythms(int tempo, List<Rhythm> optRhythms)
-    {
-        if (!TempoRange.checkTempo(tempo))
-        {
-            throw new IllegalArgumentException("tempo=" + tempo);
-        }
-        ArrayList<Rhythm> rhythms = new ArrayList<>();
-        List<Rhythm> searchedRhythms = (optRhythms == null) ? getRhythms() : optRhythms;
-        for (Rhythm r : searchedRhythms)
-        {
-            if (r.getFeatures().getTempoRange().contains(tempo))
-            {
-                rhythms.add(r);
-            }
-        }
-        return rhythms;
-    }
 
     @Override
     public Rhythm getRhythm(String uniqueSerialId)
@@ -284,7 +237,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         {
             throw new IllegalArgumentException("r=" + r);
         }
-        List<Rhythm> rhythms = getRhythms(r.getTimeSignature(), null);
+        List<Rhythm> rhythms = getRhythms(r.getTimeSignature());
         int index = rhythms.indexOf(r);
         if (index == -1)
         {
@@ -300,7 +253,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         {
             throw new IllegalArgumentException("r=" + r);
         }
-        List<Rhythm> rhythms = getRhythms(r.getTimeSignature(), null);
+        List<Rhythm> rhythms = getRhythms(r.getTimeSignature());
         int index = rhythms.indexOf(r);
         if (index == -1)
         {
@@ -504,7 +457,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         return PREF_DEFAULT_RHYTHM + "__" + ts.name();
     }
 
-    private String getPrefString(MusicalGenre genre)
+    private String getPrefString(Genre genre)
     {
         return PREF_DEFAULT_RHYTHM + "__" + genre.name();
     }

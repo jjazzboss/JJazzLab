@@ -37,8 +37,11 @@ import org.jjazz.midi.synths.Family;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.api.TempoRange;
+import org.jjazz.rhythm.parameters.RP_STD_Fill;
 import org.jjazz.rhythm.parameters.RP_STD_Variation;
+import org.jjazz.rhythm.parameters.RP_SYS_Marker;
+import org.jjazz.rhythm.parameters.RP_SYS_Mute;
+import org.jjazz.rhythm.parameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.rhythmmusicgeneration.DummyGenerator;
 import org.openide.util.Lookup;
@@ -82,13 +85,14 @@ public class RhythmStub implements Rhythm
         this.uniqueId = uniqueId;
         this.timeSignature = ts;
 
-        // Our Rhythm Parameters
-        rhythmParameters.add(new RP_STD_Variation());
-
         // Rhythm voices
         GM1Bank gmb = StdSynth.getInstance().getGM1Bank();
         rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.DRUMS, "Drums", StdSynth.getInstance().getVoidInstrument(), 9));
         rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.BASS, "Bass", gmb.getDefaultInstrument(Family.Bass), 10));
+
+        // Our Rhythm Parameters
+        rhythmParameters.add(new RP_STD_Variation());
+
 
         // The music generator
         lookup = Lookups.fixed(new DummyGenerator(this));
@@ -179,8 +183,8 @@ public class RhythmStub implements Rhythm
     {
         return new File("");
     }
-    
-        @Override
+
+    @Override
     public RhythmFeatures getFeatures()
     {
         return new RhythmFeatures();
@@ -230,7 +234,6 @@ public class RhythmStub implements Rhythm
     {
         return getName();
     }
-    
-    
+
 
 }

@@ -54,7 +54,6 @@ import org.jjazz.ui.ss_editor.SS_EditorToolBar;
  */
 @Messages(
         {
-            "HINT_SS_EditorTopComponent=This is a song structure editor window",
             "CTL_SS_ConfirmClose=OK to close this song without saving changes ?"
         })
 public final class SS_EditorTopComponent extends TopComponent implements PropertyChangeListener
@@ -115,7 +114,6 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         initComponents();
 
         updateTabName();
-        setToolTipText(Bundle.HINT_SS_EditorTopComponent());
     }
 
     /**
@@ -341,5 +339,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         {
             setHtmlDisplayName("<html>" + name + "</html>");
         }
+        String tt = songModel.getFile() == null ? "not saved to file yet" : songModel.getFile().getAbsolutePath();
+        setToolTipText("Song structure editor : "+tt);
     }
 }

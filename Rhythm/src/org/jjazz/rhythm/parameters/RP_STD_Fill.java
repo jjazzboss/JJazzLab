@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythm.parameters;
 
+import org.jjazz.rhythm.api.Rhythm;
 import org.openide.util.NbBundle;
 import static org.jjazz.rhythm.parameters.Bundle.*;
 
@@ -38,17 +39,34 @@ public class RP_STD_Fill extends RP_State
 {
 
     public static String ID = "RpFillID";
+    public static final String VALUE_ALWAYS = "always";
+    public static final String VALUE_RANDOM = "random";
+    public static final String VALUE_RANDOM_RARE = "random_rare";
+    public static final String VALUE_BREAK = "break";
 
     /**
      * Possible values: "" (default), "always", "random_rare", "random", "break"
      */
     public RP_STD_Fill()
     {
-        super(ID, CTL_RpFillName(), CTL_RpFillDesc(), "", "", "always", "random", "random_rare", "break");
+        super(ID, CTL_RpFillName(), CTL_RpFillDesc(), "", "", VALUE_ALWAYS, VALUE_RANDOM, VALUE_RANDOM_RARE, VALUE_BREAK);
     }
 
     public RP_STD_Fill(String defaultVal, String... possibleValues)
     {
         super(ID, CTL_RpFillName(), CTL_RpFillDesc(), defaultVal, possibleValues);
+    }
+
+    static public RP_STD_Fill getFillRp(Rhythm rhythm)
+    {
+        if (rhythm == null)
+        {
+            throw new NullPointerException("r");
+        }
+        return (RP_STD_Fill) rhythm.getRhythmParameters()
+                .stream()
+                .filter(r -> (r instanceof RP_STD_Fill))
+                .findAny()
+                .orElse(null);
     }
 }

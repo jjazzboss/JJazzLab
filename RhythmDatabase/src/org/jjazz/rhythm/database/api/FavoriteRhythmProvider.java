@@ -114,12 +114,7 @@ public class FavoriteRhythmProvider implements RhythmProvider
     {
         throw new IOException("This RhythmProvider (" + getInfo().getName() + ") does not support file reading.");
     }
-
-    @Override
-    public Rhythm getDefaultRhythm(RhythmFeatures rhythmFeatures, TimeSignature ts)
-    {
-        return null;
-    }
+ 
 
     // ======================================================================
     // Private methods

@@ -25,7 +25,7 @@ package org.jjazz.rhythm.api;
 /**
  * High-level musical genre.
  */
-public enum MusicalGenre
+public enum Genre
 {
     POP, ROCK, BALLROOM, FUNK, RB, LATIN, JAZZ, COUNTRY, DANCE, ELECTRONIC, HIP_HOP, REGGAE, CLASSICAL, WORLD, UNKNOWN
 }

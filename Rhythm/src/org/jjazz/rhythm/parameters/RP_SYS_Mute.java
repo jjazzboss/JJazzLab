@@ -108,22 +108,19 @@ public class RP_SYS_Mute extends RP_StringSet
     /**
      * Find the first RP_SYS_Mute instance in the rhythm parameters of r.
      *
-     * @param r
+     * @param rhythm
      * @return Can be null if not found
      */
-    static public RP_SYS_Mute getMuteRp(Rhythm r)
+    static public RP_SYS_Mute getMuteRp(Rhythm rhythm)
     {
-        if (r == null)
+        if (rhythm == null)
         {
             throw new NullPointerException("r");
         }
-        RP_SYS_Mute rpMute = null;
-        List<RhythmParameter<?>> rps = r.getRhythmParameters();
-        int index = org.jjazz.util.Utilities.indexOfInstance(rps, RP_SYS_Mute.class);
-        if (index >= 0)
-        {
-            rpMute = (RP_SYS_Mute) rps.get(index);
-        }
-        return rpMute;
+        return (RP_SYS_Mute) rhythm.getRhythmParameters()
+                .stream()
+                .filter(r -> (r instanceof RP_SYS_Mute))
+                .findAny()
+                .orElse(null);
     }
 }

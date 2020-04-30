@@ -108,7 +108,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
             um.setLimit(1);      // to not use too much memory with all rhythms instances...
             RhythmDatabase rdb = RhythmDatabase.getDefault();
             TimeSignature ts0 = sgs.getSongPart(0).getRhythm().getTimeSignature();
-            for (Rhythm r : rdb.getRhythms(ts0, null))
+            for (Rhythm r : rdb.getRhythms(ts0))
             {
                 LOGGER.log(Level.SEVERE, "-- r={0} file={1}", new Object[]
                 {

@@ -29,9 +29,10 @@ import java.util.Objects;
  */
 public class RhythmFeatures
 {
+
     private Feel feel;
     private Beat beat;
-    private MusicalGenre genre;
+    private Genre genre;
     private TempoRange tempoRange;
     private Intensity intensity;
 
@@ -43,11 +44,11 @@ public class RhythmFeatures
      */
     public RhythmFeatures()
     {
-        this(Feel.UNKNOWN, Beat.UNKNOWN, MusicalGenre.UNKNOWN, TempoRange.ALL_TEMPO, Intensity.UNKNOWN);
+        this(Feel.UNKNOWN, Beat.UNKNOWN, Genre.UNKNOWN, TempoRange.ALL_TEMPO, Intensity.UNKNOWN);
     }
 
 
-    public RhythmFeatures(Feel f, Beat b, MusicalGenre g, TempoRange rg, Intensity i)
+    public RhythmFeatures(Feel f, Beat b, Genre g, TempoRange rg, Intensity i)
     {
         if (f == null || b == null || g == null || rg == null || i == null)
         {
@@ -58,6 +59,72 @@ public class RhythmFeatures
         genre = g;
         tempoRange = rg;
         intensity = i;
+    }
+
+    /**
+     * Compute a matching score between this RhythmFeatures and rf.
+     * <p>
+     * Score calculation on each variable:<br>
+     * - Add 0 point if both values are UNKNOWN (or ALL_TEMPO_RANGE)<br>
+     * - Add 70 points if genre values match  <br>
+     * - Add 30 points if 2 values match (other than genre)<br>
+     * - Add 10 points if 1 value matches with UNKNOWN <br>
+     *
+     * @param rf
+     * @return The matching score
+     */
+    public int getMatchingScore(RhythmFeatures rf)
+    {
+        int score = 0;
+        if (feel == Feel.UNKNOWN && rf.getFeel() == Feel.UNKNOWN)
+        {
+            // Nothing
+        } else if (feel == Feel.UNKNOWN || rf.getFeel() == Feel.UNKNOWN)
+        {
+            score += 10;
+        } else if (feel == rf.getFeel())
+        {
+            score += 30;
+        }
+        if (beat == Beat.UNKNOWN && rf.getBeat() == Beat.UNKNOWN)
+        {
+            // Nothing
+        } else if (beat == Beat.UNKNOWN || rf.getBeat() == Beat.UNKNOWN)
+        {
+            score += 10;
+        } else if (beat == rf.getBeat())
+        {
+            score += 30;
+        }
+        if (genre == Genre.UNKNOWN && rf.getGenre() == Genre.UNKNOWN)
+        {
+            // Nothing
+        } else if (genre == Genre.UNKNOWN || rf.getGenre() == Genre.UNKNOWN)
+        {
+            score += 10;
+        } else if (genre == rf.getGenre())
+        {
+            score += 70;
+        }
+        if (intensity == Intensity.UNKNOWN && rf.getIntensity() == Intensity.UNKNOWN)
+        {
+            // Nothing
+        } else if (intensity == Intensity.UNKNOWN || rf.getIntensity() == Intensity.UNKNOWN)
+        {
+            score += 10;
+        } else if (intensity == rf.getIntensity())
+        {
+            score += 30;
+        }
+        if (tempoRange == TempoRange.ALL_TEMPO && rf.tempoRange == TempoRange.ALL_TEMPO)
+        {
+            // Nothing
+        } else
+        {
+            score += (int) (tempoRange.computeSimilarityLevel(rf.tempoRange) * 30);
+        }
+
+        return score;
     }
 
     /**
@@ -100,20 +167,67 @@ public class RhythmFeatures
      *
      * @return Default to UNKNOWN.
      */
-    public MusicalGenre getGenre()
+    public Genre getGenre()
     {
         return genre;
     }
 
 
+    /**
+     * Try to set features from a rhythm name.
+     * <p>
+     * Use featureValues to fix some values in the returned RhythmFeatures.
+     *
+     * @param name eg "Bossa Nova"
+     * @param fixedValues If Intensity object use it for intensity, if Feel object use it for feel, etc.
+     * @return If no guess all features will be UNKNOWN or TempoRange.ALL_TEMPO
+     */
+    static public RhythmFeatures guessFeatures(String name, Object... fixedValues)
+    {
+        if (name == null || name.isBlank())
+        {
+            throw new IllegalArgumentException("rName=" + name + " fixedValues=" + fixedValues);
+        }
+
+
+        Feel f = Feel.UNKNOWN;
+        Genre g = Genre.UNKNOWN;
+        Intensity i = Intensity.UNKNOWN;
+        TempoRange tr = TempoRange.ALL_TEMPO;
+        Beat b = Beat.UNKNOWN;
+
+
+        if (name.toLowerCase().contains("bossa"))
+        {
+            g = Genre.LATIN;
+            f = Feel.BINARY;
+            b = Beat.EIGHT;
+        } else if (name.toLowerCase().contains("funk"))
+        {
+            g = Genre.FUNK;
+            f = Feel.BINARY;
+            b = Beat.SIXTEEN;
+        }
+
+        // Override values
+        f = getFixedValue(Feel.class, fixedValues) == null ? f : getFixedValue(Feel.class, fixedValues);
+        g = getFixedValue(Genre.class, fixedValues) == null ? g : getFixedValue(Genre.class, fixedValues);
+        b = getFixedValue(Beat.class, fixedValues) == null ? b : getFixedValue(Beat.class, fixedValues);
+        tr = getFixedValue(TempoRange.class, fixedValues) == null ? tr : getFixedValue(TempoRange.class, fixedValues);
+        i = getFixedValue(Intensity.class, fixedValues) == null ? i : getFixedValue(Intensity.class, fixedValues);
+
+        return new RhythmFeatures(f, b, g, tr, i);
+    }
+
     @Override
     public int hashCode()
     {
-        int hash = 3;
-        hash = 11 * hash + Objects.hashCode(this.feel);
-        hash = 11 * hash + Objects.hashCode(this.beat);
-        hash = 11 * hash + Objects.hashCode(this.genre);
-        hash = 11 * hash + Objects.hashCode(this.tempoRange);
+        int hash = 7;
+        hash = 37 * hash + Objects.hashCode(this.feel);
+        hash = 37 * hash + Objects.hashCode(this.beat);
+        hash = 37 * hash + Objects.hashCode(this.genre);
+        hash = 37 * hash + Objects.hashCode(this.tempoRange);
+        hash = 37 * hash + Objects.hashCode(this.intensity);
         return hash;
     }
 
@@ -152,5 +266,17 @@ public class RhythmFeatures
         return true;
     }
 
+
+    static private <T> T getFixedValue(Class<T> c, Object... values)
+    {
+        for (Object value : values)
+        {
+            if (value != null && c.isInstance(value))
+            {
+                return (T) value;
+            }
+        }
+        return null;
+    }
 
 }

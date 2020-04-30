@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythm.parameters;
 
+import org.jjazz.rhythm.api.Rhythm;
 import org.openide.util.NbBundle;
 import static org.jjazz.rhythm.parameters.Bundle.*;
 
@@ -46,5 +47,24 @@ public class RP_STD_Variation extends RP_State
     public RP_STD_Variation(String defaultVal, String... possibleValues)
     {
         super(ID, CTL_StdVariationName(), CTL_StdVariationDesc(), defaultVal, possibleValues);
+    }
+    
+       /**
+     * Find the first RP_STD_Variation instance in the rhythm parameters of r.
+     *
+     * @param rhythm
+     * @return Can be null if not found
+     */
+    static public RP_STD_Variation getVariationRp(Rhythm rhythm)
+    {
+        if (rhythm == null)
+        {
+            throw new NullPointerException("r");
+        }
+        return (RP_STD_Variation) rhythm.getRhythmParameters()
+                .stream()
+                .filter(r-> (r instanceof RP_STD_Variation))
+                .findAny()
+                .orElse(null);
     }
 }

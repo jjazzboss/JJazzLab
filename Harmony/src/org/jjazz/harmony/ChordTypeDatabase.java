@@ -26,6 +26,7 @@ import java.util.*;
 import java.util.logging.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import org.jjazz.util.Utilities;
 import org.openide.util.NbPreferences;
 
 /**
@@ -77,7 +78,7 @@ public class ChordTypeDatabase
         addBuiltin("M7", "b5", MAJ, ":maj7b5:maj-5:Mb5:7M-5:7Mb5:ma7b5:ma-5:b5:Maj7b5:", NP, 0, NP, -1, NP, 0);
         addBuiltin("M7", "#5", MAJ, ":maj7#5:7M+5:7M#5:ma7#5:Maj7aug:Maj7#5:", NP, 0, NP, +1, NP, 0);
         addBuiltin("M7", "#11", MAJ, ":maj7#11:7M#11:Maj7#11:ma7#11:", NP, 0, +1, 0, NP, 0);
-        addBuiltin("M9", "#11", MAJ, ":maj9#11:9M#11:ma9#11:Maj9#11:", 0, 0, +1, 0, NP, 0);
+        addBuiltin("M9", "#11", MAJ, ":maj9#11:9M#11:ma9#11:Maj9#11:Lyd:Maj7Lyd:", 0, 0, +1, 0, NP, 0);
         addBuiltin("M13", "#11", MAJ, ":maj13#11:13M#11:ma13#11:Maj13#11:", 0, 0, +1, 0, 0, 0);
 
         // SEVENTH
@@ -94,7 +95,7 @@ public class ChordTypeDatabase
         addBuiltin("7", "b9#5", S, ":7+5-9:7#5b9:", -1, 0, NP, +1, NP, -1);
         addBuiltin("7", "b9b5", S, ":7-5-9:7b5b9:", -1, 0, NP, -1, NP, -1);
         addBuiltin("7", "#9b5", S, ":7-5+9:7b5#9:", +1, 0, NP, -1, NP, -1);
-        addBuiltin("7", "#11", S, ":7+11:Lyd:Maj7Lyd:", NP, 0, +1, 0, NP, -1);
+        addBuiltin("7", "#11", S, ":7+11:", NP, 0, +1, 0, NP, -1);
         addBuiltin("9", "#11", S, ":9+11:", 0, 0, +1, 0, NP, -1);
         addBuiltin("7", "b9#11", S, ":7-9+11:", -1, 0, +1, 0, NP, -1);
         addBuiltin("7", "#9#11", S, ":7+9+11:", +1, 0, +1, 0, NP, -1);
@@ -140,6 +141,8 @@ public class ChordTypeDatabase
         addBuiltin("13", "susb9", SUS, ":13sus-9:sus13b9:sus13-9:", -1, NP, 0, 0, 0, -1);
 
         buildAliasMap();
+        // LOGGER.severe("DEBUG DUMP AliasMap=============");
+        // mapAliasCt.keySet().stream().forEach(s -> LOGGER.severe(s + " -> " + mapAliasCt.get(s)));
     }
 
     public static ChordTypeDatabase getInstance()
@@ -162,7 +165,7 @@ public class ChordTypeDatabase
      * @param ct
      * @param alias e.g. "-7" for the "m7" chord type
      * @throws IllegalArgumentException If ct is not part of this database
-     * @throws InvalidAliasException    If alias is invalid, e.g. it's already used by a different chord type.
+     * @throws InvalidAliasException If alias is invalid, e.g. it's already used by a different chord type.
      */
     public void addAlias(ChordType ct, String alias) throws InvalidAliasException
     {
@@ -226,8 +229,7 @@ public class ChordTypeDatabase
         {
             for (String alias : aliases.split(":"))
             {
-                alias = alias.trim();
-                if (!alias.isEmpty())
+                if (!alias.isBlank())
                 {
                     res.add(alias);
                 }

@@ -96,15 +96,6 @@ public interface RhythmProvider
     public void showUserSettingsDialog();
 
     /**
-     * Return the default rhythm which best match the specified rhythm features and the time signature.
-     *
-     * @param rhythmFeatures
-     * @param ts
-     * @return Can be null
-     */
-    public Rhythm getDefaultRhythm(RhythmFeatures rhythmFeatures, TimeSignature ts);
-
-    /**
      * Return true if RhythmProvider has settings which can be modified by end-user.
      * <p>
      *

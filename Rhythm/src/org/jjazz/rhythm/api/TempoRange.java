@@ -40,13 +40,11 @@ public final class TempoRange implements Cloneable, Serializable
     private static final long serialVersionUID = -4112098277726L;
     // Standard tempo ranges 
     public static final TempoRange ALL_TEMPO = new TempoRange(TempoRange.TEMPO_MIN, TempoRange.TEMPO_MAX, "All Tempo");
-    public static final TempoRange VERY_SLOW = new TempoRange(TempoRange.TEMPO_MIN, 59, "Very Slow");
-    public static final TempoRange SLOW = new TempoRange(60, 89, "Slow");
-    public static final TempoRange MEDIUM_SLOW = new TempoRange(90, 109, "Medium Slow");
-    public static final TempoRange MEDIUM = new TempoRange(110, 139, "Medium");
-    public static final TempoRange MEDIUM_FAST = new TempoRange(140, 179, "Medium Fast");
-    public static final TempoRange FAST = new TempoRange(180, 219, "Fast");
-    public static final TempoRange VERY_FAST = new TempoRange(220, TempoRange.TEMPO_MAX, "Very Fast");
+    public static final TempoRange SLOW = new TempoRange(TempoRange.TEMPO_MIN, 90, "Slow");
+    public static final TempoRange MEDIUM_SLOW = new TempoRange(75, 115, "Medium Slow");
+    public static final TempoRange MEDIUM = new TempoRange(90, 135, "Medium");
+    public static final TempoRange MEDIUM_FAST = new TempoRange(125, 180, "Medium Fast");
+    public static final TempoRange FAST = new TempoRange(160, TempoRange.TEMPO_MAX, "Fast");
     // Const
     public static final int TEMPO_MIN = 10;
     public static final int TEMPO_STD = 120;
@@ -69,7 +67,7 @@ public final class TempoRange implements Cloneable, Serializable
     static public List<TempoRange> getStandardTempoRanges()
     {
         ArrayList<TempoRange> trs = new ArrayList<>();
-        Collections.addAll(trs, VERY_SLOW, SLOW, MEDIUM_SLOW, MEDIUM, MEDIUM_FAST, FAST, VERY_FAST, ALL_TEMPO);
+        Collections.addAll(trs, SLOW, MEDIUM, MEDIUM_FAST, FAST, ALL_TEMPO);
         return trs;
     }
 

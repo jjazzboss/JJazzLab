@@ -206,7 +206,7 @@ public final class ImportSongAction implements ActionListener
             Song song = null;
             try
             {
-                LOGGER.info("importFiles() -- Importing file " + f.getAbsolutePath() + "...  importerId=" + importer.getId());
+                LOGGER.info("importFiles() -- importerId=" + importer.getId() + " Importing file " + f.getAbsolutePath());
                 song = importer.importFromFile(f);
             } catch (SongImportException | IOException ex)
             {
@@ -219,12 +219,16 @@ public final class ImportSongAction implements ActionListener
 
             if (song == null)
             {
-                LOGGER.log(Level.WARNING, "actionPerformed() song=null, importer=" + importer.getId() + " f=" + f.getAbsolutePath());
+                LOGGER.log(Level.WARNING, "importFiles() song=null, importer=" + importer.getId() + " f=" + f.getAbsolutePath());
                 NotifyDescriptor nd = new NotifyDescriptor.Message("An unexpected problem occured during the import operation.", NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
             } else
             {
                 // Ok we got the new song show it !
+//                if (true)
+//                {
+//                    continue;
+//                }
                 song.setFile(null);     // Make sure song is not associated with the import file
                 SongFactory.getInstance().registerSong(song);
                 SongEditorManager.getInstance().showSong(song);

@@ -43,50 +43,6 @@ public class RP_SYS_Marker extends RP_State
     private static RP_SYS_Marker INSTANCE;
     public static final String ID = "rpSysMarkerID";
 
-// To be used later if RP_State redesign to use enum
-//
-//    public enum Values
-//    {
-//        THEME, THEME2, THEME3, THEME4, SOLO, SOLO2, SOLO3, SOLO4;
-//
-//        @Override
-//        public String toString()
-//        {
-//            String s = null;
-//            String themeStr = "Theme";
-//            String soloStr = "Solo";
-//            switch (this)
-//            {
-//                case THEME:
-//                    s = themeStr;
-//                    break;
-//                case THEME2:
-//                    s = themeStr + "2";
-//                    break;
-//                case THEME3:
-//                    s = themeStr + "3";
-//                    break;
-//                case THEME4:
-//                    s = themeStr + "4";
-//                    break;
-//                case SOLO:
-//                    s = soloStr;
-//                    break;
-//                case SOLO2:
-//                    s = soloStr + "2";
-//                    break;
-//                case SOLO3:
-//                    s = soloStr + "3";
-//                    break;
-//                case SOLO4:
-//                    s = soloStr + "4";
-//                    break;
-//                default:
-//                    throw new IllegalStateException("this=" + this);
-//            }
-//            return s;
-//        }
-//    }
     public static final String THEME = "theme";
     public static final String SOLO = "solo";
 

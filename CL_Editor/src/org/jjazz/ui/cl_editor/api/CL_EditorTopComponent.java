@@ -335,7 +335,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         {
             setHtmlDisplayName("<html>" + name + "</html>");
         }
-        String tt = songModel.getFile() == null ? "No file" : songModel.getFile().getAbsolutePath();
-        setToolTipText(tt);
+        String tt = songModel.getFile() == null ? "not saved to file yet" : songModel.getFile().getAbsolutePath();
+        setToolTipText("Chord leadsheet editor : "+tt);
     }
 }

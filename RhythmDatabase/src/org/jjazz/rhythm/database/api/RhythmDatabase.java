@@ -23,8 +23,13 @@
 package org.jjazz.rhythm.database.api;
 
 import java.util.List;
+import java.util.function.Predicate;
 import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.rhythm.api.Beat;
+import org.jjazz.rhythm.api.Feel;
+import org.jjazz.rhythm.api.Intensity;
+import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.spi.RhythmProvider;
@@ -101,61 +106,20 @@ public interface RhythmDatabase
 
 
     /**
-     * Get a default Rhythm with the specified features.
-     * <p>
-     * Ask each RhythmProvider to get the default rhythm until we get a non-null return value.
+     * Get the rhythms which are tested OK.
      *
-     * @param features
-     * @param ts
-     * @return Can be null
-     */
-    default Rhythm getDefaultRhythm(RhythmFeatures features, TimeSignature ts)
-    {
-        if (features == null || ts == null)
-        {
-            throw new IllegalArgumentException("features=" + features + " ts=" + ts);
-        }
-
-        for (var rp : getRhythmProviders())
-        {
-            Rhythm r = rp.getDefaultRhythm(features, ts);
-            if (r != null)
-            {
-                return r;
-            }
-        }
-        return null;
-    }
-
-
-    /**
-     * Get the rhythms which match at least one of the specified tags.
-     * <p>
-     * Tags are compared to rhythm's name and rhythm's tags (ignoring case).
-     *
-     * @param tags
-     * @param optRhythms List If not null perform the search on optRhythms, otherwise search the database.
+     * @param tester
      * @return
      */
-    List<Rhythm> getRhythms(List<String> tags, List<Rhythm> optRhythms);
+    List<Rhythm> getRhythms(Predicate<Rhythm> tester);
 
-    /**
+     /**
      * Get the rhythms which match the specified time signature.
      *
      * @param ts TimeSignature
-     * @param optRhythms List If not null perform the search on optRhythms, otherwise search the database.
      * @return All rhythms corresponding to TimeSignature ts.
      */
-    List<Rhythm> getRhythms(TimeSignature ts, List<Rhythm> optRhythms);
-
-    /**
-     * Get the rhythms whose temporange match the specified tempo.
-     *
-     * @param tempo int
-     * @param optRhythms List If not null perform the search on optRhythms, otherwise search the database.
-     * @return All rhythm corresponding to tempo.
-     */
-    List<Rhythm> getRhythms(int tempo, List<Rhythm> optRhythms);
+    List<Rhythm> getRhythms(TimeSignature ts);
 
     /**
      * The rhythms associated to the specified RhythmProvider
