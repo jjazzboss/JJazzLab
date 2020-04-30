@@ -122,10 +122,24 @@ public class SongEditorManager implements PropertyChangeListener
                         }
                     }
                 };
-                SwingUtilities.invokeLater(run);              
+                SwingUtilities.invokeLater(run);
             }
         }
 
+    }
+
+    /**
+     * Programmatically close the editors associated to a song.
+     *
+     * @param song
+     */
+    public void closeSong(Song song)
+    {
+        Editors editors = getEditors(song);
+        if (editors != null)
+        {
+            editors.tcCle.close();
+        }
     }
 
     /**
@@ -226,26 +240,9 @@ public class SongEditorManager implements PropertyChangeListener
         return new ArrayList<>(mapSongEditors.keySet());
     }
 
-//   /**
-//    * Get the edited song in the active CL_EditorTopComponent.
-//    *
-//    * @return Can be null.
-//    */
-//   public Song getEditedSong()
-//   {
-//      Mode mode = WindowManager.getDefault().findMode("editor");
-//      TopComponent tc = mode.getSelectedTopComponent();
-//      if (tc == null)
-//      {
-//         return null;
-//      }
-//      assert (tc instanceof CL_EditorTopComponent) : "tc=" + tc;
-//      CL_EditorTopComponent clTc = (CL_EditorTopComponent) tc;
-//      return clTc.getSongModel();
-//   }
     /**
      * @param s
-     * @return The editors which show song s.
+     * @return The editors which show song s. Can be null.
      */
     public Editors getEditors(Song s)
     {
