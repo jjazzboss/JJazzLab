@@ -41,13 +41,10 @@ import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
-import org.jjazz.rhythm.api.TempoRange;
-import static org.jjazz.rhythm.database.Bundle.CTL_Scanning;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.openide.util.Lookup;
 import org.netbeans.api.progress.BaseProgressUtils;
-import org.openide.util.NbBundle;
 import org.openide.util.NbPreferences;
 
 /**
@@ -55,10 +52,6 @@ import org.openide.util.NbPreferences;
  * <p>
  * Default rhythms are stored as Preferences.
  */
-@NbBundle.Messages(
-        {
-            "CTL_Scanning=Scanning available rhythms..."
-        })
 public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListener
 {
 
@@ -122,7 +115,8 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                 }
             }
         };
-        BaseProgressUtils.showProgressDialogAndRun(r, CTL_Scanning());
+        String msg = "Scanning rhythm files in " + FileDirectoryManager.getInstance().getUserRhythmDirectory().getAbsolutePath();
+        BaseProgressUtils.showProgressDialogAndRun(r, msg);
     }
 
     @Override

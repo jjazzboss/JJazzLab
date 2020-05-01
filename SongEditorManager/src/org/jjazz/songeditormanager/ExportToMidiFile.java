@@ -41,6 +41,9 @@ import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
@@ -56,6 +59,7 @@ import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.utilities.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -74,7 +78,7 @@ import org.openide.windows.WindowManager;
 @ActionRegistration(displayName = "#CTL_ExportToMidiFile", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/File", position = 1580, separatorAfter=1590)
+            @ActionReference(path = "Menu/File", position = 1580, separatorAfter = 1590)
         })
 @NbBundle.Messages(
         {
@@ -225,6 +229,9 @@ public class ExportToMidiFile extends AbstractAction
         // Apply Drums channel rerouting        
         List<Integer> toBeRerouted = midiMix.getDrumsReroutedChannels();
         MidiUtilities.rerouteShortMessages(sequence, toBeRerouted, MidiConst.CHANNEL_DRUMS);
+
+        // Add chord symbols as markers
+        addChordSymbolMarkers(sequence);
 
         // Modify sequence to make Midi file as portable as possible
         prepareForMidiFile(sequence, mapRvTrackId, midiMix);
@@ -416,6 +423,23 @@ public class ExportToMidiFile extends AbstractAction
         }
     }
 
+    private void addChordSymbolMarkers(Sequence seq)
+    {
+        Track firstTrack = seq.getTracks()[0];
+        SongStructure ss = song.getSongStructure();
+        for (SongPart spt : ss.getSongParts())
+        {
+            CLI_Section section = spt.getParentSection();
+            for (CLI_ChordSymbol cliCs : song.getChordLeadSheet().getItems(section, CLI_ChordSymbol.class))
+            {
+                Position absPos = ss.getSptItemPosition(spt, cliCs);
+                float posInBeats = ss.getPositionInNaturalBeats(absPos.getBar()) + absPos.getBeat();
+                long tickPos = Math.round(posInBeats * MidiConst.PPQ_RESOLUTION);
+                MidiEvent me = new MidiEvent(MidiUtilities.getMarkerMetaMessage(cliCs.getData().getName()), tickPos);
+                firstTrack.add(me);
+            }
+        }
+    }
 
     /**
      * Remove all events from the specified track.

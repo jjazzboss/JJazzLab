@@ -187,7 +187,7 @@ public class MidiUtilities
     {
         return buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_PAN_MSB, data);
     }
-
+    
     static public MetaMessage getTimeSignatureMessage(int channel, TimeSignature ts)
     {
         if (!MidiConst.checkMidiChannel(channel) || ts == null)
@@ -475,6 +475,23 @@ public class MidiUtilities
         try
         {
             mm = new MetaMessage(0x01, txt.getBytes(), txt.length());
+        } catch (InvalidMidiDataException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
+        return mm;
+    }
+    
+        static public MetaMessage getMarkerMetaMessage(String txt)
+    {
+        if (txt == null || txt.isEmpty())
+        {
+            throw new IllegalArgumentException("txt=" + txt);
+        }
+        MetaMessage mm = null;
+        try
+        {
+            mm = new MetaMessage(0x06, txt.getBytes(), txt.length());
         } catch (InvalidMidiDataException ex)
         {
             Exceptions.printStackTrace(ex);
