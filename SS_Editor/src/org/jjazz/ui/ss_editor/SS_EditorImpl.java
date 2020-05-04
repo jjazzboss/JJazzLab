@@ -40,14 +40,13 @@ import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.TooManyListenersException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -365,18 +364,19 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     @Override
     public void setVisibleRps(Rhythm r, List<RhythmParameter<?>> rps)
     {
-        List<RhythmParameter<?>> previousRps = mapRhythmVisibleRps.getValue(r);
-        if (previousRps != null && previousRps.equals(rps))
+        var sortedRps = sortRhythmParameters(r, rps);
+        var previousRps = mapRhythmVisibleRps.getValue(r);
+        if (previousRps != null && previousRps.equals(sortedRps))
         {
             return;
         }
         LOGGER.log(Level.FINE, "setVisibleRps()");
-        mapRhythmVisibleRps.putValue(r, rps);
+        mapRhythmVisibleRps.putValue(r, sortedRps);
         for (SptViewer sptv : getSptViewers())
         {
             if (sptv.getModel().getRhythm() == r)
             {
-                sptv.setVisibleRps(rps);
+                sptv.setVisibleRps(sortedRps);
             }
         }
         firePropertyChange(SS_Editor.PROP_VISIBLE_RPS, false, true);
@@ -1112,6 +1112,22 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 buffer.get(i).setMultiSelectMode(true, false);
             }
         }
+    }
+
+    /**
+     * Sort rps to have the same order than r.getRhythmParameters().
+     *
+     * @param r
+     * @param rps
+     * @return
+     */
+    private List<RhythmParameter<?>> sortRhythmParameters(Rhythm r, List<RhythmParameter<?>> rps)
+    {
+        List<RhythmParameter<?>> res = r.getRhythmParameters()
+                .stream()
+                .filter(rp -> rps.contains(rp))
+                .collect(Collectors.toList());
+        return res;
     }
 
     /**

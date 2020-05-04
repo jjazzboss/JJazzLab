@@ -22,27 +22,34 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JRootPane;
+import javax.swing.JTable;
 import javax.swing.KeyStroke;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RhythmParameter;
-import org.jjazz.util.SmallMap;
+import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.openide.windows.WindowManager;
 
-public class ShowHideRpsDialog extends javax.swing.JDialog implements ItemListener
+public class ShowHideRpsDialog extends javax.swing.JDialog
 {
 
     private static ShowHideRpsDialog INSTANCE;
+    private MyModel tblModel;
     private boolean exitOk;
-    private String lastSelectedRhythmName;
-    private SmallMap<Rhythm, List<RhythmParameter<?>>> map;
+    private static final Logger LOGGER = Logger.getLogger(ShowHideRpsDialog.class.getSimpleName());
 
     public static ShowHideRpsDialog getInstance()
     {
@@ -65,67 +72,49 @@ public class ShowHideRpsDialog extends javax.swing.JDialog implements ItemListen
     /**
      * Used to initialize the dialog.
      * <p>
-     * Changes in the dialog are reflected on this model.
-     *
-     * @param m
+     * @param editor
      */
-    public void setModel(SmallMap<Rhythm, List<RhythmParameter<?>>> m)
+    public void setModel(SS_Editor editor)
     {
-        map = m;
-        cbx_Rhythms.removeItemListener(this); // Don't want to trigger events while modifying the JComboBox
-        cbx_Rhythms.removeAllItems();
-        for (Rhythm r : map.getKeys())
+        List<Rhythm> uniqueRhythms = SongStructure.getUniqueRhythms(editor.getSongModel().getSongStructure());
+        tblModel = new MyModel(uniqueRhythms, editor);
+        tbl_rhythmParameters.setModel(tblModel);
+        for (int i = MyModel.COL_FIRST_RHYTHM; i < tbl_rhythmParameters.getColumnCount(); i++)
         {
-            cbx_Rhythms.addItem(r.getName());
+            tbl_rhythmParameters.getColumnModel().getColumn(i).setCellRenderer(new MyCellRenderer());
         }
-        if (lastSelectedRhythmName != null)
-        {
-            cbx_Rhythms.setSelectedItem(lastSelectedRhythmName);
-        }
-        cbx_Rhythms.addItemListener(this);
-        rhythmChanged();
+        pack();
     }
 
-    private void rhythmChanged()
+
+    /**
+     * Valid only if isExitOk() if true.
+     *
+     * @return
+     */
+    public HashMap<Rhythm, List<RhythmParameter<?>>> getResult()
     {
-        lastSelectedRhythmName = cbx_Rhythms.getItemAt(cbx_Rhythms.getSelectedIndex());
-        Rhythm rhythm = null;
-        for (Rhythm r : map.getKeys())
+        HashMap<Rhythm, List<RhythmParameter<?>>> res = new HashMap<>();
+        if (tblModel != null)
         {
-            if (r.getName().equals(lastSelectedRhythmName))
+            for (int i = 0; i < tblModel.rhythms.size(); i++)
             {
-                rhythm = r;
-                break;
-            }
-        }
-        assert rhythm != null;
-        final List<RhythmParameter<?>> visibleRps = map.getValue(rhythm);
-        pnl_Rps.removeAll();
-        for (final RhythmParameter<?> rp : rhythm.getRhythmParameters())
-        {
-            final JCheckBox cb = new JCheckBox();
-            cb.setSelected(visibleRps.contains(rp));
-            cb.setAction(new AbstractAction()
-            {
-                @Override
-                public void actionPerformed(ActionEvent e)
+                Rhythm r = tblModel.rhythms.get(i);
+                List<RhythmParameter<?>> rps = new ArrayList<>();
+                res.put(r, rps);
+                for (int j = 0; j < tblModel.uniqueRps.size(); j++)
                 {
-                    if (cb.isSelected())
+                    if (tblModel.data[i][j])
                     {
-                        visibleRps.add(rp);
-                    } else
-                    {
-                        visibleRps.remove(rp);
+                        rps.add(getRpFromClass(r.getRhythmParameters(), tblModel.uniqueRps.get(j).getClass()));
                     }
                 }
-            });
-            cb.setText(rp.getDisplayName());
-            cb.setToolTipText(rp.getDescription());
-            pnl_Rps.add(cb);
+            }
         }
-        pnl_Rps.revalidate();
-        pnl_Rps.repaint();
+
+        return res;
     }
+
 
     /**
      * Overridden to add global key bindings
@@ -150,14 +139,33 @@ public class ShowHideRpsDialog extends javax.swing.JDialog implements ItemListen
         contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
-
             @Override
             public void actionPerformed(ActionEvent e)
             {
                 actionCancel();
             }
         });
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Control-A"), "actionSelectAll");
+        contentPane.getActionMap().put("actionSelectAll", new AbstractAction("Cancel")
+        {
+
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                actionSelectAll();
+            }
+        });
         return contentPane;
+    }
+
+    private RhythmParameter<?> getRpFromClass(List<RhythmParameter<?>> rps, Class rpClass)
+    {
+        return rps.stream().filter(rp -> rpClass.isAssignableFrom(rp.getClass())).findAny().orElse(null);
+    }
+
+    private void actionSelectAll()
+    {
+        tbl_rhythmParameters.selectAll();
     }
 
     private void actionOK()
@@ -177,12 +185,6 @@ public class ShowHideRpsDialog extends javax.swing.JDialog implements ItemListen
         return exitOk;
     }
 
-    @Override
-    public void itemStateChanged(ItemEvent ie)
-    {
-        rhythmChanged();
-    }
-
     /**
      * This method is called from within the constructor to setModel the form. WARNING: Do NOT modify this code. The content of
      * this method is always regenerated by the Form Editor.
@@ -192,14 +194,13 @@ public class ShowHideRpsDialog extends javax.swing.JDialog implements ItemListen
     private void initComponents()
     {
 
-        cbx_Rhythms = new javax.swing.JComboBox<>();
-        pnl_Rps = new javax.swing.JPanel();
         btn_Ok = new javax.swing.JButton();
         btn_Cancel = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tbl_rhythmParameters = new javax.swing.JTable();
 
         setTitle(org.openide.util.NbBundle.getMessage(ShowHideRpsDialog.class, "ShowHideRpsDialog.title")); // NOI18N
-
-        pnl_Rps.setLayout(new javax.swing.BoxLayout(pnl_Rps, javax.swing.BoxLayout.Y_AXIS));
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(ShowHideRpsDialog.class, "ShowHideRpsDialog.btn_Ok.text")); // NOI18N
         btn_Ok.addActionListener(new java.awt.event.ActionListener()
@@ -219,36 +220,57 @@ public class ShowHideRpsDialog extends javax.swing.JDialog implements ItemListen
             }
         });
 
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(ShowHideRpsDialog.class, "ShowHideRpsDialog.jLabel1.text")); // NOI18N
+
+        tbl_rhythmParameters.setAutoCreateRowSorter(true);
+        tbl_rhythmParameters.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][]
+            {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String []
+            {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        tbl_rhythmParameters.setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        tbl_rhythmParameters.setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        jScrollPane1.setViewportView(tbl_rhythmParameters);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(btn_Ok, javax.swing.GroupLayout.PREFERRED_SIZE, 67, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_Cancel))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(10, 10, 10)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(cbx_Rhythms, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(pnl_Rps, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE))))
+                        .addComponent(jLabel1)
+                        .addGap(0, 180, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(cbx_Rhythms, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pnl_Rps, javax.swing.GroupLayout.DEFAULT_SIZE, 148, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addComponent(jLabel1)
+                .addGap(15, 15, 15)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 207, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btn_Ok)
-                    .addComponent(btn_Cancel))
-                .addContainerGap())
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(btn_Cancel)
+                        .addContainerGap())))
         );
 
         pack();
@@ -267,8 +289,134 @@ public class ShowHideRpsDialog extends javax.swing.JDialog implements ItemListen
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_Cancel;
     private javax.swing.JButton btn_Ok;
-    private javax.swing.JComboBox<String> cbx_Rhythms;
-    private javax.swing.JPanel pnl_Rps;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable tbl_rhythmParameters;
     // End of variables declaration//GEN-END:variables
+
+
+    public class MyModel extends AbstractTableModel
+    {
+
+        static final int COL_FIRST_RHYTHM = 1;
+        static final int COL_RP = 0;
+        List<Rhythm> rhythms;
+        boolean[][] data;
+        List<RhythmParameter<?>> uniqueRps = new ArrayList<>();
+        int colCount;
+        int rowCount;
+
+        public MyModel(List<Rhythm> rhythms, SS_Editor editor)
+        {
+            this.rhythms = rhythms;
+            colCount = rhythms.size() + 1;
+            HashSet<Class> mySet = new HashSet<>();
+            for (var r : rhythms)
+            {
+                for (var rp : r.getRhythmParameters())
+                {
+                    if (!mySet.contains(rp.getClass()))
+                    {
+                        uniqueRps.add(rp);
+                        mySet.add(rp.getClass());
+                    }
+                }
+            }
+            rowCount = uniqueRps.size();
+            data = new boolean[rhythms.size()][uniqueRps.size()];
+            for (int i = 0; i < rhythms.size(); i++)
+            {
+                var visibleRps = editor.getVisibleRps(rhythms.get(i));
+                for (int j = 0; j < uniqueRps.size(); j++)
+                {
+                    data[i][j] = getRpFromClass(visibleRps, uniqueRps.get(j).getClass()) != null;
+                }
+            }
+        }
+
+        @Override
+        public int getRowCount()
+        {
+            return rowCount;
+        }
+
+        @Override
+        public int getColumnCount()
+        {
+            return colCount;
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex)
+        {
+            if (columnIndex == COL_RP)
+            {
+                return this.uniqueRps.get(rowIndex);
+            } else
+            {
+                return data[columnIndex - COL_FIRST_RHYTHM][rowIndex];
+            }
+        }
+
+        @Override
+        public String getColumnName(int colIndex)
+        {
+            String s;
+            if (colIndex == COL_RP)
+            {
+                s = "Parameter";
+            } else
+            {
+                s = rhythms.get(colIndex - COL_FIRST_RHYTHM).getName();
+            }
+            return s;
+        }
+
+
+        @Override
+        public boolean isCellEditable(int row, int col)
+        {
+            LOGGER.severe("isCellEditable() row=" + row + " col=" + col + " rhythms=" + rhythms);
+            RhythmParameter<?> rp = uniqueRps.get(row);
+            return col >= COL_FIRST_RHYTHM && getRpFromClass(rhythms.get(col - COL_FIRST_RHYTHM).getRhythmParameters(), rp.getClass()) != null;
+        }
+
+        @Override
+        public Class getColumnClass(int col)
+        {
+            return col >= COL_FIRST_RHYTHM ? Boolean.class : String.class;
+        }
+
+        @Override
+        public void setValueAt(Object value, int row, int col)
+        {
+            data[col - COL_FIRST_RHYTHM][row] = (Boolean) value;
+        }
+
+    }
+
+    private class MyCellRenderer extends DefaultTableCellRenderer
+    {
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
+        {
+            Component c;
+            if (tblModel.isCellEditable(row, col))
+            {
+                // Use the default renderer for Boolean which is JCheckBox based
+                c = table.getDefaultRenderer(table.getColumnClass(col)).getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+            } else
+            {
+                // Use the standard default renderer which is a JLabel for String
+                c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+                if (c instanceof JLabel)
+                {
+                    ((JLabel) c).setText(null);
+                }
+            }
+            return c;
+        }
+    }
 
 }

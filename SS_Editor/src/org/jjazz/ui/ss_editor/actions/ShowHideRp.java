@@ -23,20 +23,16 @@
 package org.jjazz.ui.ss_editor.actions;
 
 import java.awt.event.ActionEvent;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RhythmParameter;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.util.SmallMap;
 import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.songstructure.api.SongPart;
 
 //@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.showhiderps")
 //@ActionRegistration(displayName = "#CTL_ShowHideRp", lazy=false) // lazy=false to have the tooltip defined
@@ -78,27 +74,30 @@ public class ShowHideRp extends AbstractAction
         putValue(SHORT_DESCRIPTION, Bundle.DESC_ShowHideRp());
         updateIcon();
 
+        // Maintain the action disabled when no song part 
+        this.editor.getSongModel().getSongStructure().addSgsChangeListener(evt ->
+        {
+            setEnabled(!evt.getSource().getSongParts().isEmpty());
+        });
+        setEnabled(!editor.getSongModel().getSongStructure().getSongParts().isEmpty());
+
+
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
         LOGGER.log(Level.FINE, "actionPerformed()");
-        SongStructure sgs = editor.getModel();
-        SmallMap<Rhythm, List<RhythmParameter<?>>> map = new SmallMap<>();
-        for (Rhythm r : SongStructure.getUniqueRhythms(sgs))
-        {
-            map.putValue(r, editor.getVisibleRps(r));
-        }
         ShowHideRpsDialog dlg = ShowHideRpsDialog.getInstance();
-        dlg.setModel(map);
+        dlg.setModel(editor);
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
         if (dlg.isExitOk())
         {
-            for (Rhythm r : map.getKeys())
+            var res = dlg.getResult();
+            for (Rhythm r : res.keySet())
             {
-                editor.setVisibleRps(r, map.getValue(r));
+                editor.setVisibleRps(r, res.get(r));
             }
         }
     }
