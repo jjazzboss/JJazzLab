@@ -27,6 +27,7 @@ import java.io.File;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.util.Utilities;
 import org.openide.modules.Places;
@@ -102,9 +103,20 @@ public class FileDirectoryManager
         {
             throw new IllegalArgumentException("rhythm=" + rhythm);
         }
+        if (rhythm instanceof AdaptedRhythm)
+        {
+            return new File("dummyForAdaptedRhythm.mix");
+        }
         File rf = rhythm.getFile();
-        String base = rf.getName().isEmpty() ? rhythm.getName() : rf.getName();
-        String rhythmMixFileName = Utilities.replaceExtension(base.replace(" ", ""), MIX_FILE_EXTENSION);
+        String rhythmMixFileName;
+        if (rf.getName().isEmpty())
+        {
+            // No file
+            rhythmMixFileName = rhythm.getName().replace(" ", "") + "." + MIX_FILE_EXTENSION;
+        } else
+        {
+            rhythmMixFileName = Utilities.replaceExtension(rf.getName(), MIX_FILE_EXTENSION);
+        }
         File f = new File(getRhythmMixDirectory(), rhythmMixFileName);
         return f;
     }
@@ -149,7 +161,7 @@ public class FileDirectoryManager
         LOGGER.fine("getUserRhythmDirectory() f=" + f);
         return f;
     }
-    
+
     /**
      * Set the user directory where to find rhythm files.
      *
@@ -233,8 +245,8 @@ public class FileDirectoryManager
      * Get the user specific JJazz configuration directory.
      * <p>
      * <p>
-     * Use the APP_CONFIG_PREFIX_DIR subdir of the Netbeans user directory, or if not set of the user.home system property. Create the
-     * directory if it does not exist.
+     * Use the APP_CONFIG_PREFIX_DIR subdir of the Netbeans user directory, or if not set of the user.home system property. Create
+     * the directory if it does not exist.
      *
      * @param subDirName An optional extra subdirectory name (APP_CONFIG_PREFIX_DIR/subDir). Ignored if null or empty.
      * @return Could be null if no user directory found.

@@ -24,6 +24,7 @@ package org.jjazz.rhythm.database;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -38,6 +39,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
@@ -65,7 +67,12 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
      * Mirror map to get Rhythms sorted per TimeSignature. First rhythm is the default for each TimeSignature.
      */
     private final HashMap<TimeSignature, ArrayList<Rhythm>> mapTsRhythms = new HashMap<>();
-
+    /**
+     * Keep the AdaptedRhythms instances created on-demand.
+     * <p>
+     * Map key=originalRhythmId-TimeSignature
+     */
+    private final HashMap<String, AdaptedRhythm> mapAdaptedRhythms = new HashMap<>();
     /**
      * Used to store the default rhythms
      */
@@ -185,16 +192,44 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
 
     @Override
-    public Rhythm getRhythm(String uniqueSerialId)
+    public Rhythm getRhythm(String rId)
     {
-        for (Rhythm ri : getRhythms())
+        Rhythm r = null;
+        if (rId.contains(AdaptedRhythm.RHYTHM_ID_DELIMITER))
         {
-            if (ri.getUniqueId().equals(uniqueSerialId))
+            String[] strs = rId.split(AdaptedRhythm.RHYTHM_ID_DELIMITER);
+            if (strs.length == 3)
             {
-                return ri;
+                String rpId = strs[0];
+                String rIdOriginal = strs[1];
+                TimeSignature newTs;
+                try
+                {
+                    newTs = TimeSignature.parse(strs[2]);
+                } catch (ParseException ex)
+                {
+                    LOGGER.warning("getRhythm() Invalid time signature in AdaptedRhythm rId=" + rId);
+                    return null;
+                }
+                RhythmProvider rp = getRhythmProviders().stream().filter(rhp -> rhp.getInfo().getUniqueId().equals(rpId)).findAny().orElse(null);
+                if (rp == null)
+                {
+                    LOGGER.warning("getRhythm() Unknown rhythm provider id in AdaptedRhythm rId=" + rId);
+                    return null;
+                }
+                Rhythm rOriginal = getRhythm(rIdOriginal);
+                if (rOriginal == null)
+                {
+                    LOGGER.warning("getRhythm() Unknown rhythmId in AdaptedRhythm rId=" + rId);
+                    return null;
+                }
+                r = getAdaptedRhythm(rOriginal, newTs);
             }
+        } else
+        {
+            r = getRhythms().stream().filter(rh -> rh.getUniqueId().equals(rId)).findAny().orElse(null);
         }
-        return null;
+        return r;
     }
 
     @Override
@@ -310,6 +345,32 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     public List<TimeSignature> getTimeSignatures()
     {
         return new ArrayList<>(mapTsRhythms.keySet());
+    }
+
+    @Override
+    public AdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts)
+    {
+        if (r == null || ts == null || r.getTimeSignature().equals(ts))
+        {
+            throw new IllegalArgumentException("r=" + r + " ts=" + ts);
+        }
+
+        AdaptedRhythm ar = mapAdaptedRhythms.get(getAdaptedRhythmKey(r, ts));
+        if (ar == null)
+        {
+            RhythmProvider rp = getRhythmProvider(r);
+            if (rp == null)
+            {
+                throw new IllegalArgumentException("No rhythm provider found for r=" + r + " ts=" + ts);
+            }
+            ar = rp.getAdaptedRhythm(r, ts);
+            if (ar != null)
+            {
+                addRhythm(rp, ar);
+                mapAdaptedRhythms.put(getAdaptedRhythmKey(r, ts), ar);
+            }
+        }
+        return ar;
     }
 
     @Override
@@ -451,11 +512,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         return PREF_DEFAULT_RHYTHM + "__" + ts.name();
     }
 
-    private String getPrefString(Genre genre)
-    {
-        return PREF_DEFAULT_RHYTHM + "__" + genre.name();
-    }
-
     protected void clear()
     {
         this.mapRpRhythms.clear();
@@ -524,6 +580,11 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             res.put(rp, rhythms);
         }
         return res;
+    }
+
+    private String getAdaptedRhythmKey(Rhythm r, TimeSignature ts)
+    {
+        return r.getUniqueId() + "-" + ts.name();
     }
 
 }

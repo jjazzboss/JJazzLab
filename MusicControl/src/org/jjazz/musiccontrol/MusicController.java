@@ -193,7 +193,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     public void setContext(MusicGenerationContext context, MusicGenerator.PostProcessor... postProcessors) throws MusicGenerationException
     {
-        if (context != null && context.equals(this.mgContext))
+        if (context != null && context.equals(mgContext))
         {
             return;
         }
@@ -203,10 +203,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         songPartTempoFactor = 1f;
 
 
-        if (this.mgContext != null)
+        if (mgContext != null)
         {
-            this.mgContext.getMidiMix().removePropertyListener(this);
-            this.mgContext.getSong().removePropertyChangeListener(this);
+            mgContext.getMidiMix().removePropertyListener(this);
+            mgContext.getSong().removePropertyChangeListener(this);
         }
 
 
@@ -217,14 +217,23 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
 
 
-        this.mgContext = context;
-        if (this.mgContext != null)
+        mgContext = context;
+        if (mgContext != null)
         {
-            this.mgContext.getMidiMix().addPropertyListener(this);
-            this.mgContext.getSong().addPropertyChangeListener(this);
+            mgContext.getMidiMix().addPropertyListener(this);
+            mgContext.getSong().addPropertyChangeListener(this);
             songTempoChanged(mgContext.getSong().getTempo());
-            playbackContext = new PlaybackContext(this.mgContext, postProcessors);
-            playbackContext.buildSequence();
+            try
+            {
+                playbackContext = new PlaybackContext(mgContext, postProcessors); // Exception possible when building the sequence
+            } catch (MusicGenerationException ex)
+            {
+                // Roll back variables state
+                mgContext.getMidiMix().removePropertyListener(this);
+                mgContext.getSong().removePropertyChangeListener(this);
+                mgContext = null;                
+                throw ex;
+            }
         }
     }
 
@@ -904,12 +913,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         private HashMap<RhythmVoice, Integer> mapRvTrackId;
 
         /**
-         * Create a "dirty" object (needs to be updated).
+         * Create a "dirty" object (needs to be updated) and build the sequence.
          *
          * @param context
          * @param MusicGenerator.PostProcessor[] Optional postprocessors
          */
-        private PlaybackContext(MusicGenerationContext context, MusicGenerator.PostProcessor... postProcessors)
+        private PlaybackContext(MusicGenerationContext context, MusicGenerator.PostProcessor... postProcessors) throws MusicGenerationException
         {
             if (context == null)
             {
@@ -918,6 +927,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             this.context = context;
             dirty = true;
             this.postProcessors = postProcessors;
+
+            buildSequence();
         }
 
         /**
@@ -929,13 +940,19 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
          * @param song
          * @throws MusicGenerationException If problem occurs when creating the sequence.
          */
-        void buildSequence() throws MusicGenerationException
+        final void buildSequence() throws MusicGenerationException
         {
             try
             {
                 // Build the sequence
                 MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(context, postProcessors);
                 sequence = seqBuilder.buildSequence(false);                  // Can raise MusicGenerationException
+                if (sequence == null)
+                {
+                    // If unexpected error, assertion error etc.
+                    throw new MusicGenerationException("Unexpected error while building sequence. Consult log for details.");
+                }
+
                 mapRvTrackId = seqBuilder.getRvTrackIdMap();                 // Used to identify a RhythmVoice's track
 
                 // Add the control track

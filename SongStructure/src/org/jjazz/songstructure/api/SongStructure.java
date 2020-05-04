@@ -233,12 +233,13 @@ public interface SongStructure
     public <T> void setRhythmParameterValue(SongPart spt, RhythmParameter<T> rp, T value);
 
     /**
-     * Get the default rhythm to be used for the specified TimeSignature for this SongStructure.
+     * Returns the last rhythm used in this songStructure for this TimeSignature.
+     * <p>
      *
      * @param ts
-     * @return
+     * @return Can be null if ts has never been used in this song.
      */
-    public Rhythm getDefaultRhythm(TimeSignature ts);
+    public Rhythm getLastUsedRhythm(TimeSignature ts);
 
     /**
      * Add a listener to changes of this object.

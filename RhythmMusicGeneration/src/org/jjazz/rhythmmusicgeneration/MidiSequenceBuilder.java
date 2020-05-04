@@ -301,7 +301,7 @@ public class MidiSequenceBuilder
         // Get the bar ranges used by r
         List<FloatRange> sptRanges = new ArrayList<>();
         for (SongPart spt : context.getSongParts())
-        {            
+        {
             if (spt.getRhythm() == r)
             {
                 FloatRange rg = context.getSptBeatRange(spt);
@@ -337,6 +337,7 @@ public class MidiSequenceBuilder
                     // context.getPosition(0)
                     String msg = "Invalid note position " + ne.toString() + " for rhythm " + r.getName();
                     LOGGER.log(Level.INFO, "checkRhythmPhrasesScope() " + msg);
+                    LOGGER.fine("DEBUG!  rv=" + rv.getName() + " ne=" + ne + " p=" + p);
                     throw new MusicGenerationException(msg);
                 }
             }

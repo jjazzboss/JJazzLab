@@ -27,8 +27,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.spi.RhythmProvider;
 
 /**
@@ -119,4 +119,10 @@ public class FavoriteRhythmProvider implements RhythmProvider
     // ======================================================================
     // Private methods
     // ======================================================================
+
+    @Override
+    public AdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts)
+    {
+        return null;
+    }
 }

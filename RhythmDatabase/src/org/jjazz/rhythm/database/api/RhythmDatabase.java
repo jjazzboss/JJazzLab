@@ -26,12 +26,8 @@ import java.util.List;
 import java.util.function.Predicate;
 import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.rhythm.api.Beat;
-import org.jjazz.rhythm.api.Feel;
-import org.jjazz.rhythm.api.Intensity;
-import org.jjazz.rhythm.api.Genre;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.openide.util.Lookup;
 import org.jjazz.rhythm.database.RhythmDatabaseImpl;
@@ -106,6 +102,17 @@ public interface RhythmDatabase
 
 
     /**
+     * Try to provide a new rhythm which is an adapted version of r for a different time signature.
+     * <p>
+     *
+     * @param r
+     * @param ts
+     * @return Can be null if no adapted rhythm is available.
+     * @throws IllegalArgumentException If ts is the time signature of r, or if r is not a rhythm of this database.
+     */
+    AdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts);
+
+    /**
      * Get the rhythms which are tested OK.
      *
      * @param tester
@@ -113,7 +120,7 @@ public interface RhythmDatabase
      */
     List<Rhythm> getRhythms(Predicate<Rhythm> tester);
 
-     /**
+    /**
      * Get the rhythms which match the specified time signature.
      *
      * @param ts TimeSignature
@@ -131,10 +138,17 @@ public interface RhythmDatabase
     List<Rhythm> getRhythms(RhythmProvider rp);
 
     /**
-     * @param uniqueSerialId A unique id
+     * Get a rhythm from its id.
+     * <p>
+     * If rhythmId contains 2 instances of the AdaptedRhythm.RHYTHM_ID_DELIMITER, then this id represents an AdaptedRhythm which
+     * is created on demand, see AdaptedRhythm.getUniqueId(). The rhythm provider, the original rhythm and the time signature are
+     * obtained from rhythmId, and the returned rhythm instance is obtained by calling RhythmProvider.getAdaptedRhythm(Rhythm,
+     * TimeSignature).
+     *
+     * @param rhythmId A unique id
      * @return The rhythm whose uniqueSerialId matches the specified id. Null if not found.
      */
-    Rhythm getRhythm(String uniqueSerialId);
+    Rhythm getRhythm(String rhythmId);
 
     /**
      * Try to find a rhythm in the database which is "similar" to the specified rhythm info.

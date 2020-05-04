@@ -40,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.event.SwingPropertyChangeSupport;
 import javax.swing.event.UndoableEditEvent;
@@ -55,7 +54,6 @@ import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.synths.Family;
 import org.jjazz.midi.synths.StdSynth;
-import org.jjazz.midi.synths.VoidInstrument;
 import static org.jjazz.midimix.Bundle.ERR_NotEnoughChannels;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -76,7 +74,6 @@ import org.jjazz.util.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
-import org.openide.util.NbPreferences;
 
 /**
  * A set of up to 16 InstrumentMixes, 1 per Midi channel with 1 RhythmVoice associated.
@@ -1257,7 +1254,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      */
     private void addRhythm(Rhythm r) throws MidiUnavailableException
     {
-        LOGGER.log(Level.FINE, "addRhythm() -- r={0} rvKeys={1}", new Object[]
+        LOGGER.log(Level.FINE, "addRhythm() -- r={0} current rvKeys={1}", new Object[]
         {
             r, Arrays.asList(rvKeys)
         });

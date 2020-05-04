@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Objects;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.api.RhythmFeatures;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 
 /**
  * An object that can provide Rhythms instances.
@@ -84,6 +84,17 @@ public interface RhythmProvider
      * @throws java.io.IOException
      */
     public Rhythm readFast(File f) throws IOException;
+
+    /**
+     * Provide a new rhythm which is an adapted version of r for a different time signature.
+     * <p>
+     *
+     * @param r
+     * @param ts
+     * @return Can be null if no adapted rhythm is available.
+     * @throws IllegalArgumentException If ts is the time signature of r, or if r is not a rhythm of this RhythmProvider
+     */
+    public AdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts);
 
     /**
      * Show a modal dialog to modify the user settings of this RhythmProvider.

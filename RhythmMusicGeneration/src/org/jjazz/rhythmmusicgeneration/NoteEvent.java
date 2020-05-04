@@ -261,7 +261,7 @@ public class NoteEvent extends Note implements Cloneable
     @Override
     public String toString()
     {
-        return "[" + super.toString() + ",p=" + position + ",d=" + getDurationInBeats() + ",v=" + getVelocity() + "]";
+        return String.format("[%s, p=%.3f, d=%.3f, v=%d]", toAbsoluteNoteString(), position, getDurationInBeats(), getVelocity());
     }
 
 }

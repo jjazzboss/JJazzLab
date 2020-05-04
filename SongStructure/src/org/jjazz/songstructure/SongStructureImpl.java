@@ -182,7 +182,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         if (r == null || startBarIndex < 0 || nbBars < 0)
         {
             throw new IllegalArgumentException("r=" + r + " startBarIndex=" + startBarIndex + " nbBars=" + nbBars + " parentSection=" + parentSection);
-        }  
+        }
         SongPartImpl spt = new SongPartImpl(r, startBarIndex, nbBars, parentSection);
         spt.setContainer(this);
         return spt;
@@ -605,32 +605,11 @@ public class SongStructureImpl implements SongStructure, Serializable
         fireChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
     }
 
-    /**
-     * The default rhythm for this songStructure for the specified time signature.
-     * <p>
-     * Returns the last rhythm used in this songStructure for this TimeSignature.<br>
-     * If time signature ts is used for the first time use in this songStructure, use the RhythmDatabase default rhythm.
-     *
-     * @param ts
-     * @return A non-null Rhythm.
-     *
-     * @throws IllegalArgumentException If no rhythm could be found for time signature ts.
-     */
+
     @Override
-    public Rhythm getDefaultRhythm(TimeSignature ts)
+    public Rhythm getLastUsedRhythm(TimeSignature ts)
     {
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
-        Rhythm r = mapTsLastRhythm.getValue(ts);
-        if (r == null)
-        {
-            // Nothing in the map, use RhythmDatabase's default
-            r = rdb.getDefaultRhythm(ts);
-        }
-        if (r == null)
-        {
-            throw new IllegalArgumentException("Can't find a rhythm in the database for ts=" + ts + " rdb=" + rdb);
-        }
-        return r;
+        return mapTsLastRhythm.getValue(ts);
     }
 
     @Override

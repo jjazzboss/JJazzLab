@@ -61,8 +61,13 @@ public class SongStructureFactoryImpl extends SongStructureFactory
         SongStructureImpl sgs = new SongStructureImpl(cls, keepSgsUpdated);
         for (CLI_Section section : cls.getItems(CLI_Section.class))
         {
+            Rhythm r = sgs.getLastUsedRhythm(section.getData().getTimeSignature());
+            if (r == null)
+            {
+                r = RhythmDatabase.getDefault().getDefaultRhythm(section.getData().getTimeSignature());
+            }
             SongPart spt = sgs.createSongPart(
-                    sgs.getDefaultRhythm(section.getData().getTimeSignature()),
+                    r,
                     section.getPosition().getBar(),
                     cls.getSectionSize(section),
                     section);

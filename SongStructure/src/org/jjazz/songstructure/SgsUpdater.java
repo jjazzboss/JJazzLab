@@ -44,6 +44,8 @@ import org.jjazz.util.SmallMap;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
+import org.jjazz.rhythm.api.AdaptedRhythm;
+import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
@@ -136,29 +138,57 @@ public class SgsUpdater implements ClsChangeListener
             String oldName = ((Section) e.getOldData()).getName();
             if (!newTs.equals(oldTs))
             {
-                // Time Signature has changed, need to replace all the SongParts based on this section
-                Rhythm newRhythm = sgs.getDefaultRhythm(newTs);
+                // Time Signature has changed, need to replace all impacted SongParts based on this section
                 List<SongPart> oldSpts = getSongParts(cliSection);
-                ArrayList<SongPart> newSpts = new ArrayList<>();
-                for (SongPart oldSpt : oldSpts)
+                if (!oldSpts.isEmpty())
                 {
-                    SongPart newSpt = oldSpt.clone(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
-                    newSpts.add(newSpt);
-                }
-                // Possible exception here : to be handled by caller 
-                sgs.replaceSongParts(oldSpts, newSpts);
-            } else
-            {
-                // It's just a renaming: rename songparts which have not been renamed by user
-                List<SongPart> spts = getSongParts(cliSection);
-                for (SongPart spt : spts.toArray(new SongPart[0]))
-                {
-                    if (!spt.getName().equalsIgnoreCase(oldName))
+                    // Try to use the last used rhythm for this new time signature
+                    Rhythm newRhythm = sgs.getLastUsedRhythm(newTs);
+
+                    // Try to use an AdaptedRhythm if possible           
+                    RhythmDatabase rdb = RhythmDatabase.getDefault();
+                    if (newRhythm == null)
                     {
-                        spts.remove(spt);
+                        if (oldSpts.get(0).getStartBarIndex() > 0)
+                        {
+                            Rhythm prevRhythm = sgs.getSongPart(oldSpts.get(0).getStartBarIndex() - 1).getRhythm();
+                            if (prevRhythm instanceof AdaptedRhythm)
+                            {
+                                prevRhythm = ((AdaptedRhythm) prevRhythm).getOriginalRhythm();
+                            }
+                            newRhythm = rdb.getAdaptedRhythm(prevRhythm, newTs);        // may be null
+                        }
                     }
+
+                    // Last option
+                    if (newRhythm == null)
+                    {
+                        newRhythm = rdb.getDefaultRhythm(newTs);        // Can't be null
+                    }
+
+                    ArrayList<SongPart> newSpts = new ArrayList<>();
+                    for (SongPart oldSpt : oldSpts)
+                    {
+                        SongPart newSpt = oldSpt.clone(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
+                        newSpts.add(newSpt);
+                    }
+                    
+                    // Possible exception here : to be handled by caller 
+                    sgs.replaceSongParts(oldSpts, newSpts);
+
+                } else
+                {
+                    // It's just a renaming: rename songparts which have not been renamed by user
+                    List<SongPart> spts = getSongParts(cliSection);
+                    for (SongPart spt : spts.toArray(new SongPart[0]))
+                    {
+                        if (!spt.getName().equalsIgnoreCase(oldName))
+                        {
+                            spts.remove(spt);
+                        }
+                    }
+                    sgs.setSongPartsName(spts, cliSection.getData().getName());
                 }
-                sgs.setSongPartsName(spts, cliSection.getData().getName());
             }
         } else if (!cliSections.isEmpty() && (evt instanceof ItemAddedEvent))
         {
@@ -250,10 +280,10 @@ public class SgsUpdater implements ClsChangeListener
             }
         }
     }
-
     //----------------------------------------------------------------------------------------------------
     // Private functions
     //----------------------------------------------------------------------------------------------------  
+
     /**
      * Get all the songParts associated to specified parent section.
      *
@@ -326,8 +356,13 @@ public class SgsUpdater implements ClsChangeListener
             assert sptBarIndex != - 1 : "prevSpts=" + prevSpts + " prevSection=" + prevSection + " newSection=" + newSection;
         }
 
+        Rhythm r = sgs.getLastUsedRhythm(newSection.getData().getTimeSignature());
+        if (r == null)
+        {
+            r = RhythmDatabase.getDefault().getDefaultRhythm(newSection.getData().getTimeSignature());
+        }
         SongPart spt = sgs.createSongPart(
-                sgs.getDefaultRhythm(newSection.getData().getTimeSignature()),
+                r,
                 sptBarIndex,
                 parentCls.getSectionSize(newSection),
                 newSection);
