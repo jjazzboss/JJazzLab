@@ -475,6 +475,34 @@ public class Utilities
         return font.getFamily() + "-" + style + "-" + font.getSize();
     }
 
+     /**
+     * Get each element toString() called, one per line.
+     *
+     * @param map
+     * @return
+     */
+    public static <K,V> String toMultilineString(Map<K,V> map)
+    {
+        if (map == null)
+        {
+            throw new IllegalArgumentException("map=" + map);
+        }
+        if (map.isEmpty())
+        {
+            return "[]";
+        }
+        StringBuilder sb = new StringBuilder(map.size() * 50);
+        sb.append("[\n");
+        int i = 0;
+        for (K key : map.keySet())
+        {
+            sb.append(key).append(": ").append(map.get(key)).append("\n");
+            i++;
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+    
     /**
      * Get each element toString() called, one per line.
      *
