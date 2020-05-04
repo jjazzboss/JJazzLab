@@ -39,6 +39,7 @@ import static javax.swing.TransferHandler.MOVE;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.songstructure.api.SongPartParameter;
 import static org.jjazz.ui.ss_editor.Bundle.CTL_CopySpt;
@@ -386,7 +387,11 @@ public class SS_EditorTransferHandler extends TransferHandler
         SongPart prevSpt = (sptIndex == 0) ? null : spts.get(sptIndex - 1);
         int startBarIndex = (prevSpt == null) ? 0 : prevSpt.getStartBarIndex() + prevSpt.getNbBars();
         int nbBars = parentSection.getContainer().getSectionSize(parentSection);
-        Rhythm r = sgs.getDefaultRhythm(parentSection.getData().getTimeSignature());
+        Rhythm r = sgs.getLastUsedRhythm(parentSection.getData().getTimeSignature());
+        if (r == null)
+        {
+            r = RhythmDatabase.getDefault().getDefaultRhythm(parentSection.getData().getTimeSignature());
+        }
         SongPart spt = sgs.createSongPart(r, startBarIndex, nbBars, parentSection);
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
         um.startCEdit(Bundle.CTL_AddSpt());

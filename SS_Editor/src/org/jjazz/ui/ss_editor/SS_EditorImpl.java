@@ -567,6 +567,11 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     @Override
     public List<RhythmParameter<?>> getVisibleRps(Rhythm r)
     {
+        if (!SongStructure.getUniqueRhythms(sgsModel).contains(r))
+        {
+            throw new IllegalArgumentException("r=" + r + " sgsModel=" + sgsModel);
+        }
+
         List<RhythmParameter<?>> rps = mapRhythmVisibleRps.getValue(r);
         if (rps == null)
         {
@@ -1131,40 +1136,74 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Decide which RhythmParameters are visible by default for the specified rhythm.
+     * Decide which RhythmParameters are visible by default for the specified new rhythm.
      *
      * @param r
      * @return
      */
     private List<RhythmParameter<?>> getInitialVisibleRps(Rhythm r)
     {
-        var res = new ArrayList<RhythmParameter<?>>();
-        for (RhythmParameter rp : r.getRhythmParameters())
+        var tmp = new ArrayList<RhythmParameter<?>>();
+
+        var spts = sgsModel.getSongParts(sp -> sp.getRhythm() == r);
+        assert !spts.isEmpty() : "r=" + r + " sgsModel=" + sgsModel;
+        var spt0 = spts.get(0);
+
+        if (spt0.getStartBarIndex() > 0)
         {
-            // Hide TempoFactor and Marker, except if there are used            
-            if ((rp instanceof RP_SYS_Marker) || (rp instanceof RP_SYS_TempoFactor))
+            // Not the first SongPart, try to reuse the visible rps of the previous song part
+            var prevRps = getVisibleRps(sgsModel.getSongPart(spt0.getStartBarIndex() - 1).getRhythm());
+            for (RhythmParameter<?> prevRp : prevRps)
             {
-                for (SongPart spt : sgsModel.getSongParts(spt -> spt.getRhythm() == r))
+                var rp = getRpFromClass(r.getRhythmParameters(), prevRp.getClass());
+                if (rp != null)
                 {
-                    if (!spt.getRPValue(rp).equals(rp.getDefaultValue()))
-                    {
-                        if (!res.contains(rp))
-                        {
-                            res.add(rp);
-                        }
-                        continue;
-                    }
-                }
-                continue;
-            } else
-            {
-                if (!res.contains(rp))
-                {
-                    res.add(rp);
+                    tmp.add(rp);
                 }
             }
+        } else
+        {
+            // First song part, add all except Marker an TempoFactor (handled below)
+            r.getRhythmParameters().stream()
+                    .filter(rp -> !((rp instanceof RP_SYS_Marker) || (rp instanceof RP_SYS_TempoFactor)))
+                    .forEach(tmp::add);
         }
+
+        // Add TempoFactor and Marker except only if there are used (and not already present)
+        r.getRhythmParameters().stream()
+                .filter(rp -> (rp instanceof RP_SYS_Marker) || (rp instanceof RP_SYS_TempoFactor))
+                .filter(rp -> sgsModel.getSongParts().stream().anyMatch(sp -> !sp.getRPValue(rp).equals(rp.getDefaultValue())))
+                .forEach(rp ->
+                {
+                    if (!tmp.contains(rp))
+                    {
+                        tmp.add(rp);
+                    }
+                });
+
+        // Reorder
+        var res = new ArrayList<RhythmParameter<?>>();
+        for (var rp : r.getRhythmParameters())
+        {
+            if (tmp.contains(rp))
+            {
+                res.add(rp);
+            }
+        }
+
         return res;
+    }
+
+    /**
+     * Get the first RhythmParameter from rps which is assignable from rpClass (same class or rpClass is a superclass).
+     *
+     * @param rps
+     * @param rpClass
+     * @return
+     */
+    private RhythmParameter<?> getRpFromClass(List<RhythmParameter<?>> rps, Class rpClass)
+    {
+        return rps.stream().filter(rp -> rpClass.isAssignableFrom(rp.getClass())).findAny().orElse(null);
     }
 
     //===========================================================================

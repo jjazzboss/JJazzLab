@@ -29,11 +29,11 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
-import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.database.api.RhythmDatabase;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
@@ -41,7 +41,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
@@ -91,7 +90,11 @@ public class AppendSpt extends AbstractAction
         {
             CLI_Section parentSection = dlg.getParentSection();
             assert parentSection != null;
-            Rhythm r = sgs.getDefaultRhythm(parentSection.getData().getTimeSignature());
+            Rhythm r = sgs.getLastUsedRhythm(parentSection.getData().getTimeSignature());
+            if (r == null)
+            {
+                r = RhythmDatabase.getDefault().getDefaultRhythm(parentSection.getData().getTimeSignature());
+            }
             int startBarIndex = 0;
             if (!spts.isEmpty())
             {

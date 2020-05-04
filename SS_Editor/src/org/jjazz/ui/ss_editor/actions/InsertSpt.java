@@ -36,6 +36,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.database.api.RhythmDatabase;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManager;
@@ -114,7 +115,11 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
         {
             CLI_Section parentSection = dlg.getParentSection();
             assert parentSection != null;
-            Rhythm r = sgs.getDefaultRhythm(parentSection.getData().getTimeSignature());
+            Rhythm r = sgs.getLastUsedRhythm(parentSection.getData().getTimeSignature());
+            if (r == null)
+            {
+                r = RhythmDatabase.getDefault().getDefaultRhythm(parentSection.getData().getTimeSignature());
+            }
             int startBarIndex = spts.get(selection.getMinStartSptIndex()).getStartBarIndex();
             int nbBars = cls.getSectionSize(parentSection);
             SongPart newSpt = sgs.createSongPart(r, startBarIndex, nbBars, parentSection);

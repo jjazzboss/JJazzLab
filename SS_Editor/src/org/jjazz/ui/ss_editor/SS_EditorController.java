@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
@@ -295,11 +296,18 @@ public class SS_EditorController implements SS_EditorMouseListener
                 editor.selectSongPart(spt, true);
                 editor.setFocusOnSongPart(spt);
             }
-            if (popupSptMenu == null)
+            
+            
+            // Reconstruct popupmenu when required
+            List<? extends Action> actions = Utilities.actionsForPath("Actions/SongPart");
+            actions = actions.stream().filter(a -> !(a instanceof HideIfDisabledAction) || a.isEnabled()).collect(Collectors.toList());
+            int nbNonNullActions = (int) actions.stream().filter(a -> a != null).count();
+            if (popupSptMenu == null || popupSptMenu.getSubElements().length != nbNonNullActions)
             {
-                List<? extends Action> actions = Utilities.actionsForPath("Actions/SongPart");
                 popupSptMenu = Utilities.actionsToPopup(actions.toArray(new Action[actions.size()]), editor);
             }
+            
+            // Display popupmenu
             popupSptMenu.show(e.getComponent(), e.getX(), e.getY());
         }
     }
