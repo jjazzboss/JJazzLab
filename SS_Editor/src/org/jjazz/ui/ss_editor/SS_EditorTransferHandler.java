@@ -124,6 +124,7 @@ public class SS_EditorTransferHandler extends TransferHandler
     {
         LOGGER.fine("canImport() info.getComponent()=" + info.getComponent());
 
+
         // Check data flavor and origin of the transfert
         if (info.isDataFlavorSupported(SongPart.DATA_FLAVOR))
         {
@@ -144,6 +145,7 @@ public class SS_EditorTransferHandler extends TransferHandler
             LOGGER.fine("-- unsupported DataFlavor");
             return false;
         }
+
 
         // Check if the source actions (a bitwise-OR of supported actions)
         // contains the COPY or MOVE action
@@ -227,11 +229,13 @@ public class SS_EditorTransferHandler extends TransferHandler
         List<SongPart> spts = sgs.getSongParts();
         int sptIndex = spts.indexOf(spt);
 
+
         // Special case: move to same place, do nothing
         if (info.getDropAction() == MOVE && (targetSptIndex == sptIndex || targetSptIndex == sptIndex + 1))
         {
             return false;
         }
+
 
         // In all cases we need a spt clone
         SongPart newSpt;
@@ -243,9 +247,11 @@ public class SS_EditorTransferHandler extends TransferHandler
         }
         newSpt = spt.clone(spt.getRhythm(), newStartBarIndex, spt.getNbBars(), spt.getParentSection());
 
+
         // Unselect all, restore at the end
         SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
         selection.unselectAll(editor);
+
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
         if (info.getDropAction() == MOVE)
@@ -255,13 +261,17 @@ public class SS_EditorTransferHandler extends TransferHandler
             um.startCEdit(CTL_MoveSpt());
             try
             {
-                editor.getModel().addSongPart(newSpt);       // To be done before removing (startBarIndex will change)
+                // Add to be done first !
+                // Because startBarIndex will change, and newSpt can be a source rhythm of an AdaptedRhythm
+                editor.getModel().addSongParts(Arrays.asList(newSpt));
+                editor.getModel().removeSongParts(Arrays.asList(spt));
             } catch (UnsupportedEditException ex)
             {
-                // No new rhythm, so we should never be here
-                throw new IllegalArgumentException("Unexpected 'UnsupportedEditException'.", ex);
+                // Should never happen : we just use existing SongParts with the same song
+                String msg = "Impossible to move song part.\n" + ex.getLocalizedMessage();
+                um.handleUnsupportedEditException(CTL_MoveSpt(), msg);
+                return false;
             }
-            editor.getModel().removeSongParts(Arrays.asList(spt));
             um.endCEdit(CTL_MoveSpt());
         } else
         {
@@ -270,11 +280,13 @@ public class SS_EditorTransferHandler extends TransferHandler
             um.startCEdit(CTL_CopySpt());
             try
             {
-                editor.getModel().addSongPart(newSpt);
+                editor.getModel().addSongParts(Arrays.asList(newSpt));
             } catch (UnsupportedEditException ex)
             {
                 // No new rhythm, so we should never be here
-                throw new IllegalArgumentException("Unexpected 'UnsupportedEditException'.", ex);
+                String msg = "Impossible to copy song part.\n" + ex.getLocalizedMessage();
+                um.handleUnsupportedEditException(CTL_CopySpt(), msg);
+                return false;
             }
             um.endCEdit(CTL_CopySpt());
         }
@@ -397,7 +409,7 @@ public class SS_EditorTransferHandler extends TransferHandler
         um.startCEdit(Bundle.CTL_AddSpt());
         try
         {
-            sgs.addSongPart(spt);         // Possible exception here
+            sgs.addSongParts(Arrays.asList(spt));         // Possible exception here
             if (prevSpt != null)
             {
                 // Adjust RhythmParameters value from previous SongPart if possible    

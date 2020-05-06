@@ -35,6 +35,7 @@ import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongStructure;
 import org.openide.awt.StatusDisplayer;
@@ -51,7 +52,7 @@ public class MidiMixManager implements PropertyChangeListener
      * Need WeakReferences: we don't want to maintain a strong reference if song is no more used.
      */
     private WeakHashMap<Song, MidiMix> mapSongMix = new WeakHashMap<>();
-    
+
     private static final Logger LOGGER = Logger.getLogger(MidiMixManager.class.getSimpleName());
 
     public static MidiMixManager getInstance()
@@ -165,7 +166,7 @@ public class MidiMixManager implements PropertyChangeListener
     {
         LOGGER.fine("createMix() -- sg=" + sg);
         MidiMix mm = new MidiMix(sg);
-        for (Rhythm r : SongStructure.getUniqueRhythms(sg.getSongStructure()))
+        for (Rhythm r : SongStructure.getUniqueRhythms(sg.getSongStructure(), true))
         {
             MidiMix rMm = findMix(r);
             mm.addInstrumentMixes(rMm, r);
@@ -178,7 +179,9 @@ public class MidiMixManager implements PropertyChangeListener
      * Create a MidiMix for the specified rhythm.
      * <p>
      * Create one InstrumentMix per rhythm voice, using rhythm voice's preferred instrument and settings, and preferred channel
-     * (except if several voices share the same preferred channel).
+     * (except if several voices share the same preferred channel)
+     * .<p>
+     * Rhythm's RhythmVoiceDelegates are added as such in the created mix.
      *
      * @param r
      * @return A MidiMix associated to this rhythm. Rhythm voices are used as keys for InstrumentMixes.
@@ -186,33 +189,44 @@ public class MidiMixManager implements PropertyChangeListener
     public MidiMix createMix(Rhythm r)
     {
         LOGGER.fine("createMix() -- r=" + r);
+
         MidiMix mm = new MidiMix();
+
         for (RhythmVoice rv : r.getRhythmVoices())
         {
-            RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.Util.getProvider();
-            Instrument ins = p.findInstrument(rv);
-            assert ins != null : "rv=" + rv;
-            int channel = rv.getPreferredChannel();
-            if (mm.getInstrumentMixFromChannel(channel) != null)
+            if (rv instanceof RhythmVoiceDelegate)
             {
-                // If 2 rhythm voices have the same preferred channel (strange...)
-                LOGGER.warning("createMix() 2 rhythm voices have the same preferredChannel! mm=" + mm + " channel=" + channel);
-                channel = mm.findFreeChannel(rv.isDrums());
-                if (channel == -1)
+                mm.addRhythmVoiceDelegate((RhythmVoiceDelegate) rv);
+            } else
+            {
+                RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.Util.getProvider();
+                Instrument ins = p.findInstrument(rv);
+                assert ins != null : "rv=" + rv;
+                int channel = rv.getPreferredChannel();
+
+                if (mm.getInstrumentMixFromChannel(channel) != null)
                 {
-                    throw new IllegalStateException("No Midi channel available in MidiMix. r=" + r + " rhythmVoices=" + r.getRhythmVoices());
+                    // If 2 rhythm voices have the same preferred channel (strange...)
+                    LOGGER.warning("createMix() 2 rhythm voices have the same preferredChannel. r=" + r.getName() + " mm=" + mm + " channel=" + channel);
+                    channel = mm.findFreeChannel(rv.isDrums());
+                    if (channel == -1)
+                    {
+                        throw new IllegalStateException("No Midi channel available in MidiMix. r=" + r + " rhythmVoices=" + r.getRhythmVoices());
+                    }
                 }
+
+                InstrumentMix im = new InstrumentMix(ins, rv.getPreferredInstrumentSettings());
+                mm.setInstrumentMix(channel, rv, im);
+                LOGGER.fine("createMix()    created InstrumentMix for rv=" + rv + " ins=" + ins);
             }
-            InstrumentMix im = new InstrumentMix(ins, rv.getPreferredInstrumentSettings());
-            mm.setInstrumentMix(channel, rv, im);
-            LOGGER.fine("createMix()    created InstrumentMix for rv=" + rv + " ins=" + ins);
         }
+
         return mm;
     }
 
-    // =================================================================================
-    // PropertyChangeListener methods
-    // =================================================================================    
+// =================================================================================
+// PropertyChangeListener methods
+// =================================================================================    
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {

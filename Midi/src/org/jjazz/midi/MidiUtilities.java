@@ -197,6 +197,9 @@ public class MidiUtilities
         byte powerOf2;
         switch (ts.getLower())
         {
+            case 2:
+                powerOf2 = 1;
+                break;
             case 4:
                 powerOf2 = 2;
                 break;

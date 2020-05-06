@@ -28,6 +28,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
@@ -42,12 +43,12 @@ import org.openide.NotifyDescriptor;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructureFactory;
+import org.openide.util.Exceptions;
 
 /**
  * Manage the creation and the registration of the songs.
  * <p>
- * All songs created by this factory are automatically registered. Registered songs are unregistered when song is
- * closed.
+ * All songs created by this factory are automatically registered. Registered songs are unregistered when song is closed.
  */
 public class SongFactory implements PropertyChangeListener
 {
@@ -220,8 +221,8 @@ public class SongFactory implements PropertyChangeListener
      * @param name
      * @param cls
      * @return
-     * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi
-     * channels for the various rhythms.
+     * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the
+     * various rhythms.
      */
     public Song createSong(String name, ChordLeadSheet cls) throws UnsupportedEditException
     {
@@ -325,7 +326,14 @@ public class SongFactory implements PropertyChangeListener
 
         // Clean the default songStructure
         SongStructure newSgs = s.getSongStructure();
-        newSgs.removeSongParts(newSgs.getSongParts());
+        try
+        {
+            newSgs.removeSongParts(newSgs.getSongParts());
+        } catch (UnsupportedEditException ex)
+        {
+            // Should not happen since it's a copy
+            Exceptions.printStackTrace(ex);
+        }
 
         // Recreate each SongPart copy
         for (SongPart spt : song.getSongStructure().getSongParts())
@@ -335,7 +343,7 @@ public class SongFactory implements PropertyChangeListener
             SongPart sptCopy = spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
             try
             {
-                newSgs.addSongPart(sptCopy);        // Can raise UnsupportedEditException
+                newSgs.addSongParts(Arrays.asList(sptCopy));        // Can raise UnsupportedEditException
             } catch (UnsupportedEditException ex)
             {
                 // Should not occur since it's a clone, ie already accepted edits
@@ -350,10 +358,10 @@ public class SongFactory implements PropertyChangeListener
     /**
      * Return a copy of the song where the SongStructure does NOT listen to the ChordLeadsheet changes.
      * <p>
-     * WARNING: Because SongStructure and ChordLeadsheet are not linked, changing them might result in inconsistent
-     * states. This should be used only in special cases.<p>
-     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags. Listeners or file are
-     * NOT copied. Created song is registered.
+     * WARNING: Because SongStructure and ChordLeadsheet are not linked, changing them might result in inconsistent states. This
+     * should be used only in special cases.<p>
+     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags. Listeners or file are NOT copied.
+     * Created song is registered.
      *
      * @param song
      * @return
@@ -375,7 +383,7 @@ public class SongFactory implements PropertyChangeListener
                 String parentSectionName = spt.getParentSection().getData().getName();
                 CLI_Section parentSectionCopy = cls.getSection(parentSectionName);
                 SongPart sptCopy = spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), parentSectionCopy);
-                ss.addSongPart(sptCopy);        // Can raise UnsupportedEditException
+                ss.addSongParts(Arrays.asList(sptCopy));        // Can raise UnsupportedEditException
             }
         } catch (UnsupportedEditException ex)
         {

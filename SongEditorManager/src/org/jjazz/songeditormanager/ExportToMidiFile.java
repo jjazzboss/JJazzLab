@@ -217,7 +217,7 @@ public class ExportToMidiFile extends AbstractAction
         }
 
         // Remove elements from muted tracks (don't remove track because impact on mapRvTrack + drumsrerouting)
-        for (RhythmVoice rv : midiMix.getRvKeys())
+        for (RhythmVoice rv : midiMix.getRhythmVoices())
         {
             if (midiMix.getInstrumentMixFromKey(rv).isMute())
             {
@@ -232,6 +232,7 @@ public class ExportToMidiFile extends AbstractAction
 
         // Add chord symbols as markers
         addChordSymbolMarkers(sequence);
+
 
         // Modify sequence to make Midi file as portable as possible
         prepareForMidiFile(sequence, mapRvTrackId, midiMix);
@@ -289,7 +290,7 @@ public class ExportToMidiFile extends AbstractAction
      * Prepare the sequence for Midi file export.
      * <p>
      * Shift all events 1 bar to leave time to apply config changes.<br>
-     * Add prog/bank changes messages, tempo, reset controllers, etc...
+     * Add prog/bank changes messages, tempo, reset controllers, time signature changes, etc...
      *
      * @param sequence
      * @throws ArrayIndexOutOfBoundsException
@@ -310,23 +311,24 @@ public class ExportToMidiFile extends AbstractAction
         long initBarInTicks = (long) (ts0.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION);
 
 
-        // Shift one bar except track names/time signature        
+        // Shift one bar except track names and initial time signature  
         for (Track track : tracks)
         {
             for (int i = track.size() - 1; i >= 0; i--)
             {
                 MidiEvent me = track.get(i);
+                long tick = me.getTick();
                 MidiMessage mm = me.getMessage();
                 if (mm instanceof MetaMessage)
                 {
                     int type = ((MetaMessage) mm).getType();
-                    // Track name=3,  time signature=88                    
-                    if (type == 3 || type == 88)
+                    // Track name=3 or initial time signature         
+                    if (type == 3 || (type == 88 && tick == 0))
                     {
                         continue;
                     }
                 }
-                me.setTick(me.getTick() + initBarInTicks);
+                me.setTick(tick + initBarInTicks);
             }
         }
 
@@ -336,9 +338,6 @@ public class ExportToMidiFile extends AbstractAction
         Track firstTrack = tracks[0];
         MidiMessage mmCopyright = MidiUtilities.getCopyrightMetaMessage("JJazzLab Midi Export file");
         MidiEvent me = new MidiEvent(mmCopyright, 0);
-        firstTrack.add(me);
-        me = new MidiEvent(MidiUtilities.getTimeSignatureMessage(0, ts0), 0);
-        // Initial time signature
         firstTrack.add(me);
         // Initial tempo
         int tempo = song.getTempo();

@@ -29,6 +29,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ui.ss_editor.api.CopyBuffer;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
@@ -44,6 +45,10 @@ import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
+import org.jjazz.undomanager.JJazzUndoManager;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.cut")
 @ActionRegistration(displayName = "#CTL_Cut", lazy = false)
@@ -87,9 +92,18 @@ public class Cut extends AbstractAction implements ContextAwareAction, SS_Contex
         CopyBuffer buffer = CopyBuffer.getInstance();
         buffer.put(selection.getSelectedSongParts());
         SongStructure sgs = selection.getModel();
-        JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
-        sgs.removeSongParts(selection.getSelectedSongParts());
-        JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(undoText);
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
+        um.startCEdit(undoText);
+        try
+        {
+            sgs.removeSongParts(selection.getSelectedSongParts());
+        } catch (UnsupportedEditException ex)
+        {
+            String msg = "Impossible to cut song parts\n" + ex.getLocalizedMessage();
+            um.handleUnsupportedEditException(undoText, msg);
+            return;
+        }
+        um.endCEdit(undoText);
     }
 
     @Override

@@ -31,6 +31,7 @@ import static javax.swing.Action.NAME;
 import static javax.swing.Action.SMALL_ICON;
 import javax.swing.Icon;
 import javax.swing.KeyStroke;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
@@ -46,6 +47,10 @@ import org.openide.util.Utilities;
 import org.openide.util.actions.SystemAction;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.undomanager.JJazzUndoManager;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.removespt")
 @ActionRegistration(displayName = "not_used", lazy = false)
@@ -83,9 +88,18 @@ public class RemoveSpt extends AbstractAction implements ContextAwareAction, SS_
     {
         SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
-        JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
-        sgs.removeSongParts(selection.getSelectedSongParts());
-        JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(undoText);
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
+        um.startCEdit(undoText);;
+        try
+        {
+            sgs.removeSongParts(selection.getSelectedSongParts());
+        } catch (UnsupportedEditException ex)
+        {
+            String msg = "Impossible to remove song parts.\n" + ex.getLocalizedMessage();
+            um.handleUnsupportedEditException(undoText, msg);
+            return;
+        }
+        um.endCEdit(undoText);
     }
 
     @Override

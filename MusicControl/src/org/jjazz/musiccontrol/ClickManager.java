@@ -240,7 +240,7 @@ public class ClickManager
     {
         int prefChannel = getPreferredClickChannel();
         InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(prefChannel);
-        if (insMix == null || midiMix.getKey(prefChannel).isDrums())
+        if (insMix == null || midiMix.getRhythmVoice(prefChannel).isDrums())
         {
             return prefChannel;
         }

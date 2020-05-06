@@ -23,6 +23,7 @@
 package org.jjazz.songstructure;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -154,7 +155,7 @@ public class SgsUpdater implements ClsChangeListener
                             Rhythm prevRhythm = sgs.getSongPart(oldSpts.get(0).getStartBarIndex() - 1).getRhythm();
                             if (prevRhythm instanceof AdaptedRhythm)
                             {
-                                prevRhythm = ((AdaptedRhythm) prevRhythm).getOriginalRhythm();
+                                prevRhythm = ((AdaptedRhythm) prevRhythm).getSourceRhythm();
                             }
                             newRhythm = rdb.getAdaptedRhythm(prevRhythm, newTs);        // may be null
                         }
@@ -172,7 +173,7 @@ public class SgsUpdater implements ClsChangeListener
                         SongPart newSpt = oldSpt.clone(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
                         newSpts.add(newSpt);
                     }
-                    
+
                     // Possible exception here : to be handled by caller 
                     sgs.replaceSongParts(oldSpts, newSpts);
 
@@ -202,7 +203,7 @@ public class SgsUpdater implements ClsChangeListener
                 try
                 {
                     // Possible exception here !
-                    sgs.addSongPart(spt);
+                    sgs.addSongParts(Arrays.asList(spt));
                 } catch (UnsupportedEditException ex)
                 {
                     // Delay the exception propagation later to do the previous section resize operation.
@@ -260,7 +261,7 @@ public class SgsUpdater implements ClsChangeListener
                 UnsupportedEditException exception = null;
                 try
                 {
-                    sgs.addSongPart(spt);
+                    sgs.addSongParts(Arrays.asList(spt));
                 } catch (UnsupportedEditException ex)
                 {
                     // Delay the exception propagation later to do the resize operation anyway.

@@ -24,6 +24,7 @@ package org.jjazz.ui.ss_editor.actions;
 
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -127,7 +128,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
             um.startCEdit(undoText);
             try
             {
-                sgs.addSongPart(newSpt);
+                sgs.addSongParts(Arrays.asList(newSpt));
             } catch (UnsupportedEditException ex)
             {
                 String msg = ERR_InsertSpt() + "\n" + ex.getLocalizedMessage();

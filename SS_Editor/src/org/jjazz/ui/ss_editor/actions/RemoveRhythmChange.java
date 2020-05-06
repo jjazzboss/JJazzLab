@@ -24,13 +24,12 @@ package org.jjazz.ui.ss_editor.actions;
 
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.Icon;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
@@ -47,7 +46,7 @@ import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.HideIfDisabledAction;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import org.openide.util.Exceptions;
+import org.jjazz.undomanager.JJazzUndoManager;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.removerhythmchange")
 @ActionRegistration(displayName = "not_used", lazy = false)
@@ -83,26 +82,44 @@ public class RemoveRhythmChange extends AbstractAction implements ContextAwareAc
     {
         SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
-
-
-        JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
-
-
-        SongPart spt = selection.getSelectedSongParts().get(0);
-        SongPart prevSpt = selection.getModel().getSongPart(spt.getStartBarIndex() - 1);
+        var spts = sgs.getSongParts();
+        SongPart spt0 = selection.getSelectedSongParts().get(0);
+        Rhythm r0 = spt0.getRhythm();
+        SongPart prevSpt = sgs.getSongPart(spt0.getStartBarIndex() - 1);
         Rhythm prevRhythm = prevSpt.getRhythm();
-        SongPart newSpt = spt.clone(prevRhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
-        try
+
+
+        // Prepare the song parts
+        var newSpts = new ArrayList<SongPart>();
+        var oldSpts = new ArrayList<SongPart>();
+        int index = spts.indexOf(spt0);
+        for (int i = index; i < spts.size(); i++)
         {
-            sgs.replaceSongParts(Arrays.asList(spt), Arrays.asList(newSpt));
-        } catch (UnsupportedEditException ex)
-        {
-            // We possibly removed 1 rhythm, can't be here
-            Exceptions.printStackTrace(ex);
+            SongPart spt = spts.get(i);
+            if (spt.getRhythm() != r0)
+            {
+                // Exit at first different spt
+                break;
+            }
+            oldSpts.add(spt);
+            SongPart newSpt = spt.clone(prevRhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
+            newSpts.add(newSpt);
         }
 
 
-        JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(undoText);
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
+        um.startCEdit(undoText);
+        try
+        {
+            sgs.replaceSongParts(oldSpts, newSpts);
+        } catch (UnsupportedEditException ex)
+        {
+            // We possibly removed 1 rhythm, can't be here
+            String msg = "Impossible to remove rhythm change.\n" + ex.getLocalizedMessage();
+            um.handleUnsupportedEditException(undoText, msg);
+            return;
+        }
+        um.endCEdit(undoText);
     }
 
     @Override

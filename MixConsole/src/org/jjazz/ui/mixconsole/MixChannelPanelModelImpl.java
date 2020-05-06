@@ -97,7 +97,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     @Override
     public boolean isUserChannel()
     {
-        return midiMix.getKey(channelId) instanceof UserChannelRvKey;
+        return midiMix.getRhythmVoice(channelId) instanceof UserChannelRvKey;
     }
 
     @Override
@@ -175,7 +175,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
             // Check if there is enough room to apply the volume delta to all other channels
             for (Integer channel : midiMix.getUsedChannels())
             {
-                Rhythm rChannel = midiMix.getKey(channel).getContainer();
+                Rhythm rChannel = midiMix.getRhythmVoice(channel).getContainer();
                 if (channel == channelId || (visibleRhythm != null && visibleRhythm != rChannel))
                 {
                     continue;

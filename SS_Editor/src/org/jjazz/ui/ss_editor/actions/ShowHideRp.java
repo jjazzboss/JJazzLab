@@ -105,7 +105,7 @@ public class ShowHideRp extends AbstractAction
     private int getNbHiddenParameters()
     {
         int res = 0;
-        for (Rhythm r : SongStructure.getUniqueRhythms(editor.getModel()))
+        for (Rhythm r : SongStructure.getUniqueRhythms(editor.getModel(), false))
         {
             res = Math.max(res, r.getRhythmParameters().size() - editor.getVisibleRps(r).size());
         }

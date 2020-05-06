@@ -22,6 +22,7 @@
  */
 package org.jjazz.songstructure;
 
+import java.util.Arrays;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -71,7 +72,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
                     section.getPosition().getBar(),
                     cls.getSectionSize(section),
                     section);
-            sgs.addSongPart(spt);
+            sgs.addSongParts(Arrays.asList(spt));
         }
         return sgs;
     }
@@ -86,7 +87,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
         SongPart spt = sgs.createSongPart(r, 0, 8, null);
         try
         {
-            sgs.addSongPart(spt);
+            sgs.addSongParts(Arrays.asList(spt));
         } catch (UnsupportedEditException ex)
         {
             // This should not happen for a simple SGS.

@@ -61,6 +61,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.midimix.UserChannelRvKey;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.DummyRhythm;
 import org.jjazz.songeditormanager.SongEditorManager;
 import static org.jjazz.ui.mixconsole.Bundle.CTL_AllRhythms;
@@ -222,10 +223,11 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
      * Set the visible rhythm.
      *
      * @param r If null all song rhythms are shown.
+     * @throws IllegalStateException If r is an AdaptedRhythm or if r does not belong to this song
      */
     public void setVisibleRhythm(Rhythm r)
     {
-        if (songModel == null || (r != null && !SongStructure.getUniqueRhythms(songModel.getSongStructure()).contains(r)))
+        if (songModel == null || r instanceof AdaptedRhythm || (r != null && !SongStructure.getUniqueRhythms(songModel.getSongStructure(), true).contains(r)))
         {
             throw new IllegalStateException("songModel=" + songModel + " r=" + r);
         }
@@ -406,7 +408,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             if (e.getPropertyName() == MidiMix.PROP_CHANNEL_INSTRUMENT_MIX)
             {
                 int channel = (int) e.getNewValue();
-                RhythmVoice rv = songMidiMix.getKey(channel);
+                RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
                 InstrumentMix oldInsMix = (InstrumentMix) e.getOldValue();
                 InstrumentMix insMix = songMidiMix.getInstrumentMixFromChannel(channel);
                 updateVisibleRhythmUI();
@@ -552,7 +554,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private void addMixChannelPanel(MidiMix mm, int channel)
     {
         MixChannelPanel mcp;
-        RhythmVoice rvKey = songMidiMix.getKey(channel);
+        RhythmVoice rvKey = songMidiMix.getRhythmVoice(channel);
         if (rvKey instanceof UserChannelRvKey)
         {
             // User channel
@@ -728,7 +730,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private void updateVisibleRhythmUI()
     {
         List<Rhythm> rhythms;
-        if (songModel == null || (rhythms = SongStructure.getUniqueRhythms(songModel.getSongStructure())).size() < 2)
+        if (songModel == null || (rhythms = SongStructure.getUniqueRhythms(songModel.getSongStructure(), true)).size() < 2)
         {
             // Hide the combo box
             if (cb_viewRhythms.getParent() != null)

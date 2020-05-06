@@ -29,6 +29,8 @@ import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.midi.InstrumentMix;
+import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.ui.mixconsole.MixConsole;
 import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.openide.awt.ActionID;
@@ -64,15 +66,17 @@ public class SwitchAllMute extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        MidiMix songMidiMix = MixConsoleTopComponent.getInstance().getEditor().getMidiMix();
+        MixConsole mixConsole = MixConsoleTopComponent.getInstance().getEditor();
+        MidiMix songMidiMix = mixConsole.getMidiMix();
         if (songMidiMix == null || songMidiMix != ActiveSongManager.getInstance().getActiveMidiMix())
         {
             return;
         }
 
         boolean targetMuteState = true;
+        Rhythm visibleRhythm = mixConsole.getVisibleRhythm(); // Null means all rhythms are visible
         // Unmute all if there at least one channel muted
-        for (Integer channel : songMidiMix.getUsedChannels())
+        for (Integer channel : songMidiMix.getUsedChannels(visibleRhythm))
         {
             InstrumentMix insMix = songMidiMix.getInstrumentMixFromChannel(channel);
             if (insMix.isMute())
@@ -81,7 +85,7 @@ public class SwitchAllMute extends AbstractAction
                 break;
             }
         }
-        for (Integer channel : songMidiMix.getUsedChannels())
+        for (Integer channel : songMidiMix.getUsedChannels(visibleRhythm))
         {
             InstrumentMix insMix = songMidiMix.getInstrumentMixFromChannel(channel);
             insMix.setMute(targetMuteState);

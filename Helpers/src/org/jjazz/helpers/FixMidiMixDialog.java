@@ -96,7 +96,7 @@ public class FixMidiMixDialog extends javax.swing.JDialog
             Collections.sort(channels);
             for (int ch : channels)
             {
-                RhythmVoice rv = midiMix.getKey(ch);
+                RhythmVoice rv = midiMix.getRhythmVoice(ch);
                 Instrument ins = midiMix.getInstrumentMixFromChannel(ch).getInstrument();
                 Instrument newIns = mapChannelNewIns.get(ch);
                 sb.append("Channel ").append(ch + 1).append(" : ");
@@ -122,7 +122,7 @@ public class FixMidiMixDialog extends javax.swing.JDialog
             sb.append("<HTML>");
             for (int ch : reroutedChannels)
             {
-                RhythmVoice rv = midiMix.getKey(ch);
+                RhythmVoice rv = midiMix.getRhythmVoice(ch);
                 sb.append("Channel ").append(ch + 1).append(" : ").append(rv.getName());
                 if (ch != reroutedChannels.get(reroutedChannels.size() - 1))
                 {

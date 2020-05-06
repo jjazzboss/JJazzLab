@@ -269,8 +269,9 @@ public class CL_EditorTransferHandler extends TransferHandler
                     } catch (UnsupportedEditException ex)
                     {
                         // Section is just moved, it was OK before and it should be OK after the move.
-                        // We should not be here
-                        throw new IllegalStateException("Unexpected 'UnsupportedEditException' occured.", ex);
+                        String msg = "Impossible to move section.\n" + ex.getLocalizedMessage();
+                        um.handleUnsupportedEditException("Move section", msg);
+                        return false;
                     }
                     editor.selectItem(curSection, true);
                     editor.setFocusOnItem(curSection, IR_Type.Section);

@@ -82,10 +82,10 @@ public class LoadDefaultRhythmMix extends AbstractAction
         }
         Song song = songMidiMix.getSong();
         Rhythm rhythm = mixConsole.getVisibleRhythm();
-        List<Rhythm> rhythms = new ArrayList<>();
+        var rhythms = new ArrayList<Rhythm>();
         if (rhythm == null)
         {
-            rhythms.addAll(SongStructure.getUniqueRhythms(song.getSongStructure()));
+            rhythms.addAll(SongStructure.getUniqueRhythms(song.getSongStructure(), true));
         } else
         {
             rhythms.add(rhythm);

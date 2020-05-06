@@ -773,7 +773,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private void updateTrackMuteState(InstrumentMix insMix, HashMap<RhythmVoice, Integer> mapRvTrack)
     {
         boolean b = insMix.isMute();
-        RhythmVoice rv = mgContext.getMidiMix().getKey(insMix);
+        RhythmVoice rv = mgContext.getMidiMix().geRhythmVoice(insMix);
         if (rv instanceof UserChannelRvKey)
         {
             return;
@@ -997,7 +997,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         private void updateAllTracksMuteState(MidiMix mm)
         {
-            for (RhythmVoice rv : mm.getRvKeys())
+            for (RhythmVoice rv : mm.getRhythmVoices())
             {
                 if (!(rv instanceof UserChannelRvKey))
                 {

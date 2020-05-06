@@ -65,7 +65,6 @@ import org.openide.util.actions.Presenter;
 )
 public class ToggleUserChannel extends AbstractAction implements Presenter.Menu
 {
-
     private String undoText = CTL_ToggleUserChannel();
     private JCheckBoxMenuItem checkbox;
     private MidiMix songMidiMix;
@@ -128,6 +127,7 @@ public class ToggleUserChannel extends AbstractAction implements Presenter.Menu
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.WARNING_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
+                checkbox.setSelected(false);
             }
         }
     }

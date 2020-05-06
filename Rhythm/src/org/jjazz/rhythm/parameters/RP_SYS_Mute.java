@@ -27,8 +27,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.openide.util.NbBundle;
 import static org.jjazz.rhythm.parameters.Bundle.*;
 
@@ -57,22 +60,19 @@ public class RP_SYS_Mute extends RP_StringSet
         super(ID, CTL_RpMuteName(), CTL_RpMuteDesc(), defaultVal, possibleValues);
     }
 
+
     /**
      * A factory method to build a RhythmParameter for a specified rhythm.
      * <p>
-     * Use all the rhythmVoice's names to create the possible values of RP_SYS_Mute. Default value is an empty set.
+     * Use the rhythmVoice's names to create the possible values of RP_SYS_Mute. If a RhythmVoice is a RhythmVoiceDelegate, use
+     * the name of its source RhythmVoice instead.
      *
      * @param r
      * @return
      */
     static public RP_SYS_Mute createMuteRp(Rhythm r)
     {
-        ArrayList<String> muteValues = new ArrayList<>();
-        for (RhythmVoice rv : r.getRhythmVoices())
-        {
-            muteValues.add(rv.getName());
-        }
-        RP_SYS_Mute rp = new RP_SYS_Mute(new HashSet<String>(), muteValues.toArray(new String[0]));
+        RP_SYS_Mute rp = new RP_SYS_Mute(new HashSet<String>(), getMuteValuesMap(r).keySet().toArray(new String[0]));
         return rp;
     }
 
@@ -87,23 +87,20 @@ public class RP_SYS_Mute extends RP_StringSet
      */
     static public List<RhythmVoice> getMutedRhythmVoices(Rhythm r, Set<String> value)
     {
-        ArrayList<RhythmVoice> res = new ArrayList<>();
+        var res = new ArrayList<RhythmVoice>();
         if (!value.isEmpty())
         {
-            HashMap<String, RhythmVoice> mapNameRv = new HashMap<>();
-            for (RhythmVoice rv : r.getRhythmVoices())
-            {
-                mapNameRv.put(rv.getName(), rv);
-            }
+            var map = getMuteValuesMap(r);
             for (String s : value)
             {
-                RhythmVoice rv = mapNameRv.get(s);
-                assert rv != null : "r=" + r + " s=" + s;
+                RhythmVoice rv = map.get(s);
+                assert rv != null : "r=" + r + " s=" + s + " value=" + value;
                 res.add(rv);
             }
         }
         return res;
     }
+
 
     /**
      * Find the first RP_SYS_Mute instance in the rhythm parameters of r.
@@ -123,4 +120,34 @@ public class RP_SYS_Mute extends RP_StringSet
                 .findAny()
                 .orElse(null);
     }
+
+
+    // ========================================================================================
+    // Private methods
+    // ========================================================================================
+    /**
+     * Get a map muteValue->RhythmVoice for the specified rhythm.
+     * <p>
+     *
+     * @param r
+     * @return
+     */
+    static private HashMap<String, RhythmVoice> getMuteValuesMap(Rhythm r)
+    {
+        var res = new HashMap<String, RhythmVoice>();
+        for (var rv : r.getRhythmVoices())
+        {
+            String key;
+            if (rv instanceof RhythmVoiceDelegate)
+            {
+                key = ((RhythmVoiceDelegate) rv).getSource().getName();
+            } else
+            {
+                key = rv.getName();
+            }
+            res.put(key, rv);
+        }
+        return res;
+    }
+
 }

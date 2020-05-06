@@ -84,7 +84,7 @@ public class UseDefaultInstruments extends AbstractAction implements Presenter.M
         Rhythm rhythm = mixConsole.getVisibleRhythm();
         for (Integer channel : songMidiMix.getUsedChannels())
         {
-            RhythmVoice rv = songMidiMix.getKey(channel);
+            RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
             if (rhythm == null || rv instanceof UserChannelRvKey || rhythm == rv.getContainer())
             {
                 InstrumentMix insMix = new InstrumentMix(songMidiMix.getInstrumentMixFromChannel(channel));

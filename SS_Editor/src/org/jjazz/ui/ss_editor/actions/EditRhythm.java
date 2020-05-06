@@ -33,7 +33,6 @@ import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;

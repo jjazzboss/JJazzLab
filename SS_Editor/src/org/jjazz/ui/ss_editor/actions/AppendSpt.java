@@ -24,6 +24,7 @@ package org.jjazz.ui.ss_editor.actions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -46,6 +47,7 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
+import org.jjazz.undomanager.JJazzUndoManager;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.appendspt")
 @ActionRegistration(displayName = "#CTL_AppendSpt", lazy = false)
@@ -102,17 +104,20 @@ public class AppendSpt extends AbstractAction
                 startBarIndex = lastSpt.getStartBarIndex() + lastSpt.getNbBars();
             }
             int nbBars = cls.getSectionSize(parentSection);
-            JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
+            JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
+            um.startCEdit(undoText);
             SongPart newSpt = sgs.createSongPart(r, startBarIndex, nbBars, parentSection);
             try
             {
-                sgs.addSongPart(newSpt);
+                sgs.addSongParts(Arrays.asList(newSpt));
             } catch (UnsupportedEditException ex)
             {
                 // We should not be here, we reuse an existing rhythm
-                throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);
+                String msg = "Impossible to append song part\n" + ex.getLocalizedMessage();
+                um.handleUnsupportedEditException(undoText, msg);
+                return;
             }
-            JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(undoText);
+            um.endCEdit(undoText);
         }
         dlg.cleanup();
     }

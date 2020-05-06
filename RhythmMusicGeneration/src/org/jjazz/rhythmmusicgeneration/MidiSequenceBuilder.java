@@ -32,6 +32,7 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
+import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
@@ -43,6 +44,7 @@ import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.parameters.RP_SYS_Mute;
 import org.jjazz.rhythm.parameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
@@ -234,12 +236,15 @@ public class MidiSequenceBuilder
             {
                 continue;
             }
+
+
             Set<String> muteValues = spt.getRPValue(rpMute);
             if (muteValues.isEmpty())
             {
                 // There is a MuteRp but nothing is muted, 
                 continue;
             }
+
 
             // At least one RhythmVoice/Track is muted
             FloatRange sptRange = context.getSptBeatRange(spt);
@@ -386,6 +391,33 @@ public class MidiSequenceBuilder
         }
     }
 
+
+    /**
+     * Add time signature controller messages in the specified track.
+     * <p>
+     *
+     * @param track
+     */
+    private void addTimeSignatureChanges(Track track)
+    {
+        List<SongPart> spts = context.getSongParts();
+        float beatOffset = context.getBeatRange().from;
+        TimeSignature prevTs = null;
+        for (SongPart spt : spts)
+        {
+            TimeSignature ts = spt.getRhythm().getTimeSignature();
+            if (!ts.equals(prevTs))
+            {
+                float beatPos = context.getSptBeatRange(spt).from - beatOffset;
+                long tickPos = Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
+                MidiEvent me = new MidiEvent(MidiUtilities.getTimeSignatureMessage(0, ts), tickPos);
+                track.add(me);
+                prevTs = ts;
+            }
+        }
+    }
+
+
     /**
      * Adjust the EndOfTrack Midi marker for all tracks.
      *
@@ -410,6 +442,8 @@ public class MidiSequenceBuilder
     /**
      * Does the real job of building the sequence.
      * <p>
+     * Phrases for RhythmVoiceDelegates are merged into the phrases of the source RhythmVoices.
+     * <p>
      * If musicException field is not null it means an exception occured. Created sequence is available in the sequence field.
      */
     private class SequenceBuilderTask implements Runnable
@@ -427,7 +461,7 @@ public class MidiSequenceBuilder
         {
 
             // Get the generated phrases for each used rhythm
-            HashMap<RhythmVoice, Phrase> res = new HashMap<>();
+            HashMap<RhythmVoice, Phrase> mapRes = new HashMap<>();
 
             for (Rhythm r : context.getUniqueRhythms())
             {
@@ -440,7 +474,7 @@ public class MidiSequenceBuilder
                     }
 
                     // Merge into the final result
-                    res.putAll(rMap);
+                    mapRes.putAll(rMap);
                 } catch (MusicGenerationException ex)
                 {
                     musicException = ex;
@@ -456,7 +490,7 @@ public class MidiSequenceBuilder
                 {
                     try
                     {
-                        pp.postProcess(context, res);
+                        pp.postProcess(context, mapRes);
                     } catch (MusicGenerationException ex)
                     {
                         musicException = ex;
@@ -465,17 +499,43 @@ public class MidiSequenceBuilder
                 }
             }
 
+            // Handle muted instruments via the SongPart's RP_SYS_Mute parameter
+            processMutedInstruments(mapRes);
 
-            // Handle muted instruments via the RP_SYS_Mute parameter
-            processMutedInstruments(res);
+
+            // Merge the phrases from delegate RhythmVoices to the source phrase, and remove the delegate phrases            
+            for (var it = mapRes.keySet().iterator(); it.hasNext();)
+            {
+                var rv = it.next();
+                if (rv instanceof RhythmVoiceDelegate)
+                {
+                    RhythmVoiceDelegate rvd = (RhythmVoiceDelegate) rv;
+                    Phrase p = mapRes.get(rvd);
+                    Phrase pDest = mapRes.get(rvd.getSource());
+                    if (pDest == null)
+                    {
+                        throw new IllegalStateException("rv=" + rv + " res=" + mapRes);
+                    }
+
+                    // There should be no overlap of phrases since the delegate is from a different rhythm, so for different song parts 
+                    pDest.add(p);
+
+                    // Remove the delegate
+                    it.remove();
+                }
+            }
+            // 
+            // From here no more SongPart-based processing allowed, since the phrases for SongParts using an AdaptedRhythm have 
+            // been merged into the tracks of its source rhythm.
+            // 
 
 
             // Handle instrument settings which impact the phrases: transposition, velocity shift, ...
-            processInstrumentsSettings(res);
+            processInstrumentsSettings(mapRes);
 
 
             // Shift phrases to start at position 0
-            for (Phrase p : res.values())
+            for (Phrase p : mapRes.values())
             {
                 p.shiftEvents(-context.getBeatRange().from);
             }
@@ -493,9 +553,10 @@ public class MidiSequenceBuilder
 
 
             // First track is really useful only when exporting to Midi file type 1            
-            // Contain song name and tempo factor changes
+            // Contain song name, tempo factor changes, time signatures
             Track track0 = sequence.createTrack();
             MidiUtilities.addTrackNameEvent(track0, context.getSong().getName() + " (JJazzLab song)");
+            addTimeSignatureChanges(track0);
             addTempoFactorChanges(track0);
 
 
@@ -507,16 +568,20 @@ public class MidiSequenceBuilder
                 // Group tracks per rhythm
                 for (RhythmVoice rv : r.getRhythmVoices())
                 {
-                    Track track = sequence.createTrack();
-                    // First event will be the name of the track
-                    String name = rv.getContainer().getName() + "-" + rv.getName();
-                    MidiUtilities.addTrackNameEvent(track, name);
-                    // Fill the track
-                    Phrase p = res.get(rv);
-                    p.fillTrack(track);
-                    // Store the track with the RhythmVoice
-                    mapRvTrackId.put(rv, trackId);
-                    trackId++;
+                    // Delegate phrases have already been merged
+                    if (!(rv instanceof RhythmVoiceDelegate))
+                    {
+                        Track track = sequence.createTrack();
+                        // First event will be the name of the track
+                        String name = rv.getContainer().getName() + "-" + rv.getName();
+                        MidiUtilities.addTrackNameEvent(track, name);
+                        // Fill the track
+                        Phrase p = mapRes.get(rv);
+                        p.fillTrack(track);
+                        // Store the track with the RhythmVoice
+                        mapRvTrackId.put(rv, trackId);
+                        trackId++;
+                    }
                 }
             }
             fixEndOfTracks(sequence);

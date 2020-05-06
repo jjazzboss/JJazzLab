@@ -32,8 +32,10 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.util.FloatRange;
 import org.jjazz.util.IntRange;
@@ -41,6 +43,7 @@ import org.jjazz.util.SmallMap;
 
 /**
  * A SongStructure manages SongParts.
+ * <p>
  */
 public interface SongStructure
 {
@@ -49,14 +52,16 @@ public interface SongStructure
      * Return the list of unique rhythms used in a SongStructure.
      *
      * @param sgs
+     * @param excludeAdaptedRhythms
      * @return
      */
-    static public List<Rhythm> getUniqueRhythms(SongStructure sgs)
+    static public List<Rhythm> getUniqueRhythms(SongStructure sgs, boolean excludeAdaptedRhythms)
     {
         ArrayList<Rhythm> res = new ArrayList<>();
         for (SongPart spt : sgs.getSongParts())
         {
-            if (!res.contains(spt.getRhythm()))
+            Rhythm r = spt.getRhythm();
+            if (!res.contains(r) && (!excludeAdaptedRhythms || !(r instanceof AdaptedRhythm)))
             {
                 res.add(spt.getRhythm());
             }
@@ -68,14 +73,17 @@ public interface SongStructure
      * All the RhythmVoices of sgs.
      *
      * @param sgs
+     * @param excludeRhythmVoiceDelegates
      * @return
      */
-    static public List<RhythmVoice> getUniqueRhythmVoices(SongStructure sgs)
+    static public List<RhythmVoice> getUniqueRhythmVoices(SongStructure sgs, boolean excludeRhythmVoiceDelegates)
     {
         ArrayList<RhythmVoice> rvs = new ArrayList<>();
-        for (Rhythm r : getUniqueRhythms(sgs))
+        for (Rhythm r : getUniqueRhythms(sgs, false))
         {
-            rvs.addAll(r.getRhythmVoices());
+            r.getRhythmVoices().stream()
+                    .filter(rv -> !excludeRhythmVoiceDelegates || !(rv instanceof RhythmVoiceDelegate))
+                    .forEach(rv -> rvs.add(rv));
         }
         return rvs;
     }
@@ -170,18 +178,21 @@ public interface SongStructure
     public Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem);
 
     /**
-     * Add a SongPart.
+     * Add one by one a list of SongParts.
      * <p>
-     * SongPart's startBarIndex must be a valid barIndex, either<br>
+     * Each SongPart's startBarIndex must be a valid barIndex, either:<br>
      * - equals to the startBarIndex of an existing SongPart <br>
      * - the last barIndex+1 <br>
      * The startBarIndex of the trailing SongParts is shifted accordingly. The SongPart container will be set to this object.
+     * <p>
+     * If the added SongPart uses an AdaptedRhythm, its source rhythm must be also present in this object (possibly added by this
+     * operation).
      *
-     * @param spt the value of spt
-     * @throws org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException If new rhythm could not be accepted and no
-     * replacement done.
+     * @param spts
+     * @throws UnsupportedEditException If a new rhythm could not be accepted, or if the operation adds an AdaptedRhythm but its
+     * source rhythm is not present in this object.
      */
-    public void addSongPart(SongPart spt) throws UnsupportedEditException;
+    public void addSongParts(List<SongPart> spts) throws UnsupportedEditException;
 
     /**
      * Remove some SongParts.
@@ -189,8 +200,9 @@ public interface SongStructure
      * The startBarIndex of the trailing SongParts are updated.
      *
      * @param spts A List of SongParts.
+     * @throws UnsupportedEditException If the operation removes a source rhythm of a remaining AdaptedRhythm.
      */
-    public void removeSongParts(List<SongPart> spts);
+    public void removeSongParts(List<SongPart> spts) throws UnsupportedEditException;
 
     /**
      * Change the size in bars of SongParts.
@@ -210,7 +222,8 @@ public interface SongStructure
      * @param oldSpts
      * @param newSpts size must match oldSpts
      * @throws UnsupportedEditException If replacement was impossible, typically because not enough Midi channels for a new
-     * rhythm.
+     * rhythm, or if the operation removes a source rhythm of a remaining AdaptedRhythm, or an AdaptedRhythm is added without the
+     * presence of its source Rhythm.
      */
     public void replaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException;
 

@@ -166,7 +166,9 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
 
     /**
      * Convenience method : the right way to handle UnsupportedEditException when catched by the highest level caller, ie the one
-     * who called startCEdit() and should call endCEdit(). This method should be called first in the catch section.
+     * who called startCEdit() and should call endCEdit(). 
+     * <p>
+     * This method should be called first in the catch section.
      * <p>
      * 1/ Call endCEdit() on cEditName to terminate properly the compound edit. <br>
      * Because exception occured there will be missing SimpleEdits in the CEdit (compared to normal).

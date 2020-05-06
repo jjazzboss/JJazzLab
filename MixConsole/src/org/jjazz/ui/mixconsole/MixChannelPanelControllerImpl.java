@@ -80,7 +80,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
             return;
         }
         InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channelId);
-        RhythmVoice rvKey = midiMix.getKey(channelId);
+        RhythmVoice rvKey = midiMix.getRhythmVoice(channelId);
 
         // Check if we use drums channel for a non drums instrument
         if (newChannelId == MidiConst.CHANNEL_DRUMS && !rvKey.isDrums() && !Family.couldBeDrums(insMix.getInstrument().getPatchName()))
@@ -91,7 +91,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
             return;
         }
         InstrumentMix replacedInsMix = midiMix.getInstrumentMixFromChannel(newChannelId);
-        RhythmVoice replacedRvKey = midiMix.getKey(newChannelId);
+        RhythmVoice replacedRvKey = midiMix.getRhythmVoice(newChannelId);
 
         // Can't override the click channel
         int clickChannel = ClickManager.getInstance().getClickChannel(midiMix);
@@ -136,7 +136,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     public void editInstrument()
     {
         InstrumentMix insMix = midiMix.getInstrumentMixFromChannel(channelId);
-        RhythmVoice rv = midiMix.getKey(channelId);
+        RhythmVoice rv = midiMix.getRhythmVoice(channelId);
         InstrumentChooserDialog dlg = InstrumentChooserDialog.getDefault();
         dlg.preset(OutputSynthManager.getInstance().getOutputSynth(), rv, insMix.getInstrument(), insMix.getSettings().getTransposition(), channelId);
         dlg.setVisible(true);
@@ -195,7 +195,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     private String buildTitle()
     {
         StringBuilder title = new StringBuilder("Channel " + (channelId + 1));
-        RhythmVoice rv = midiMix.getKey(channelId);
+        RhythmVoice rv = midiMix.getRhythmVoice(channelId);
         if (rv instanceof UserChannelRvKey)
         {
             title.append(" - User");

@@ -27,6 +27,7 @@ import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -116,7 +117,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
         {
             try
             {
-                targetSgs.addSongPart(spt);
+                targetSgs.addSongParts(Arrays.asList(spt));
             } catch (UnsupportedEditException ex)
             {
                 String msg = ERR_Paste() + "\n" + ex.getLocalizedMessage();

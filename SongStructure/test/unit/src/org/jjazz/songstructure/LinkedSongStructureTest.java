@@ -24,6 +24,7 @@ package org.jjazz.songstructure;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.ChordLeadSheetImpl;
@@ -107,12 +108,12 @@ public class LinkedSongStructureTest
             sgs = sgsf.createSgs(cls1, true);
             Rhythm r = rdb.getDefaultRhythm(TimeSignature.THREE_FOUR);
             spt0 = new SongPartImpl(r, 8, 3, section2);
-            sgs.addSongPart(spt0);
+            sgs.addSongParts(Arrays.asList(spt0));
 
             // To compare after undo all
             u_sgs = sgsf.createSgs(cls1, true);
             u_spt0 = new SongPartImpl(r, 8, 3, section2);
-            u_sgs.addSongPart(u_spt0);
+            u_sgs.addSongParts(Arrays.asList(u_spt0));
         } catch (ParseException ex)
         {
             throw new IllegalStateException("ParseException ex=" + ex);
@@ -189,7 +190,13 @@ public class LinkedSongStructureTest
     {
         System.out.println("\n============ Test AddSection2");
         assertTrue(sgs.getSizeInBars() == 11);
-        sgs.removeSongParts(ml(sgs.getSongParts().get(1)));
+        try
+        {
+            sgs.removeSongParts(ml(sgs.getSongParts().get(1)));
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         System.out.println(" sgs after(1)=" + sgs);
         try
         {
@@ -209,7 +216,13 @@ public class LinkedSongStructureTest
     {
         System.out.println("\n============ Test AddSection after absent section");
         assertTrue(sgs.getSizeInBars() == 11);
-        sgs.removeSongParts(ml(sgs.getSongParts().get(2)));
+        try
+        {
+            sgs.removeSongParts(ml(sgs.getSongParts().get(2)));
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         System.out.println(" sgs after(1)=" + sgs);
         try
         {

@@ -26,7 +26,10 @@ package org.jjazz.rhythm.api;
  * A marker interface for a rhythm which is an adapted version of an existing rhythm but for a different time signature.
  * <p>
  * This is used when there is e.g. a 2/4 bar in a 4/4 song (so with a 4/4 rhythm) and we don't want to have a specific 2/4 rhythm,
- * but just the same 4/4 rhythm truncated to a 2/2 bar.
+ * but just the same 4/4 rhythm truncated to a 2/2 bar.<p>
+ * <p>
+ * An AdaptedRhythm should have only RhythmVoiceDelegate instances as RhythmVoices, so that they do not take "Midi channel space"
+ * in a song's MidiMix.
  */
 public interface AdaptedRhythm extends Rhythm
 {
@@ -38,11 +41,11 @@ public interface AdaptedRhythm extends Rhythm
     public static final String RHYTHM_ID_DELIMITER = "___"; // No regex chars !
 
     /**
-     * The original rhythm for this object.
+     * The source rhythm for this object.
      *
      * @return A rhythm with a different time signature than this rhythm.
      */
-    public Rhythm getOriginalRhythm();
+    public Rhythm getSourceRhythm();
 
     /**
      * A unique string identifier representing this adapted rhythm.

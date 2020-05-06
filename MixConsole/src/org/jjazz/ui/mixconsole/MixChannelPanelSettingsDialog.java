@@ -103,7 +103,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
         registerModel();
 
         lbl_title.setText(title);
-        RhythmVoice rv = mm.getKey(channel);
+        RhythmVoice rv = mm.getRhythmVoice(channel);
         if (channel != MidiConst.CHANNEL_DRUMS && rv.isDrums())
         {
             // Enable drums rerouting

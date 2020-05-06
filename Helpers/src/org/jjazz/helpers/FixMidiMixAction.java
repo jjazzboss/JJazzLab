@@ -176,7 +176,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
     private List<Integer> getChannelsToBeRerouted(MidiMix midiMix, HashMap<Integer, Instrument> mapChannelNewIns)
     {
         List<Integer> res = new ArrayList<>();
-        for (RhythmVoice rv : midiMix.getRvKeys())
+        for (RhythmVoice rv : midiMix.getRhythmVoices())
         {
             int channel = midiMix.getChannel(rv);
             InstrumentMix insMix = midiMix.getInstrumentMixFromKey(rv);

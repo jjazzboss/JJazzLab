@@ -24,6 +24,8 @@ package org.jjazz.ui.ss_editor.actions;
 
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,6 +51,7 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.undomanager.JJazzUndoManager;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.duplicatespt")
 @ActionRegistration(displayName = "#CTL_DuplicateSpt", lazy = false)
@@ -102,34 +105,38 @@ public class DuplicateSpt extends AbstractAction implements ContextAwareAction, 
                 dlg.setSptsModel(spts);
 
                 dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
-                dlg.setVisible(
-                        true);
+                dlg.setVisible(true);
                 if (dlg.isExitOk())
                 {
+                    // Prepare the copies                    
                     int nbCopies = dlg.getNbCopies();
+                    dlg.cleanup();
                     int nextStartBarIndex = spts.get(spts.size() - 1).getStartBarIndex() + spts.get(spts.size() - 1).getNbBars();
-                    JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
+                    var sptCopies = new ArrayList<SongPart>();
                     for (int i = 0; i < nbCopies; i++)
                     {
                         for (SongPart spt : spts)
                         {
                             SongPart newSpt = spt.clone(null, nextStartBarIndex, spt.getNbBars(), spt.getParentSection());
-                            try
-                            {
-                                sgs.addSongPart(newSpt);
-                            } catch (UnsupportedEditException ex)
-                            {
-                                // We should not be here, we reuse an existing rhythm
-                                throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);
-                            }
+                            sptCopies.add(newSpt);
                             nextStartBarIndex += spt.getNbBars();
                         }
                     }
-                    JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(undoText);
-                }
 
-                dlg.cleanup();
-
+                    JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
+                    um.startCEdit(undoText);
+                    try
+                    {
+                        sgs.addSongParts(sptCopies);
+                    } catch (UnsupportedEditException ex)
+                    {
+                        // We should not be here, we reuse existing rhythms
+                        String msg = "Impossible to duplicate song parts\n" + ex.getLocalizedMessage();
+                        um.handleUnsupportedEditException(undoText, msg);                 
+                        return;
+                    }
+                    um.endCEdit(undoText);
+                }              
             }
         };
 

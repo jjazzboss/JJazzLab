@@ -88,17 +88,13 @@ public class SongStructureImplTest
             u_spt3 = spt3.clone(spt3.getRhythm(), spt3.getStartBarIndex(), spt3.getNbBars(), spt0.getParentSection());
             u_spt4 = spt4.clone(spt4.getRhythm(), spt4.getStartBarIndex(), spt4.getNbBars(), spt0.getParentSection());
 
-            sgs.addSongPart(spt0);
-            sgs.addSongPart(spt1);
-            sgs.addSongPart(spt2);
+            sgs.addSongParts(Arrays.asList(spt0, spt1, spt2));
             System.out.println("\n ==== SETUP sgs Before=" + sgs);
             undoManager.startCEdit("UT-edit");
 
             // Copy to make the undo test
             u_sgs = new SongStructureImpl();
-            u_sgs.addSongPart(u_spt0);
-            u_sgs.addSongPart(u_spt1);
-            u_sgs.addSongPart(u_spt2);
+            u_sgs.addSongParts(Arrays.asList(u_spt0, u_spt1, u_spt2));
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
@@ -137,7 +133,7 @@ public class SongStructureImplTest
         SongPartImpl sptX = new SongPartImpl(r54, 0, 1, null);
         try
         {
-            sgs.addSongPart(sptX);
+            sgs.addSongParts(Arrays.asList(sptX));
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
@@ -154,7 +150,13 @@ public class SongStructureImplTest
     public void testRemoveSongPart()
     {
         System.out.println("\n============ Test removeSongPart");
-        sgs.removeSongParts(ml(spt0));
+        try
+        {
+            sgs.removeSongParts(ml(spt0));
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         System.out.println("sgs=" + sgs);
         assertTrue(sgs.getSizeInBars() == 10);
         assertTrue(sgs.getSongParts().get(0) == spt1 && sgs.getSongParts().get(1) == spt2);

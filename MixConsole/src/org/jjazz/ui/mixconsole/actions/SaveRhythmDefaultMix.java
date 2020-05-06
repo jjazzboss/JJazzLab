@@ -26,7 +26,9 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import static javax.swing.Action.SHORT_DESCRIPTION;
@@ -81,7 +83,7 @@ public class SaveRhythmDefaultMix extends AbstractAction
 
         // Save only the visible rhythms
         Song song = songMidiMix.getSong();
-        List<Rhythm> songRhythms = SongStructure.getUniqueRhythms(song.getSongStructure());
+        List<Rhythm> songRhythms = SongStructure.getUniqueRhythms(song.getSongStructure(), true);
         if (songRhythms.isEmpty())
         {
             // Can happen is songstructure is empty
@@ -105,7 +107,14 @@ public class SaveRhythmDefaultMix extends AbstractAction
         for (Rhythm r : savedRhythms)
         {
             File f = FileDirectoryManager.getInstance().getRhythmMixFile(r);
-            MidiMix rhythmMix = new MidiMix(songMidiMix, r);        // Get a mix only for our rhythm
+            MidiMix rhythmMix = new MidiMix();
+            try
+            {
+                rhythmMix.addInstrumentMixes(songMidiMix, r);
+            } catch (MidiUnavailableException ex)
+            {
+                LOGGER.log(Level.SEVERE, "MidiMix(MidiMix, Rhythm unexpected exception!", ex);
+            }
             if (rhythmMix.saveToFileNotify(f, true))
             {
                 savedFiles += f.getAbsolutePath() + " ";

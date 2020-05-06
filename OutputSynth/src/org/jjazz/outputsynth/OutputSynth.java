@@ -426,7 +426,7 @@ public class OutputSynth implements Serializable
             Instrument ins = mm.getInstrumentMixFromChannel(channel).getInstrument(); // Can be the VoidInstrument
             if (!contains(ins))
             {
-                RhythmVoice rv = mm.getKey(channel);
+                RhythmVoice rv = mm.getRhythmVoice(channel);
                 Instrument newIns = findInstrument(rv);     // Can be the VoidInstrument
                 if (newIns != ins)
                 {

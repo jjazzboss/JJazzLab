@@ -349,7 +349,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         songStructure.removeSgsChangeListener(this);
         if (releaseRhythmResources)
         {
-            for (Rhythm r : SongStructure.getUniqueRhythms(songStructure))
+            for (Rhythm r : SongStructure.getUniqueRhythms(songStructure, false))
             {
                 r.releaseResources();
             }

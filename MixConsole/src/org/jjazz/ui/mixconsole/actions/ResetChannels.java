@@ -85,7 +85,7 @@ public class ResetChannels extends AbstractAction
         JJazzUndoManagerFinder.getDefault().get(song).startCEdit(undoText);
         for (Integer channel : songMidiMix.getUsedChannels())
         {
-            RhythmVoice rv = songMidiMix.getKey(channel);
+            RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
             if (visibleRhythm == null || rv instanceof UserChannelRvKey || visibleRhythm == rv.getContainer())
             {
                 InstrumentMix insMix = new InstrumentMix(songMidiMix.getInstrumentMixFromChannel(channel));
