@@ -26,6 +26,7 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -46,7 +47,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.AltExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.PlayStyle;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.leadsheet.chordleadsheet.api.item.VoidAltExtChordSymbol;
@@ -116,38 +117,48 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         setTitle(title);
         tabbedPane.setSelectedIndex(0);
 
+
         // Update PlayStyle UI
-        if (cri.getPlayStyle().equals(PlayStyle.NORMAL))
+        cb_accent.setSelected(cri.getFeatures().contains(Feature.ACCENT_MEDIUM));
+        enableAccentLevels();
+        cb_hold.setSelected(cri.getFeatures().contains(Feature.HOLD));
+        cb_shot.setSelected(cri.getFeatures().contains(Feature.SHOT));
+
+        cb_pedalBass.setSelected(cri.hasOneFeature(Feature.BASS_PEDAL));
+
+        switch (cri.getAccentFeature())
         {
-            this.rbtn_normal.setSelected(true);
-        } else if (cri.getPlayStyle().equals(PlayStyle.HOLD))
-        {
-            this.rbtn_hold.setSelected(true);
-        } else if (cri.getPlayStyle().equals(PlayStyle.SHOT))
-        {
-            this.rbtn_shot.setSelected(true);
-        } else if (cri.getPlayStyle().equals(PlayStyle.ACCENT))
-        {
-            this.rbtn_accent.setSelected(true);
+            case ACCENT_STRONG:
+                rbtn_accentStrong.setSelected(true);
+                break;
+            case ACCENT_MEDIUM:
+                rbtn_accentMedium.setSelected(true);
+                break;
+            default:
+                rbtn_accentLight.setSelected(true);
+                break;
         }
 
-        cb_anticipateAllowed.setSelected(cri.isAnticipateAllowed());
 
         // Update Scales UI      
         updateScales(ecs);
+
         list_scales.clearSelection();
         StandardScaleInstance ssi = cri.getScaleInstance();
-        if (ssi != null)
+        if (ssi
+                != null)
         {
             list_scales.setSelectedValue(ssi, true);
         }
 
         updateChordSymbolInfo(ecs);
-        lbl_optionalText.setText(getOptionalText(getPlayStyle(), getScaleInstance()));
+
+        updateOptionalText();
 
         // Update chord UI
         tf_ChordSymbolName.requestFocus();
-        if (key == 0)
+        if (key
+                == 0)
         {
             tf_ChordSymbolName.setText(ecs.getOriginalName());
             tf_ChordSymbolName.selectAll();
@@ -158,7 +169,8 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         }
 
         // Update alternate UI
-        tabbedPane.setEnabledAt(2, enableAlternate);
+        tabbedPane.setEnabledAt(
+                2, enableAlternate);
         if (enableAlternate)
         {
             AltDataFilter altFilter;
@@ -231,6 +243,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         }
     }
 
+
     @Override
     public void cleanup()
     {
@@ -250,7 +263,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         {
             return null;
         }
-        ChordRenderingInfo cri = new ChordRenderingInfo(getPlayStyle(), cb_anticipateAllowed.isSelected(), getScaleInstance());
+        ChordRenderingInfo cri = new ChordRenderingInfo(getFeatures(), getScaleInstance());
         String text = tf_ChordSymbolName.getText();
         ExtChordSymbol ecs = null;
         try
@@ -283,21 +296,65 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     // =======================================================================================
     // Private methods
     // =======================================================================================    
-    private ChordRenderingInfo.PlayStyle getPlayStyle()
+    private EnumSet<Feature> getPlayStyleModifiers()
     {
-        PlayStyle ps = PlayStyle.NORMAL;
-        if (this.rbtn_hold.isSelected())
+        var psms = new ArrayList<Feature>();
+        if (cb_accent.isSelected())
         {
-            ps = PlayStyle.HOLD;
-        } else if (this.rbtn_shot.isSelected())
-        {
-            ps = PlayStyle.SHOT;
-        } else if (this.rbtn_accent.isSelected())
-        {
-            ps = PlayStyle.ACCENT;
+            psms.add(Feature.ACCENT_MEDIUM);
         }
-        return ps;
+        if (cb_hold.isSelected())
+        {
+            psms.add(Feature.HOLD);
+        }
+        if (cb_shot.isSelected())
+        {
+            psms.add(Feature.SHOT);
+        }
+        if (psms.isEmpty())
+        {
+            return EnumSet.noneOf(Feature.class
+            );
+        } else if (psms.size() == 1)
+        {
+            return EnumSet.of(psms.get(0));
+        } else
+        {
+            return EnumSet.of(psms.get(0), psms.subList(1, psms.size()).toArray(new Feature[0]));
+        }
     }
+
+    private EnumSet<Feature> getFeatures()
+    {
+        EnumSet<Feature> res = EnumSet.noneOf(Feature.class);
+        if (cb_accent.isSelected())
+        {
+            if (rbtn_accentMedium.isSelected())
+            {
+                res.add(Feature.ACCENT_MEDIUM);
+            } else if (rbtn_accentStrong.isSelected())
+            {
+                res.add(Feature.ACCENT_STRONG);
+            } else
+            {
+                res.add(Feature.ACCENT_LIGHT);
+            }
+        }
+        if (cb_pedalBass.isSelected())
+        {
+            res.add(Feature.BASS_PEDAL);
+        }
+        if (this.cb_hold.isSelected())
+        {
+            res.add(Feature.HOLD);
+        }
+        if (this.cb_shot.isSelected())
+        {
+            res.add(Feature.SHOT);
+        }
+        return res;
+    }
+
 
     private StandardScaleInstance getScaleInstance()
     {
@@ -312,6 +369,12 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             altFi = rbtn_random.isSelected() ? new AltDataFilter(AltDataFilter.Random.RANDOM) : new AltDataFilter(list_markerValues.getSelectedValuesList());
         }
         return altFi;
+    }
+
+
+    private void updateOptionalText()
+    {
+        lbl_optionalText.setText(getOptionalText(new ChordRenderingInfo(getFeatures(), getScaleInstance())));
     }
 
     private AltExtChordSymbol getAltChordSymbol()
@@ -367,7 +430,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             // Valid chord symbol
             updateChordSymbolInfo(ecs);
             updateScales(ecs);
-            lbl_optionalText.setText(getOptionalText(getPlayStyle(), getScaleInstance()));
+            updateOptionalText();
             btn_Ok.setEnabled(true);
             this.tf_ChordSymbolName.setForeground(Color.BLACK);
         } else
@@ -396,37 +459,28 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
 
     private String getAltOptionalText(AltExtChordSymbol altSymbol, AltDataFilter altFilter)
     {
-        StringBuilder sb = new StringBuilder();
-        if (altSymbol != null)
+        if (altSymbol == null)
         {
-            if (altSymbol == VoidAltExtChordSymbol.getInstance())
-            {
-                sb.append("Void");
-            } else
-            {
-                ChordRenderingInfo cri = altSymbol.getRenderingInfo();
-                sb.append(altSymbol);
-                sb.append(" - ");
-                sb.append(getOptionalText(cri.getPlayStyle(), cri.getScaleInstance()));
-            }
-            sb.append(" - Condition=");
-            sb.append(altFilter.isRandom() ? "Random" : altFilter.getValues());
-        } else
-        {
-            sb.append("-"); // Avoid empty string to avoid UI vertical relayout 
+            return "-"; // Avoid empty string to avoid UI vertical relayout  
         }
-        return sb.toString();
+        var strs = new ArrayList<String>();
+
+        strs.add(altSymbol == VoidAltExtChordSymbol.getInstance() ? "void" : altSymbol.toString());
+
+        ChordRenderingInfo cri = altSymbol.getRenderingInfo();
+        if (altSymbol != VoidAltExtChordSymbol.getInstance() && !cri.equals(new ChordRenderingInfo()))
+        {
+            strs.add(getOptionalText(cri));
+        }
+
+        strs.add("condition=" + (altFilter.isRandom() ? "random" : altFilter.getValues()));
+        return toNiceString(strs);
     }
 
-    private String getOptionalText(PlayStyle ps, StandardScaleInstance ssi)
+    // private String getOptionalText(EnumSet<PlayStyleModifier> psms, StandardScaleInstance ssi)
+    private String getOptionalText(ChordRenderingInfo cri)
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append(ps.toString());
-        if (ssi != null)
-        {
-            sb.append(" - ").append(ssi);
-        }
-        return sb.toString();
+        return cri.getFeatures().toString();
     }
 
     private void updateScales(ExtChordSymbol ecs)
@@ -450,18 +504,41 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         }
     }
 
+    private void enableAccentLevels()
+    {
+        boolean b = this.cb_accent.isSelected();
+        this.rbtn_accentLight.setEnabled(b);
+        this.rbtn_accentStrong.setEnabled(b);
+        this.rbtn_accentMedium.setEnabled(b);
+        this.lbl_accentLevel.setEnabled(b);
+    }
+
+    private String toNiceString(List<String> strs)
+    {
+        if (strs.isEmpty())
+        {
+            return "-";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(strs.get(0));
+        for (int i = 1; i < strs.size(); i++)
+        {
+            sb.append(" - ").append(strs.get(i));
+        }
+        return sb.toString();
+    }
+
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
-     * method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
+     * this method is always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents()
     {
 
-        btnGroup_chordType = new javax.swing.ButtonGroup();
-        btnGroup_offBeatStyle = new javax.swing.ButtonGroup();
-        buttonGroup1 = new javax.swing.ButtonGroup();
+        btnGroup_Condition = new javax.swing.ButtonGroup();
+        btnGroup_Accent = new javax.swing.ButtonGroup();
         pnl_ChordDescription = new javax.swing.JPanel();
         tf_ChordSymbolName = new NoSelectOnFocusGainedJTF();
         lbl_chordNotes = new javax.swing.JLabel();
@@ -470,15 +547,16 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         jLabel1 = new javax.swing.JLabel();
         tabbedPane = new javax.swing.JTabbedPane();
         pnl_Interpretation = new javax.swing.JPanel();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
-        pnl_playStyleButtons = new javax.swing.JPanel();
-        rbtn_normal = new javax.swing.JRadioButton();
-        rbtn_accent = new javax.swing.JRadioButton();
-        rbtn_hold = new javax.swing.JRadioButton();
-        rbtn_shot = new javax.swing.JRadioButton();
+        cb_pedalBass = new javax.swing.JCheckBox();
+        cb_accent = new javax.swing.JCheckBox();
+        cb_hold = new javax.swing.JCheckBox();
+        cb_shot = new javax.swing.JCheckBox();
         jScrollPane1 = new javax.swing.JScrollPane();
         hlptxt_playStyle = new org.jjazz.ui.utilities.HelpTextArea();
-        cb_anticipateAllowed = new javax.swing.JCheckBox();
+        rbtn_accentMedium = new javax.swing.JRadioButton();
+        rbtn_accentStrong = new javax.swing.JRadioButton();
+        rbtn_accentLight = new javax.swing.JRadioButton();
+        lbl_accentLevel = new javax.swing.JLabel();
         pnl_Harmony = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         list_scales = new JList<>(stdScales);
@@ -562,51 +640,42 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
 
         tabbedPane.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.tabbedPane.toolTipText")); // NOI18N
 
-        pnl_playStyleButtons.setLayout(new javax.swing.BoxLayout(pnl_playStyleButtons, javax.swing.BoxLayout.Y_AXIS));
-
-        btnGroup_chordType.add(rbtn_normal);
-        org.openide.awt.Mnemonics.setLocalizedText(rbtn_normal, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_normal.text")); // NOI18N
-        rbtn_normal.addActionListener(new java.awt.event.ActionListener()
+        org.openide.awt.Mnemonics.setLocalizedText(cb_pedalBass, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_pedalBass.text")); // NOI18N
+        cb_pedalBass.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_pedalBass.toolTipText")); // NOI18N
+        cb_pedalBass.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                rbtn_normalActionPerformed(evt);
+                cb_pedalBassActionPerformed(evt);
             }
         });
-        pnl_playStyleButtons.add(rbtn_normal);
 
-        btnGroup_chordType.add(rbtn_accent);
-        org.openide.awt.Mnemonics.setLocalizedText(rbtn_accent, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_accent.text")); // NOI18N
-        rbtn_accent.addActionListener(new java.awt.event.ActionListener()
+        org.openide.awt.Mnemonics.setLocalizedText(cb_accent, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_accent.text")); // NOI18N
+        cb_accent.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                rbtn_accentActionPerformed(evt);
+                cb_accentActionPerformed(evt);
             }
         });
-        pnl_playStyleButtons.add(rbtn_accent);
 
-        btnGroup_chordType.add(rbtn_hold);
-        org.openide.awt.Mnemonics.setLocalizedText(rbtn_hold, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_hold.text")); // NOI18N
-        rbtn_hold.addActionListener(new java.awt.event.ActionListener()
+        org.openide.awt.Mnemonics.setLocalizedText(cb_hold, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_hold.text")); // NOI18N
+        cb_hold.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                rbtn_holdActionPerformed(evt);
+                cb_holdActionPerformed(evt);
             }
         });
-        pnl_playStyleButtons.add(rbtn_hold);
 
-        btnGroup_chordType.add(rbtn_shot);
-        org.openide.awt.Mnemonics.setLocalizedText(rbtn_shot, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_shot.text")); // NOI18N
-        rbtn_shot.addActionListener(new java.awt.event.ActionListener()
+        org.openide.awt.Mnemonics.setLocalizedText(cb_shot, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_shot.text")); // NOI18N
+        cb_shot.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                rbtn_shotActionPerformed(evt);
+                cb_shotActionPerformed(evt);
             }
         });
-        pnl_playStyleButtons.add(rbtn_shot);
 
         jScrollPane1.setBorder(null);
 
@@ -615,36 +684,90 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         hlptxt_playStyle.setText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.hlptxt_playStyle.text")); // NOI18N
         jScrollPane1.setViewportView(hlptxt_playStyle);
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_anticipateAllowed, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_anticipateAllowed.text")); // NOI18N
+        btnGroup_Accent.add(rbtn_accentMedium);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_accentMedium, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_accentMedium.text")); // NOI18N
+        rbtn_accentMedium.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                rbtn_accentMediumActionPerformed(evt);
+            }
+        });
+
+        btnGroup_Accent.add(rbtn_accentStrong);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_accentStrong, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_accentStrong.text")); // NOI18N
+        rbtn_accentStrong.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                rbtn_accentStrongActionPerformed(evt);
+            }
+        });
+
+        btnGroup_Accent.add(rbtn_accentLight);
+        rbtn_accentLight.setSelected(true);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_accentLight, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_accentLight.text")); // NOI18N
+        rbtn_accentLight.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                rbtn_accentLightActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_accentLevel, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.lbl_accentLevel.text")); // NOI18N
 
         javax.swing.GroupLayout pnl_InterpretationLayout = new javax.swing.GroupLayout(pnl_Interpretation);
         pnl_Interpretation.setLayout(pnl_InterpretationLayout);
         pnl_InterpretationLayout.setHorizontalGroup(
             pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnl_InterpretationLayout.createSequentialGroup()
-                .addComponent(filler1, javax.swing.GroupLayout.PREFERRED_SIZE, 395, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 79, Short.MAX_VALUE))
-            .addGroup(pnl_InterpretationLayout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnl_InterpretationLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnl_InterpretationLayout.createSequentialGroup()
-                        .addComponent(pnl_playStyleButtons, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnl_InterpretationLayout.createSequentialGroup()
+                        .addComponent(cb_pedalBass)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnl_InterpretationLayout.createSequentialGroup()
+                        .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(pnl_InterpretationLayout.createSequentialGroup()
+                                .addComponent(cb_accent)
+                                .addGap(69, 69, 69)
+                                .addComponent(lbl_accentLevel))
+                            .addComponent(cb_hold)
+                            .addComponent(cb_shot))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(cb_anticipateAllowed))
-                .addContainerGap(85, Short.MAX_VALUE))
+                        .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(rbtn_accentLight)
+                            .addComponent(rbtn_accentMedium)
+                            .addComponent(rbtn_accentStrong))
+                        .addGap(39, 39, 39)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         pnl_InterpretationLayout.setVerticalGroup(
             pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_InterpretationLayout.createSequentialGroup()
-                .addComponent(filler1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(pnl_playStyleButtons, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1))
-                .addGap(18, 18, 18)
-                .addComponent(cb_anticipateAllowed)
-                .addContainerGap(35, Short.MAX_VALUE))
+                .addContainerGap()
+                .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnl_InterpretationLayout.createSequentialGroup()
+                        .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(cb_accent)
+                            .addComponent(lbl_accentLevel)
+                            .addComponent(rbtn_accentStrong))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(cb_hold)
+                            .addComponent(rbtn_accentMedium))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(cb_shot)
+                            .addComponent(rbtn_accentLight)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnl_InterpretationLayout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(13, 13, 13)))
+                .addGap(35, 35, 35)
+                .addComponent(cb_pedalBass)
+                .addContainerGap())
         );
 
         tabbedPane.addTab(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.pnl_Interpretation.TabConstraints.tabTitle"), null, pnl_Interpretation, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.pnl_Interpretation.TabConstraints.tabToolTip")); // NOI18N
@@ -679,7 +802,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_HarmonyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 286, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 398, Short.MAX_VALUE)
                     .addComponent(lbl_scaleTip, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(lbl_scaleNotes, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
@@ -689,7 +812,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnl_HarmonyLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnl_HarmonyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 137, Short.MAX_VALUE)
                     .addGroup(pnl_HarmonyLayout.createSequentialGroup()
                         .addComponent(lbl_scaleNotes)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -712,7 +835,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
 
         pnl_altCondition.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.pnl_altCondition.border.title"))); // NOI18N
 
-        buttonGroup1.add(rbtn_random);
+        btnGroup_Condition.add(rbtn_random);
         rbtn_random.setSelected(true);
         org.openide.awt.Mnemonics.setLocalizedText(rbtn_random, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_random.text")); // NOI18N
         rbtn_random.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_random.toolTipText")); // NOI18N
@@ -724,7 +847,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             }
         });
 
-        buttonGroup1.add(rbtn_marker);
+        btnGroup_Condition.add(rbtn_marker);
         org.openide.awt.Mnemonics.setLocalizedText(rbtn_marker, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_marker.text")); // NOI18N
         rbtn_marker.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_marker.toolTipText")); // NOI18N
         rbtn_marker.addActionListener(new java.awt.event.ActionListener()
@@ -750,7 +873,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                     .addGroup(pnl_altConditionLayout.createSequentialGroup()
                         .addComponent(rbtn_marker)
                         .addGap(18, 18, 18)
-                        .addComponent(jScrollPane4))))
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 194, Short.MAX_VALUE))))
         );
         pnl_altConditionLayout.setVerticalGroup(
             pnl_altConditionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -761,7 +884,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 .addGroup(pnl_altConditionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnl_altConditionLayout.createSequentialGroup()
                         .addComponent(rbtn_marker)
-                        .addContainerGap(47, Short.MAX_VALUE))
+                        .addContainerGap(15, Short.MAX_VALUE))
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)))
         );
 
@@ -828,12 +951,12 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 .addContainerGap()
                 .addGroup(pnl_AlternateLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnl_AlternateLayout.createSequentialGroup()
-                        .addComponent(pnl_altChordSymbol, javax.swing.GroupLayout.PREFERRED_SIZE, 177, Short.MAX_VALUE)
+                        .addComponent(pnl_altChordSymbol, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(pnl_altCondition, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(pnl_AlternateLayout.createSequentialGroup()
                         .addComponent(cb_enableAlternate)
-                        .addGap(0, 127, Short.MAX_VALUE)))
+                        .addGap(0, 177, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         pnl_AlternateLayout.setVerticalGroup(
@@ -926,9 +1049,9 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     {//GEN-HEADEREND:event_list_scalesValueChanged
         if (!evt.getValueIsAdjusting())
         {
-            StandardScaleInstance ssi = this.getScaleInstance();
+            StandardScaleInstance ssi = getScaleInstance();
             updateScaleInfo(ssi);
-            lbl_optionalText.setText(getOptionalText(getPlayStyle(), getScaleInstance()));
+            updateOptionalText();
         }
     }//GEN-LAST:event_list_scalesValueChanged
 
@@ -951,26 +1074,6 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
        exitOk = true;
        setVisible(false);
    }//GEN-LAST:event_btn_OkActionPerformed
-
-   private void rbtn_normalActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_normalActionPerformed
-   {//GEN-HEADEREND:event_rbtn_normalActionPerformed
-       lbl_optionalText.setText(getOptionalText(getPlayStyle(), getScaleInstance()));
-   }//GEN-LAST:event_rbtn_normalActionPerformed
-
-   private void rbtn_holdActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_holdActionPerformed
-   {//GEN-HEADEREND:event_rbtn_holdActionPerformed
-       rbtn_normalActionPerformed(null);
-   }//GEN-LAST:event_rbtn_holdActionPerformed
-
-   private void rbtn_shotActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_shotActionPerformed
-   {//GEN-HEADEREND:event_rbtn_shotActionPerformed
-       rbtn_normalActionPerformed(null);
-   }//GEN-LAST:event_rbtn_shotActionPerformed
-
-   private void rbtn_accentActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_accentActionPerformed
-   {//GEN-HEADEREND:event_rbtn_accentActionPerformed
-       rbtn_normalActionPerformed(null);
-   }//GEN-LAST:event_rbtn_accentActionPerformed
 
     private void cb_enableAlternateActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_enableAlternateActionPerformed
     {//GEN-HEADEREND:event_cb_enableAlternateActionPerformed
@@ -1028,6 +1131,51 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         ALT_INSTANCE.cleanup();
     }//GEN-LAST:event_btn_setAltChordSymbolActionPerformed
 
+    private void cb_accentActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_accentActionPerformed
+    {//GEN-HEADEREND:event_cb_accentActionPerformed
+        enableAccentLevels();
+        updateOptionalText();
+    }//GEN-LAST:event_cb_accentActionPerformed
+
+
+    private void cb_holdActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_holdActionPerformed
+    {//GEN-HEADEREND:event_cb_holdActionPerformed
+        if (cb_hold.isSelected())
+        {
+            cb_shot.setSelected(false);
+        }
+        updateOptionalText();
+    }//GEN-LAST:event_cb_holdActionPerformed
+
+    private void cb_shotActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_shotActionPerformed
+    {//GEN-HEADEREND:event_cb_shotActionPerformed
+        if (cb_shot.isSelected())
+        {
+            cb_hold.setSelected(false);
+        }
+        updateOptionalText();
+    }//GEN-LAST:event_cb_shotActionPerformed
+
+    private void rbtn_accentStrongActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_accentStrongActionPerformed
+    {//GEN-HEADEREND:event_rbtn_accentStrongActionPerformed
+        updateOptionalText();
+    }//GEN-LAST:event_rbtn_accentStrongActionPerformed
+
+    private void rbtn_accentMediumActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_accentMediumActionPerformed
+    {//GEN-HEADEREND:event_rbtn_accentMediumActionPerformed
+        updateOptionalText();
+    }//GEN-LAST:event_rbtn_accentMediumActionPerformed
+
+    private void rbtn_accentLightActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_accentLightActionPerformed
+    {//GEN-HEADEREND:event_rbtn_accentLightActionPerformed
+        updateOptionalText();
+    }//GEN-LAST:event_rbtn_accentLightActionPerformed
+
+    private void cb_pedalBassActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_pedalBassActionPerformed
+    {//GEN-HEADEREND:event_cb_pedalBassActionPerformed
+        updateOptionalText();
+    }//GEN-LAST:event_cb_pedalBassActionPerformed
+
     /**
      * Overridden to add global key bindings
      *
@@ -1062,16 +1210,17 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.ButtonGroup btnGroup_chordType;
-    private javax.swing.ButtonGroup btnGroup_offBeatStyle;
+    private javax.swing.ButtonGroup btnGroup_Accent;
+    private javax.swing.ButtonGroup btnGroup_Condition;
     private javax.swing.JButton btn_Cancel;
     private javax.swing.JButton btn_Ok;
     private javax.swing.JButton btn_setAltChordSymbol;
-    private javax.swing.ButtonGroup buttonGroup1;
-    private javax.swing.JCheckBox cb_anticipateAllowed;
+    private javax.swing.JCheckBox cb_accent;
     private javax.swing.JCheckBox cb_enableAlternate;
+    private javax.swing.JCheckBox cb_hold;
+    private javax.swing.JCheckBox cb_pedalBass;
+    private javax.swing.JCheckBox cb_shot;
     private javax.swing.JCheckBox cb_useVoidAlt;
-    private javax.swing.Box.Filler filler1;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea2;
     private org.jjazz.ui.utilities.HelpTextArea hlptxt_playStyle;
     private javax.swing.JLabel jLabel1;
@@ -1080,6 +1229,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JLabel lbl_Note;
+    private javax.swing.JLabel lbl_accentLevel;
     private javax.swing.JLabel lbl_altChordSymbol;
     private javax.swing.JLabel lbl_chordNotes;
     private javax.swing.JLabel lbl_optionalAltText;
@@ -1095,20 +1245,18 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     private javax.swing.JPanel pnl_OkButtons;
     private javax.swing.JPanel pnl_altChordSymbol;
     private javax.swing.JPanel pnl_altCondition;
-    private javax.swing.JPanel pnl_playStyleButtons;
-    private javax.swing.JRadioButton rbtn_accent;
-    private javax.swing.JRadioButton rbtn_hold;
+    private javax.swing.JRadioButton rbtn_accentLight;
+    private javax.swing.JRadioButton rbtn_accentMedium;
+    private javax.swing.JRadioButton rbtn_accentStrong;
     private javax.swing.JRadioButton rbtn_marker;
-    private javax.swing.JRadioButton rbtn_normal;
     private javax.swing.JRadioButton rbtn_random;
-    private javax.swing.JRadioButton rbtn_shot;
     private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JTextField tf_ChordSymbolName;
     // End of variables declaration//GEN-END:variables
 
-    //==========================================================================================================
-    // Private classes
-    //==========================================================================================================
+//==========================================================================================================
+// Private classes
+//==========================================================================================================
     private class ChordSymbolDocumentListener implements DocumentListener
     {
 

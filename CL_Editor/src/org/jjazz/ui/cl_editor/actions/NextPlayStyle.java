@@ -23,7 +23,7 @@
 package org.jjazz.ui.cl_editor.actions;
 
 import java.awt.event.ActionEvent;
-import java.util.Arrays;
+import java.util.EnumSet;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
@@ -32,7 +32,7 @@ import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.PlayStyle;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
@@ -82,23 +82,20 @@ public final class NextPlayStyle extends AbstractAction implements ContextAwareA
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
+
+
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-        PlayStyle nextPlayStyle = null;
+
+
         for (CLI_ChordSymbol item : selection.getSelectedChordSymbols())
         {
             ExtChordSymbol ecs = item.getData();
-            ChordRenderingInfo cri = ecs.getRenderingInfo();
-            if (nextPlayStyle == null)
-            {
-                PlayStyle[] values = PlayStyle.values();
-                int index = Arrays.asList(values).indexOf(cri.getPlayStyle());
-                index = (index + 1) % values.length;
-                nextPlayStyle = values[index];
-            }
-            ChordRenderingInfo newCri = new ChordRenderingInfo(nextPlayStyle, cri.isAnticipateAllowed(), cri.getScaleInstance());
+            ChordRenderingInfo newCri = next(ecs.getRenderingInfo());
             ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
             item.getContainer().changeItem(item, newCs);
         }
+
+
         JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
     }
 
@@ -119,5 +116,65 @@ public final class NextPlayStyle extends AbstractAction implements ContextAwareA
     {
         // Nothing
     }
+
+    private ChordRenderingInfo next(ChordRenderingInfo cri)
+    {
+        var features = cri.getFeatures();
+
+        if (cri.getFeatures().isEmpty())
+        {
+            features.add(Feature.ACCENT_LIGHT);       // NORMAL => ACCENT_LIGHT                        
+
+        } else if (cri.hasOneFeature(Feature.ACCENT_LIGHT))
+        {
+            if (!cri.hasOneFeature(Feature.HOLD, Feature.SHOT))
+            {
+                features.add(Feature.HOLD);               // ACCENT_LIGHT => HOLD 
+            } else if (cri.hasOneFeature(Feature.HOLD))
+            {
+                features.remove(Feature.HOLD);
+                features.add(Feature.SHOT);               // ACCENT_LIGHT => HOLD 
+            } else
+            {
+                features.remove(Feature.SHOT);
+                features.remove(Feature.ACCENT_LIGHT);
+                features.add(Feature.ACCENT_MEDIUM);
+            }
+        } else if (cri.hasOneFeature(Feature.ACCENT_MEDIUM))
+        {
+            if (!cri.hasOneFeature(Feature.HOLD, Feature.SHOT))
+            {
+                features.add(Feature.HOLD);
+            } else if (cri.hasOneFeature(Feature.HOLD))
+            {
+                features.remove(Feature.HOLD);
+                features.add(Feature.SHOT);
+            } else
+            {
+                features.remove(Feature.SHOT);
+                features.remove(Feature.ACCENT_MEDIUM);
+                features.add(Feature.ACCENT_STRONG);
+            }
+        } else if (cri.hasOneFeature(Feature.ACCENT_STRONG))
+        {
+            if (!cri.hasOneFeature(Feature.HOLD, Feature.SHOT))
+            {
+                features.add(Feature.HOLD);
+            } else if (cri.hasOneFeature(Feature.HOLD))
+            {
+                features.remove(Feature.HOLD);
+                features.add(Feature.SHOT);
+            } else
+            {
+                features.remove(Feature.SHOT);
+                features.remove(Feature.ACCENT_STRONG);
+            }
+        }
+
+        ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
+
+        return newCri;
+    }
+
 
 }

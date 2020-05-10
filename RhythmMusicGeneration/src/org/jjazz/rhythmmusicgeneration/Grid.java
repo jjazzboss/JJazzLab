@@ -32,14 +32,18 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jjazz.harmony.Note;
 import org.jjazz.midi.MidiUtilities;
+import org.jjazz.rhythm.api.Feel;
+import org.jjazz.rhythm.api.Rhythm;
 
 /**
  * A convenience class to manipulate notes from a Phrase.
  * <p>
- * The class assigns notes in fixed-sized "cells" (eg 4 cells per beats=1/16) which can then be directly accessed or modified using the cell
- * index.
+ * The class assigns notes in fixed-sized "cells" (eg 4 cells per beats=1/16) which can then be directly accessed or modified
+ * using the cell index.
  * <p>
  * To accomodate real time playing, notes starting just before a cell are included in that cell.
+ * <p>
+ * The refresh() method must be called whenever the phrase is modified outside this Grid object.
  */
 public class Grid
 {
@@ -62,13 +66,14 @@ public class Grid
     /**
      * Obtain a grid for the specified Phrase p.
      * <p>
-     * The first cell starts at positionInBeatsFrom. The filter parameter can be used to accept only specific Phrase notes.
+     * The first cell starts at positionInBeatsFrom. The filter parameter can be used to accept only specific Phrase notes.<p>
+     * If the caller modifies p outside of this grid it must then call Grid.refresh() to keep it up to date.
      *
-     * @param p               Time signature must not change in the phrase.
+     * @param p Time signature must not change in the phrase.
      * @param startPosInBeats Grid will contain notes from this position in beats (included). Must be an integer.
-     * @param endPosInBeats   Grid will contain notes until this position in beats (excluded). Must be an integer.
-     * @param cellsPerBeat    Must be &gt; 0.
-     * @param filter          If null this grid will consider all Phrase notes
+     * @param endPosInBeats Grid will contain notes until this position in beats (excluded). Must be an integer.
+     * @param cellsPerBeat Must be &gt; 0.
+     * @param filter If null this grid will consider all Phrase notes
      */
     public Grid(Phrase p, float startPosInBeats, float endPosInBeats, int cellsPerBeat, Predicate<NoteEvent> filter)
     {
@@ -84,7 +89,7 @@ public class Grid
         this.cellsPerBeat = cellsPerBeat;
         this.cellDuration = 1f / this.cellsPerBeat;
         this.lastCellIndex = ((int) (endPos - startPos) * this.cellsPerBeat) - 1;
-        this.predicate = filter;
+        this.predicate = (filter != null) ? filter : ne -> true;
         preCellBeatWindow = Math.min(PRE_CELL_BEAT_WINDOW, cellDuration);
         refresh();
     }
@@ -174,9 +179,9 @@ public class Grid
      *
      * @param cellIndexFrom
      * @param cellIndexTo
-     * @param cellIndexOff  The cell index where notes should go off.
-     * @param shorterOk     If false do not make notes shorter. Can't be false if longerOk is false.
-     * @param longerOk      If false do not make notes longer. Can't be false if shorterOk is false.
+     * @param cellIndexOff The cell index where notes should go off.
+     * @param shorterOk If false do not make notes shorter. Can't be false if longerOk is false.
+     * @param longerOk If false do not make notes longer. Can't be false if shorterOk is false.
      */
     public void changeDuration(int cellIndexFrom, int cellIndexTo, int cellIndexOff, boolean shorterOk, boolean longerOk)
     {
@@ -184,11 +189,10 @@ public class Grid
         {
             throw new IllegalArgumentException("cellIndexFrom=" + cellIndexFrom + " cellIndexTo=" + cellIndexTo + " cellIndexOff=" + cellIndexOff + " shorterOk=" + shorterOk + " longerOk=" + longerOk + " lastCellIndex=" + lastCellIndex);
         }
-        List<NoteEvent> nes = getCellNotes(cellIndexFrom, cellIndexTo);
+        var nes = getCellNotes(cellIndexFrom, cellIndexTo);
         HashSet<Integer> usedPitches = new HashSet<>();
-        for (int i = 0; i < nes.size(); i++)
+        for (NoteEvent ne  : nes)
         {
-            NoteEvent ne = nes.get(i);
             float endPosInBeats = ne.getPositionInBeats() + ne.getDurationInBeats();
             int endPosCellIndex = (endPosInBeats >= endPos) ? lastCellIndex : getCellIndex(endPosInBeats);
             if (usedPitches.contains(ne.getPitch()))
@@ -216,7 +220,7 @@ public class Grid
      *
      * @param cellIndexFrom
      * @param cellIndexTo
-     * @param f             A function to modify velocity to another velocity.
+     * @param f A function to modify velocity to another velocity.
      */
     public void changeVelocity(int cellIndexFrom, int cellIndexTo, Function<Integer, Integer> f)
     {
@@ -241,7 +245,7 @@ public class Grid
      * Get the notes in the specified cell range.
      *
      * @param cellIndexFrom The index of the first cell, starting at 0 for beat=getPosInBeatsFrom().
-     * @param cellIndexTo   The index of the last cell (included)
+     * @param cellIndexTo The index of the last cell (included)
      * @return List has the same note order than the Phrase.
      */
     public List<NoteEvent> getCellNotes(int cellIndexFrom, int cellIndexTo)
@@ -288,7 +292,7 @@ public class Grid
      * Get the cell of the first note in the specified cell range.
      *
      * @param cellIndexFrom The index of the first cell, starting at 0 for beat=getPosInBeatsFrom()
-     * @param cellIndexTo   The index of the last cell (included))
+     * @param cellIndexTo The index of the last cell (included))
      * @return -1 if note
      */
     public int getFirstNoteCell(int cellIndexFrom, int cellIndexTo)
@@ -336,7 +340,7 @@ public class Grid
      * Get the cell of the last note in the specified cell range.
      *
      * @param cellIndexFrom The index of the first cell, starting at 0 for beat=getPosInBeatsFrom()
-     * @param cellIndexTo   The index of the last cell (included))
+     * @param cellIndexTo The index of the last cell (included))
      * @return -1 if no note found
      */
     public int getLastNoteCell(int cellIndexFrom, int cellIndexTo)
@@ -362,7 +366,7 @@ public class Grid
      * Remove all notes in the specified cells range.
      *
      * @param cellIndexFrom The index of the first cell, starting at 0 for beat=getPosInBeatsFrom()
-     * @param cellIndexTo   The index of the last cell (included))
+     * @param cellIndexTo The index of the last cell (included))
      * @return The removed notes.
      */
     public List<NoteEvent> removeNotes(int cellIndexFrom, int cellIndexTo)
@@ -372,24 +376,22 @@ public class Grid
             throw new IllegalArgumentException("cellIndexFrom=" + cellIndexFrom + " cellIndexTo=" + cellIndexTo);
         }
         List<NoteEvent> nes = getCellNotes(cellIndexFrom, cellIndexTo);
-        for (NoteEvent ne : nes)
-        {
-            phrase.remove(ne);
-        }
+        phrase.removeAll(nes);
         refresh();
         return nes;
     }
 
     /**
-     * Add the specified note in a cell.
+     * Add a new NoteEvent from the parameters.
      *
      *
      * @param cellIndex
-     * @param n
+     * @param n Pitch, duration and velocity are reused to create the NoteEvent.
      * @param relPosInCell The relative position in beats of the note in the cell. Value must be in the
-     *                     [-getPreCellBeatWindow():+1/cellsPerBeat[ interval
+     * [-getPreCellBeatWindow():+1/cellsPerBeat[ interval
+     * @return The added note.
      */
-    public void addNote(int cellIndex, Note n, float relPosInCell)
+    public NoteEvent addNote(int cellIndex, Note n, float relPosInCell)
     {
         if (cellIndex < 0 || cellIndex > lastCellIndex || relPosInCell < -preCellBeatWindow || relPosInCell >= cellDuration)
         {
@@ -399,15 +401,36 @@ public class Grid
         NoteEvent ne = new NoteEvent(n.getPitch(), n.getDurationInBeats(), n.getVelocity(), posInBeats);
         phrase.addOrdered(ne);
         refresh();
+        return ne;
     }
+
+    /**
+     * Replace a note by another one at same position.
+     * <p>
+     * The 2 notes must have the same position.
+     *
+     * @param oldNote
+     * @param newNote
+     */
+    public void replaceNote(NoteEvent oldNote, NoteEvent newNote)
+    {
+        int index = phrase.indexOf(oldNote);
+        if (oldNote.getPositionInBeats() != newNote.getPositionInBeats() || index == -1)
+        {
+            throw new IllegalArgumentException("oldNote=" + oldNote + " newNote=" + newNote);
+        }
+        phrase.set(index, newNote);
+        refresh();
+    }
+
 
     /**
      * Move all notes from one cell to another.
      *
-     * @param cellIndexFrom       The index of the cell containing the notes to be moved.
-     * @param cellIndexDest       The index of the destination cell
-     * @param keepNoteOffPosition If true AND notes are moved earlier (cellIndexFrom &gt; cellIndexDest), extend the duration of the moved
-     *                            notes so they keep the same NOTE_OFF position.
+     * @param cellIndexFrom The index of the cell containing the notes to be moved.
+     * @param cellIndexDest The index of the destination cell
+     * @param keepNoteOffPosition If true AND notes are moved earlier (cellIndexFrom &gt; cellIndexDest), extend the duration of
+     * the moved notes so they keep the same NOTE_OFF position.
      * @return The number of moved notes
      */
     public int moveNotes(int cellIndexFrom, int cellIndexDest, boolean keepNoteOffPosition)
@@ -447,10 +470,10 @@ public class Grid
     /**
      * Move the first note of cellIndexFrom to another cell.
      *
-     * @param cellIndexFrom       The index of the cell containing the note to be moved.
-     * @param cellIndexDest       The index of the destination cell
-     * @param keepNoteOffPosition If true AND note is moved earlier (cellIndexFrom &gt; cellIndexDest), extend the duration of the moved
-     *                            note so it keeps the same NOTE_OFF position.
+     * @param cellIndexFrom The index of the cell containing the note to be moved.
+     * @param cellIndexDest The index of the destination cell
+     * @param keepNoteOffPosition If true AND note is moved earlier (cellIndexFrom &gt; cellIndexDest), extend the duration of the
+     * moved note so it keeps the same NOTE_OFF position.
      * @return True if a note was moved.
      */
     public boolean moveFirstNote(int cellIndexFrom, int cellIndexDest, boolean keepNoteOffPosition)
@@ -490,7 +513,7 @@ public class Grid
     public int stopNotesBefore(int cellIndex)
     {
         float pos = getStartPos(cellIndex) - preCellBeatWindow;
-        List<NoteEvent> nes = phrase.getCrossingNotes(pos);
+        List<NoteEvent> nes = phrase.getCrossingNotes(pos, true);
         for (NoteEvent ne : nes)
         {
             float newDuration = pos - ne.getPositionInBeats();
@@ -545,7 +568,7 @@ public class Grid
      *
      * @return A value &gt; 0
      */
-    public int getCellsPerBeat()
+    public int getNbCellsPerBeat()
     {
         return cellsPerBeat;
     }
@@ -571,7 +594,7 @@ public class Grid
     }
 
     /**
-     * Update the internal data structure: should be called when Phrase has been modified.
+     * Update the internal data structure: should be called when Phrase has been modified externally.
      * <p>
      * Manage the fact that a note can be included in a cell if its start position is just before the cell.
      *
@@ -588,7 +611,7 @@ public class Grid
                 break;
             } else if (posInBeats >= (startPos - preCellBeatWindow))
             {
-                if (predicate != null && !predicate.test(ne))
+                if (!predicate.test(ne))
                 {
                     continue;
                 }
@@ -621,8 +644,8 @@ public class Grid
 
     /**
      *
-     * @param cellFrom If out of bound use lastCellIndex
-     * @param cellTo   If out of bound use 0
+     * @param cellFrom If out of bound use 0
+     * @param cellTo If out of bound use lastCellIndex
      * @return
      */
     public String toString(int cellFrom, int cellTo)
@@ -655,6 +678,19 @@ public class Grid
     public String toString()
     {
         return toString(0, lastCellIndex);
+    }
+
+
+    /**
+     * Get the recommended nb of cells for the specified rhythm.
+     *
+     * @param r
+     * @return 3 or 4
+     */
+    static public int getRecommendedNbCellsPerBeat(Rhythm r)
+    {
+        int res = (r.getTimeSignature().getLower() == 8 || r.getFeatures().getFeel().equals(Feel.TERNARY)) ? 3 : 4;
+        return res;
     }
 
     // =================================================================================

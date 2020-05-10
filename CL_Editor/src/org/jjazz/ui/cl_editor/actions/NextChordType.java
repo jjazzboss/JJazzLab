@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 import org.jjazz.harmony.ChordTypeDatabase;
+import org.jjazz.harmony.StandardScaleInstance;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
@@ -64,7 +65,7 @@ public final class NextChordType implements ActionListener
             if (index >= 0)
             {
                 int newIndex = (index == ctd.getSize() - 1) ? 0 : index + 1;
-                ChordRenderingInfo newCri = new ChordRenderingInfo(cri.getPlayStyle(), cri.isAnticipateAllowed(), null); // Scales must be discarded
+                ChordRenderingInfo newCri = new ChordRenderingInfo(cri, (StandardScaleInstance)null); // Discard scale
                 ExtChordSymbol newCs = new ExtChordSymbol(cs.getRootNote(), cs.getBassNote(), ctd.getChordType(newIndex), newCri, cs.getAlternateChordSymbol(), cs.getAlternateFilter());
                 item.getContainer().changeItem(item, newCs);
             }

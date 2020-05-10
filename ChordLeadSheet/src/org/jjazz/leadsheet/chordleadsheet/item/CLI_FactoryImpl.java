@@ -25,7 +25,6 @@ package org.jjazz.leadsheet.chordleadsheet.item;
 import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.harmony.ChordSymbol;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
@@ -74,9 +73,9 @@ public class CLI_FactoryImpl extends CLI_Factory
     }
 
     @Override
-    public CLI_ChordSymbol createChordSymbol(ChordLeadSheet cls, ExtChordSymbol cs, Position pos)
+    public CLI_ChordSymbol createChordSymbol(ChordLeadSheet cls, ExtChordSymbol ecs, Position pos)
     {
-        CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(cs, pos);
+        CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(ecs, pos);
         cli.setContainer(cls);
         return cli;
     }

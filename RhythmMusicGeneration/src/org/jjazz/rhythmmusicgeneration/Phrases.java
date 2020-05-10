@@ -36,6 +36,7 @@ import org.jjazz.harmony.ChordType;
 import org.jjazz.harmony.Degree;
 import org.jjazz.harmony.Note;
 import org.jjazz.harmony.ScaleManager;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import static org.jjazz.rhythmmusicgeneration.Phrase.PARENT_NOTE;
 import static org.jjazz.util.Utilities.heapPermutation;
@@ -74,7 +75,7 @@ public class Phrases
         return p;
     }
 
-    
+
     /**
      * Adapt the notes from a melody-oriented source phrase to a destination chord symbol.
      * <p>
@@ -82,8 +83,8 @@ public class Phrases
      * Ex: if pSrc=C3,G3,B3,E4 and ecsSrc=C7M and ecsDest=F7b5, then destination phrase=F3,B3,Eb4,Ab4<p>
      * Each destination note of the resulting phrase stores its corresponding source note in the PARENT_NOTE client property.
      *
-     * @param pSrc      The source phrase
-     * @param ecsDest   The destination extended chord symbol.
+     * @param pSrc The source phrase
+     * @param ecsDest The destination extended chord symbol.
      * @param chordMode True if source phrase is a chord phrase for which we want the melodic handling.
      * @return A new phrase with destination notes.
      */
@@ -101,12 +102,12 @@ public class Phrases
             return pDest;
         }
 
-        
+
         int rootPitchDelta = Note.getNormalizedRelPitch(
                 ecsDest.getRootNote().getRelativePitch() - pSrc.getSourceChordSymbol().getRootNote().getRelativePitch());
-        ExtChordSymbol ecsSrc = pSrc.getSourceChordSymbol();        
-        
-        
+        ExtChordSymbol ecsSrc = pSrc.getSourceChordSymbol();
+
+
         if (ecsSrc.isSameChordType(ecsDest))
         {
             // Special case, same chord types, just transpose notes to destination key
@@ -121,11 +122,11 @@ public class Phrases
             return pDest;
         }
 
-        
+
         // Get the destination degree for each source phrase degree
         HashMap<Degree, Degree> mapSrcDestDegrees = pSrc.getDestDegrees(ecsDest, chordMode ? ChordMode.NO_INVERSION : ChordMode.OFF);
 
-        
+
         // Create the result phrase
         for (NoteEvent srcNote : pSrc)
         {
@@ -139,8 +140,8 @@ public class Phrases
             destNote.putClientProperty(PARENT_NOTE, srcNote);
             pDest.add(destNote);        // Don't need addOrdered here
         }
-        
-        
+
+
         return pDest;
     }
 
@@ -148,12 +149,13 @@ public class Phrases
      * Adapt the notes from a bass melody-oriented source phrase to a destination chord symbol.
      * <p>
      * Notes are transposed to the destination root note and adapted to the destination chord type degrees.<br>
-     * If destination symbol bass note is different from the root note, it is used instead of the root note.<br>
+     * If destination symbol bass note is different from the root note, it is used instead of the root note. The method takes also
+     * into account the ChordRenderingInfo.BassLineModifiers of the chord symbol.<br>
      * Ex: if pSrc=C3,G3,B3,E4 and ecsSrc=C7M and ecsDest=F7b5/A, then destination phrase=A3,B3,Eb4,Ab4.<br>
      * <p>
      * Each destination note of the resulting phrase stores its corresponding source note in the PARENT_NOTE client property.
      *
-     * @param pSrc    The source phrase
+     * @param pSrc The source phrase
      * @param ecsDest The destination extended chord symbol.
      * @return A new phrase with destination notes.
      */
@@ -163,82 +165,93 @@ public class Phrases
         {
             throw new IllegalArgumentException("pSrc=" + pSrc + " ecsDest=" + ecsDest);
         }
-        
+
+
         LOGGER.fine("fitBassPhrase2ChordSymbol() -- ecsDest=" + ecsDest + " pSrc=" + pSrc);
-        
+
+
         Phrase pDest = new Phrase(pSrc.getChannel());
-                
         if (pSrc.isEmpty())
         {
             return pDest;
         }
 
-        
+        // Prepare data
+        boolean useFixedNote = ecsDest.getRenderingInfo().hasAllFeatures(Feature.BASS_PEDAL);
         int rootPitchDelta = Note.getNormalizedRelPitch(
                 ecsDest.getRootNote().getRelativePitch() - pSrc.getSourceChordSymbol().getRootNote().getRelativePitch());
         ExtChordSymbol ecsSrc = pSrc.getSourceChordSymbol();
-        
-        
+
+
+        // Special case, same chord types, just transpose notes to destination key
         if (ecsSrc.isSameChordType(ecsDest))
         {
-            // Special case, same chord types, just transpose notes to destination key
+
             for (NoteEvent srcNote : pSrc)
             {
                 int destRelPitch = ecsSrc.getRelativePitch(srcNote.getRelativePitch(), ecsDest);
-                
-                if (destRelPitch == ecsDest.getRootNote().getRelativePitch())
+
+                // Use the chord symbol bass note if BassLineModifier says so, or to replace the chord symbol root note
+                if (useFixedNote || destRelPitch == ecsDest.getRootNote().getRelativePitch())
                 {
-                    // Substitute the bass note for ROOT degree
                     destRelPitch = ecsDest.getBassNote().getRelativePitch();
                 }
-                
+
                 int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
                 NoteEvent destNote = new NoteEvent(srcNote, destPitch);
                 destNote.putClientProperty(PARENT_NOTE, srcNote);
                 pDest.add(destNote);         // Don't need addOrdered here
             }
+
             return pDest;
         }
+
 
         // Get the destination degree for each source phrase degree
         HashMap<Degree, Degree> mapSrcDestDegrees = pSrc.getDestDegrees(ecsDest, ChordMode.OFF);
         LOGGER.fine("fitBassPhrase2ChordSymbol() mapSrcDestDegrees=" + mapSrcDestDegrees);
 
+
         // Create the result phrase      
         for (NoteEvent srcNote : pSrc)
         {
+
             int srcRelPitchToRoot = Note.getNormalizedRelPitch(srcNote.getRelativePitch() - ecsSrc.getRootNote().getRelativePitch());
             Degree srcDegree = ecsSrc.getChordType().getDegreeMostProbable(srcRelPitchToRoot);
             Degree destDegree = mapSrcDestDegrees.get(srcDegree);
             assert destDegree != null : "srcDegree=" + srcDegree + " srcNote=" + srcNote + " pSrc=" + pSrc;
             int destRelPitch = ecsDest.getRelativePitch(destDegree);
-            
-            if (destDegree.equals(Degree.ROOT))
+
+            // Use the chord symbol bass note if BassLineModifier says so, or to replace the chord symbol root note
+            if (useFixedNote || destDegree.equals(Degree.ROOT))
             {
-                // Substitute the bass note for ROOT degree
                 destRelPitch = ecsDest.getBassNote().getRelativePitch();
             }
-            
+
             int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
             NoteEvent destNote = new NoteEvent(srcNote, destPitch);
             destNote.putClientProperty(PARENT_NOTE, srcNote);
             pDest.add(destNote);         // Don't need addOrdered here
         }
+
+
         return pDest;
     }
+
 
     /**
      * Adapt the notes from a chord-oriented source phrase to a destination chord symbol.
      * <p>
      * Same as fitMelodyPhrase2ChordSymbol() except:<br>
-     * - we must select which destination degrees are used if destination chord is more complex than source chord (eg C=&gt;C7b9)<br>
+     * - we must select which destination degrees are used if destination chord is more complex than source chord (eg
+     * C=&gt;C7b9)<br>
      * - if destination chord is less complex than source chord (eg C7M=&gt;C), which dest degree should be reused ?<br>
      * - we search all the possible chord inversions to find the best matching destination (eg which minimize top voice motion).
      * <p>
      * Ex: if pSrc=C3,G3,B3,E4 and ecsSrc=C7M and ecsDest=F7b5, then destination phrase=F3,B3,Eb4,Ab4<p>
      * Each destination note of the resulting phrase stores its corresponding source note in the PARENT_NOTE client property.
      *
-     * @param pSrc    The source phrase
+     * @param pSrc The source phrase
      * @param ecsDest The destination extended chord symbol.
      * @return A new phrase with destination notes.
      */
@@ -253,44 +266,44 @@ public class Phrases
         {
             ecsDest, pSrc
         });
-        
-        
+
+
         Phrase pDest = new Phrase(pSrc.getChannel());
-        
-        
+
+
         if (pSrc.isEmpty())
         {
             return pDest;
         }
 
-        
+
         // Get the destination degrees for each source phrase degree
         HashMap<Degree, Degree> mapSrcDestDegrees = pSrc.getDestDegrees(ecsDest, ChordMode.INVERSION_ALLOWED);
         Collection<Degree> destDegrees = mapSrcDestDegrees.values();
 
-        
+
         LOGGER.log(Level.FINE, "fitChordPhrase2ChordSymbol()   mapSrcDestDegrees={0}", mapSrcDestDegrees);
 
-        
+
         // Compute all the destination degrees permutations, eg [1,3,7] [7,3,1] [3,1,7] etc.
         // CAUTIOUS this is X! => 6!=720 permutations. But normally most Yamaha chord source phrase should use max 4 chord notes.
         List<Degree[]> destDegreesPermutations = new ArrayList<>();
         heapPermutation(destDegrees.toArray(new Degree[0]), destDegrees.size(), destDegrees.size(), destDegreesPermutations);
 
-        
+
         // Chord made of each unique pitch note of the phrase
         Chord pSrcChord = pSrc.getChord();
-        
-        
+
+
         // Calculate matching score for each permutation 
         int bestScore = 100000;
         Chord bestDestChord = null;
         for (Degree[] destDegreePermutation : destDegreesPermutations)
         {
-            
+
             // Build the destination phrase for this permutation
             List<Integer> relPitches = getRelativePitches(ecsDest.getRootNote().getRelativePitch(), destDegreePermutation);
-            
+
 
             // Try with startnote below
             Chord destChord = pSrcChord.computeParallelChord(relPitches, false);
@@ -300,8 +313,8 @@ public class Phrases
                 bestDestChord = destChord;
                 bestScore = score;
             }
-            
-            
+
+
             // Try with startnote above
             destChord = pSrcChord.computeParallelChord(relPitches, true);
             score = computeChordMatchingScore(pSrcChord, destChord, ecsDest);
@@ -316,7 +329,7 @@ public class Phrases
         // fixChordMusicalProblems(bestDestChord, ecsDest);
         assert bestDestChord != null : "pSrc=" + pSrc + " ecsDest=" + ecsDest;
 
-        
+
         // Create the destination phrase with the best matching chord
         for (NoteEvent srcNote : pSrc)
         {
@@ -324,14 +337,14 @@ public class Phrases
             int srcIndex = pSrcChord.indexOfPitch(srcPitch);
             assert srcIndex != -1 : "srcPitch=" + srcPitch + " pSrcChord=" + pSrcChord + " pSrc=" + pSrc;
             int destPitch = bestDestChord.getNote(srcIndex).getPitch();
-            
-            
+
+
             NoteEvent destNote = new NoteEvent(srcNote, destPitch);
             destNote.putClientProperty(PARENT_NOTE, srcNote);
             pDest.add(destNote);     // Don't need addOrdered here
         }
 
-        
+
         return pDest;
 
     }
@@ -342,8 +355,8 @@ public class Phrases
     /**
      * Compute a score indicating the "compatibility" between the notes of the 2 chords for chord-oriented voicings or melodies.
      * <p>
-     * Best score is 0, 1 is less good, etc. Both chords should be same size. If not, return a score of 10000. Score is also impacted by
-     * musical problems in the destination chord, such as 2 top contiguous notes for example.
+     * Best score is 0, 1 is less good, etc. Both chords should be same size. If not, return a score of 10000. Score is also
+     * impacted by musical problems in the destination chord, such as 2 top contiguous notes for example.
      *
      * @param cSrc
      * @param cDest
@@ -414,7 +427,7 @@ public class Phrases
         if (!Note.checkPitch(rootPitch) || degrees == null)
         {
             throw new IllegalArgumentException("rootPitch=" + rootPitch + " degrees=" + degrees);
-        }        
+        }
         List<Integer> res = Stream.of(degrees)
                 .map(d -> Note.getNormalizedRelPitch(rootPitch + d.getPitch()))
                 .collect(Collectors.toList());
@@ -443,5 +456,5 @@ public class Phrases
     {
         return ne -> pitches.contains(ne.getPitch());
     }
-   
+
 }

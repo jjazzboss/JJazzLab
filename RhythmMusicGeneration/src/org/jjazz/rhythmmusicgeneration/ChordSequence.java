@@ -23,11 +23,13 @@
 package org.jjazz.rhythmmusicgeneration;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.logging.Logger;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.songstructure.api.SongStructure;
@@ -188,10 +190,10 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     /**
      * A new sub-sequence from this sequence.
      *
-     * @param subStartBar        Chords from startBar are included
-     * @param subEndBar          Chords until endBar (included) are included
-     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the last
-     *                           chord symbol before subStartBar.
+     * @param subStartBar Chords from startBar are included
+     * @param subEndBar Chords until endBar (included) are included
+     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the
+     * last chord symbol before subStartBar.
      * @return
      */
     public ChordSequence subSequence(int subStartBar, int subEndBar, boolean addInitChordSymbol)
@@ -317,7 +319,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     /**
      * Prepare a copy of the specified CLI_ChordSymbol to be put at first bar/beat of this chord sequence.
      * <p>
-     * As it is a copy, reset the ChordRenderingInfo PlayStyle and OffBeatStyle, and the alternate chord symbol.
+     * As it is a copy, reset the ChordRenderingInfo keeping only the possible scale.
      *
      * @param cliCs
      * @return
@@ -327,7 +329,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
         // Add a copy of the chord symbol
         ExtChordSymbol ecs = cliCs.getData();
         Position newPos = new Position(startBar, 0);
-        ChordRenderingInfo newCri = new ChordRenderingInfo(ChordRenderingInfo.PlayStyle.NORMAL, true, ecs.getRenderingInfo().getScaleInstance());
+        ChordRenderingInfo newCri = new ChordRenderingInfo((EnumSet<Feature>) null, ecs.getRenderingInfo().getScaleInstance());
         ExtChordSymbol newEcs = new ExtChordSymbol(ecs, newCri, null, null);
         CLI_ChordSymbol res = CLI_Factory.getDefault().createChordSymbol(cliCs.getContainer(), newEcs, newPos);
         return res;

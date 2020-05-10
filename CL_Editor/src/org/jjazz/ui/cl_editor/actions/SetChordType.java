@@ -29,6 +29,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import org.jjazz.harmony.ChordType;
 import org.jjazz.harmony.ChordTypeDatabase;
+import org.jjazz.harmony.StandardScaleInstance;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -159,7 +160,7 @@ public final class SetChordType extends AbstractAction implements Presenter.Menu
                 CLI_ChordSymbol cliCs = (CLI_ChordSymbol) item;
                 ExtChordSymbol oldCs = cliCs.getData();
                 ChordRenderingInfo cri = oldCs.getRenderingInfo();
-                ChordRenderingInfo newCri = new ChordRenderingInfo(cri.getPlayStyle(), cri.isAnticipateAllowed(), null); // Scales must be discarded
+                ChordRenderingInfo newCri = new ChordRenderingInfo(cri, (StandardScaleInstance)null); // Discard scale             
                 ExtChordSymbol newCs = new ExtChordSymbol(oldCs.getRootNote(), oldCs.getBassNote(), ct, newCri, oldCs.getAlternateChordSymbol(), oldCs.getAlternateFilter());
                 editor.getModel().changeItem(cliCs, newCs);
             }

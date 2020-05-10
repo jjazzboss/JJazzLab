@@ -82,11 +82,13 @@ public class ChordSymbolTextInput
         }
         int openIndex = s.indexOf(OPEN_POS_CHAR);
         int closeIndex = s.indexOf(CLOSE_POS_CHAR);
+        
         if (openIndex == -1)
         {
             // No position provided, use defaultPos
             newPos = defaultPos;
             openIndex = s.length();
+            
         } else
         {
             // Position is provided
@@ -96,14 +98,16 @@ public class ChordSymbolTextInput
             }
             newPos = new Position();
             newPos.valueOf(s.substring(openIndex, closeIndex + 1), defaultPos.getBar());
+            
         }
-
+       
         // Chord Symbol
         String csStr = s.substring(0, openIndex);
-        ExtChordSymbol cs = new ExtChordSymbol(csStr);
+        ExtChordSymbol ecs = new ExtChordSymbol(csStr);                       
 
+        
         // Build the CLI_ChordSymbol
-        CLI_ChordSymbol cli = CLI_Factory.getDefault().createChordSymbol(cls, cs, newPos);
+        CLI_ChordSymbol cli = CLI_Factory.getDefault().createChordSymbol(cls, ecs, newPos);
         return cli;
     }
 

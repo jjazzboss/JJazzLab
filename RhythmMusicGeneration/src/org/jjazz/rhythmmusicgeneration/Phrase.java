@@ -43,8 +43,8 @@ import org.jjazz.util.FloatRange;
 /**
  * A list of NoteEvents sorted by start position.
  * <p>
- * Use addOrdered() to add a NoteEvent: this will ensure NoteEvents are kept ordered by position. Use of add() methods should be used for
- * optimization only and not change the NoteEvents order.
+ * Use addOrdered() to add a NoteEvent: this will ensure NoteEvents are kept ordered by position. Use of add() methods should be
+ * used for optimization only and not change the NoteEvents order.
  * <p>
  * LinkedList implementation to speed up item insertion/remove rather than random access.
  */
@@ -203,22 +203,6 @@ public class Phrase extends LinkedList<NoteEvent>
     }
 
     /**
-     * Remove the NoteEvents which does not meet the specified predicate.
-     *
-     * @param p
-     */
-    public void filterPhrase(Predicate<NoteEvent> p)
-    {
-        for (var it = listIterator(); it.hasNext();)
-        {
-            if (!p.test(it.next()))
-            {
-                it.remove();
-            }
-        }
-    }
-
-    /**
      * Return a new Phrase with filtered notes processed by the specified mapper.
      * <p>
      * Notes of the returned phrase will have their PARENT_NOTE client property set to:<br>
@@ -272,7 +256,8 @@ public class Phrase extends LinkedList<NoteEvent>
     /**
      * Get a new phrase with notes velocity changed.
      * <p>
-     * Velocity is always maintained between 0 and 127. Notes of the returned phrase will have their PARENT_NOTE client property set to:<br>
+     * Velocity is always maintained between 0 and 127. Notes of the returned phrase will have their PARENT_NOTE client property
+     * set to:<br>
      * - source note's PARENT_NOTE client property if this property is not null, or<br>
      * - the source note from this phrase
      *
@@ -309,7 +294,8 @@ public class Phrase extends LinkedList<NoteEvent>
     /**
      * Get a new phrase with all notes changed.
      * <p>
-     * Pitch is always maintained between 0 and 127. Notes of the returned phrase will have their PARENT_NOTE client property set to:<br>
+     * Pitch is always maintained between 0 and 127. Notes of the returned phrase will have their PARENT_NOTE client property set
+     * to:<br>
      * - source note's PARENT_NOTE client property if this property is not null, or<br>
      * - the source note from this phrase
      *
@@ -347,7 +333,8 @@ public class Phrase extends LinkedList<NoteEvent>
      * Make sure there is no note ringing after the specified position.
      * <p>
      * Notes starting after posInBeats are removed.<br>
-     * If a note starts before posInBeats but is still ON beyond posInBeats, note duration is shortened to have Note OFF at posInBeats.
+     * If a note starts before posInBeats but is still ON beyond posInBeats, note duration is shortened to have Note OFF at
+     * posInBeats.
      *
      * @param posInBeats
      */
@@ -497,26 +484,50 @@ public class Phrase extends LinkedList<NoteEvent>
     }
 
     /**
+     * Get the NoteEvents whose start position is in the [posFrom:posTo] or [posFrom:posTo[ range.
+     *
+     * @param range
+     * @param excludeUpperBound
+     * @return
+     */
+    public List<NoteEvent> getNotes(FloatRange range, boolean excludeUpperBound)
+    {
+        var res = new ArrayList<NoteEvent>();
+        for (NoteEvent ne : this)
+        {
+            if (range.contains(ne.getPositionInBeats(), excludeUpperBound))
+            {
+                res.add(ne);
+            }
+            if (ne.getPositionInBeats() > range.to)
+            {
+                break;
+            }
+        }
+        return res;
+    }
+
+    /**
      * Get the notes still ringing at specified position.
      * <p>
      *
      * @param posInBeats
-     * @return The list of notes whose startPos is strictly before posInBeats and endPos strictly after posInBeats
+     * @param strict If true, notes starting or ending at posInBeats are excluded.
+     * @return The list of notes whose startPos is before (or equals) posInBeats and endPos eafter (or equals) posInBeats
      */
-    public List<NoteEvent> getCrossingNotes(float posInBeats)
+    public List<NoteEvent> getCrossingNotes(float posInBeats, boolean strict)
     {
         ArrayList<NoteEvent> res = new ArrayList<>();
-        var it = this.listIterator();
-        int i = 0;
+        var it = listIterator();
         while (it.hasNext())
         {
             NoteEvent ne = it.next();
             float pos = ne.getPositionInBeats();
-            if (pos >= posInBeats)
+            if ((strict && pos >= posInBeats) || (!strict && pos > posInBeats))
             {
                 break;
             }
-            if (pos + ne.getDurationInBeats() > posInBeats)
+            if ((strict && pos + ne.getDurationInBeats() > posInBeats) || (!strict && pos + ne.getDurationInBeats() >= posInBeats))
             {
                 res.add(ne);
             }
@@ -604,8 +615,8 @@ public class Phrase extends LinkedList<NoteEvent>
     /**
      * Remove overlapped notes with identical pitch.
      * <p>
-     * A note N1 is overlapped by N2 if N1's noteOn event occurs after N2's noteOn event and N1's noteOff event occurs before N2's noteOff
-     * event.
+     * A note N1 is overlapped by N2 if N1's noteOn event occurs after N2's noteOn event and N1's noteOff event occurs before N2's
+     * noteOff event.
      */
     public void removeOverlappedNotes()
     {
@@ -670,7 +681,7 @@ public class Phrase extends LinkedList<NoteEvent>
      * <p>
      * Fixed new notes's PARENT_NOTE client property is preserved.
      *
-     * @param lowLimit  There must be at least 1 octave between lowLimit and highLimit
+     * @param lowLimit There must be at least 1 octave between lowLimit and highLimit
      * @param highLimit There must be at least 1 octave between lowLimit and highLimit
      */
     public void limitPitch(int lowLimit, int highLimit)

@@ -27,6 +27,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.text.ParseException;
+import java.util.EnumSet;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,6 +37,7 @@ import org.jjazz.harmony.ChordTypeDatabase;
 import org.jjazz.harmony.Degree;
 import org.jjazz.harmony.Note;
 import org.jjazz.harmony.SymbolicDuration;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 
 /**
  * An extended chord symbol with additionnal features:
@@ -47,10 +49,11 @@ import org.jjazz.harmony.SymbolicDuration;
  */
 public class ExtChordSymbol extends ChordSymbol implements Serializable
 {
-
+    
     private ChordRenderingInfo renderingInfo;
     private AltExtChordSymbol altChordSymbol;
     private AltDataFilter altFilter;
+    private static final ChordRenderingInfo DEFAULT_CRI_FOR_SLASH_CHORD = new ChordRenderingInfo(EnumSet.of(Feature.BASS_PEDAL), null);
     private static final Logger LOGGER = Logger.getLogger(ExtChordSymbol.class.getSimpleName());
 
     /**
@@ -60,7 +63,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     {
         this(new Note(0), ChordTypeDatabase.getInstance().getChordType(""));
     }
-
+    
     public ExtChordSymbol(Note rootDg, ChordType ct)
     {
         this(rootDg, rootDg, ct);
@@ -77,7 +80,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     {
         this(rootDg, bassDg, ct, null, null, null);
     }
-
+    
     public ExtChordSymbol(ChordSymbol cs, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
     {
         this(cs.getRootNote(), cs.getBassNote(), cs.getChordType(), rInfo, altChordSymbol, altFilter);
@@ -89,10 +92,10 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
      * @param rootDg
      * @param bassDg
      * @param ct
-     * @param rInfo          If null create an empty ChordRenderingInfo.
+     * @param rInfo If null create an empty ChordRenderingInfo.
      * @param altChordSymbol Optional alternate chord symbol. If not null altFilter must be also non-null.
-     * @param altFilter      Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be
-     *                       also non-null.
+     * @param altFilter Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be also
+     * non-null.
      */
     public ExtChordSymbol(Note rootDg, Note bassDg, ChordType ct, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
     {
@@ -108,23 +111,25 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
 
     /**
      * Create a ChordSymbol from a chord string specification, with an empty RenderingInfo and no alternate chord symbol.
+     * <p>
+     * If string contains a '/', use ChordRenderingInfo.BassLineModifier.PEDAL_BASS as bassLineModifier.
      *
      * @param s Eg 'C7'
      * @throws ParseException
      */
     public ExtChordSymbol(String s) throws ParseException
     {
-        this(s, null, null, null);
+        this(s, s.contains("/") ? DEFAULT_CRI_FOR_SLASH_CHORD : null, null, null);
     }
 
     /**
      * Create a ChordSymbol from a chord string specification, with the specified RenderingInfo and alternate chord symbol.
      *
-     * @param s              Eg 'C7'
-     * @param rInfo          If null create an empty ChordRenderingInfo.
+     * @param s Eg 'C7'
+     * @param rInfo If null create an empty ChordRenderingInfo.
      * @param altChordSymbol Optional alternate chord symbol. If not null altFilter must be also non-null.
-     * @param altFilter      Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be
-     *                       also non-null.
+     * @param altFilter Optional filter to enable the use of the alternate chord symbol. If not null altChordSymbol must be also
+     * non-null.
      *
      * @throws ParseException
      */
@@ -139,7 +144,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         this.altChordSymbol = altChordSymbol;
         this.altFilter = altFilter;
     }
-
+    
     @Override
     public boolean equals(Object obj)
     {
@@ -174,7 +179,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         }
         return true;
     }
-
+    
     @Override
     public int hashCode()
     {
@@ -283,6 +288,21 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     }
 
     /**
+     * True if this object's chord type is the same that cs chord type, and if root/bass relative pitches are the same.
+     *
+     * @param cs
+     * @return
+     */
+    public boolean isSameChordSymbol(ChordSymbol cs)
+    {
+        if (cs == null)
+        {
+            throw new NullPointerException("cs");
+        }
+        return isSameChordType(cs) && getRootNote().equalsRelativePitch(cs.getRootNote()) && getBassNote().equalsRelativePitch(cs.getBassNote());
+    }
+
+    /**
      * @return ExtChordSymbol A random chord symbol (random degree, random chord type)
      */
     public static ExtChordSymbol createRandomChordSymbol()
@@ -307,16 +327,16 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     {
         return new SerializationProxy(this);
     }
-
+    
     private void readObject(ObjectInputStream stream)
             throws InvalidObjectException
     {
         throw new InvalidObjectException("Serialization proxy required");
     }
-
+    
     private static class SerializationProxy implements Serializable
     {
-
+        
         private static final long serialVersionUID = -6112620289882L;
         private final int spVERSION = 1;
         private final String spName;
@@ -325,7 +345,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         private final AltDataFilter spAltFilter;
         // XStream can't deserialize the ° char : little hack to avoid the issue
         private static final String DOT_REPLACEMENT = "_UpperDot_";
-
+        
         private SerializationProxy(ExtChordSymbol cs)
         {
             spName = cs.getOriginalName().replace("°", DOT_REPLACEMENT);
@@ -333,7 +353,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
             spAltChordSymbol = cs.getAlternateChordSymbol();
             spAltFilter = cs.getAlternateFilter();
         }
-
+        
         private Object readResolve() throws ObjectStreamException
         {
             String s = spName.replace(DOT_REPLACEMENT, "°");

@@ -33,14 +33,17 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.PlayStyle;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 
 /**
- * Show the position of a chord. Shape depends on the chord playstyle option.
+ * Show the position of a chord.
+ * <p>
+ * Shape depends on the chord rendering options.
  */
 public class IR_ChordPosition extends ItemRenderer
 {
@@ -49,18 +52,18 @@ public class IR_ChordPosition extends ItemRenderer
     private static final int V_MARGIN = 0;
     private static final Dimension DEFAULT_DRAWING_AREA = new Dimension(11, 6);
     private IR_ChordSymbolSettings settings;
-    private PlayStyle playStyle;
+    private ChordRenderingInfo cri;
     private int zoomFactor = 50;
 
     public IR_ChordPosition(CLI_ChordSymbol item)
     {
         super(item, IR_Type.ChordPosition);
-        playStyle = item.getData().getRenderingInfo().getPlayStyle();
+        cri = item.getData().getRenderingInfo();
 
         // Reuse same font color than chords
         settings = IR_ChordSymbolSettings.getDefault();
         settings.addPropertyChangeListener(this);
-        setForeground(item.getData().getAlternateChordSymbol() == null ? settings.getColor() : settings.getAltColor());
+        setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
         updateToolTipText();
     }
 
@@ -68,8 +71,8 @@ public class IR_ChordPosition extends ItemRenderer
     protected void modelChanged()
     {
         ExtChordSymbol ecs = (ExtChordSymbol) getModel().getData();
-        setForeground(ecs.getAlternateChordSymbol() == null ? settings.getColor() : settings.getAltColor());
-        playStyle = ((CLI_ChordSymbol) getModel()).getData().getRenderingInfo().getPlayStyle();
+        cri = ((CLI_ChordSymbol) getModel()).getData().getRenderingInfo();
+        setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
         updateToolTipText();
         repaint();
     }
@@ -154,46 +157,37 @@ public class IR_ChordPosition extends ItemRenderer
 
         Shape shape = null;
 
-        switch (playStyle)
+        if (cri.hasOneFeature(Feature.HOLD))
         {
-            case NORMAL:
+            // Heavy rectangle
+            int holdHeight = Math.min(h, 4);
+            shape = new Rectangle2D.Float(x0, yHalf - holdHeight / 2, w, holdHeight);
+        } else if (cri.hasOneFeature(Feature.SHOT))
+        {
+            // A point
+            int d = Math.min(w, h) - 1;
+            shape = new Ellipse2D.Float(xHalf - (d / 2), yHalf - (d / 2), d, d);
+        } else      // NORMAL
+        {
+            // Inversed triangle
+            Path2D p = new Path2D.Float();
+            int side = 4;
+            if (zoomFactor > 75)
             {
-                // Inversed triangle
-                Path2D p = new Path2D.Float();
-                int side = 4;
-                if (zoomFactor > 75)
-                {
-                    side = 5;
-                } else if (zoomFactor < 25)
-                {
-                    side = 3;
-                }
-                p.moveTo(xHalf, y1);
-                p.lineTo(xHalf - side, y1 - side);
-                p.lineTo(xHalf + side, y1 - side);
-                p.lineTo(xHalf, y1);
-                p.closePath();
-                shape = p;
+                side = 5;
+            } else if (zoomFactor < 25)
+            {
+                side = 3;
             }
-            break;
-            case HOLD:
-                // Heavy rectangle
-                int holdHeight = Math.min(h, 4);
-                shape = new Rectangle2D.Float(x0, yHalf - holdHeight / 2, w, holdHeight);
-                break;
-            case SHOT:
-                // A point
-                int d = Math.min(w, h) - 1;
-                shape = new Ellipse2D.Float(xHalf - (d / 2), yHalf - (d / 2), d, d);
-                break;
-            case ACCENT:
-                // A thin rectangle
-                int accentHeight = Math.min(h, 2);
-                shape = new Rectangle2D.Float(x0, yHalf - accentHeight / 2, w, accentHeight);
-                break;
-            default:
-                throw new IllegalArgumentException("playStyle=" + playStyle);
+            p.moveTo(xHalf, y1);
+            p.lineTo(xHalf - side, y1 - side);
+            p.lineTo(xHalf + side, y1 - side);
+            p.lineTo(xHalf, y1);
+            p.closePath();
+            shape = p;
         }
+
+
         g2.fill(shape);
 
     }
@@ -207,12 +201,10 @@ public class IR_ChordPosition extends ItemRenderer
         super.propertyChange(e);
         if (e.getSource() == settings)
         {
-            if (e.getPropertyName() == IR_ChordSymbolSettings.PROP_FONT_COLOR
-                    || e.getPropertyName() == IR_ChordSymbolSettings.PROP_FONT_ALT_COLOR)
+            if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT_COLOR)
+                    || e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT_ACCENT_COLOR))
             {
-                ExtChordSymbol ecs = (ExtChordSymbol) getModel().getData();
-                setForeground(ecs.getAlternateChordSymbol() == null ? settings.getColor() : settings.getAltColor());
-
+                setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
             }
         }
     }
@@ -221,9 +213,10 @@ public class IR_ChordPosition extends ItemRenderer
     {
         StringBuilder sb = new StringBuilder();
         sb.append("beat=").append(getModel().getPosition().getBeatAsUserString());
-        if (!playStyle.equals(PlayStyle.NORMAL))
+        // if (!cri.equals(PlayStyle.NORMAL))
+        if (!cri.getFeatures().isEmpty())
         {
-            sb.append(" PlayStyle=").append(playStyle.toString());
+            sb.append(" features=").append(cri.getFeatures().toString());
         }
         setToolTipText(sb.toString());
     }

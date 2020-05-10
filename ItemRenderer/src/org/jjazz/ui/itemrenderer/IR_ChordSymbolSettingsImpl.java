@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.util.Utilities;
 import org.openide.util.NbPreferences;
@@ -122,17 +123,47 @@ public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implement
     }
 
     @Override
-    public void setAltColor(Color color)
+    public void setAccentColor(Feature accentFeature, Color color)
     {
-        Color old = getAltColor();
-        prefs.putInt(PROP_FONT_ALT_COLOR, color != null ? color.getRGB() : new Color(0, 102, 102).getRGB());
-        pcs.firePropertyChange(PROP_FONT_ALT_COLOR, old, color);
+        Color old = getAccentColor(accentFeature);
+        prefs.putInt(getAccentColorKey(accentFeature), color != null ? color.getRGB() : getDefaultAccentColor(accentFeature).getRGB());
+        pcs.firePropertyChange(PROP_FONT_ACCENT_COLOR, old, color);
     }
 
     @Override
-    public Color getAltColor()
+    public Color getAccentColor(Feature accentFeature)
     {
-        return new Color(prefs.getInt(PROP_FONT_ALT_COLOR, new Color(0, 102, 102).getRGB()));
+        return new Color(prefs.getInt(getAccentColorKey(accentFeature), getDefaultAccentColor(accentFeature).getRGB()));
+    }
+
+    private Color getDefaultAccentColor(Feature accentFeature)
+    {
+        Color defCol;
+        switch (accentFeature)
+        {
+            // From dark red to lighter red
+            case ACCENT_LIGHT:
+                defCol = new Color(105, 24, 3);
+                break;
+            case ACCENT_MEDIUM:
+                defCol = new Color(145, 32, 45);
+                break;
+            case ACCENT_STRONG:
+                defCol = new Color(207, 43, 62);
+                break;
+            default:
+                throw new AssertionError(accentFeature.name());
+        }
+        return defCol;
+    }
+
+    private String getAccentColorKey(Feature accentFeature)
+    {
+        if (accentFeature != Feature.ACCENT_LIGHT && accentFeature != Feature.ACCENT_MEDIUM && accentFeature != Feature.ACCENT_STRONG)
+        {
+            throw new IllegalArgumentException("accentFeature");
+        }
+        return PROP_FONT_ACCENT_COLOR + "-" + accentFeature.name();
     }
 
     @Override
@@ -173,18 +204,48 @@ public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implement
     {
         List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
         res.add(this);
-        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("AltChordSymbolId", "Chord Symbol with Alternate")
+        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("AccentedLightChordSymbolId", "Chord Symbol with light accent")
         {
             @Override
             public Color getColor()
             {
-                return getAltColor();
+                return getAccentColor(Feature.ACCENT_LIGHT);
             }
 
             @Override
             public void setColor(Color c)
             {
-                setAltColor(c);
+                setAccentColor(Feature.ACCENT_LIGHT, c);
+            }
+        };
+        res.add(fcs);
+        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("AccentedMediumChordSymbolId", "Chord Symbol with medium accent")
+        {
+            @Override
+            public Color getColor()
+            {
+                return getAccentColor(Feature.ACCENT_MEDIUM);
+            }
+
+            @Override
+            public void setColor(Color c)
+            {
+                setAccentColor(Feature.ACCENT_MEDIUM, c);
+            }
+        };
+        res.add(fcs);
+        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("AccentedStrongChordSymbolId", "Chord Symbol with strong accent")
+        {
+            @Override
+            public Color getColor()
+            {
+                return getAccentColor(Feature.ACCENT_STRONG);
+            }
+
+            @Override
+            public void setColor(Color c)
+            {
+                setAccentColor(Feature.ACCENT_STRONG, c);
             }
         };
         res.add(fcs);

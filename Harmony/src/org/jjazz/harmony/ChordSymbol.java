@@ -287,9 +287,13 @@ public class ChordSymbol implements Serializable, Cloneable
      */
     public boolean isSameChordType(ChordSymbol cs)
     {
+        if (cs == null)
+        {
+            throw new NullPointerException("cs");
+        }
         // We can use "==" equality (and not equals) because ChordTypes are immutable objects
         // that only come from the ChordType.database
-        return (chordType == cs.chordType);
+        return chordType == cs.chordType;
     }
 
     /**

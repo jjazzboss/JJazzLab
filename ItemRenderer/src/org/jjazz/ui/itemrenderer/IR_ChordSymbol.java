@@ -35,7 +35,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.AltDataFilter;
 import org.jjazz.leadsheet.chordleadsheet.api.item.AltExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.PlayStyle;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.VoidAltExtChordSymbol;
 import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
@@ -55,6 +54,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     private boolean copyMode;
     private IR_ChordSymbolSettings settings;
     private int zoomFactor = 50;
+    private ChordRenderingInfo cri;
     private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbol.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
@@ -62,13 +62,14 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     {
         super(item, IR_Type.ChordSymbol);
         LOGGER.fine("IR_ChordSymbol() item=" + item);
-
+        cri = item.getData().getRenderingInfo();
+        
         updateToolTipText();
 
         // Apply settings and listen to their changes
         settings = IR_ChordSymbolSettings.getDefault();
         settings.addPropertyChangeListener(this);
-        setForeground(item.getData().getAlternateChordSymbol() == null ? settings.getColor() : settings.getAltColor());
+        setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
         setFont(settings.getFont());
     }
 
@@ -76,7 +77,8 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     public void modelChanged()
     {
         ExtChordSymbol ecs = (ExtChordSymbol) getModel().getData();
-        setForeground(ecs.getAlternateChordSymbol() == null ? settings.getColor() : settings.getAltColor());
+        cri = ((CLI_ChordSymbol) getModel()).getData().getRenderingInfo();        
+        setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
         updateToolTipText();
         revalidate();
         repaint();
@@ -170,10 +172,11 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
             // Chord Symbol
             ChordRenderingInfo cri = ecs.getRenderingInfo();
             StringBuilder sb = new StringBuilder(ecs.getChord().toRelativeNoteString(ecs.getRootNote().getAlterationDisplay()));
-            if (!cri.getPlayStyle().equals(PlayStyle.NORMAL))
+            if (!cri.getFeatures().isEmpty())
             {
-                sb.append(" - ").append(cri.getPlayStyle());
+                sb.append(" - ").append(cri.getFeatures().toString());
             }
+
             StandardScaleInstance ssi = cri.getScaleInstance();
             if (ssi != null)
             {
@@ -192,9 +195,9 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
                 {
                     sb.append(altSymbol);
                     cri = altSymbol.getRenderingInfo();
-                    if (!cri.getPlayStyle().equals(PlayStyle.NORMAL))
+                    if (!cri.getFeatures().isEmpty())
                     {
-                        sb.append(" - ").append(cri.getPlayStyle());
+                        sb.append(" - ").append(cri.getFeatures().toString());
                     }
                     ssi = cri.getScaleInstance();
                     if (ssi != null)
@@ -281,14 +284,14 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         super.propertyChange(e);
         if (e.getSource() == settings)
         {
-            if (e.getPropertyName() == IR_ChordSymbolSettings.PROP_FONT)
+            if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT))
             {
                 setFont(settings.getFont());
-            } else if (e.getPropertyName() == IR_ChordSymbolSettings.PROP_FONT_COLOR
-                    || e.getPropertyName() == IR_ChordSymbolSettings.PROP_FONT_ALT_COLOR)
+            } else if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT_COLOR)
+                    || e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT_ACCENT_COLOR))
             {
                 ExtChordSymbol ecs = (ExtChordSymbol) getModel().getData();
-                setForeground(ecs.getAlternateChordSymbol() == null ? settings.getColor() : settings.getAltColor());
+                setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
             }
         }
     }

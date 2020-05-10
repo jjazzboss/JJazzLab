@@ -27,6 +27,8 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.harmony.StandardScaleInstance;
@@ -41,74 +43,205 @@ public class ChordRenderingInfo implements Serializable
 
     private static final Logger LOGGER = Logger.getLogger(ChordRenderingInfo.class.getSimpleName());
 
-    public enum PlayStyle
+    // =================================================================================================
+    // NOT USED ANYMORE: but required to be able to read old version V1 files
+    private enum PlayStyle
     {
-        NORMAL,
-        ACCENT,
-        HOLD, // Hold some chord notes until next chord 
-        SHOT // Chord notes are played briefly then stopped
+        NORMAL, ACCENT, HOLD, SHOT
+    };
+    // =================================================================================================    // =================================================================================================    // =================================================================================================    // =================================================================================================    // =================================================================================================    // =================================================================================================    // =================================================================================================    // =================================================================================================    
+
+    /**
+     * Change the way music is globally rendered for a chord symbol.
+     */
+    public enum Feature
+    {
+        /**
+         * Add a light accent.
+         * <p>
+         * IMPORTANT: Exclusive with the other ACCENT*.
+         */
+        ACCENT_LIGHT,        
+        ACCENT_MEDIUM,
+        ACCENT_STRONG,
+        /**
+         * Hold some notes until next chord.
+         * <p>
+         * IMPORTANT: Exclusive with SHOT.
+         */
+        HOLD,
+        /**
+         * Make some notes played briefly.
+         * <p>
+         * IMPORTANT: Exclusive with HOLD.
+         */
+        SHOT,
+        /**
+         * Make sure there is not crash cymbal.
+         * <p>
+         * IMPORTANT: Exclusive with the NO_CRASH
+         */
+        NO_CRASH,
+        /**
+         * Make sure there is a crash cymbal.
+         * <p>
+         * IMPORTANT: Exclusive with the other CRASH
+         */
+        CRASH,
+        /**
+         * Bass line must only use the chord symbol root note (or bass note if specified for slash chord Am/D).
+         */
+        BASS_PEDAL,
+        /**
+         * Make sure chord is not played "anticipated".
+         */
+        NO_ANTICIPATION;
+
+        @Override
+        public String toString()
+        {
+            return name().charAt(0) + name().substring(1).toLowerCase();
+        }
     }
 
     private StandardScaleInstance scaleInstance;
-    private PlayStyle playStyle;
-    private boolean anticipateAllowed;
+    private EnumSet<Feature> features;
 
     /**
-     * Create an object with PlayStyle.NORMAL, anticipateAllowed=true, and no associated standard scales.
+     * Create an object with default values.
      */
     public ChordRenderingInfo()
     {
-        this(PlayStyle.NORMAL, true, null);
+        this((EnumSet<Feature>) null, null);
     }
 
     /**
-     * Create an object with specified PlayStyle with anticipateAllowed=true and no associated standard scales.
-     * @param pStyle
-     */
-    public ChordRenderingInfo(PlayStyle pStyle)
-    {
-        this(pStyle, true, null);
-    }
-
-    /**
+     * Create an object with specified Features and default values.
      *
-     * @param pStyle
-     * @param anticipateEnabled If false don't allow to anticipate notes for this chord.
+     * @param features If null use the default value.
+     */
+    public ChordRenderingInfo(EnumSet<Feature> features)
+    {
+        this(features, null);
+    }
+
+    /**
+     * Create an object with specified scale and default values.
+     *
+     * @param scale If null use the default value.
+     */
+    public ChordRenderingInfo(StandardScaleInstance scale)
+    {
+        this((EnumSet<Feature>) null, scale);
+    }
+
+
+    /**
+     * Create a new object with the specified parameters.
+     *
+     *
+     * @param features If null use the default value.
      * @param scale Can be null.
+     * @throws IllegalArgumentException If the features object is not consistent, e.g. SHOT and HOLD can't both be used.
      */
-    public ChordRenderingInfo(PlayStyle pStyle, boolean anticipateEnabled, StandardScaleInstance scale)
+    public ChordRenderingInfo(EnumSet<Feature> features, StandardScaleInstance scale)
     {
-        if (pStyle == null)
+        this.features = (features == null) ? EnumSet.noneOf(Feature.class) : checkFeaturesConsistency(features);
+        this.scaleInstance = scale;
+    }
+
+
+    public ChordRenderingInfo(ChordRenderingInfo cri, StandardScaleInstance scale)
+    {
+        this(cri.getFeatures(), scale);
+    }
+
+    public ChordRenderingInfo(ChordRenderingInfo cri, EnumSet<Feature> features)
+    {
+        this(features, cri.getScaleInstance());
+    }
+
+    /**
+     * The rendering features.
+     * <p>
+     * Default value is an empty EnumSet.
+     *
+     * @return
+     */
+    public EnumSet<Feature> getFeatures()
+    {
+        return features;
+    }
+
+
+    /**
+     * Get the accent feature if it's used.
+     *
+     * @return Can be null.
+     */
+    public Feature getAccentFeature()
+    {
+        if (features.contains(Feature.ACCENT_LIGHT))
         {
-            throw new NullPointerException("pStyle=" + pStyle + " anticipateEnabled=" + anticipateEnabled + " scale=" + scale);
+            return Feature.ACCENT_LIGHT;
+        } else if (features.contains(Feature.ACCENT_MEDIUM))
+        {
+            return Feature.ACCENT_MEDIUM;
+        } else if (features.contains(Feature.ACCENT_STRONG))
+        {
+            return Feature.ACCENT_STRONG;
         }
-        playStyle = pStyle;
-        scaleInstance = scale;
-        this.anticipateAllowed = anticipateEnabled;
+        return null;
     }
 
     /**
-     * The play style to be used for this chord.
+     * Test if this object features contains the specified features.
+     * <p>
+     * Convenience method because of EnumSet...
      *
+     * @param f1
+     * @param fx
      * @return
      */
-    public PlayStyle getPlayStyle()
+    public boolean hasAllFeatures(Feature f1, Feature... fx)
     {
-        return playStyle;
+        if (!features.contains(f1))
+        {
+            return false;
+        }
+        return features.containsAll(Arrays.asList(fx));
     }
 
     /**
-     * Whether this chord can be used an an "anticipated chord".
+     * Test if this object features contains one of the specified features.
+     * <p>
+     * Convenience method because of EnumSet...
      *
+     * @param f1
+     * @param fx
      * @return
      */
-    public boolean isAnticipateAllowed()
+    public boolean hasOneFeature(Feature f1, Feature... fx)
     {
-        return anticipateAllowed;
+        if (features.contains(f1))
+        {
+            return true;
+        }
+        for (Feature f : fx)
+        {
+            if (features.contains(f))
+            {
+                return true;
+            }
+        }
+        return false;
     }
+
 
     /**
      * Return a new object transposed by the specified semi-tons (StandardScaleInstance startNote is impacted).
+     * <p>
+     * Default value is 0.
      *
      * @param t Transposition in semi-tons.
      * @return
@@ -116,7 +249,7 @@ public class ChordRenderingInfo implements Serializable
     public ChordRenderingInfo getTransposed(int t)
     {
         StandardScaleInstance ssi = scaleInstance == null ? null : scaleInstance.getTransposed(t);
-        return new ChordRenderingInfo(playStyle, anticipateAllowed, ssi);
+        return new ChordRenderingInfo(features, ssi);
     }
 
     /*
@@ -128,6 +261,8 @@ public class ChordRenderingInfo implements Serializable
      */
     /**
      * The standard scale instance that should be used for this chord.
+     * <p>
+     * Default value is null.
      *
      * @return Can be null
      */
@@ -140,9 +275,8 @@ public class ChordRenderingInfo implements Serializable
     public int hashCode()
     {
         int hash = 3;
-        hash = 47 * hash + Objects.hashCode(this.scaleInstance);
-        hash = 47 * hash + Objects.hashCode(this.playStyle);
-        hash = 47 * hash + Objects.hashCode(this.anticipateAllowed);
+        hash = 31 * hash + Objects.hashCode(this.scaleInstance);
+        hash = 31 * hash + Objects.hashCode(this.features);
         return hash;
     }
 
@@ -166,26 +300,99 @@ public class ChordRenderingInfo implements Serializable
         {
             return false;
         }
-        if (this.playStyle != other.playStyle)
-        {
-            return false;
-        }
-        if (this.anticipateAllowed != other.anticipateAllowed)
+        if (!Objects.equals(this.features, other.features))
         {
             return false;
         }
         return true;
     }
 
+
+//
+//    /**
+//     * Convenience method for transition to new ChordRenderingInfo API.
+//     *
+//     * @param cri
+//     * @return
+//     */
+//    static public boolean isOldNormalPlayStyle(ChordRenderingInfo cri)
+//    {
+//        return cri.getFeatures().isEmpty();
+//    }
+//
+//    /**
+//     * Convenience method for transition to new ChordRenderingInfo API.
+//     *
+//     * @param cri
+//     * @return
+//     */
+//
+//    static public boolean isOldAccentPlayStyle(ChordRenderingInfo cri)
+//    {
+//        return cri.getFeatures().contains(Feature.ACCENT_MEDIUM)
+//                && !cri.getFeatures().contains(Feature.SHOT)
+//                && !cri.getFeatures().contains(Feature.HOLD);
+//    }
+//
+//    /**
+//     * Convenience method for transition to new ChordRenderingInfo API.
+//     *
+//     * @param cri
+//     * @return
+//     */
+//    static public boolean isOldHoldPlayStyle(ChordRenderingInfo cri)
+//    {
+//        return cri.getFeatures().containsAll(Arrays.asList(Feature.ACCENT_MEDIUM, Feature.HOLD));
+//    }
+//
+//    /**
+//     * Convenience method for transition to new ChordRenderingInfo API.
+//     *
+//     * @param cri
+//     * @return
+//     */
+//    static public boolean isOldShotPlayStyle(ChordRenderingInfo cri)
+//    {
+//        return cri.getFeatures().containsAll(Arrays.asList(Feature.ACCENT_MEDIUM, Feature.SHOT));
+//    }
     @Override
     public String toString()
     {
-        return "PlayStyle=" + playStyle + " anticipateEnabled=" + anticipateAllowed + " scaleInstance=" + scaleInstance;
+        return "features=" + features + ", scaleInstance=" + scaleInstance;
+    }
+
+    // --------------------------------------------------------------------- 
+    //    Private methods
+    // ---------------------------------------------------------------------
+
+    private EnumSet<Feature> checkFeaturesConsistency(EnumSet<Feature> features)
+    {
+        if (features.contains(Feature.HOLD) && features.contains(Feature.SHOT))
+        {
+            throw new IllegalArgumentException("features=" + features);
+        }
+        if (features.contains(Feature.CRASH) && features.contains(Feature.NO_CRASH))
+        {
+            throw new IllegalArgumentException("features=" + features);
+        }
+        int count = 0;
+        for (Feature f : features)
+        {
+            if (f.name().startsWith("ACCENT"))
+            {
+                count++;
+                if (count > 1)
+                {
+                    throw new IllegalArgumentException("features=" + features);
+                }
+            }
+        }
+        return features;
     }
 
     // --------------------------------------------------------------------- 
     //    Serialization
-    // --------------------------------------------------------------------- */
+    // ---------------------------------------------------------------------
     private Object writeReplace()
     {
         return new SerializationProxy(this);
@@ -197,54 +404,86 @@ public class ChordRenderingInfo implements Serializable
     }
 
     /**
-     * Proxy not really needed today, but ChordRenderingInfo might be more complex in the future.
+     * Proxy to read old versions.
      * <p>
-     * Override writeObject/readObject in order to manage older object versions.
      */
-    private static class SerializationProxy implements Serializable// , Externalizable
+    private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -655298712991L;
-        private int spVERSION = 1;    // Must be FIRST field !
-        private PlayStyle spPlayStyle;
-        private boolean spAnticipate;
-        private StandardScaleInstance spStdScale;
-        // private int spNewVar;
+        private int spVERSION = 2;    // Must be FIRST field !        
+
+        // ==================================================================================
+        // V1 format: 
+        private PlayStyle spPlayStyleV1;            // Not used in V2
+        private boolean spAnticipate;               // Not used in V2
+        private StandardScaleInstance spStdScale;   // Reused in V2
+        // ==================================================================================
+
+        // ==================================================================================
+        // V2 format = V1 with
+        private EnumSet<Feature> spFeatures; // replace spPlayStyleV1
+        // ==================================================================================
 
         private SerializationProxy(ChordRenderingInfo cri)
         {
-            spPlayStyle = cri.getPlayStyle();
+            // V2
+            spFeatures = cri.getFeatures();
             spStdScale = cri.getScaleInstance();
-            spAnticipate = cri.isAnticipateAllowed();
         }
 
         private void writeObject(java.io.ObjectOutputStream out) throws IOException
         {
+            // V2
             out.writeInt(spVERSION);      // Make sure it's first
-            out.writeObject(spPlayStyle);
-            out.writeBoolean(spAnticipate);
+            out.writeObject(spFeatures);
             out.writeObject(spStdScale);
-            // out.writeInt(spNewVar);
         }
 
         private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException
         {
-            this.spVERSION = in.readInt();
-            this.spPlayStyle = (PlayStyle) in.readObject();
-            this.spAnticipate = in.readBoolean();
-            this.spStdScale = (StandardScaleInstance) in.readObject();
-            if (spVERSION <= 1)
+            spVERSION = in.readInt();
+            if (spVERSION == 1)
             {
-                // spNewVar = 100;
+                // V1
+                spPlayStyleV1 = (PlayStyle) in.readObject();
+                spAnticipate = in.readBoolean();
+                spStdScale = (StandardScaleInstance) in.readObject();
             } else
             {
-                // spNewVar = in.readInt();
+                // V2
+                spFeatures = (EnumSet<Feature>) in.readObject();
+                spStdScale = (StandardScaleInstance) in.readObject();
             }
         }
 
         private Object readResolve() throws ObjectStreamException
         {
-            ChordRenderingInfo cri = new ChordRenderingInfo(spPlayStyle, spAnticipate, spStdScale);
+            if (spPlayStyleV1 != null)
+            {
+                switch (spPlayStyleV1)
+                {
+                    case NORMAL:
+                        spFeatures = null;
+                        break;
+                    case ACCENT:
+                        spFeatures = EnumSet.of(Feature.ACCENT_MEDIUM);
+                        break;
+                    case HOLD:
+                        spFeatures = EnumSet.of(Feature.ACCENT_MEDIUM, Feature.HOLD);
+                        break;
+                    case SHOT:
+                        spFeatures = EnumSet.of(Feature.ACCENT_MEDIUM, Feature.SHOT);
+                        break;
+                    default:
+                        LOGGER.warning("readResolve() Invalid value for spPlayStyle=" + spPlayStyleV1 + ". Ignored.");
+                }
+                if (!spAnticipate)
+                {
+                    spFeatures = EnumSet.of(Feature.NO_ANTICIPATION, spFeatures.toArray(new Feature[0]));
+                }
+            }
+            ChordRenderingInfo cri = new ChordRenderingInfo(spFeatures, spStdScale);
             return cri;
         }
     }
