@@ -119,25 +119,32 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
 
 
         // Update PlayStyle UI
-        cb_accent.setSelected(cri.getFeatures().contains(Feature.ACCENT_MEDIUM));
-        enableAccentLevels();
         cb_hold.setSelected(cri.getFeatures().contains(Feature.HOLD));
         cb_shot.setSelected(cri.getFeatures().contains(Feature.SHOT));
 
         cb_pedalBass.setSelected(cri.hasOneFeature(Feature.BASS_PEDAL));
 
-        switch (cri.getAccentFeature())
+        if (cri.getAccentFeature() != null)
         {
-            case ACCENT_STRONG:
-                rbtn_accentStrong.setSelected(true);
-                break;
-            case ACCENT_MEDIUM:
-                rbtn_accentMedium.setSelected(true);
-                break;
-            default:
-                rbtn_accentLight.setSelected(true);
-                break;
+            cb_accent.setSelected(true);
+            switch (cri.getAccentFeature())
+            {
+                case ACCENT_STRONG:
+                    rbtn_accentStrong.setSelected(true);
+                    break;
+                case ACCENT_MEDIUM:
+                    rbtn_accentMedium.setSelected(true);
+                    break;
+                default:
+                    rbtn_accentLight.setSelected(true);
+                    break;
+            }
+        } else
+        {
+            cb_accent.setSelected(false);
+            rbtn_accentLight.setSelected(true);
         }
+        enableAccentLevels();
 
 
         // Update Scales UI      
@@ -296,33 +303,6 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     // =======================================================================================
     // Private methods
     // =======================================================================================    
-    private EnumSet<Feature> getPlayStyleModifiers()
-    {
-        var psms = new ArrayList<Feature>();
-        if (cb_accent.isSelected())
-        {
-            psms.add(Feature.ACCENT_MEDIUM);
-        }
-        if (cb_hold.isSelected())
-        {
-            psms.add(Feature.HOLD);
-        }
-        if (cb_shot.isSelected())
-        {
-            psms.add(Feature.SHOT);
-        }
-        if (psms.isEmpty())
-        {
-            return EnumSet.noneOf(Feature.class
-            );
-        } else if (psms.size() == 1)
-        {
-            return EnumSet.of(psms.get(0));
-        } else
-        {
-            return EnumSet.of(psms.get(0), psms.subList(1, psms.size()).toArray(new Feature[0]));
-        }
-    }
 
     private EnumSet<Feature> getFeatures()
     {
@@ -480,7 +460,8 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     // private String getOptionalText(EnumSet<PlayStyleModifier> psms, StandardScaleInstance ssi)
     private String getOptionalText(ChordRenderingInfo cri)
     {
-        return cri.getFeatures().toString();
+        String s = cri.getFeatures().toString() + (cri.getScaleInstance() == null ? "" : " - " + cri.getScaleInstance());
+        return s;
     }
 
     private void updateScales(ExtChordSymbol ecs)

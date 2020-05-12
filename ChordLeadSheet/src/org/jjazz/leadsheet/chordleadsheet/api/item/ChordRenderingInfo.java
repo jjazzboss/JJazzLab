@@ -61,7 +61,7 @@ public class ChordRenderingInfo implements Serializable
          * <p>
          * IMPORTANT: Exclusive with the other ACCENT*.
          */
-        ACCENT_LIGHT,        
+        ACCENT_LIGHT,
         ACCENT_MEDIUM,
         ACCENT_STRONG,
         /**
@@ -97,10 +97,25 @@ public class ChordRenderingInfo implements Serializable
          */
         NO_ANTICIPATION;
 
+        /**
+         * For example BASS_PEDAL will return "Bass Pedal"
+         *
+         * @return
+         */
         @Override
         public String toString()
         {
-            return name().charAt(0) + name().substring(1).toLowerCase();
+            String[] strs = name().split("_");
+            StringBuilder sb = new StringBuilder();
+            for (String s : strs)
+            {
+                if (sb.length() != 0)
+                {
+                    sb.append(" ");
+                }
+                sb.append(s.charAt(0)).append(s.substring(1).toLowerCase());
+            }
+            return sb.toString();
         }
     }
 
@@ -146,7 +161,7 @@ public class ChordRenderingInfo implements Serializable
      */
     public ChordRenderingInfo(EnumSet<Feature> features, StandardScaleInstance scale)
     {
-        this.features = (features == null) ? EnumSet.noneOf(Feature.class) : checkFeaturesConsistency(features);
+        this.features = (features == null) ? EnumSet.noneOf(Feature.class) : checkFeaturesConsistency(features.clone());
         this.scaleInstance = scale;
     }
 
@@ -162,7 +177,7 @@ public class ChordRenderingInfo implements Serializable
     }
 
     /**
-     * The rendering features.
+     * Get a copy of the rendering features.
      * <p>
      * Default value is an empty EnumSet.
      *
@@ -170,7 +185,7 @@ public class ChordRenderingInfo implements Serializable
      */
     public EnumSet<Feature> getFeatures()
     {
-        return features;
+        return features.clone();
     }
 
 
@@ -467,13 +482,13 @@ public class ChordRenderingInfo implements Serializable
                         spFeatures = null;
                         break;
                     case ACCENT:
-                        spFeatures = EnumSet.of(Feature.ACCENT_MEDIUM);
+                        spFeatures = EnumSet.of(Feature.ACCENT_LIGHT);
                         break;
                     case HOLD:
-                        spFeatures = EnumSet.of(Feature.ACCENT_MEDIUM, Feature.HOLD);
+                        spFeatures = EnumSet.of(Feature.ACCENT_LIGHT, Feature.HOLD);
                         break;
                     case SHOT:
-                        spFeatures = EnumSet.of(Feature.ACCENT_MEDIUM, Feature.SHOT);
+                        spFeatures = EnumSet.of(Feature.ACCENT_LIGHT, Feature.SHOT);
                         break;
                     default:
                         LOGGER.warning("readResolve() Invalid value for spPlayStyle=" + spPlayStyleV1 + ". Ignored.");

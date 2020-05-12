@@ -269,8 +269,6 @@ public class Phrases
 
 
         Phrase pDest = new Phrase(pSrc.getChannel());
-
-
         if (pSrc.isEmpty())
         {
             return pDest;
@@ -279,20 +277,44 @@ public class Phrases
 
         // Get the destination degrees for each source phrase degree
         HashMap<Degree, Degree> mapSrcDestDegrees = pSrc.getDestDegrees(ecsDest, ChordMode.INVERSION_ALLOWED);
+        SourcePhrase pSrcWork = pSrc; // By default
+
+
+        // heapPermutation can't handle this UNUSUAL number of degrees used. So remove the extra degrees from the source phrase and recompute the map.
+        // Code added for robustness (LimboRock.S749.prs!), eg if a rhythm uses a glissando in a chord-oriented source phrase -which is an error.
+        if (mapSrcDestDegrees.size() > 9)
+        {
+            LOGGER.log(Level.INFO, "fitChordPhrase2ChordSymbol() Unusual nb of degrees ({0}) in source phrase (channel={1}). Fixing source phrase...",
+                    new Object[]
+                    {
+                        mapSrcDestDegrees.size(), pSrc.getChannel()
+                    });
+            var extraDegrees = mapSrcDestDegrees.keySet().stream().skip(9).collect(Collectors.toList());
+            pSrcWork = pSrc.clone();
+            pSrcWork.removeIf(ne -> extraDegrees.stream().anyMatch(d -> d.getPitch() == ne.getRelativePitch()));
+            mapSrcDestDegrees = pSrcWork.getDestDegrees(ecsDest, ChordMode.INVERSION_ALLOWED);
+
+        }
+
         Collection<Degree> destDegrees = mapSrcDestDegrees.values();
 
 
         LOGGER.log(Level.FINE, "fitChordPhrase2ChordSymbol()   mapSrcDestDegrees={0}", mapSrcDestDegrees);
 
-
         // Compute all the destination degrees permutations, eg [1,3,7] [7,3,1] [3,1,7] etc.
-        // CAUTIOUS this is X! => 6!=720 permutations. But normally most Yamaha chord source phrase should use max 4 chord notes.
-        List<Degree[]> destDegreesPermutations = new ArrayList<>();
-        heapPermutation(destDegrees.toArray(new Degree[0]), destDegrees.size(), destDegrees.size(), destDegreesPermutations);
+        // CAUTIOUS this is X! => 6!=720 permutations. But normally most Yamaha chord source phrase should use max 4 or 5 chord notes.     
+        assert destDegrees.size() <= 9 : destDegrees;
+        int nbPermutations = 1;
+        for (int i = 2; i <= destDegrees.size(); i++)
+        {
+            nbPermutations *= i;
+        }
+        List<Degree[]> destDegreesPermutations = new ArrayList<>(nbPermutations);
+        heapPermutation(destDegrees.toArray(new Degree[0]), destDegrees.size(), destDegreesPermutations);
 
 
         // Chord made of each unique pitch note of the phrase
-        Chord pSrcChord = pSrc.getChord();
+        Chord pSrcChord = pSrcWork.getChord();
 
 
         // Calculate matching score for each permutation 
@@ -327,15 +349,15 @@ public class Phrases
 
         // Fix musical problems, like 2 contiguous top notes etc.
         // fixChordMusicalProblems(bestDestChord, ecsDest);
-        assert bestDestChord != null : "pSrc=" + pSrc + " ecsDest=" + ecsDest;
+        assert bestDestChord != null : "pSrcWork=" + pSrcWork + " ecsDest=" + ecsDest;
 
 
         // Create the destination phrase with the best matching chord
-        for (NoteEvent srcNote : pSrc)
+        for (NoteEvent srcNote : pSrcWork)
         {
             int srcPitch = srcNote.getPitch();
             int srcIndex = pSrcChord.indexOfPitch(srcPitch);
-            assert srcIndex != -1 : "srcPitch=" + srcPitch + " pSrcChord=" + pSrcChord + " pSrc=" + pSrc;
+            assert srcIndex != -1 : "srcPitch=" + srcPitch + " pSrcChord=" + pSrcChord + " pSrcWork=" + pSrcWork;
             int destPitch = bestDestChord.getNote(srcIndex).getPitch();
 
 
@@ -348,6 +370,52 @@ public class Phrases
         return pDest;
 
     }
+
+
+    /**
+     * Get the relative pitches corresponding to the degrees for a chord symbol whose root=rootPitch.
+     * <p>
+     * Ex: rootPitch=0, degrees=ROOT,FIFTH =&gt; return [0,7]=[C,G]
+     *
+     * @param rootPitch
+     * @param degrees
+     * @return
+     */
+    static public List<Integer> getRelativePitches(int rootPitch, Degree[] degrees)
+    {
+        if (!Note.checkPitch(rootPitch) || degrees == null)
+        {
+            throw new IllegalArgumentException("rootPitch=" + rootPitch + " degrees=" + degrees);
+        }
+        List<Integer> res = Stream.of(degrees)
+                .map(d -> Note.getNormalizedRelPitch(rootPitch + d.getPitch()))
+                .collect(Collectors.toList());
+        return res;
+    }
+
+    /**
+     * A predicate to test velocity if within the specified bounds.
+     *
+     * @param min
+     * @param max
+     * @return
+     */
+    static public Predicate<NoteEvent> testVelocityRange(final int min, final int max)
+    {
+        return ne -> ne.getVelocity() >= min && ne.getVelocity() <= max;
+    }
+
+    /**
+     * A predicate to test if the notes have one of the specified pitches.
+     *
+     * @param pitches
+     * @return
+     */
+    static public Predicate<NoteEvent> testPitches(List<Integer> pitches)
+    {
+        return ne -> pitches.contains(ne.getPitch());
+    }
+
 
     //==================================================================================================
     // Private methods
@@ -411,50 +479,6 @@ public class Phrases
 //         score, cDest
 //      });
         return score;
-    }
-
-    /**
-     * Get the relative pitches corresponding to the degrees for a chord symbol whose root=rootPitch.
-     * <p>
-     * Ex: rootPitch=0, degrees=ROOT,FIFTH =&gt; return [0,7]=[C,G]
-     *
-     * @param rootPitch
-     * @param degrees
-     * @return
-     */
-    static public List<Integer> getRelativePitches(int rootPitch, Degree[] degrees)
-    {
-        if (!Note.checkPitch(rootPitch) || degrees == null)
-        {
-            throw new IllegalArgumentException("rootPitch=" + rootPitch + " degrees=" + degrees);
-        }
-        List<Integer> res = Stream.of(degrees)
-                .map(d -> Note.getNormalizedRelPitch(rootPitch + d.getPitch()))
-                .collect(Collectors.toList());
-        return res;
-    }
-
-    /**
-     * A predicate to test velocity if within the specified bounds.
-     *
-     * @param min
-     * @param max
-     * @return
-     */
-    static public Predicate<NoteEvent> testVelocityRange(final int min, final int max)
-    {
-        return ne -> ne.getVelocity() >= min && ne.getVelocity() <= max;
-    }
-
-    /**
-     * A predicate to test if the notes have one of the specified pitches.
-     *
-     * @param pitches
-     * @return
-     */
-    static public Predicate<NoteEvent> testPitches(List<Integer> pitches)
-    {
-        return ne -> pitches.contains(ne.getPitch());
     }
 
 }

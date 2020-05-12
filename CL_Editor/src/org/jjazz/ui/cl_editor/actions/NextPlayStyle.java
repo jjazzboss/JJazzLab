@@ -23,7 +23,6 @@
 package org.jjazz.ui.cl_editor.actions;
 
 import java.awt.event.ActionEvent;
-import java.util.EnumSet;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;

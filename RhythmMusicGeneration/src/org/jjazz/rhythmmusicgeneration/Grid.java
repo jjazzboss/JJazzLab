@@ -191,7 +191,7 @@ public class Grid
         }
         var nes = getCellNotes(cellIndexFrom, cellIndexTo);
         HashSet<Integer> usedPitches = new HashSet<>();
-        for (NoteEvent ne  : nes)
+        for (NoteEvent ne : nes)
         {
             float endPosInBeats = ne.getPositionInBeats() + ne.getDurationInBeats();
             int endPosCellIndex = (endPosInBeats >= endPos) ? lastCellIndex : getCellIndex(endPosInBeats);
@@ -556,6 +556,8 @@ public class Grid
 
     /**
      * The end position in beats of this grid.
+     * <p>
+     * Note than the last cell ends at getEndPos() - getPreCellBeatWindow().
      *
      * @return An integer value.
      */

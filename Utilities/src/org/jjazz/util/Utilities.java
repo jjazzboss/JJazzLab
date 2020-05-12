@@ -183,41 +183,40 @@ public class Utilities
      * <p>
      *
      * @param <T>
-     * @param smallArray Size must be &lt;= 10, otherwise use too much memory (result size grow like N!).
-     * @param size
-     * @param n
-     * @param result The li s t o f all smallArray permutations.
+     * @param smallArray Size must be &lt;= 9, otherwise use too much memory (result size grow like N!).
+     * @param n Nb of elements to be considered
+     * @param result The list of all smallArray permutations.
      */
-    public static <T> void heapPermutation(T smallArray[], int size, int n, List<T[]> result)
+    public static <T> void heapPermutation(T smallArray[], int n, List<T[]> result)
     {
-        if (smallArray.length > 10)
+        if (smallArray.length > 9)
         {
-            throw new IllegalArgumentException("smallArray.size()=" + smallArray.length + " size=" + size + " result=" + result);
+            throw new IllegalArgumentException("smallArray.size()=" + smallArray.length + " n=" + n + " result=" + result);
         }
-        if (size == 1)
+        // Reference: https://stackoverflow.com/questions/29042819/heaps-algorithm-permutation-generator
+        if (n == 1)
         {
             T[] perm = smallArray.clone();
             result.add(perm);
-        }
-
-        for (int i = 0; i < size; i++)
+        } else
         {
-            heapPermutation(smallArray, size - 1, n, result);
-
-            // if size is odd, swap first and last 
-            // element 
-            if (size % 2 == 1)
+            heapPermutation(smallArray, n - 1, result);
+            for (int i = 0; i < n - 1; i++)
             {
-                T temp = smallArray[0];
-                smallArray[0] = smallArray[size - 1];
-                smallArray[size - 1] = temp;
-            } // If size is even, swap ith and last 
-            // element 
-            else
-            {
-                T temp = smallArray[i];
-                smallArray[i] = smallArray[size - 1];
-                smallArray[size - 1] = temp;
+                if (n % 2 == 1)
+                {
+                    // if size is odd, swap first and last element                 
+                    T temp = smallArray[0];
+                    smallArray[0] = smallArray[n - 1];
+                    smallArray[n - 1] = temp;
+                } else
+                {
+                    // If size is even, swap ith and last element 
+                    T temp = smallArray[i];
+                    smallArray[i] = smallArray[n - 1];
+                    smallArray[n - 1] = temp;
+                }
+                heapPermutation(smallArray, n - 1, result);
             }
         }
     }
@@ -475,13 +474,13 @@ public class Utilities
         return font.getFamily() + "-" + style + "-" + font.getSize();
     }
 
-     /**
+    /**
      * Get each element toString() called, one per line.
      *
      * @param map
      * @return
      */
-    public static <K,V> String toMultilineString(Map<K,V> map)
+    public static <K, V> String toMultilineString(Map<K, V> map)
     {
         if (map == null)
         {
@@ -502,7 +501,7 @@ public class Utilities
         sb.append("]");
         return sb.toString();
     }
-    
+
     /**
      * Get each element toString() called, one per line.
      *

@@ -81,9 +81,14 @@ public class StdKeyMapConverter implements KeyMapConverter
     @Override
     public int convertKey(DrumKit.KeyMap srcMap, int srcPitch, DrumKit.KeyMap destMap)
     {
-        if (srcPitch < 0 || srcPitch > 127 || srcMap.getKeyName(srcPitch) == null)
+        if (srcPitch < 0 || srcPitch > 127)
         {
             throw new IllegalArgumentException("srcMap=" + srcMap + " srcPitch=" + srcPitch + " destMap=" + destMap);
+        }
+        
+        if (srcMap.getKeyName(srcPitch) == null)
+        {
+            return -1;
         }
 
         if (!accept(srcMap, destMap))

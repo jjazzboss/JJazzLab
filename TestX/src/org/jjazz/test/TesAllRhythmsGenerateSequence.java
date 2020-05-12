@@ -24,6 +24,7 @@ package org.jjazz.test;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,7 +60,7 @@ import org.jjazz.songstructure.api.SongPart;
 //@ActionRegistration(displayName = "Test sequence generation all rhythms on current song")
 //@ActionReferences(
 //        {
-//           @ActionReference(path = "Menu/Edit", position = 50200),
+//            @ActionReference(path = "Menu/Edit", position = 50200),
 //        })
 public final class TesAllRhythmsGenerateSequence implements ActionListener
 {
@@ -114,16 +115,17 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
                 {
                     r.getName(), r.getFile().getAbsolutePath()
                 });
-                SongPart spt = sgs.getSongPart(0);
-                SongPart newSpt = spt.clone(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
-                RhythmParameter rp0 = r.getRhythmParameters().get(0);
+                var oldSpts = sgs.getSongParts();
+                var newSpts = new ArrayList<SongPart>();
+                for (SongPart spt : oldSpts)
+                {
+                    SongPart newSpt = spt.clone(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
+                    newSpts.add(newSpt);
+                }
                 try
                 {
-                    sgs.replaceSongParts(Arrays.asList(spt), Arrays.asList(newSpt));
-                    if (rp0.getDisplayName().equals("Style part") && rp0.getPossibleValues().contains("Main A"))
-                    {
-                        sgs.setRhythmParameterValue(newSpt, rp0, "Main A");
-                    }
+                    sgs.replaceSongParts(oldSpts, newSpts);
+
                     // Build the sequence
                     try
                     {
