@@ -52,7 +52,7 @@ public class ChordRenderingInfo implements Serializable
     // =================================================================================================    // =================================================================================================    // =================================================================================================    // =================================================================================================    // =================================================================================================    // =================================================================================================    // =================================================================================================    // =================================================================================================    
 
     /**
-     * Change the way music is globally rendered for a chord symbol.
+     * Change the way music is rendered for a chord symbol.
      */
     public enum Feature
     {
@@ -77,6 +77,10 @@ public class ChordRenderingInfo implements Serializable
          */
         SHOT,
         /**
+         * Make Hold/Shot applied to more instruments.
+         */
+        HOLD_SHOT_EXTENDED,
+        /**
          * Make sure there is not crash cymbal.
          * <p>
          * IMPORTANT: Exclusive with the NO_CRASH
@@ -91,14 +95,14 @@ public class ChordRenderingInfo implements Serializable
         /**
          * Bass line must only use the chord symbol root note (or bass note if specified for slash chord Am/D).
          */
-        BASS_PEDAL,
+        PEDAL_BASS,
         /**
          * Make sure chord is not played "anticipated".
          */
         NO_ANTICIPATION;
 
         /**
-         * For example BASS_PEDAL will return "Bass Pedal"
+         * For example PEDAL_BASS will return "Bass Pedal"
          *
          * @return
          */
@@ -156,7 +160,7 @@ public class ChordRenderingInfo implements Serializable
      *
      *
      * @param features If null use the default value.
-     * @param scale Can be null.
+     * @param scale Can be null if no scale defined.
      * @throws IllegalArgumentException If the features object is not consistent, e.g. SHOT and HOLD can't both be used.
      */
     public ChordRenderingInfo(EnumSet<Feature> features, StandardScaleInstance scale)
@@ -482,13 +486,13 @@ public class ChordRenderingInfo implements Serializable
                         spFeatures = null;
                         break;
                     case ACCENT:
-                        spFeatures = EnumSet.of(Feature.ACCENT_LIGHT);
+                        spFeatures = EnumSet.of(Feature.ACCENT_MEDIUM);
                         break;
                     case HOLD:
-                        spFeatures = EnumSet.of(Feature.ACCENT_LIGHT, Feature.HOLD);
+                        spFeatures = EnumSet.of(Feature.ACCENT_MEDIUM, Feature.HOLD);
                         break;
                     case SHOT:
-                        spFeatures = EnumSet.of(Feature.ACCENT_LIGHT, Feature.SHOT);
+                        spFeatures = EnumSet.of(Feature.ACCENT_MEDIUM, Feature.SHOT);
                         break;
                     default:
                         LOGGER.warning("readResolve() Invalid value for spPlayStyle=" + spPlayStyleV1 + ". Ignored.");

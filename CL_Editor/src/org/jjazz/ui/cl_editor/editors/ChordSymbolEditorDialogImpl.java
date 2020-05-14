@@ -122,7 +122,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         cb_hold.setSelected(cri.getFeatures().contains(Feature.HOLD));
         cb_shot.setSelected(cri.getFeatures().contains(Feature.SHOT));
 
-        cb_pedalBass.setSelected(cri.hasOneFeature(Feature.BASS_PEDAL));
+        cb_pedalBass.setSelected(cri.hasOneFeature(Feature.PEDAL_BASS));
 
         if (cri.getAccentFeature() != null)
         {
@@ -135,7 +135,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 case ACCENT_MEDIUM:
                     rbtn_accentMedium.setSelected(true);
                     break;
-                default:
+                default: // LIGHT
                     rbtn_accentLight.setSelected(true);
                     break;
             }
@@ -319,10 +319,21 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             {
                 res.add(Feature.ACCENT_LIGHT);
             }
+            if (rbtn_crash.isSelected())
+            {
+                res.add(Feature.CRASH);
+            } else if (rbtn_noCrash.isSelected())
+            {
+                res.add(Feature.NO_CRASH);
+            }
+            if (cb_shot.isSelected())
+            {
+                res.add(Feature.SHOT);
+            }
         }
         if (cb_pedalBass.isSelected())
         {
-            res.add(Feature.BASS_PEDAL);
+            res.add(Feature.PEDAL_BASS);
         }
         if (this.cb_hold.isSelected())
         {
@@ -332,6 +343,11 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         {
             res.add(Feature.SHOT);
         }
+        if ((res.contains(Feature.HOLD) || res.contains(Feature.SHOT)) && this.cb_extendedShotHold.isSelected())
+        {
+            res.add(Feature.HOLD_SHOT_EXTENDED);
+        }
+
         return res;
     }
 
@@ -491,7 +507,6 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         this.rbtn_accentLight.setEnabled(b);
         this.rbtn_accentStrong.setEnabled(b);
         this.rbtn_accentMedium.setEnabled(b);
-        this.lbl_accentLevel.setEnabled(b);
     }
 
     private String toNiceString(List<String> strs)
@@ -520,6 +535,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
 
         btnGroup_Condition = new javax.swing.ButtonGroup();
         btnGroup_Accent = new javax.swing.ButtonGroup();
+        btnGroup_crash = new javax.swing.ButtonGroup();
         pnl_ChordDescription = new javax.swing.JPanel();
         tf_ChordSymbolName = new NoSelectOnFocusGainedJTF();
         lbl_chordNotes = new javax.swing.JLabel();
@@ -528,16 +544,24 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         jLabel1 = new javax.swing.JLabel();
         tabbedPane = new javax.swing.JTabbedPane();
         pnl_Interpretation = new javax.swing.JPanel();
-        cb_pedalBass = new javax.swing.JCheckBox();
+        jPanel1 = new javax.swing.JPanel();
         cb_accent = new javax.swing.JCheckBox();
-        cb_hold = new javax.swing.JCheckBox();
-        cb_shot = new javax.swing.JCheckBox();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        hlptxt_playStyle = new org.jjazz.ui.utilities.HelpTextArea();
-        rbtn_accentMedium = new javax.swing.JRadioButton();
-        rbtn_accentStrong = new javax.swing.JRadioButton();
         rbtn_accentLight = new javax.swing.JRadioButton();
-        lbl_accentLevel = new javax.swing.JLabel();
+        rbtn_accentStrong = new javax.swing.JRadioButton();
+        rbtn_accentMedium = new javax.swing.JRadioButton();
+        rbtn_crash = new javax.swing.JRadioButton();
+        rbtn_crashAuto = new javax.swing.JRadioButton();
+        rbtn_noCrash = new javax.swing.JRadioButton();
+        jPanel2 = new javax.swing.JPanel();
+        cb_pedalBass = new javax.swing.JCheckBox();
+        wheelSpinner1 = new org.jjazz.ui.utilities.WheelSpinner();
+        jLabel2 = new javax.swing.JLabel();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        helpTextArea3 = new org.jjazz.ui.utilities.HelpTextArea();
+        pnl_HoldShot = new javax.swing.JPanel();
+        cb_shot = new javax.swing.JCheckBox();
+        cb_hold = new javax.swing.JCheckBox();
+        cb_extendedShotHold = new javax.swing.JCheckBox();
         pnl_Harmony = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         list_scales = new JList<>(stdScales);
@@ -557,7 +581,6 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         btn_setAltChordSymbol = new javax.swing.JButton();
         cb_useVoidAlt = new javax.swing.JCheckBox();
         pnl_OkButtons = new javax.swing.JPanel();
-        lbl_Note = new javax.swing.JLabel();
         btn_Cancel = new javax.swing.JButton();
         btn_Ok = new javax.swing.JButton();
 
@@ -619,7 +642,104 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 .addContainerGap())
         );
 
-        tabbedPane.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.tabbedPane.toolTipText")); // NOI18N
+        jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+
+        org.openide.awt.Mnemonics.setLocalizedText(cb_accent, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_accent.text")); // NOI18N
+        cb_accent.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_accent.toolTipText")); // NOI18N
+        cb_accent.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cb_accentActionPerformed(evt);
+            }
+        });
+
+        btnGroup_Accent.add(rbtn_accentLight);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_accentLight, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_accentLight.text")); // NOI18N
+        rbtn_accentLight.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_accentLight.toolTipText")); // NOI18N
+        rbtn_accentLight.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                rbtn_accentLightActionPerformed(evt);
+            }
+        });
+
+        btnGroup_Accent.add(rbtn_accentStrong);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_accentStrong, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_accentStrong.text")); // NOI18N
+        rbtn_accentStrong.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_accentStrong.toolTipText")); // NOI18N
+        rbtn_accentStrong.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                rbtn_accentStrongActionPerformed(evt);
+            }
+        });
+
+        btnGroup_Accent.add(rbtn_accentMedium);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_accentMedium, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_accentMedium.text")); // NOI18N
+        rbtn_accentMedium.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_accentMedium.toolTipText")); // NOI18N
+        rbtn_accentMedium.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                rbtn_accentMediumActionPerformed(evt);
+            }
+        });
+
+        btnGroup_crash.add(rbtn_crash);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_crash, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_crash.text")); // NOI18N
+        rbtn_crash.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_crash.toolTipText")); // NOI18N
+
+        btnGroup_crash.add(rbtn_crashAuto);
+        rbtn_crashAuto.setSelected(true);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_crashAuto, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_crashAuto.text")); // NOI18N
+        rbtn_crashAuto.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_crashAuto.toolTipText")); // NOI18N
+
+        btnGroup_crash.add(rbtn_noCrash);
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_noCrash, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_noCrash.text")); // NOI18N
+        rbtn_noCrash.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_noCrash.toolTipText")); // NOI18N
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(rbtn_crash)
+                    .addComponent(rbtn_crashAuto)
+                    .addComponent(rbtn_noCrash)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(cb_accent)
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(rbtn_accentMedium)
+                            .addComponent(rbtn_accentLight)
+                            .addComponent(rbtn_accentStrong))))
+                .addContainerGap(10, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cb_accent)
+                    .addComponent(rbtn_accentLight))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(rbtn_accentMedium)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(rbtn_accentStrong)
+                .addGap(18, 18, 18)
+                .addComponent(rbtn_crash)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(rbtn_crashAuto)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(rbtn_noCrash)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jPanel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_pedalBass, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_pedalBass.text")); // NOI18N
         cb_pedalBass.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_pedalBass.toolTipText")); // NOI18N
@@ -631,25 +751,49 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_accent, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_accent.text")); // NOI18N
-        cb_accent.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cb_accentActionPerformed(evt);
-            }
-        });
+        wheelSpinner1.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.wheelSpinner1.toolTipText")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_hold, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_hold.text")); // NOI18N
-        cb_hold.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cb_holdActionPerformed(evt);
-            }
-        });
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.jLabel2.text")); // NOI18N
+        jLabel2.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.wheelSpinner1.toolTipText")); // NOI18N
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(cb_pedalBass)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(wheelSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel2)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(wheelSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
+                .addGap(18, 18, 18)
+                .addComponent(cb_pedalBass)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jScrollPane6.setBackground(null);
+        jScrollPane6.setBorder(null);
+
+        helpTextArea3.setColumns(20);
+        helpTextArea3.setRows(5);
+        helpTextArea3.setText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.helpTextArea3.text")); // NOI18N
+        jScrollPane6.setViewportView(helpTextArea3);
+
+        pnl_HoldShot.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_shot, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_shot.text")); // NOI18N
+        cb_shot.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_shot.toolTipText")); // NOI18N
         cb_shot.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -658,71 +802,59 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             }
         });
 
-        jScrollPane1.setBorder(null);
-
-        hlptxt_playStyle.setColumns(20);
-        hlptxt_playStyle.setRows(5);
-        hlptxt_playStyle.setText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.hlptxt_playStyle.text")); // NOI18N
-        jScrollPane1.setViewportView(hlptxt_playStyle);
-
-        btnGroup_Accent.add(rbtn_accentMedium);
-        org.openide.awt.Mnemonics.setLocalizedText(rbtn_accentMedium, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_accentMedium.text")); // NOI18N
-        rbtn_accentMedium.addActionListener(new java.awt.event.ActionListener()
+        org.openide.awt.Mnemonics.setLocalizedText(cb_hold, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_hold.text")); // NOI18N
+        cb_hold.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_hold.toolTipText")); // NOI18N
+        cb_hold.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                rbtn_accentMediumActionPerformed(evt);
+                cb_holdActionPerformed(evt);
             }
         });
 
-        btnGroup_Accent.add(rbtn_accentStrong);
-        org.openide.awt.Mnemonics.setLocalizedText(rbtn_accentStrong, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_accentStrong.text")); // NOI18N
-        rbtn_accentStrong.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                rbtn_accentStrongActionPerformed(evt);
-            }
-        });
+        org.openide.awt.Mnemonics.setLocalizedText(cb_extendedShotHold, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_extendedShotHold.text")); // NOI18N
+        cb_extendedShotHold.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.cb_extendedShotHold.toolTipText")); // NOI18N
 
-        btnGroup_Accent.add(rbtn_accentLight);
-        rbtn_accentLight.setSelected(true);
-        org.openide.awt.Mnemonics.setLocalizedText(rbtn_accentLight, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.rbtn_accentLight.text")); // NOI18N
-        rbtn_accentLight.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                rbtn_accentLightActionPerformed(evt);
-            }
-        });
-
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_accentLevel, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.lbl_accentLevel.text")); // NOI18N
+        javax.swing.GroupLayout pnl_HoldShotLayout = new javax.swing.GroupLayout(pnl_HoldShot);
+        pnl_HoldShot.setLayout(pnl_HoldShotLayout);
+        pnl_HoldShotLayout.setHorizontalGroup(
+            pnl_HoldShotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnl_HoldShotLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnl_HoldShotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnl_HoldShotLayout.createSequentialGroup()
+                        .addComponent(cb_hold)
+                        .addGap(18, 18, 18)
+                        .addComponent(cb_shot))
+                    .addComponent(cb_extendedShotHold))
+                .addContainerGap(12, Short.MAX_VALUE))
+        );
+        pnl_HoldShotLayout.setVerticalGroup(
+            pnl_HoldShotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnl_HoldShotLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnl_HoldShotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cb_hold)
+                    .addComponent(cb_shot))
+                .addGap(18, 18, 18)
+                .addComponent(cb_extendedShotHold)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
         javax.swing.GroupLayout pnl_InterpretationLayout = new javax.swing.GroupLayout(pnl_Interpretation);
         pnl_Interpretation.setLayout(pnl_InterpretationLayout);
         pnl_InterpretationLayout.setHorizontalGroup(
             pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnl_InterpretationLayout.createSequentialGroup()
+            .addGroup(pnl_InterpretationLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnl_InterpretationLayout.createSequentialGroup()
-                        .addComponent(cb_pedalBass)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnl_InterpretationLayout.createSequentialGroup()
-                        .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(pnl_InterpretationLayout.createSequentialGroup()
-                                .addComponent(cb_accent)
-                                .addGap(69, 69, 69)
-                                .addComponent(lbl_accentLevel))
-                            .addComponent(cb_hold)
-                            .addComponent(cb_shot))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(rbtn_accentLight)
-                            .addComponent(rbtn_accentMedium)
-                            .addComponent(rbtn_accentStrong))
-                        .addGap(39, 39, 39)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)))
+                .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnl_InterpretationLayout.createSequentialGroup()
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(pnl_HoldShot, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jScrollPane6))
                 .addContainerGap())
         );
         pnl_InterpretationLayout.setVerticalGroup(
@@ -730,24 +862,11 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             .addGroup(pnl_InterpretationLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnl_InterpretationLayout.createSequentialGroup()
-                        .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(cb_accent)
-                            .addComponent(lbl_accentLevel)
-                            .addComponent(rbtn_accentStrong))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(cb_hold)
-                            .addComponent(rbtn_accentMedium))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(cb_shot)
-                            .addComponent(rbtn_accentLight)))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnl_InterpretationLayout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(13, 13, 13)))
-                .addGap(35, 35, 35)
-                .addComponent(cb_pedalBass)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pnl_HoldShot, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 44, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -783,7 +902,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_HarmonyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 398, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 295, Short.MAX_VALUE)
                     .addComponent(lbl_scaleTip, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(lbl_scaleNotes, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
@@ -793,7 +912,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnl_HarmonyLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnl_HarmonyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 137, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 224, Short.MAX_VALUE)
                     .addGroup(pnl_HarmonyLayout.createSequentialGroup()
                         .addComponent(lbl_scaleNotes)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -854,7 +973,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                     .addGroup(pnl_altConditionLayout.createSequentialGroup()
                         .addComponent(rbtn_marker)
                         .addGap(18, 18, 18)
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 194, Short.MAX_VALUE))))
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 127, Short.MAX_VALUE))))
         );
         pnl_altConditionLayout.setVerticalGroup(
             pnl_altConditionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -865,7 +984,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 .addGroup(pnl_altConditionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnl_altConditionLayout.createSequentialGroup()
                         .addComponent(rbtn_marker)
-                        .addContainerGap(15, Short.MAX_VALUE))
+                        .addContainerGap(110, Short.MAX_VALUE))
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)))
         );
 
@@ -937,7 +1056,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                         .addComponent(pnl_altCondition, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(pnl_AlternateLayout.createSequentialGroup()
                         .addComponent(cb_enableAlternate)
-                        .addGap(0, 177, Short.MAX_VALUE)))
+                        .addGap(0, 136, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         pnl_AlternateLayout.setVerticalGroup(
@@ -954,7 +1073,16 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
 
         tabbedPane.addTab(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.pnl_Alternate.TabConstraints.tabTitle"), null, pnl_Alternate, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.pnl_Alternate.TabConstraints.tabToolTip")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_Note, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.lbl_Note.text")); // NOI18N
+        javax.swing.GroupLayout pnl_OkButtonsLayout = new javax.swing.GroupLayout(pnl_OkButtons);
+        pnl_OkButtons.setLayout(pnl_OkButtonsLayout);
+        pnl_OkButtonsLayout.setHorizontalGroup(
+            pnl_OkButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        pnl_OkButtonsLayout.setVerticalGroup(
+            pnl_OkButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 34, Short.MAX_VALUE)
+        );
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.btn_Cancel.text")); // NOI18N
         btn_Cancel.addActionListener(new java.awt.event.ActionListener()
@@ -974,43 +1102,22 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             }
         });
 
-        javax.swing.GroupLayout pnl_OkButtonsLayout = new javax.swing.GroupLayout(pnl_OkButtons);
-        pnl_OkButtons.setLayout(pnl_OkButtonsLayout);
-        pnl_OkButtonsLayout.setHorizontalGroup(
-            pnl_OkButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnl_OkButtonsLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(lbl_Note)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btn_Ok, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(btn_Cancel)
-                .addContainerGap())
-        );
-        pnl_OkButtonsLayout.setVerticalGroup(
-            pnl_OkButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnl_OkButtonsLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(pnl_OkButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lbl_Note)
-                    .addComponent(btn_Cancel)
-                    .addComponent(btn_Ok))
-                .addContainerGap(16, Short.MAX_VALUE))
-        );
-
-        lbl_Note.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.lbl_Note.AccessibleContext.accessibleName")); // NOI18N
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(0, 0, 0)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(pnl_ChordDescription, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(pnl_OkButtons, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(tabbedPane, javax.swing.GroupLayout.Alignment.LEADING))
-                .addContainerGap())
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(pnl_OkButtons, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_Ok, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_Cancel)
+                        .addContainerGap())
+                    .addComponent(tabbedPane, javax.swing.GroupLayout.Alignment.LEADING)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1020,7 +1127,11 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(tabbedPane)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pnl_OkButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(pnl_OkButtons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(btn_Cancel)
+                        .addComponent(btn_Ok))))
         );
 
         pack();
@@ -1147,15 +1258,15 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         updateOptionalText();
     }//GEN-LAST:event_rbtn_accentMediumActionPerformed
 
-    private void rbtn_accentLightActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_accentLightActionPerformed
-    {//GEN-HEADEREND:event_rbtn_accentLightActionPerformed
-        updateOptionalText();
-    }//GEN-LAST:event_rbtn_accentLightActionPerformed
-
     private void cb_pedalBassActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_pedalBassActionPerformed
     {//GEN-HEADEREND:event_cb_pedalBassActionPerformed
         updateOptionalText();
     }//GEN-LAST:event_cb_pedalBassActionPerformed
+
+    private void rbtn_accentLightActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rbtn_accentLightActionPerformed
+    {//GEN-HEADEREND:event_rbtn_accentLightActionPerformed
+        updateOptionalText();
+    }//GEN-LAST:event_rbtn_accentLightActionPerformed
 
     /**
      * Overridden to add global key bindings
@@ -1193,24 +1304,27 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup btnGroup_Accent;
     private javax.swing.ButtonGroup btnGroup_Condition;
+    private javax.swing.ButtonGroup btnGroup_crash;
     private javax.swing.JButton btn_Cancel;
     private javax.swing.JButton btn_Ok;
     private javax.swing.JButton btn_setAltChordSymbol;
     private javax.swing.JCheckBox cb_accent;
     private javax.swing.JCheckBox cb_enableAlternate;
+    private javax.swing.JCheckBox cb_extendedShotHold;
     private javax.swing.JCheckBox cb_hold;
     private javax.swing.JCheckBox cb_pedalBass;
     private javax.swing.JCheckBox cb_shot;
     private javax.swing.JCheckBox cb_useVoidAlt;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea2;
-    private org.jjazz.ui.utilities.HelpTextArea hlptxt_playStyle;
+    private org.jjazz.ui.utilities.HelpTextArea helpTextArea3;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JLabel lbl_Note;
-    private javax.swing.JLabel lbl_accentLevel;
+    private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JLabel lbl_altChordSymbol;
     private javax.swing.JLabel lbl_chordNotes;
     private javax.swing.JLabel lbl_optionalAltText;
@@ -1222,6 +1336,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     private javax.swing.JPanel pnl_Alternate;
     private javax.swing.JPanel pnl_ChordDescription;
     private javax.swing.JPanel pnl_Harmony;
+    private javax.swing.JPanel pnl_HoldShot;
     private javax.swing.JPanel pnl_Interpretation;
     private javax.swing.JPanel pnl_OkButtons;
     private javax.swing.JPanel pnl_altChordSymbol;
@@ -1229,10 +1344,14 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     private javax.swing.JRadioButton rbtn_accentLight;
     private javax.swing.JRadioButton rbtn_accentMedium;
     private javax.swing.JRadioButton rbtn_accentStrong;
+    private javax.swing.JRadioButton rbtn_crash;
+    private javax.swing.JRadioButton rbtn_crashAuto;
     private javax.swing.JRadioButton rbtn_marker;
+    private javax.swing.JRadioButton rbtn_noCrash;
     private javax.swing.JRadioButton rbtn_random;
     private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JTextField tf_ChordSymbolName;
+    private org.jjazz.ui.utilities.WheelSpinner wheelSpinner1;
     // End of variables declaration//GEN-END:variables
 
 //==========================================================================================================

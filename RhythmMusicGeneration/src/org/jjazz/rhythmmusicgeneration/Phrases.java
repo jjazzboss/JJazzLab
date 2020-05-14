@@ -177,7 +177,7 @@ public class Phrases
         }
 
         // Prepare data
-        boolean useFixedNote = ecsDest.getRenderingInfo().hasAllFeatures(Feature.BASS_PEDAL);
+        boolean useFixedNote = ecsDest.getRenderingInfo().hasAllFeatures(Feature.PEDAL_BASS);
         int rootPitchDelta = Note.getNormalizedRelPitch(
                 ecsDest.getRootNote().getRelativePitch() - pSrc.getSourceChordSymbol().getRootNote().getRelativePitch());
         ExtChordSymbol ecsSrc = pSrc.getSourceChordSymbol();

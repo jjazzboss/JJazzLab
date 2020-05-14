@@ -53,7 +53,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     private ChordRenderingInfo renderingInfo;
     private AltExtChordSymbol altChordSymbol;
     private AltDataFilter altFilter;
-    private static final ChordRenderingInfo DEFAULT_CRI_FOR_SLASH_CHORD = new ChordRenderingInfo(EnumSet.of(Feature.BASS_PEDAL), null);
+    private static final ChordRenderingInfo DEFAULT_CRI_FOR_SLASH_CHORD = new ChordRenderingInfo(EnumSet.of(Feature.PEDAL_BASS), null);
     private static final Logger LOGGER = Logger.getLogger(ExtChordSymbol.class.getSimpleName());
 
     /**

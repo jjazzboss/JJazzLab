@@ -143,9 +143,9 @@ public class Chord implements Cloneable
     /**
      * Use the specified relative pitches and this chord intervals to create a new chord.
      * <p>
-     * Ex: if this=C2,G3,E4 and relPitches=Ab0,Eb0,C0 (3,5,7 degrees of Fm7) and startBelow=true<br>
+     * Ex: if this=C2,G3,E4 and relPitches=Ab0,Eb0,C0 (3,7,5 degrees of Fm7) and startBelow=true<br>
      * then result chord=Ab1,Eb3,C4<p>
-     * Ex: if this=C1,C2,G3,E4 and relPitches=Ab0,Eb0,C0 (3,5,7 degrees of Fm7) and startBelow=false<br>
+     * Ex: if this=C1,C2,G3,E4 and relPitches=Ab0,Eb0,C0 (3,7,5 degrees of Fm7) and startBelow=false<br>
      * then result chord=Ab1,Ab2,Eb4,C5<p>
      * Normally the resulting chord has the same size than this chord. However if we reach the upper pitch limit (127) during the
      * calculation this can result in a smallest chord (because 2 notes end up having the same pitch).
