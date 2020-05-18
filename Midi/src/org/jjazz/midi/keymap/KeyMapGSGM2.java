@@ -23,6 +23,7 @@
 package org.jjazz.midi.keymap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import org.jjazz.midi.DrumKit;
@@ -35,6 +36,14 @@ public class KeyMapGSGM2 implements KeyMap
 {
 
     public static final String NAME = "GS_GM2";
+    private static final Integer[] CRASH_KEYS = new Integer[]
+    {
+        49, 52, 55, 57
+    };
+    private static final Integer[] OPEN_HI_HAT_KEYS = new Integer[]
+    {
+        46
+    };    
     private static KeyMapGSGM2 INSTANCE;
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
@@ -57,9 +66,9 @@ public class KeyMapGSGM2 implements KeyMap
     {
         addNote("Beep 1", 22, false);       // SC-88 pro only
         addNote("Beep 2", 23, false);       // SC-88 pro only
-        addNote("Concert Snare", 24, false);    // SC-88 pro only
+        addNote("Concert Snare", 24, true);    // SC-88 pro only
         addNote("SNARE ROLL", 25, false);
-        addNote("FINGER SNAP", 26, false);
+        addNote("FINGER SNAP", 26, true);
         addNote("HIGH Q", 27, false);
         addNote("SLAP", 28, false);
         addNote("SCRATCH PUSH", 29, false);
@@ -151,6 +160,18 @@ public class KeyMapGSGM2 implements KeyMap
     public KeyRange getRange()
     {
         return range;
+    }
+    
+     @Override
+    public List<Integer> getCrashKeys()
+    {
+        return Arrays.asList(CRASH_KEYS);
+    }
+
+    @Override
+    public List<Integer> getOpenHiHatKeys()
+    {
+        return Arrays.asList(OPEN_HI_HAT_KEYS);
     }
 
     @Override

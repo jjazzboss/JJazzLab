@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TooManyListenersException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -404,7 +405,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             selectionLookupContent.remove(spt);
             selectionLastContent.remove(spt);
         }
-        LOGGER.log(Level.FINE, "After selectSongPart() b=" + b + " spt=" + spt + " lkp=" + lookup);
+        // LOGGER.log(Level.FINE, "After selectSongPart() b=" + b + " spt=" + spt + " lkp=" + lookup);
     }
 
     @Override
@@ -811,6 +812,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                     SptReplacedEvent re = (SptReplacedEvent) e;
                     List<SongPart> oldSpts = re.getSongParts();
                     List<SongPart> newSpts = re.getNewSpts();
+                    LOGGER.log(Level.FINE, "SS_EditorImpl.songStructureChanged()   newSpts=" + newSpts);
 
                     // Save selection so we can restore it the best we can after replacing
                     SS_SelectionUtilities previousSelection = new SS_SelectionUtilities(selectionLookup);
@@ -1169,10 +1171,12 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                     .forEach(tmp::add);
         }
 
-        // Add TempoFactor and Marker except only if there are used (and not already present)
+        
+        // Add TempoFactor and Marker only if there are actually used, and not already present
         r.getRhythmParameters().stream()
-                .filter(rp -> (rp instanceof RP_SYS_Marker) || (rp instanceof RP_SYS_TempoFactor))
-                .filter(rp -> sgsModel.getSongParts().stream().anyMatch(sp -> !sp.getRPValue(rp).equals(rp.getDefaultValue())))
+                .filter(rp -> rp instanceof RP_SYS_Marker)
+                .filter(rp -> sgsModel.getSongParts().stream()
+                        .anyMatch(spt -> RP_SYS_Marker.getMarkerRp(spt.getRhythm()) != null && !spt.getRPValue(rp).equals(rp.getDefaultValue())))
                 .forEach(rp ->
                 {
                     if (!tmp.contains(rp))
@@ -1180,6 +1184,18 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                         tmp.add(rp);
                     }
                 });
+        r.getRhythmParameters().stream()
+                .filter(rp -> rp instanceof RP_SYS_TempoFactor)
+                .filter(rp -> sgsModel.getSongParts().stream()
+                        .anyMatch(spt -> RP_SYS_TempoFactor.getTempoFactorRp(spt.getRhythm()) != null && !spt.getRPValue(rp).equals(rp.getDefaultValue())))
+                .forEach(rp ->
+                {
+                    if (!tmp.contains(rp))
+                    {
+                        tmp.add(rp);
+                    }
+                });
+
 
         // Reorder
         var res = new ArrayList<RhythmParameter<?>>();

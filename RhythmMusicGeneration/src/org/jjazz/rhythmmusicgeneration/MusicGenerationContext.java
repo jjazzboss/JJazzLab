@@ -269,7 +269,7 @@ public class MusicGenerationContext
      */
     public boolean contains(SongPart spt)
     {
-        return spt.getBarRange().intersect(range);
+        return spt.getBarRange().contains(range);
     }
 
     /**

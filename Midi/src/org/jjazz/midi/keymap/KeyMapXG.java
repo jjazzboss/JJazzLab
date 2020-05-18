@@ -23,6 +23,7 @@
 package org.jjazz.midi.keymap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import org.jjazz.midi.DrumKit;
@@ -35,11 +36,19 @@ public class KeyMapXG implements DrumKit.KeyMap
 {
 
     public static final String NAME = "XG";
+    private static final Integer[] CRASH_KEYS = new Integer[]
+    {
+        49, 52, 55, 57
+    };
+    private static final Integer[] OPEN_HI_HAT_KEYS = new Integer[]
+    {
+        46
+    };
     private static KeyMapXG INSTANCE;
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
     private ArrayList<Integer> accentPitches = new ArrayList<>();
-    private final KeyRange range = new KeyRange(13, 84);    
+    private final KeyRange range = new KeyRange(13, 84);
 
     public static KeyMapXG getInstance()
     {
@@ -67,16 +76,16 @@ public class KeyMapXG implements DrumKit.KeyMap
         addNote("Metronome Bell", 22, false);
         addNote("Seq Click Low", 23, false);
         addNote("Seq Click High", 24, false);
-        addNote("Brush Tap", 25, false);
+        addNote("Brush Tap", 25, true);
         addNote("Brush Swirl Low", 26, false);
-        addNote("Brush Slap", 27, false);
+        addNote("Brush Slap", 27, true);
         addNote("Brush Tap Swirl", 28, false);
         addNote("Snare Roll", 29, false);
         addNote("Castanets", 30, false);
-        addNote("Snare Soft", 31, false);
-        addNote("Stick", 32, false);
+        addNote("Snare Soft", 31, true);
+        addNote("Stick", 32, true);
         addNote("Kick Soft", 33, true);
-        addNote("Rim Shot Open", 34, false);
+        addNote("Rim Shot Open", 34, true);
         addNote("Kick tight", 35, true);
         addNote("BASS DRUM 1", 36, true);
         addNote("SIDE STICK", 37, true);
@@ -140,12 +149,12 @@ public class KeyMapXG implements DrumKit.KeyMap
     {
         return otherKeyMap == this || otherKeyMap == KeyMapGM.getInstance();
     }
-    
-       @Override
+
+    @Override
     public KeyRange getRange()
     {
         return range;
-    }    
+    }
 
     @Override
     public String getKeyName(int pitch)
@@ -153,12 +162,12 @@ public class KeyMapXG implements DrumKit.KeyMap
         return mapPitchName.get(pitch);
     }
 
-        @Override
+    @Override
     public String toString()
     {
         return getName();
     }
-    
+
     @Override
     public int getKey(String name)
     {
@@ -170,6 +179,18 @@ public class KeyMapXG implements DrumKit.KeyMap
     public List<Integer> getAccentKeys()
     {
         return new ArrayList<>(accentPitches);
+    }
+
+    @Override
+    public List<Integer> getCrashKeys()
+    {
+        return Arrays.asList(CRASH_KEYS);
+    }
+
+    @Override
+    public List<Integer> getOpenHiHatKeys()
+    {
+        return Arrays.asList(OPEN_HI_HAT_KEYS);
     }
 
     private void addNote(String name, int pitch, boolean isAccent)

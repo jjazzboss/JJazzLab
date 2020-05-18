@@ -88,6 +88,22 @@ public class FloatRange
     }
 
     /**
+     * Check if specified range is within this float range.
+     *
+     * @param fr
+     * @param excludeUpperBound If true, fr.to must be &lt; this.to to be considered as contained.
+     * @return
+     */
+    public boolean contains(FloatRange fr, boolean excludeUpperBound)
+    {
+        if (isEmpty() || fr.isEmpty())
+        {
+            return false;
+        }
+        return fr.from >= from && (excludeUpperBound ? fr.to < to : fr.from <= to);
+    }
+
+    /**
      *
      * @param rg
      * @return Can return the EMPTY_RANGE if no intersection.
@@ -101,6 +117,24 @@ public class FloatRange
         float maxFrom = Math.max(from, rg.from);
         float minTo = Math.min(to, rg.to);
         return new FloatRange(maxFrom, minTo);
+    }
+
+    /**
+     * Get a new range with bounds modified.
+     * <p>
+     * Modifying the empty range returns the empty range.
+     *
+     * @param fromOffset
+     * @param toOffset
+     * @return
+     */
+    public FloatRange getTransformed(float fromOffset, float toOffset)
+    {
+        if (isEmpty())
+        {
+            return this;
+        }
+        return new FloatRange(from + fromOffset, to + toOffset);
     }
 
     public boolean intersect(FloatRange rg)

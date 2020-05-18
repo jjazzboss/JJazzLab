@@ -94,6 +94,22 @@ public class DrumKit
          */
         public List<Integer> getAccentKeys();
 
+        /**
+         * Get the notes used for a cymbal crash in this DrumMap.
+         * <p>
+         *
+         * @return Can be an empty list.
+         */
+        public List<Integer> getCrashKeys();
+
+        /**
+         * Get the notes used for a open hi-hat in this DrumMap.
+         * <p>
+         *
+         * @return Can be an empty list.
+         */
+        public List<Integer> getOpenHiHatKeys();
+
     }
 
     /**

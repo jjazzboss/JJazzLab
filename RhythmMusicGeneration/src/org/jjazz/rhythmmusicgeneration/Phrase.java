@@ -72,6 +72,20 @@ public class Phrase extends LinkedList<NoteEvent>
     }
 
     /**
+     * Should be used only when caller is sure that added NoteEvent has the last position.
+     * <p>
+     * Otherwise use addOrdered().
+     *
+     * @param ne
+     * @return
+     */
+    @Override
+    public boolean add(NoteEvent ne)
+    {
+        return super.add(ne);
+    }
+
+    /**
      * Add a clone of each p's events to this phrase.
      *
      * @param p
@@ -80,7 +94,7 @@ public class Phrase extends LinkedList<NoteEvent>
     {
         for (NoteEvent mne : p)
         {
-            add(mne.clone());
+            addOrdered(mne.clone());
         }
     }
 
@@ -210,7 +224,7 @@ public class Phrase extends LinkedList<NoteEvent>
      * - the source note from this phrase.
      *
      * @param tester
-     * @param mapper The mapper must NOT change the position
+     * @param mapper
      * @return
      */
     public Phrase getProcessedPhrase(Predicate<NoteEvent> tester, Function<NoteEvent, NoteEvent> mapper)
@@ -226,7 +240,7 @@ public class Phrase extends LinkedList<NoteEvent>
                 {
                     newNe.putClientProperty(PARENT_NOTE, ne);         // If no previous PARENT_NOTE client property we can add one
                 }
-                res.add(newNe);
+                res.addOrdered(newNe);
             }
         }
         return res;

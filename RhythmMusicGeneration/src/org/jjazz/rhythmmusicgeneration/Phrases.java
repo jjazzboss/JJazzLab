@@ -36,6 +36,7 @@ import org.jjazz.harmony.ChordType;
 import org.jjazz.harmony.Degree;
 import org.jjazz.harmony.Note;
 import org.jjazz.harmony.ScaleManager;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import static org.jjazz.rhythmmusicgeneration.Phrase.PARENT_NOTE;
@@ -94,7 +95,7 @@ public class Phrases
         {
             throw new IllegalArgumentException("pSrc=" + pSrc + " ecsDest=" + ecsDest);
         }
-        LOGGER.fine("fitMelodyPhrase2ChordSymbol() -- ecsDest=" + ecsDest + "chordMode=" + chordMode + " pSrc=" + pSrc);
+        LOGGER.fine("fitMelodyPhrase2ChordSymbol() -- ecsDest=" + ecsDest + " chordMode=" + chordMode + " pSrc=" + pSrc);
         Phrase pDest = new Phrase(pSrc.getChannel());
         if (pSrc.isEmpty())
         {
@@ -108,7 +109,7 @@ public class Phrases
         ExtChordSymbol ecsSrc = pSrc.getSourceChordSymbol();
 
 
-        if (ecsSrc.isSameChordType(ecsDest))
+        if (ecsSrc.isSameChordType(ecsDest) && ecsDest.getRenderingInfo().getScaleInstance() == null)
         {
             // Special case, same chord types, just transpose notes to destination key
             for (NoteEvent srcNote : pSrc)
@@ -167,7 +168,7 @@ public class Phrases
         }
 
 
-        LOGGER.fine("fitBassPhrase2ChordSymbol() -- ecsDest=" + ecsDest + " pSrc=" + pSrc);
+        LOGGER.fine("fitBassPhrase2ChordSymbol() -- ecsDest=" + ecsDest + " ecsDest.cri=" + ecsDest.getRenderingInfo() + " pSrc=" + pSrc);
 
 
         Phrase pDest = new Phrase(pSrc.getChannel());
@@ -181,10 +182,11 @@ public class Phrases
         int rootPitchDelta = Note.getNormalizedRelPitch(
                 ecsDest.getRootNote().getRelativePitch() - pSrc.getSourceChordSymbol().getRootNote().getRelativePitch());
         ExtChordSymbol ecsSrc = pSrc.getSourceChordSymbol();
+        ChordRenderingInfo cri = ecsDest.getRenderingInfo();
 
 
-        // Special case, same chord types, just transpose notes to destination key
-        if (ecsSrc.isSameChordType(ecsDest))
+        // Special case, same chord types, no harmony defined, just transpose notes to destination key
+        if (ecsSrc.isSameChordType(ecsDest) && cri.getScaleInstance() == null)
         {
 
             for (NoteEvent srcNote : pSrc)
@@ -392,30 +394,6 @@ public class Phrases
                 .collect(Collectors.toList());
         return res;
     }
-
-    /**
-     * A predicate to test velocity if within the specified bounds.
-     *
-     * @param min
-     * @param max
-     * @return
-     */
-    static public Predicate<NoteEvent> testVelocityRange(final int min, final int max)
-    {
-        return ne -> ne.getVelocity() >= min && ne.getVelocity() <= max;
-    }
-
-    /**
-     * A predicate to test if the notes have one of the specified pitches.
-     *
-     * @param pitches
-     * @return
-     */
-    static public Predicate<NoteEvent> testPitches(List<Integer> pitches)
-    {
-        return ne -> pitches.contains(ne.getPitch());
-    }
-
 
     //==================================================================================================
     // Private methods

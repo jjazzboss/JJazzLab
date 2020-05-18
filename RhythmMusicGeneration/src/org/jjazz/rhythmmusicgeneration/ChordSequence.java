@@ -33,11 +33,12 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.util.FloatRange;
 import org.jjazz.util.IntRange;
 
-/*
+/**
  * A convenience class to manipulate chord symbols sequences.
- *
+ * <p>
  * User is responsible to ensure CLI_ChordSymbols are added in the right position order and in the startBar/nbBars range.
  */
 public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Comparable<ChordSequence>, Cloneable
@@ -90,6 +91,22 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     public final IntRange getRange()
     {
         return new IntRange(startBar, startBar + nbBars - 1);
+    }
+
+    /**
+     * The beat range provided sequence starts at startBarPosInBeats.
+     *
+     * @param startBarPosInBeats
+     * @param ts
+     * @return
+     */
+    public final FloatRange getBeatRange(float startBarPosInBeats, TimeSignature ts)
+    {
+        if (startBarPosInBeats < 0 || ts == null)
+        {
+            throw new IllegalArgumentException("startBarPosInBeats=" + startBarPosInBeats + " ts=" + ts);
+        }
+        return new FloatRange(startBarPosInBeats, startBarPosInBeats + nbBars * ts.getNbNaturalBeats());
     }
 
     /**
@@ -147,20 +164,19 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     }
 
     /**
-     * Get the absolution position in beats of the specified chord symbol.
+     * Convert the specified position into an absolute position in natural beats.
      *
-     * @param chordIndex
-     * @param ts
-     * @param startBarPosInBeats The position in beats of the start of this ChordSequence.
-     * @return
+     * @param pos
+     * @param ts The TimeSignature of this chord sequence.
+     * @param startBarPosInBeats The start position of this chord sequence.
+     * @return If pos is beyond the end of this ChordSequence, then returned value will also be beyond this ChordSequence.
      */
-    public float getChordAbsolutePosition(int chordIndex, TimeSignature ts, float startBarPosInBeats)
+    public float toPositionInBeats(Position pos, TimeSignature ts, float startBarPosInBeats)
     {
-        if (chordIndex < 0 || chordIndex >= size() || ts == null || startBarPosInBeats < 0)
+        if (pos == null || ts == null || startBarPosInBeats < 0)
         {
-            throw new IllegalArgumentException("chordIndex=" + chordIndex + " ts=" + ts + " startBarPosInBeats=" + startBarPosInBeats);
+            throw new IllegalArgumentException("pos=" + pos + " ts=" + ts + " startBarPosInBeats=" + startBarPosInBeats);
         }
-        Position pos = get(chordIndex).getPosition();
         float relPosInBeats = (pos.getBar() - startBar) * ts.getNbNaturalBeats() + pos.getBeat();
         return startBarPosInBeats + relPosInBeats;
     }

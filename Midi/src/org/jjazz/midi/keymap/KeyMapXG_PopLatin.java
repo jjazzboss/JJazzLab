@@ -23,6 +23,7 @@
 package org.jjazz.midi.keymap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import org.jjazz.midi.DrumKit;
@@ -34,6 +35,15 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
 {
 
     public static final String NAME = "XG_POPLATIN";
+    private static final Integer[] CRASH_KEYS = new Integer[]
+    {
+        
+    };
+    private static final Integer[] OPEN_HI_HAT_KEYS = new Integer[]
+    {
+        
+    };
+
     private static KeyMapXG_PopLatin INSTANCE;
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
@@ -163,6 +173,18 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
     {
         Integer res = mapNamePitch.get(noteName.toUpperCase());
         return res != null ? res : -1;
+    }
+
+    @Override
+    public List<Integer> getCrashKeys()
+    {
+        return Arrays.asList(CRASH_KEYS);
+    }
+
+    @Override
+    public List<Integer> getOpenHiHatKeys()
+    {
+        return Arrays.asList(OPEN_HI_HAT_KEYS);
     }
 
     @Override

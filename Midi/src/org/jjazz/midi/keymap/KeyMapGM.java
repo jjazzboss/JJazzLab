@@ -23,6 +23,7 @@
 package org.jjazz.midi.keymap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import org.jjazz.midi.DrumKit;
@@ -34,8 +35,17 @@ public class KeyMapGM implements DrumKit.KeyMap
 {
 
     public static final String NAME = "GM";
+    private static final Integer[] CRASH_KEYS = new Integer[]
+    {
+        49, 52, 55, 57
+    };
+    private static final Integer[] OPEN_HI_HAT_KEYS = new Integer[]
+    {
+        46
+    };
+
     private static KeyMapGM INSTANCE;
-    private final KeyRange range = new KeyRange(35,81);
+    private final KeyRange range = new KeyRange(35, 81);
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
     private ArrayList<Integer> accentPitches = new ArrayList<>();
@@ -108,14 +118,14 @@ public class KeyMapGM implements DrumKit.KeyMap
     public KeyRange getRange()
     {
         return range;
-    }    
-    
+    }
+
     @Override
     public String getName()
     {
         return NAME;
     }
-    
+
     @Override
     public String toString()
     {
@@ -139,6 +149,18 @@ public class KeyMapGM implements DrumKit.KeyMap
     public List<Integer> getAccentKeys()
     {
         return new ArrayList<>(accentPitches);
+    }
+
+    @Override
+    public List<Integer> getCrashKeys()
+    {
+        return Arrays.asList(CRASH_KEYS);
+    }
+
+    @Override
+    public List<Integer> getOpenHiHatKeys()
+    {
+        return Arrays.asList(OPEN_HI_HAT_KEYS);
     }
 
     @Override

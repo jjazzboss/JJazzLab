@@ -173,7 +173,7 @@ public class DummyGenerator implements MusicGenerator
             CLI_ChordSymbol cli = cSeq.get(i);
             int bassPitch = 3 * 12 + cli.getData().getBassNote().getRelativePitch(); // stay on the 3rd octave            
             float duration = cSeq.getChordDuration(i, ts);
-            float posInBeats = cSeq.getChordAbsolutePosition(i, ts, startPosInBeats);
+            float posInBeats = cSeq.toPositionInBeats(cli.getPosition(), ts, startPosInBeats);
             NoteEvent ne = new NoteEvent(bassPitch, duration, 80, posInBeats);
             p.addOrdered(ne);
         }

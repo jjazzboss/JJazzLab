@@ -81,12 +81,44 @@ public class IntRange
 
     /**
      *
+     * Check if specified range is contained in this range.
+     *
+     * @param r
+     * @return
+     */
+    public boolean contains(IntRange r)
+    {
+        return !(this == EMPTY_RANGE || r == EMPTY_RANGE || r.from > to || from > r.to);
+    }
+
+    /**
+     * Get a new range with bounds modified.
+     * <p>
+     * If this object is the the empty range, just return the empty range.
+     *
+     * @param fromOffset
+     * @param toOffset
+     * @return
+     */
+    public IntRange getTransformed(int fromOffset, int toOffset)
+    {
+        if (isEmpty())
+        {
+            return this;
+        } else
+        {
+            return new IntRange(from + fromOffset, to + toOffset);
+        }
+    }
+
+    /**
+     *
      * @param r
      * @return Can return the EMPTY_RANGE if no intersection.
      */
     public IntRange getIntersectRange(IntRange r)
     {
-        if (!intersect(r))
+        if (!contains(r))
         {
             return EMPTY_RANGE;
         }
@@ -95,10 +127,6 @@ public class IntRange
         return new IntRange(maxFrom, minTo);
     }
 
-    public boolean intersect(IntRange r)
-    {
-        return !(this == EMPTY_RANGE || r == EMPTY_RANGE || r.from > to || from > r.to);
-    }
 
     @Override
     public String toString()

@@ -114,15 +114,15 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         LOGGER.fine("changeRhythm() -- selectedSpts=" + selectedSpts);
 
         List<SongPart> selSpts = new ArrayList<>(selectedSpts);               // Copy to avoid concurrent modifications
-        SongPart spt0 = selSpts.get(0);
-        SongStructure sgs = spt0.getContainer();
+        SongPart selSpt0 = selSpts.get(0);
+        SongStructure sgs = selSpt0.getContainer();
         List<SongPart> allSpts = new ArrayList<>(sgs.getSongParts());       // Copy to avoid concurrent modifications
 
         // Initialize and show dialog
         RhythmSelectionDialog dlg = RhythmSelectionDialog.getDefault();
-        Rhythm r0 = spt0.getRhythm();
-        dlg.preset(r0);
-        dlg.setTitleLabel("Select a " + r0.getTimeSignature() + " rhythm");
+        Rhythm rSelSpt0 = selSpt0.getRhythm();
+        dlg.preset(rSelSpt0);
+        dlg.setTitleLabel("Select a " + rSelSpt0.getTimeSignature() + " rhythm");
         if (!dialogShown)
         {
             dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
@@ -161,14 +161,14 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             // Special case:
             // Apply new rhythm also to next song parts (although they were not selected)
             // Stop at first spt which does not share the same rhythm than spt0
-            int index = allSpts.indexOf(spt0);
-            if (newRhythm != r0)
+            int index = allSpts.indexOf(selSpt0);
+            if (newRhythm != rSelSpt0)
             {
                 // Get the spts and prepare the new spts
                 for (int i = index; i < allSpts.size(); i++)
                 {
                     SongPart spt = allSpts.get(i);
-                    if (spt.getRhythm() != r0)
+                    if (spt.getRhythm() != rSelSpt0)
                     {
                         // Exit at first different spt
                         break;
@@ -183,7 +183,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             // Normal case, just apply when needed to selected song parts with same timesignature
             for (SongPart oldSpt : selSpts)
             {
-                if (!oldSpt.getRhythm().equals(newRhythm) && oldSpt.getRhythm().getTimeSignature().equals(newRhythm.getTimeSignature()))
+                if (oldSpt.getRhythm() != newRhythm && oldSpt.getRhythm().getTimeSignature().equals(newRhythm.getTimeSignature()))
                 {
                     oldSpts.add(oldSpt);
                     SongPart newSpt = oldSpt.clone(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
