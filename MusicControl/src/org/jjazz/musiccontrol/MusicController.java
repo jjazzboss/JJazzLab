@@ -53,7 +53,7 @@ import static org.jjazz.musiccontrol.Bundle.*;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.NoteEvent;
 import org.jjazz.rhythmmusicgeneration.Phrase;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
@@ -189,7 +189,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      *
      * @param context Can be null.
      * @param postProcessors Optional PostProcessors to use when generating the backing track.
-     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException
+     * @throws org.jjazz.rhythm.api.MusicGenerationException
      */
     public void setContext(MusicGenerationContext context, MusicGenerator.PostProcessor... postProcessors) throws MusicGenerationException
     {
@@ -309,7 +309,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * If played/paused song was modified, then resume() will just redirect to the play() method. If state is not PLAYBACK_PAUSED,
      * nothing is done.
      *
-     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException
+     * @throws org.jjazz.rhythm.api.MusicGenerationException
      * @throws java.beans.PropertyVetoException
      */
     public void resume() throws MusicGenerationException, PropertyVetoException
@@ -512,7 +512,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * @param fixPitch -1 means not used.
      * @param transpose Transposition value in semi-tons to be added to test notes. Ignored if fixPitch&gt;=0.
      * @param endAction Called when sequence is over. Can be null.
-     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException If a problem occurred. endAction.run() is called before
+     * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occurred. endAction.run() is called before
      * throwing the exception.
      */
     public void playTestNotes(int channel, int fixPitch, int transpose, final Runnable endAction) throws MusicGenerationException
@@ -534,7 +534,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      *
      * @param p
      * @param endAction Called when sequence is over. Can be null.
-     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException If a problem occurred. endAction.run() is called before
+     * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occurred. endAction.run() is called before
      * throwing the exception.
      */
     public void playTestNotes(Phrase p, final Runnable endAction) throws MusicGenerationException

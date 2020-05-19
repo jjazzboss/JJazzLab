@@ -286,7 +286,7 @@ public class Phrases
         // Code added for robustness (LimboRock.S749.prs!), eg if a rhythm uses a glissando in a chord-oriented source phrase -which is an error.
         if (mapSrcDestDegrees.size() > 9)
         {
-            LOGGER.log(Level.INFO, "fitChordPhrase2ChordSymbol() Unusual nb of degrees ({0}) in source phrase (channel={1}). Fixing source phrase...",
+            LOGGER.log(Level.INFO, "fitChordPhrase2ChordSymbol() Unusual high nb of degrees ({0}) used in source phrase (channel={1}). Fixing source phrase...",
                     new Object[]
                     {
                         mapSrcDestDegrees.size(), pSrc.getChannel()

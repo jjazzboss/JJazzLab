@@ -48,6 +48,7 @@ import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.*;
 import org.openide.modules.OnStop;
+import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
@@ -105,25 +106,7 @@ public class SongEditorManager implements PropertyChangeListener
         // Reopen files upon startup
         if (isOpenRecentFilesUponStartup())
         {
-            String s = prefs.get(PREF_FILES_TO_BE_REOPENED_UPON_STARTUP, NO_FILE).trim();
-            if (!s.equals(NO_FILE))
-            {
-                final List<String> strFiles = Arrays.asList(s.split(","));
-                final int max = Math.min(strFiles.size(), MAX_FILES);         // Robustness
-                Runnable run = new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        for (int i = 0; i < max; i++)
-                        {
-                            File f = new File(strFiles.get(i).trim());
-                            SongEditorManager.this.showSong(f);
-                        }
-                    }
-                };
-                SwingUtilities.invokeLater(run);
-            }
+            openRecentFiles();
         }
 
     }
@@ -409,6 +392,48 @@ public class SongEditorManager implements PropertyChangeListener
             }
         }
 
+    }
+
+
+    private void openRecentFiles()
+    {
+        String s = prefs.get(PREF_FILES_TO_BE_REOPENED_UPON_STARTUP, NO_FILE).trim();
+        if (!s.equals(NO_FILE))
+        {
+            final List<String> strFiles = Arrays.asList(s.split(","));
+            final int max = Math.min(strFiles.size(), MAX_FILES);         // Robustness
+            Runnable run = new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    Song lastSong = null;
+                    for (int i = 0; i < max; i++)
+                    {
+                        File f = new File(strFiles.get(i).trim());
+                        Song sg = SongEditorManager.this.showSong(f);
+                        if (sg != null)
+                        {
+                            lastSong = sg;
+                        }
+                    }
+                    // Make the last open song active
+                    if (lastSong != null)
+                    {
+                        MidiMix mm;
+                        try
+                        {
+                            mm = MidiMixManager.getInstance().findMix(lastSong);
+                            ActiveSongManager.getInstance().setActive(lastSong, mm);
+                        } catch (MidiUnavailableException ex)
+                        {
+                            Exceptions.printStackTrace(ex);
+                        }
+                    }
+                }
+            };
+            SwingUtilities.invokeLater(run);
+        }
     }
 
     //=============================================================================

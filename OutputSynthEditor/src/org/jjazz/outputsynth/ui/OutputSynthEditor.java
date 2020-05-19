@@ -64,7 +64,7 @@ import org.jjazz.outputsynth.MidiSynthManager;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynth.SendModeOnUponStartup;
 import org.jjazz.outputsynth.ui.spi.RemapTableInstrumentChooser;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;

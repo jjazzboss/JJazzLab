@@ -39,7 +39,7 @@ import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;

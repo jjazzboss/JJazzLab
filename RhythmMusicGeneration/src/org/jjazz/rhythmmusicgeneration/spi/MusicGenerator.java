@@ -22,9 +22,9 @@
  */
 package org.jjazz.rhythmmusicgeneration.spi;
 
-import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import java.util.HashMap;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.Phrase;

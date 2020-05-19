@@ -30,7 +30,7 @@ import org.jjazz.midi.MidiConst;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.musiccontrol.ClickManager;
 import org.jjazz.musiccontrol.ClickManager.PrecountMode;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.NoteEvent;
 import org.jjazz.rhythmmusicgeneration.Phrase;
 import org.openide.DialogDisplayer;

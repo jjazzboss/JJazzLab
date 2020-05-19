@@ -59,7 +59,7 @@ import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.outputsynth.GMRemapTable;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.ui.spi.RemapTableInstrumentChooser;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.util.Utilities;
 import org.openide.*;
 import org.openide.windows.WindowManager;

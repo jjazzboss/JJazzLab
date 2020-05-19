@@ -33,7 +33,7 @@ import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midi.synths.Family;
 import org.jjazz.midi.synths.GSSynth;
 import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 

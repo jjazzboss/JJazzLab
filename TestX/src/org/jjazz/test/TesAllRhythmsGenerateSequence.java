@@ -39,7 +39,7 @@ import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
@@ -56,12 +56,12 @@ import org.jjazz.songstructure.api.SongPart;
 /**
  * For debug purposes...
  */
-//@ActionID(category = "JJazz", id = "org.jjazz.test.testallrhythmsgeneratesequence")
-//@ActionRegistration(displayName = "Test sequence generation all rhythms on current song")
-//@ActionReferences(
-//        {
-//            @ActionReference(path = "Menu/Edit", position = 50200),
-//        })
+@ActionID(category = "JJazz", id = "org.jjazz.test.testallrhythmsgeneratesequence")
+@ActionRegistration(displayName = "Test sequence generation all rhythms on current song")
+@ActionReferences(
+        {
+            @ActionReference(path = "Menu/Edit", position = 50200),
+        })
 public final class TesAllRhythmsGenerateSequence implements ActionListener
 {
 

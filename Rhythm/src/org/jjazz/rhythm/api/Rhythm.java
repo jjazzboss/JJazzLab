@@ -50,12 +50,11 @@ public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
     /**
      * Tell the rhythm it may load any memory-heavy resources.
      * <p>
-     * This method will be called by the framework before using the rhythm's MidiMusicGenerator objects in its lookup.
      *
-     * @return False if there was a problem loading resources.
+     * @throws MusicGenerationException
      * @see releaseResources()
      */
-    boolean loadResources();
+    void loadResources() throws MusicGenerationException;
 
     /**
      * Ask the rhythm to release any memory-heavy resources.
@@ -95,7 +94,7 @@ public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
     String getDescription();
 
     int getPreferredTempo();
-    
+
     TimeSignature getTimeSignature();
 
     String getName();

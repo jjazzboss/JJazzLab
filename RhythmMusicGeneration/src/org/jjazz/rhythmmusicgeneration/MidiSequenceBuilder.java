@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythmmusicgeneration;
 
+import org.jjazz.rhythm.api.MusicGenerationException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -96,7 +97,7 @@ public class MidiSequenceBuilder
      *
      * @param silent If true do not show a progress dialog
      * @return A Sequence containing accompaniment tracks for the context.
-     * @throws org.jjazz.rhythmmusicgeneration.MusicGenerationException
+     * @throws MusicGenerationException
      */
     public Sequence buildSequence(boolean silent) throws MusicGenerationException
     {

@@ -36,7 +36,7 @@ import static org.jjazz.options.Bundle.*;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.ui.MidiDeviceRenderer;
 import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.*;
 import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;

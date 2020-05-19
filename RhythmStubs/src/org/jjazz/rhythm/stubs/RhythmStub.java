@@ -37,11 +37,7 @@ import org.jjazz.midi.synths.Family;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.parameters.RP_STD_Fill;
 import org.jjazz.rhythm.parameters.RP_STD_Variation;
-import org.jjazz.rhythm.parameters.RP_SYS_Marker;
-import org.jjazz.rhythm.parameters.RP_SYS_Mute;
-import org.jjazz.rhythm.parameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.rhythmmusicgeneration.DummyGenerator;
 import org.openide.util.Lookup;
@@ -143,14 +139,9 @@ public class RhythmStub implements Rhythm
         return timeSignature;
     }
 
-    /**
-     * @return true
-     */
     @Override
-    public boolean loadResources()
+    public void loadResources()
     {
-        // Do nothing
-        return true;
     }
 
     /**

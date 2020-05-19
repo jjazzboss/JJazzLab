@@ -27,7 +27,7 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JPanel;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationException;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.jjazz.midi.ui.MidiOutDeviceList;

@@ -138,14 +138,10 @@ public class DummyRhythm implements Rhythm
         return features;
     }
 
-    /**
-     * @return true
-     */
     @Override
-    public boolean loadResources()
+    public void loadResources() throws MusicGenerationException
     {
         // Do nothing
-        return true;
     }
 
     /**
