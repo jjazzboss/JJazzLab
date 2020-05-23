@@ -122,6 +122,13 @@ public class CL_EditorController implements CL_EditorMouseListener
         editor.getActionMap().put("InsertBar", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.InsertBar"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("P"), "NextPlayStyle");
         editor.getActionMap().put("NextPlayStyle", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.nextplaystyle"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("S"), "AccentStronger");
+        editor.getActionMap().put("AccentStronger", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.accentstronger"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("H"), "AccentCrash");
+        editor.getActionMap().put("AccentCrash", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.accentcrash"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("M"), "ExtendHoldShot");
+        editor.getActionMap().put("ExtendHoldShot", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.extendholdshot"));
+
 
         // Our delegates for standard Netbeans callback actions
         editor.getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.cut"));
@@ -265,7 +272,7 @@ public class CL_EditorController implements CL_EditorMouseListener
             if (item instanceof CLI_ChordSymbol)
             {
                 if (popupChordSymbolMenu == null)
-                {
+                {                   
                     List<? extends Action> actions = Utilities.actionsForPath("Actions/ChordSymbol");
                     popupChordSymbolMenu = Utilities.actionsToPopup(actions.toArray(new Action[actions.size()]), editor);
                 }

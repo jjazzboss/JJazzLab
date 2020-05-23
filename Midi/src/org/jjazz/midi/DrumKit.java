@@ -88,7 +88,8 @@ public class DrumKit
         /**
          * Get the typical notes used for a rhythmic accent with this DrumMap.
          * <p>
-         * Usually contains at least kicks/snares/crash or splash cymbals etc.
+         * Usually contains at least kicks and snares. Crash cymbals and open hi-hat must not be included, use getCrashKeys() and
+         * getOpenHiHatKeys() for that.
          *
          * @return Can be an empty list.
          */

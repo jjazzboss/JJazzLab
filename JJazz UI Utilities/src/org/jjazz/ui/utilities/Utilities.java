@@ -27,12 +27,20 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.openide.awt.MenuBar;
+import org.openide.util.ContextAwareAction;
+import org.openide.util.Lookup;
+import org.openide.util.actions.ActionPresenterProvider;
+import org.openide.util.actions.Presenter;
 import org.openide.windows.WindowManager;
 
 public class Utilities
@@ -66,6 +74,53 @@ public class Utilities
         {
             SwingUtilities.invokeLater(run);
         }
+    }
+
+
+    /**
+     * Create a JMenuItem from a Netbeans action (ie which is possibly also ContextAwareAction or Presenter instance).
+     * <p>
+     * Copied from part of org.openide.util.Utilities.actionsToPopup().
+     *
+     * @param action
+     * @param context The context used for the action if it's a ContextAwareAction instance
+     * @return
+     */
+    public static JMenuItem actionToMenuItem(Action action, Lookup context)
+    {
+        if (action == null)
+        {
+            throw new IllegalArgumentException("action=" + action + " context=" + context);
+        }
+
+        // switch to replacement action if there is some
+        if (action instanceof ContextAwareAction)
+        {
+            Action contextAwareAction = ((ContextAwareAction) action).createContextAwareInstance(context);
+            if (contextAwareAction == null)
+            {
+                throw new IllegalArgumentException("ContextAwareAction.createContextAwareInstance(context) returns null.");
+            } else
+            {
+                action = contextAwareAction;
+            }
+        }
+
+        JMenuItem item;
+        if (action instanceof Presenter.Popup)
+        {
+            item = ((Presenter.Popup) action).getPopupPresenter();
+            if (item == null)
+            {
+                throw new IllegalArgumentException("getPopupPresenter() returning null for action=" + action);
+            }
+        } else
+        {
+            // We need to correctly handle mnemonics with '&' etc.
+            item = ActionPresenterProvider.getDefault().createPopupPresenter(action);
+        }
+
+        return item;
     }
 
     /**

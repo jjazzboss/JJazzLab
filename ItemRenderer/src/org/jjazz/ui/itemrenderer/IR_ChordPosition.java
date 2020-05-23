@@ -167,6 +167,11 @@ public class IR_ChordPosition extends ItemRenderer
             // A point
             int d = Math.min(w, h) - 1;
             shape = new Ellipse2D.Float(xHalf - (d / 2), yHalf - (d / 2), d, d);
+        } else if (cri.getAccentFeature() != null)      // Accent or stronger accent
+        {
+            // A thin rectangle
+            int accentHeight = Math.min(h, 2);
+            shape = new Rectangle2D.Float(x0, yHalf - accentHeight / 2, w, accentHeight);
         } else      // NORMAL
         {
             // Inversed triangle

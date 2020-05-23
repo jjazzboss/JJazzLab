@@ -34,7 +34,7 @@ import org.jjazz.util.IntRange;
  * symbol after (or end of chord sequence if no next chord symbol). When present the bounding chord symbols before/after are not
  * part of the covered zone.
  */
-public class GridChordContext
+public class GridChordContext 
 {
 
     // Context

@@ -47,32 +47,31 @@ import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 
-@ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.nextplaystyle")
-@ActionRegistration(displayName = "#CTL_NextPlayStyle", lazy = false)
+@ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.accentcrash")
+@ActionRegistration(displayName = "#CTL_AccentCrash", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/ChordSymbol", position = 450)
+            @ActionReference(path = "Actions/ChordSymbolAccent", position = 200)
         })
-@Messages("CTL_NextPlayStyle=Accent/Hold/Shot")
-public final class NextPlayStyle extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+@Messages("CTL_AccentCrash=Auto > Crash > No Crash")
+public final class AccentCrash extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
-
     private CL_ContextActionSupport cap;
     private final Lookup context;
-    private String undoText = CTL_NextPlayStyle();
+    private String undoText = CTL_AccentCrash();
 
-    public NextPlayStyle()
+    public AccentCrash()
     {
         this(Utilities.actionsGlobalContext());
     }
 
-    public NextPlayStyle(Lookup context)
+    public AccentCrash(Lookup context)
     {
         this.context = context;
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("P"));
+        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("H"));
         selectionChange(cap.getSelection());
     }
 
@@ -89,11 +88,14 @@ public final class NextPlayStyle extends AbstractAction implements ContextAwareA
         for (CLI_ChordSymbol item : selection.getSelectedChordSymbols())
         {
             ExtChordSymbol ecs = item.getData();
-            ChordRenderingInfo newCri = next(ecs.getRenderingInfo());
-            ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
-            item.getContainer().changeItem(item, newCs);
+            ChordRenderingInfo cri = ecs.getRenderingInfo();
+            if (cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER))
+            {
+                ChordRenderingInfo newCri = next(cri);
+                ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+                item.getContainer().changeItem(item, newCs);
+            }
         }
-
 
         JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
     }
@@ -101,13 +103,20 @@ public final class NextPlayStyle extends AbstractAction implements ContextAwareA
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
-        setEnabled(selection.isItemSelected() && (selection.getSelectedItems().get(0) instanceof CLI_ChordSymbol));
+        boolean b = false;
+        if (selection.isItemSelected())
+        {
+            b = selection.getSelectedItems().stream()
+                    .filter(item -> item instanceof CLI_ChordSymbol)
+                    .anyMatch(item -> ((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
+        }
+        setEnabled(b);
     }
 
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
-        return new NextPlayStyle(context);
+        return new AccentCrash(context);
     }
 
     @Override
@@ -120,43 +129,19 @@ public final class NextPlayStyle extends AbstractAction implements ContextAwareA
     {
         var features = cri.getFeatures();
 
-        if (!cri.hasOneFeature(Feature.HOLD, Feature.SHOT, Feature.ACCENT, Feature.ACCENT_STRONGER))
+        if (!cri.hasOneFeature(Feature.CRASH, Feature.NO_CRASH))
         {
-            features.add(Feature.ACCENT);       // NORMAL => ACCENT                      
+            features.add(Feature.CRASH);
 
-        } else if (cri.hasOneFeature(Feature.ACCENT))
+        } else if (cri.hasOneFeature(Feature.CRASH))
         {
-            if (!cri.hasOneFeature(Feature.HOLD, Feature.SHOT))
-            {
-                features.add(Feature.HOLD);               // ACCENT + HOLD 
-            } else if (cri.hasOneFeature(Feature.HOLD))
-            {
-                features.remove(Feature.HOLD);
-                features.add(Feature.SHOT);               // ACCENT + HOLD => ACCENT + SHOT
-            } else
-            {
-                features.remove(Feature.SHOT);              // ACCENT + SHOT => NORMAL
-                features.remove(Feature.ACCENT);
-            }
-        } else if (cri.hasOneFeature(Feature.ACCENT_STRONGER))
+            features.remove(Feature.CRASH);
+            features.add(Feature.NO_CRASH);
+        } else if (cri.hasOneFeature(Feature.NO_CRASH))
         {
-            if (!cri.hasOneFeature(Feature.HOLD, Feature.SHOT))
-            {
-                features.add(Feature.HOLD);               // ACCENT_STRONGER + HOLD 
-            } else if (cri.hasOneFeature(Feature.HOLD))
-            {
-                features.remove(Feature.HOLD);
-                features.add(Feature.SHOT);               // ACCENT_STRONGER + HOLD => ACCENT_STRONGER + SHOT
-            } else
-            {
-                features.remove(Feature.SHOT);              // ACCENT_STRONGER + SHOT => NORMAL
-                features.remove(Feature.ACCENT_STRONGER);
-            }
-        } else if (cri.hasOneFeature(Feature.HOLD, Feature.SHOT))
-        {
-            features.remove(Feature.SHOT);                  // Should never be here since HOLD/SHOT should have ACCENT too, just for robustness
-            features.remove(Feature.HOLD);
+            features.remove(Feature.NO_CRASH);
         }
+
         ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
 
         return newCri;

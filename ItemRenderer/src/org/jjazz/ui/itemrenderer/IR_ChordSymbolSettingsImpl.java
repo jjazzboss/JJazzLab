@@ -141,15 +141,11 @@ public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implement
         Color defCol;
         switch (accentFeature)
         {
-            // From dark red to lighter red
-            case ACCENT_LIGHT:
-                defCol = new Color(105, 24, 3);
+            case ACCENT:
+                defCol = getColor();
                 break;
-            case ACCENT_MEDIUM:
-                defCol = new Color(145, 32, 45);
-                break;
-            case ACCENT_STRONG:
-                defCol = new Color(207, 43, 62);
+            case ACCENT_STRONGER:
+                defCol = new Color(207, 43, 62);                // Red
                 break;
             default:
                 throw new AssertionError(accentFeature.name());
@@ -159,7 +155,7 @@ public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implement
 
     private String getAccentColorKey(Feature accentFeature)
     {
-        if (accentFeature != Feature.ACCENT_LIGHT && accentFeature != Feature.ACCENT_MEDIUM && accentFeature != Feature.ACCENT_STRONG)
+        if (accentFeature != Feature.ACCENT && accentFeature != Feature.ACCENT_STRONGER)
         {
             throw new IllegalArgumentException("accentFeature");
         }
@@ -204,33 +200,18 @@ public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implement
     {
         List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
         res.add(this);
-        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("AccentedLightChordSymbolId", "Chord Symbol with light accent")
+        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("AccentedMediumChordSymbolId", "Chord Symbol with medium accent")
         {
             @Override
             public Color getColor()
             {
-                return getAccentColor(Feature.ACCENT_LIGHT);
+                return getAccentColor(Feature.ACCENT);
             }
 
             @Override
             public void setColor(Color c)
             {
-                setAccentColor(Feature.ACCENT_LIGHT, c);
-            }
-        };
-        res.add(fcs);
-        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("AccentedMediumChordSymbolId", "Chord Symbol with medium accent")
-        {
-            @Override
-            public Color getColor()
-            {
-                return getAccentColor(Feature.ACCENT_MEDIUM);
-            }
-
-            @Override
-            public void setColor(Color c)
-            {
-                setAccentColor(Feature.ACCENT_MEDIUM, c);
+                setAccentColor(Feature.ACCENT, c);
             }
         };
         res.add(fcs);
@@ -239,13 +220,13 @@ public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implement
             @Override
             public Color getColor()
             {
-                return getAccentColor(Feature.ACCENT_STRONG);
+                return getAccentColor(Feature.ACCENT_STRONGER);
             }
 
             @Override
             public void setColor(Color c)
             {
-                setAccentColor(Feature.ACCENT_STRONG, c);
+                setAccentColor(Feature.ACCENT_STRONGER, c);
             }
         };
         res.add(fcs);

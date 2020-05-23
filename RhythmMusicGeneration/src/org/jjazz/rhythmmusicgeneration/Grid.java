@@ -36,6 +36,7 @@ import org.jjazz.rhythm.api.Feel;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.util.FloatRange;
 import org.jjazz.util.IntRange;
+import org.openide.util.Exceptions;
 
 /**
  * A convenience class to manipulate notes from a Phrase.
@@ -47,7 +48,7 @@ import org.jjazz.util.IntRange;
  * <p>
  * The refresh() method must be called whenever the phrase is modified outside this Grid object.
  */
-public class Grid
+public class Grid implements Cloneable
 {
 
     /**
@@ -62,8 +63,13 @@ public class Grid
     private int cellsPerBeat;
     private float cellDuration;
     private Predicate<NoteEvent> predicate;
-    private final HashMap<Integer, List<NoteEvent>> mapCellNotes = new HashMap<>();
+    private HashMap<Integer, List<NoteEvent>> mapCellNotes = new HashMap<>();
     protected static final Logger LOGGER = Logger.getLogger(Grid.class.getSimpleName());
+
+    private Grid()
+    {
+
+    }
 
     /**
      * Obtain a grid for the specified Phrase p.
@@ -97,6 +103,22 @@ public class Grid
         this.cellRange = new IntRange(0, (int) (this.originalBeatRange.size() * this.cellsPerBeat) - 1);
         this.predicate = (filter != null) ? filter : ne -> true;
         refresh();
+    }
+
+    @Override
+    public Grid clone() 
+    {
+        Grid newGrid = null;
+        try
+        {
+            newGrid = (Grid) super.clone();
+        } catch (CloneNotSupportedException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
+        // Everything OK with a shallow clone copy, except the mapCellNotes 
+        newGrid.mapCellNotes = (HashMap<Integer, List<NoteEvent>>) mapCellNotes.clone();
+        return newGrid;
     }
 
     public Predicate<NoteEvent> getPredicate()
@@ -271,6 +293,7 @@ public class Grid
 
     /**
      * Change the duration of all notes in specified cell range so that they end at cell cellIndexOff.
+     * <p>
      * <p>
      * Notes can be shortened or made longer.
      *
@@ -528,7 +551,8 @@ public class Grid
 
     /**
      * Add a new NoteEvent from the parameters.
-     *
+     * <p>
+     * Convenience method that add the note to the grid's phrase and calls refresh().
      *
      * @param cell
      * @param n Pitch, duration and velocity are reused to create the NoteEvent.

@@ -57,13 +57,12 @@ public class ChordRenderingInfo implements Serializable
     public enum Feature
     {
         /**
-         * Add a light accent.
+         * Add an accent.
          * <p>
          * IMPORTANT: Exclusive with the other ACCENT*.
-         */
-        ACCENT_LIGHT,
-        ACCENT_MEDIUM,
-        ACCENT_STRONG,
+         */        
+        ACCENT,
+        ACCENT_STRONGER,
         /**
          * Hold some notes until next chord.
          * <p>
@@ -79,7 +78,7 @@ public class ChordRenderingInfo implements Serializable
         /**
          * Make Hold/Shot applied to more instruments.
          */
-        HOLD_SHOT_EXTENDED,
+        HOLD_SHOT_MORE_INSTRUMENTS,
         /**
          * Make sure there is not crash cymbal.
          * <p>
@@ -200,15 +199,12 @@ public class ChordRenderingInfo implements Serializable
      */
     public Feature getAccentFeature()
     {
-        if (features.contains(Feature.ACCENT_LIGHT))
+         if (features.contains(Feature.ACCENT))
         {
-            return Feature.ACCENT_LIGHT;
-        } else if (features.contains(Feature.ACCENT_MEDIUM))
+            return Feature.ACCENT;
+        } else if (features.contains(Feature.ACCENT_STRONGER))
         {
-            return Feature.ACCENT_MEDIUM;
-        } else if (features.contains(Feature.ACCENT_STRONG))
-        {
-            return Feature.ACCENT_STRONG;
+            return Feature.ACCENT_STRONGER;
         }
         return null;
     }
@@ -348,7 +344,7 @@ public class ChordRenderingInfo implements Serializable
 //
 //    static public boolean isOldAccentPlayStyle(ChordRenderingInfo cri)
 //    {
-//        return cri.getFeatures().contains(Feature.ACCENT_MEDIUM)
+//        return cri.getFeatures().contains(Feature.ACCENT)
 //                && !cri.getFeatures().contains(Feature.SHOT)
 //                && !cri.getFeatures().contains(Feature.HOLD);
 //    }
@@ -361,7 +357,7 @@ public class ChordRenderingInfo implements Serializable
 //     */
 //    static public boolean isOldHoldPlayStyle(ChordRenderingInfo cri)
 //    {
-//        return cri.getFeatures().containsAll(Arrays.asList(Feature.ACCENT_MEDIUM, Feature.HOLD));
+//        return cri.getFeatures().containsAll(Arrays.asList(Feature.ACCENT, Feature.HOLD));
 //    }
 //
 //    /**
@@ -372,7 +368,7 @@ public class ChordRenderingInfo implements Serializable
 //     */
 //    static public boolean isOldShotPlayStyle(ChordRenderingInfo cri)
 //    {
-//        return cri.getFeatures().containsAll(Arrays.asList(Feature.ACCENT_MEDIUM, Feature.SHOT));
+//        return cri.getFeatures().containsAll(Arrays.asList(Feature.ACCENT, Feature.SHOT));
 //    }
     @Override
     public String toString()
@@ -486,13 +482,13 @@ public class ChordRenderingInfo implements Serializable
                         spFeatures = null;
                         break;
                     case ACCENT:
-                        spFeatures = EnumSet.of(Feature.ACCENT_MEDIUM);
+                        spFeatures = EnumSet.of(Feature.ACCENT);
                         break;
                     case HOLD:
-                        spFeatures = EnumSet.of(Feature.ACCENT_MEDIUM, Feature.HOLD);
+                        spFeatures = EnumSet.of(Feature.ACCENT, Feature.HOLD);
                         break;
                     case SHOT:
-                        spFeatures = EnumSet.of(Feature.ACCENT_MEDIUM, Feature.SHOT);
+                        spFeatures = EnumSet.of(Feature.ACCENT, Feature.SHOT);
                         break;
                     default:
                         LOGGER.warning("readResolve() Invalid value for spPlayStyle=" + spPlayStyleV1 + ". Ignored.");

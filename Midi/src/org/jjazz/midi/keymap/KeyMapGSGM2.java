@@ -68,7 +68,7 @@ public class KeyMapGSGM2 implements KeyMap
         addNote("Beep 2", 23, false);       // SC-88 pro only
         addNote("Concert Snare", 24, true);    // SC-88 pro only
         addNote("SNARE ROLL", 25, false);
-        addNote("FINGER SNAP", 26, true);
+        addNote("FINGER SNAP", 26, false);
         addNote("HIGH Q", 27, false);
         addNote("SLAP", 28, false);
         addNote("SCRATCH PUSH", 29, false);
@@ -88,16 +88,16 @@ public class KeyMapGSGM2 implements KeyMap
         addNote("HIGH FLOOR TOM", 43, false);
         addNote("PEDAL HI HAT", 44, false);
         addNote("LOW TOM", 45, false);
-        addNote("OPEN HI HAT", 46, true);
+        addNote("OPEN HI HAT", 46, false);
         addNote("LOW MID TOM", 47, false);
         addNote("HI MID TOM", 48, false);
-        addNote("CRASH CYMBAL 1", 49, true);
+        addNote("CRASH CYMBAL 1", 49, false);
         addNote("HIGH TOM", 50, false);
         addNote("RIDE CYMBAL 1", 51, false);
-        addNote("CHINESE CYMBAL", 52, true);
+        addNote("CHINESE CYMBAL", 52, false);
         addNote("RIDE BELL", 53, false);
         addNote("TAMBOURINE", 54, false);
-        addNote("SPLASH CYMBAL", 55, true);
+        addNote("SPLASH CYMBAL", 55, false);
         addNote("COWBELL", 56, false);
         addNote("CRASH CYMBAL 2", 57, false);
         addNote("VIBRASLAP", 58, false);

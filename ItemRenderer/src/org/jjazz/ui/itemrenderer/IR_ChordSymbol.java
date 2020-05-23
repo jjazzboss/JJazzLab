@@ -70,6 +70,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         settings = IR_ChordSymbolSettings.getDefault();
         settings.addPropertyChangeListener(this);
         setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
+        // setForeground(settings.getColor());
         setFont(settings.getFont());
     }
 
@@ -77,7 +78,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     public void modelChanged()
     {
         ExtChordSymbol ecs = (ExtChordSymbol) getModel().getData();
-        cri = ((CLI_ChordSymbol) getModel()).getData().getRenderingInfo();        
+        cri = ((CLI_ChordSymbol) getModel()).getData().getRenderingInfo();
         setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
         updateToolTipText();
         revalidate();

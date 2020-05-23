@@ -125,6 +125,7 @@ public final class SectionAtNewLine extends AbstractAction implements ContextAwa
                 s = editor.isSectionStartOnNewLine(cliSection);
             }
         }
+        
         setEnabled(e);
         getPopupPresenter().setSelected(s);  // Only update UI, actionPerformed() is not called
     }
