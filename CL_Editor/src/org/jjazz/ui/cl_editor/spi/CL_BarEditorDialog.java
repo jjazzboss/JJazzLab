@@ -68,8 +68,9 @@ public abstract class CL_BarEditorDialog extends JDialog
      * @param preset
      * @param cls ChordLeadSheet
      * @param barIndex
+     * @param swing If true the bar is in swing mode, eg half-bar position for a 3/4 rhythm is 5/3=1.666...
      */
-    abstract public void preset(Preset preset, ChordLeadSheet cls, int barIndex);
+    abstract public void preset(Preset preset, ChordLeadSheet cls, int barIndex, boolean swing);
 
     /**
      * @return True if dialog was exited OK, false if dialog operation was cancelled.

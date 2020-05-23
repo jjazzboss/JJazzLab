@@ -44,6 +44,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.quantizer.Quantization;
 import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.spi.CL_BarEditorDialog;
 import org.jjazz.ui.cl_editor.spi.Preset;
@@ -268,7 +269,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
             {
                 // Prepare dialog
                 final CL_BarEditorDialog dialog = CL_BarEditorDialog.getDefault();
-                dialog.preset(preset, editor.getModel(), barIndex);
+                dialog.preset(preset, editor.getModel(), barIndex, editor.getDisplayQuantizationValue(cls.getSection(barIndex)).equals(Quantization.ONE_THIRD_BEAT));
                 adjustDialogPosition(dialog, barIndex);
                 dialog.setVisible(true);
                 LOGGER.fine("editBarWithDialog() right after setVisible(true)");

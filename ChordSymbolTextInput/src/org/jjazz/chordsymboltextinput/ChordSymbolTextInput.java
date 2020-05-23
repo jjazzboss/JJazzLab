@@ -20,24 +20,24 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.leadsheet.chordleadsheet.api;
+package org.jjazz.chordsymboltextinput;
 
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.openide.util.NbBundle.Messages;
 import org.jjazz.harmony.TimeSignature;
-import static org.jjazz.leadsheet.chordleadsheet.api.Bundle.CTL_MissingClosingParenthesis;
+import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.quantizer.Quantization;
+import org.jjazz.quantizer.Quantizer;
 
 /**
  * Define methods how to convert CLI_ChordSymbols from/to Strings.
  */
-@Messages("CTL_MissingClosingParenthesis=Missing closing parenthesis")
 public class ChordSymbolTextInput
 {
 
@@ -82,30 +82,30 @@ public class ChordSymbolTextInput
         }
         int openIndex = s.indexOf(OPEN_POS_CHAR);
         int closeIndex = s.indexOf(CLOSE_POS_CHAR);
-        
+
         if (openIndex == -1)
         {
             // No position provided, use defaultPos
             newPos = defaultPos;
             openIndex = s.length();
-            
+
         } else
         {
             // Position is provided
             if (closeIndex == -1)
             {
-                throw new ParseException(str + " : " + CTL_MissingClosingParenthesis(), 0);
+                throw new ParseException(str + " : " + "Missing closing parenthesis", 0);
             }
             newPos = new Position();
             newPos.valueOf(s.substring(openIndex, closeIndex + 1), defaultPos.getBar());
-            
+
         }
-       
+
         // Chord Symbol
         String csStr = s.substring(0, openIndex);
-        ExtChordSymbol ecs = new ExtChordSymbol(csStr);                       
+        ExtChordSymbol ecs = new ExtChordSymbol(csStr);
 
-        
+
         // Build the CLI_ChordSymbol
         CLI_ChordSymbol cli = CLI_Factory.getDefault().createChordSymbol(cls, ecs, newPos);
         return cli;
@@ -218,10 +218,11 @@ public class ChordSymbolTextInput
      * @param str
      * @param barIndex
      * @param cls
+     * @param swing If true for example for 3/4 time signature place half-beat chord symbols at 1.666 (5/3) instead of 1.5
      * @return
      * @throws ParseException
      */
-    public static List<CLI_ChordSymbol> toCLI_ChordSymbolsNoPosition(String str, int barIndex, ChordLeadSheet cls) throws ParseException
+    public static List<CLI_ChordSymbol> toCLI_ChordSymbolsNoPosition(String str, int barIndex, ChordLeadSheet cls, boolean swing) throws ParseException
     {
         if ((barIndex < 0) || str == null || cls == null || barIndex >= cls.getSize())
         {
@@ -248,28 +249,49 @@ public class ChordSymbolTextInput
         {
             // Position on first beat and half bar
             CLI_ChordSymbol i0 = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[0], new Position(barIndex, 0), cls);
-            CLI_ChordSymbol i1 = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[1], new Position(barIndex, ts.getHalfBarBeat()), cls);
+            CLI_ChordSymbol i1 = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[1], new Position(barIndex, ts.getHalfBarBeat(swing)), cls);
             newItems.add(i0);
             newItems.add(i1);
-        } else if ((rawStrings.length == 3) && (rawStrings.length != ts.getNbNaturalBeats()))
+        } else if (rawStrings.length == 3 && ts.getNbNaturalBeats() > 3)
         {
             // Position on first beat and half bar, and last beat
             CLI_ChordSymbol i0 = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[0], new Position(barIndex, 0), cls);
-            CLI_ChordSymbol i1 = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[1], new Position(barIndex, ts.getHalfBarBeat()), cls);
+            CLI_ChordSymbol i1 = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[1], new Position(barIndex, ts.getHalfBarBeat(swing)), cls);
             CLI_ChordSymbol i2 = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[2], new Position(barIndex, ts.getNbNaturalBeats() - 1), cls);
             newItems.add(i0);
             newItems.add(i1);
             newItems.add(i2);
+        } else if (rawStrings.length == 3)     // TimeSignature like 3/4 or 2/4
+        {
+            // Position on first beat and half bar, and last beat
+            CLI_ChordSymbol i0 = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[0], new Position(barIndex, 0), cls);
+            CLI_ChordSymbol i1 = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[1], new Position(barIndex, 1), cls);
+            CLI_ChordSymbol i2 = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[2], new Position(barIndex, ts.getNbNaturalBeats() - 1), cls);
+            newItems.add(i0);
+            newItems.add(i1);
+            newItems.add(i2);
+        } else if (rawStrings.length == 4 && ts.getNbNaturalBeats() >= 4)
+        {
+            // Position on first beat and half bar, and last beat
+            CLI_ChordSymbol i0 = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[0], new Position(barIndex, 0), cls);
+            CLI_ChordSymbol i1 = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[1], new Position(barIndex, 1), cls);
+            CLI_ChordSymbol i2 = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[2], new Position(barIndex, 2), cls);
+            CLI_ChordSymbol i4 = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[3], new Position(barIndex, 3), cls);
+            newItems.add(i0);
+            newItems.add(i1);
+            newItems.add(i2);
+            newItems.add(i4);
         } else
         {
-            // Place chord symbols at regular intervals
-            float step = (float) ts.getNbNaturalBeats() / rawStrings.length;
-
-            for (int i = 0; i < rawStrings.length; i++)
+            // Place chord symbols at half-beat intervals, excess chords on last beat
+            float beat = 0;
+            for (String rawString : rawStrings)
             {
-                pos = new Position(barIndex, i * step);
-                CLI_ChordSymbol cs = ChordSymbolTextInput.toCLI_ChordSymbol(rawStrings[i], pos, cls);
+                pos = new Position(barIndex, beat);
+                pos = Quantizer.quantize(swing ? Quantization.ONE_THIRD_BEAT : Quantization.HALF_BEAT, pos, ts, barIndex);
+                CLI_ChordSymbol cs = ChordSymbolTextInput.toCLI_ChordSymbol(rawString, pos, cls);
                 newItems.add(cs);
+                beat = Math.min(ts.getNbNaturalBeats() - 0.5f, beat + 0.5f);
             }
         }
 
@@ -308,14 +330,16 @@ public class ChordSymbolTextInput
             // Two events on start and half of the bar
             CLI_ChordSymbol i0 = items.get(0);
             CLI_ChordSymbol i1 = items.get(1);
-            configNoPosition = ((i0.getPosition().getBeat() == 0) && (i1.getPosition().getBeat() == ts.getHalfBarBeat()));
+            configNoPosition = ((i0.getPosition().getBeat() == 0)
+                    && (i1.getPosition().getBeat() == ts.getHalfBarBeat(true) || i1.getPosition().getBeat() == ts.getHalfBarBeat(false)));
         } else if ((items.size() == 3) && (items.size() != ts.getNbNaturalBeats()))
         {
             // Two events on start and half of the bar, on on last beat
             CLI_ChordSymbol i0 = items.get(0);
             CLI_ChordSymbol i1 = items.get(1);
             CLI_ChordSymbol i2 = items.get(2);
-            configNoPosition = ((i0.getPosition().getBeat() == 0) && (i1.getPosition().getBeat() == ts.getHalfBarBeat())
+            configNoPosition = ((i0.getPosition().getBeat() == 0)
+                    && (i1.getPosition().getBeat() == ts.getHalfBarBeat(true) || i1.getPosition().getBeat() == ts.getHalfBarBeat(false))
                     && (i2.getPosition().getBeat() == (ts.getNbNaturalBeats() - 1)));
         } else if (items.size() == ts.getNbNaturalBeats())
         {

@@ -49,7 +49,7 @@ public class Quantizer
     };
     private static float[] QPOINTS_ONE_THIRD_BEAT = new float[]
     {
-        0f, .3333333f, .6666666f, 1f
+        0f, 1f / 3f, 2f / 3f, 1f
     };
     private static float[] QPOINTS_HALF_BEAT = new float[]
     {
@@ -87,18 +87,32 @@ public class Quantizer
      */
     public Position quantize(Position pos, TimeSignature ts, int maxBarIndex)
     {
-        if (!ts.checkBeat(pos.getBeat()) || pos.getBar() > maxBarIndex)
+        return quantize(qValue, pos, ts, maxBarIndex);
+    }
+
+    /**
+     * Return a quantized position using the specified quantization setting.
+     *
+     * @param q The quantization setting
+     * @param pos The original position.
+     * @param ts The TimeSignature for the original position.
+     * @param maxBarIndex The quantized position can not exceed this maximum bar index.
+     * @return
+     */
+    static public Position quantize(Quantization q, Position pos, TimeSignature ts, int maxBarIndex)
+    {
+        if (q == null || !ts.checkBeat(pos.getBeat()) || pos.getBar() > maxBarIndex)
         {
-            throw new IllegalArgumentException("pos=" + pos + " ts=" + ts);
+            throw new IllegalArgumentException("q=" + q + " pos=" + pos + " ts=" + ts + " maxBarIndex=" + maxBarIndex);
         }
         Position newPos;
-        switch (qValue)
+        switch (q)
         {
             case OFF:
                 newPos = new Position(pos);
                 break;
             case HALF_BAR:
-                newPos = quantizeHalfBar(pos, ts, maxBarIndex);
+                newPos = quantizeHalfBar(pos, ts, maxBarIndex, false);      // Half-bar straight
                 break;
             case BEAT:
                 newPos = quantizeStandard(pos, ts, maxBarIndex, QPOINTS_BEAT);
@@ -113,7 +127,7 @@ public class Quantizer
                 newPos = quantizeStandard(pos, ts, maxBarIndex, QPOINTS_ONE_QUARTER_BEAT);
                 break;
             default:
-                throw new IllegalStateException("quantization=" + qValue);
+                throw new IllegalStateException("quantization=" + q);
         }
 
         return newPos;
@@ -162,11 +176,11 @@ public class Quantizer
     // ====================================================================================
     // Private methods
     // ====================================================================================    
-    private Position quantizeHalfBar(Position pos, TimeSignature ts, int maxBarIndex)
+    static private Position quantizeHalfBar(Position pos, TimeSignature ts, int maxBarIndex, boolean swing)
     {
         int bar = pos.getBar();
         float beat = pos.getBeat();
-        float halfBeat = ts.getHalfBarBeat();
+        float halfBeat = ts.getHalfBarBeat(swing);
         if (beat < (halfBeat / 2))
         {
             beat = 0;
@@ -186,7 +200,7 @@ public class Quantizer
         return new Position(bar, beat);
     }
 
-    private Position quantizeStandard(Position pos, TimeSignature ts, int maxBarIndex, float[] qPoints)
+    static private Position quantizeStandard(Position pos, TimeSignature ts, int maxBarIndex, float[] qPoints)
     {
         float beatInt = (float) Math.floor(pos.getBeat());
         float beatDecimal = pos.getBeat() - beatInt;

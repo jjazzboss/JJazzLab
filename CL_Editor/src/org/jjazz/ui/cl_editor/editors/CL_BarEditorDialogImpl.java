@@ -39,9 +39,9 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
+import org.jjazz.chordsymboltextinput.ChordSymbolTextInput;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordSymbolTextInput;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
@@ -122,6 +122,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     private String saveCsText;
     private String saveTsText;
     private String saveSectionText;
+    private boolean swing;
     private static final Logger LOGGER = Logger.getLogger(CL_BarEditorDialogImpl.class.getSimpleName());
 
     private CL_BarEditorDialogImpl()
@@ -150,19 +151,19 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     }
 
     @Override
-    public void preset(final Preset preset, ChordLeadSheet cls, int barIndx)
+    public void preset(final Preset preset, ChordLeadSheet cls, int barIndx, boolean swng)
     {
         if (preset == null || cls == null || barIndx < 0 || barIndx >= cls.getSize())
         {
-            throw new IllegalArgumentException("preset=" + preset + " cls=" + cls + " barIndx=" + barIndx);
+            throw new IllegalArgumentException("preset=" + preset + " cls=" + cls + " barIndx=" + barIndx + " swing=" + swing);
         }
 
         cleanup();
-
         model = cls;
         barIndex = barIndx;
         modelCsList = model.getItems(barIndex, barIndex, CLI_ChordSymbol.class);
         modelSection = model.getSection(barIndex);
+        swing = swng;
         boolean isSectionInBar = (modelSection.getPosition().getBar() == barIndx);
 
         // Update the section field
@@ -331,7 +332,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
             List<CLI_ChordSymbol> newItems;
             try
             {
-                newItems = ChordSymbolTextInput.toCLI_ChordSymbolsNoPosition(strChords, barIndex, model);
+                newItems = ChordSymbolTextInput.toCLI_ChordSymbolsNoPosition(strChords, barIndex, model, swing);
             } catch (ParseException ex)
             {
                 // Select the erroneous chord symbol

@@ -235,6 +235,21 @@ public final class Position implements Comparable<Position>, Serializable
     }
 
     /**
+     * True if position is at the half of the bar for the specified TimeSignature.
+     * <p>
+     * Ex: beat 2 for ts=4/4, beat 1.5 for 3/4 (if not swing), or beat 3 for 5/4.
+     *
+     * @param ts The TimeSignature of the bar.
+     * @param swing If true for example half beat for a 3/4 waltz is 5/3=1.666...
+     *
+     * @return
+     */
+    public boolean isHalfBarBeat(TimeSignature ts, boolean swing)
+    {
+        return beat == ts.getHalfBarBeat(swing);
+    }
+
+    /**
      * Get the adjusted position adapted to fit the specified time signature.
      *
      * @param ts

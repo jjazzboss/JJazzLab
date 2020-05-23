@@ -44,6 +44,10 @@ public enum TimeSignature
      */
     public static final float SYSTEM_END_BEAT = Float.MAX_VALUE;
     /**
+     * The half bar position for a ternary 3/4 bar, 5/3=1.6666...
+     */
+    public static final float SWING_WALTZ_HALF_BAR = 5f / 3f;
+    /**
      * The number of lower units that make a bar.
      */
     private final int upper;
@@ -145,13 +149,19 @@ public enum TimeSignature
      * It is used for instance to know where to put the 2nd chord for a 2 chords bar.
      * <p>
      * - For even bars (e.g. 4/4) : half, e.g. beat 2(start at 0)<br>
-     * - For 3/4 : 1.5 <br>
+     * - For 3/4 : 1.5 or 5/3 <br>
      * - Other odd bars : ceil(half), e.g. beat 3 (start at 0) for a 5/4 bar.
-     * @return 
+     *
+     * @param swing If true half-bar for a 3/4 waltz is SWING_WALTZ_HALF_BAR=5/3=1.666...
+     * @return
      */
-    public float getHalfBarBeat()
+    public float getHalfBarBeat(boolean swing)
     {
         float half = getNbNaturalBeats() / 2f;
+        if (getNbNaturalBeats() == 3 && swing)
+        {
+            half = SWING_WALTZ_HALF_BAR;
+        }
         if ((getNbNaturalBeats() != 3) && ((getNbNaturalBeats() % 2) != 0))
         {
             // odd bars
