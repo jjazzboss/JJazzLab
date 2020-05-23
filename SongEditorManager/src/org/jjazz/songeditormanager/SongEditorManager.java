@@ -40,6 +40,7 @@ import org.jjazz.base.actions.Savable;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
+import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
@@ -106,7 +107,7 @@ public class SongEditorManager implements PropertyChangeListener
         // Reopen files upon startup
         if (isOpenRecentFilesUponStartup())
         {
-            openRecentFiles();
+            openRecentFilesUponStartup();
         }
 
     }
@@ -395,7 +396,7 @@ public class SongEditorManager implements PropertyChangeListener
     }
 
 
-    private void openRecentFiles()
+    private void openRecentFilesUponStartup()
     {
         String s = prefs.get(PREF_FILES_TO_BE_REOPENED_UPON_STARTUP, NO_FILE).trim();
         if (!s.equals(NO_FILE))

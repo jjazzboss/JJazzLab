@@ -28,15 +28,18 @@ import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
+import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
+import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
 
 @ActionID(category = "File", id = "org.jjazz.songeditormanager.NewSong")
@@ -44,7 +47,8 @@ import org.openide.util.NbBundle.Messages;
 @ActionReferences(
         {
             @ActionReference(path = "Menu/File", position = 0, separatorAfter = 2),
-            @ActionReference(path = "Shortcuts", name = "D-N")
+            @ActionReference(path = "Shortcuts", name = "D-N"),
+            @ActionReference(path = "Editors/TabActions")
         })
 @Messages("CTL_NewSong=New Song")
 public final class NewSong implements ActionListener
@@ -57,7 +61,22 @@ public final class NewSong implements ActionListener
     {
         Song song = createSongFromTemplate();
         SongEditorManager.getInstance().showSong(song);
+
+        // Activate the song if possible
+        if (MusicController.getInstance().getPlaybackState().equals(MusicController.State.PLAYBACK_STOPPED))
+        {
+            MidiMix mm;
+            try
+            {
+                mm = MidiMixManager.getInstance().findMix(song);
+                ActiveSongManager.getInstance().setActive(song, mm);
+            } catch (MidiUnavailableException ex)
+            {
+                Exceptions.printStackTrace(ex);
+            }
+        }
     }
+
 
     /**
      * Create a new song with its mix based on the saved template file.
@@ -67,7 +86,7 @@ public final class NewSong implements ActionListener
      * <p>
      * Created song will have its file property set to null.
      *
-     * @return     
+     * @return Can't be null
      */
     static public Song createSongFromTemplate()
     {

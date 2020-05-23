@@ -33,6 +33,7 @@ import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
+import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.song.api.Song;
 import static org.jjazz.songeditormanager.Bundle.CTL_JJazzOpenSongs;
 import org.openide.awt.ActionID;
@@ -85,9 +86,9 @@ public final class OpenSong implements ActionListener
                 lastSong = sg;
             }
         }
-        
+
         // Activate the last opened song
-        if (lastSong != null)
+        if (lastSong != null && MusicController.getInstance().getPlaybackState().equals(MusicController.State.PLAYBACK_STOPPED))
         {
             MidiMix mm;
             try
