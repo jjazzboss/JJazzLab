@@ -138,26 +138,28 @@ public final class AccentStronger extends AbstractAction implements ContextAware
     {
         if (checkBox == null)
         {
-            checkBox = new JCheckBoxMenuItem(this);
-            checkBox.addItemListener(evt -> toggleAccent(evt.getStateChange() == ItemEvent.SELECTED));
-            checkBox.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);                                
+            checkBox = new JCheckBoxMenuItem(CTL_AccentStronger());
+            checkBox.setAccelerator(KeyStroke.getKeyStroke('S'));
+            checkBox.addItemListener(evt -> setAccent(evt.getStateChange() == ItemEvent.SELECTED));
+            checkBox.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
         }
 
         // Update the checkbox: select it if only all chord symbols have a Stronger Accent
         CL_SelectionUtilities selection = cap.getSelection();
-        boolean accentNormal = selection.getSelectedItems().stream()
+        boolean allStronger = selection.getSelectedItems().stream()
                 .filter(item -> item instanceof CLI_ChordSymbol)
-                .anyMatch(item -> ((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.ACCENT));
-        checkBox.setSelected(!accentNormal);
+                .allMatch(item -> ((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.ACCENT_STRONGER));
+        checkBox.setSelected(allStronger);
 
         return checkBox;
     }
 
-    private void toggleAccent(boolean stronger)
+    private void setAccent(boolean stronger)
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
-
+        assert cls != null : "selection=" + selection;
+        
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
 
         for (CLI_ChordSymbol item : selection.getSelectedChordSymbols())

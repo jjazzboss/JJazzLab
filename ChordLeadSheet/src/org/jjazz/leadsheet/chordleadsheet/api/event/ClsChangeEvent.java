@@ -23,7 +23,6 @@
 package org.jjazz.leadsheet.chordleadsheet.api.event;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;

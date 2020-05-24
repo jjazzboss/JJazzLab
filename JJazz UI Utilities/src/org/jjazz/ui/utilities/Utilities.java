@@ -27,13 +27,14 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.openide.awt.MenuBar;
@@ -78,15 +79,22 @@ public class Utilities
 
 
     /**
-     * Create a JMenuItem from a Netbeans action (ie which is possibly also ContextAwareAction or Presenter instance).
+     * Create one or more JMenuItems or JSeparators from a Netbeans action.
      * <p>
-     * Copied from part of org.openide.util.Utilities.actionsToPopup().
+     * Copied from part of org.openide.util.Utilities.actionsToPopup(). Special handling if action is instance of:<br>
+     * - ContextAwareAction<br>
+     * - Presenter.Popup<br>
+     * <p>
+     * If Presenter.Popup is implemented and the JMenuItem returned by getPopupPresenter()... :<br>
+     * - has client property DynamicMenuContent.HIDE_WHEN_DISABLED, then no menu item is created if action is disabled.<br>
+     * - is instance of DynamicContent, then use the result of item.getMenuPresenters() (JMenuItems, or JSeparators for null
+     * values).
      *
      * @param action
      * @param context The context used for the action if it's a ContextAwareAction instance
-     * @return
+     * @return A list of JMenuItems or JSeparators. Can be empty.
      */
-    public static JMenuItem actionToMenuItem(Action action, Lookup context)
+    public static List<JComponent> actionToMenuItems(Action action, Lookup context)
     {
         if (action == null)
         {
@@ -120,7 +128,17 @@ public class Utilities
             item = ActionPresenterProvider.getDefault().createPopupPresenter(action);
         }
 
-        return item;
+        var res = new ArrayList<JComponent>();
+        for (Component c : ActionPresenterProvider.getDefault().convertComponents(item))
+        {
+            if (c instanceof JMenuItem || c instanceof JSeparator)
+            {
+                res.add((JComponent) c);
+            }
+        }
+
+        return res;
+
     }
 
     /**

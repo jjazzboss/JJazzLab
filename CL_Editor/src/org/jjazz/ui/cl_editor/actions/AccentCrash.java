@@ -23,10 +23,14 @@
 package org.jjazz.ui.cl_editor.actions;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -42,10 +46,12 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.awt.DynamicMenuContent;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
+import org.openide.util.actions.Presenter;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.accentcrash")
 @ActionRegistration(displayName = "#CTL_AccentCrash", lazy = false)
@@ -53,11 +59,13 @@ import org.openide.util.Utilities;
         {
             @ActionReference(path = "Actions/ChordSymbolAccent", position = 200)
         })
-@Messages("CTL_AccentCrash=Auto > Crash > No Crash")
-public final class AccentCrash extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+@Messages("CTL_AccentCrash=Auto/Crash/No Crash")
+public final class AccentCrash extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup
 {
+
     private CL_ContextActionSupport cap;
     private final Lookup context;
+    private MyMenuItem menuItem;
     private String undoText = CTL_AccentCrash();
 
     public AccentCrash()
@@ -125,6 +133,17 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
         // Nothing
     }
 
+    @Override
+    public JMenuItem getPopupPresenter()
+    {
+        if (menuItem == null)
+        {
+            menuItem = new MyMenuItem();
+        }
+        menuItem.update();
+        return menuItem;
+    }
+
     private ChordRenderingInfo next(ChordRenderingInfo cri)
     {
         var features = cri.getFeatures();
@@ -147,5 +166,128 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
         return newCri;
     }
 
+    /**
+     * DynamicMenuContent item which is used to return the 2 checkboxes
+     */
+    private class MyMenuItem extends JMenuItem implements DynamicMenuContent
+    {
+
+        private JComponent[] components = new JComponent[2];
+        public JCheckBoxMenuItem cbm_crash;
+        public JCheckBoxMenuItem cbm_noCrash;
+
+        public MyMenuItem()
+        {
+            cbm_crash = new JCheckBoxMenuItem("Crash Cymbal: always");
+            cbm_crash.setAccelerator(KeyStroke.getKeyStroke('H'));
+            cbm_crash.addItemListener(evt -> setCrash(evt.getStateChange() == ItemEvent.SELECTED));
+            cbm_crash.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
+
+            cbm_noCrash = new JCheckBoxMenuItem("Crash Cymbal: never");
+            cbm_noCrash.setAccelerator(KeyStroke.getKeyStroke('H'));
+            cbm_noCrash.addItemListener(evt -> setNoCrash(evt.getStateChange() == ItemEvent.SELECTED));
+            cbm_noCrash.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
+
+            components[0] = cbm_noCrash;
+            components[1] = cbm_crash;
+        }
+
+        public void update()
+        {
+            CL_SelectionUtilities selection = cap.getSelection();
+
+            boolean crashAlways = selection.getSelectedItems().stream()
+                    .filter(item -> item instanceof CLI_ChordSymbol)
+                    .allMatch(item -> ((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.CRASH));
+
+            cbm_crash.setSelected(crashAlways);
+
+            boolean crashNever = selection.getSelectedItems().stream()
+                    .filter(item -> item instanceof CLI_ChordSymbol)
+                    .allMatch(item -> ((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.NO_CRASH));
+
+            cbm_noCrash.setSelected(crashNever);
+        }
+
+        @Override
+        public JComponent[] getMenuPresenters()
+        {
+            return components;
+        }
+
+        @Override
+        public JComponent[] synchMenuPresenters(JComponent[] items)
+        {
+            return getMenuPresenters();
+        }
+
+        private void setCrash(boolean b)
+        {
+            if (b)
+            {
+                cbm_noCrash.setSelected(false);
+            }
+            changeSelectedChordSymbols((b ? 1 : 0) + (cbm_noCrash.isSelected() ? 2 : 0));
+        }
+
+        private void setNoCrash(boolean b)
+        {
+            if (b)
+            {
+                cbm_crash.setSelected(false);
+            }
+            changeSelectedChordSymbols((cbm_crash.isSelected() ? 1 : 0) + (b ? 2 : 0));
+        }
+
+        /**
+         *
+         * @param state 0:auto, 1:crash, 2:nocrash
+         */
+        private void changeSelectedChordSymbols(int state)
+        {
+            CL_SelectionUtilities selection = cap.getSelection();
+            ChordLeadSheet cls = selection.getChordLeadSheet();
+
+            JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
+
+            for (CLI_ChordSymbol item : selection.getSelectedChordSymbols())
+            {
+                ExtChordSymbol ecs = item.getData();
+                ChordRenderingInfo cri = ecs.getRenderingInfo();
+                var features = cri.getFeatures();
+
+                if (state == 0 && cri.hasOneFeature(Feature.CRASH, Feature.NO_CRASH))
+                {
+                    features.remove(Feature.CRASH);
+                    features.remove(Feature.NO_CRASH);
+                    ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
+                    ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+                    item.getContainer().changeItem(item, newCs);
+
+                } else if (state == 1 && !features.contains(Feature.CRASH))
+                {
+                    features.remove(Feature.NO_CRASH);
+                    features.add(Feature.CRASH);
+                    ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
+                    ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+                    item.getContainer().changeItem(item, newCs);
+
+                } else if (state == 2 && !features.contains(Feature.NO_CRASH))
+                {
+                    features.remove(Feature.CRASH);
+                    features.add(Feature.NO_CRASH);
+                    ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
+                    ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+                    item.getContainer().changeItem(item, newCs);
+
+                }
+            }
+
+            JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+        }
+
+    }
 
 }
+
+

@@ -139,10 +139,11 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
         if (checkBox == null)
         {
             checkBox = new JCheckBoxMenuItem(CTL_ExtendHoldShot());
-            checkBox.addItemListener(evt -> toggleExtend(evt.getStateChange() == ItemEvent.SELECTED));
+            checkBox.setAccelerator(KeyStroke.getKeyStroke('M'));
+            checkBox.addItemListener(evt -> setExtended(evt.getStateChange() == ItemEvent.SELECTED));
+            checkBox.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);                                
         }
 
-        LOGGER.severe("getPopupPresenter() called");
         // Update the checkbox: select it if only all chord symbols use Extend
         CL_SelectionUtilities selection = cap.getSelection();
         boolean accentNormal = selection.getSelectedItems().stream()
@@ -171,7 +172,7 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
         return newCri;
     }
 
-     private void toggleExtend(boolean extend)
+     private void setExtended(boolean extended)
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
@@ -184,14 +185,14 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
             ChordRenderingInfo cri = ecs.getRenderingInfo();
             var features = cri.getFeatures();
 
-            if (extend && !features.contains(Feature.HOLD_SHOT_MORE_INSTRUMENTS))
+            if (extended && !features.contains(Feature.HOLD_SHOT_MORE_INSTRUMENTS))
             {
                 features.add(Feature.HOLD_SHOT_MORE_INSTRUMENTS);
                 ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
                 ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
                 item.getContainer().changeItem(item, newCs);
 
-            } else if (!extend && features.contains(Feature.HOLD_SHOT_MORE_INSTRUMENTS))
+            } else if (!extended && features.contains(Feature.HOLD_SHOT_MORE_INSTRUMENTS))
             {
                 features.remove(Feature.HOLD_SHOT_MORE_INSTRUMENTS);
                 ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());

@@ -22,12 +22,18 @@
  */
 package org.jjazz.ui.cl_editor.actions;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ItemChangedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import static org.jjazz.ui.cl_editor.actions.Bundle.CTL_AccentOptions;
@@ -57,19 +63,20 @@ import org.openide.util.actions.Presenter;
         {
             "CTL_AccentOptions=Accent Options"
         })
-public final class AccentOptions extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup
+public final class AccentOptions extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
-
+    
     private CL_ContextActionSupport cap;
     private final Lookup context;
     JMenu subMenu;
+    private ChordLeadSheet currentCls;
     private static final Logger LOGGER = Logger.getLogger(AccentOptions.class.getSimpleName());
-
+    
     public AccentOptions()
     {
         this(Utilities.actionsGlobalContext());
     }
-
+    
     public AccentOptions(Lookup context)
     {
         this.context = context;
@@ -77,16 +84,32 @@ public final class AccentOptions extends AbstractAction implements ContextAwareA
         cap.addListener(this);
         selectionChange(cap.getSelection());
     }
-
+    
     @Override
     public void actionPerformed(ActionEvent ev)
     {
         // Unused
     }
-
+    
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
+        // Need to listen to possible CLi_ChordSymbol accent features changes that may occur while selection is unchanged
+        ChordLeadSheet cls = selection.getChordLeadSheet();
+        if (cls != currentCls)
+        {
+            if (currentCls != null)
+            {
+                currentCls.removeClsChangeListener(this);
+            }
+            currentCls = cls;
+            if (currentCls != null)
+            {
+                currentCls.addClsChangeListener(this);
+            }
+        }
+
+        // Disable menu of no accent features ON on selected chord symbols
         boolean b = false;
         if (selection.isItemSelected())
         {
@@ -95,21 +118,36 @@ public final class AccentOptions extends AbstractAction implements ContextAwareA
                     .anyMatch(item -> ((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(ChordRenderingInfo.Feature.ACCENT, ChordRenderingInfo.Feature.ACCENT_STRONGER));
         }
         setEnabled(b);
-        getPopupPresenter().setEnabled(b);
+        if (subMenu != null)
+        {
+            subMenu.setEnabled(b);
+        }
     }
-
+    
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
         return new AccentOptions(context);
     }
-
+    
     @Override
     public void sizeChanged(int oldSize, int newSize)
     {
         // Nothing
     }
 
+    // ============================================================================================= 
+    // ClsChangeListener implementation
+    // =============================================================================================      
+    @Override
+    public void chordLeadSheetChanged(ClsChangeEvent event) throws UnsupportedEditException
+    {
+        var selection = cap.getSelection();
+        if (event instanceof ItemChangedEvent && selection.getSelectedItems().contains(event.getItem()))
+        {
+            selectionChange(selection);
+        }
+    }
 
     // ============================================================================================= 
     // Presenter.Popup implementation
@@ -123,10 +161,13 @@ public final class AccentOptions extends AbstractAction implements ContextAwareA
             var actions = Utilities.actionsForPath("Actions/ChordSymbolAccent");
             for (Action action : actions)
             {
-                JMenuItem mi = org.jjazz.ui.utilities.Utilities.actionToMenuItem(action, context);
-                subMenu.add(mi);
+                for (Component c : org.jjazz.ui.utilities.Utilities.actionToMenuItems(action, context))
+                {
+                    subMenu.add(c);
+                }
             }
         }
+        subMenu.setEnabled(isEnabled());
         return subMenu;
     }
 

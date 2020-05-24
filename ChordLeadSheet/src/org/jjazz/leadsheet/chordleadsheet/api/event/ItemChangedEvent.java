@@ -25,6 +25,10 @@ package org.jjazz.leadsheet.chordleadsheet.api.event;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 
+/**
+ * One item has changed its content.
+ * <p>
+ */
 public class ItemChangedEvent extends ClsChangeEvent
 {
 
