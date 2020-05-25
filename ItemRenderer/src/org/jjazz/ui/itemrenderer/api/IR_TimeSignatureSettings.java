@@ -27,7 +27,7 @@ import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import org.openide.util.Lookup;
 
-public abstract class IR_TimeSignatureSettings
+public interface IR_TimeSignatureSettings
 {
 
     public static String PROP_FONT = "TimeSignatureFont";
@@ -47,19 +47,19 @@ public abstract class IR_TimeSignatureSettings
      *
      * @param font If null restore the default value.
      */
-    abstract public void setFont(Font font);
+     void setFont(Font font);
 
-    abstract public Font getFont();
+     Font getFont();
 
     /**
      *
      * @param color If null restore the default value.
      */
-    abstract public void setColor(Color color);
+     void setColor(Color color);
 
-    abstract public Color getColor();
+     Color getColor();
 
-    abstract public void addPropertyChangeListener(PropertyChangeListener listener);
+     void addPropertyChangeListener(PropertyChangeListener listener);
 
-    abstract public void removePropertyChangeListener(PropertyChangeListener listener);
+     void removePropertyChangeListener(PropertyChangeListener listener);
 }

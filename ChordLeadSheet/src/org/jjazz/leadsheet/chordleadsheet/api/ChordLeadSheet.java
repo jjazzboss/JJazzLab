@@ -131,6 +131,14 @@ public interface ChordLeadSheet
     public <T> void moveItem(ChordLeadSheetItem<T> item, Position pos);
 
     /**
+     * Test if specified item belongs to this object.
+     *
+     * @param item
+     * @return
+     */
+    public boolean contains(ChordLeadSheetItem<?> item);
+
+    /**
      * Change the data of a specific item.
      * <p>
      * Can not be used on Section, use setSectionName() or setSectionTimeSignature() instead.

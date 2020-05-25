@@ -61,7 +61,7 @@ import org.openide.util.actions.Presenter;
         })
 @Messages(
         {
-            "CTL_AccentOptions=Accent Options"
+            "CTL_AccentOptions=Accent options"
         })
 public final class AccentOptions extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {

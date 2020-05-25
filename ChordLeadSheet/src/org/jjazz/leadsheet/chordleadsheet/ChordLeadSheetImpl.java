@@ -213,8 +213,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         if (cliSection == null || cliSection.getPosition().getBar() >= getSize() || getSection(cliSection.getData().getName()) != null
                 || !(cliSection instanceof WritableItem))
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection 
-                    + ", getSize()=" + getSize() 
+            throw new IllegalArgumentException("cliSection=" + cliSection
+                    + ", getSize()=" + getSize()
                     + (cliSection != null ? ", getSection(cliSection.getData().getName())=" + getSection(cliSection.getData().getName()) : ""));
         }
         final int barIndex = cliSection.getPosition().getBar();
@@ -608,7 +608,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     @Override
-    public void setSectionName(CLI_Section cliSection, String name) 
+    public void setSectionName(CLI_Section cliSection, String name)
     {
         if (cliSection == null || items.indexOf(cliSection) == -1 || name == null || (getSection(name) != null && getSection(name) != cliSection)
                 || !(cliSection instanceof WritableItem))
@@ -643,11 +643,15 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     @Override
+    public boolean contains(ChordLeadSheetItem<?> item)
+    {
+        return items.contains(item);
+    }
+
+    @Override
     public List<ChordLeadSheetItem<?>> getItems()
     {
-        ArrayList<ChordLeadSheetItem<?>> res = new ArrayList<>();
-        res.addAll(items);
-        return res;
+        return new ArrayList<>(items);
     }
 
     @Override
@@ -910,7 +914,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      * Shift the position of a list of items of nbBars.
      *
      * @param shiftedItems
-     * @param nbBars       Shift
+     * @param nbBars Shift
      */
     private void shiftItemsPosition(final List<ChordLeadSheetItem<?>> shiftedItems, final int nbBars)
     {
@@ -1067,8 +1071,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     /**
-     * Convenience method, identitical to fireVetoableChangeEvent, except that caller considers that an UnsupportedEditException will never
-     * be thrown.
+     * Convenience method, identitical to fireVetoableChangeEvent, except that caller considers that an UnsupportedEditException
+     * will never be thrown.
      *
      * @param event
      * @throws IllegalStateException If an UnsupportedEditException was catched.

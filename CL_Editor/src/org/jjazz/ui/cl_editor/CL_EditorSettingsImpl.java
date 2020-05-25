@@ -55,7 +55,7 @@ public class CL_EditorSettingsImpl extends CL_EditorSettings
     @Override
     public Color getBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR, ColorSetManager.Utilities.getDefault().getWhite().getRGB()));
+        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR, ColorSetManager.getDefault().getWhite().getRGB()));
     }
 
     @Override

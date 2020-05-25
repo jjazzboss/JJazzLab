@@ -27,7 +27,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
 import org.openide.util.Lookup;
 
-public abstract class ItemRendererSettings
+public interface ItemRendererSettings
 {
 
     public static String PROP_ITEM_SELECTED_COLOR = "ItemSelectedColor";
@@ -43,17 +43,17 @@ public abstract class ItemRendererSettings
         return result;
     }
 
-    abstract public void setSelectedBackgroundColor(Color color);
+     void setSelectedBackgroundColor(Color color);
 
-    abstract public Color getSelectedBackgroundColor();
+     Color getSelectedBackgroundColor();
 
-    abstract public void setFocusedBorderColor(Color color);
+     void setFocusedBorderColor(Color color);
 
-    abstract public Border getFocusedBorder();
+     Border getFocusedBorder();
 
-    abstract public Border getNonFocusedBorder();
+     Border getNonFocusedBorder();
 
-    abstract public void addPropertyChangeListener(PropertyChangeListener listener);
+     void addPropertyChangeListener(PropertyChangeListener listener);
 
-    abstract public void removePropertyChangeListener(PropertyChangeListener listener);
+     void removePropertyChangeListener(PropertyChangeListener listener);
 }

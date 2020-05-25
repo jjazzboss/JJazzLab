@@ -49,7 +49,7 @@ import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
     @ServiceProvider(service = FontColorUserSettingsProvider.class)
 }
 )
-public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implements FontColorUserSettingsProvider, FontColorUserSettingsProvider.FCSetting
+public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontColorUserSettingsProvider, FontColorUserSettingsProvider.FCSetting
 {
 
     private static final String MUSIC_FONT_PATH = "resources/ScaleDegrees-Times.ttf";
@@ -96,8 +96,14 @@ public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implement
     public void setFont(Font font)
     {
         Font old = getFont();
-        String strFont = font != null ? Utilities.fontAsString(font) : "Arial-BOLD-18";
-        prefs.put(PROP_FONT, strFont);
+        if (font == null)
+        {
+            prefs.remove(PROP_FONT);
+            font = getFont();
+        } else
+        {
+            prefs.put(PROP_FONT, Utilities.fontAsString(font));
+        }
         pcs.firePropertyChange(PROP_FONT, old, font);
     }
 
@@ -118,7 +124,14 @@ public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implement
     public void setColor(Color color)
     {
         Color old = getColor();
-        prefs.putInt(PROP_FONT_COLOR, color != null ? color.getRGB() : Color.BLACK.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_FONT_COLOR);
+            color = getColor();
+        } else
+        {
+            prefs.putInt(PROP_FONT_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_FONT_COLOR, old, color);
     }
 
@@ -126,7 +139,14 @@ public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implement
     public void setAccentColor(Feature accentFeature, Color color)
     {
         Color old = getAccentColor(accentFeature);
-        prefs.putInt(getAccentColorKey(accentFeature), color != null ? color.getRGB() : getDefaultAccentColor(accentFeature).getRGB());
+        if (color == null)
+        {
+            prefs.remove(getAccentColorKey(accentFeature));
+            color = getAccentColor(accentFeature);
+        } else
+        {
+            prefs.putInt(getAccentColorKey(accentFeature), color.getRGB());
+        }
         pcs.firePropertyChange(PROP_FONT_ACCENT_COLOR, old, color);
     }
 
@@ -135,6 +155,7 @@ public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implement
     {
         return new Color(prefs.getInt(getAccentColorKey(accentFeature), getDefaultAccentColor(accentFeature).getRGB()));
     }
+
 
     private Color getDefaultAccentColor(Feature accentFeature)
     {
@@ -145,7 +166,7 @@ public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implement
                 defCol = getColor();
                 break;
             case ACCENT_STRONGER:
-                defCol = new Color(207, 43, 62);                // Red
+                defCol = new Color(0x9B2317);
                 break;
             default:
                 throw new AssertionError(accentFeature.name());
@@ -200,22 +221,7 @@ public class IR_ChordSymbolSettingsImpl extends IR_ChordSymbolSettings implement
     {
         List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
         res.add(this);
-        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("AccentedMediumChordSymbolId", "Chord Symbol with medium accent")
-        {
-            @Override
-            public Color getColor()
-            {
-                return getAccentColor(Feature.ACCENT);
-            }
-
-            @Override
-            public void setColor(Color c)
-            {
-                setAccentColor(Feature.ACCENT, c);
-            }
-        };
-        res.add(fcs);
-        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("AccentedStrongChordSymbolId", "Chord Symbol with strong accent")
+        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("AccentedStrongChordSymbolId", "Chord Symbol with strong accent")
         {
             @Override
             public Color getColor()

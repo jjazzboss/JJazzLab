@@ -243,6 +243,8 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             // The only UI component depending on the Alt ChordSymbol UI but not in the Alt ChordSymbol's JTabbedPane.
             lbl_optionalAltText.setText("");
         }
+        
+        pack();
     }
 
 
@@ -357,6 +359,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     private void updateOptionalText()
     {
         lbl_optionalText.setText(getOptionalText(new ChordRenderingInfo(getFeatures(), getScaleInstance())));
+        pack();
     }
 
     private AltExtChordSymbol getAltChordSymbol()
@@ -564,6 +567,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         btn_setAltChordSymbol = new javax.swing.JButton();
         cb_useVoidAlt = new javax.swing.JCheckBox();
         pnl_OkButtons = new javax.swing.JPanel();
+        btn_resetOptions = new javax.swing.JButton();
         btn_Cancel = new javax.swing.JButton();
         btn_Ok = new javax.swing.JButton();
 
@@ -733,7 +737,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                                 .addGap(18, 18, 18)
                                 .addComponent(cb_noCrash))
                             .addComponent(cb_moreInstruments))))
-                .addContainerGap(40, Short.MAX_VALUE))
+                .addContainerGap(84, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -830,7 +834,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_HarmonyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 218, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 262, Short.MAX_VALUE)
                     .addComponent(lbl_scaleTip, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(lbl_scaleNotes, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
@@ -900,8 +904,8 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(pnl_altConditionLayout.createSequentialGroup()
                         .addComponent(rbtn_marker)
-                        .addGap(18, 18, 18)
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 51, Short.MAX_VALUE))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))))
         );
         pnl_altConditionLayout.setVerticalGroup(
             pnl_altConditionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -979,13 +983,12 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 .addContainerGap()
                 .addGroup(pnl_AlternateLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnl_AlternateLayout.createSequentialGroup()
-                        .addComponent(pnl_altChordSymbol, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(pnl_altChordSymbol, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(pnl_altCondition, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(pnl_AlternateLayout.createSequentialGroup()
                         .addComponent(cb_enableAlternate)
-                        .addGap(0, 59, Short.MAX_VALUE)))
-                .addContainerGap())
+                        .addContainerGap(113, Short.MAX_VALUE))))
         );
         pnl_AlternateLayout.setVerticalGroup(
             pnl_AlternateLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1001,15 +1004,30 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
 
         tabbedPane.addTab(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.pnl_Alternate.TabConstraints.tabTitle"), null, pnl_Alternate, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.pnl_Alternate.TabConstraints.tabToolTip")); // NOI18N
 
+        org.openide.awt.Mnemonics.setLocalizedText(btn_resetOptions, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.btn_resetOptions.text")); // NOI18N
+        btn_resetOptions.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.btn_resetOptions.toolTipText")); // NOI18N
+        btn_resetOptions.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_resetOptionsActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout pnl_OkButtonsLayout = new javax.swing.GroupLayout(pnl_OkButtons);
         pnl_OkButtons.setLayout(pnl_OkButtonsLayout);
         pnl_OkButtonsLayout.setHorizontalGroup(
             pnl_OkButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGroup(pnl_OkButtonsLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btn_resetOptions)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pnl_OkButtonsLayout.setVerticalGroup(
             pnl_OkButtonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 34, Short.MAX_VALUE)
+            .addGroup(pnl_OkButtonsLayout.createSequentialGroup()
+                .addComponent(btn_resetOptions)
+                .addGap(0, 11, Short.MAX_VALUE))
         );
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.btn_Cancel.text")); // NOI18N
@@ -1213,6 +1231,14 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         }
     }//GEN-LAST:event_cb_noCrashActionPerformed
 
+    private void btn_resetOptionsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetOptionsActionPerformed
+    {//GEN-HEADEREND:event_btn_resetOptionsActionPerformed
+        rbtn_normal.doClick();
+        list_scales.clearSelection();
+        cb_enableAlternate.doClick();
+        cb_pedalBass.doClick();
+    }//GEN-LAST:event_btn_resetOptionsActionPerformed
+
     /**
      * Overridden to add global key bindings
      *
@@ -1251,6 +1277,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     private javax.swing.ButtonGroup btnGroup_Condition;
     private javax.swing.JButton btn_Cancel;
     private javax.swing.JButton btn_Ok;
+    private javax.swing.JButton btn_resetOptions;
     private javax.swing.JButton btn_setAltChordSymbol;
     private javax.swing.JCheckBox cb_crash;
     private javax.swing.JCheckBox cb_enableAlternate;

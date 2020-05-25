@@ -39,8 +39,9 @@ import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 /**
  * Base class for BarRenderer.
  * <p>
- * BarRenderer is used as a container for ItemRenderers. BarRenderer has a barIndex, and a modelBarIndex (the barIndex within the model).
- * Both values are equal when showing bars within the model, but if showing a bar past the end of the model, modelBarIndex = -1.
+ * BarRenderer is used as a container for ItemRenderers. BarRenderer has a barIndex, and a modelBarIndex (the barIndex within the
+ * model). Both values are equal when showing bars within the model, but if showing a bar past the end of the model, modelBarIndex
+ * = -1.
  */
 abstract public class BarRenderer extends JPanel implements PropertyChangeListener
 {
@@ -267,8 +268,8 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
      * <p>
      * All items shown in this BarRenderer will belong to this bar.
      *
-     * @param bar If &lt; 0, it means information from model is not available (for example because the barIndex is past the end of the
-     *            leadsheet.)
+     * @param bar If &lt; 0, it means information from model is not available (for example because the barIndex is past the end of
+     * the leadsheet.)
      * @throws IllegalArgumentException If bar is &gt; or equals to model's size.
      */
     public void setModelBarIndex(int bar)
@@ -339,9 +340,9 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     /**
      * Show or hide an insertion point for the specified item.
      *
-     * @param b        Show if true, hide if false.
+     * @param b Show if true, hide if false.
      * @param item
-     * @param pos      The position of the insertion point
+     * @param pos The position of the insertion point
      * @param copyMode
      */
     abstract public void showInsertionPoint(boolean b, ChordLeadSheetItem<?> item, Position pos, boolean copyMode);
@@ -349,7 +350,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     /**
      * Show or hide the playback point at specified position.
      *
-     * @param b   Show if true, hide if false.
+     * @param b Show if true, hide if false.
      * @param pos
      */
     abstract public void showPlaybackPoint(boolean b, Position pos);
@@ -368,6 +369,24 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
         {
             removeItemRenderer(ir);
         }
+    }
+
+    /**
+     * Get the ItemRenderer of the specified item.
+     *
+     * @param item
+     * @return Can be null.
+     */
+    public ItemRenderer getItemRenderer(ChordLeadSheetItem<?> item)
+    {
+        for (ItemRenderer ir : getItemRenderers())
+        {
+            if (ir.getModel() == item)
+            {
+                return ir;
+            }
+        }
+        return null;
     }
 
     public int getBarIndex()
@@ -404,9 +423,11 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     }
 
     /**
-     * Return a shared instance of a hidden JDialog which can be used to calculate the preferredSize of ItemRenderers/BarRenderers.
+     * Return a shared instance of a hidden JDialog which can be used to calculate the preferredSize of
+     * ItemRenderers/BarRenderers.
      * <p>
-     * This can be needed because ItemRenderers prefSize depend on font size and we need a valid Graphics object to make the calculation.
+     * This can be needed because ItemRenderers prefSize depend on font size and we need a valid Graphics object to make the
+     * calculation.
      *
      * @return
      */
@@ -442,18 +463,6 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
         revalidate();
         // Repaint background behind removed ItemRenderer
         repaint();
-    }
-
-    private ItemRenderer getItemRenderer(ChordLeadSheetItem<?> item)
-    {
-        for (ItemRenderer ir : getItemRenderers())
-        {
-            if (ir.getModel() == item)
-            {
-                return ir;
-            }
-        }
-        return null;
     }
 
     /**

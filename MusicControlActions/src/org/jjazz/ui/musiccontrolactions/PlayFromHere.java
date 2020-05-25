@@ -74,7 +74,7 @@ import org.openide.windows.TopComponent;
         })
 @NbBundle.Messages(
         {
-            "CTL_PlayFromHere=Play from Here",
+            "CTL_PlayFromHere=Play from here",
             "CTL_PlayFromHereToolTip=Play from selected bar or song part (ctrl+space)",
             "ERR_NotActive=Can't play from here: song is not active"
         })

@@ -33,9 +33,10 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Item;
 
 /**
- * The base class for ItemRenderers. Subclasses should typically implement the paintComponent() function to render the item. The
- * class listens to the item model's changes and call the modelChanged() and/or modelMoved() functions that should be implemented
- * by subclasses.
+ * The base class for ItemRenderers.
+ * <p>
+ * Subclasses should typically implement the paintComponent() function to render the item. The class listens to the item model's
+ * changes and call the modelChanged() and/or modelMoved() functions that should be implemented by subclasses.
  */
 public abstract class ItemRenderer extends JPanel implements PropertyChangeListener, FocusListener
 {
@@ -63,6 +64,9 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
      * The type of the itemrenderer.
      */
     private IR_Type irType;
+    // For requestAttention()
+    private Timer timer;
+    private Color saveBackground;
     private static final Logger LOGGER = Logger.getLogger(ItemRenderer.class.getName());
 
     @SuppressWarnings(
@@ -120,6 +124,56 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
     abstract public void setZoomFactor(int factor);
 
     abstract public int getZoomFactor();
+
+    /**
+     * Briefly flash this renderer background to request user attention.
+     *
+     * @param flashColor
+     */
+    public void requestAttention(Color flashColor)
+    {
+        if (timer != null && timer.isRunning())
+        {
+            timer.stop();
+            setBackground(saveBackground);
+        } else
+        {
+            saveBackground = getBackground();
+        }
+
+        if (timer == null)
+        {
+            // Create the timer
+            ActionListener al = new ActionListener()
+            {
+                static final int NB_FLASH = 3;
+                int count = NB_FLASH;
+
+                @Override
+                public void actionPerformed(ActionEvent e)
+                {
+                    if (count % 2 == 1)     // 3 - 1
+                    {
+                        setBackground(saveBackground);
+                    } else
+                    {
+                        setBackground(flashColor);
+                    }
+                    count--;
+                    if (count == 0)
+                    {
+                        timer.stop();
+                        count = NB_FLASH;
+                    }
+                }
+            };
+            timer = new Timer(100, al);
+        }
+
+        setBackground(flashColor);
+
+        timer.restart();
+    }
 
     /**
      * Called when the item model's data has changed.

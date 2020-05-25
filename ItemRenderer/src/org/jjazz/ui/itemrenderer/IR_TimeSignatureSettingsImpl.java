@@ -50,7 +50,7 @@ import org.openide.util.lookup.ServiceProviders;
             "CTL_TimeSignature=Time signature"
         }
 )
-public class IR_TimeSignatureSettingsImpl extends IR_TimeSignatureSettings implements FontColorUserSettingsProvider, FontColorUserSettingsProvider.FCSetting
+public class IR_TimeSignatureSettingsImpl implements IR_TimeSignatureSettings, FontColorUserSettingsProvider, FontColorUserSettingsProvider.FCSetting
 {
 
     /**

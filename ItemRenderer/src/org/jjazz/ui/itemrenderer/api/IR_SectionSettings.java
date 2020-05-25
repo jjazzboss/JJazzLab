@@ -27,7 +27,7 @@ import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import org.openide.util.Lookup;
 
-public abstract class IR_SectionSettings
+public interface IR_SectionSettings
 {
 
     public static String PROP_FONT = "SectionFont";
@@ -47,29 +47,29 @@ public abstract class IR_SectionSettings
      *
      * @param font If null this will restore default value.
      */
-    abstract public void setFont(Font font);
+     void setFont(Font font);
 
     /**
      * The font used to represent the name of the section.
      *
      * @return
      */
-    abstract public Font getFont();
+     Font getFont();
 
     /**
      *
      * @param color If null this will restore the default value.
      */
-    abstract public void setColor(Color color);
+     void setColor(Color color);
 
     /**
      * The color used to represent the name of the section.
      *
      * @return
      */
-    abstract public Color getColor();
+     Color getColor();
 
-    abstract public void addPropertyChangeListener(PropertyChangeListener listener);
+     void addPropertyChangeListener(PropertyChangeListener listener);
 
-    abstract public void removePropertyChangeListener(PropertyChangeListener listener);
+     void removePropertyChangeListener(PropertyChangeListener listener);
 }

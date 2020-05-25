@@ -54,7 +54,7 @@ import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
         {
             @ActionReference(path = "Actions/RhythmParameter", position = 450),
         })
-@Messages("CTL_PreviousRpValue=Previous Value")
+@Messages("CTL_PreviousRpValue=Previous value")
 public final class PreviousRpValue extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 

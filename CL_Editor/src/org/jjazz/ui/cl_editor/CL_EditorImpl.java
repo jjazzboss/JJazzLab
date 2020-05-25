@@ -19,9 +19,10 @@
  *  along with JJazzLabX.  If not, see <https://www.gnu.org/licenses/>
  * 
  *  Contributor(s): 
- */ 
+ */
 package org.jjazz.ui.cl_editor;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -77,7 +78,6 @@ import org.jjazz.song.api.Song;
 import org.jjazz.quantizer.Quantization;
 import org.jjazz.quantizer.Quantizer;
 import org.jjazz.rhythm.api.Feel;
-import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.ui.cl_editor.api.SelectedBar;
 import org.openide.awt.UndoRedo;
 import org.openide.util.NbBundle.Messages;
@@ -758,6 +758,28 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             makeBarVisible(pos.getBar());
         }
     }
+
+    @Override
+    public void requestAttention(ChordLeadSheetItem<?> item)
+    {
+        if (!clsModel.contains(item))
+        {
+            throw new IllegalArgumentException("item=" + item + " clsModel=" + clsModel);
+        }
+        BarBox bb = getBarBox(item.getPosition().getBar());
+        for (BarRenderer br : bb.getBarRenderers())
+        {
+            if (br.isRegisteredItemClass(item))
+            {
+                ItemRenderer ir = br.getItemRenderer(item);
+                if (ir != null)
+                {
+                    ir.requestAttention(Color.YELLOW);
+                }
+            }
+        }
+    }
+
 
     // ----------------------------------------------------------------------------------
     // Lookup.Provider interface

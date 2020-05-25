@@ -51,7 +51,7 @@ public class RpViewerSettingsImpl extends RpViewerSettings
     @Override
     public Color getSelectedBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_SELECTED_BACKGROUND_COLOR, ColorSetManager.Utilities.getDefault().getSelectedBackgroundColor().getRGB()));
+        return new Color(prefs.getInt(PROP_SELECTED_BACKGROUND_COLOR, ColorSetManager.getDefault().getSelectedBackgroundColor().getRGB()));
     }
 
     @Override
@@ -65,7 +65,7 @@ public class RpViewerSettingsImpl extends RpViewerSettings
     @Override
     public Color getDefaultBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR, ColorSetManager.Utilities.getDefault().getWhite().getRGB()));
+        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR, ColorSetManager.getDefault().getWhite().getRGB()));
     }
 
     @Override
@@ -79,7 +79,7 @@ public class RpViewerSettingsImpl extends RpViewerSettings
     @Override
     public Color getFocusedBorderColor()
     {
-        return new Color(prefs.getInt(PROP_FOCUS_BORDER_COLOR, ColorSetManager.Utilities.getDefault().getFocusedBorderColor().getRGB()));
+        return new Color(prefs.getInt(PROP_FOCUS_BORDER_COLOR, ColorSetManager.getDefault().getFocusedBorderColor().getRGB()));
     }
 
     @Override

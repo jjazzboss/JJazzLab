@@ -54,14 +54,14 @@ import org.openide.util.actions.SystemAction;
  * DeleteItem selected items or items of the selected bars.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.deleteitem")
-@ActionRegistration(displayName = "Delete Item", lazy = false)
+@ActionRegistration(displayName = "Delete item", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Bar", position = 1250),
             @ActionReference(path = "Actions/Section", position = 1250),
             @ActionReference(path = "Actions/ChordSymbol", position = 1250),
         })
-@Messages("CTL_DeleteItem=Delete Item")
+@Messages("CTL_DeleteItem=Delete item")
 public class DeleteItem extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 

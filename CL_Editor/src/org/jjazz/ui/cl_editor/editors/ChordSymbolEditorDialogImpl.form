@@ -252,7 +252,7 @@
                                   </Group>
                               </Group>
                           </Group>
-                          <EmptySpace pref="40" max="32767" attributes="0"/>
+                          <EmptySpace pref="84" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -444,7 +444,7 @@
                       <Component id="jScrollPane2" min="-2" pref="162" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="jScrollPane3" alignment="0" pref="218" max="32767" attributes="0"/>
+                          <Component id="jScrollPane3" alignment="0" pref="262" max="32767" attributes="0"/>
                           <Component id="lbl_scaleTip" max="32767" attributes="0"/>
                           <Component id="lbl_scaleNotes" alignment="0" max="32767" attributes="0"/>
                       </Group>
@@ -553,16 +553,15 @@
                       <EmptySpace min="-2" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" attributes="0">
-                              <Component id="pnl_altChordSymbol" max="32767" attributes="0"/>
-                              <EmptySpace min="-2" max="-2" attributes="0"/>
+                              <Component id="pnl_altChordSymbol" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
                               <Component id="pnl_altCondition" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" attributes="0">
                               <Component id="cb_enableAlternate" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="0" pref="59" max="32767" attributes="0"/>
+                              <EmptySpace pref="113" max="32767" attributes="0"/>
                           </Group>
                       </Group>
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -615,8 +614,8 @@
                               </Group>
                               <Group type="102" attributes="0">
                                   <Component id="rbtn_marker" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace type="separate" max="-2" attributes="0"/>
-                                  <Component id="jScrollPane4" pref="51" max="32767" attributes="0"/>
+                                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                                  <Component id="jScrollPane4" pref="0" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                       </Group>
@@ -790,15 +789,37 @@
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
-              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+              <Group type="102" alignment="0" attributes="0">
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="btn_resetOptions" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
+              </Group>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
-              <EmptySpace min="0" pref="34" max="32767" attributes="0"/>
+              <Group type="102" alignment="0" attributes="0">
+                  <Component id="btn_resetOptions" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace min="0" pref="11" max="32767" attributes="0"/>
+              </Group>
           </Group>
         </DimensionLayout>
       </Layout>
+      <SubComponents>
+        <Component class="javax.swing.JButton" name="btn_resetOptions">
+          <Properties>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="ChordSymbolEditorDialogImpl.btn_resetOptions.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            </Property>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="ChordSymbolEditorDialogImpl.btn_resetOptions.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            </Property>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_resetOptionsActionPerformed"/>
+          </Events>
+        </Component>
+      </SubComponents>
     </Container>
     <Component class="javax.swing.JButton" name="btn_Cancel">
       <Properties>

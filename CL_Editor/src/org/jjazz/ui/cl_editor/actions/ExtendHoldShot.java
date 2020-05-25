@@ -33,6 +33,10 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ItemChangedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
@@ -58,14 +62,15 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/ChordSymbolAccent", position = 400)
         })
-@Messages("CTL_ExtendHoldShot=Hold/Shot With More Instruments")
-public final class ExtendHoldShot extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup
+@Messages("CTL_ExtendHoldShot=Hold/Shot with more instruments")
+public final class ExtendHoldShot extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
 
     private CL_ContextActionSupport cap;
     private final Lookup context;
     private JCheckBoxMenuItem checkBox;
     private String undoText = CTL_ExtendHoldShot();
+    private ChordLeadSheet currentCls;
     private static final Logger LOGGER = Logger.getLogger(ExtendHoldShot.class.getSimpleName());
 
     public ExtendHoldShot()
@@ -111,6 +116,22 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
+        // Need to listen to possible CLI_ChordSymbol accent features changes that may occur while selection is unchanged
+        ChordLeadSheet cls = selection.getChordLeadSheet();
+        if (cls != currentCls)
+        {
+            if (currentCls != null)
+            {
+                currentCls.removeClsChangeListener(this);
+            }
+            currentCls = cls;
+            if (currentCls != null)
+            {
+                currentCls.addClsChangeListener(this);
+            }
+        }
+
+
         boolean b = false;
         if (selection.isItemSelected())
         {
@@ -119,6 +140,10 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
                     .anyMatch(item -> ((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.HOLD, Feature.SHOT));
         }
         setEnabled(b);
+        if (checkBox != null)
+        {
+            checkBox.setEnabled(b);
+        }
     }
 
     @Override
@@ -133,6 +158,23 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
         // Nothing
     }
 
+    // ============================================================================================= 
+    // ClsChangeListener implementation
+    // =============================================================================================      
+    @Override
+    public void chordLeadSheetChanged(ClsChangeEvent event) throws UnsupportedEditException
+    {
+        var selection = cap.getSelection();
+        if (event instanceof ItemChangedEvent && selection.getSelectedItems().contains(event.getItem()))
+        {
+            selectionChange(selection);
+        }
+    }
+
+    // ============================================================================================= 
+    // Presenter.Popup
+    // =============================================================================================   
+
     @Override
     public JMenuItem getPopupPresenter()
     {
@@ -141,7 +183,7 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
             checkBox = new JCheckBoxMenuItem(CTL_ExtendHoldShot());
             checkBox.setAccelerator(KeyStroke.getKeyStroke('M'));
             checkBox.addItemListener(evt -> setExtended(evt.getStateChange() == ItemEvent.SELECTED));
-            checkBox.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);                                
+            checkBox.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
         }
 
         // Update the checkbox: select it if only all chord symbols use Extend
@@ -150,7 +192,8 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
                 .filter(item -> item instanceof CLI_ChordSymbol)
                 .anyMatch(item -> !((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.HOLD_SHOT_MORE_INSTRUMENTS));
         checkBox.setSelected(!accentNormal);
-
+        checkBox.setEnabled(isEnabled());
+        
         return checkBox;
     }
 
@@ -172,7 +215,7 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
         return newCri;
     }
 
-     private void setExtended(boolean extended)
+    private void setExtended(boolean extended)
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();

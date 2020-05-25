@@ -34,7 +34,7 @@ import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
 @ServiceProvider(service = ItemRendererSettings.class)
-public class ItemRendererSettingsImpl extends ItemRendererSettings
+public class ItemRendererSettingsImpl implements ItemRendererSettings
 {
 
     /**
@@ -49,7 +49,7 @@ public class ItemRendererSettingsImpl extends ItemRendererSettings
     @Override
     public Color getSelectedBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_ITEM_SELECTED_COLOR, ColorSetManager.Utilities.getDefault().getSelectedBackgroundColor().getRGB()));
+        return new Color(prefs.getInt(PROP_ITEM_SELECTED_COLOR, ColorSetManager.getDefault().getSelectedBackgroundColor().getRGB()));
     }
 
     @Override
@@ -70,7 +70,7 @@ public class ItemRendererSettingsImpl extends ItemRendererSettings
     @Override
     public Border getFocusedBorder()
     {
-        Color color = new Color(prefs.getInt(PROP_ITEM_FOCUSED_BORDER_COLOR, ColorSetManager.Utilities.getDefault().getFocusedBorderColor().getRGB()));
+        Color color = new Color(prefs.getInt(PROP_ITEM_FOCUSED_BORDER_COLOR, ColorSetManager.getDefault().getFocusedBorderColor().getRGB()));
         return BorderFactory.createLineBorder(color);
     }
 

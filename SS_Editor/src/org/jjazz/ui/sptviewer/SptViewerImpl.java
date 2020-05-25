@@ -103,7 +103,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         settings.addPropertyChangeListener(this);
 
         // Keep track if section colors change
-        ColorSetManager.Utilities.getDefault().addPropertyChangeListener(this);
+        ColorSetManager.getDefault().addPropertyChangeListener(this);
 
         addFocusListener(this);
         zoomHFactor = 50;
@@ -327,7 +327,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     public void cleanup()
     {
         setVisibleRps(Collections.EMPTY_LIST);            // Unchecked warning
-        ColorSetManager.Utilities.getDefault().removePropertyChangeListener(this);
+        ColorSetManager.getDefault().removePropertyChangeListener(this);
         sptModel.removePropertyChangeListener(this);
         settings.removePropertyChangeListener(this);
         sptModel.getParentSection().removePropertyChangeListener(this);
@@ -460,7 +460,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         if (e.getSource() == settings)
         {
             updateUIComponents();
-        } else if (e.getSource() == ColorSetManager.Utilities.getDefault())
+        } else if (e.getSource() == ColorSetManager.getDefault())
         {
             updateUIComponents();       // Our parentSection's color might have changed
         } else if (e.getSource() == sptModel)
@@ -707,7 +707,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         Color color = settings.getNameFontColor();
         if (sptModel != null)
         {
-            Color sectionColor = ColorSetManager.Utilities.getDefault().getColor(sptModel.getParentSection().getData().getName());
+            Color sectionColor = ColorSetManager.getDefault().getColor(sptModel.getParentSection().getData().getName());
             color = (sectionColor == null) ? color : sectionColor;
         }
         return color;

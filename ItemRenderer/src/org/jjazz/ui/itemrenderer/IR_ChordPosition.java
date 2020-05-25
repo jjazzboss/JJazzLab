@@ -74,6 +74,7 @@ public class IR_ChordPosition extends ItemRenderer
         cri = ((CLI_ChordSymbol) getModel()).getData().getRenderingInfo();
         setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
         updateToolTipText();
+        revalidate();
         repaint();
     }
 
@@ -101,15 +102,19 @@ public class IR_ChordPosition extends ItemRenderer
         float factor = 0.8f + (.4f * zFactor / 100f);
 
         Insets in = getInsets();
+        
+        
         int pw = Math.round(DEFAULT_DRAWING_AREA.width * factor);
         if (pw % 2 == 0)
         {
             // Make sure drawing area is an odd number
             pw++;
-        }
+        }        
         pw += 2 * H_MARGIN + in.left + in.right;
         int ph = Math.round(DEFAULT_DRAWING_AREA.height * factor);
         ph += 2 * V_MARGIN + in.top + in.bottom;
+
+        
         Dimension d = new Dimension(pw, ph);
         return d;
     }
@@ -218,10 +223,10 @@ public class IR_ChordPosition extends ItemRenderer
     {
         StringBuilder sb = new StringBuilder();
         sb.append("beat=").append(getModel().getPosition().getBeatAsUserString());
-        // if (!cri.equals(PlayStyle.NORMAL))
-        if (!cri.getFeatures().isEmpty())
+        String criStr = cri.toUserString();
+        if (!criStr.isBlank())
         {
-            sb.append(" features=").append(cri.getFeatures().toString());
+            sb.append(" ").append(criStr);
         }
         setToolTipText(sb.toString());
     }

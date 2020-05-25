@@ -60,7 +60,7 @@ public class ChordRenderingInfo implements Serializable
          * Add an accent.
          * <p>
          * IMPORTANT: Exclusive with the other ACCENT*.
-         */        
+         */
         ACCENT,
         ACCENT_STRONGER,
         /**
@@ -199,7 +199,7 @@ public class ChordRenderingInfo implements Serializable
      */
     public Feature getAccentFeature()
     {
-         if (features.contains(Feature.ACCENT))
+        if (features.contains(Feature.ACCENT))
         {
             return Feature.ACCENT;
         } else if (features.contains(Feature.ACCENT_STRONGER))
@@ -374,6 +374,28 @@ public class ChordRenderingInfo implements Serializable
     public String toString()
     {
         return "features=" + features + ", scaleInstance=" + scaleInstance;
+    }
+
+    /**
+     * A string representation for UI.
+     * <p>
+     * Ex: "[CRASH] - Phrygian(C)", or "Phrygian(C)", or "[CRASH]". <br>
+     * Return an empty string if no features and no scale.
+     *
+     * @return
+     */
+    public String toUserString()
+    {
+        StringBuilder sb = new StringBuilder();
+        if (!features.isEmpty())
+        {
+            sb.append(features);
+        }
+        if (scaleInstance != null)
+        {
+            sb.append(sb.length() == 0 ? "" : " - ").append(scaleInstance);
+        }
+        return sb.toString();
     }
 
     // --------------------------------------------------------------------- 

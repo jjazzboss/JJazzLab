@@ -50,7 +50,7 @@ import org.openide.util.lookup.ServiceProviders;
             "CTL_Section=Section"
         }
 )
-public class IR_SectionSettingsImpl extends IR_SectionSettings implements FontColorUserSettingsProvider, FontColorUserSettingsProvider.FCSetting
+public class IR_SectionSettingsImpl implements IR_SectionSettings, FontColorUserSettingsProvider, FontColorUserSettingsProvider.FCSetting
 {
 
     /**

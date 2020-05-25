@@ -63,7 +63,7 @@ import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
         })
 @NbBundle.Messages(
         {
-            "CTL_EditRhythm=Change Rhythm...",
+            "CTL_EditRhythm=Change rhythm...",
             "ERR_EditRhythm=Impossible to set rhythm"
         })
 public class EditRhythm extends AbstractAction implements ContextAwareAction, SS_ContextActionListener

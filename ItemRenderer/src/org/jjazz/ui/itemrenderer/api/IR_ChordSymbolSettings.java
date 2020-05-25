@@ -28,7 +28,7 @@ import java.beans.PropertyChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.openide.util.Lookup;
 
-public abstract class IR_ChordSymbolSettings
+public interface IR_ChordSymbolSettings
 {
 
     public static String PROP_FONT = "ItemFont";
@@ -49,27 +49,27 @@ public abstract class IR_ChordSymbolSettings
      *
      * @param font If null restore the default value.
      */
-    abstract public void setFont(Font font);
+    void setFont(Font font);
 
     /**
      * The font used to represent the Chord Symbol e.g. "Cm7".
      *
      * @return
      */
-    abstract public Font getFont();
+    Font getFont();
 
     /**
      *
      * @param color If null restore the default value.
      */
-    abstract public void setColor(Color color);
+    void setColor(Color color);
 
     /**
      * The color of the Chord Symbol.
      *
      * @return
      */
-    abstract public Color getColor();
+    Color getColor();
 
     /**
      * The color to be used when rendered object has an accented chord symbol.
@@ -77,7 +77,7 @@ public abstract class IR_ChordSymbolSettings
      * @param accentFeature
      * @param color If null restore the default value.
      */
-    abstract public void setAccentColor(ChordRenderingInfo.Feature accentFeature, Color color);
+    void setAccentColor(ChordRenderingInfo.Feature accentFeature, Color color);
 
     /**
      * The color to be used when rendered object has an accented chord symbol.
@@ -85,26 +85,26 @@ public abstract class IR_ChordSymbolSettings
      * @param accentFeature
      * @return
      */
-    abstract public Color getAccentColor(ChordRenderingInfo.Feature accentFeature);
+    Color getAccentColor(ChordRenderingInfo.Feature accentFeature);
 
     /**
      * The font to display musical symbols like sharp and flat symbols.
      *
      * @return
      */
-    abstract public Font getMusicFont();
+    Font getMusicFont();
 
     /**
      * @return The char representing the Sharp symbol in the music font.
      */
-    abstract public char getSharpCharInMusicFont();
+    char getSharpCharInMusicFont();
 
     /**
      * @return The char representing the Flat symbol in the music font.
      */
-    abstract public char getFlatCharInMusicFont();
+    char getFlatCharInMusicFont();
 
-    abstract public void addPropertyChangeListener(PropertyChangeListener listener);
+    void addPropertyChangeListener(PropertyChangeListener listener);
 
-    abstract public void removePropertyChangeListener(PropertyChangeListener listener);
+    void removePropertyChangeListener(PropertyChangeListener listener);
 }

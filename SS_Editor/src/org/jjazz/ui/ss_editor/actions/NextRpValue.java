@@ -31,7 +31,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
-import javax.swing.KeyStroke;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
@@ -56,7 +55,7 @@ import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
         {
             @ActionReference(path = "Actions/RhythmParameter", position = 400),
         })
-@Messages("CTL_NextRpValue=Next Value")
+@Messages("CTL_NextRpValue=Next value")
 public final class NextRpValue extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 

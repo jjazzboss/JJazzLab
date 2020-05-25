@@ -104,7 +104,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener
         Color c = null;
         if (modelBarIndex >= 0 && modelBarIndex < getModel().getSize())
         {
-            c = ColorSetManager.Utilities.getDefault().getColor(getModel().getSection(getModelBarIndex()).getData().getName());
+            c = ColorSetManager.getDefault().getColor(getModel().getSection(getModelBarIndex()).getData().getName());
         }
         setSectionColor(c);
     }
@@ -128,7 +128,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener
     @Override
     public void setSection(CLI_Section section)
     {
-        Color newColor = ColorSetManager.Utilities.getDefault().getColor(section.getData().getName());
+        Color newColor = ColorSetManager.getDefault().getColor(section.getData().getName());
         setSectionColor(newColor);
     }
 

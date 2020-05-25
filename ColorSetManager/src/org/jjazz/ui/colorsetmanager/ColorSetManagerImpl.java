@@ -28,9 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.util.SmallMap;
 import org.openide.util.NbPreferences;
+import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 
 public class ColorSetManagerImpl implements ColorSetManager
 {

@@ -91,7 +91,7 @@ public class IR_Section extends ItemRenderer implements IR_Copiable
         settings.addPropertyChangeListener(this);
 
         // Register color manager changes
-        colorSetManager = ColorSetManager.Utilities.getDefault();
+        colorSetManager = ColorSetManager.getDefault();
         colorSetManager.addPropertyChangeListener(this);
 
         // Init

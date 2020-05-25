@@ -75,7 +75,7 @@ import org.openide.windows.TopComponent;
         })
 @NbBundle.Messages(
         {
-            "CTL_PlaySelection=Play Selection",
+            "CTL_PlaySelection=Play selection",
             "CTL_PlaySelectionToolTip=Play selected bars/song parts"
         })
 public class PlaySelection extends AbstractAction

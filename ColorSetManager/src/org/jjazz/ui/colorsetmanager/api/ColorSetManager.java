@@ -34,20 +34,16 @@ import org.openide.util.Lookup;
 public interface ColorSetManager
 {
 
-    public final static String PROP_REF_COLORS_CHANGED = "RefColorsChanged";
+    final static String PROP_REF_COLORS_CHANGED = "RefColorsChanged";
 
-    public static class Utilities
+    static ColorSetManager getDefault()
     {
-
-        public static ColorSetManager getDefault()
+        ColorSetManager result = Lookup.getDefault().lookup(ColorSetManager.class);
+        if (result == null)
         {
-            ColorSetManager result = Lookup.getDefault().lookup(ColorSetManager.class);
-            if (result == null)
-            {
-                return ColorSetManagerImpl.getInstance();
-            }
-            return result;
+            return ColorSetManagerImpl.getInstance();
         }
+        return result;
     }
 
     /**
@@ -56,14 +52,14 @@ public interface ColorSetManager
      * @param index The index of the reference color.
      * @return
      */
-    public Color getReferenceColor(int index);
+    Color getReferenceColor(int index);
 
     /**
      * Get all the reference colors present in this color set.
      *
      * @return A list of all the reference colors.
      */
-    public List<Color> getReferenceColors();
+    List<Color> getReferenceColors();
 
     /**
      * Set a reference color at specified index.
@@ -71,7 +67,7 @@ public interface ColorSetManager
      * @param index Must be in the reference colors bounds.
      * @param c
      */
-    public void setReferenceColor(int index, Color c);
+    void setReferenceColor(int index, Color c);
 
     /**
      * Return a color associated to an identifier. If identifier does not already exist in the set, we automatically associate a
@@ -80,44 +76,44 @@ public interface ColorSetManager
      * @param id Upper/lower case is ignored.
      * @return
      */
-    public Color getColor(String id);
+    Color getColor(String id);
 
     /**
      * Reset the color associated to the specified identifier. So next call to getColor(id) will return a (possibly) new color.
      *
      * @param id An identifier which has been already used with getColor(id)
      */
-    public void resetColor(String id);
+    void resetColor(String id);
 
     /**
      * A generic color for background of a selected object.
      *
      * @return
      */
-    public Color getSelectedBackgroundColor();
+    Color getSelectedBackgroundColor();
 
     /**
      * A generic color for border color of a selected object.
      *
      * @return
      */
-    public Color getFocusedBorderColor();
+    Color getFocusedBorderColor();
 
     /**
      * Our white reference color -which may not be 100% pure white
      *
      * @return
      */
-    public Color getWhite();
+    Color getWhite();
 
     /**
      * Our black reference color -which may not be 100% pure black
      *
      * @return
      */
-    public Color getBlack();
+    Color getBlack();
 
-    public void addPropertyChangeListener(PropertyChangeListener listener);
+    void addPropertyChangeListener(PropertyChangeListener listener);
 
-    public void removePropertyChangeListener(PropertyChangeListener listener);
+    void removePropertyChangeListener(PropertyChangeListener listener);
 }

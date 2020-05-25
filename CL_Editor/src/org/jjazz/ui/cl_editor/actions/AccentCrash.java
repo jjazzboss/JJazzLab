@@ -178,12 +178,12 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
 
         public MyMenuItem()
         {
-            cbm_crash = new JCheckBoxMenuItem("Crash Cymbal: always");
+            cbm_crash = new JCheckBoxMenuItem("Crash cymbal: always");
             cbm_crash.setAccelerator(KeyStroke.getKeyStroke('H'));
             cbm_crash.addItemListener(evt -> setCrash(evt.getStateChange() == ItemEvent.SELECTED));
             cbm_crash.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
 
-            cbm_noCrash = new JCheckBoxMenuItem("Crash Cymbal: never");
+            cbm_noCrash = new JCheckBoxMenuItem("Crash cymbal: never");
             cbm_noCrash.setAccelerator(KeyStroke.getKeyStroke('H'));
             cbm_noCrash.addItemListener(evt -> setNoCrash(evt.getStateChange() == ItemEvent.SELECTED));
             cbm_noCrash.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);

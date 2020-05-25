@@ -201,6 +201,14 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     abstract public void setFocusOnItem(ChordLeadSheetItem<?> item, IR_Type irClass);
 
     /**
+     * Cause the renderer(s) of the specified item to do a brief UI change to request user attention.
+     *
+     * @param item
+     * @throws IllegalArgumentException If ChordLeadSheet model does not contain item.
+     */
+    abstract public void requestAttention(ChordLeadSheetItem<?> item);
+
+    /**
      * Show an insertion point in the editor for copy/move operations.
      *
      * @param b Show/hide the insertion point. If false other arguments are not used.

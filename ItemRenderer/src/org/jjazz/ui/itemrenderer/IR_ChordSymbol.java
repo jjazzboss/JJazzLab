@@ -23,18 +23,22 @@
 package org.jjazz.ui.itemrenderer;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
 import java.beans.PropertyChangeEvent;
 import java.text.AttributedString;
-import java.util.ArrayList;
+import java.util.Objects;
 import java.util.logging.Logger;
-import org.jjazz.harmony.StandardScaleInstance;
+import javax.swing.Timer;
+import org.jjazz.harmony.ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.AltDataFilter;
 import org.jjazz.leadsheet.chordleadsheet.api.item.AltExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.VoidAltExtChordSymbol;
 import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
@@ -50,11 +54,20 @@ import org.jjazz.ui.utilities.TextLayoutUtils;
 public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 {
 
+    private final static int OPTION_LINE_V_PADDING = 1;   // Additional space for the option line
+    private final static int OPTION_LINE_THICKNESS = 1;   // Additional space for the option line
     private AttributedString attChordString;
     private boolean copyMode;
     private IR_ChordSymbolSettings settings;
     private int zoomFactor = 50;
+    private String chordSymbolName;
+    private ChordSymbol altChordSymbol;
+    private int chordSymbolWidth;
+    private int chordSymbolHeight;
+    private ExtChordSymbol ecs;
     private ChordRenderingInfo cri;
+    private Timer timer;
+    private Color optionLineColor;
     private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbol.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
@@ -62,27 +75,59 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     {
         super(item, IR_Type.ChordSymbol);
         LOGGER.fine("IR_ChordSymbol() item=" + item);
-        cri = item.getData().getRenderingInfo();
-        
+        ecs = item.getData();
+        cri = ecs.getRenderingInfo();
+        chordSymbolName = ecs.getName();
+        altChordSymbol = ecs.getAlternateChordSymbol();
+
         updateToolTipText();
 
         // Apply settings and listen to their changes
         settings = IR_ChordSymbolSettings.getDefault();
         settings.addPropertyChangeListener(this);
         setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
-        // setForeground(settings.getColor());
+        optionLineColor = getForeground();
         setFont(settings.getFont());
     }
 
     @Override
     public void modelChanged()
     {
-        ExtChordSymbol ecs = (ExtChordSymbol) getModel().getData();
-        cri = ((CLI_ChordSymbol) getModel()).getData().getRenderingInfo();
+        // Save previous state
+        ExtChordSymbol oldEcs = ecs;
+        ChordRenderingInfo oldCri = cri;
+        String oldChordSymbolName = chordSymbolName;
+        ChordSymbol oldAltChordSymbol = altChordSymbol;
+
+        // Update our state
+        ecs = (ExtChordSymbol) getModel().getData();
+        cri = ecs.getRenderingInfo();
+        chordSymbolName = ecs.getName();
+        altChordSymbol = ecs.getAlternateChordSymbol();
+
+        // Update UI
         setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
+        optionLineColor = getForeground();
         updateToolTipText();
         revalidate();
         repaint();
+
+
+        // Request attention if option mark was ON and remains ON and only one of the following option has changed:
+        // crash/no crash/extended holdshot/scale/altChord
+        if (oldCri != null
+                && oldChordSymbolName.equals(chordSymbolName)
+                && needOptionMark(ecs, cri)
+                && needOptionMark(oldEcs, oldCri)
+                && (oldAltChordSymbol != altChordSymbol
+                || !Objects.equals(cri.getScaleInstance(), oldCri.getScaleInstance())
+                || cri.hasOneFeature(Feature.CRASH) != oldCri.hasOneFeature(Feature.CRASH)
+                || cri.hasOneFeature(Feature.NO_CRASH) != oldCri.hasOneFeature(Feature.NO_CRASH)
+                || cri.hasOneFeature(Feature.HOLD_SHOT_MORE_INSTRUMENTS) != oldCri.hasOneFeature(Feature.HOLD_SHOT_MORE_INSTRUMENTS)))
+        {
+            // UI won't be updated so request attention to assure user that something happened indeed
+            flashOptionLine();
+        }
     }
 
     /**
@@ -95,21 +140,25 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         // The chord symbol to show
         ExtChordSymbol ecs = (ExtChordSymbol) getModel().getData();
 
+
         // Prepare the graphics context
         Graphics2D g2 = (Graphics2D) getGraphics();
         assert g2 != null;
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+
         // The fonts to be used
         FontRenderContext frc = g2.getFontRenderContext();
         Font font = getFont();
         Font musicFont = settings.getMusicFont();
 
+
         // Make font size depend on the zoom factor
         float factor = 0.5f + (getZoomFactor() / 100f);
         float zFontSize = factor * font.getSize2D();
         zFontSize = Math.max(zFontSize, 12);
+
 
         // Get the strings making up the chord symbol : base [bass] extension
         String base = ecs.getRootNote().toRelativeNoteString() + ecs.getChordType().getBase();
@@ -120,12 +169,18 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         }
         String extension = ecs.getChordType().getExtension();
 
+
         // Create the AttributedString from the strings
         String strChord = base + extension + bass;
         String strChord2 = strChord.replace('#', settings.getSharpCharInMusicFont()).replace('b', settings.getFlatCharInMusicFont());
         attChordString = new AttributedString(strChord2);
         attChordString.addAttribute(TextAttribute.SIZE, zFontSize);                 // Default attribute
         attChordString.addAttribute(TextAttribute.FAMILY, font.getFontName());      // Default attribute
+//        if (needOptionDots())
+//        {
+//            attChordString.addAttribute(TextAttribute.POSTURE, TextAttribute.POSTURE_OBLIQUE);      // Default attribute
+//        }
+
         // Use the music font for all the # and b symbols
         for (int i = 0; i < strChord.length(); i++)
         {
@@ -134,21 +189,28 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
                 attChordString.addAttribute(TextAttribute.FAMILY, musicFont.getFontName(), i, i + 1);
             }
         }
+
         // Superscript for the extension
         if (!extension.isEmpty())
         {
             attChordString.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, base.length(), base.length() + extension.length());
         }
 
+
         // Create the TextLayout to get its dimension       
         TextLayout textLayout = new TextLayout(attChordString.getIterator(), frc);
-        int w = (int) TextLayoutUtils.getWidth(textLayout, strChord2, false);
-        int h = (int) TextLayoutUtils.getHeight(textLayout, frc);
-
+        chordSymbolWidth = (int) TextLayoutUtils.getWidth(textLayout, strChord2, false);
+        chordSymbolHeight = (int) TextLayoutUtils.getHeight(textLayout, frc);
         Insets in = getInsets();
         final int PADDING = 1;
-        Dimension d = new Dimension((int) w + 2 * PADDING + in.left + in.right, h + 2 * PADDING + in.top + in.bottom);
+        int wFinal = chordSymbolWidth + 2 * PADDING + in.left + in.right; //  + (needOptionDots(ecs) ? CORNER_SIZE : 0);
+        int hFinal = chordSymbolHeight + PADDING + OPTION_LINE_THICKNESS + 2 * OPTION_LINE_V_PADDING + in.top + in.bottom;
+        Dimension d = new Dimension(wFinal, hFinal);
+
+
         LOGGER.fine("getPreferredSize()    result d=" + d + "   (insets=" + in + ")");
+
+
         return d;
     }
 
@@ -173,15 +235,13 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
             // Chord Symbol
             ChordRenderingInfo cri = ecs.getRenderingInfo();
             StringBuilder sb = new StringBuilder(ecs.getChord().toRelativeNoteString(ecs.getRootNote().getAlterationDisplay()));
-            if (!cri.getFeatures().isEmpty())
-            {
-                sb.append(" - ").append(cri.getFeatures().toString());
-            }
 
-            StandardScaleInstance ssi = cri.getScaleInstance();
-            if (ssi != null)
+
+            // Rendering info
+            String criStr = cri.toUserString();
+            if (!criStr.isBlank())
             {
-                sb.append(" - ").append(ssi);
+                sb.append(" - ").append(criStr);
             }
 
             // Alt chord symbol if any
@@ -196,20 +256,16 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
                 {
                     sb.append(altSymbol);
                     cri = altSymbol.getRenderingInfo();
-                    if (!cri.getFeatures().isEmpty())
+                    criStr = cri.toUserString();
+                    if (!criStr.isBlank())
                     {
-                        sb.append(" - ").append(cri.getFeatures().toString());
-                    }
-                    ssi = cri.getScaleInstance();
-                    if (ssi != null)
-                    {
-                        sb.append(" - ").append(ssi);
+                        sb.append(" - ").append(criStr);
                     }
                 }
-                sb.append(" - Condition=");
+                sb.append(" - condition=");
                 AltDataFilter altFilter = ecs.getAlternateFilter();
                 assert altFilter != null;
-                sb.append(altFilter.isRandom() ? "Random" : altFilter.getValues());
+                sb.append(altFilter.isRandom() ? "random" : altFilter.getValues());
             }
             setToolTipText(sb.toString());
         } else
@@ -243,38 +299,96 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         // Paint background
         super.paintComponent(g);
 
+
         Insets in = this.getInsets();
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+
         // LOGGER.severe("paintComponent() model=" + chordSymbol + " prefSize=" + getPreferredSize() + "  g2=" + g2);
         float x = in.left;
-        float y = getHeight() - 1 - in.bottom;
+        float y = getHeight() - 1 - in.bottom - 2 * OPTION_LINE_V_PADDING - OPTION_LINE_THICKNESS + 1; // +1 needed ! (don't understand why)
 
+
+        // Draw the chord symbol elements
         g2.drawString(attChordString.getIterator(), x, y);
 
-        // Draw the scale presence indicator
-        ExtChordSymbol ecs = (ExtChordSymbol) getModel().getData();
-        if (ecs.getRenderingInfo().getScaleInstance() != null)
-        {
-            int length = (int) Math.round(8 * (0.7f + 0.6 * zoomFactor / 100f));
-            int x1 = getWidth() / 2 - length / 2;
-            int x2 = getWidth() / 2 + length / 2;
-            y = getHeight() - 2;
-            g2.drawLine(x1, (int) y, x2, (int) y);
-        }
 
+        // Draw the copy indicator in upper right corner
         if (copyMode)
         {
-            // Draw the copy indicator in upper right corner
             int size = IR_Copiable.CopyIndicator.getSideLength();
             Graphics2D gg2 = (Graphics2D) g2.create(Math.max(getWidth() - size - 1, 0), 1, size, size);
             IR_Copiable.CopyIndicator.drawCopyIndicator(gg2);
             gg2.dispose();
         }
 
+
+        // Draw the option mark if needed
+        ExtChordSymbol ecs = (ExtChordSymbol) getModel().getData();
+        if (needOptionMark(ecs, cri))
+        {
+            int length = (int) Math.round(8 * (0.7f + 0.6 * zoomFactor / 100f));
+            int x1 = getWidth() / 2 - length / 2;
+            int x2 = getWidth() / 2 + length / 2;
+            y = getHeight() - 1 - in.bottom - OPTION_LINE_V_PADDING;
+            g2.setColor(optionLineColor);
+            g2.drawLine(x1, (int) y, x2, (int) y);
+        }
     }
+
+
+    public void flashOptionLine()
+    {
+        if (timer != null && timer.isRunning())
+        {
+            timer.stop();
+            optionLineColor = getForeground();
+        } 
+        
+        final Color flashColor = Color.RED;
+
+        if (timer == null)
+        {
+            // Create the timer
+            ActionListener al = new ActionListener()
+            {
+                static final int NB_FLASH = 5;
+                int count = NB_FLASH;
+
+                @Override
+                public void actionPerformed(ActionEvent e)
+                {
+                    if (count % 2 == 1)     // 5 - 3 - 1
+                    {
+                        // setBackground(saveBackground);
+                        optionLineColor = getForeground();
+                        repaint();
+                    } else
+                    {
+                        // setBackground(flashColor);
+                        optionLineColor = flashColor;
+                        repaint();
+                    }
+                    count--;
+                    if (count == 0)
+                    {
+                        timer.stop();
+                        count = NB_FLASH;
+                    }
+                }
+            };
+            timer = new Timer(60, al);
+        }
+        
+        optionLineColor = flashColor;
+        repaint();
+                
+        timer.restart();
+
+    }
+
 
     //-----------------------------------------------------------------------
     // Implementation of the PropertiesListener interface
@@ -293,6 +407,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
             {
                 ExtChordSymbol ecs = (ExtChordSymbol) getModel().getData();
                 setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
+                optionLineColor = getForeground();
             }
         }
     }
@@ -310,44 +425,12 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         }
     }
 
-    /**
-     * Split the string around b or # chars.
-     * <p>
-     * Example : s=F7b9 will return list v[0] = F7, v1[1]=b v[2]=9
-     */
-    @SuppressWarnings("empty-statement")
-    private java.util.List<String> splitStringSharpOrFlat(String str)
+    private boolean needOptionMark(ExtChordSymbol ecs, ChordRenderingInfo cri)
     {
-        StringBuilder sb = new StringBuilder();
-        ArrayList<String> v = new ArrayList<>();
-
-        for (int i = 0; i < str.length(); i++)
-        {
-            char c = str.charAt(i);
-
-            if ((c == '#') || (c == 'b'))
-            {
-                char[] ca =
-                {
-                    c
-                };
-                v.add(sb.toString());
-                sb.setLength(0);
-                v.add(new String(ca));
-            } else
-            {
-                sb.append(c);
-            }
-        }
-
-        v.add(sb.toString());
-
-        // Remove empty values
-        while (v.remove(""))
-        {
-            ;
-        }
-        return v;
+        return ((cri.getAccentFeature() != null && cri.hasOneFeature(Feature.CRASH, Feature.HOLD_SHOT_MORE_INSTRUMENTS, Feature.NO_CRASH))
+                || cri.getScaleInstance() != null
+                || ecs.getAlternateChordSymbol() != null);
     }
+
 
 }

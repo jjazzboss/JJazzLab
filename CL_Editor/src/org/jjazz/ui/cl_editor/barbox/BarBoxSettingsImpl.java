@@ -161,7 +161,7 @@ public class BarBoxSettingsImpl extends BarBoxSettings implements FontColorUserS
     @Override
     public Color getFocusedBorderColor()
     {
-        return new Color(prefs.getInt(PROP_FOCUSED_BORDER_COLOR, ColorSetManager.Utilities.getDefault().getFocusedBorderColor().getRGB()));
+        return new Color(prefs.getInt(PROP_FOCUSED_BORDER_COLOR, ColorSetManager.getDefault().getFocusedBorderColor().getRGB()));
     }
 
     @Override
@@ -184,14 +184,14 @@ public class BarBoxSettingsImpl extends BarBoxSettings implements FontColorUserS
     public void setDefaultColor(Color color)
     {
         Color old = getSelectedColor();
-        prefs.putInt(PROP_BAR_DEFAULT_COLOR, color != null ? color.getRGB() : ColorSetManager.Utilities.getDefault().getWhite().getRGB());
+        prefs.putInt(PROP_BAR_DEFAULT_COLOR, color != null ? color.getRGB() : ColorSetManager.getDefault().getWhite().getRGB());
         pcs.firePropertyChange(PROP_BAR_DEFAULT_COLOR, old, color);
     }
 
     @Override
     public Color getDefaultColor()
     {
-        return new Color(prefs.getInt(PROP_BAR_DEFAULT_COLOR, ColorSetManager.Utilities.getDefault().getWhite().getRGB()));
+        return new Color(prefs.getInt(PROP_BAR_DEFAULT_COLOR, ColorSetManager.getDefault().getWhite().getRGB()));
     }
 
     @Override
@@ -239,14 +239,14 @@ public class BarBoxSettingsImpl extends BarBoxSettings implements FontColorUserS
     @Override
     public Color getSelectedColor()
     {
-        return new Color(prefs.getInt(PROP_BAR_SELECTED_COLOR, ColorSetManager.Utilities.getDefault().getSelectedBackgroundColor().getRGB()));
+        return new Color(prefs.getInt(PROP_BAR_SELECTED_COLOR, ColorSetManager.getDefault().getSelectedBackgroundColor().getRGB()));
     }
 
     @Override
     public void setSelectedColor(Color color)
     {
         Color old = getSelectedColor();
-        prefs.putInt(PROP_BAR_SELECTED_COLOR, color != null ? color.getRGB() : ColorSetManager.Utilities.getDefault().getSelectedBackgroundColor().getRGB());
+        prefs.putInt(PROP_BAR_SELECTED_COLOR, color != null ? color.getRGB() : ColorSetManager.getDefault().getSelectedBackgroundColor().getRGB());
         pcs.firePropertyChange(PROP_BAR_SELECTED_COLOR, old, color);
     }
 

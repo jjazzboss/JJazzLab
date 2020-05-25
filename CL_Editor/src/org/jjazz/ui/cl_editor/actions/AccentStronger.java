@@ -58,7 +58,7 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/ChordSymbolAccent", position = 100)
         })
-@Messages("CTL_AccentStronger=Stronger Accent")
+@Messages("CTL_AccentStronger=Stronger accent")
 public final class AccentStronger extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup
 {
 
