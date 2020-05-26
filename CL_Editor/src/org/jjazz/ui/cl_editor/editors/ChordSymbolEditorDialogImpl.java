@@ -243,7 +243,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             // The only UI component depending on the Alt ChordSymbol UI but not in the Alt ChordSymbol's JTabbedPane.
             lbl_optionalAltText.setText("");
         }
-        
+
         pack();
     }
 
@@ -1233,10 +1233,15 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
 
     private void btn_resetOptionsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetOptionsActionPerformed
     {//GEN-HEADEREND:event_btn_resetOptionsActionPerformed
-        rbtn_normal.doClick();
+        rbtn_normal.setSelected(true);      // Will disable the other options etc.
         list_scales.clearSelection();
-        cb_enableAlternate.doClick();
-        cb_pedalBass.doClick();
+        if (cb_enableAlternate.isSelected())
+        {
+            cb_enableAlternate.setSelected(false);   // Does not trigger the action
+            cb_enableAlternateActionPerformed(null);
+        }
+        cb_pedalBass.setSelected(false);
+        cb_pedalBassActionPerformed(evt);
     }//GEN-LAST:event_btn_resetOptionsActionPerformed
 
     /**
