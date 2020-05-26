@@ -29,16 +29,19 @@ import org.openide.util.Lookup;
 /**
  * Provides opened/closed file information to the OpenRecentFile action.
  */
-public abstract class RecentFilesProvider
+public interface RecentFilesProvider
 {
 
     /**
-     * This property change event must be fired when a file is opened. NewValue is the file object. This property should also be
-     * fired the first time a new file is saved.
+     * This property change event must be fired when a file is opened.
+     * <p>
+     * NewValue is the file object. This property should also be fired the first time a new file is saved.
      */
     public static final String PROP_FILE_OPENED = "FileOpened";
     /**
-     * This property change event must be fired when a file is closed. NewValue is the file object.
+     * This property change event must be fired when a file is closed.
+     * <p>
+     * NewValue is the file object.
      */
     public static final String PROP_FILE_CLOSED = "FileClosed";
 
@@ -54,9 +57,9 @@ public abstract class RecentFilesProvider
      * @param f
      * @return False is object represented by f could not be opened.
      */
-    public abstract boolean open(File f);
+    boolean open(File f);
 
-    public abstract void addPropertyChangeListener(PropertyChangeListener l);
+    void addPropertyChangeListener(PropertyChangeListener l);
 
-    public abstract void removePropertyChangeListener(PropertyChangeListener l);
+    void removePropertyChangeListener(PropertyChangeListener l);
 }

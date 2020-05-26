@@ -27,30 +27,21 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.SwingUtilities;
 import org.jjazz.activesong.ActiveSongManager;
-import org.jjazz.base.actions.Savable;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
-import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.openide.*;
-import org.openide.modules.OnStop;
-import org.openide.util.Exceptions;
-import org.openide.util.NbPreferences;
 import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
@@ -62,28 +53,27 @@ public class SongEditorManager implements PropertyChangeListener
 {
 
     /**
-     * This property change event is fired when a song is opened. NewValue is the song object.
+     * This property change event is fired when a song is opened.
+     * <p>
+     * NewValue is the song object.
      */
     public static final String PROP_SONG_OPENED = "SongOpened";
     /**
-     * This property change event is fired when a song is closed. NewValue is the song object. Note that the Song object also
-     * fires a Closed event when it is closed by the SongEditorManager.
+     * This property change event is fired when a song is closed.
+     * <p>
+     * NewValue is the song object. Note that the Song object also fires a Closed event when it is closed by the
+     * SongEditorManager.
      */
     public static final String PROP_SONG_CLOSED = "SongClosed";
     /**
-     * This property change event is fired when a song is saved. NewValue is the song object.
+     * This property change event is fired when a song is saved.
+     * <p>
+     * NewValue is the song object.
      */
     public static final String PROP_SONG_SAVED = "SongSaved";
-    /**
-     * Used as the Preference id and property change.
-     */
-    public static final String PREF_OPEN_RECENT_FILES_UPON_STARTUP = "OpenRecentFilesUponStartup";
-    public static final String PREF_FILES_TO_BE_REOPENED_UPON_STARTUP = "FilesToBeReOpenedUponStartup";
-    private static final String NO_FILE = "__NO_FILE__";
-    private static final int MAX_FILES = 6;
+
     private static SongEditorManager INSTANCE;
     private HashMap<Song, Editors> mapSongEditors;       // Don't use WeakHashMap here
-    private static Preferences prefs = NbPreferences.forModule(SongEditorManager.class);
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(SongEditorManager.class.getSimpleName());
 
@@ -104,11 +94,6 @@ public class SongEditorManager implements PropertyChangeListener
         mapSongEditors = new HashMap<>();
         TopComponent.getRegistry().addPropertyChangeListener(this);
 
-        // Reopen files upon startup
-        if (isOpenRecentFilesUponStartup())
-        {
-            openRecentFilesUponStartup();
-        }
 
     }
 
@@ -116,13 +101,20 @@ public class SongEditorManager implements PropertyChangeListener
      * Programmatically close the editors associated to a song.
      *
      * @param song
+     * @param isShuttingDown If true, just do what's required to notify listeners.
      */
-    public void closeSong(Song song)
+    public void closeSong(Song song, boolean isShuttingDown)
     {
-        Editors editors = getEditors(song);
-        if (editors != null)
+        if (!isShuttingDown)
         {
-            editors.tcCle.close();
+            Editors editors = getEditors(song);
+            if (editors != null)
+            {
+                editors.tcCle.close();  // This will make TopComponent.canClosed() be called first, with possibly user confirmation dialog
+            }
+        } else
+        {
+            songClosed(song);
         }
     }
 
@@ -237,20 +229,6 @@ public class SongEditorManager implements PropertyChangeListener
         return mapSongEditors.get(s);
     }
 
-    public void setOpenRecentFilesUponStartup(boolean b)
-    {
-        if (b != isOpenRecentFilesUponStartup())
-        {
-            prefs.putBoolean(PREF_OPEN_RECENT_FILES_UPON_STARTUP, b);
-            pcs.firePropertyChange(PREF_OPEN_RECENT_FILES_UPON_STARTUP, !b, b);
-        }
-    }
-
-    public final boolean isOpenRecentFilesUponStartup()
-    {
-        return prefs.getBoolean(PREF_OPEN_RECENT_FILES_UPON_STARTUP, true);
-    }
-
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
@@ -287,76 +265,22 @@ public class SongEditorManager implements PropertyChangeListener
         }
     }
 
-    /**
-     * Ask user if unsaved changes, close properly the opened songs (so that listeners with persistence like RecentFiles are
-     * notified).
-     * <p>
-     * Also save the opened songs for possible reopen at startup (see isOpenRecentFilesUponStartup()).
-     */
-    @OnStop
-    public static class Shutdown implements Callable<Boolean>
-    {
-
-        @Override
-        public Boolean call() throws Exception
-        {
-            SongEditorManager sem = SongEditorManager.getInstance();
-
-            // Ask user confirmation if there are still files to be saved
-            List<Savable> savables = Savable.ToBeSavedList.getSavables();
-            if (!savables.isEmpty())
-            {
-                StringBuilder msg = new StringBuilder();
-                msg.append("There are unsaved changes in the files below. OK to exit anyway ?").append("\n\n");
-                for (Savable s : savables)
-                {
-                    msg.append("  ").append(s.toString()).append("\n");
-                }
-                NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg.toString(), NotifyDescriptor.OK_CANCEL_OPTION);
-                Object result = DialogDisplayer.getDefault().notify(nd);
-                if (result != NotifyDescriptor.OK_OPTION)
-                {
-                    return Boolean.FALSE;
-                }
-            }
-
-            // Close the open editors and update the preferences
-            StringBuilder sb = new StringBuilder();
-            for (Song s : sem.getOpenedSongs())
-            {
-                File f = s.getFile();
-                if (f != null)
-                {
-                    if (sb.length() > 0)
-                    {
-                        sb.append(", ");
-                    }
-                    sb.append(f.getAbsolutePath());
-                }
-                sem.songClosed(s);
-            }
-            String s = sb.toString();
-            prefs.put(PREF_FILES_TO_BE_REOPENED_UPON_STARTUP, s.isEmpty() ? NO_FILE : s);
-
-            return Boolean.TRUE;
-        }
-    }
 
     //=============================================================================
     // Private
     //=============================================================================  
     /**
-     * Song is closed, do some cleanup
+     * Song is closed, notify listeners and do some cleanup
      *
      * @param s
      */
     private void songClosed(Song s)
     {
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(s);
-        s.addUndoableEditListener(um);
+        s.removeUndoableEditListener(um);
         s.removePropertyChangeListener(this);
         mapSongEditors.remove(s);
-        pcs.firePropertyChange(PROP_SONG_CLOSED, false, s);
+        pcs.firePropertyChange(PROP_SONG_CLOSED, false, s); // Event used for example by RecentSongProvider
         s.close(true);
         updateActiveSong();
     }
@@ -395,47 +319,6 @@ public class SongEditorManager implements PropertyChangeListener
 
     }
 
-
-    private void openRecentFilesUponStartup()
-    {
-        String s = prefs.get(PREF_FILES_TO_BE_REOPENED_UPON_STARTUP, NO_FILE).trim();
-        if (!s.equals(NO_FILE))
-        {
-            final List<String> strFiles = Arrays.asList(s.split(","));
-            final int max = Math.min(strFiles.size(), MAX_FILES);         // Robustness
-            Runnable run = new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    Song lastSong = null;
-                    for (int i = 0; i < max; i++)
-                    {
-                        File f = new File(strFiles.get(i).trim());
-                        Song sg = SongEditorManager.this.showSong(f);
-                        if (sg != null)
-                        {
-                            lastSong = sg;
-                        }
-                    }
-                    // Make the last open song active
-                    if (lastSong != null)
-                    {
-                        MidiMix mm;
-                        try
-                        {
-                            mm = MidiMixManager.getInstance().findMix(lastSong);
-                            ActiveSongManager.getInstance().setActive(lastSong, mm);
-                        } catch (MidiUnavailableException ex)
-                        {
-                            Exceptions.printStackTrace(ex);
-                        }
-                    }
-                }
-            };
-            SwingUtilities.invokeLater(run);
-        }
-    }
 
     //=============================================================================
     // Inner classes

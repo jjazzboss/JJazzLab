@@ -41,7 +41,7 @@ import org.openide.util.lookup.ServiceProvider;
  * Rely on SongEditorManager to fill the RecentFilesProvider contract.
  */
 @ServiceProvider(service = RecentFilesProvider.class)
-public class RecentSongsProvider extends RecentFilesProvider implements PropertyChangeListener
+public class RecentSongsProvider implements RecentFilesProvider, PropertyChangeListener
 {
 
     private final PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);

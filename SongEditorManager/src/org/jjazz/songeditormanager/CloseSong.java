@@ -58,6 +58,6 @@ public final class CloseSong implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ev)
     {
-        SongEditorManager.getInstance().closeSong(context);
+        SongEditorManager.getInstance().closeSong(context, false);
     }
 }
