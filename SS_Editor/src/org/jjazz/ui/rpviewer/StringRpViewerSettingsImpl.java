@@ -25,15 +25,25 @@ package org.jjazz.ui.rpviewer;
 import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.ui.rpviewer.api.RpViewerSettings;
+import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
 import org.jjazz.util.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
+import org.openide.util.lookup.ServiceProviders;
 
-@ServiceProvider(service = StringRpViewerSettings.class)
-public class StringRpViewerSettingsImpl extends StringRpViewerSettings
+@ServiceProviders(value =
+{
+    @ServiceProvider(service = StringRpViewerSettings.class),
+    @ServiceProvider(service = FontColorUserSettingsProvider.class)
+}
+)
+public class StringRpViewerSettingsImpl implements StringRpViewerSettings, FontColorUserSettingsProvider
 {
 
     /**
@@ -90,5 +100,35 @@ public class StringRpViewerSettingsImpl extends StringRpViewerSettings
     public synchronized void removePropertyChangeListener(PropertyChangeListener listener)
     {
         pcs.removePropertyChangeListener(listener);
+    }
+    
+     // =====================================================================================
+    // FontColorUserSettingsProvider implementation
+    // =====================================================================================
+    @Override
+    public List<FontColorUserSettingsProvider.FCSetting> getFCSettings()
+    {
+        List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
+
+
+        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("rpStringId", "Rhythm param. value")
+        {
+            @Override
+            public Font getFont()
+            {
+                return StringRpViewerSettingsImpl.this.getFont();
+            }
+
+            @Override
+            public void setFont(Font f)
+            {
+                StringRpViewerSettingsImpl.this.setFont(f);
+            }
+
+
+        };
+        res.add(fcs);
+
+        return res;
     }
 }

@@ -215,7 +215,10 @@ public class Utilities
         }
         for (int i = 0; i < menuBar.getMenuCount(); i++)
         {
-            changeMenuFontSize(menuBar.getMenu(i), fontSizeOffset);
+            if (menuBar.getMenu(i) != null)
+            {
+                changeMenuFontSize(menuBar.getMenu(i), fontSizeOffset);
+            }
         }
     }
 
@@ -235,7 +238,7 @@ public class Utilities
             if (c instanceof JMenu)
             {
                 changeMenuFontSize((JMenu) c, fontSizeOffset);
-            } else
+            } else if (c != null)
             {
                 changeFontSize(c, fontSizeOffset);
             }

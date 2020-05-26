@@ -28,7 +28,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
 import org.openide.util.Lookup;
 
-public abstract class RpViewerSettings
+public interface RpViewerSettings
 {
 
     public static String PROP_FONT = "SptrViewerNameFont";
@@ -48,35 +48,35 @@ public abstract class RpViewerSettings
         return result;
     }
 
-    abstract public void setFont(Font font);
+     void setFont(Font font);
 
-    abstract public Font getFont();
+     Font getFont();
 
-    abstract public void setFontColor(Color color);
+     void setFontColor(Color color);
 
-    abstract public Color getFontColor();
+     Color getFontColor();
 
-    abstract public void setSelectedBackgroundColor(Color color);
+     void setSelectedBackgroundColor(Color color);
 
-    abstract public Color getSelectedBackgroundColor();
+     Color getSelectedBackgroundColor();
 
-    abstract public void setDefaultBackgroundColor(Color color);
+     void setDefaultBackgroundColor(Color color);
 
-    abstract public Color getDefaultBackgroundColor();
+     Color getDefaultBackgroundColor();
 
-    abstract public void setFocusedBorderColor(Color color);
+     void setFocusedBorderColor(Color color);
 
-    abstract public Color getFocusedBorderColor();
+     Color getFocusedBorderColor();
 
-    abstract public Border getFocusedBorder();
+     Border getFocusedBorder();
 
-    abstract public void setDefaultBorderColor(Color color);
+     void setDefaultBorderColor(Color color);
 
-    abstract public Color getDefaultBorderColor();
+     Color getDefaultBorderColor();
 
-    abstract public Border getNonFocusedBorder();
+     Border getNonFocusedBorder();
 
-    abstract public void addPropertyChangeListener(PropertyChangeListener listener);
+     void addPropertyChangeListener(PropertyChangeListener listener);
 
-    abstract public void removePropertyChangeListener(PropertyChangeListener listener);
+     void removePropertyChangeListener(PropertyChangeListener listener);
 }

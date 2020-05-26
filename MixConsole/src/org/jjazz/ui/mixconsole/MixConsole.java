@@ -41,6 +41,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
@@ -52,6 +53,7 @@ import org.jjazz.harmony.TimeSignature;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
+import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -169,6 +171,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         // Prepare the menu with smaller font
         menuBar = new MenuBar(DataFolder.findFolder(FileUtil.getConfigFile("Actions/MixConsole/MenuBar")));
+        menuBar.add(new MyOutDeviceLabel());
         org.jjazz.ui.utilities.Utilities.changeMenuBarFontSize(menuBar, -2f);
         setJPanelMenuBar(this, panel_Main, menuBar);
 
@@ -857,6 +860,22 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                 setToolTipText(r.getName());
             }
             return c;
+        }
+    }
+
+    private class MyOutDeviceLabel extends JLabel
+    {
+
+        public MyOutDeviceLabel()
+        {
+            var jms = JJazzMidiSystem.getInstance();
+            jms.addPropertyChangeListener(e ->
+            {
+                if (e.getPropertyName().equals(JJazzMidiSystem.PROP_MIDI_OUT))
+                {
+                    setText(jms.getDeviceFriendlyName(jms.getDefaultOutDevice()));
+                }
+            });
         }
     }
 

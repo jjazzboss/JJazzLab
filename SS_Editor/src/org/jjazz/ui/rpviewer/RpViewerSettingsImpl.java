@@ -25,18 +25,27 @@ package org.jjazz.ui.rpviewer;
 import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
 import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.rpviewer.api.RpViewerSettings;
+import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
 import org.jjazz.util.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
+import org.openide.util.lookup.ServiceProviders;
 
-@ServiceProvider(service = RpViewerSettings.class)
-public class RpViewerSettingsImpl extends RpViewerSettings
+@ServiceProviders(value =
+{
+    @ServiceProvider(service = RpViewerSettings.class),
+    @ServiceProvider(service = FontColorUserSettingsProvider.class)
+}
+)
+public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSettingsProvider
 {
 
     /**
@@ -120,8 +129,15 @@ public class RpViewerSettingsImpl extends RpViewerSettings
     public void setFont(Font font)
     {
         Font old = getFont();
-        String strFont = Utilities.fontAsString(font);
-        prefs.put(PROP_FONT, strFont);
+        if (font == null)
+        {
+            prefs.remove(PROP_FONT);
+            font = getFont();
+        } else
+        {
+            String strFont = Utilities.fontAsString(font);
+            prefs.put(PROP_FONT, strFont);
+        }
         pcs.firePropertyChange(PROP_FONT, old, font);
     }
 
@@ -158,4 +174,34 @@ public class RpViewerSettingsImpl extends RpViewerSettings
         pcs.removePropertyChangeListener(listener);
     }
 
+
+    // =====================================================================================
+    // FontColorUserSettingsProvider implementation
+    // =====================================================================================
+    @Override
+    public List<FontColorUserSettingsProvider.FCSetting> getFCSettings()
+    {
+        List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
+
+
+        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("rpNameId", "Rhythm parameter")
+        {
+            @Override
+            public Font getFont()
+            {
+                return RpViewerSettingsImpl.this.getFont();
+            }
+
+            @Override
+            public void setFont(Font f)
+            {
+                RpViewerSettingsImpl.this.setFont(f);
+            }
+
+
+        };
+        res.add(fcs);
+
+        return res;
+    }
 }

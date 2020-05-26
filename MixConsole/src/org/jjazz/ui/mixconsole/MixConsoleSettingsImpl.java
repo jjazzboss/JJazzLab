@@ -24,17 +24,25 @@ package org.jjazz.ui.mixconsole;
 
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.mixconsole.api.MixConsoleSettings;
+import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
 import org.jjazz.util.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
+import org.openide.util.lookup.ServiceProviders;
 
-@ServiceProvider(service = MixConsoleSettings.class)
-public class MixConsoleSettingsImpl extends MixConsoleSettings
+@ServiceProviders(value =
 {
-
+    @ServiceProvider(service = MixConsoleSettings.class),
+    @ServiceProvider(service = FontColorUserSettingsProvider.class)
+}
+)
+public class MixConsoleSettingsImpl implements MixConsoleSettings, FontColorUserSettingsProvider
+{
     /**
      * The Preferences of this object.
      */
@@ -44,37 +52,51 @@ public class MixConsoleSettingsImpl extends MixConsoleSettings
      */
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
 
-    @Override
-    public void setNameFont(Font font)
-    {
-        Font old = getNameFont();
-        String strFont = Utilities.fontAsString(font);
-        prefs.put(PROP_RHYTHM_FONT, strFont);
-        pcs.firePropertyChange(PROP_RHYTHM_FONT, old, font);
-    }
-
-    @Override
-    public Font getNameFont()
-    {
-        String strFont = prefs.get(PROP_RHYTHM_FONT, "Helvetica-BOLD-15");
-        return Font.decode(strFont);
-    }
-
-    @Override
-    public void setRhythmFont(Font font)
-    {
-        Font old = getRhythmFont();
-        String strFont = Utilities.fontAsString(font);
-        prefs.put(PROP_RHYTHM_FONT, strFont);
-        pcs.firePropertyChange(PROP_RHYTHM_FONT, old, font);
-    }
-
-    @Override
-    public Font getRhythmFont()
-    {
-        String strFont = prefs.get(PROP_RHYTHM_FONT, "Helvetica-PLAIN-10");
-        return Font.decode(strFont);
-    }
+//    @Override
+//    public void setNameFont(Font font)
+//    {
+//        Font old = getNameFont();
+//        if (font == null)
+//        {
+//            prefs.remove(PROP_NAME_FONT);
+//            font = getNameFont();
+//        } else
+//        {
+//            String strFont = Utilities.fontAsString(font);
+//            prefs.put(PROP_NAME_FONT, strFont);
+//        }
+//        pcs.firePropertyChange(PROP_NAME_FONT, old, font);
+//    }
+//
+//    @Override
+//    public Font getNameFont()
+//    {
+//        String strFont = prefs.get(PROP_NAME_FONT, "Helvetica-BOLD-15");
+//        return Font.decode(strFont);
+//    }
+//
+//    @Override
+//    public void setRhythmFont(Font font)
+//    {
+//        Font old = getRhythmFont();
+//        if (font == null)
+//        {
+//            prefs.remove(PROP_RHYTHM_FONT);
+//            font = getRhythmFont();
+//        } else
+//        {
+//            String strFont = Utilities.fontAsString(font);
+//            prefs.put(PROP_RHYTHM_FONT, strFont);
+//        }
+//        pcs.firePropertyChange(PROP_RHYTHM_FONT, old, font);
+//    }
+//
+//    @Override
+//    public Font getRhythmFont()
+//    {
+//        String strFont = prefs.get(PROP_RHYTHM_FONT, "Helvetica-PLAIN-10");
+//        return Font.decode(strFont);
+//    }
 
     @Override
     public synchronized void addPropertyChangeListener(PropertyChangeListener listener)
@@ -88,4 +110,50 @@ public class MixConsoleSettingsImpl extends MixConsoleSettings
         pcs.removePropertyChangeListener(listener);
     }
 
+
+    // =====================================================================================
+    // FontColorUserSettingsProvider implementation
+    // =====================================================================================
+    @Override
+    public List<FontColorUserSettingsProvider.FCSetting> getFCSettings()
+    {
+        List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
+
+
+//        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SongPartNameId", "Song part name")
+//        {
+//            @Override
+//            public Font getFont()
+//            {
+//                return getNameFont();
+//            }
+//
+//            @Override
+//            public void setFont(Font f)
+//            {
+//                setNameFont(f);
+//            }
+//        };
+//        res.add(fcs);
+//
+//
+//        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SongPartRhythmId", "Song part rhythm")
+//        {
+//            @Override
+//            public Font getFont()
+//            {
+//                return getRhythmFont();
+//            }
+//
+//            @Override
+//            public void setFont(Font f)
+//            {
+//                setRhythmFont(f);
+//            }
+//        };
+//        res.add(fcs);
+
+
+        return res;
+    }
 }

@@ -33,7 +33,7 @@ import org.openide.util.Lookup;
  *
  * @author Jerome
  */
-public abstract class SptViewerSettings
+public interface SptViewerSettings
 {
 
     public static String PROP_NAME_FONT = "NameFont";
@@ -57,52 +57,52 @@ public abstract class SptViewerSettings
         return result;
     }
 
-    abstract public void setNameFont(Font font);
+     void setNameFont(Font font);
 
-    abstract public Font getNameFont();
+     Font getNameFont();
 
-    abstract public void setNameFontColor(Color color);
+     void setNameFontColor(Color color);
 
-    abstract public Color getNameFontColor();
+     Color getNameFontColor();
 
-    abstract public void setRhythmFont(Font font);
+     void setRhythmFont(Font font);
 
-    abstract public Font getRhythmFont();
+     Font getRhythmFont();
 
-    abstract public void setRhythmFontColor(Color color);
+     void setRhythmFontColor(Color color);
 
-    abstract public Color getRhythmFontColor();
+     Color getRhythmFontColor();
 
-    abstract public void setParentSectionFont(Font font);
+     void setParentSectionFont(Font font);
 
-    abstract public Font getParentSectionFont();
+     Font getParentSectionFont();
 
-    abstract public void setParentSectionFontColor(Color color);
+     void setParentSectionFontColor(Color color);
 
-    abstract public Color getParentSectionFontColor();
+     Color getParentSectionFontColor();
 
-    abstract public Color getFocusedBorderColor();
+     Color getFocusedBorderColor();
 
-    abstract public void setFocusedBorderColor(Color color);
+     void setFocusedBorderColor(Color color);
 
-    abstract public void setDefaultBackgroundColor(Color color);
+     void setDefaultBackgroundColor(Color color);
 
-    abstract public Color getDefaultBackgroundColor();
+     Color getDefaultBackgroundColor();
 
-    abstract public void setSelectedBackgroundColor(Color color);
+     void setSelectedBackgroundColor(Color color);
 
-    abstract public Color getSelectedBackgroundColor();
+     Color getSelectedBackgroundColor();
 
-    abstract public void setPlaybackColor(Color color);
+     void setPlaybackColor(Color color);
 
-    abstract public Color getPlaybackColor();
+     Color getPlaybackColor();
 
-    abstract public Border getFocusedBorder();
+     Border getFocusedBorder();
 
-    abstract public Border getDefaultBorder();
+     Border getDefaultBorder();
 
-    abstract public void addPropertyChangeListener(PropertyChangeListener listener);
+     void addPropertyChangeListener(PropertyChangeListener listener);
 
-    abstract public void removePropertyChangeListener(PropertyChangeListener listener);
+     void removePropertyChangeListener(PropertyChangeListener listener);
 
 }

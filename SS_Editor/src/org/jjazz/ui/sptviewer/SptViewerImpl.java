@@ -632,7 +632,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
 
         // Name button
         fbtn_sptName.setFont(settings.getNameFont());
-        fbtn_sptName.setForeground(Color.BLACK);
+        fbtn_sptName.setForeground(settings.getNameFontColor());
         String strName = showName ? sptModel.getName() : "   ";
         fbtn_sptName.setText(strName);
         String parentSectionName = sptModel.getParentSection().getData().getName();

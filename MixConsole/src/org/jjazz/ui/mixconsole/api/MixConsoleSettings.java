@@ -26,11 +26,11 @@ import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import org.openide.util.Lookup;
 
-public abstract class MixConsoleSettings
+public interface MixConsoleSettings
 {
 
-    public static String PROP_NAME_FONT = "NameFont";
-    public static String PROP_RHYTHM_FONT = "RhythmFont";
+//    public static String PROP_NAME_FONT = "NameFont";
+//    public static String PROP_RHYTHM_FONT = "RhythmFont";
 
     public static MixConsoleSettings getDefault()
     {
@@ -42,15 +42,7 @@ public abstract class MixConsoleSettings
         return result;
     }
 
-    abstract public void setNameFont(Font font);
+    void addPropertyChangeListener(PropertyChangeListener listener);
 
-    abstract public Font getNameFont();
-
-    abstract public void setRhythmFont(Font font);
-
-    abstract public Font getRhythmFont();
-
-    abstract public void addPropertyChangeListener(PropertyChangeListener listener);
-
-    abstract public void removePropertyChangeListener(PropertyChangeListener listener);
+    void removePropertyChangeListener(PropertyChangeListener listener);
 }

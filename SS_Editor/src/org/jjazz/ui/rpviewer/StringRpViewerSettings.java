@@ -27,7 +27,7 @@ import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import org.openide.util.Lookup;
 
-public abstract class StringRpViewerSettings
+public interface StringRpViewerSettings
 {
 
     public static String PROP_FONT = "StringRpViewerFont";
@@ -43,15 +43,15 @@ public abstract class StringRpViewerSettings
         return result;
     }
 
-    abstract public void setFont(Font font);
+     void setFont(Font font);
 
-    abstract public Font getFont();
+     Font getFont();
 
-    abstract public void setFontColor(Color color);
+     void setFontColor(Color color);
 
-    abstract public Color getFontColor();
+     Color getFontColor();
 
-    abstract public void addPropertyChangeListener(PropertyChangeListener listener);
+     void addPropertyChangeListener(PropertyChangeListener listener);
 
-    abstract public void removePropertyChangeListener(PropertyChangeListener listener);
+     void removePropertyChangeListener(PropertyChangeListener listener);
 }

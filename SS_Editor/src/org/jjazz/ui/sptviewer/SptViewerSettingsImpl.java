@@ -25,22 +25,32 @@ package org.jjazz.ui.sptviewer;
 import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
 import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.sptviewer.api.SptViewerSettings;
+import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
 import org.jjazz.util.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
+import org.openide.util.lookup.ServiceProviders;
 
 /**
  *
  * @author Jerome
  */
-@ServiceProvider(service = SptViewerSettings.class)
-public class SptViewerSettingsImpl extends SptViewerSettings
+
+@ServiceProviders(value =
+{
+    @ServiceProvider(service = SptViewerSettings.class),
+    @ServiceProvider(service = FontColorUserSettingsProvider.class)
+}
+)
+public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSettingsProvider
 {
 
     /**
@@ -56,7 +66,14 @@ public class SptViewerSettingsImpl extends SptViewerSettings
     public void setDefaultBackgroundColor(Color color)
     {
         Color old = getDefaultBackgroundColor();
-        prefs.putInt(PROP_DEFAULT_BACKGROUND_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_DEFAULT_BACKGROUND_COLOR);
+            color = getDefaultBackgroundColor();
+        } else
+        {
+            prefs.putInt(PROP_DEFAULT_BACKGROUND_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_DEFAULT_BACKGROUND_COLOR, old, color);
     }
 
@@ -70,7 +87,14 @@ public class SptViewerSettingsImpl extends SptViewerSettings
     public void setSelectedBackgroundColor(Color color)
     {
         Color old = getSelectedBackgroundColor();
-        prefs.putInt(PROP_SELECTED_BACKGROUND_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_SELECTED_BACKGROUND_COLOR);
+            color = getSelectedBackgroundColor();
+        } else
+        {
+            prefs.putInt(PROP_SELECTED_BACKGROUND_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_SELECTED_BACKGROUND_COLOR, old, color);
     }
 
@@ -90,7 +114,14 @@ public class SptViewerSettingsImpl extends SptViewerSettings
     public void setPlaybackColor(Color color)
     {
         Color old = getPlaybackColor();
-        prefs.putInt(PROP_PLAYBACK_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_PLAYBACK_COLOR);
+            color = getPlaybackColor();
+        } else
+        {
+            prefs.putInt(PROP_PLAYBACK_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_PLAYBACK_COLOR, old, color);
     }
 
@@ -124,30 +155,44 @@ public class SptViewerSettingsImpl extends SptViewerSettings
     public void setNameFont(Font font)
     {
         Font old = getNameFont();
-        String strFont = Utilities.fontAsString(font);
-        prefs.put(PROP_RHYTHM_FONT, strFont);
-        pcs.firePropertyChange(PROP_RHYTHM_FONT, old, font);
+        if (font == null)
+        {
+            prefs.remove(PROP_NAME_FONT);
+            font = getNameFont();
+        } else
+        {
+            String strFont = Utilities.fontAsString(font);
+            prefs.put(PROP_NAME_FONT, strFont);
+        }
+        pcs.firePropertyChange(PROP_NAME_FONT, old, font);
     }
 
     @Override
     public Font getNameFont()
     {
-        String strFont = prefs.get(PROP_RHYTHM_FONT, "Helvetica-BOLD-10");
+        String strFont = prefs.get(PROP_NAME_FONT, "Helvetica-BOLD-10");
         return Font.decode(strFont);
     }
 
     @Override
     public Color getNameFontColor()
     {
-        return new Color(prefs.getInt(PROP_RHYTHM_FONT_COLOR, Color.BLACK.getRGB()));
+        return new Color(prefs.getInt(PROP_NAME_FONT_COLOR, Color.BLACK.getRGB()));
     }
 
     @Override
     public void setNameFontColor(Color color)
     {
         Color old = getNameFontColor();
-        prefs.putInt(PROP_RHYTHM_FONT_COLOR, color.getRGB());
-        pcs.firePropertyChange(PROP_RHYTHM_FONT_COLOR, old, color);
+        if (color == null)
+        {
+            prefs.remove(PROP_NAME_FONT_COLOR);
+            color = getNameFontColor();
+        } else
+        {
+            prefs.putInt(PROP_NAME_FONT_COLOR, color.getRGB());
+        }
+        pcs.firePropertyChange(PROP_NAME_FONT_COLOR, old, color);
     }
 
     @Override
@@ -184,8 +229,15 @@ public class SptViewerSettingsImpl extends SptViewerSettings
     public void setRhythmFont(Font font)
     {
         Font old = getRhythmFont();
-        String strFont = Utilities.fontAsString(font);
-        prefs.put(PROP_RHYTHM_FONT, strFont);
+        if (font == null)
+        {
+            prefs.remove(PROP_RHYTHM_FONT);
+            font = getRhythmFont();
+        } else
+        {
+            String strFont = Utilities.fontAsString(font);
+            prefs.put(PROP_RHYTHM_FONT, strFont);
+        }
         pcs.firePropertyChange(PROP_RHYTHM_FONT, old, font);
     }
 
@@ -206,7 +258,14 @@ public class SptViewerSettingsImpl extends SptViewerSettings
     public void setRhythmFontColor(Color color)
     {
         Color old = getRhythmFontColor();
-        prefs.putInt(PROP_RHYTHM_FONT_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_RHYTHM_FONT_COLOR);
+            color = getRhythmFontColor();
+        } else
+        {
+            prefs.putInt(PROP_RHYTHM_FONT_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_RHYTHM_FONT_COLOR, old, color);
     }
 
@@ -233,6 +292,127 @@ public class SptViewerSettingsImpl extends SptViewerSettings
     public synchronized void removePropertyChangeListener(PropertyChangeListener listener)
     {
         pcs.removePropertyChangeListener(listener);
+    }
+
+
+    // =====================================================================================
+    // FontColorUserSettingsProvider implementation
+    // =====================================================================================
+    @Override
+    public List<FontColorUserSettingsProvider.FCSetting> getFCSettings()
+    {
+        List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
+
+
+        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SongPartNameId", "Song part name")
+        {
+            @Override
+            public Font getFont()
+            {
+                return getNameFont();
+            }
+
+            @Override
+            public void setFont(Font f)
+            {
+                setNameFont(f);
+            }
+
+            @Override
+            public Color getColor()
+            {
+                return getNameFontColor();
+            }
+
+            @Override
+            public void setColor(Color c)
+            {
+                setNameFontColor(c);
+            }
+        };
+        res.add(fcs);
+
+
+        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SongPartRhythmId", "rhythm")
+        {
+            @Override
+            public Font getFont()
+            {
+                return getRhythmFont();
+            }
+
+            @Override
+            public void setFont(Font f)
+            {
+                setRhythmFont(f);
+            }
+
+            @Override
+            public Color getColor()
+            {
+                return getRhythmFontColor();
+            }
+
+            @Override
+            public void setColor(Color c)
+            {
+                setRhythmFontColor(c);
+            }
+        };
+        res.add(fcs);
+
+        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SongPartColorId", "Song part")
+        {
+
+            @Override
+            public Color getColor()
+            {
+                return getDefaultBackgroundColor();
+            }
+
+            @Override
+            public void setColor(Color c)
+            {
+                setDefaultBackgroundColor(c);
+            }
+        };
+        res.add(fcs);
+
+        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SelectedSongPartColorId", "Selected song part")
+        {
+
+            @Override
+            public Color getColor()
+            {
+                return getSelectedBackgroundColor();
+            }
+
+            @Override
+            public void setColor(Color c)
+            {
+                setSelectedBackgroundColor(c);
+            }
+        };
+        res.add(fcs);
+
+        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("PlayedSongPartColorId", "Played song part")
+        {
+
+            @Override
+            public Color getColor()
+            {
+                return getPlaybackColor();
+            }
+
+            @Override
+            public void setColor(Color c)
+            {
+                setPlaybackColor(c);
+            }
+        };
+        res.add(fcs);
+
+        return res;
     }
 
 }
