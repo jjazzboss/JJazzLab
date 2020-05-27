@@ -64,8 +64,15 @@ public class StringRpViewerSettingsImpl implements StringRpViewerSettings, FontC
     public void setFont(Font font)
     {
         Font old = getFont();
-        String strFont = Utilities.fontAsString(font);
-        prefs.put(PROP_FONT, strFont);
+        if (font == null)
+        {
+            prefs.remove(PROP_FONT);
+            font = getFont();
+        } else
+        {
+            String strFont = Utilities.fontAsString(font);
+            prefs.put(PROP_FONT, strFont);
+        }
         pcs.firePropertyChange(PROP_FONT, old, font);
     }
 
@@ -101,8 +108,8 @@ public class StringRpViewerSettingsImpl implements StringRpViewerSettings, FontC
     {
         pcs.removePropertyChangeListener(listener);
     }
-    
-     // =====================================================================================
+
+    // =====================================================================================
     // FontColorUserSettingsProvider implementation
     // =====================================================================================
     @Override

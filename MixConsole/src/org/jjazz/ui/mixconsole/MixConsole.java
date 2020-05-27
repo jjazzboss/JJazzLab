@@ -25,6 +25,8 @@ package org.jjazz.ui.mixconsole;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -35,6 +37,7 @@ import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
+import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
@@ -171,9 +174,19 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         // Prepare the menu with smaller font
         menuBar = new MenuBar(DataFolder.findFolder(FileUtil.getConfigFile("Actions/MixConsole/MenuBar")));
-        menuBar.add(new MyOutDeviceLabel());
         org.jjazz.ui.utilities.Utilities.changeMenuBarFontSize(menuBar, -2f);
+        // Filler to put Midi device on the right
+        Box.Filler filler = new Box.Filler(new Dimension(0, 1), new Dimension(5000, 1), new Dimension(5000, 1));
+        menuBar.add(filler);
+        // Reuse menu font size
+        Font menuFont = menuBar.getMenu(0).getItem(0).getFont();//.deriveFont(Font.ITALIC);
+        MyOutDeviceLabel outLabel = new MyOutDeviceLabel();
+        outLabel.setFont(menuFont);
+        menuBar.add(outLabel);
+
+
         setJPanelMenuBar(this, panel_Main, menuBar);
+
 
         // By default not active
         updateActiveState(false);
@@ -873,9 +886,17 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             {
                 if (e.getPropertyName().equals(JJazzMidiSystem.PROP_MIDI_OUT))
                 {
-                    setText(jms.getDeviceFriendlyName(jms.getDefaultOutDevice()));
+                    updateText();
                 }
             });
+            updateText();
+            setToolTipText("The current Midi Out device. Can be changed in Midi Options/Preferences.");
+        }
+
+        private void updateText()
+        {
+            var jms = JJazzMidiSystem.getInstance();
+            setText("OUT: " + jms.getDeviceFriendlyName(jms.getDefaultOutDevice()) + "  ");
         }
     }
 

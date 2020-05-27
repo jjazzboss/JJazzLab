@@ -28,6 +28,7 @@ import java.beans.PropertyChangeListener;
 import java.util.stream.Collectors;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
+import org.jjazz.util.Utilities;
 import org.openide.awt.Actions;
 
 /**
@@ -78,8 +79,9 @@ public class OutputSynthToolbarPanel extends javax.swing.JPanel implements Prope
     {
         String strStdBanks = outputSynth.getCompatibleStdBanks().stream()
                 .map(b -> b.getName())
-                .collect(Collectors.toList()).toString().replace("[", "").replace("]", "");
+                .collect(Collectors.toList()).toString().replace("[", "").replace("]", "").replace(" Bank", "");
         String strSynths = outputSynth.getCustomSynths().toString().replace("[", "").replace("]", "");
+        strSynths = Utilities.truncateWithDots(strSynths, 60);
         lbl_stdBanks.setText(strStdBanks);
         lbl_synths.setText(strSynths);
     }
