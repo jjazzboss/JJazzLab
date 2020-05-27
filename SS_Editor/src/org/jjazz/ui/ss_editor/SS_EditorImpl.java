@@ -100,6 +100,7 @@ import org.jjazz.ui.ss_editor.api.SS_EditorMouseListener;
 public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, SgsChangeListener, MouseListener, MouseWheelListener
 {
 
+    public static final String PROP_ZOOM_FACTOR_X = "PropSsEditorZoomFactorX";
     // UI variables
     private javax.swing.JPanel panel_SongParts;
     private InsertionSptMark insertionMark;
@@ -668,13 +669,23 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             return;
         }
+        
+        
         int oldFactor = zoomHFactor;
         zoomHFactor = factor;
         for (SptViewer sptv : getSptViewers())
         {
             sptv.setZoomHFactor(zoomHFactor);
         }
+        
+        
         zoomable.fireXPropertyChange(oldFactor, zoomHFactor);
+
+
+        // Save the zoom factor with the song as a client property
+        songModel.putClientProperty(PROP_ZOOM_FACTOR_X, Integer.toString(factor));
+        
+        
         revalidate();
         repaint();
     }
@@ -1171,12 +1182,12 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                     .forEach(tmp::add);
         }
 
-        
+
         // Add TempoFactor and Marker only if there are actually used, and not already present
         r.getRhythmParameters().stream()
                 .filter(rp -> rp instanceof RP_SYS_Marker)
                 .filter(rp -> sgsModel.getSongParts().stream()
-                        .anyMatch(spt -> RP_SYS_Marker.getMarkerRp(spt.getRhythm()) != null && !spt.getRPValue(rp).equals(rp.getDefaultValue())))
+                .anyMatch(spt -> RP_SYS_Marker.getMarkerRp(spt.getRhythm()) != null && !spt.getRPValue(rp).equals(rp.getDefaultValue())))
                 .forEach(rp ->
                 {
                     if (!tmp.contains(rp))
@@ -1187,7 +1198,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         r.getRhythmParameters().stream()
                 .filter(rp -> rp instanceof RP_SYS_TempoFactor)
                 .filter(rp -> sgsModel.getSongParts().stream()
-                        .anyMatch(spt -> RP_SYS_TempoFactor.getTempoFactorRp(spt.getRhythm()) != null && !spt.getRPValue(rp).equals(rp.getDefaultValue())))
+                .anyMatch(spt -> RP_SYS_TempoFactor.getTempoFactorRp(spt.getRhythm()) != null && !spt.getRPValue(rp).equals(rp.getDefaultValue())))
                 .forEach(rp ->
                 {
                     if (!tmp.contains(rp))

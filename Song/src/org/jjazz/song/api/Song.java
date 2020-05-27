@@ -139,10 +139,10 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     }
 
     /**
-     * Store a client property. Client properties are serialized.
+     * Store a client property.
      * <p>
-     * This can be used by other components to store information specific to this object, eg UI settings or others like Section
-     * Quantization.<br>
+     * Client properties are serialized. This can be used by other components to store information specific to this object, eg UI
+     * settings or others like Section Quantization.<br>
      * A PropertyChangeEvent(property name=key) is fired to listeners. If newValue=null then property is removed.
      *
      * @param key

@@ -43,7 +43,9 @@ import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.ui.ss_editor.SS_EditorImpl;
 import org.jjazz.ui.ss_editor.SS_EditorToolBar;
+import org.jjazz.ui.utilities.Zoomable;
 
 /**
  * Top component for the SongStructure editor.
@@ -107,9 +109,9 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         ssEditor = SS_EditorFactory.getDefault().createEditor(songModel);
         ssEditorController = new SS_EditorController(ssEditor);
         ssEditor.setController(ssEditorController);
-        
+
         // Create the toolbar
-        ssToolBar = new SS_EditorToolBar(ssEditor);        
+        ssToolBar = new SS_EditorToolBar(ssEditor);
 
         initComponents();
 
@@ -237,12 +239,38 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     @Override
     public void componentOpened()
     {
+        // Try to restore zoom factor X from client property, or zoom to fit width
         Runnable r = new Runnable()
         {
             @Override
             public void run()
             {
-                ssEditor.setZoomHFactorToFitWidth(SS_EditorTopComponent.this.getWidth());
+                String str = ssEditor.getSongModel().getClientProperty(SS_EditorImpl.PROP_ZOOM_FACTOR_X, null);
+                if (str != null)
+                {
+                    int zfx = -1;
+                    try
+                    {
+                        zfx = Integer.valueOf(str);
+                    } catch (NumberFormatException e)
+                    {
+                        // Nothing
+                    }
+                    if (zfx < 0 || zfx > 100)
+                    {
+                        LOGGER.warning("SS_EditorController() Invalid zoom factor X client property=" + str + " in song=" + ssEditor.getSongModel().getName());
+                    } else
+                    {
+                        Zoomable zoomable = ssEditor.getLookup().lookup(Zoomable.class);
+                        if (zoomable != null)
+                        {
+                            zoomable.setZoomXFactor(zfx);
+                        }
+                    }
+                } else
+                {
+                    ssEditor.setZoomHFactorToFitWidth(SS_EditorTopComponent.this.getWidth());
+                }
             }
         };
         // If invokeLater is not used layout is not yet performed and components size are = 0 !
@@ -340,6 +368,6 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
             setHtmlDisplayName("<html>" + name + "</html>");
         }
         String tt = songModel.getFile() == null ? "not saved to file yet" : songModel.getFile().getAbsolutePath();
-        setToolTipText("Song structure editor : "+tt);
+        setToolTipText("Song structure editor : " + tt);
     }
 }

@@ -68,6 +68,7 @@ import org.openide.util.Utilities;
 public class CL_EditorController implements CL_EditorMouseListener
 {
 
+    public static final String PROP_ZOOM_FACTOR_X = "PropClEditorZoomFactorX";
     /**
      * Actions reused several times
      */
@@ -174,6 +175,31 @@ public class CL_EditorController implements CL_EditorMouseListener
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "JumpToEnd");
         editor.getActionMap().put("JumpToEnd", new JumpToEnd());
 
+
+        // Try to restore zoom factor X
+        String str = editor.getSongModel().getClientProperty(PROP_ZOOM_FACTOR_X, null);
+        if (str != null)
+        {
+            int zfx = -1;
+            try
+            {
+                zfx = Integer.valueOf(str);
+            } catch (NumberFormatException e)
+            {
+                // Nothing
+            }
+            if (zfx < 0 || zfx > 100)
+            {
+                LOGGER.warning("CL_EditorController() Invalid zoom factor X client property=" + str + " in song=" + editor.getSongModel().getName());
+            } else
+            {
+                Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
+                if (zoomable != null)
+                {
+                    zoomable.setZoomXFactor(zfx);
+                }
+            }
+        }
     }
 
     public CL_Editor getEditor()
@@ -272,7 +298,7 @@ public class CL_EditorController implements CL_EditorMouseListener
             if (item instanceof CLI_ChordSymbol)
             {
                 if (popupChordSymbolMenu == null)
-                {                   
+                {
                     List<? extends Action> actions = Utilities.actionsForPath("Actions/ChordSymbol");
                     popupChordSymbolMenu = Utilities.actionsToPopup(actions.toArray(new Action[actions.size()]), editor);
                 }
@@ -487,6 +513,10 @@ public class CL_EditorController implements CL_EditorMouseListener
         }
         LOGGER.log(Level.FINE, "editorWheelMoved() factor=" + factor);
         zoomable.setZoomXFactor(factor);
+
+        // Save the zoom factor with the song as a client property
+        editor.getSongModel().putClientProperty(PROP_ZOOM_FACTOR_X, Integer.toString(factor));
+
     }
 
     @Override

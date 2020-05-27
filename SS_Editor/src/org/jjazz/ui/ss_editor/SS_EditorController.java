@@ -68,6 +68,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_EditorMouseListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
+import org.jjazz.ui.utilities.Zoomable;
 
 /**
  * Controller implementation of a SS_Editor.
@@ -78,7 +79,6 @@ import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
         })
 public class SS_EditorController implements SS_EditorMouseListener
 {
-
     /**
      * The graphical editor we control.
      */
@@ -154,6 +154,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         editor.getActionMap().put("JumpToHome", new JumpToHome());
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "JumpToEnd");
         editor.getActionMap().put("JumpToEnd", new JumpToEnd());
+     
     }
 
     @Override
@@ -296,8 +297,8 @@ public class SS_EditorController implements SS_EditorMouseListener
                 editor.selectSongPart(spt, true);
                 editor.setFocusOnSongPart(spt);
             }
-            
-            
+
+
             // Reconstruct popupmenu when required
             List<? extends Action> actions = Utilities.actionsForPath("Actions/SongPart");
             actions = actions.stream().filter(a -> !(a instanceof HideIfDisabledAction) || a.isEnabled()).collect(Collectors.toList());
@@ -306,7 +307,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             {
                 popupSptMenu = Utilities.actionsToPopup(actions.toArray(new Action[actions.size()]), editor);
             }
-            
+
             // Display popupmenu
             popupSptMenu.show(e.getComponent(), e.getX(), e.getY());
         }
