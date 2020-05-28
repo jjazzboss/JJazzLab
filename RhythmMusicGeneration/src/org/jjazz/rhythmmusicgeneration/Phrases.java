@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -95,14 +94,13 @@ public class Phrases
         {
             throw new IllegalArgumentException("pSrc=" + pSrc + " ecsDest=" + ecsDest);
         }
-        LOGGER.fine("fitMelodyPhrase2ChordSymbol() -- ecsDest=" + ecsDest + " chordMode=" + chordMode + " pSrc=" + pSrc);
+        LOGGER.fine("fitMelodyPhrase2ChordSymbol() -- ecsDest=" + ecsDest + " chordMode=" + chordMode); //  + " pSrc=" + pSrc);
         Phrase pDest = new Phrase(pSrc.getChannel());
         if (pSrc.isEmpty())
         {
             // Special case, easy
             return pDest;
         }
-
 
         int rootPitchDelta = Note.getNormalizedRelPitch(
                 ecsDest.getRootNote().getRelativePitch() - pSrc.getSourceChordSymbol().getRootNote().getRelativePitch());
@@ -120,6 +118,8 @@ public class Phrases
                 destNote.putClientProperty(PARENT_NOTE, srcNote);
                 pDest.add(destNote);  // Don't need addOrdered here
             }
+
+            // LOGGER.fine("fitMelodyPhrase2ChordSymbol() same chord type/no harmony pDest=" + pDest);
             return pDest;
         }
 
@@ -142,6 +142,7 @@ public class Phrases
             pDest.add(destNote);        // Don't need addOrdered here
         }
 
+        // LOGGER.fine("fitMelodyPhrase2ChordSymbol() pDest=" + pDest);
 
         return pDest;
     }
@@ -168,9 +169,7 @@ public class Phrases
         }
 
 
-        LOGGER.fine("fitBassPhrase2ChordSymbol() -- ecsDest=" + ecsDest + " ecsDest.cri=" + ecsDest.getRenderingInfo() + " pSrc=" + pSrc);
-
-
+        LOGGER.fine("fitBassPhrase2ChordSymbol() -- ecsDest=" + ecsDest + " ecsDest.cri=" + ecsDest.getRenderingInfo()); //  + " pSrc=" + pSrc);
         Phrase pDest = new Phrase(pSrc.getChannel());
         if (pSrc.isEmpty())
         {
@@ -178,11 +177,11 @@ public class Phrases
         }
 
         // Prepare data
-        boolean useFixedNote = ecsDest.getRenderingInfo().hasAllFeatures(Feature.PEDAL_BASS);
+        ChordRenderingInfo cri = ecsDest.getRenderingInfo();
+        boolean useFixedNote = cri.hasAllFeatures(Feature.PEDAL_BASS);
         int rootPitchDelta = Note.getNormalizedRelPitch(
                 ecsDest.getRootNote().getRelativePitch() - pSrc.getSourceChordSymbol().getRootNote().getRelativePitch());
         ExtChordSymbol ecsSrc = pSrc.getSourceChordSymbol();
-        ChordRenderingInfo cri = ecsDest.getRenderingInfo();
 
 
         // Special case, same chord types, no harmony defined, just transpose notes to destination key
@@ -193,7 +192,7 @@ public class Phrases
             {
                 int destRelPitch = ecsSrc.getRelativePitch(srcNote.getRelativePitch(), ecsDest);
 
-                // Use the chord symbol bass note if BassLineModifier says so, or to replace the chord symbol root note
+                // Use the chord symbol bass note if pedal bass mode, or to replace the chord symbol root note
                 if (useFixedNote || destRelPitch == ecsDest.getRootNote().getRelativePitch())
                 {
                     destRelPitch = ecsDest.getBassNote().getRelativePitch();
@@ -211,7 +210,7 @@ public class Phrases
 
         // Get the destination degree for each source phrase degree
         HashMap<Degree, Degree> mapSrcDestDegrees = pSrc.getDestDegrees(ecsDest, ChordMode.OFF);
-        LOGGER.fine("fitBassPhrase2ChordSymbol() mapSrcDestDegrees=" + mapSrcDestDegrees);
+        // LOGGER.fine("fitBassPhrase2ChordSymbol() mapSrcDestDegrees=" + mapSrcDestDegrees);
 
 
         // Create the result phrase      
@@ -264,10 +263,8 @@ public class Phrases
             throw new IllegalArgumentException("pSrc=" + pSrc + " ecsDest=" + ecsDest);
         }
 
-        LOGGER.log(Level.FINE, "fitChordPhrase2ChordSymbol() -- ecsDest={0} pSrc={1}", new Object[]
-        {
-            ecsDest, pSrc
-        });
+        LOGGER.log(Level.FINE, "fitChordPhrase2ChordSymbol() -- ecsDest=" + ecsDest);
+        // LOGGER.log(Level.FINE, "fitChordPhrase2ChordSymbol() -- pSrc="+pSrc);
 
 
         Phrase pDest = new Phrase(pSrc.getChannel());
