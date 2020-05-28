@@ -190,7 +190,7 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
         CL_SelectionUtilities selection = cap.getSelection();
         boolean accentNormal = selection.getSelectedItems().stream()
                 .filter(item -> item instanceof CLI_ChordSymbol)
-                .anyMatch(item -> !((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.HOLD_SHOT_MORE_INSTRUMENTS));
+                .anyMatch(item -> !((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.EXTENDED_HOLD_SHOT));
         checkBox.setSelected(!accentNormal);
         checkBox.setEnabled(isEnabled());
         
@@ -201,13 +201,13 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
     {
         var features = cri.getFeatures();
 
-        if (!cri.hasOneFeature(Feature.HOLD_SHOT_MORE_INSTRUMENTS))
+        if (!cri.hasOneFeature(Feature.EXTENDED_HOLD_SHOT))
         {
-            features.add(Feature.HOLD_SHOT_MORE_INSTRUMENTS);
+            features.add(Feature.EXTENDED_HOLD_SHOT);
 
         } else
         {
-            features.remove(Feature.HOLD_SHOT_MORE_INSTRUMENTS);
+            features.remove(Feature.EXTENDED_HOLD_SHOT);
         }
 
         ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
@@ -228,16 +228,16 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
             ChordRenderingInfo cri = ecs.getRenderingInfo();
             var features = cri.getFeatures();
 
-            if (extended && !features.contains(Feature.HOLD_SHOT_MORE_INSTRUMENTS))
+            if (extended && !features.contains(Feature.EXTENDED_HOLD_SHOT))
             {
-                features.add(Feature.HOLD_SHOT_MORE_INSTRUMENTS);
+                features.add(Feature.EXTENDED_HOLD_SHOT);
                 ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
                 ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
                 item.getContainer().changeItem(item, newCs);
 
-            } else if (!extended && features.contains(Feature.HOLD_SHOT_MORE_INSTRUMENTS))
+            } else if (!extended && features.contains(Feature.EXTENDED_HOLD_SHOT))
             {
-                features.remove(Feature.HOLD_SHOT_MORE_INSTRUMENTS);
+                features.remove(Feature.EXTENDED_HOLD_SHOT);
                 ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
                 ExtChordSymbol newCs = new ExtChordSymbol(ecs, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
                 item.getContainer().changeItem(item, newCs);

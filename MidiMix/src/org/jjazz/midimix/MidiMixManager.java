@@ -246,11 +246,12 @@ public class MidiMixManager implements PropertyChangeListener
     // ==================================================================
     private void registerSong(MidiMix mm, Song sg)
     {
-        if (mapSongMix.get(sg) != mm)
+        if (mapSongMix.get(sg) == null)
         {
-            mapSongMix.put(sg, mm);
+            // Do not register twice !
             sg.addPropertyChangeListener(this);
         }
+        mapSongMix.put(sg, mm);
     }
 
     private void unregisterSong(Song song)

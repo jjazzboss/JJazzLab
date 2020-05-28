@@ -123,7 +123,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
                 || !Objects.equals(cri.getScaleInstance(), oldCri.getScaleInstance())
                 || cri.hasOneFeature(Feature.CRASH) != oldCri.hasOneFeature(Feature.CRASH)
                 || cri.hasOneFeature(Feature.NO_CRASH) != oldCri.hasOneFeature(Feature.NO_CRASH)
-                || cri.hasOneFeature(Feature.HOLD_SHOT_MORE_INSTRUMENTS) != oldCri.hasOneFeature(Feature.HOLD_SHOT_MORE_INSTRUMENTS)))
+                || cri.hasOneFeature(Feature.EXTENDED_HOLD_SHOT) != oldCri.hasOneFeature(Feature.EXTENDED_HOLD_SHOT)))
         {
             // UI won't be updated so request attention to assure user that something happened indeed
             flashOptionLine();
@@ -427,7 +427,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 
     private boolean needOptionMark(ExtChordSymbol ecs, ChordRenderingInfo cri)
     {
-        return ((cri.getAccentFeature() != null && cri.hasOneFeature(Feature.CRASH, Feature.HOLD_SHOT_MORE_INSTRUMENTS, Feature.NO_CRASH))
+        return ((cri.getAccentFeature() != null && cri.hasOneFeature(Feature.CRASH, Feature.EXTENDED_HOLD_SHOT, Feature.NO_CRASH))
                 || cri.getScaleInstance() != null
                 || ecs.getAlternateChordSymbol() != null);
     }

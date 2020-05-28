@@ -59,9 +59,14 @@ public class ChordRenderingInfo implements Serializable
         /**
          * Add an accent.
          * <p>
-         * IMPORTANT: Exclusive with the other ACCENT*.
+         * IMPORTANT: Exclusive with ACCENT_STRONGER.
          */
         ACCENT,
+        /**
+         * Add a stronger accent.
+         * <p>
+         * IMPORTANT: Exclusive with ACCENT.
+         */
         ACCENT_STRONGER,
         /**
          * Hold some notes until next chord.
@@ -76,19 +81,21 @@ public class ChordRenderingInfo implements Serializable
          */
         SHOT,
         /**
-         * Make Hold/Shot applied to more instruments.
+         * Make Hold/Shot applied to more instruments and/or longer.
+         * <p>
+         * Ignored if no HOLD or SHOT.
          */
-        HOLD_SHOT_MORE_INSTRUMENTS,
+        EXTENDED_HOLD_SHOT,
         /**
          * Make sure there is not crash cymbal.
          * <p>
-         * IMPORTANT: Exclusive with the NO_CRASH
+         * IMPORTANT: Exclusive with NO_CRASH
          */
         NO_CRASH,
         /**
          * Make sure there is a crash cymbal.
          * <p>
-         * IMPORTANT: Exclusive with the other CRASH
+         * IMPORTANT: Exclusive with CRASH
          */
         CRASH,
         /**
@@ -322,54 +329,6 @@ public class ChordRenderingInfo implements Serializable
         return true;
     }
 
-
-//
-//    /**
-//     * Convenience method for transition to new ChordRenderingInfo API.
-//     *
-//     * @param cri
-//     * @return
-//     */
-//    static public boolean isOldNormalPlayStyle(ChordRenderingInfo cri)
-//    {
-//        return cri.getFeatures().isEmpty();
-//    }
-//
-//    /**
-//     * Convenience method for transition to new ChordRenderingInfo API.
-//     *
-//     * @param cri
-//     * @return
-//     */
-//
-//    static public boolean isOldAccentPlayStyle(ChordRenderingInfo cri)
-//    {
-//        return cri.getFeatures().contains(Feature.ACCENT)
-//                && !cri.getFeatures().contains(Feature.SHOT)
-//                && !cri.getFeatures().contains(Feature.HOLD);
-//    }
-//
-//    /**
-//     * Convenience method for transition to new ChordRenderingInfo API.
-//     *
-//     * @param cri
-//     * @return
-//     */
-//    static public boolean isOldHoldPlayStyle(ChordRenderingInfo cri)
-//    {
-//        return cri.getFeatures().containsAll(Arrays.asList(Feature.ACCENT, Feature.HOLD));
-//    }
-//
-//    /**
-//     * Convenience method for transition to new ChordRenderingInfo API.
-//     *
-//     * @param cri
-//     * @return
-//     */
-//    static public boolean isOldShotPlayStyle(ChordRenderingInfo cri)
-//    {
-//        return cri.getFeatures().containsAll(Arrays.asList(Feature.ACCENT, Feature.SHOT));
-//    }
     @Override
     public String toString()
     {

@@ -122,7 +122,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         cb_pedalBass.setSelected(cri.hasOneFeature(Feature.PEDAL_BASS));
         cb_crash.setSelected(cri.hasOneFeature(Feature.CRASH));
         cb_noCrash.setSelected(cri.hasOneFeature(Feature.NO_CRASH));
-        cb_moreInstruments.setSelected(cri.hasOneFeature(Feature.HOLD_SHOT_MORE_INSTRUMENTS));
+        cb_moreInstruments.setSelected(cri.hasOneFeature(Feature.EXTENDED_HOLD_SHOT));
         cb_stronger.setSelected(cri.hasOneFeature(Feature.ACCENT_STRONGER));
         if (cri.hasOneFeature(Feature.HOLD))
         {
@@ -327,7 +327,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         }
         if ((res.contains(Feature.HOLD) || res.contains(Feature.SHOT)) && cb_moreInstruments.isSelected())
         {
-            res.add(Feature.HOLD_SHOT_MORE_INSTRUMENTS);
+            res.add(Feature.EXTENDED_HOLD_SHOT);
         }
 
         if (cb_pedalBass.isSelected())
