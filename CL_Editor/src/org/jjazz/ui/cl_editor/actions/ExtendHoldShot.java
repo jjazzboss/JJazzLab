@@ -84,7 +84,7 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("M"));
+        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("X"));
         selectionChange(cap.getSelection());
     }
 
@@ -181,7 +181,7 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
         if (checkBox == null)
         {
             checkBox = new JCheckBoxMenuItem(CTL_ExtendHoldShot());
-            checkBox.setAccelerator(KeyStroke.getKeyStroke('M'));
+            checkBox.setAccelerator(KeyStroke.getKeyStroke('X'));
             checkBox.addItemListener(evt -> setExtended(evt.getStateChange() == ItemEvent.SELECTED));
             checkBox.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
         }

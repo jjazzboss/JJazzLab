@@ -352,7 +352,6 @@ public class Utilities
     /**
      * Extract the contents of a .zip resource file to a destination directory.
      * <p>
-     * Overwrite existing files.
      *
      * @param <T>
      * @param myClass The class used to find the zipResource.

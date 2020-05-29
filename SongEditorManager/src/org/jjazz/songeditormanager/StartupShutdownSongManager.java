@@ -128,10 +128,16 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
         {
             for (String fileName : values.get(openOption))
             {
-                File file = new File(env.getCurrentDirectory(), fileName);
+                LOGGER.info("process() Opening command line file: " + fileName + ", current dir: " + env.getCurrentDirectory().getAbsolutePath());
+                File file = new File(fileName);
+                // Normally fileName contains the absolute path, but just in case...
+                if (file.getParentFile() == null)
+                {
+                    file = new File(env.getCurrentDirectory().getAbsolutePath(), file.getName());
+                }
                 if (!file.exists())
                 {
-                    LOGGER.warning("process() Can't find song file from command line: " + file.getAbsolutePath());
+                    LOGGER.warning("process() Can't find " + file.getAbsolutePath());
                     continue;
                 } else
                 {
@@ -140,7 +146,6 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
                 }
             }
         }
-
     }
 
 
@@ -162,7 +167,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
             {
                 if (sem.showSong(f) == null)
                 {
-                    LOGGER.warning("process() Can't open song file from command line: " + f.getAbsolutePath());
+                    LOGGER.warning("run() Problem opening song file: " + f.getAbsolutePath());
                 }
             }
         } else if (isOpenRecentFilesUponStartup())

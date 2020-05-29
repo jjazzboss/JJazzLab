@@ -33,6 +33,10 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ItemChangedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
@@ -60,12 +64,13 @@ import org.openide.util.actions.Presenter;
             @ActionReference(path = "Actions/ChordSymbolAccent", position = 200)
         })
 @Messages("CTL_AccentCrash=Auto/Crash/No Crash")
-public final class AccentCrash extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup
+public final class AccentCrash extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
 
     private CL_ContextActionSupport cap;
     private final Lookup context;
     private MyMenuItem menuItem;
+    private ChordLeadSheet currentCls;
     private String undoText = CTL_AccentCrash();
 
     public AccentCrash()
@@ -111,6 +116,22 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
+        // Need to listen to possible CLI_ChordSymbol accent features changes that may occur while selection is unchanged
+        ChordLeadSheet cls = selection.getChordLeadSheet();
+        if (cls != currentCls)
+        {
+            if (currentCls != null)
+            {
+                currentCls.removeClsChangeListener(this);
+            }
+            currentCls = cls;
+            if (currentCls != null)
+            {
+                currentCls.addClsChangeListener(this);
+            }
+        }
+
+
         boolean b = false;
         if (selection.isItemSelected())
         {
@@ -132,6 +153,23 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
     {
         // Nothing
     }
+
+    // ============================================================================================= 
+    // ClsChangeListener implementation
+    // =============================================================================================      
+    @Override
+    public void chordLeadSheetChanged(ClsChangeEvent event) throws UnsupportedEditException
+    {
+        var selection = cap.getSelection();
+        if (event instanceof ItemChangedEvent && selection.getSelectedItems().contains(event.getItem()))
+        {
+            selectionChange(selection);
+        }
+    }
+
+    // ============================================================================================= 
+    // Presenter.Popup
+    // =============================================================================================   
 
     @Override
     public JMenuItem getPopupPresenter()
@@ -289,5 +327,3 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
     }
 
 }
-
-

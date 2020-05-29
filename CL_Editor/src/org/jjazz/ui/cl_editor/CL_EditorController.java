@@ -127,7 +127,7 @@ public class CL_EditorController implements CL_EditorMouseListener
         editor.getActionMap().put("AccentStronger", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.accentstronger"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("H"), "AccentCrash");
         editor.getActionMap().put("AccentCrash", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.accentcrash"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("M"), "ExtendHoldShot");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("X"), "ExtendHoldShot");
         editor.getActionMap().put("ExtendHoldShot", Actions.forID("JJazz", "org.jjazz.ui.cl_editor.actions.extendholdshot"));
 
 

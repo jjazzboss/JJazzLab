@@ -54,12 +54,12 @@ import org.jjazz.songstructure.api.SongPart;
 /**
  * For debug purposes...
  */
-@ActionID(category = "JJazz", id = "org.jjazz.test.testallrhythmsgeneratesequence")
-@ActionRegistration(displayName = "Test sequence generation all rhythms on current song")
-@ActionReferences(
-        {
-            @ActionReference(path = "Menu/Edit", position = 50200),
-        })
+//@ActionID(category = "JJazz", id = "org.jjazz.test.testallrhythmsgeneratesequence")
+//@ActionRegistration(displayName = "Test sequence generation all rhythms on current song")
+//@ActionReferences(
+//        {
+//            @ActionReference(path = "Menu/Edit", position = 50200),
+//        })
 public final class TesAllRhythmsGenerateSequence implements ActionListener
 {
 

@@ -33,6 +33,10 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ItemChangedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
@@ -59,12 +63,13 @@ import org.openide.util.actions.Presenter;
             @ActionReference(path = "Actions/ChordSymbolAccent", position = 100)
         })
 @Messages("CTL_AccentStronger=Stronger accent")
-public final class AccentStronger extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup
+public final class AccentStronger extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
 
     private CL_ContextActionSupport cap;
     private final Lookup context;
     private String undoText = CTL_AccentStronger();
+    private ChordLeadSheet currentCls;
     private JCheckBoxMenuItem checkBox;
     private static final Logger LOGGER = Logger.getLogger(AccentStronger.class.getSimpleName());
 
@@ -111,6 +116,22 @@ public final class AccentStronger extends AbstractAction implements ContextAware
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
+        // Need to listen to possible CLI_ChordSymbol accent features changes that may occur while selection is unchanged
+        ChordLeadSheet cls = selection.getChordLeadSheet();
+        if (cls != currentCls)
+        {
+            if (currentCls != null)
+            {
+                currentCls.removeClsChangeListener(this);
+            }
+            currentCls = cls;
+            if (currentCls != null)
+            {
+                currentCls.addClsChangeListener(this);
+            }
+        }
+
+
         boolean b = false;
         if (selection.isItemSelected())
         {
@@ -132,6 +153,11 @@ public final class AccentStronger extends AbstractAction implements ContextAware
     {
         // Nothing
     }
+    
+    
+    // ============================================================================================= 
+    // Presenter.Popup
+    // =============================================================================================   
 
     @Override
     public JMenuItem getPopupPresenter()
@@ -154,12 +180,26 @@ public final class AccentStronger extends AbstractAction implements ContextAware
         return checkBox;
     }
 
+
+    // ============================================================================================= 
+    // ClsChangeListener implementation
+    // =============================================================================================      
+    @Override
+    public void chordLeadSheetChanged(ClsChangeEvent event) throws UnsupportedEditException
+    {
+        var selection = cap.getSelection();
+        if (event instanceof ItemChangedEvent && selection.getSelectedItems().contains(event.getItem()))
+        {
+            selectionChange(selection);
+        }
+    }
+
     private void setAccent(boolean stronger)
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
         assert cls != null : "selection=" + selection;
-        
+
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
 
         for (CLI_ChordSymbol item : selection.getSelectedChordSymbols())
