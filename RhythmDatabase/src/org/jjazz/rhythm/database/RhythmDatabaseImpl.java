@@ -40,14 +40,16 @@ import javax.swing.event.ChangeListener;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
-import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.Lookup;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.util.NbPreferences;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Retrieve available rhythms by polling all RhythmProviders at runtime.
@@ -586,5 +588,23 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     {
         return r.getUniqueId() + "-" + ts.name();
     }
+
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade() 
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs, null);
+        }
+
+    }
+
 
 }

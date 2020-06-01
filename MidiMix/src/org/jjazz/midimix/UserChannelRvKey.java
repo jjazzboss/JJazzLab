@@ -30,7 +30,10 @@ import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.synths.Family;
 import org.jjazz.rhythm.api.DummyRhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.NbPreferences;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A special RhythmVoice instance used by MidiMix as the RhythmVoice key for the special User channel.
@@ -83,5 +86,23 @@ public class UserChannelRvKey extends RhythmVoice
         }
         prefs.putInt(PREF_USER_CHANNEL, c);
     }
+
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade()
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs, null);
+        }
+
+    }
+
 
 }

@@ -31,6 +31,9 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.util.SmallMap;
 import org.openide.util.NbPreferences;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
+import org.openide.util.lookup.ServiceProvider;
 
 public class ColorSetManagerImpl implements ColorSetManager
 {
@@ -197,5 +200,25 @@ public class ColorSetManagerImpl implements ColorSetManager
     {
         pcs.removePropertyChangeListener(listener);
     }
+    
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade()
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs, null);
+        }
+
+    }
+
+    
 
 }

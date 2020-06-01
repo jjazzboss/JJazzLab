@@ -29,9 +29,12 @@ import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
 import org.openide.modules.Places;
 import org.openide.util.NbPreferences;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Manage the various directories and file types used by the application.
@@ -362,5 +365,23 @@ public class FileDirectoryManager
     {
         pcs.removePropertyChangeListener(l);
     }
+
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade()
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs, null);
+        }
+
+    }
+
 
 }

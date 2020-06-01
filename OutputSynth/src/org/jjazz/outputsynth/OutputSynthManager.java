@@ -29,6 +29,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -37,10 +38,13 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.ui.utilities.SingleRootFileSystemView;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.NbPreferences;
+import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
 
 /**
@@ -112,7 +116,6 @@ public class OutputSynthManager implements PropertyChangeListener
         return outputSynth;
     }
 
- 
 
     /**
      * Set the current OutputSynth.
@@ -247,7 +250,7 @@ public class OutputSynthManager implements PropertyChangeListener
     /**
      * A fixed user directory.
      *
-     * @return
+     * @return Can be null if error
      */
     private File getOutputSynthFilesDir()
     {
@@ -278,5 +281,45 @@ public class OutputSynthManager implements PropertyChangeListener
         return CHOOSER_INSTANCE;
     }
 
-  
-}
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade()
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            
+
+        }
+
+        /**
+         * Get the AppConfig subdir of an old JJazzLab version.
+         * <p>
+         * Try each oldVersion until the relevant properties is found.
+         *
+         * @param subDirName
+         * @param oldVersions A list of JJazzLab version strings, like "2.0.1". If null use PREVIOUS_VERSIONS.
+         * @return Null if not found
+         */
+        private File getOldAppConfigDirectory()
+        {
+            File appConfigDir = FileDirectoryManager.getInstance().getAppConfigDirectory(OUTPUT_SYNTH_FILES_DIR);
+            if (appConfigDir==null)
+            {
+                return null;
+            }
+            Path p = appConfigDir.toPath().resolve("")
+            File appConfigDir = userDir.toPath().resolve().toFile();
+            if (!appConfigDir.isDirectory())
+            {
+            }
+
+        }
+
+
+    }

@@ -43,6 +43,8 @@ import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
 
 @ServiceProviders(value =
 {
@@ -298,5 +300,25 @@ public class BarBoxSettingsImpl extends BarBoxSettings implements FontColorUserS
     {
         return fcSettings;
     }
+    
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade()
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs, null);
+        }
+
+    }
+
+    
 
 }

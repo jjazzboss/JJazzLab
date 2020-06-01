@@ -26,8 +26,10 @@ import java.util.*;
 import java.util.logging.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-import org.jjazz.util.Utilities;
-import org.openide.util.NbPreferences;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
+import org.openide.util.*;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Manage the list of recognized chordtypes and their aliases.
@@ -52,7 +54,7 @@ public class ChordTypeDatabase
     private List<ChordType> chordTypes = new ArrayList<>();
     private HashMap<ChordType, String> mapCtDefaultAliases = new HashMap<>();
     private HashMap<String, ChordType> mapAliasCt = new HashMap<>(450);     // Try to avoid rehash
-    private Preferences prefs = NbPreferences.forModule(ChordTypeDatabase.class);
+    private static Preferences prefs = NbPreferences.forModule(ChordTypeDatabase.class);
     private static final Logger LOGGER = Logger.getLogger(ChordTypeDatabase.class.getSimpleName());
 
     private ChordTypeDatabase()
@@ -422,4 +424,23 @@ public class ChordTypeDatabase
             prefs.put(key, s);
         }
     }
+
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade()
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs, null);
+        }
+
+    }
+
+
 }

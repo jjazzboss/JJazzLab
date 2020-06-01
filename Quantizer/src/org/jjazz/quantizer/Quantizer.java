@@ -23,11 +23,9 @@
 package org.jjazz.quantizer;
 
 import java.beans.PropertyChangeListener;
-import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.openide.util.NbPreferences;
 
 /**
  * Provide quantize related methods and properties.
@@ -37,8 +35,7 @@ public class Quantizer
 
     private static Quantizer INSTANCE;
     private Quantization qValue;
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-    private static Preferences prefs = NbPreferences.forModule(Quantizer.class);
+    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);   
 
     /**
      * All possible valid positions within one beat.

@@ -33,6 +33,8 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import static org.jjazz.ui.itemrenderer.Bundle.CTL_Section;
 import org.jjazz.ui.itemrenderer.api.IR_SectionSettings;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
 import org.openide.util.NbBundle;
 import org.openide.util.NbPreferences;
@@ -125,5 +127,22 @@ public class IR_SectionSettingsImpl implements IR_SectionSettings, FontColorUser
     {
         return Arrays.asList((FontColorUserSettingsProvider.FCSetting) this);
     }
+    
+    
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
 
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade()
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs, null);
+        }
+
+    }
 }

@@ -62,7 +62,7 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/ChordSymbolAccent", position = 400)
         })
-@Messages("CTL_ExtendHoldShot=Hold/Shot with more instruments")
+@Messages("CTL_ExtendHoldShot=Extended hold/shot")
 public final class ExtendHoldShot extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
 

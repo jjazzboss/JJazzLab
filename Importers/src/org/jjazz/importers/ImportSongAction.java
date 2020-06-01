@@ -41,6 +41,8 @@ import org.jjazz.song.api.SongFactory;
 import org.jjazz.song.spi.SongImportException;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.SongEditorManager;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
 import org.netbeans.api.progress.*;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -51,6 +53,7 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
+import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
 
 /**
@@ -296,5 +299,25 @@ public final class ImportSongAction implements ActionListener
         }
         return f;
     }
+    
+    
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade()
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs, null);
+        }
+
+    }
+
+
 
 }

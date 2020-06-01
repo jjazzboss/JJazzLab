@@ -44,9 +44,12 @@ import javax.sound.midi.Synthesizer;
 import javax.sound.midi.Transmitter;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midi.device.JJazzMidiDevice;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Manage the Midi IN and OUT devices for the JJazz application, plus some convenience methods.
@@ -910,6 +913,23 @@ public final class JJazzMidiSystem
             }
         }
         return res;
+    }
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade()
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs, null);
+        }
+
     }
 
 

@@ -39,6 +39,8 @@ import org.jjazz.base.actions.Savable;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.song.api.Song;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
 import org.netbeans.api.sendopts.CommandException;
 import org.netbeans.spi.sendopts.Env;
 import org.netbeans.spi.sendopts.Option;
@@ -276,6 +278,23 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
             };
             SwingUtilities.invokeLater(run);
         }
+    }
+
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade()
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs, null);
+        }
+
     }
 
 

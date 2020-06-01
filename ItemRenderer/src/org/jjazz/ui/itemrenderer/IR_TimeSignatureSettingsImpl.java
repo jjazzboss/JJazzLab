@@ -33,6 +33,8 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import static org.jjazz.ui.itemrenderer.Bundle.CTL_TimeSignature;
 import org.jjazz.ui.itemrenderer.api.IR_TimeSignatureSettings;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
@@ -124,5 +126,22 @@ public class IR_TimeSignatureSettingsImpl implements IR_TimeSignatureSettings, F
     public List<FontColorUserSettingsProvider.FCSetting> getFCSettings()
     {
         return Arrays.asList((FontColorUserSettingsProvider.FCSetting) this);
+    }
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade()
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs, null);
+        }
+
     }
 }

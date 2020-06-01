@@ -44,6 +44,9 @@ import static org.jjazz.musiccontrol.ClickManager.PROP_CLICK_PITCH_LOW;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.openide.util.NbPreferences;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Click related methods.
@@ -470,4 +473,25 @@ public class ClickManager
         long nextTick = tickOffset + (long) (nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
         return nextTick;
     }
+    
+
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade()
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs, null);
+        }
+
+    }
+
+    
+    
 }

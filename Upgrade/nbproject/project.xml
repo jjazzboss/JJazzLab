@@ -3,23 +3,23 @@
     <type>org.netbeans.modules.apisupport.project</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
-            <code-name-base>org.jjazz.harmony</code-name-base>
+            <code-name-base>org.jjazz.upgrade</code-name-base>
             <suite-component/>
             <module-dependencies>
                 <dependency>
-                    <code-name-base>org.jjazz.upgrade</code-name-base>
+                    <code-name-base>org.openide.actions</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>1.0</specification-version>
+                        <specification-version>6.46</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.util</code-name-base>
+                    <code-name-base>org.openide.modules</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>1.0</specification-version>
+                        <specification-version>7.55</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -27,7 +27,7 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>9.7.1</specification-version>
+                        <specification-version>9.14</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -39,17 +39,9 @@
                     </run-dependency>
                 </dependency>
             </module-dependencies>
-            <test-dependencies>
-                <test-type>
-                    <name>unit</name>
-                    <test-dependency>
-                        <code-name-base>org.netbeans.libs.junit4</code-name-base>
-                        <compile-dependency/>
-                    </test-dependency>
-                </test-type>
-            </test-dependencies>
             <public-packages>
-                <package>org.jjazz.harmony</package>
+                <package>org.jjazz.upgrade</package>
+                <package>org.jjazz.upgrade.spi</package>
             </public-packages>
         </data>
     </configuration>
