@@ -35,14 +35,13 @@ import java.util.prefs.Preferences;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.modules.OnStart;
 import org.openide.modules.Places;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
 
 /**
  * Manage the tasks to upgrade settings from a previous version of JJazzLab to the current version.
  * <p>
- * Call all the UpgradeTasks found in the global Lookup upon fresh start.
+ * Find the source import JJazzLab version. Call all the UpgradeTasks found in the global Lookup upon fresh start.
  * <p>
  */
 public class UpgradeManager
@@ -56,7 +55,10 @@ public class UpgradeManager
         "2.0.1", "2.0.0"
     };
     private static final String PREF_FRESH_START = "FreshStart";
+
     private static UpgradeManager INSTANCE;
+    private boolean importSourceVersionComputed;
+    private String importSourceVersion;
     private final boolean isFreshStart;
     private static Preferences prefs = NbPreferences.forModule(UpgradeManager.class);
     private static final Logger LOGGER = Logger.getLogger(UpgradeManager.class.getSimpleName());
@@ -90,20 +92,18 @@ public class UpgradeManager
     {
         return isFreshStart;
     }
-       
+
 
     /**
-     * Get the properties object of a module Netbeans preferences from an old JJazzLab version.
+     * Get the properties object of a module Netbeans preferences from the import source version.
      * <p>
-     * Try each oldVersion until the relevant properties is found.
      *
      * @param nbPrefs The Netbeans preferences of a module
-     * @param oldVersions A list of JJazzLab version strings, like "2.0.1". If null use PREVIOUS_VERSIONS.
      * @return Null if not found
      */
-    public Properties getPropertiesFromPrefs(Preferences nbPrefs, List<String> oldVersions)
+    public Properties getPropertiesFromPrefs(Preferences nbPrefs)
     {
-        File f = getOldPreferencesFile(nbPrefs, oldVersions);
+        File f = getOldPreferencesFile(nbPrefs);
         if (f == null)
         {
             return null;
@@ -122,16 +122,15 @@ public class UpgradeManager
     }
 
     /**
-     * Copy all the old preferences key/value pairs into nbPrefs.
+     * Copy into nbPrefs all the old preferences key/value pairs from the corresponding preferences in import source version.
      *
      * @param nbPrefs The Netbeans preferences of a module.
-     * @param oldVersions A list of JJazzLab version strings, like "2.0.1". If null use PREVIOUS_VERSIONS.
      * @return False if preferences could not be duplicated.
      */
-    public boolean duplicateOldPreferences(Preferences nbPrefs, List<String> oldVersions)
+    public boolean duplicateOldPreferences(Preferences nbPrefs)
     {
         LOGGER.fine("duplicateOldPreferences() -- nbPrefs=" + nbPrefs.absolutePath());
-        Properties prop = getPropertiesFromPrefs(nbPrefs, oldVersions);
+        Properties prop = getPropertiesFromPrefs(nbPrefs);
         if (prop == null)
         {
             return false;
@@ -152,54 +151,91 @@ public class UpgradeManager
     }
 
     /**
-     * Get the file corresponding to a module Netbeans preferences from an old JJazzLab version.
+     * Get the file corresponding to a module Netbeans preferences from the JJazzLab import source version.
      * <p>
-     * Try each oldVersion until a relevant properties file is found.
      *
      * @param nbPrefs The Netbeans preferences of a module.
-     * @param oldVersions A list of JJazzLab version strings, like "2.0.1". If null use PREVIOUS_VERSIONS.
      * @return Null if not found
      */
-    public File getOldPreferencesFile(Preferences nbPrefs, List<String> oldVersions)
+    public File getOldPreferencesFile(Preferences nbPrefs)
     {
-        if ((oldVersions != null && oldVersions.isEmpty()) || nbPrefs == null)
+        if (nbPrefs == null)
         {
-            throw new IllegalArgumentException("oldVersions=" + oldVersions + " nbPrefs=" + nbPrefs);
+            throw new IllegalArgumentException("nbPrefs=" + nbPrefs);
         }
 
-        if (oldVersions == null)
+        String importVersion = getImportSourceVersion();        // If non null validate the Netbeans User Dir.
+        if (importVersion == null)
         {
-            oldVersions = Arrays.asList(PREVIOUS_VERSIONS);
+            return null;
         }
+
+        Path parentPath = Places.getUserDirectory().getParentFile().toPath();
+        Path p = parentPath.resolve(importVersion).resolve("config").resolve("Preferences" + nbPrefs.absolutePath() + ".properties");
+        File f = p.toFile();
+
+        if (!f.exists())
+        {
+            LOGGER.fine("getOldPreferencesFile Not found f=" + f.getAbsolutePath());
+            f = null;
+        } else
+        {
+            LOGGER.fine("getOldPreferencesFile() FOUND f=" + f.getAbsolutePath());
+        }
+        return f;
+    }
+
+    /**
+     * Get the JJazzLab version from which to import settings.
+     * <p>
+     * Take first directory from PREVIOUS_VERSIONS where config/Preferences subdir is present.
+     *
+     * @return E.g. "2.0.1". Null if no import version available.
+     */
+    public String getImportSourceVersion()
+    {
+        if (importSourceVersionComputed)
+        {
+            return importSourceVersion;
+        }
+
+
+        importSourceVersionComputed = true;
+        importSourceVersion = null;
+
 
         File userDir = Places.getUserDirectory();
         if (userDir == null || !userDir.isDirectory() || userDir.getParentFile() == null)
         {
-            LOGGER.warning("getOldPreferencesFile() Invalid Netbeans User Directory userDir=" + userDir);
-            return null;
+            LOGGER.warning("getImportSourceVersion() Invalid Netbeans User Directory userDir=" + userDir);
+            return importSourceVersion;
         }
+
+
         Path parentPath = userDir.getParentFile().toPath();
 
 
-        for (var oldVersion : oldVersions)
+        for (var oldVersion : PREVIOUS_VERSIONS)
         {
-
-            Path p = parentPath.resolve(oldVersion + "/config/Preferences" + nbPrefs.absolutePath() + ".properties");
+            Path p = parentPath.resolve(oldVersion).resolve("config").resolve("Preferences");
             File f = p.toFile();
 
             if (f.exists())
             {
-                LOGGER.fine("getOldPreferencesFile() FOUND f=" + f.getAbsolutePath());
-                return f;
+                LOGGER.fine("getImportSourceVersion() FOUND f=" + f.getAbsolutePath());
+                importSourceVersion = oldVersion;
+                break;
             }
-
-            LOGGER.fine("getOldPreferencesFile Not found f=" + f.getAbsolutePath());
+            LOGGER.fine("getImportSourceVersion Not found f=" + f.getAbsolutePath());
         }
 
-        return null;
+        return importSourceVersion;
     }
 
 
+    // =============================================================================================================
+    // Private methods
+    // =============================================================================================================
     // =============================================================================================================
     // Internal class
     // =============================================================================================================
@@ -210,14 +246,19 @@ public class UpgradeManager
         @Override
         public void run()
         {
-            if (!getInstance().isFreshStart())
+            UpgradeManager um = UpgradeManager.getInstance();
+            if (!um.isFreshStart())
             {
                 return;
             }
-            LOGGER.info("FreshStartUpgrader() -- ");
-            for (var task : Lookup.getDefault().lookupAll(UpgradeTask.class))
+            String importVersion = um.getImportSourceVersion();
+            LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion);
+            if (importVersion != null)
             {
-                task.upgrade();
+                for (var task : Lookup.getDefault().lookupAll(UpgradeTask.class))
+                {
+                    task.upgrade(importVersion);
+                }
             }
         }
 

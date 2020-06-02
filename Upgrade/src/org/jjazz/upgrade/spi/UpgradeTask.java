@@ -29,5 +29,11 @@ package org.jjazz.upgrade.spi;
  */
 public interface UpgradeTask
 {
-    void upgrade();
+
+    /**
+     * Perform an upgrade task, typically import settings from oldVersion.
+     *
+     * @param oldVersion The reference JJazzLab version from which upgrade should be done.
+     */
+    void upgrade(String oldVersion);
 }

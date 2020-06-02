@@ -138,10 +138,10 @@ public class IR_SectionSettingsImpl implements IR_SectionSettings, FontColorUser
     {
 
         @Override
-        public void upgrade()
+        public void upgrade(String oldVersion)
         {
             UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs, null);
+            um.duplicateOldPreferences(prefs);
         }
 
     }

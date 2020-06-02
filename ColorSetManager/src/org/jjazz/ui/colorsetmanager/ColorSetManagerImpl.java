@@ -211,10 +211,10 @@ public class ColorSetManagerImpl implements ColorSetManager
     {
 
         @Override
-        public void upgrade()
+        public void upgrade(String oldVersion)
         {
             UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs, null);
+            um.duplicateOldPreferences(prefs);
         }
 
     }

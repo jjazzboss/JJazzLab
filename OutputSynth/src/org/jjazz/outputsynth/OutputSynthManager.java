@@ -29,7 +29,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
-import java.util.List;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -43,6 +46,7 @@ import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
@@ -290,36 +294,54 @@ public class OutputSynthManager implements PropertyChangeListener
     {
 
         @Override
-        public void upgrade()
+        public void upgrade(String oldVersion)
         {
-            UpgradeManager um = UpgradeManager.getInstance();
-            
+            var um = UpgradeManager.getInstance();
+            var fdm = FileDirectoryManager.getInstance();
 
-        }
 
-        /**
-         * Get the AppConfig subdir of an old JJazzLab version.
-         * <p>
-         * Try each oldVersion until the relevant properties is found.
-         *
-         * @param subDirName
-         * @param oldVersions A list of JJazzLab version strings, like "2.0.1". If null use PREVIOUS_VERSIONS.
-         * @return Null if not found
-         */
-        private File getOldAppConfigDirectory()
-        {
-            File appConfigDir = FileDirectoryManager.getInstance().getAppConfigDirectory(OUTPUT_SYNTH_FILES_DIR);
-            if (appConfigDir==null)
+            // Get the old output synth config file name
+            Properties oldProp = um.getPropertiesFromPrefs(prefs);
+            if (oldProp == null)
             {
-                return null;
+                LOGGER.warning("upgrade() no old properties found for prefs=" + prefs.absolutePath());
+                return;
             }
-            Path p = appConfigDir.toPath().resolve("")
-            File appConfigDir = userDir.toPath().resolve().toFile();
-            if (!appConfigDir.isDirectory())
+            String oldCfgFileName = oldProp.getProperty(PROP_DEFAULT_OUTPUTSYNTH);
+
+
+            if (oldCfgFileName == null)
             {
+                LOGGER.warning("upgrade() oldVersion=" + oldVersion + ", undefined Output Synth config file property" + PROP_DEFAULT_OUTPUTSYNTH);
+                return;
             }
 
+
+            // Try to get the old file
+            File prevAppConfigDir = fdm.getOldAppConfigDirectory(oldVersion, OUTPUT_SYNTH_FILES_DIR);
+            if (prevAppConfigDir == null)
+            {
+                LOGGER.warning("upgrade() can't find prevAppConfigDir=" + prevAppConfigDir);
+                return;
+            }
+
+            File oldCfgFile = new File(prevAppConfigDir, oldCfgFileName);
+            if (!oldCfgFile.exists())
+            {
+                LOGGER.warning("upgrade() can't find oldCfgFile=" + oldCfgFile.getAbsolutePath());
+                return;
+            }
+
+            File appConfigDir = fdm.getAppConfigDirectory(OUTPUT_SYNTH_FILES_DIR);
+            File newCfgFile = new File(appConfigDir, oldCfgFileName);
+            try
+            {
+                Files.copy(oldCfgFile.toPath(), newCfgFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                prefs.put(PROP_DEFAULT_OUTPUTSYNTH, oldCfgFileName);
+            } catch (IOException ex)
+            {
+                LOGGER.warning("upgrade() error copying output synth config file=" + oldCfgFile.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());
+            }
         }
-
-
     }
+}

@@ -24,12 +24,14 @@ package org.jjazz.filedirectorymanager;
 
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.upgrade.UpgradeManager;
+import static org.jjazz.upgrade.UpgradeManager.PREVIOUS_VERSIONS;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
 import org.openide.modules.Places;
@@ -304,6 +306,46 @@ public class FileDirectoryManager
     }
 
     /**
+     * Get the AppConfig subdir of an old JJazzLab version.
+     * <p>
+     *
+     * @param subDirname Ignored if null
+     * @param oldVersion E.g. "2.0.1"
+     * @return Null if not found
+     */
+    public File getOldAppConfigDirectory(String oldVersion, String subDirname)
+    {
+        if (oldVersion == null)
+        {
+            throw new IllegalArgumentException("oldVersion=" + oldVersion + " subDirname=" + subDirname);
+        }
+
+        File userDir = Places.getUserDirectory();
+        if (userDir == null || !userDir.isDirectory() || userDir.getParentFile() == null)
+        {
+            LOGGER.warning("getOldAppConfigDirectory() Invalid Netbeans User Directory userDir=" + userDir);
+            return null;
+        }
+
+
+        Path parentPath = userDir.getParentFile().toPath();
+        Path p = parentPath.resolve(oldVersion).resolve(APP_CONFIG_PREFIX_DIR);
+        if (subDirname != null)
+        {
+            p = p.resolve(subDirname);
+        }
+
+
+        File f = p.toFile();
+        if (!f.exists())
+        {
+            f = null;
+        }
+
+        return f;
+    }
+
+    /**
      * The last directory used for song open or song save.
      * <p>
      * If not set return the file for System.getProperty("user.dir").
@@ -375,10 +417,10 @@ public class FileDirectoryManager
     {
 
         @Override
-        public void upgrade()
+        public void upgrade(String oldVersion)
         {
             UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs, null);
+            um.duplicateOldPreferences(prefs);
         }
 
     }
