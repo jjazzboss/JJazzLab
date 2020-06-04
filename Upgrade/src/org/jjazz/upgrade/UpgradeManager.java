@@ -115,6 +115,7 @@ public class UpgradeManager
             prop.load(reader);
         } catch (IOException ex)
         {
+            LOGGER.warning("getPropertiesFromPrefs() problem reading file="+f.getAbsolutePath()+": ex="+ex.getLocalizedMessage());
             return null;
         }
 

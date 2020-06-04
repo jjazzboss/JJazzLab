@@ -42,6 +42,7 @@ import org.jjazz.outputsynth.OS_JJazzLabSoundFont_GS;
 import org.jjazz.outputsynth.OS_JJazzLabSoundFont_XG;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
+import org.jjazz.upgrade.UpgradeManager;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.WizardDescriptor;
@@ -62,7 +63,7 @@ import org.openide.windows.OnShowing;
 @ActionID(category = "JJazz", id = "org.jjazz.helpers.midiwizard.MidiWizardAction")
 @ActionRegistration(displayName = "Midi configuration wizard...")
 @ActionReference(path = "Menu/Tools", position = 1650)
-@OnShowing          // Used to check if it's the first clean start after installation
+@OnShowing          
 public final class MidiWizardAction implements ActionListener, Runnable
 {
 
@@ -76,9 +77,6 @@ public final class MidiWizardAction implements ActionListener, Runnable
     public static String PROP_GS_SUPPORT = "PropGSSupport";
     public static String PROP_XG_SUPPORT = "PropXGSupport";
 
-    private static Preferences prefs = NbPreferences.forModule(MidiWizardAction.class);
-
-    private static final String PREF_CLEAN_START = "CleanStart";
     private static final Logger LOGGER = Logger.getLogger(MidiWizardAction.class.getSimpleName());
 
     @Override
@@ -186,11 +184,13 @@ public final class MidiWizardAction implements ActionListener, Runnable
     @Override
     public void run()
     {
-        if (prefs.getBoolean(PREF_CLEAN_START, true))
+        // Show the wizard at fresh start and only if no settings to import
+        UpgradeManager um = UpgradeManager.getInstance();
+        if (um.isFreshStart() && um.getImportSourceVersion() == null)
         {
+
             actionPerformed(null);
         }
-        prefs.putBoolean(PREF_CLEAN_START, false);
     }
 
     public static void openInBrowser(URL url)
