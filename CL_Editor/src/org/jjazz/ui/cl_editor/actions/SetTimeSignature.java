@@ -24,6 +24,9 @@ package org.jjazz.ui.cl_editor.actions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JMenu;
@@ -42,6 +45,8 @@ import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -131,9 +136,50 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
     private void changeTimeSignature(CL_Editor editor, TimeSignature ts) throws UnsupportedEditException
     {
         CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
+
+
         if (selection.isItemSelected() && (selection.getSelectedItems().get(0) instanceof CLI_Section))
         {
-            for (ChordLeadSheetItem<?> item : selection.getSelectedItems())
+
+            List<ChordLeadSheetItem<?>> items;
+            var selItems = selection.getSelectedItems();
+            var allSections = editor.getModel().getItems(CLI_Section.class);
+            CLI_Section cliSection = (CLI_Section) selItems.get(0);
+
+
+            if (selItems.size() == 1 && cliSection.getPosition().getBar() == 0 && allSections.size() > 1)
+            {
+                // If several sections but only first bar section changed, propose to change the whole song                
+
+                if (ts.equals(cliSection.getData().getTimeSignature()))
+                {
+                    return;
+                }
+                
+                String msg = "Set time signature " + ts.toString() + " for the whole song ?";
+                NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
+                
+                
+                Object result = DialogDisplayer.getDefault().notify(d);
+                if (NotifyDescriptor.YES_OPTION == result)
+                {
+                    items = new ArrayList<>(allSections);
+
+                } else if (NotifyDescriptor.NO_OPTION == result)
+                {
+                    items = Arrays.asList(cliSection);
+
+                } else
+                {
+                    return;
+                }
+            } else
+            {
+                items = selItems;
+            }
+
+
+            for (ChordLeadSheetItem<?> item : items)
             {
                 editor.getModel().setSectionTimeSignature((CLI_Section) item, ts);
             }

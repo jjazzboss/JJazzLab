@@ -141,6 +141,7 @@ public final class Position implements Comparable<Position>, Serializable
         setBar(p.getBar());
     }
 
+
     /**
      * Change position to be on first beat.
      */
@@ -250,7 +251,7 @@ public final class Position implements Comparable<Position>, Serializable
     }
 
     /**
-     * Get the adjusted position adapted to fit the specified time signature.
+     * Get an adjusted position to make sure it fits the specified time signature.
      *
      * @param ts
      * @return
@@ -263,6 +264,43 @@ public final class Position implements Comparable<Position>, Serializable
         {
             newPos.setBeat(lastBeat);
         }
+        return newPos;
+    }
+
+    /**
+     * Convert the current position in tsFrom context, to a new position in tsTo context.
+     *
+     * @param tsFrom
+     * @param tsTo
+     * @return
+     */
+    public Position getConvertedPosition(TimeSignature tsFrom, TimeSignature tsTo)
+    {
+        if (tsFrom == null || tsTo == null || beat >= tsFrom.getNbNaturalBeats())
+        {
+            throw new IllegalArgumentException("this=" + this + " tsFrom=" + tsFrom + " tsTo=" + tsTo);
+        }
+
+
+        Position newPos = new Position(this);
+        float lastBeat = tsTo.getNbNaturalBeats() - 1;
+        
+
+        if (beat == tsFrom.getHalfBarBeat(false))
+        {            
+            newPos.setBeat(tsTo.getHalfBarBeat(false));
+
+        } else if (beat == tsFrom.getHalfBarBeat(true))
+        {           
+            newPos.setBeat(tsTo.getHalfBarBeat(true));
+            
+        } else if ((newPos.getBeat() - lastBeat) >= 1)
+        {            
+            newPos.setBeat(lastBeat);
+            
+        }
+
+
         return newPos;
     }
 
