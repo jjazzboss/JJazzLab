@@ -104,6 +104,7 @@ public interface RhythmDatabase
     /**
      * Try to provide a new rhythm which is an adapted version of r for a different time signature.
      * <p>
+     * If the adapted rhythm could be obtained it is added in the database.
      *
      * @param r
      * @param ts

@@ -36,6 +36,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -218,6 +219,11 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             addSongPart(spt);
         }
+
+        
+        // Make sure all AdaptedRhythms for the song rhythms are generated in the database so that user can 
+        // access them if he wants too
+        generateAllAdaptedRhythms();
 
     }
 
@@ -497,9 +503,15 @@ public class SongStructureImpl implements SongStructure, Serializable
         // Need to be fired BEFORE the vetoable change ! So it can be undoed by the caller who will handle the exception
         fireUndoableEditHappened(edit);
 
+
         // Fire event but this might not work, e.g. if a listener has a problem with not enough Midi Channels to 
         // accomodate the new rhythm, possible Exception here !
         fireVetoableChangeEvent(new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts));
+
+
+        // Make sure all AdaptedRhythms for the song rhythms are generated in the database so that user can 
+        // access them if he wants too
+        generateAllAdaptedRhythms();
     }
 
     @Override
@@ -738,6 +750,31 @@ public class SongStructureImpl implements SongStructure, Serializable
         undoListeners.remove(l);
     }
 
+
+    /**
+     * Make sure all possible AdaptedRhythms are generated if this is a multi-time signature song.
+     */
+    public void generateAllAdaptedRhythms()
+    {
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        List<Rhythm> rhythms = SongStructure.getUniqueRhythms(this, true);
+        Set<TimeSignature> timeSignatures = rhythms
+                .stream()
+                .map(r -> r.getTimeSignature())
+                .collect(Collectors.toSet());
+
+        for (Rhythm r : rhythms)
+        {
+            for (TimeSignature ts : timeSignatures)
+            {
+                if (!ts.equals(r.getTimeSignature()))
+                {
+                    rdb.getAdaptedRhythm(r, ts);    // This will make the rhythm created and available in the database
+                }
+            }
+        }
+    }
+
     // -------------------------------------------------------------------------------------------
     // Private functions
     // -------------------------------------------------------------------------------------------
@@ -849,6 +886,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         // accomodate the new rhythm. Possible Exception here !
         // Important : the undoable
         fireVetoableChangeEvent(new SptAddedEvent(this, Arrays.asList(spt)));
+
     }
 
     /**

@@ -56,11 +56,11 @@ import org.jjazz.songstructure.api.SongPart;
 public class SgsUpdater implements ClsChangeListener
 {
 
-    private SongStructure sgs;
+    private SongStructureImpl sgs;
     private ChordLeadSheet parentCls;
     private static final Logger LOGGER = Logger.getLogger(SgsUpdater.class.getSimpleName());
 
-    protected SgsUpdater(SongStructure sgs)
+    protected SgsUpdater(SongStructureImpl sgs)
     {
         if (sgs == null)
         {
@@ -139,7 +139,9 @@ public class SgsUpdater implements ClsChangeListener
             String oldName = ((Section) e.getOldData()).getName();
             if (!newTs.equals(oldTs))
             {
-                // Time Signature has changed, need to replace all impacted SongParts based on this section
+                // Time Signature has changed
+
+                // Need to replace all impacted SongParts based on this section
                 List<SongPart> oldSpts = getSongParts(cliSection);
                 if (!oldSpts.isEmpty())
                 {

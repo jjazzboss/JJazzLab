@@ -132,9 +132,12 @@ public class RemoveRhythmChange extends AbstractAction implements ContextAwareAc
             Rhythm r = spt.getRhythm();
             if (spt.getStartBarIndex() > 0)
             {
-                SongPart prevSpt = selection.getModel().getSongPart(spt.getStartBarIndex() - 1);
-                Rhythm prevRhythm = prevSpt.getRhythm();
-                b = r.getTimeSignature().equals(prevRhythm.getTimeSignature()) && r != prevRhythm;
+                SongPart prevSpt = selection.getModel().getSongPart(spt.getStartBarIndex() - 1);    // Can be null when removing last song parts
+                if (prevSpt != null)
+                {
+                    Rhythm prevRhythm = prevSpt.getRhythm();
+                    b = r.getTimeSignature().equals(prevRhythm.getTimeSignature()) && r != prevRhythm;
+                }
             }
         }
         // LOGGER.fine("selectionChange() b=" + b);
