@@ -61,6 +61,11 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         return undoRedoInProgress;
     }
 
+    /**
+     * Start a high-level compound edit.
+     *
+     * @param n Name of the edit
+     */
     public void startCEdit(String n)
     {
         if (currentCEdit != null)
@@ -71,26 +76,42 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         addEdit(currentCEdit);
     }
 
-    public void endCEdit(String n)
+    /**
+     *
+     * End a high-level compound edit.
+     *
+     * @return true if the compound edit was non empty.
+     */
+    public boolean endCEdit(String n)
     {
         if (currentCEdit == null || !currentCEdit.getPresentationName().equals(n))
         {
             throw new IllegalStateException("currentCEdit=" + currentCEdit + " n=" + n);
         }
+
         currentCEdit.end();
+
+        boolean res = true;
         if (currentCEdit.isEmpty())
         {
             // To avoid having undo/redo buttons enabled for nothing
             trimLastEdit();
+            res = false;
         }
+
         // Force notification
         fireChange();
+
         // Ready for next compoundedit
         currentCEdit = null;
+
+        return res;
     }
 
     /**
-     * Consume an undoable edit. Delegates to superclass and notifies listeners.
+     * Consume an undoable edit.
+     * <p>
+     * Delegates to superclass and notifies listeners.
      *
      * @param ue the edit
      */
@@ -166,13 +187,14 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
 
     /**
      * Convenience method : the right way to handle UnsupportedEditException when catched by the highest level caller, ie the one
-     * who called startCEdit() and should call endCEdit(). 
+     * who called startCEdit() and should call endCEdit().
      * <p>
      * This method should be called first in the catch section.
      * <p>
      * 1/ Call endCEdit() on cEditName to terminate properly the compound edit. <br>
      * Because exception occured there will be missing SimpleEdits in the CEdit (compared to normal).
      * <p>
+     * If compound edit is not empty:<br>
      * 2/ Call undo()<br>
      * This will roll back the CEdit eEditName, ie undo each of the collected simple edits before the exception occured.
      * <p>
@@ -185,16 +207,21 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
      */
     public void handleUnsupportedEditException(String cEditName, String errMsg)
     {
-        endCEdit(cEditName);
-
-        undo();
-        // Make redo not possible
-        trimLastEdit();
-        fireChange();
-
         // Notify user
         NotifyDescriptor d = new NotifyDescriptor.Message(errMsg, NotifyDescriptor.ERROR_MESSAGE);
         DialogDisplayer.getDefault().notify(d);
+
+
+        if (endCEdit(cEditName))
+        {
+            // Only if there is something to undo, otherwise we'll undo the previous compound edit
+            undo();
+
+            // Make redo not possible
+            trimLastEdit();
+        }
+        
+        fireChange();
     }
 
     private void updateTask()
@@ -281,8 +308,9 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     }
 
     /**
-     * Remove the last edit from the UndoManager. Must be used with care, e.g. only when you know that the last edit is an empty
-     * CompoundEdit.
+     * Remove the last edit from the UndoManager.
+     * <p>
+     * Must be used with care, e.g. only when you know that the last edit is an empty CompoundEdit.
      */
     private void trimLastEdit()
     {
