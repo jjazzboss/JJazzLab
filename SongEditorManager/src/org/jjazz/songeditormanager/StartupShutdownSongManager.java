@@ -78,6 +78,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
     private static final int MAX_FILES = 6;
     private Option openOption = Option.defaultArguments();  // The command line arguments with no -x or --xyz option
     private List<File> cmdLineFilesToOpen = new ArrayList<>();
+    private boolean isUIready = false;
     private static Preferences prefs = NbPreferences.forModule(StartupShutdownSongManager.class);
     private static final Logger LOGGER = Logger.getLogger(StartupShutdownSongManager.class.getSimpleName());
 
@@ -122,32 +123,61 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
         return set;
     }
 
+    /**
+     * Can be called several times, upon startup, but also later if user reopens a file from explorer while app is running.
+     *
+     * @param env
+     * @param values
+     * @throws CommandException
+     */
     @Override
     protected void process(Env env, Map<Option, String[]> values) throws CommandException
     {
         LOGGER.fine("process() --  env=" + env + " values=" + values);
+
+
+        cmdLineFilesToOpen.clear();
+
+
         if (values.containsKey(openOption))
         {
+
             for (String fileName : values.get(openOption))
             {
                 LOGGER.info("process() Opening command line file: " + fileName + ", current dir: " + env.getCurrentDirectory().getAbsolutePath());
-                File file = new File(fileName);
+
                 // Normally fileName contains the absolute path, but just in case...
+                File file = new File(fileName);
                 if (file.getParentFile() == null)
                 {
                     file = new File(env.getCurrentDirectory().getAbsolutePath(), file.getName());
                 }
+
+
                 if (!file.exists())
                 {
                     LOGGER.warning("process() Can't find " + file.getAbsolutePath());
                     continue;
+
                 } else
                 {
-                    // Just save them, can't open them right now because UI is not ready
-                    cmdLineFilesToOpen.add(file);
+                    if (isUIready)
+                    {
+                        // Directly open the file
+                        if (SongEditorManager.getInstance().showSong(file) == null)
+                        {
+                            LOGGER.warning("process() Problem opening song file: " + file.getAbsolutePath());
+                        }
+                    } else
+                    {
+                        // Just save file, this will be handled later by run()
+                        cmdLineFilesToOpen.add(file);
+                    }
                 }
             }
+
         }
+
     }
 
 
@@ -176,6 +206,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
         {
             openRecentFilesUponStartup();
         }
+        isUIready = true;
     }
 
     // ==================================================================================
