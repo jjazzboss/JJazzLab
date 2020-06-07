@@ -75,6 +75,8 @@ final class ClickPanel extends javax.swing.JPanel
         rbtn_precount_auto = new javax.swing.JRadioButton();
         rbtn_precount2 = new javax.swing.JRadioButton();
         rbtn_precount1 = new javax.swing.JRadioButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        helpTextArea2 = new org.jjazz.ui.utilities.HelpTextArea();
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.jPanel1.border.title"))); // NOI18N
 
@@ -143,8 +145,10 @@ final class ClickPanel extends javax.swing.JPanel
         org.openide.awt.Mnemonics.setLocalizedText(lbl_soundLow, org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.lbl_soundLow.text")); // NOI18N
         lbl_soundLow.setToolTipText(org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.lbl_soundLow.toolTipText")); // NOI18N
 
+        jScrollPane1.setBackground(null);
         jScrollPane1.setBorder(null);
 
+        helpTextArea1.setBackground(null);
         helpTextArea1.setColumns(20);
         helpTextArea1.setRows(5);
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.helpTextArea1.text")); // NOI18N
@@ -228,6 +232,15 @@ final class ClickPanel extends javax.swing.JPanel
         org.openide.awt.Mnemonics.setLocalizedText(rbtn_precount1, org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.rbtn_precount1.text")); // NOI18N
         rbtn_precount1.setToolTipText(org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.rbtn_precount1.toolTipText")); // NOI18N
 
+        jScrollPane2.setBackground(null);
+        jScrollPane2.setBorder(null);
+
+        helpTextArea2.setBackground(null);
+        helpTextArea2.setColumns(20);
+        helpTextArea2.setRows(5);
+        helpTextArea2.setText(org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.helpTextArea2.text")); // NOI18N
+        jScrollPane2.setViewportView(helpTextArea2);
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -238,18 +251,23 @@ final class ClickPanel extends javax.swing.JPanel
                     .addComponent(rbtn_precount2)
                     .addComponent(rbtn_precount1)
                     .addComponent(rbtn_precount_auto))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 223, Short.MAX_VALUE)
+                .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(rbtn_precount1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(rbtn_precount2)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(rbtn_precount1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(rbtn_precount2))
+                    .addComponent(jScrollPane2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(rbtn_precount_auto)
-                .addContainerGap())
+                .addGap(17, 17, 17))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -427,10 +445,12 @@ final class ClickPanel extends javax.swing.JPanel
     private javax.swing.JComboBox<String> combo_soundHigh;
     private javax.swing.JComboBox<String> combo_soundLow;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.HelpTextArea helpTextArea2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lbl_highVelocity;
     private javax.swing.JLabel lbl_lowVelocity;
     private javax.swing.JLabel lbl_soundHigh;

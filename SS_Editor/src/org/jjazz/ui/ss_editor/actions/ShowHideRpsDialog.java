@@ -375,8 +375,7 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
 
         @Override
         public boolean isCellEditable(int row, int col)
-        {
-            LOGGER.severe("isCellEditable() row=" + row + " col=" + col + " rhythms=" + rhythms);
+        {            
             RhythmParameter<?> rp = uniqueRps.get(row);
             return col >= COL_FIRST_RHYTHM && getRpFromClass(rhythms.get(col - COL_FIRST_RHYTHM).getRhythmParameters(), rp.getClass()) != null;
         }

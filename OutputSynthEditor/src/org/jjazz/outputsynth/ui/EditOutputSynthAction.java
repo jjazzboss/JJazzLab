@@ -47,10 +47,9 @@ import org.openide.windows.WindowManager;
         })
 @NbBundle.Messages(
         {
-            "CTL_editoutputsynth=Configure Output Synth",
-            "CTL_editoutputsynthTooltip=Configure the output synth connected to JJazzLab"
+            "CTL_editoutputsynth=Configure Output Synth"
         })
-public class EditOutputSynthAction extends AbstractAction implements PropertyChangeListener
+public class EditOutputSynthAction extends AbstractAction
 {
 
     private String undoText = CTL_editoutputsynth();
@@ -61,10 +60,9 @@ public class EditOutputSynthAction extends AbstractAction implements PropertyCha
         putValue(NAME, undoText);
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/OutputSynth2.png")));
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/OutputSynth2.png")));
+        putValue(Action.SHORT_DESCRIPTION, "Open the Output Synth Editor");
         putValue("hideActionText", true);
-        OutputSynthManager osm = OutputSynthManager.getInstance();
-        osm.addPropertyChangeListener(this);
-        updateActionName(osm.getOutputSynth());
+
     }
 
     @Override
@@ -76,24 +74,5 @@ public class EditOutputSynthAction extends AbstractAction implements PropertyCha
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
     }
-
-    @Override
-    public void propertyChange(PropertyChangeEvent evt)
-    {
-        if (evt.getSource() == OutputSynthManager.getInstance())
-        {
-            if (evt.getPropertyName().equals(OutputSynthManager.PROP_DEFAULT_OUTPUTSYNTH))
-            {
-                updateActionName((OutputSynth) evt.getNewValue());
-            }
-        }
-    }
-
-    private void updateActionName(OutputSynth outSynth)
-    {
-        File f = outSynth.getFile();
-        String s = (f == null) ? "." : ". Current=" + f.getName();
-        // putValue(Action.NAME, f == null ? null : f.getName());
-        putValue(Action.SHORT_DESCRIPTION, Bundle.CTL_editoutputsynthTooltip() + s);
-    }
+  
 }

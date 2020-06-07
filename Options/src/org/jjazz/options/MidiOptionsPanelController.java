@@ -37,7 +37,8 @@ import org.openide.util.Lookup;
         iconBase = "org/jjazz/options/resources/MidiIcon32x32.png",
         keywords = "#OptionsCategory_Keywords_Midi",
         keywordsCategory = "Midi",
-        position = 100
+        position = 100,
+        id = "MidiPanelId"
 )
 @org.openide.util.NbBundle.Messages(
         {
