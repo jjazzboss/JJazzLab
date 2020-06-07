@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.mixconsole;
+package org.jjazz.ui.mixconsole.api;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -44,7 +44,6 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
@@ -69,7 +68,6 @@ import org.jjazz.midimix.UserChannelRvKey;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.DummyRhythm;
 import org.jjazz.songeditormanager.SongEditorManager;
-import static org.jjazz.ui.mixconsole.Bundle.CTL_AllRhythms;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
@@ -77,7 +75,6 @@ import org.openide.util.Utilities;
 import org.openide.util.WeakListeners;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.jjazz.ui.mixconsole.api.MixConsoleSettings;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.Actions;
@@ -86,6 +83,10 @@ import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.flatcomponents.FlatButton;
+import org.jjazz.ui.mixconsole.MixChannelPanel;
+import org.jjazz.ui.mixconsole.MixChannelPanelControllerImpl;
+import org.jjazz.ui.mixconsole.MixChannelPanelModelImpl;
+import static org.jjazz.ui.mixconsole.api.Bundle.CTL_AllRhythms;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.options.OptionsDisplayer;
 import org.openide.awt.MenuBar;

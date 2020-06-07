@@ -405,7 +405,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
         lbl_Icon.setFont(new java.awt.Font("Arial Black", 1, 12)); // NOI18N
         lbl_Icon.setForeground(new java.awt.Color(0, 102, 102));
-        lbl_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/Drums-48x48.png"))); // NOI18N
+        lbl_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/api/resources/Drums-48x48.png"))); // NOI18N
         org.openide.awt.Mnemonics.setLocalizedText(lbl_Icon, org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.lbl_Icon.text")); // NOI18N
         lbl_Icon.setAlignmentX(0.5F);
         lbl_Icon.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 0, 2, 0));

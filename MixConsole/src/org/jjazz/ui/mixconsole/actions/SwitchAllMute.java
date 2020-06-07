@@ -30,7 +30,7 @@ import static javax.swing.Action.NAME;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.ui.mixconsole.MixConsole;
+import org.jjazz.ui.mixconsole.api.MixConsole;
 import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.openide.awt.ActionID;

@@ -55,6 +55,7 @@ import org.openide.util.NbBundle;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
+import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.openide.windows.TopComponent;
@@ -82,12 +83,14 @@ public class PlayFromHere extends AbstractAction
 {
 
     private Song song;
+    private TopComponent lastValidActivatedTc;
     private static final Logger LOGGER = Logger.getLogger(PlayFromHere.class.getSimpleName());
 
     public PlayFromHere()
     {
         putValue(Action.NAME, CTL_PlayFromHere());
         putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_SPACE));     // For popup display only     
+
 
         // Listen to TopComponent activation changes
         TopComponent.getRegistry().addPropertyChangeListener(new PropertyChangeListener()
@@ -104,11 +107,18 @@ public class PlayFromHere extends AbstractAction
         }
         );
         updateEnabledStatus();
+
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
+        if (song == null)
+        {
+            LOGGER.severe("actionPerformed() unexpected value song=" + song);
+            return;
+        }
+
         // Song must be active !
         ActiveSongManager asm = ActiveSongManager.getInstance();
         if (asm.getActiveSong() != song)
@@ -119,11 +129,13 @@ public class PlayFromHere extends AbstractAction
             return;
         }
 
+
         ChordLeadSheet cls = song.getChordLeadSheet();
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
         assert clTc != null;
         CL_Editor clEditor = clTc.getCL_Editor();
         CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clEditor.getLookup());
+
 
         SongStructure ss = song.getSongStructure();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
@@ -131,10 +143,11 @@ public class PlayFromHere extends AbstractAction
         SS_Editor ssEditor = ssTc.getSS_Editor();
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
 
+
         int playFromBar = -1;
 
-        TopComponent activeTc = TopComponent.getRegistry().getActivated();
-        if (clTc == activeTc && !clSelection.isEmpty())
+
+        if (lastValidActivatedTc == clTc && !clSelection.isEmpty())
         {
             // Focus in the CL_Editor            
             int clsBarIndex = clSelection.getMinBarIndexWithinCls();
@@ -143,12 +156,14 @@ public class PlayFromHere extends AbstractAction
                 // Try to find a bar in a matching SongPart
                 playFromBar = getSsBarIndex(clsBarIndex, cls, ss);            // Can return -1
             }
-        } else if (ssTc == activeTc && !ssSelection.isEmpty())
+
+        } else if (lastValidActivatedTc == ssTc && !ssSelection.isEmpty())
         {
             // Focus in the SS_Editor
             SongPart firstSpt = ssSelection.getIndirectlySelectedSongParts().get(0);
             playFromBar = firstSpt.getStartBarIndex() + getSelectedBarIndexRelativeToSection(firstSpt.getParentSection(), clSelection);
         }
+
 
         if (playFromBar == -1)
         {
@@ -158,10 +173,13 @@ public class PlayFromHere extends AbstractAction
             return;
         }
 
+
+        // Make sure playback is stopped
         MusicController mc = MusicController.getInstance();
         mc.stop();
 
-        // OK we can go
+
+        // Configure and play
         try
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
@@ -183,21 +201,28 @@ public class PlayFromHere extends AbstractAction
     //=====================================================================================     
     private void updateEnabledStatus()
     {
+        MixConsoleTopComponent mcTc = MixConsoleTopComponent.getInstance();
         CL_EditorTopComponent clTc = CL_EditorTopComponent.getActive();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.getActive();
-        boolean b = false;
+
         song = null;
+
         if (clTc != null)
         {
-            b = true;
             song = clTc.getSongModel();
+            lastValidActivatedTc = clTc;
         } else if (ssTc != null)
         {
-            b = true;
             song = ssTc.getSongModel();
+            lastValidActivatedTc = ssTc;
+        } else if (TopComponent.getRegistry().getActivated() == mcTc)
+        {
+            song = (lastValidActivatedTc != null) ? mcTc.getEditor().getSong() : null;
         }
 
+        boolean b = song != null;
         LOGGER.fine("updateEnabledStatus() b=" + b);
+
         setEnabled(b);
     }
 
@@ -215,6 +240,7 @@ public class PlayFromHere extends AbstractAction
         CLI_Section section = cls.getSection(clsBarIndex);
         LOGGER.fine("getSsBarIndex() section=" + section);
 
+
         // If there are some selected spts, try to match one of them
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
         assert ssTc != null : "sgs=" + ss;
@@ -228,6 +254,7 @@ public class PlayFromHere extends AbstractAction
                 break;
             }
         }
+
 
         if (sgsBarIndex == -1)
         {
@@ -243,9 +270,12 @@ public class PlayFromHere extends AbstractAction
                 }
             }
         }
+
+
         LOGGER.fine("getSsBarIndex() sgsBarIndex=" + sgsBarIndex);
         return sgsBarIndex;
     }
+
 
     /**
      * Find the section-relative bar index from where to start when a song part is selected.
@@ -258,6 +288,7 @@ public class PlayFromHere extends AbstractAction
         int sectionStartBar = cliSection.getPosition().getBar();
         int sectionEndBar = sectionStartBar + cliSection.getContainer().getSectionSize(cliSection) - 1;
 
+
         int clsInSectionBarIndex = -1;
         if (clSelection.isBarSelected())
         {
@@ -267,6 +298,7 @@ public class PlayFromHere extends AbstractAction
                 clsInSectionBarIndex = minBar - sectionStartBar;
             }
         }
+
 
         if (clsInSectionBarIndex == -1)
         {

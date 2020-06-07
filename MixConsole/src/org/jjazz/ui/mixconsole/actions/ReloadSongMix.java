@@ -31,7 +31,7 @@ import static javax.swing.Action.SHORT_DESCRIPTION;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.mixconsole.MixConsole;
+import org.jjazz.ui.mixconsole.api.MixConsole;
 import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.openide.DialogDisplayer;

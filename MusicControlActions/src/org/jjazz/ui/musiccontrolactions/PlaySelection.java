@@ -56,6 +56,7 @@ import org.openide.util.NbBundle;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
+import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.util.IntRange;
 import org.openide.windows.TopComponent;
@@ -82,6 +83,7 @@ public class PlaySelection extends AbstractAction
 {
 
     private Song song;
+    private TopComponent lastValidActivatedTc;
     private static final Logger LOGGER = Logger.getLogger(PlaySelection.class.getSimpleName());
 
     public PlaySelection()
@@ -109,6 +111,13 @@ public class PlaySelection extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
+        if (song == null)
+        {
+            LOGGER.severe("actionPerformed() unexpected value song=" + song);
+            return;
+        }
+
+
         // Song must be active !
         ActiveSongManager asm = ActiveSongManager.getInstance();
         if (asm.getActiveSong() != song)
@@ -119,11 +128,13 @@ public class PlaySelection extends AbstractAction
             return;
         }
 
+
         ChordLeadSheet cls = song.getChordLeadSheet();
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
         assert clTc != null;
         CL_Editor clEditor = clTc.getCL_Editor();
         CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clEditor.getLookup());
+
 
         SongStructure ss = song.getSongStructure();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
@@ -131,10 +142,12 @@ public class PlaySelection extends AbstractAction
         SS_Editor ssEditor = ssTc.getSS_Editor();
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
 
+
         IntRange rg = null;
         String errMsg = "Selected bars/songs parts need to be contiguous.";     // By default
-        TopComponent activeTc = TopComponent.getRegistry().getActivated();
-        if (clTc == activeTc && clSelection.isContiguousBarboxSelectionWithinCls())
+
+
+        if (lastValidActivatedTc == clTc && clSelection.isContiguousBarboxSelectionWithinCls())
         {
             // Focus in the CL_Editor            
             rg = toSgsRange(ss, cls, new IntRange(clSelection.getMinBarIndexWithinCls(), clSelection.getMaxBarIndexWithinCls()));   // Can be null
@@ -142,14 +155,17 @@ public class PlaySelection extends AbstractAction
             {
                 errMsg = "First and last selected bars don't correctly match song parts.";
             }
-        } else if (ssTc == activeTc && ssSelection.isOneSectionSptSelection())
+
+        } else if (lastValidActivatedTc == ssTc && ssSelection.isOneSectionSptSelection())
         {
             // Focus in the SS_Editor
             List<SongPart> spts = ssSelection.getIndirectlySelectedSongParts();
             SongPart firstSpt = spts.get(0);
             SongPart lastSpt = spts.get(spts.size() - 1);
             rg = new IntRange(firstSpt.getStartBarIndex(), lastSpt.getBarRange().to);
+
         }
+
 
         if (rg == null)
         {
@@ -159,8 +175,10 @@ public class PlaySelection extends AbstractAction
             return;
         }
 
+
         MusicController mc = MusicController.getInstance();
         mc.stop();
+
 
         // OK we can go
         try
@@ -184,21 +202,28 @@ public class PlaySelection extends AbstractAction
     //=====================================================================================     
     private void updateEnabledStatus()
     {
+        MixConsoleTopComponent mcTc = MixConsoleTopComponent.getInstance();
         CL_EditorTopComponent clTc = CL_EditorTopComponent.getActive();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.getActive();
-        boolean b = false;
+
         song = null;
+
         if (clTc != null)
         {
-            b = true;
             song = clTc.getSongModel();
+            lastValidActivatedTc = clTc;
         } else if (ssTc != null)
         {
-            b = true;
             song = ssTc.getSongModel();
+            lastValidActivatedTc = ssTc;
+        } else if (TopComponent.getRegistry().getActivated() == mcTc)
+        {
+            song = (lastValidActivatedTc != null) ? mcTc.getEditor().getSong() : null;
         }
 
+        boolean b = song != null;
         LOGGER.fine("updateEnabledStatus() b=" + b);
+
         setEnabled(b);
     }
 
@@ -211,7 +236,7 @@ public class PlaySelection extends AbstractAction
      * - SongStructure=S1 S1 S3 S2<br>
      * If cls range=bar0+bar1, then sgs range=[0;3]<br>
      *
-     * @param sgs      The parent sections of the song parts must be in cls.
+     * @param sgs The parent sections of the song parts must be in cls.
      * @param cls
      * @param clsRange
      * @return Null if no valid range could be constructed

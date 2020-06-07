@@ -115,13 +115,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
     // ==============================================================================
     private void updateUI()
     {
-        String title = "Output Synth Editor";
         String cfgName = outputSynth.getFile() == null ? "-" : outputSynth.getFile().getName();
-        if (outputSynth.getFile() != null)
-        {
-            title += ": " + cfgName;
-        }
-        this.setTitle(title);
         this.tf_configName.setText(cfgName);
     }
 

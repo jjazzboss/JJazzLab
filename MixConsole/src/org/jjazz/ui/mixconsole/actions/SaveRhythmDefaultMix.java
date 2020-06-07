@@ -37,7 +37,7 @@ import org.jjazz.midimix.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.ui.mixconsole.MixConsole;
+import org.jjazz.ui.mixconsole.api.MixConsole;
 import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.openide.awt.ActionID;

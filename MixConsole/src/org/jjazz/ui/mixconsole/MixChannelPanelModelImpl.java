@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.mixconsole;
 
+import org.jjazz.ui.mixconsole.api.MixConsole;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;

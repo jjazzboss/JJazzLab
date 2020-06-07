@@ -23,7 +23,6 @@
 package org.jjazz.ui.mixconsole.api;
 
 import java.awt.Dimension;
-import org.jjazz.ui.mixconsole.MixConsole;
 import static org.jjazz.ui.mixconsole.api.Bundle.*;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
