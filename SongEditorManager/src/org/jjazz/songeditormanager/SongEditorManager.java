@@ -71,12 +71,12 @@ public class SongEditorManager implements PropertyChangeListener
      * NewValue is the song object.
      */
     public static final String PROP_SONG_SAVED = "SongSaved";
-
+    
     private static SongEditorManager INSTANCE;
     private HashMap<Song, Editors> mapSongEditors;       // Don't use WeakHashMap here
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(SongEditorManager.class.getSimpleName());
-
+    
     static public SongEditorManager getInstance()
     {
         synchronized (SongEditorManager.class)
@@ -88,13 +88,13 @@ public class SongEditorManager implements PropertyChangeListener
         }
         return INSTANCE;
     }
-
+    
     private SongEditorManager()
     {
         mapSongEditors = new HashMap<>();
         TopComponent.getRegistry().addPropertyChangeListener(this);
-
-
+        
+        
     }
 
     /**
@@ -131,7 +131,7 @@ public class SongEditorManager implements PropertyChangeListener
         {
             throw new IllegalArgumentException("song=" + song);
         }
-
+        
         for (Song s : getOpenedSongs())
         {
             if (s == song)
@@ -141,7 +141,7 @@ public class SongEditorManager implements PropertyChangeListener
                 return;
             }
         }
-
+        
         Runnable run = new Runnable()
         {
             @Override
@@ -162,7 +162,7 @@ public class SongEditorManager implements PropertyChangeListener
                 Mode mode = WindowManager.getDefault().findMode("editor");
                 mode.dockInto(clTC);
                 clTC.open();
-
+                
                 SS_EditorTopComponent ssTC = new SS_EditorTopComponent(song);
                 mode = WindowManager.getDefault().findMode("output");
                 mode.dockInto(ssTC);
@@ -175,7 +175,7 @@ public class SongEditorManager implements PropertyChangeListener
                 song.addPropertyChangeListener(SongEditorManager.this);
                 mapSongEditors.put(song, new Editors(clTC, ssTC));
                 pcs.firePropertyChange(PROP_SONG_OPENED, false, song);
-
+                
                 updateActiveSong();
             }
         };
@@ -210,7 +210,7 @@ public class SongEditorManager implements PropertyChangeListener
         }
         return song;
     }
-
+    
     public List<Song> getOpenedSongs()
     {
         return new ArrayList<>(mapSongEditors.keySet());
@@ -228,12 +228,12 @@ public class SongEditorManager implements PropertyChangeListener
         }
         return mapSongEditors.get(s);
     }
-
+    
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
-
+    
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
@@ -284,7 +284,7 @@ public class SongEditorManager implements PropertyChangeListener
         s.close(true);
         updateActiveSong();
     }
-
+    
     private void songSaved(Song s)
     {
         File f = s.getFile();
@@ -292,31 +292,63 @@ public class SongEditorManager implements PropertyChangeListener
         FileDirectoryManager.getInstance().setLastSongDirectory(f.getAbsoluteFile().getParentFile());
         pcs.firePropertyChange(PROP_SONG_SAVED, false, s);
     }
-
+    
     private void updateActiveSong()
     {
-        // If there is only one opened song, make it active by default
-        if (mapSongEditors.size() == 1)
+        if (mapSongEditors.isEmpty())
         {
-            Song song = mapSongEditors.keySet().iterator().next();
-            ActiveSongManager am = ActiveSongManager.getInstance();
-            if (am.isActivable(song) == null)
+            return;
+        }
+               
+        final Song song = (mapSongEditors.size() == 1) ? mapSongEditors.keySet().iterator().next() : null;
+
+        // Need to wait for the new TopComponent to be selected, hence the runnable on the EDT
+        Runnable r = () ->
+        {
+            Song sg;
+            if (song != null)
             {
-                MidiMix mm = null;
-                try
+                sg = song;
+            } else
+            {
+                // Find the currently selected ChordLeadSheet editor and get its song model
+                WindowManager wm = WindowManager.getDefault();
+                Mode mode = wm.findMode("editor");
+                if (mode == null)
                 {
-                    mm = MidiMixManager.getInstance().findMix(song);
-                } catch (MidiUnavailableException ex)
-                {
-                    LOGGER.warning("updateActiveSong() Could not find MidiMix for song " + song.getName() + ".\n" + ex.getLocalizedMessage());
+                    return;
                 }
-                if (mm != null)
+                CL_EditorTopComponent clTc = (CL_EditorTopComponent) mode.getSelectedTopComponent();
+                if (clTc == null)
                 {
-                    am.setActive(song, mm);
+                    return;
                 }
+                sg = clTc.getSongModel();
+            }
+            activateSong(sg);
+        };
+        SwingUtilities.invokeLater(r);
+        
+    }
+    
+    private void activateSong(Song song)
+    {
+        ActiveSongManager am = ActiveSongManager.getInstance();
+        if (am.isActivable(song) == null)
+        {
+            MidiMix mm = null;
+            try
+            {
+                mm = MidiMixManager.getInstance().findMix(song);
+            } catch (MidiUnavailableException ex)
+            {
+                LOGGER.warning("activateSong() Could not find MidiMix for song " + song.getName() + ".\n" + ex.getLocalizedMessage());
+            }
+            if (mm != null)
+            {
+                am.setActive(song, mm);
             }
         }
-
     }
 
 
@@ -325,21 +357,21 @@ public class SongEditorManager implements PropertyChangeListener
     //============================================================================= 
     public class Editors
     {
-
+        
         private CL_EditorTopComponent tcCle;
         private SS_EditorTopComponent tcRle;
-
+        
         protected Editors(CL_EditorTopComponent tcCle, SS_EditorTopComponent tcRle)
         {
             this.tcCle = tcCle;
             this.tcRle = tcRle;
         }
-
+        
         public CL_EditorTopComponent getTcCle()
         {
             return tcCle;
         }
-
+        
         public SS_EditorTopComponent getTcRle()
         {
             return tcRle;
