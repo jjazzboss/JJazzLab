@@ -62,6 +62,7 @@ import org.openide.windows.WindowManager;
 public final class MixConsoleTopComponent extends TopComponent
 {
 
+    private static MixConsoleTopComponent INSTANCE;
     private MixConsole editor;
 
     public MixConsoleTopComponent()
@@ -82,17 +83,17 @@ public final class MixConsoleTopComponent extends TopComponent
         editor.setPreferredSize(new Dimension(80, 100));
         add(editor);
 
+        INSTANCE = this;
     }
 
     /**
      * Get the unique instance of this MixConsoleTopComponent.
      *
-     * @return
+     * @return Can be null if not created yet.
      */
     static public MixConsoleTopComponent getInstance()
     {
-        MixConsoleTopComponent tc = (MixConsoleTopComponent) WindowManager.getDefault().findTopComponent("MixConsoleTopComponent");
-        return tc;
+        return INSTANCE;
     }
 
     public MixConsole getEditor()

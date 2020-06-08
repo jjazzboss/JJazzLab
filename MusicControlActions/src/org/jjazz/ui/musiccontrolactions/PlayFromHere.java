@@ -201,9 +201,9 @@ public class PlayFromHere extends AbstractAction
     //=====================================================================================     
     private void updateEnabledStatus()
     {
-        MixConsoleTopComponent mcTc = MixConsoleTopComponent.getInstance();
-        CL_EditorTopComponent clTc = CL_EditorTopComponent.getActive();
-        SS_EditorTopComponent ssTc = SS_EditorTopComponent.getActive();
+        MixConsoleTopComponent mcTc = MixConsoleTopComponent.getInstance(); // Can be null
+        CL_EditorTopComponent clTc = CL_EditorTopComponent.getActive(); // Can be null
+        SS_EditorTopComponent ssTc = SS_EditorTopComponent.getActive(); // Can be null
 
         song = null;
 
@@ -215,7 +215,7 @@ public class PlayFromHere extends AbstractAction
         {
             song = ssTc.getSongModel();
             lastValidActivatedTc = ssTc;
-        } else if (TopComponent.getRegistry().getActivated() == mcTc)
+        } else if (mcTc != null && TopComponent.getRegistry().getActivated() == mcTc)
         {
             song = (lastValidActivatedTc != null) ? mcTc.getEditor().getSong() : null;
         }
