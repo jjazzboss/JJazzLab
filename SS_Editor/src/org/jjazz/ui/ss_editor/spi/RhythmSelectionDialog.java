@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.ss_editor.spi;
 
+import java.awt.event.ActionListener;
 import javax.swing.JDialog;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.ui.ss_editor.editors.SimpleRhythmSelectionDialog;
@@ -29,10 +30,47 @@ import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;
 
 /**
- * A dialog to select a rhythm.
+ * A dialog to select a rhythm for a SongStructure.
  */
 abstract public class RhythmSelectionDialog extends JDialog
 {
+
+    /**
+     * The instance responsible to preview a rhythm.
+     */
+    public interface RhythmPreviewProvider
+    {
+
+        /**
+         * Should be called when provider will no longer be used.
+         * <p>
+         * Enable the provider to release resources or restore settings if needed.
+         */
+        void cleanup();
+
+        /**
+         * Hear a "preview" of the specified rhythm.
+         * <p>
+         * If a preview is already being played, stop it and start a new one.
+         *
+         * @param r
+         * @param endActionListener Called when preview is complete or cancelled. Can be null.
+         * @return False if preview could not be started for some reason (endActionListener is not called).
+         */
+        boolean previewRhythm(Rhythm r, ActionListener endActionListener);
+
+        /**
+         * @return True if a rhythm preview is being played.
+         */
+        boolean isPreviewRunning();
+
+        /**
+         * Cancel the current preview.
+         * <p>
+         * Do nothing if isPreviewRunning() returns false.
+         */
+        void cancel();
+    }
 
     public static RhythmSelectionDialog getDefault()
     {
@@ -53,11 +91,12 @@ abstract public class RhythmSelectionDialog extends JDialog
     }
 
     /**
-     * Initialize the dialog for the specified rhythm.
+     * Initialize the dialog for the specified song rhythm.
      *
      * @param r
+     * @param rpp If null then the rhythm preview feature is disabled.
      */
-    abstract public void preset(Rhythm r);
+    abstract public void preset(Rhythm r, RhythmPreviewProvider rpp);
 
     /**
      * @return True if dialog was exited OK, false if dialog operation was cancelled.

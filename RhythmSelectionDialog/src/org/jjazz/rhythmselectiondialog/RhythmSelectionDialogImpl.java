@@ -85,6 +85,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     private Rhythm presetRhythm;
     private RhythmProvider presetRhythmProvider;
     private RhythmProvider selectedRhythmProvider;
+    private RhythmPreviewProvider rhythmPreviewProvider;
     private boolean exitOk;
     private File lastRhythmDir = null;
     private final HashMap<RhythmProvider, Rhythm> mapRpSelectedrythm = new HashMap<>();
@@ -143,7 +144,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     }
 
     @Override
-    public void preset(Rhythm r)
+    public void preset(Rhythm r, RhythmPreviewProvider rpp)
     {
         if (r == null)
         {
@@ -156,6 +157,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
         presetRhythm = r;
         timeSignature = r.getTimeSignature();
+        rhythmPreviewProvider = rpp;
         ((RhythmProviderList) list_RhythmProviders).setTimeSignatureFilter(timeSignature);
         lbl_timeSignature.setText(timeSignature.toString());
 
@@ -176,6 +178,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         int row = rhythmTable.getSelectedRow();
         assert row != -1;
         rhythmTable.scrollRectToVisible(rhythmTable.getCellRect(row, 0, true));
+
+        lbl_rhythmPreviewed.setText(" ");
 
         tf_userRhythmDir.setText(FileDirectoryManager.getInstance().getUserRhythmDirectory().getAbsolutePath());
         rhythmTable.requestFocusInWindow();
@@ -267,6 +271,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         } else if (e.getSource() == this.rhythmTable.getSelectionModel())
         {
             Rhythm r = rhythmTable.getSelectedRhythm();                 // r may be null
+            btn_preview.setEnabled(rhythmPreviewProvider != null && r != null);
             mapRpSelectedrythm.put(selectedRhythmProvider, r);
         }
     }
@@ -475,12 +480,20 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     private void actionOK()
     {
         exitOk = true;
+        if (rhythmPreviewProvider != null)
+        {
+            rhythmPreviewProvider.cancel();
+        }
         setVisible(false);
     }
 
     private void actionCancel()
     {
         mapRpSelectedrythm.put(selectedRhythmProvider, null);
+        if (rhythmPreviewProvider != null)
+        {
+            rhythmPreviewProvider.cancel();
+        }
         setVisible(false);
     }
 
@@ -524,6 +537,11 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         }
     }
 
+    private void rhythmPreviewComplete(Rhythm r)
+    {
+        lbl_rhythmPreviewed.setText(" ");
+    }
+
     // ===================================================================================
     // Private classes
     // ===================================================================================
@@ -555,6 +573,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         jScrollPane3 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
         btn_addRhythms = new javax.swing.JButton();
+        btn_preview = new javax.swing.JButton();
+        lbl_rhythmPreviewed = new javax.swing.JLabel();
         lbl_Title = new javax.swing.JLabel();
         cb_applyRhythmToNextSpts = new javax.swing.JCheckBox();
         cb_useRhythmTempo = new javax.swing.JCheckBox();
@@ -640,6 +660,19 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             }
         });
 
+        btn_preview.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rhythmselectiondialog/resources/Speaker-20x20.png"))); // NOI18N
+        btn_preview.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.btn_preview.toolTipText")); // NOI18N
+        btn_preview.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_previewActionPerformed(evt);
+            }
+        });
+
+        lbl_rhythmPreviewed.setFont(lbl_rhythmPreviewed.getFont().deriveFont((lbl_rhythmPreviewed.getFont().getStyle() | java.awt.Font.ITALIC), lbl_rhythmPreviewed.getFont().getSize()-1));
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_rhythmPreviewed, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.lbl_rhythmPreviewed.text")); // NOI18N
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -656,6 +689,10 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                         .addComponent(lbl_timeSignature)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(lbl_rhythms)
+                        .addGap(18, 18, 18)
+                        .addComponent(btn_preview)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lbl_rhythmPreviewed)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(btn_clearFilter)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -665,7 +702,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(10, 10, 10)
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 492, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 72, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 119, Short.MAX_VALUE)
                         .addComponent(btn_addRhythms)))
                 .addGap(0, 0, 0))
         );
@@ -673,16 +710,19 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lbl_rhythmProviders)
-                    .addComponent(lbl_rhythms)
-                    .addComponent(tf_filter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_Filter)
-                    .addComponent(btn_clearFilter)
-                    .addComponent(lbl_timeSignature))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(lbl_rhythmProviders)
+                        .addComponent(lbl_rhythms)
+                        .addComponent(tf_filter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btn_Filter)
+                        .addComponent(btn_clearFilter)
+                        .addComponent(lbl_timeSignature)
+                        .addComponent(lbl_rhythmPreviewed))
+                    .addComponent(btn_preview))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 350, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -819,12 +859,25 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         addRhythms();
     }//GEN-LAST:event_btn_addRhythmsActionPerformed
 
+    private void btn_previewActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_previewActionPerformed
+    {//GEN-HEADEREND:event_btn_previewActionPerformed
+        Rhythm r = rhythmTable.getSelectedRhythm();
+        if (r != null && rhythmPreviewProvider != null)
+        {
+            if (rhythmPreviewProvider.previewRhythm(r, e -> rhythmPreviewComplete(r)))
+            {
+                lbl_rhythmPreviewed.setText(r.getName());
+            }
+        }
+    }//GEN-LAST:event_btn_previewActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_Cancel;
     private javax.swing.JButton btn_Filter;
     private javax.swing.JButton btn_Ok;
     private javax.swing.JButton btn_addRhythms;
     private javax.swing.JButton btn_clearFilter;
+    private javax.swing.JButton btn_preview;
     private javax.swing.JCheckBox cb_applyRhythmToNextSpts;
     private javax.swing.JCheckBox cb_useRhythmTempo;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
@@ -834,6 +887,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JLabel lbl_Title;
+    private javax.swing.JLabel lbl_rhythmPreviewed;
     private javax.swing.JLabel lbl_rhythmProviders;
     private javax.swing.JLabel lbl_rhythms;
     private javax.swing.JLabel lbl_timeSignature;

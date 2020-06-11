@@ -111,6 +111,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * The playback context for one version of a song.
      */
     private PlaybackContext playbackContext;
+    /**
+     * The optional current post processors.
+     */
+    private MusicGenerator.PostProcessor[] postProcessors;
+
     private State playbackState;
     /**
      * The current beat position during playback.
@@ -198,6 +203,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             return;
         }
 
+        this.postProcessors = postProcessors;
 
         stop();
         songPartTempoFactor = 1f;
@@ -225,13 +231,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             songTempoChanged(mgContext.getSong().getTempo());
             try
             {
-                playbackContext = new PlaybackContext(mgContext, postProcessors); // Exception possible when building the sequence
+                playbackContext = new PlaybackContext(mgContext, this.postProcessors); // Exception possible when building the sequence
             } catch (MusicGenerationException ex)
             {
                 // Roll back variables state
                 mgContext.getMidiMix().removePropertyListener(this);
                 mgContext.getSong().removePropertyChangeListener(this);
-                mgContext = null;                
+                mgContext = null;
                 throw ex;
             }
         }
@@ -394,6 +400,16 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         return mgContext;
     }
 
+    /**
+     * The current PostProcessors.
+     *
+     * @return
+     */
+    public MusicGenerator.PostProcessor[] getPostProcessors()
+    {
+        return postProcessors;
+    }
+
     public Position getBeatPosition()
     {
         return currentBeatPosition;
@@ -512,8 +528,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * @param fixPitch -1 means not used.
      * @param transpose Transposition value in semi-tons to be added to test notes. Ignored if fixPitch&gt;=0.
      * @param endAction Called when sequence is over. Can be null.
-     * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occurred. endAction.run() is called before
-     * throwing the exception.
+     * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occurred. endAction.run() is called before throwing the
+     * exception.
      */
     public void playTestNotes(int channel, int fixPitch, int transpose, final Runnable endAction) throws MusicGenerationException
     {
@@ -534,8 +550,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      *
      * @param p
      * @param endAction Called when sequence is over. Can be null.
-     * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occurred. endAction.run() is called before
-     * throwing the exception.
+     * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occurred. endAction.run() is called before throwing the
+     * exception.
      */
     public void playTestNotes(Phrase p, final Runnable endAction) throws MusicGenerationException
     {

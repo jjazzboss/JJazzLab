@@ -73,7 +73,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
     }
 
     @Override
-    public void preset(Rhythm r)
+    public void preset(Rhythm r, RhythmPreviewProvider rpp)
     {
         if (r == null)
         {

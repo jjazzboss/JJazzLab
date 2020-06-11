@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
@@ -54,6 +55,7 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.ui.ss_editor.spi.RhythmPreviewer;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.editrhythm")
 @ActionRegistration(displayName = "#CTL_EditRhythm", lazy = false)
@@ -113,45 +115,65 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
     {
         LOGGER.fine("changeRhythm() -- selectedSpts=" + selectedSpts);
 
+
         List<SongPart> selSpts = new ArrayList<>(selectedSpts);               // Copy to avoid concurrent modifications
         SongPart selSpt0 = selSpts.get(0);
         SongStructure sgs = selSpt0.getContainer();
+        Song song = SongFactory.getInstance().findSong(sgs);
         List<SongPart> allSpts = new ArrayList<>(sgs.getSongParts());       // Copy to avoid concurrent modifications
+
 
         // Initialize and show dialog
         RhythmSelectionDialog dlg = RhythmSelectionDialog.getDefault();
         Rhythm rSelSpt0 = selSpt0.getRhythm();
-        dlg.preset(rSelSpt0);
+        RhythmPreviewer previewer;
+        try
+        {
+            previewer = new RhythmPreviewer(song, selSpt0);
+        } catch (MidiUnavailableException ex)
+        {
+            LOGGER.warning("changeRhythm() Can't create RhythmPreviewer ex=" + ex.getLocalizedMessage() + ". RhythmPreviewer disabled.");
+            previewer = null;
+        }
+        dlg.preset(rSelSpt0, previewer);
         dlg.setTitleLabel("Select a " + rSelSpt0.getTimeSignature() + " rhythm");
         if (!dialogShown)
         {
             dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         }
         dlg.setVisible(true);
-        dialogShown = true;
 
+
+        // Dialog exited
+        if (previewer != null)
+        {
+            previewer.cleanup();
+        }
+        dialogShown = true;
         if (!dlg.isExitOk())
         {
             dlg.cleanup();
             return;
         }
 
+
         // Get the new rhythm
         Rhythm newRhythm = dlg.getSelectedRhythm();
         LOGGER.fine("changeRhythm() selected newRhythm=" + newRhythm);
+
 
         // Start the edit : update the tempo (optional) and each songpart's rhythm
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
         um.startCEdit(CTL_EditRhythm());
 
+
         // Change tempo if required
         if (dlg.isUseRhythmTempo())
         {
-            Song song = SongFactory.getInstance().findSong(sgs);
-            assert song != null : "selSpts=" + selSpts;
             int tempo = newRhythm.getPreferredTempo();
             song.setTempo(tempo);
         }
+
 
         ArrayList<SongPart> oldSpts = new ArrayList<>();
         ArrayList<SongPart> newSpts = new ArrayList<>();
@@ -203,7 +225,9 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             return;
         }
 
+
         um.endCEdit(CTL_EditRhythm());
+
 
         dlg.cleanup();
     }
@@ -216,4 +240,9 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         LOGGER.log(Level.FINE, "selectionChange() b=" + b);
         setEnabled(b);
     }
+
+    // ================================================================================
+    // Private classes
+    // ================================================================================
+
 }
