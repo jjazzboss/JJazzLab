@@ -275,7 +275,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                     if (mSynth.matches())
                     {
                         // It's a new synth, create it
-                        String synthName = mSynth.group(1);
+                        String synthName = mSynth.group(1).trim();
                         currentSynth = new MidiSynth(synthName, "");
                         synths.add(currentSynth);
                         currentBsm = BankSelectMethod.MSB_LSB;
