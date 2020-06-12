@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -93,7 +92,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     private transient SgsUpdater clsListener;
     private static final Logger LOGGER = Logger.getLogger(SongStructureImpl.class.getSimpleName());
     private static int DEBUG_UNDOEDIT_ID = 0;
-
+    
     public SongStructureImpl()
     {
         // Do nothing
@@ -118,7 +117,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             clsListener = new SgsUpdater(this);
         }
     }
-
+    
     @Override
     public ChordLeadSheet getParentChordLeadSheet()
     {
@@ -135,17 +134,17 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public List<SongPart> getSongParts()
     {
-
+        
         return (List<SongPart>) songParts.clone();
     }
-
+    
     @Override
     public int getSizeInBars()
     {
         int res = songParts.isEmpty() ? 0 : getSptLastBarIndex(songParts.size() - 1) + 1;
         return res;
     }
-
+    
     @Override
     public FloatRange getBeatRange(IntRange rg)
     {
@@ -178,7 +177,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         }
         return new FloatRange(startPos, endPos);
     }
-
+    
     @Override
     public SongPart createSongPart(Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection)
     {
@@ -190,7 +189,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         spt.setContainer(this);
         return spt;
     }
-
+    
     @Override
     public void addSongParts(final List<SongPart> spts) throws UnsupportedEditException
     {
@@ -213,20 +212,20 @@ public class SongStructureImpl implements SongStructure, Serializable
             String msg = "Can't add adapted rhythm " + faultyAdRhythm.getName() + ": its source rhythm (" + sr.getName() + ") is not present";
             throw new UnsupportedEditException(msg);
         }
-
-
+        
+        
         for (SongPart spt : spts)
         {
             addSongPart(spt);
         }
 
-        
+
         // Make sure all AdaptedRhythms for the song rhythms are generated in the database so that user can 
         // access them if he wants too
         generateAllAdaptedRhythms();
-
+        
     }
-
+    
     @Override
     public void removeSongParts(List<SongPart> spts) throws UnsupportedEditException
     {
@@ -234,8 +233,8 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             throw new IllegalArgumentException("this=" + this + " spts=" + spts);
         }
-
-
+        
+        
         if (spts.isEmpty())
         {
             return;
@@ -282,24 +281,34 @@ public class SongStructureImpl implements SongStructure, Serializable
             {
                 songParts = new ArrayList<>(oldSpts);            // Must use a copy to make sure oldSpts remains unaffected
                 updateStartBarIndexes();
-                fireChangeEvent(new SptAddedEvent(SongStructureImpl.this, saveSpts));
+                fireAuthorizedChangeEvent(new SptAddedEvent(SongStructureImpl.this, saveSpts));
             }
-
+            
             @Override
             public void redoBody()
             {
                 songParts = new ArrayList<>(newSpts);            // Must use a copy to make sure newSpts remains unaffected
                 updateStartBarIndexes();
-                fireChangeEvent(new SptRemovedEvent(SongStructureImpl.this, saveSpts));
+                fireAuthorizedChangeEvent(new SptRemovedEvent(SongStructureImpl.this, saveSpts));
             }
         };
+        
+        
+        var event = new SptRemovedEvent(this, saveSpts);
+
+        // Possible exception here!
+        fireAuthorizedChangeEvent(event);        
+
+        
+        // Before change event
         fireUndoableEditHappened(edit);
 
 
-        // Fire event
-        fireChangeEvent(new SptRemovedEvent(this, saveSpts));
+        // Fire change event
+        fireAuthorizedChangeEvent(event);
+        
     }
-
+    
     @Override
     public void resizeSongParts(SmallMap<SongPart, Integer> mapSptSize)
     {
@@ -311,8 +320,8 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             return;
         }
-
-
+        
+        
         final SmallMap<SongPart, Integer> saveMap = mapSptSize.clone();
         final SmallMap<SongPart, Integer> oldMap = new SmallMap<>();
         for (SongPart spt : mapSptSize.getKeys())
@@ -326,8 +335,8 @@ public class SongStructureImpl implements SongStructure, Serializable
             SongPartImpl wspt = (SongPartImpl) spt;
             wspt.setNbBars(mapSptSize.getValue(spt));
         }
-
-
+        
+        
         updateStartBarIndexes();
 
 
@@ -342,9 +351,9 @@ public class SongStructureImpl implements SongStructure, Serializable
                     ((SongPartImpl) spt).setNbBars(oldMap.getValue(spt));
                 }
                 updateStartBarIndexes();
-                fireChangeEvent(new SptResizedEvent(SongStructureImpl.this, saveMap));
+                fireAuthorizedChangeEvent(new SptResizedEvent(SongStructureImpl.this, saveMap));
             }
-
+            
             @Override
             public void redoBody()
             {
@@ -353,16 +362,18 @@ public class SongStructureImpl implements SongStructure, Serializable
                     ((SongPartImpl) spt).setNbBars(saveMap.getValue(spt));
                 }
                 updateStartBarIndexes();
-                fireChangeEvent(new SptResizedEvent(SongStructureImpl.this, oldMap));
+                fireAuthorizedChangeEvent(new SptResizedEvent(SongStructureImpl.this, oldMap));
             }
         };
-
-
+        
+        var event = new SptResizedEvent(this, oldMap);
+               
+                
         fireUndoableEditHappened(edit);
 
 
         // Fire event
-        fireChangeEvent(new SptResizedEvent(this, oldMap));
+        fireAuthorizedChangeEvent(event);
     }
 
     /**
@@ -371,8 +382,8 @@ public class SongStructureImpl implements SongStructure, Serializable
      * <p>
      * Example: We have spt1=rhythm0, spt2=rhythm0, spt3=rhythm1. There are enough Midi channels for both rhythms.<br>
      * We want to change rhythm of both spt1 and spt2. If we do one spt at a time, after the first replacement on spt0 we'll have
-     * 3 rhythms and possibly our VetoableListeners will trigger an UnsupportedEditException (if not enough Midi channels), though
-     * there should be no problem since we want to change both spt1 AND spt2 !
+     * 3 rhythms and possibly our listeners will trigger an UnsupportedEditException (if not enough Midi channels), though there
+     * should be no problem since we want to change both spt1 AND spt2 !
      *
      * @param oldSpts
      * @param newSpts
@@ -444,21 +455,18 @@ public class SongStructureImpl implements SongStructure, Serializable
         }
 
 
-        // Save new state
+        // Save new state for undo/redo
         final ArrayList<SongPart> newSongParts = new ArrayList<>(songParts);
         final SmallMap<TimeSignature, Rhythm> newMapTsRhythm = mapTsLastRhythm.clone();
 
 
         // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Replace SongParts id=" + (DEBUG_UNDOEDIT_ID++) + " oldSpts=" + oldSpts + " newSpts=" + newSpts)
+        UndoableEdit edit = new SimpleEdit("Replace SongParts")
         {
             @Override
             public void undoBody()
             {
-                LOGGER.log(Level.FINE, "edit={0}.undoBody()  -- entering songParts={1}", new Object[]
-                {
-                    this.toString(), songParts.toString()
-                });
+                LOGGER.log(Level.FINE, "ReplaceSongParts.undoBody() -- songParts=" + songParts);
                 // Restore the state of the songStructure
                 songParts = new ArrayList<>(oldSongParts);      // Must use a copy to make sure oldSongParts remains unaffected
                 mapTsLastRhythm = oldMapTsRhythm.clone();           // Must use a copy to make sure map remains unaffected            
@@ -469,21 +477,15 @@ public class SongStructureImpl implements SongStructure, Serializable
                     SongStructure sgs = newSptsOldContainer.get(i);
                     ((SongPartImpl) newSpt).setContainer(sgs);
                 }
-                LOGGER.log(Level.FINE, "edit={0}                                   exiting songParts={1}", new Object[]
-                {
-                    this, songParts
-                });
+                LOGGER.log(Level.FINE, "ReplaceSongParts.undoBody() songParts=" + songParts);
                 // Don't use vetoablechange  : it already worked, normally there is no reason it would change            
-                fireChangeEvent(new SptReplacedEvent(SongStructureImpl.this, newSpts, oldSpts));
+                fireAuthorizedChangeEvent(new SptReplacedEvent(SongStructureImpl.this, newSpts, oldSpts));
             }
-
+            
             @Override
             public void redoBody()
             {
-                LOGGER.log(Level.FINE, "edit={0}.redoBody()  -- entering songParts={1}", new Object[]
-                {
-                    this, songParts
-                });
+                LOGGER.log(Level.FINE, "ReplaceSongParts.redoBody() -- songParts=" + songParts);
                 // Restore the state of the songStructure
                 songParts = new ArrayList<>(newSongParts);      // Must use a copy to make sure newSongParts remains unaffected
                 mapTsLastRhythm = newMapTsRhythm.clone();           // Must use a copy to make sure map remains unaffected                        
@@ -492,28 +494,32 @@ public class SongStructureImpl implements SongStructure, Serializable
                 {
                     ((SongPartImpl) newSpt).setContainer(SongStructureImpl.this);
                 }
-                LOGGER.log(Level.FINE, "edit={0}                                   exiting songParts={1}", new Object[]
-                {
-                    this, songParts
-                });
+                LOGGER.log(Level.FINE, "ReplaceSongParts.redoBody() songParts=" + songParts);
                 // Don't use vetoablechange : it already worked, normally there is no reason it would change
-                fireChangeEvent(new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts));
+                fireAuthorizedChangeEvent(new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts));
             }
         };
-        // Need to be fired BEFORE the vetoable change ! So it can be undoed by the caller who will handle the exception
+        
+        var event = new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts);
+
+
+        // Possible UnsupportedEditException here!
+        authorizeChangeEvent(event);
+
+
+        // Need to be fired before change event
         fireUndoableEditHappened(edit);
 
 
-        // Fire event but this might not work, e.g. if a listener has a problem with not enough Midi Channels to 
-        // accomodate the new rhythm, possible Exception here !
-        fireVetoableChangeEvent(new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts));
+        // Notify listeners        
+        fireAuthorizedChangeEvent(event);
 
 
         // Make sure all AdaptedRhythms for the song rhythms are generated in the database so that user can 
         // access them if he wants too
         generateAllAdaptedRhythms();
     }
-
+    
     @Override
     public void setSongPartsName(List<SongPart> spts, final String name)
     {
@@ -542,9 +548,9 @@ public class SongStructureImpl implements SongStructure, Serializable
                 {
                     ((SongPartImpl) wspt).SetName(save.getValue(wspt));
                 }
-                fireChangeEvent(new SptRenamedEvent(SongStructureImpl.this, save.getKeys()));
+                fireAuthorizedChangeEvent(new SptRenamedEvent(SongStructureImpl.this, save.getKeys()));
             }
-
+            
             @Override
             public void redoBody()
             {
@@ -552,15 +558,15 @@ public class SongStructureImpl implements SongStructure, Serializable
                 {
                     ((SongPartImpl) wspt).SetName(name);
                 }
-                fireChangeEvent(new SptRenamedEvent(SongStructureImpl.this, save.getKeys()));
+                fireAuthorizedChangeEvent(new SptRenamedEvent(SongStructureImpl.this, save.getKeys()));
             }
         };
         fireUndoableEditHappened(edit);
 
         // Fire event                
-        fireChangeEvent(new SptRenamedEvent(this, save.getKeys()));
+        fireAuthorizedChangeEvent(new SptRenamedEvent(this, save.getKeys()));
     }
-
+    
     @Override
     public <T> void setRhythmParameterValue(SongPart spt, final RhythmParameter<T> rp, final T newValue)
     {
@@ -584,29 +590,29 @@ public class SongStructureImpl implements SongStructure, Serializable
             public void undoBody()
             {
                 wspt.setRPValue(rp, oldValue);
-                fireChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, newValue, oldValue));
+                fireAuthorizedChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, newValue, oldValue));
             }
-
+            
             @Override
             public void redoBody()
             {
                 wspt.setRPValue(rp, newValue);
-                fireChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
+                fireAuthorizedChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
             }
         };
         fireUndoableEditHappened(edit);
 
         // Fire event                
-        fireChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
+        fireAuthorizedChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
     }
-
-
+    
+    
     @Override
     public Rhythm getLastUsedRhythm(TimeSignature ts)
     {
         return mapTsLastRhythm.getValue(ts);
     }
-
+    
     @Override
     public SongPart getSongPart(int absoluteBarIndex)
     {
@@ -620,13 +626,13 @@ public class SongStructureImpl implements SongStructure, Serializable
         }
         return null;
     }
-
+    
     @Override
     public List<SongPart> getSongParts(Predicate<SongPart> tester)
     {
         return songParts.stream().filter(tester).collect(Collectors.toList());
     }
-
+    
     @Override
     public Position getPosition(float posInBeats)
     {
@@ -649,7 +655,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         }
         return null;
     }
-
+    
     @Override
     public float getPositionInNaturalBeats(int barIndex)
     {
@@ -683,7 +689,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         }
         return posInBeats;
     }
-
+    
     @Override
     public Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem)
     {
@@ -701,13 +707,13 @@ public class SongStructureImpl implements SongStructure, Serializable
         Position res = new Position(spt.getStartBarIndex() + relBar, pos.getBeat());
         return res;
     }
-
+    
     @Override
     public String toString()
     {
         return "size=" + getSizeInBars() + " spts=" + songParts.toString();
     }
-
+    
     @Override
     public void addSgsChangeListener(SgsChangeListener l)
     {
@@ -718,7 +724,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         listeners.remove(l);
         listeners.add(l);
     }
-
+    
     @Override
     public void removeSgsChangeListener(SgsChangeListener l)
     {
@@ -728,7 +734,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         }
         listeners.remove(l);
     }
-
+    
     @Override
     public void addUndoableEditListener(UndoableEditListener l)
     {
@@ -739,7 +745,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         undoListeners.remove(l);
         undoListeners.add(l);
     }
-
+    
     @Override
     public void removeUndoableEditListener(UndoableEditListener l)
     {
@@ -762,7 +768,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 .stream()
                 .map(r -> r.getTimeSignature())
                 .collect(Collectors.toSet());
-
+        
         for (Rhythm r : rhythms)
         {
             for (TimeSignature ts : timeSignatures)
@@ -857,9 +863,9 @@ public class SongStructureImpl implements SongStructure, Serializable
                     this, songParts
                 });
                 // Don't use vetoable change  : it already work, normally there is no reason it would change
-                fireChangeEvent(new SptRemovedEvent(SongStructureImpl.this, Arrays.asList(spt)));
+                fireAuthorizedChangeEvent(new SptRemovedEvent(SongStructureImpl.this, Arrays.asList(spt)));
             }
-
+            
             @Override
             public void redoBody()
             {
@@ -876,17 +882,22 @@ public class SongStructureImpl implements SongStructure, Serializable
                     this, songParts
                 });
                 // Don't use vetoable change : it already work, normally there is no reason it would change
-                fireChangeEvent(new SptAddedEvent(SongStructureImpl.this, Arrays.asList(spt)));
+                fireAuthorizedChangeEvent(new SptAddedEvent(SongStructureImpl.this, Arrays.asList(spt)));
             }
         };
-        // Need to be fired BEFORE the vetoable change ! So it can be undoed by the caller who will handle the exception
+        
+        var event = new SptAddedEvent(this, Arrays.asList(spt));
+
+        // Possible exception here! 
+        authorizeChangeEvent(event);
+
+
+        // Need to be before the change event
         fireUndoableEditHappened(edit);
 
-        // Fire event but this might not work, e.g. if a listener has a problem with not enough Midi Channels to 
-        // accomodate the new rhythm. Possible Exception here !
-        // Important : the undoable
-        fireVetoableChangeEvent(new SptAddedEvent(this, Arrays.asList(spt)));
 
+        // Fire change event
+        fireAuthorizedChangeEvent(event);
     }
 
     /**
@@ -912,8 +923,8 @@ public class SongStructureImpl implements SongStructure, Serializable
         }
         return null;
     }
-
-
+    
+    
     private int getSptLastBarIndex(int sptIndex)
     {
         if (sptIndex < 0 || sptIndex >= songParts.size())
@@ -941,44 +952,42 @@ public class SongStructureImpl implements SongStructure, Serializable
         }
     }
 
-    protected void fireVetoableChangeEvent(SgsChangeEvent event) throws UnsupportedEditException
+    /**
+     * Make sure change is authorized by all listeners.
+     *
+     * @param event
+     * @throws UnsupportedEditException
+     */
+    protected void authorizeChangeEvent(SgsChangeEvent event) throws UnsupportedEditException
     {
         if (event == null)
         {
             throw new IllegalArgumentException("event=" + event);
         }
-        for (SgsChangeListener l : listeners.toArray(new SgsChangeListener[listeners.size()]))
+        var ls = listeners.toArray(new SgsChangeListener[0]);
+        for (SgsChangeListener l : ls)
         {
-            l.songStructureChanged(event);
+            l.authorizeChange(event);   // Possible exception here
         }
     }
 
     /**
-     * Convenience method, identitical to fireVetoableChangeEvent, except that caller considers that an UnsupportedEditException
-     * will never be thrown.
+     * Fire an authorized change event to all listeners.
      *
      * @param event
-     * @throws IllegalStateException If an UnsupportedEditException was catched.
      */
-    protected void fireChangeEvent(SgsChangeEvent event)
+    protected void fireAuthorizedChangeEvent(SgsChangeEvent event)
     {
         if (event == null)
         {
             throw new IllegalArgumentException("event=" + event);
         }
-        for (SgsChangeListener l : listeners.toArray(new SgsChangeListener[listeners.size()]))
+        for (SgsChangeListener l : listeners.toArray(new SgsChangeListener[0]))
         {
-            try
-            {
-                l.songStructureChanged(event);
-            } catch (UnsupportedEditException ex)
-            {
-                LOGGER.severe("fireChangeEvent() unexpected UnsupportedEditException ex=" + ex);
-                throw new IllegalStateException("Unexpected UnsupportedEditException", ex);
-            }
+            l.songStructureChanged(event);
         }
     }
-
+    
     private void fireUndoableEditHappened(UndoableEdit edit)
     {
         if (edit == null)
@@ -1000,7 +1009,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         return new SerializationProxy(this);
     }
-
+    
     private void readObject(ObjectInputStream stream) throws InvalidObjectException
     {
         throw new InvalidObjectException("Serialization proxy required");
@@ -1011,13 +1020,13 @@ public class SongStructureImpl implements SongStructure, Serializable
      */
     private static class SerializationProxy implements Serializable
     {
-
+        
         private static final long serialVersionUID = -76876542017265L;
         private final int spVERSION = 1;
         private final ArrayList<SongPart> spSpts;
         private final ChordLeadSheet spParentCls;
         private final boolean spKeepUpdated;
-
+        
         private SerializationProxy(SongStructureImpl sgs)
         {
             spParentCls = sgs.getParentChordLeadSheet();
@@ -1025,14 +1034,14 @@ public class SongStructureImpl implements SongStructure, Serializable
             spSpts.addAll(sgs.getSongParts());
             spKeepUpdated = sgs.keepSgsUpdated;
         }
-
+        
         private Object readResolve() throws ObjectStreamException
         {
             if (spSpts == null)
             {
                 throw new IllegalStateException("spSpts=" + spSpts);
             }
-
+            
             SongStructureImpl sgs = new SongStructureImpl(spParentCls, spKeepUpdated);
             for (SongPart spt : spSpts)
             {
@@ -1049,5 +1058,5 @@ public class SongStructureImpl implements SongStructure, Serializable
             return sgs;
         }
     }
-
+    
 }

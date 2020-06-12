@@ -973,7 +973,17 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     // Implementation of the SgsChangeListener interface
     //-----------------------------------------------------------------------
     @Override
-    public void songStructureChanged(SgsChangeEvent e) throws UnsupportedEditException
+    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
+    {
+        if (SongStructure.getUniqueRhythmVoices(song.getSongStructure(), true).size() > NB_AVAILABLE_CHANNELS)
+        {
+            LOGGER.fine("authorizeChange() e=" + e + " => not authorized ! throw exception");
+            throw new UnsupportedEditException(ERR_NotEnoughChannels());
+        }
+    }
+
+    @Override
+    public void songStructureChanged(SgsChangeEvent e)
     {
         LOGGER.fine("songStructureChanged() -- e=" + e);
 
@@ -993,16 +1003,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
 
         if (e instanceof SptAddedEvent)
         {
-            // To avoid having to roll back effects start by checking if we may exceed the Midi channels limit
-            if (SongStructure.getUniqueRhythmVoices(song.getSongStructure(), true).size() > NB_AVAILABLE_CHANNELS)
-            {
-                // No need to go further, we don't have enough Midi channels
-                throw new UnsupportedEditException(ERR_NotEnoughChannels());
-            }
 
             SptAddedEvent e2 = (SptAddedEvent) e;
             for (SongPart spt : e2.getSongParts())
             {
+
                 Rhythm r = spt.getRhythm();
                 if (!mixRhythms.contains(r))
                 {
@@ -1013,8 +1018,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                     } catch (MidiUnavailableException ex)
                     {
                         // Should not be here since we made a test just above to avoid this
-                        // throw new IllegalStateException("Unexpected MidiUnavailableException !", ex);
-                        throw new UnsupportedEditException(ERR_NotEnoughChannels());
+                        throw new IllegalStateException("Unexpected MidiUnavailableException ex=" + ex.getLocalizedMessage() + " this=" + this + " r=" + r);
                     }
                     mixRhythms.add(r);
                 }
@@ -1035,13 +1039,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             }
         } else if (e instanceof SptReplacedEvent)
         {
-
-            if (SongStructure.getUniqueRhythmVoices(song.getSongStructure(), true).size() > NB_AVAILABLE_CHANNELS)
-            {
-                // No need to go further, we don't have enough Midi channels
-                throw new UnsupportedEditException(ERR_NotEnoughChannels());
-            }
-
 
             SptReplacedEvent e2 = (SptReplacedEvent) e;
             List<SongPart> oldSpts = e2.getSongParts();
@@ -1074,7 +1071,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                         } catch (MidiUnavailableException ex)
                         {
                             // Should not be here since we made a test earlier to avoid this
-                            throw new IllegalStateException("Unexpected MidiUnavailableException !", ex);
+                            throw new IllegalStateException("Unexpected MidiUnavailableException ex=" + ex.getLocalizedMessage() + " this=" + this + " r=" + r);
                         }
                         mixRhythms.add(r);
                     });

@@ -31,6 +31,7 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.event.SectionMovedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ItemAddedEvent;
@@ -219,6 +220,13 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
     // ======================================================================
     // SgsChangeListener interface
     // ======================================================================  
+
+    @Override
+    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+
     @Override
     public void songStructureChanged(SgsChangeEvent e)
     {

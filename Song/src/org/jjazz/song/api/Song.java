@@ -571,18 +571,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     }
 
     @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event)
-    {
-        fireIsModified();
-    }
-
-    @Override
-    public void songStructureChanged(SgsChangeEvent e)
-    {
-        fireIsModified();
-    }
-
-    @Override
     public String toString()
     {
         return this.getName();
@@ -600,6 +588,33 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             return str.substring(0, indexExt);
         }
     }
+
+    //------------------------------------------------------------------------------
+    // ClsChangeListener interface
+    //------------------------------------------------------------------------------
+    @Override
+    public void chordLeadSheetChanged(ClsChangeEvent event)
+    {
+        fireIsModified();
+    }
+
+
+    //------------------------------------------------------------------------------
+    // SgsChangeListener interface
+    //------------------------------------------------------------------------------
+    @Override
+    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+
+
+    @Override
+    public void songStructureChanged(SgsChangeEvent e)
+    {
+        fireIsModified();
+    }
+
 
     // ----------------------------------------------------------------------------
     // Private functions 

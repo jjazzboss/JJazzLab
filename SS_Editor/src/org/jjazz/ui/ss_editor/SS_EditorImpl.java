@@ -53,6 +53,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.base.actions.Savable;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RP_SYS_Marker;
@@ -784,7 +785,16 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
     //------------------------------------------------------------------------------
     // SgsChangeListener interface
-    //------------------------------------------------------------------------------    
+    //------------------------------------------------------------------------------   
+    
+        
+    @Override
+    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+    
+    
     @Override
     public void songStructureChanged(final SgsChangeEvent e)
     {
@@ -794,7 +804,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             @Override
             public void run()
             {
-                LOGGER.log(Level.FINE, "SS_EditorImpl.songStructureChanged() e=" + e + " spts=" + e.getSongParts());
+                LOGGER.log(Level.FINE, "SS_EditorImpl.songStructureChanged() -- e=" + e + " spts=" + e.getSongParts());
                 if (e instanceof SptRemovedEvent)
                 {
                     for (SongPart spt : e.getSongParts())
@@ -823,7 +833,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                     SptReplacedEvent re = (SptReplacedEvent) e;
                     List<SongPart> oldSpts = re.getSongParts();
                     List<SongPart> newSpts = re.getNewSpts();
-                    LOGGER.log(Level.FINE, "SS_EditorImpl.songStructureChanged()   newSpts=" + newSpts);
+                    LOGGER.log(Level.FINE, "SS_EditorImpl.songStructureChanged() SptReplacedEvent  newSpts=" + newSpts);
 
                     // Save selection so we can restore it the best we can after replacing
                     SS_SelectionUtilities previousSelection = new SS_SelectionUtilities(selectionLookup);

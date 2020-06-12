@@ -27,12 +27,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.songstructure.api.SgsChangeListener;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.songstructure.api.event.SgsChangeEvent;
 
 //@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.showhiderps")
 //@ActionRegistration(displayName = "#CTL_ShowHideRp", lazy=false) // lazy=false to have the tooltip defined
@@ -52,7 +55,7 @@ import org.jjazz.songstructure.api.SongStructure;
             "CTL_ShowHideRp=Parameters",
             "DESC_ShowHideRp=Show/Hide Parameters"
         })
-public class ShowHideRp extends AbstractAction
+public class ShowHideRp extends AbstractAction implements SgsChangeListener
 {
 
     private static final Logger LOGGER = Logger.getLogger(ShowHideRp.class.getSimpleName());
@@ -75,10 +78,9 @@ public class ShowHideRp extends AbstractAction
         updateIcon();
 
         // Maintain the action disabled when no song part 
-        this.editor.getSongModel().getSongStructure().addSgsChangeListener(evt ->
-        {
-            setEnabled(!evt.getSource().getSongParts().isEmpty());
-        });
+        this.editor.getSongModel().getSongStructure().addSgsChangeListener(this);
+        
+        
         setEnabled(!editor.getSongModel().getSongStructure().getSongParts().isEmpty());
 
 
@@ -124,6 +126,22 @@ public class ShowHideRp extends AbstractAction
             putValue(SMALL_ICON, ICON);
             putValue(SHORT_DESCRIPTION, Bundle.DESC_ShowHideRp());
         }
+    }
+
+    // =================================================================================
+    // SgsChangeListener implementation
+    // =================================================================================
+
+    @Override
+    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+
+    @Override
+    public void songStructureChanged(SgsChangeEvent evt)
+    {
+        setEnabled(!evt.getSource().getSongParts().isEmpty());
     }
 
 }

@@ -192,7 +192,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
      * This method should be called first in the catch section.
      * <p>
      * 1/ Call endCEdit() on cEditName to terminate properly the compound edit. <br>
-     * Because exception occured there will be missing SimpleEdits in the CEdit (compared to normal).
+     * Because exception occured some SimpleEdits may be missing in the CEdit (compared to normal).
      * <p>
      * If compound edit is not empty:<br>
      * 2/ Call undo()<br>
@@ -214,7 +214,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
 
         if (endCEdit(cEditName))
         {
-            // Only if there is something to undo, otherwise we'll undo the previous compound edit
+            // Only if there is something to undo
             undo();
 
             // Make redo not possible
