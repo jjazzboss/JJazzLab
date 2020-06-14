@@ -72,6 +72,7 @@ import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.openide.util.lookup.ProxyLookup;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.savablesong.SavableSong;
 import org.jjazz.savablesong.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
@@ -930,11 +931,15 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     // ----------------------------------------------------------------------------------
     // ClsChangeListener interface
     // ----------------------------------------------------------------------------------
-    /**
-     * Don't throw UnsupportedEditException: not needed
-     *
-     * @param event
-     */
+    
+    
+    @Override
+    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+    
+    
     @Override
     public void chordLeadSheetChanged(final ClsChangeEvent event)
     {

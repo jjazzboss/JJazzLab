@@ -74,11 +74,94 @@ public class SgsUpdater implements ClsChangeListener
         }
     }
 
-    //------------------------------------------------------------------------------------
-    // Implements ClsChangeListener
-    //------------------------------------------------------------------------------------
+    // ============================================================================================= 
+    // ClsChangeListener implementation
+    // =============================================================================================      
+
     @Override
-    public void chordLeadSheetChanged(ClsChangeEvent evt) throws UnsupportedEditException
+    public void authorizeChange(ClsChangeEvent evt) throws UnsupportedEditException
+    {
+          // Check if there are sections in the event's items
+        List<CLI_Section> cliSections = new ArrayList<>();
+        for (ChordLeadSheetItem<?> cli : evt.getItems())
+        {
+            if (cli instanceof CLI_Section)
+            {
+                cliSections.add((CLI_Section) cli);
+            }
+        }
+        
+        
+        
+        if (!cliSections.isEmpty() && (evt instanceof ItemChangedEvent))
+        {
+            // Rrhythm if signature has changed
+            CLI_Section cliSection = cliSections.get(0);
+            ItemChangedEvent e = (ItemChangedEvent) evt;
+            TimeSignature newTs = cliSection.getData().getTimeSignature();
+            TimeSignature oldTs = ((Section) e.getOldData()).getTimeSignature();
+            String oldName = ((Section) e.getOldData()).getName();
+            if (!newTs.equals(oldTs))
+            {
+                // Time Signature has changed
+
+                // Need to replace all impacted SongParts based on this section
+                List<SongPart> oldSpts = getSongParts(cliSection);
+                if (!oldSpts.isEmpty())
+                {
+                    // Try to use the last used rhythm for this new time signature
+                    Rhythm newRhythm = sgs.getLastUsedRhythm(newTs);
+
+                    // Try to use an AdaptedRhythm if possible           
+                    RhythmDatabase rdb = RhythmDatabase.getDefault();
+                    if (newRhythm == null)
+                    {
+                        if (oldSpts.get(0).getStartBarIndex() > 0)
+                        {
+                            Rhythm prevRhythm = sgs.getSongPart(oldSpts.get(0).getStartBarIndex() - 1).getRhythm();
+                            if (prevRhythm instanceof AdaptedRhythm)
+                            {
+                                prevRhythm = ((AdaptedRhythm) prevRhythm).getSourceRhythm();
+                            }
+                            newRhythm = rdb.getAdaptedRhythm(prevRhythm, newTs);        // may be null
+                        }
+                    }
+
+                    // Last option
+                    if (newRhythm == null)
+                    {
+                        newRhythm = rdb.getDefaultRhythm(newTs);        // Can't be null
+                    }
+
+                    ArrayList<SongPart> newSpts = new ArrayList<>();
+                    for (SongPart oldSpt : oldSpts)
+                    {
+                        SongPart newSpt = oldSpt.clone(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
+                        newSpts.add(newSpt);
+                    }
+
+                    // Possible exception here : to be handled by caller 
+                    sgs.replaceSongParts(oldSpts, newSpts);
+
+                } else
+                {
+                    // It's just a renaming: rename songparts which have not been renamed by user
+                    List<SongPart> spts = getSongParts(cliSection);
+                    for (SongPart spt : spts.toArray(new SongPart[0]))
+                    {
+                        if (!spt.getName().equalsIgnoreCase(oldName))
+                        {
+                            spts.remove(spt);
+                        }
+                    }
+                    sgs.setSongPartsName(spts, cliSection.getData().getName());
+                }
+            }
+        } 
+    }
+
+    @Override
+    public void chordLeadSheetChanged(ClsChangeEvent evt)
     {
         LOGGER.log(Level.FINE, "chordLeadSheetChanged() evt=" + evt);
 

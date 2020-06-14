@@ -589,9 +589,16 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         }
     }
 
-    //------------------------------------------------------------------------------
-    // ClsChangeListener interface
-    //------------------------------------------------------------------------------
+    // ============================================================================================= 
+    // ClsChangeListener implementation
+    // =============================================================================================      
+       
+    @Override
+    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
     {
