@@ -103,7 +103,7 @@ public class AppendSpt extends AbstractAction
                 SongPart lastSpt = spts.get(spts.size() - 1);
                 startBarIndex = lastSpt.getStartBarIndex() + lastSpt.getNbBars();
             }
-            int nbBars = cls.getSectionSize(parentSection);
+            int nbBars = cls.getSectionRange(parentSection).size();
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
             um.startCEdit(undoText);
             SongPart newSpt = sgs.createSongPart(r, startBarIndex, nbBars, parentSection);

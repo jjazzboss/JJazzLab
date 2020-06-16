@@ -398,7 +398,7 @@ public class SS_EditorTransferHandler extends TransferHandler
         List<SongPart> spts = sgs.getSongParts();
         SongPart prevSpt = (sptIndex == 0) ? null : spts.get(sptIndex - 1);
         int startBarIndex = (prevSpt == null) ? 0 : prevSpt.getStartBarIndex() + prevSpt.getNbBars();
-        int nbBars = parentSection.getContainer().getSectionSize(parentSection);
+        int nbBars = parentSection.getContainer().getSectionRange(parentSection).size();
         Rhythm r = sgs.getLastUsedRhythm(parentSection.getData().getTimeSignature());
         if (r == null)
         {

@@ -70,7 +70,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
             SongPart spt = sgs.createSongPart(
                     r,
                     section.getPosition().getBar(),
-                    cls.getSectionSize(section),
+                    cls.getSectionRange(section).size(),
                     section);
             sgs.addSongParts(Arrays.asList(spt));
         }

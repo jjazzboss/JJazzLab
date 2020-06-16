@@ -25,14 +25,17 @@ package org.jjazz.ui.cl_editor.actions;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Logger;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongUtils;
 import static org.jjazz.ui.cl_editor.actions.Bundle.CTL_HalfLeadsheet;
+import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -63,8 +66,20 @@ public class HalfLeadsheet implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
         assert song != null;
-        JJazzUndoManagerFinder.getDefault().get(song.getChordLeadSheet()).startCEdit(undoText);
-        SongUtils.halfChordLeadsheet(song);
-        JJazzUndoManagerFinder.getDefault().get(song.getChordLeadSheet()).endCEdit(undoText);
+
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song.getChordLeadSheet());
+        um.startCEdit(undoText);
+
+        try
+        {
+            SongUtils.halfChordLeadsheet(song);
+        } catch (UnsupportedEditException ex)
+        {
+            String msg = "Impossible to half leadsheet.\n" + ex.getLocalizedMessage();
+            um.handleUnsupportedEditException(undoText, msg);
+            return;
+        }
+
+        um.endCEdit(undoText);
     }
 }

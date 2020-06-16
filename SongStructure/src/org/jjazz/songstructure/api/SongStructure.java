@@ -190,7 +190,7 @@ public interface SongStructure
      *
      * @param spts
      * @throws UnsupportedEditException If a new rhythm could not be accepted, or if the operation adds an AdaptedRhythm but its
-     * source rhythm is not present in this object.
+     * source rhythm is not present in this object. Exception is thrown before any change is done.
      */
     public void addSongParts(List<SongPart> spts) throws UnsupportedEditException;
 
@@ -200,7 +200,8 @@ public interface SongStructure
      * The startBarIndex of the trailing SongParts are updated.
      *
      * @param spts A List of SongParts.
-     * @throws UnsupportedEditException If the operation removes a source rhythm of a remaining AdaptedRhythm.
+     * @throws UnsupportedEditException If the operation removes a source rhythm of a remaining AdaptedRhythm. Exception is thrown
+     * before any change is done.
      */
     public void removeSongParts(List<SongPart> spts) throws UnsupportedEditException;
 
@@ -221,9 +222,9 @@ public interface SongStructure
      *
      * @param oldSpts
      * @param newSpts size must match oldSpts
-     * @throws UnsupportedEditException If replacement was impossible, typically because not enough Midi channels for a new
-     * rhythm, or if the operation removes a source rhythm of a remaining AdaptedRhythm, or an AdaptedRhythm is added without the
-     * presence of its source Rhythm.
+     * @throws UnsupportedEditException If replacement is impossible, typically because not enough Midi channels for a new rhythm,
+     * or if the operation removes a source rhythm of a remaining AdaptedRhythm, or an AdaptedRhythm is added without the presence
+     * of its source Rhythm. Exception is thrown before any change occurs.
      */
     public void replaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException;
 

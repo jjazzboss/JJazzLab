@@ -975,6 +975,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     @Override
     public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
     {
+        not good: change is not done yet, can not test song
         if (SongStructure.getUniqueRhythmVoices(song.getSongStructure(), true).size() > NB_AVAILABLE_CHANNELS)
         {
             LOGGER.fine("authorizeChange() e=" + e + " => not authorized ! throw exception");

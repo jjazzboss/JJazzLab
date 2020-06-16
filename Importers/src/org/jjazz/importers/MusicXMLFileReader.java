@@ -44,6 +44,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 
 /**
  * MusicXML leadsheet file reader.
@@ -87,9 +88,11 @@ public class MusicXMLFileReader
             throw new IOException(ex);
         }
 
+        
         // Result
         Song song = myListener.song;
 
+        
         // Propose to remove useless bars (BIAB seems to systematically insert 2 bars at the beginning)                            
         Position firstPos = myListener.firstChordPos;
         if (firstPos != null && firstPos.isFirstBarBeat() && firstPos.getBar() > 0)
@@ -99,7 +102,14 @@ public class MusicXMLFileReader
             Object result = DialogDisplayer.getDefault().notify(d);
             if (NotifyDescriptor.YES_OPTION == result)
             {
-                song.getChordLeadSheet().deleteBars(0, firstPos.getBar() - 1);
+                try
+                {
+                    song.getChordLeadSheet().deleteBars(0, firstPos.getBar() - 1);
+                } catch (UnsupportedEditException ex)
+                {
+                    // Should never happen
+                    Exceptions.printStackTrace(ex);
+                }
             }
         }
 
@@ -148,7 +158,14 @@ public class MusicXMLFileReader
             {
                 songSizeInBars = 4;
             }
-            song.getChordLeadSheet().setSize(songSizeInBars);
+            try
+            {
+                song.getChordLeadSheet().setSize(songSizeInBars);
+            } catch (UnsupportedEditException ex)
+            {
+                // Should never happen
+                Exceptions.printStackTrace(ex);
+            }
             if (firstChordPos == null)
             {
                 LOGGER.warning("afterParsingFinished() No chord symbols found, importing an empty song.");

@@ -205,7 +205,7 @@ public class CopyBuffer
                 CLI_Section newParentSection = targetCls.getSection(parentSection.getData().getName());
                 if (newParentSection != null && newParentSection.getData().getTimeSignature().equals(parentSectionTs))
                 {
-                    int nbBars = targetCls.getSectionSize(newParentSection);
+                    int nbBars = targetCls.getSectionRange(newParentSection).size();
                     spts.add(spt.clone(null, spt.getStartBarIndex() - barShift, nbBars, newParentSection));
                 }
             }

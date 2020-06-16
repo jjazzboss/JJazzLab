@@ -211,8 +211,14 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== RemoveSection Section2");
         CLI_Section cliSection = cls1.getSection("Section2");
-        cls1.removeSection(cliSection);
-        assertTrue(cls1.getSectionSize(cls1.getSection(0)) == 5);
+        try
+        {
+            cls1.removeSection(cliSection);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
+        assertTrue(cls1.getSectionRange(cls1.getSection(0)).size() == 5);
     }
 
     @Test
@@ -220,7 +226,13 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== RemoveSection and adjust items positions");
         CLI_Section cliSection = cls1.getSection("Section3");
-        cls1.removeSection(cliSection);
+        try
+        {
+            cls1.removeSection(cliSection);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         assertTrue(cls1.getItems(cls1.getSection("Section2"), ChordLeadSheetItem.class).get(3).getPosition().getBeat() == 2);
     }
 
@@ -311,7 +323,13 @@ public class ChordLeadSheetImplTest
     public void testDeleteBarsFromStartUntilEndOfSection()
     {
         System.out.println("deleteBars from start until end of section barFrom=0  barTo=1");
-        cls1.deleteBars(0, 1);
+        try
+        {
+            cls1.deleteBars(0, 1);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         assertTrue(cls1.getSize() == 6 && cls1.getItems(CLI_Section.class).size() == 2 && cls1.getSection(0).
                 getData().
                 getName() == "Section2");
@@ -321,10 +339,15 @@ public class ChordLeadSheetImplTest
     public void testDeleteBarsFromStartUntilMiddleOfSection()
     {
         System.out.println("deleteBars from start middle of section barFrom=0  barTo=3");
-        cls1.deleteBars(0, 3);
+        try
+        {
+            cls1.deleteBars(0, 3);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         CLI_Section cliSection0 = cls1.getSection(0);
-        assertTrue(cls1.getSize() == 4 && cliSection0.getData().getName() == "Section1" && cls1.getSectionSize(
-                cliSection0) == 1);
+        assertTrue(cls1.getSize() == 4 && cliSection0.getData().getName() == "Section1" && cls1.getSectionRange(cliSection0).size() == 1);
     }
 
     // delete with item position adjustment
@@ -332,7 +355,13 @@ public class ChordLeadSheetImplTest
     public void testDeleteBarsToEnd()
     {
         System.out.println("deleteBars until end barFrom=4  barTo=7");
-        cls1.deleteBars(4, 7);
+        try
+        {
+            cls1.deleteBars(4, 7);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         assertTrue(cls1.getSize() == 4);
     }
 
@@ -340,7 +369,13 @@ public class ChordLeadSheetImplTest
     public void testDeleteBarsMiddle()
     {
         System.out.println("deleteBars multi sections barFrom=1  barTo=5");
-        cls1.deleteBars(1, 5);
+        try
+        {
+            cls1.deleteBars(1, 5);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         assertTrue(cls1.getSize() == 3 && cls1.getSection(2).getData().getName() == "Section1");
     }
 
@@ -382,7 +417,13 @@ public class ChordLeadSheetImplTest
     public void testSetSize()
     {
         System.out.println("setSize() new size = 3");
-        cls1.setSize(3);
+        try
+        {
+            cls1.setSize(3);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         assertTrue(cls1.getSize() == 3 && cls1.getItems(ChordLeadSheetItem.class).size() == 6);
     }
 

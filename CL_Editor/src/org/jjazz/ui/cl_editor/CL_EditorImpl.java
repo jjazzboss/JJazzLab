@@ -1482,7 +1482,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private void propagateSectionChange(CLI_Section cliSection)
     {
-        int sectionSize = clsModel.getSectionSize(cliSection);
+        int sectionSize = clsModel.getSectionRange(cliSection).size();
         int barIndex = cliSection.getPosition().getBar();
         Quantization q = getDisplayQuantizationValue(cliSection);
         for (int i = barIndex; i < barIndex + sectionSize; i++)

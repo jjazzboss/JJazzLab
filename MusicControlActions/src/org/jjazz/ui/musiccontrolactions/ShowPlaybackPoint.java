@@ -184,6 +184,13 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
     // ======================================================================
     // ClsChangeListener interface
     // ======================================================================  
+    
+        @Override
+    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+    
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
     {
@@ -259,7 +266,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
     }
 
     // ======================================================================
-    // Playbackistener interface
+    // PlaybackListener interface
     // ======================================================================  
     @Override
     public void beatChanged(final Position oldPos, final Position newPos)

@@ -176,7 +176,13 @@ public class LinkedSongStructureTest
         assertTrue(sgs.getSongParts().get(4).getNbBars() == 2);
         System.out.println("\n============ Test RemoveSection");
         assertTrue(sgs.getSizeInBars() == 10);
-        cls1.removeSection(section2);
+        try
+        {
+            cls1.removeSection(section2);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSizeInBars() == 8);
         assertTrue(sgs.getSongParts().size() == 3);
@@ -278,7 +284,13 @@ public class LinkedSongStructureTest
     public void testResize()
     {
         System.out.println("\n============ Testresize");
-        cls1.setSize(10);
+        try
+        {
+            cls1.setSize(10);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSizeInBars() == 13);
         assertTrue(sgs.getSongParts().get(2).getNbBars() == 5);
@@ -289,7 +301,13 @@ public class LinkedSongStructureTest
     public void testRemoveBars()
     {
         System.out.println("\n============ testRemoveBars");
-        cls1.deleteBars(4, 5);
+        try
+        {
+            cls1.deleteBars(4, 5);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         System.out.println(" cls1 after=" + cls1.toDumpString());
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSizeInBars() == 10);

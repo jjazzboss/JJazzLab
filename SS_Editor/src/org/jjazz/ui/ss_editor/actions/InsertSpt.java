@@ -122,7 +122,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
                 r = RhythmDatabase.getDefault().getDefaultRhythm(parentSection.getData().getTimeSignature());
             }
             int startBarIndex = spts.get(selection.getMinStartSptIndex()).getStartBarIndex();
-            int nbBars = cls.getSectionSize(parentSection);
+            int nbBars = cls.getSectionRange(parentSection).size();
             SongPart newSpt = sgs.createSongPart(r, startBarIndex, nbBars, parentSection);
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
             um.startCEdit(undoText);

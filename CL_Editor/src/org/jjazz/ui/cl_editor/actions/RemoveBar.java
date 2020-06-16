@@ -25,21 +25,23 @@ package org.jjazz.ui.cl_editor.actions;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
@@ -88,14 +90,29 @@ public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
-
         int minBar = selection.getMinBarIndexWithinCls();
         int maxBar = selection.getMaxBarIndexWithinCls();
         int lastBar = cls.getSize() - 1;
+
+
         LOGGER.log(Level.FINE, "actionPerformed() minBar=" + minBar + " cls=" + cls + " context=" + context);
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-        cls.deleteBars(minBar, Math.min(maxBar, lastBar));
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
+        um.startCEdit(undoText);
+
+
+        try
+        {
+            cls.deleteBars(minBar, Math.min(maxBar, lastBar));
+        } catch (UnsupportedEditException ex)
+        {
+            String msg = "Impossible to remove bars.\n" + ex.getLocalizedMessage();
+            um.handleUnsupportedEditException(undoText, msg);
+            return;
+        }
+
+
+        um.endCEdit(undoText);
     }
 
     /**

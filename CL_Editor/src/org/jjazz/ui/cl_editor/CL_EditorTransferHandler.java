@@ -260,10 +260,10 @@ public class CL_EditorTransferHandler extends TransferHandler
                 um.startCEdit("Move section");
                 if (curSection.getPosition().getBar() == newBarIndex)
                 {
-                    // There is already a section there, just update the content      
-                    cls.removeSection(section);
+                    // There is already a section there, just update the content                          
                     try
                     {
+                        cls.removeSection(section);
                         cls.setSectionName(curSection, section.getData().getName());
                         cls.setSectionTimeSignature(curSection, section.getData().getTimeSignature());
                     } catch (UnsupportedEditException ex)

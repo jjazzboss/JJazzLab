@@ -31,6 +31,7 @@ import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -39,8 +40,10 @@ import org.openide.util.NbBundle.Messages;
 import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
+import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.util.ContextAwareAction;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 
@@ -80,9 +83,21 @@ public final class SetEndBar extends AbstractAction implements ContextAwareActio
         CL_SelectionUtilities selection = cap.getSelection();
         assert endBar >= 0 : "selection=" + selection;
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-        cls.setSize(endBar + 1);
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
+        um.startCEdit(undoText);
+
+        try
+        {
+            cls.setSize(endBar + 1);
+        } catch (UnsupportedEditException ex)
+        {
+            String msg = "Impossible to resize.\n" + ex.getLocalizedMessage();
+            um.handleUnsupportedEditException(undoText, msg);
+            return;
+        }
+
+        um.endCEdit(undoText);
     }
 
     @Override
