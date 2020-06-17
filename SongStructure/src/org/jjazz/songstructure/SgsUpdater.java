@@ -50,6 +50,7 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.openide.util.Exceptions;
 
 /**
@@ -79,12 +80,10 @@ public class SgsUpdater implements ClsChangeListener
     // ============================================================================================= 
     // ClsChangeListener implementation
     // =============================================================================================      
-
     @Override
     public void authorizeChange(ClsChangeEvent evt) throws UnsupportedEditException
     {
         LOGGER.log(Level.FINE, "authorizeChange() evt=" + evt);
-
 
         // Is it really needed here ? Seems safer to keep it
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
@@ -96,10 +95,8 @@ public class SgsUpdater implements ClsChangeListener
             return;
         }
 
-
         // To store resize operations
         SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
-
 
         // Get the sections in the event's items
         var cliSections = evt.getItems().stream()
@@ -107,12 +104,10 @@ public class SgsUpdater implements ClsChangeListener
                 .map(cli -> (CLI_Section) cli)
                 .collect(Collectors.toList());
 
-
         if ((evt instanceof SizeChangedEvent) || (evt instanceof ItemBarShiftedEvent))
         {
-            // No problem
+            // No problem expected
             return;
-
 
         } else if (!cliSections.isEmpty() && (evt instanceof ItemChangedEvent))
         {
@@ -128,12 +123,15 @@ public class SgsUpdater implements ClsChangeListener
                 return;
             }
 
-            // We will add a new rhythm, is it ok for the MidiMix ?                        
-            SongPart prevSpt = oldSpts.get(0).getStartBarIndex() == 0 ? null : sgs.getSongPart(oldSpts.get(0).getStartBarIndex() - 1);
+            // We will replace at least 1 song part with a new rhythm, build a representative change event to test it
+            SongPart oldSpt = oldSpts.get(0);
+            SongPart prevSpt = oldSpt.getStartBarIndex() == 0 ? null : sgs.getSongPart(oldSpts.get(0).getStartBarIndex() - 1);
             Rhythm newRhythm = findNewRhythm(newTs, prevSpt);
+            SongPart newSpt = oldSpt.clone(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
+            var event = new SptReplacedEvent(sgs, Arrays.asList(oldSpt), Arrays.asList(newSpt));
             
-            MidiMix mm=MidiMixManager.getInstance().
-
+            // Possible exception here!
+            sgs.authorizeChangeEvent(event);            
 
         } else if (!cliSections.isEmpty() && (evt instanceof ItemAddedEvent))
         {
@@ -160,7 +158,6 @@ public class SgsUpdater implements ClsChangeListener
                 }
             }
 
-
         } else if (!cliSections.isEmpty() && (evt instanceof ItemRemovedEvent))
         {
             // Remove the linked SongParts and resize previous section
@@ -182,7 +179,6 @@ public class SgsUpdater implements ClsChangeListener
                     sgs.resizeSongParts(mapSptSize);
                 }
             }
-
 
         } else if (evt instanceof SectionMovedEvent)
         {
@@ -219,10 +215,8 @@ public class SgsUpdater implements ClsChangeListener
                 sgs.resizeSongParts(mapSptSize);
             }
 
-
         }
     }
-
 
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent evt)
@@ -238,17 +232,14 @@ public class SgsUpdater implements ClsChangeListener
             return;
         }
 
-
         // To store resize operations
         SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
-
 
         // Get the sections in the event's items
         var cliSections = evt.getItems().stream()
                 .filter(cli -> cli instanceof CLI_Section)
                 .map(cli -> (CLI_Section) cli)
                 .collect(Collectors.toList());
-
 
         if (evt instanceof SizeChangedEvent)
         {
@@ -257,12 +248,10 @@ public class SgsUpdater implements ClsChangeListener
             fillMapSptSize(mapSptSize, lastSection);
             sgs.resizeSongParts(mapSptSize);
 
-
         } else if (!cliSections.isEmpty() && (evt instanceof ItemBarShiftedEvent))
         {
             // Resize sections before and after the shifted bars.
             ItemBarShiftedEvent e = (ItemBarShiftedEvent) evt;
-
 
             // Size of the section before the shifted items has changed
             int firstBarIndex = cliSections.get(0).getPosition().getBar();
@@ -272,13 +261,11 @@ public class SgsUpdater implements ClsChangeListener
                 fillMapSptSize(mapSptSize, prevSection);
             }
 
-
             // Size of the last section of the shifted items has changed too
             int lastBarIndex = e.getItems().get(e.getItems().size() - 1).getPosition().getBar();
             CLI_Section lastSection = parentCls.getSection(lastBarIndex);
             fillMapSptSize(mapSptSize, lastSection);
             sgs.resizeSongParts(mapSptSize);
-
 
         } else if (!cliSections.isEmpty() && (evt instanceof ItemChangedEvent))
         {
@@ -300,7 +287,6 @@ public class SgsUpdater implements ClsChangeListener
                     // Get the new rhythm to use
                     SongPart prevSpt = oldSpts.get(0).getStartBarIndex() == 0 ? null : sgs.getSongPart(oldSpts.get(0).getStartBarIndex() - 1);
                     Rhythm newRhythm = findNewRhythm(newTs, prevSpt);
-
 
                     ArrayList<SongPart> newSpts = new ArrayList<>();
                     for (SongPart oldSpt : oldSpts)
@@ -334,7 +320,6 @@ public class SgsUpdater implements ClsChangeListener
                 }
             }
 
-
         } else if (!cliSections.isEmpty() && (evt instanceof ItemAddedEvent))
         {
             // For each section add a SongPart, and resize the previous section
@@ -360,7 +345,6 @@ public class SgsUpdater implements ClsChangeListener
                 }
             }
 
-
         } else if (!cliSections.isEmpty() && (evt instanceof ItemRemovedEvent))
         {
             // Remove the linked SongParts and resize previous section
@@ -382,7 +366,6 @@ public class SgsUpdater implements ClsChangeListener
                     sgs.resizeSongParts(mapSptSize);
                 }
             }
-
 
         } else if (evt instanceof SectionMovedEvent)
         {
@@ -419,13 +402,11 @@ public class SgsUpdater implements ClsChangeListener
                 sgs.resizeSongParts(mapSptSize);
             }
 
-
         }
     }
     //----------------------------------------------------------------------------------------------------
     // Private functions
     //----------------------------------------------------------------------------------------------------  
-
 
     /**
      * Find the rhythm to be used for the specified time signature and song parts.
@@ -443,10 +424,8 @@ public class SgsUpdater implements ClsChangeListener
 
         RhythmDatabase rdb = RhythmDatabase.getDefault();
 
-
         // Try to use the last used rhythm for this new time signature
         Rhythm newRhythm = sgs.getLastUsedRhythm(ts);
-
 
         // Try to use an AdaptedRhythm for the previous song part's rhythm
         if (newRhythm == null && prevSpt != null)
@@ -459,17 +438,14 @@ public class SgsUpdater implements ClsChangeListener
             newRhythm = rdb.getAdaptedRhythm(prevRhythm, ts);        // may be null
         }
 
-
         // Last option
         if (newRhythm == null)
         {
             newRhythm = rdb.getDefaultRhythm(ts);        // Can't be null
         }
 
-
         return newRhythm;
     }
-
 
     /**
      * Get all the songParts associated to specified parent section.
@@ -545,11 +521,9 @@ public class SgsUpdater implements ClsChangeListener
             assert sptBarIndex != - 1 : "prevSpts=" + prevSpts + " prevSection=" + prevSection + " newSection=" + newSection;
         }
 
-
         // Choose rhythm
         SongPart prevSpt = sptBarIndex == 0 ? null : sgs.getSongPart(sptBarIndex - 1);
         Rhythm r = findNewRhythm(newSection.getData().getTimeSignature(), prevSpt);
-
 
         // Create the song part       
         SongPart spt = sgs.createSongPart(
