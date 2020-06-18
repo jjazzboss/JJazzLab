@@ -76,7 +76,7 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
      */
     public void setModel(SS_Editor editor)
     {
-        List<Rhythm> uniqueRhythms = SongStructure.getUniqueRhythms(editor.getSongModel().getSongStructure(), false);
+        List<Rhythm> uniqueRhythms = editor.getSongModel().getSongStructure().getUniqueRhythms(false);
         tblModel = new MyModel(uniqueRhythms, editor);
         tbl_rhythmParameters.setModel(tblModel);
         for (int i = MyModel.COL_FIRST_RHYTHM; i < tbl_rhythmParameters.getColumnCount(); i++)
@@ -375,7 +375,7 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
 
         @Override
         public boolean isCellEditable(int row, int col)
-        {            
+        {
             RhythmParameter<?> rp = uniqueRps.get(row);
             return col >= COL_FIRST_RHYTHM && getRpFromClass(rhythms.get(col - COL_FIRST_RHYTHM).getRhythmParameters(), rp.getClass()) != null;
         }

@@ -79,9 +79,13 @@ public interface SongStructure
         for (SongPart spt : getSongParts())
         {
             Rhythm r = spt.getRhythm();
-            if (!res.contains(r) && (r instanceof AdaptedRhythm))
+            if (!(r instanceof AdaptedRhythm))
             {
-                res.add(spt.getRhythm());
+                continue;
+            }
+            AdaptedRhythm ar = (AdaptedRhythm) r;
+            {
+                res.add(ar);
             }
         }
         return res;
@@ -164,7 +168,8 @@ public interface SongStructure
     public FloatRange getBeatRange(IntRange barRange);
 
     /**
-     * The position of the specified bar in natural beats: take into account the possible different time signatures before specified bar.
+     * The position of the specified bar in natural beats: take into account the possible different time signatures before
+     * specified bar.
      *
      * @param absoluteBarIndex A value in the range [0 - getSizeInBars()]
      * @return
@@ -188,9 +193,21 @@ public interface SongStructure
      * @param clsItem
      * @return A position within spt range
      * @throws IllegalArgumentException If clsItem does not belong to spt's parent Section.
-     * @throws IllegalStateException    If getParentChordLeadSheet() returns null.
+     * @throws IllegalStateException If getParentChordLeadSheet() returns null.
      */
     public Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem);
+
+
+    /**
+     * Check if add operation is doable.
+     * <p>
+     * Operation is not doable if a new rhythm could not be accepted by listeners, or if the operation adds an AdaptedRhythm but
+     * its source rhythm will not be present in this SongStructure.
+     *
+     * @param spts
+     * @throws UnsupportedEditException
+     */
+    public void authorizeAddSongParts(List<SongPart> spts) throws UnsupportedEditException;
 
     /**
      * Add one by one a list of SongParts.
@@ -200,14 +217,22 @@ public interface SongStructure
      * - the last barIndex+1 <br>
      * The startBarIndex of the trailing SongParts is shifted accordingly. The SongPart container will be set to this object.
      * <p>
-     * If the added SongPart uses an AdaptedRhythm, its source rhythm must be also present in this object (possibly added by this
-     * operation).
      *
      * @param spts
-     * @throws UnsupportedEditException If a new rhythm could not be accepted, or if the operation adds an AdaptedRhythm but its source
-     *                                  rhythm is not present in this object. Exception is thrown before any change is done.
+     * @throws UnsupportedEditException Exception is thrown before any change is done. See authorizeAddSongParts().
      */
     public void addSongParts(List<SongPart> spts) throws UnsupportedEditException;
+
+
+    /**
+     * Check if remove operation is doable.
+     * <p>
+     * If an AdaptedRhythm is used in this SongStructure, the song part for its source rhythm can't be removed.
+     *
+     * @param spts
+     * @throws UnsupportedEditException
+     */
+    public void authorizeRemoveSongParts(List<SongPart> spts) throws UnsupportedEditException;
 
     /**
      * Remove some SongParts.
@@ -215,8 +240,7 @@ public interface SongStructure
      * The startBarIndex of the trailing SongParts are updated.
      *
      * @param spts A List of SongParts.
-     * @throws UnsupportedEditException If the operation removes a source rhythm of a remaining AdaptedRhythm. Exception is thrown before
-     *                                  any change is done.
+     * @throws UnsupportedEditException Exception is thrown before any change is done. See authorizeRemoveSongParts()
      */
     public void removeSongParts(List<SongPart> spts) throws UnsupportedEditException;
 
@@ -229,17 +253,30 @@ public interface SongStructure
      */
     public void resizeSongParts(SmallMap<SongPart, Integer> mapSptSize);
 
+
+    /**
+     * Check if replace operation is doable.
+     * <p>
+     * UnsupportedEditException is thrown if replacement is impossible, for example because :<br>
+     * - not enough Midi channels for a new rhythm<br>
+     * - if the operation removes a source rhythm of a remaining AdaptedRhyth<br>
+     * - an AdaptedRhythm is added without the presence of its source Rhythm.
+     *
+     * @param oldSpts
+     * @param newSpts
+     * @throws UnsupportedEditException
+     */
+    public void authorizeReplaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException;
+
     /**
      * Replace SongParts by other SongParts.
      * <p>
-     * Typically used to changed rhythm. The size and startBarIndex of new SongParts must be the same than the replaced ones. The container
-     * of newSpt will be set to this object.
+     * Typically used to changed rhythm. The size and startBarIndex of new SongParts must be the same than the replaced ones. The
+     * container of newSpt will be set to this object.
      *
      * @param oldSpts
      * @param newSpts size must match oldSpts
-     * @throws UnsupportedEditException If replacement is impossible, typically because not enough Midi channels for a new rhythm, or if the
-     *                                  operation removes a source rhythm of a remaining AdaptedRhythm, or an AdaptedRhythm is added without
-     *                                  the presence of its source Rhythm. Exception is thrown before any change occurs.
+     * @throws UnsupportedEditException Exception is thrown before any change is done. See authorizeReplaceSongParts()
      */
     public void replaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException;
 
@@ -255,8 +292,8 @@ public interface SongStructure
      * Change the value of a specific RhythmParameter.
      *
      * @param <T>
-     * @param spt   The SongPart rp belongs to.
-     * @param rp    The RhythmParameter.
+     * @param spt The SongPart rp belongs to.
+     * @param rp The RhythmParameter.
      * @param value The new value to apply for rp.
      */
     public <T> void setRhythmParameterValue(SongPart spt, RhythmParameter<T> rp, T value);

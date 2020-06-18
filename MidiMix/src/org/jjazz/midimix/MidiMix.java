@@ -204,7 +204,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             SongStructure sgs = song.getSongStructure();
 
             // Check consistency with current MidiMix data            
-            List<RhythmVoice> songRvs = SongStructure.getUniqueRhythmVoices(sgs, false);
+            List<RhythmVoice> songRvs = sgs.getUniqueRhythmVoices(false);
             for (Integer channel : getUsedChannels())
             {
                 RhythmVoice rvKey = getRhythmVoice(channel);
@@ -312,7 +312,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         if (rvKey != null && song != null)
         {
             // Check that rvKey belongs to song
-            if (!SongStructure.getUniqueRhythmVoices(song.getSongStructure(), true).contains(rvKey))
+            if (!song.getSongStructure().getUniqueRhythmVoices(true).contains(rvKey))
             {
                 throw new IllegalArgumentException("channel=" + channel + " rvKey=" + rvKey + " insMix=" + insMix + ". rvKey does not belong to any of the song's rhythms.");
             }
@@ -976,7 +976,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
     {
         not good: change is not done yet, can not test song
-        if (SongStructure.getUniqueRhythmVoices(song.getSongStructure(), true).size() > NB_AVAILABLE_CHANNELS)
+        if (song.getSongStructure().getUniqueRhythmVoices(true).size() > NB_AVAILABLE_CHANNELS)
         {
             LOGGER.fine("authorizeChange() e=" + e + " => not authorized ! throw exception");
             throw new UnsupportedEditException(ERR_NotEnoughChannels());

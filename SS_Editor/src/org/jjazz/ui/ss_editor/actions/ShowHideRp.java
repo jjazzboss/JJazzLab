@@ -79,8 +79,8 @@ public class ShowHideRp extends AbstractAction implements SgsChangeListener
 
         // Maintain the action disabled when no song part 
         this.editor.getSongModel().getSongStructure().addSgsChangeListener(this);
-        
-        
+
+
         setEnabled(!editor.getSongModel().getSongStructure().getSongParts().isEmpty());
 
 
@@ -107,7 +107,7 @@ public class ShowHideRp extends AbstractAction implements SgsChangeListener
     private int getNbHiddenParameters()
     {
         int res = 0;
-        for (Rhythm r : SongStructure.getUniqueRhythms(editor.getModel(), false))
+        for (Rhythm r : editor.getModel().getUniqueRhythms(false))
         {
             res = Math.max(res, r.getRhythmParameters().size() - editor.getVisibleRps(r).size());
         }
