@@ -119,9 +119,11 @@ public interface ChordLeadSheet
      *
      * @param section The section to be moved
      * @param newBarIndex The bar index section will be moved to
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
+     * before any change is done.
      * @throws IllegalArgumentException If new position is not valid.
      */
-    public void moveSection(CLI_Section section, int newBarIndex);
+    public void moveSection(CLI_Section section, int newBarIndex) throws UnsupportedEditException;
 
     /**
      * Move an item to a new position.
@@ -247,7 +249,7 @@ public interface ChordLeadSheet
      * The bar range corresponding to this section.
      *
      * @param section
-     * @return 
+     * @return
      * @throws IllegalArgumentException If section does not exist in this ChordLeadSheet.
      */
     public IntRange getSectionRange(CLI_Section section);

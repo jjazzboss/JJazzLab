@@ -252,7 +252,13 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== testMoveSection0 move init section");
         CLI_Section cliSection0 = cls1.getSection(0);
-        cls1.moveSection(cliSection0, 3);
+        try
+        {
+            cls1.moveSection(cliSection0, 3);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         assertTrue(cliSection0.getPosition().equals(new Position(2, 2)));
     }
 
@@ -261,7 +267,13 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== testMoveSection1 move section on another");
         CLI_Section cliSection0 = cls1.getSection(5);
-        cls1.moveSection(cliSection0, 2);
+        try
+        {
+            cls1.moveSection(cliSection0, 2);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
     }
 
     @Test
@@ -269,7 +281,13 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== testMoveSection2 moved section does not cross other sections");
         CLI_Section cliSection0 = cls1.getSection(2);
-        cls1.moveSection(cliSection0, 1);
+        try
+        {
+            cls1.moveSection(cliSection0, 1);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         assertTrue(cls1.getItems(1, 1, CLI_ChordSymbol.class).get(1).getPosition().equals(new Position(1, 2)));
         assertTrue(cls1.getSection(1).getPosition().getBar() == 1);
     }
@@ -279,7 +297,13 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== testMoveSection3 moved section crosses other sections");
         CLI_Section cliSection0 = cls1.getSection(5);
-        cls1.moveSection(cliSection0, 1);
+        try
+        {
+            cls1.moveSection(cliSection0, 1);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         assertTrue(cls1.getItems(7, 7, ChordLeadSheetItem.class).get(0).getPosition().equals(new Position(7, 2)));
         assertTrue(cls1.getSection(1) == cliSection0);
     }

@@ -45,6 +45,7 @@ import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
 
 /**
@@ -277,8 +278,16 @@ public class CL_EditorTransferHandler extends TransferHandler
                     editor.setFocusOnItem(curSection, IR_Type.Section);
                 } else
                 {
-                    // No section there, we can move
-                    cls.moveSection(section, newBarIndex);
+                    try
+                    {
+                        // No section there, we can move
+                        cls.moveSection(section, newBarIndex);
+                    } catch (UnsupportedEditException ex)
+                    {                        
+                        String msg = "Impossible to move section.\n" + ex.getLocalizedMessage();
+                        um.handleUnsupportedEditException("Move section", msg);
+                        return false;
+                    }
                     editor.selectItem(section, true);
                     editor.setFocusOnItem(section, IR_Type.Section);
                 }

@@ -217,10 +217,16 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             throw new IllegalArgumentException("spts=" + spts);
         }
+
+
+        LOGGER.fine("addSongParts() -- spts=" + spts);
+
+
         if (spts.isEmpty())
         {
             return;
         }
+
 
         // Possible exception here!
         authorizeAddSongParts(spts);
@@ -267,6 +273,8 @@ public class SongStructureImpl implements SongStructure, Serializable
             throw new IllegalArgumentException("this=" + this + " spts=" + spts);
         }
 
+        LOGGER.fine("removeSongParts() -- spts=" + spts);
+
 
         if (spts.isEmpty())
         {
@@ -290,6 +298,10 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             throw new IllegalArgumentException("this=" + this + " mapSptsSize=" + mapSptSize);
         }
+
+        LOGGER.fine("resizeSongParts() -- mapSptSize=" + mapSptSize);
+
+
         if (mapSptSize.isEmpty())
         {
             return;
@@ -320,6 +332,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void undoBody()
             {
+                LOGGER.finer("resizeSongParts.undoBody() mapSptSize=" + mapSptSize);
                 for (SongPart spt : oldMap.getKeys())
                 {
                     ((SongPartImpl) spt).setNbBars(oldMap.getValue(spt));
@@ -331,6 +344,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void redoBody()
             {
+                LOGGER.finer("resizeSongParts.redoBody() mapSptSize=" + mapSptSize);
                 for (SongPart spt : saveMap.getKeys())
                 {
                     ((SongPartImpl) spt).setNbBars(saveMap.getValue(spt));
@@ -392,6 +406,14 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             throw new IllegalArgumentException("this=" + this + " oldSpts=" + oldSpts + " newSpts=" + newSpts);
         }
+
+
+        LOGGER.log(Level.FINE, "replaceSongParts() -- oldSpts=={0} newSpts={1}", new Object[]
+        {
+            oldSpts.toString(), newSpts.toString()
+        });
+
+
         // Check arguments consistency
         for (int i = 0; i < oldSpts.size(); i++)
         {
@@ -404,10 +426,6 @@ public class SongStructureImpl implements SongStructure, Serializable
                 throw new IllegalArgumentException("this=" + this + " oldSpts=" + oldSpts + " newSpts=" + newSpts);
             }
         }
-        LOGGER.log(Level.FINE, "replaceSongParts() -- oldSpts=={0} newSpts={1}", new Object[]
-        {
-            oldSpts.toString(), newSpts.toString()
-        });
         if (oldSpts.equals(newSpts))
         {
             return;
@@ -453,7 +471,8 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.log(Level.FINE, "ReplaceSongParts.undoBody() -- songParts=" + songParts);
+                LOGGER.log(Level.FINER, "ReplaceSongParts.undoBody() songParts=" + songParts);
+
                 // Restore the state of the songStructure
                 songParts = new ArrayList<>(oldSongParts);      // Must use a copy to make sure oldSongParts remains unaffected
                 mapTsLastRhythm = oldMapTsRhythm.clone();           // Must use a copy to make sure map remains unaffected            
@@ -464,7 +483,6 @@ public class SongStructureImpl implements SongStructure, Serializable
                     SongStructure sgs = newSptsOldContainer.get(i);
                     ((SongPartImpl) newSpt).setContainer(sgs);
                 }
-                LOGGER.log(Level.FINE, "ReplaceSongParts.undoBody() songParts=" + songParts);
                 // Don't use vetoablechange  : it already worked, normally there is no reason it would change            
                 fireAuthorizedChangeEvent(new SptReplacedEvent(SongStructureImpl.this, newSpts, oldSpts));
             }
@@ -472,7 +490,8 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.log(Level.FINE, "ReplaceSongParts.redoBody() -- songParts=" + songParts);
+                LOGGER.log(Level.FINER, "ReplaceSongParts.redoBody() songParts=" + songParts);
+
                 // Restore the state of the songStructure
                 songParts = new ArrayList<>(newSongParts);      // Must use a copy to make sure newSongParts remains unaffected
                 mapTsLastRhythm = newMapTsRhythm.clone();           // Must use a copy to make sure map remains unaffected                        
@@ -481,7 +500,6 @@ public class SongStructureImpl implements SongStructure, Serializable
                 {
                     ((SongPartImpl) newSpt).setContainer(SongStructureImpl.this);
                 }
-                LOGGER.log(Level.FINE, "ReplaceSongParts.redoBody() songParts=" + songParts);
                 // Don't use vetoablechange : it already worked, normally there is no reason it would change
                 fireAuthorizedChangeEvent(new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts));
             }
@@ -509,6 +527,9 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             throw new IllegalArgumentException("this=" + this + " spts=" + spts + " name=" + name);
         }
+
+        LOGGER.fine("setSongPartsName() spts=" + spts + " name=" + name);
+
         if (spts.isEmpty() || (spts.size() == 1 && spts.get(0).getName().equals(name)))
         {
             return;
@@ -526,6 +547,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void undoBody()
             {
+                LOGGER.finer("setSongPartsName.undoBody() spts=" + spts + " name=" + name);
                 for (SongPart wspt : save.getKeys())
                 {
                     ((SongPartImpl) wspt).SetName(save.getValue(wspt));
@@ -536,6 +558,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void redoBody()
             {
+                LOGGER.finer("setSongPartsName.redoBody() spts=" + spts + " name=" + name);
                 for (SongPart wspt : save.getKeys())
                 {
                     ((SongPartImpl) wspt).SetName(name);
@@ -558,6 +581,9 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             throw new IllegalArgumentException("this=" + this + " spt=" + spt + " rp=" + rp + " newValue=" + newValue);
         }
+
+        LOGGER.fine("setRhythmParameterValue() -- spt=" + spt + " rp=" + rp + " newValue=" + newValue);
+
         if (spt.getRPValue(rp) == newValue)
         {
             return;
@@ -572,6 +598,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void undoBody()
             {
+                LOGGER.finer("setRhythmParameterValue.undoBody() spt=" + spt + " rp=" + rp + " newValue=" + newValue);
                 wspt.setRPValue(rp, oldValue);
                 fireAuthorizedChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, newValue, oldValue));
             }
@@ -579,6 +606,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void redoBody()
             {
+                LOGGER.finer("setRhythmParameterValue.redoBody() spt=" + spt + " rp=" + rp + " newValue=" + newValue);
                 wspt.setRPValue(rp, newValue);
                 fireAuthorizedChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
             }
@@ -780,7 +808,8 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             throw new IllegalArgumentException("this=" + this + " spt=" + spt);
         }
-        LOGGER.log(Level.FINE, "addSongPart() -- spt={0}", spt);
+
+        LOGGER.log(Level.FINE, "addSongPartInternal() -- spt={0}", spt);
 
 
         // Save the old state
@@ -833,38 +862,28 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.log(Level.FINE, "edit={0}.undoBody() -- entering songParts={1}", new Object[]
-                {
-                    this, songParts
-                });
+                LOGGER.finer("addSongPartInternal.undoBody() spt=" + spt);
+
                 ((SongPartImpl) spt).setContainer(oldContainer);
                 songParts = new ArrayList<>(oldSpts);         // Must use a copy to make sure oldSpts remains unaffected
                 mapTsLastRhythm = oldMapTsRhythm.clone();           // Must use a copy to make sure map remains unaffected
                 updateStartBarIndexes();
-                LOGGER.log(Level.FINE, "edit={0}                exiting songParts={1}", new Object[]
-                {
-                    this, songParts
-                });
-                // Don't use vetoable change  : it already work, normally there is no reason it would change
+                
+                // Don't use vetoable change  : it already worked, normally there is no reason it would change
                 fireAuthorizedChangeEvent(new SptRemovedEvent(SongStructureImpl.this, Arrays.asList(spt)));
             }
 
             @Override
             public void redoBody()
             {
-                LOGGER.log(Level.FINE, "edit={0}.redoBody() -- entering songParts={1}", new Object[]
-                {
-                    this, songParts
-                });
+                LOGGER.finer("addSongPartInternal.redoBody() spt=" + spt);
+                
                 ((SongPartImpl) spt).setContainer(SongStructureImpl.this);
                 songParts = new ArrayList<>(newSpts);          // Must use a copy to make sure newSpts remains unaffected
                 mapTsLastRhythm = newMapTsRhythm.clone();            // Must use a copy to make sure map remains unaffected
                 updateStartBarIndexes();
-                LOGGER.log(Level.FINE, "edit={0}                exiting songParts={1}", new Object[]
-                {
-                    this, songParts
-                });
-                // Don't use vetoable change : it already work, normally there is no reason it would change
+                
+                // Don't use vetoable change : it already worked, normally there is no reason it would change
                 fireAuthorizedChangeEvent(new SptAddedEvent(SongStructureImpl.this, Arrays.asList(spt)));
             }
         };
@@ -890,7 +909,8 @@ public class SongStructureImpl implements SongStructure, Serializable
             throw new IllegalArgumentException("this=" + this + " spts=" + spts);
         }
 
-
+        LOGGER.finer("removeSongPartInternal() -- spts=" + spts);
+        
         // Save state
         final ArrayList<SongPart> oldSpts = new ArrayList<>(songParts);
 
@@ -917,6 +937,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void undoBody()
             {
+                LOGGER.finer("removeSongPartInternal.undoBody() spts=" + spts);
                 songParts = new ArrayList<>(oldSpts);            // Must use a copy to make sure oldSpts remains unaffected
                 updateStartBarIndexes();
                 fireAuthorizedChangeEvent(new SptAddedEvent(SongStructureImpl.this, saveSpts));
@@ -925,6 +946,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void redoBody()
             {
+                LOGGER.finer("removeSongPartInternal.redoBody() spts=" + spts);
                 songParts = new ArrayList<>(newSpts);            // Must use a copy to make sure newSpts remains unaffected
                 updateStartBarIndexes();
                 fireAuthorizedChangeEvent(new SptRemovedEvent(SongStructureImpl.this, saveSpts));

@@ -1031,7 +1031,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                     ItemMovedEvent e = (ItemMovedEvent) event;
                     ChordLeadSheetItem<?> item = e.getItem();
                     int barIndex = item.getPosition().getBar();
-                    int oldBarIndex = e.getPrevPosition().getBar();
+                    int oldBarIndex = e.getOldPosition().getBar();
                     boolean selected = isSelected(item);
                     if (barIndex == oldBarIndex)
                     {
@@ -1055,11 +1055,11 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                     CLI_Section section = e.getSection();
                     setSectionStartOnNewLine(section, false);
                     int barIndex = section.getPosition().getBar();
-                    int prevBarIndex = e.getPrevBar();
+                    int prevBarIndex = e.getOldBar();
                     boolean selected = isSelected(section);
                     removeItem(prevBarIndex, section, true);
                     addItem(barIndex, section);       // This will updatePaddingBoxes if needed
-                    propagateSectionChange(clsModel.getSection(e.getPrevBar()));
+                    propagateSectionChange(clsModel.getSection(e.getOldBar()));
                     selectItem(section, selected);
                     if (section == fItem)
                     {

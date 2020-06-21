@@ -112,8 +112,7 @@ public class SongPartImpl implements SongPart, Serializable
         }
         this.parentSection = parentSection;
         // Associate a default value to each RhythmParameter                    
-        for (RhythmParameter<?> rp
-                : r.getRhythmParameters())
+        for (RhythmParameter<?> rp : r.getRhythmParameters())
         {
             mapRpValue.putValue(rp, rp.getDefaultValue());
         }

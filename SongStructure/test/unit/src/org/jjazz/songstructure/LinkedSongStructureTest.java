@@ -22,12 +22,10 @@
  */
 package org.jjazz.songstructure;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.LogManager;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.ChordLeadSheetImpl;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -54,7 +52,7 @@ public class LinkedSongStructureTest
     ChordLeadSheetImpl cls1;
     CLI_ChordSymbolImpl newChord;
     CLI_SectionImpl newSection1, newSection2, newSection3;
-    CLI_SectionImpl section2, section3;
+    CLI_SectionImpl section1, section2, section3;
     SongStructure sgs;
     SongStructure u_sgs;
     static RhythmDatabase rdb;
@@ -73,7 +71,7 @@ public class LinkedSongStructureTest
     public static void setUpClass() throws Exception
     {
         rdb = RhythmDatabase.getDefault();
-        System.out.println("rdb-=" + rdb);
+        System.out.println("rdb=" + rdb);
 
     }
 
@@ -85,7 +83,10 @@ public class LinkedSongStructureTest
     @Before
     public void setUp()
     {
+
+
         cls1 = new ChordLeadSheetImpl("Section1", TimeSignature.FOUR_FOUR, 8);
+        section1 = (CLI_SectionImpl) cls1.getSection(0);
         undoManager = new JJazzUndoManager();
         try
         {
@@ -118,7 +119,7 @@ public class LinkedSongStructureTest
             sgs.addSongParts(Arrays.asList(spt0));
 
             // To compare after undo all
-            u_sgs = sgsf.createSgs(cls1, true);
+            u_sgs = sgsf.createSgs(cls1, false);        // Must be false to be the unchanged reference
             u_spt0 = new SongPartImpl(r, 8, 3, section2);
             u_sgs.addSongParts(Arrays.asList(u_spt0));
         } catch (ParseException ex)
@@ -161,13 +162,13 @@ public class LinkedSongStructureTest
     @Test
     public void testAddAndRemove()
     {
-        System.out.println("\n============ Test AddChord");
+        System.out.println("\n============ Test testAddAndRemove add chord symbol");
         assertTrue(sgs.getSizeInBars() == 11);
         cls1.addItem(newChord);
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSizeInBars() == 11);
-        System.out.println("\n============ Test AddSection with impact on size");
         assertTrue(sgs.getSongParts().get(1).getNbBars() == 3);
+        System.out.println("\n== Test testAddAndRemove add section");
         try
         {
             cls1.addSection(newSection1);
@@ -176,12 +177,12 @@ public class LinkedSongStructureTest
             Exceptions.printStackTrace(ex);
         }
         System.out.println(" sgs after=" + sgs);
-        assertTrue(cls1.getSection("NewSECTION1") != null);
+        assertTrue(cls1.getSection(newSection1.getData().getName()) != null);
         assertTrue(sgs.getSongParts().get(2).getParentSection() == newSection1);
         assertTrue(sgs.getSongParts().get(2).getNbBars() == 1);
         assertTrue(sgs.getSongParts().get(1).getNbBars() == 2);
         assertTrue(sgs.getSongParts().get(4).getNbBars() == 2);
-        System.out.println("\n============ Test RemoveSection");
+        System.out.println("\n== Test testAddAndRemove removeSection");
         assertTrue(sgs.getSizeInBars() == 10);
         try
         {
@@ -201,7 +202,7 @@ public class LinkedSongStructureTest
     @Test
     public void testAdd2()
     {
-        System.out.println("\n============ Test AddSection2");
+        System.out.println("\n============ testAdd2");
         assertTrue(sgs.getSizeInBars() == 11);
         try
         {
@@ -227,7 +228,7 @@ public class LinkedSongStructureTest
     @Test
     public void testAdd3()
     {
-        System.out.println("\n============ Test AddSection after absent section");
+        System.out.println("\n============ testAdd3 after absent section");
         assertTrue(sgs.getSizeInBars() == 11);
         try
         {
@@ -250,7 +251,7 @@ public class LinkedSongStructureTest
         assertTrue(sgs.getSongParts().get(3).getStartBarIndex() == 8);
     }
 
-    //@Test
+    @Test
     public void testAddAdaptedRhythm()
     {
         System.out.println("\n============ testAddAdaptedRhythm add section with new time signature => adapted rhythm");
@@ -262,6 +263,7 @@ public class LinkedSongStructureTest
         {
             Exceptions.printStackTrace(ex);
         }
+        // System.out.println("rdb=" + RhythmDatabase.getDefault().toString());
         System.out.println(" sgs after(1)=" + sgs);
         assertTrue(sgs.getSizeInBars() == 11);
         assertTrue(sgs.getSongParts().get(3).getParentSection() == newSection3);
@@ -274,7 +276,7 @@ public class LinkedSongStructureTest
     @Test
     public void testChg()
     {
-        System.out.println("\n============ Test section change");
+        System.out.println("\n============ testChg");
         try
         {
             cls1.setSectionTimeSignature(section2, TimeSignature.FOUR_FOUR);
@@ -289,8 +291,14 @@ public class LinkedSongStructureTest
     @Test
     public void testMove()
     {
-        System.out.println("\n============ Test move small");
-        cls1.moveSection(section2, 1);
+        System.out.println("\n============ testMove");
+        try
+        {
+            cls1.moveSection(section2, 1);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSongParts().get(1).getStartBarIndex() == 1);
         assertTrue(sgs.getSongParts().get(1).getNbBars() == 4);
@@ -300,8 +308,14 @@ public class LinkedSongStructureTest
     @Test
     public void testMoveBig()
     {
-        System.out.println("\n============ Test move big");
-        cls1.moveSection(section2, 6);
+        System.out.println("\n============ testMoveBig");
+        try
+        {
+            cls1.moveSection(section2, 6);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSongParts().size() == 3);
         assertTrue(sgs.getSongParts().get(2).getStartBarIndex() == 6);
@@ -311,7 +325,7 @@ public class LinkedSongStructureTest
     @Test
     public void testResize()
     {
-        System.out.println("\n============ Testresize");
+        System.out.println("\n============ TestResize");
         try
         {
             cls1.setSize(10);
@@ -324,6 +338,25 @@ public class LinkedSongStructureTest
         assertTrue(sgs.getSongParts().get(2).getNbBars() == 5);
         assertTrue(sgs.getSongParts().get(3).getStartBarIndex() == 10);
     }
+
+    @Test
+    public void testRemoveSection()
+    {
+        System.out.println("\n============ Test testRemoveOneSection");
+        try
+        {
+            cls1.removeSection(section2);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
+        System.out.println(" sgs after=" + sgs);
+        assertTrue(sgs.getSongParts().size() == 2);
+        assertTrue(sgs.getSongParts().get(0).getNbBars() == 5);
+        assertTrue(sgs.getSongParts().get(1).getParentSection() == section3);
+        assertTrue(sgs.getSizeInBars() == 8);
+    }
+
 
     @Test
     public void testRemoveBars()
@@ -344,7 +377,7 @@ public class LinkedSongStructureTest
         assertTrue(sgs.getSongParts().get(2).getNbBars() == 4);
     }
 
-    //@Test
+    @Test
     public void testRemoveAdaptedRhythm()
     {
         System.out.println("\n============ testRemoveAdaptedRhythm");
@@ -369,7 +402,7 @@ public class LinkedSongStructureTest
         assertTrue(sgs.getSongParts().get(2).getNbBars() == 1);
     }
 
-    //@Test
+    @Test
     public void testRemoveAdaptedSourceRhythm()
     {
         System.out.println("\n============ testRemoveAdaptedSourceRhythm");
@@ -397,7 +430,7 @@ public class LinkedSongStructureTest
         assertTrue(sgs.getSongParts().size() == 5);
     }
 
-    //@Test
+    @Test
     public void testChangeAdaptedSourceSection()
     {
         System.out.println("\n============ testChangeAdaptedSourceSection");
@@ -408,20 +441,25 @@ public class LinkedSongStructureTest
         {
             Exceptions.printStackTrace(ex);
         }
+        System.out.println(" cls1 after add newSection3=" + cls1.toDumpString());
+        System.out.println(" sgs after add newSection3=" + sgs);
         assertTrue(sgs.getSongParts().size() == 5);
         Rhythm r = sgs.getSongParts().get(2).getRhythm();
         boolean exceptionOccured = false;
         try
         {
             cls1.setSectionTimeSignature(section3, TimeSignature.TWO_FOUR);
+            System.out.println(" cls1 after section3=2/4=" + cls1.toDumpString());
+            System.out.println(" sgs after section3=2/4=" + sgs);
+            cls1.setSectionTimeSignature(section1, TimeSignature.TWO_FOUR);
         } catch (UnsupportedEditException ex)
         {
             exceptionOccured = true;
         }
-        System.out.println(" cls1 after=" + cls1.toDumpString());
-        System.out.println(" sgs after=" + sgs);
+        System.out.println(" cls1 after section1=2/4=" + cls1.toDumpString());
+        System.out.println(" sgs after section1=2/4=" + sgs);
         assertTrue(exceptionOccured);
-        assertTrue(sgs.getSongParts().get(2).getRhythm() == r);
+        assertTrue(sgs.getSongParts().get(0).getRhythm() == r);
         assertTrue(sgs.getSongParts().size() == 5);
     }
 

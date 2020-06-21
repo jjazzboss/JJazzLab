@@ -360,16 +360,15 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         AdaptedRhythm ar = mapAdaptedRhythms.get(getAdaptedRhythmKey(r, ts));
         if (ar == null)
         {
-            RhythmProvider rp = getRhythmProvider(r);
-            if (rp == null)
+            for (RhythmProvider rp : getRhythmProviders())
             {
-                throw new IllegalArgumentException("No rhythm provider found for r=" + r + " ts=" + ts);
-            }
-            ar = rp.getAdaptedRhythm(r, ts);
-            if (ar != null)
-            {
-                addRhythm(rp, ar);
-                mapAdaptedRhythms.put(getAdaptedRhythmKey(r, ts), ar);
+                ar = rp.getAdaptedRhythm(r, ts);
+                if (ar != null)
+                {
+                    addRhythm(rp, ar);
+                    mapAdaptedRhythms.put(getAdaptedRhythmKey(r, ts), ar);
+                    break;
+                }
             }
         }
         return ar;
@@ -598,7 +597,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     {
 
         @Override
-        public void upgrade(String oldVersion) 
+        public void upgrade(String oldVersion)
         {
             UpgradeManager um = UpgradeManager.getInstance();
             um.duplicateOldPreferences(prefs);

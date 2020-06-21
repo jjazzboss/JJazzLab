@@ -126,7 +126,14 @@ public class SongUtils
                 CLI_Section section = (CLI_Section) cli;
                 if (bar > 0)
                 {
-                    cls.moveSection(section, newBar);
+                    try
+                    {
+                        cls.moveSection(section, newBar);
+                    } catch (UnsupportedEditException ex)
+                    {
+                        // Should never happen
+                        Exceptions.printStackTrace(ex);
+                    }
                 }
             } else
             {
