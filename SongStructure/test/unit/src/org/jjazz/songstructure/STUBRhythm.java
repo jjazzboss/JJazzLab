@@ -20,49 +20,89 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.rhythm.stubs;
+package org.jjazz.songstructure;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.rhythm.api.AdaptedRhythm;
+import org.jjazz.midi.DrumKit;
+import org.jjazz.midi.DrumKit.Type;
+import org.jjazz.midi.synths.GM1Bank;
+import org.jjazz.midi.synths.StdSynth;
+import org.jjazz.midi.keymap.KeyMapGM;
+import org.jjazz.midi.synths.Family;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.parameters.RP_STD_Variation;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.openide.util.Lookup;
 
 /**
- * An adapted rhythm stub whatever the time signature.
- * <p>
- * FOR UNIT TESTS ONLY (when real rhythmdatabase rhythmProviders are not available).
+ * UNIT TEST STUB
  * <p>
  */
-public class AdaptedRhythmStub implements AdaptedRhythm
+public class STUBRhythm implements Rhythm
 {
 
-    private RhythmStub sourceRhythm;
-    private TimeSignature timeSignature;
+    protected String uniqueId;
+    protected TimeSignature timeSignature;
+    protected Lookup lookup;
 
-    public AdaptedRhythmStub(RhythmStub rs, TimeSignature ts)
+    /**
+     * The default RhythmParameters associated to this rhythm.
+     */
+    protected ArrayList<RhythmParameter<?>> rhythmParameters = new ArrayList<>();
+    /**
+     * The supported RhythmVoices.
+     */
+    protected ArrayList<RhythmVoice> rhythmVoices = new ArrayList<>();
+    private static final Logger LOGGER = Logger.getLogger(STUBRhythm.class.getSimpleName());
+
+    /**
+     * Create a dummy rhythm for specified time signature.
+     *
+     *
+     * @param uniqueId
+     * @param ts
+     */
+    public STUBRhythm(String uniqueId, TimeSignature ts)
     {
-        if (rs == null)
+        if (uniqueId == null || uniqueId.trim().isEmpty() || ts == null)
         {
-            throw new IllegalArgumentException("rs=" + rs);
+            throw new IllegalArgumentException("uniqueId=" + uniqueId + " ts=" + ts);
         }
-        sourceRhythm = rs;
-        timeSignature = ts;
+
+        this.uniqueId = uniqueId;
+        this.timeSignature = ts;
+
+        // Rhythm voices
+        GM1Bank gmb = StdSynth.getInstance().getGM1Bank();
+        rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.PERCUSSION, "Perc.", StdSynth.getInstance().getVoidInstrument(), 8));
+        rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.DRUMS, "Drums", StdSynth.getInstance().getVoidInstrument(), 9));
+        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.BASS, "Bass", gmb.getDefaultInstrument(Family.Bass), 10));
+        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.CHORD1, "Chord1", gmb.getDefaultInstrument(Family.Guitar), 11));
+        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.CHORD2, "Chord2", gmb.getDefaultInstrument(Family.Piano), 12));
+        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.PAD, "Pad", gmb.getDefaultInstrument(Family.Strings), 13));
+
+        // Our Rhythm Parameters
+        rhythmParameters.add(new RP_STD_Variation());
+
+        // The music generator
+        // lookup = Lookups.fixed(new DummyGenerator(this));
     }
 
     @Override
     public boolean equals(Object o)
     {
         boolean res = false;
-        if (o instanceof AdaptedRhythmStub)
+        if (o instanceof STUBRhythm)
         {
-            AdaptedRhythmStub rs = (AdaptedRhythmStub) o;
-            res = rs.getUniqueId().equals(getUniqueId());
+            STUBRhythm rs = (STUBRhythm) o;
+            res = rs.uniqueId.equals(uniqueId);
         }
         return res;
     }
@@ -71,27 +111,27 @@ public class AdaptedRhythmStub implements AdaptedRhythm
     public int hashCode()
     {
         int hash = 5;
-        hash = 47 * hash + Objects.hashCode(getUniqueId());
+        hash = 47 * hash + Objects.hashCode(this.uniqueId);
         return hash;
     }
 
     @Override
     public List<RhythmVoice> getRhythmVoices()
     {
-        return sourceRhythm.getRhythmVoices();
+        return new ArrayList<>(rhythmVoices);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public List<RhythmParameter<?>> getRhythmParameters()
     {
-        return sourceRhythm.getRhythmParameters();
+        return new ArrayList<>(rhythmParameters);
     }
 
     @Override
     public Lookup getLookup()
     {
-        return sourceRhythm.getLookup();
+        return lookup;
     }
 
     @Override
@@ -145,13 +185,13 @@ public class AdaptedRhythmStub implements AdaptedRhythm
     @Override
     public String getUniqueId()
     {
-        return "StubRhythmProviderID" + RHYTHM_ID_DELIMITER + sourceRhythm.getUniqueId() + RHYTHM_ID_DELIMITER + timeSignature.toString();
+        return uniqueId;
     }
 
     @Override
     public String getDescription()
     {
-        return "Adapted Dummy description";
+        return "Dummy description";
     }
 
     @Override
@@ -163,7 +203,7 @@ public class AdaptedRhythmStub implements AdaptedRhythm
     @Override
     public String getName()
     {
-        return "AdaptedDummyName-" + getTimeSignature().toString();
+        return getUniqueId();
     }
 
     @Override
@@ -186,12 +226,5 @@ public class AdaptedRhythmStub implements AdaptedRhythm
     {
         return getName();
     }
-
-    @Override
-    public Rhythm getSourceRhythm()
-    {
-        return sourceRhythm;
-    }
-
 
 }

@@ -92,7 +92,7 @@ public interface RhythmProvider
      * @param r
      * @param ts
      * @return Can be null if no adapted rhythm is available.
-     * @throws IllegalArgumentException If ts is the time signature of r, or if r is not a rhythm of this RhythmProvider
+     * @throws IllegalArgumentException If ts is already the time signature of r.
      */
     public AdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts);
 

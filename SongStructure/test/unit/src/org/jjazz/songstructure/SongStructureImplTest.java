@@ -176,9 +176,6 @@ public class SongStructureImplTest
         assertTrue(spt2.getStartBarIndex() == 11);
     }
 
-    /**
-     * Test of replaceSongParts method, of class SongStructure.
-     */
     @Test
     public void testReplaceSongPart()
     {
@@ -192,7 +189,7 @@ public class SongStructureImplTest
         {
             Exceptions.printStackTrace(ex);
         }
-        System.out.println("sgs=" + sgs);
+        System.out.println("after replace sp1=>spt3 sgs=" + sgs);
         assertTrue(sgs.getSizeInBars() == 20);
         assertTrue(sgs.getSongParts().get(1) == spt3);
         Rhythm r = rdb.getNextRhythm(spt0.getRhythm());
@@ -204,7 +201,7 @@ public class SongStructureImplTest
         {
             Exceptions.printStackTrace(ex);
         }
-        System.out.println("sgs=" + sgs);
+        System.out.println("after replace spt0=>newSpt sgs=" + sgs);
         System.out.println("spt0=" + spt0.toDumpString() + "\nnewSpt=" + newSpt.toDumpString());
         assertTrue(sgs.getSongParts().get(0) == newSpt && !sgs.getSongParts().contains(spt0));
         assertTrue(sgs.getSizeInBars() == 20);

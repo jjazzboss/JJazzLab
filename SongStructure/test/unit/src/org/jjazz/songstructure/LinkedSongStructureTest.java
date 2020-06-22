@@ -409,22 +409,26 @@ public class LinkedSongStructureTest
         try
         {
             cls1.addSection(newSection3);
+            cls1.setSectionTimeSignature(section1, TimeSignature.TWO_FOUR);
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
         }
+        System.out.println(" cls1 after(1) =" + cls1.toDumpString());
+        System.out.println(" sgs after(1) =" + sgs);
+        
         assertTrue(sgs.getSongParts().size() == 5);
         Rhythm r = sgs.getSongParts().get(2).getRhythm();
         boolean exceptionOccured = false;
         try
         {
-            cls1.deleteBars(5, 7);
+            cls1.deleteBars(0, 5);
         } catch (UnsupportedEditException ex)
         {
             exceptionOccured = true;
         }
-        System.out.println(" cls1 after=" + cls1.toDumpString());
-        System.out.println(" sgs after=" + sgs);
+        System.out.println(" cls1 after (2) =" + cls1.toDumpString());
+        System.out.println(" sgs after (2) =" + sgs);
         assertTrue(exceptionOccured);
         assertTrue(sgs.getSongParts().get(2).getRhythm() == r);
         assertTrue(sgs.getSongParts().size() == 5);

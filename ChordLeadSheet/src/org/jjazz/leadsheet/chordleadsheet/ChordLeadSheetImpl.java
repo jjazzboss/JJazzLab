@@ -96,12 +96,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         LOGGER.fine("setSize() -- newSize=" + newSize);
 
-        // Check that change is not vetoed
-        final int oldSize = getSize();
-        var event = new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize);
-        authorizeChangeEvent(event);        // Possible exception here !
-
-
+        // First remove items
+        final int oldSize = size;
         int delta = newSize - oldSize;
         List<ChordLeadSheetItem<?>> removedItems = new ArrayList<>();
         if (delta == 0)
@@ -132,13 +128,17 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             if (!removedItems.isEmpty())
             {
-                removeItemsBasic(removedItems);
+                removeSectionsAndItems(removedItems);
             }
         }
 
+        // Then update size
+        // Check that change is not vetoed
+        var event = new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize);
+        authorizeChangeEvent(event);        // Possible exception here !
+
         // Update state
         size = newSize;
-
 
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Set Size " + newSize)
@@ -179,7 +179,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             throw new IllegalArgumentException("item=" + item);
         }
 
-
         LOGGER.fine("addItem() -- item=" + item);
 
         final WritableItem<?> wItem = (WritableItem<?>) item;
@@ -189,12 +188,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             throw new IllegalArgumentException("item=" + item + " size=" + getSize());
         }
 
-
         // Set the container
         final ChordLeadSheet oldContainer = wItem.getContainer();
         final ChordLeadSheet newContainer = this;
         wItem.setContainer(newContainer);
-
 
         // Adjust position if required
         final Position oldPos = wItem.getPosition();
@@ -202,10 +199,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 getTimeSignature());
         wItem.setPosition(newAdjustedPos);
 
-
         // Add item
         final int index = items.insertOrdered(wItem);
-
 
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Add " + wItem)
@@ -233,11 +228,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         fireUndoableEditHappened(edit);
 
-
         // Fire ItemChange event
         fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, wItem));
     }
-
 
     @Override
     public void addSection(final CLI_Section cliSection) throws UnsupportedEditException
@@ -256,7 +249,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         var event = new ItemAddedEvent(ChordLeadSheetImpl.this, cliSection);
         authorizeChangeEvent(event);        // Possible exception here !
 
-
         // Prepare data
         final int barIndex = cliSection.getPosition().getBar();
         final WritableItem<Section> wSection = (WritableItem<Section>) cliSection;
@@ -269,16 +261,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             throw new IllegalArgumentException("cliSection=" + cliSection + " prevSection=" + prevSection);
         }
 
-
         // Change state
         items.insertOrdered(wSection);
-
 
         // Adjust position of trailing items if required
         // For undo to work properly, must be done before firing 
         // the "Add section" UndoableEdit.        
         adjustItemsToTimeSignature(prevSection.getData().getTimeSignature(), cliSection.getData().getTimeSignature(), getItems(cliSection, ChordLeadSheetItem.class));
-
 
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Add section " + wSection)
@@ -302,10 +291,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             }
         };
 
-
         // Must be fired BEFORE the vetoable change
         fireUndoableEditHappened(edit);
-
 
         fireAuthorizedChangeEvent(event);
     }
@@ -327,26 +314,21 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             throw new IllegalArgumentException("cliSection=" + cliSection);
         }
 
-
         // Check change is not vetoed
         var event = new ItemRemovedEvent(ChordLeadSheetImpl.this, cliSection);
         authorizeChangeEvent(event);            // Possible exception here! 
-
 
         // Prepare data
         var prevSection = getSection(barIndex - 1);
         var removedSectionItems = getItems(cliSection, ChordLeadSheetItem.class);
 
-
         // Change state: remove the item and adjust if required trailing items
         items.remove(index);
-
 
         // Adjust removed section items position if required. 
         // For undo to work properly, must be done before firing 
         // the "Remove section" UndoableEdit.
         adjustItemsToTimeSignature(cliSection.getData().getTimeSignature(), prevSection.getData().getTimeSignature(), removedSectionItems);
-
 
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Remove section " + cliSection)
@@ -368,9 +350,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             }
         };
 
-
         fireUndoableEditHappened(edit);
-
 
         // Fire ItemChange event
         fireAuthorizedChangeEvent(event);
@@ -392,7 +372,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return;
         }
 
-
         CLI_Section newPosPrevSection = getSection(newBarIndex);
         if (oldBarIndex == 0 || newPosPrevSection.getPosition().getBar() == newBarIndex)
         {
@@ -400,11 +379,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             throw new IllegalArgumentException("section=" + cliSection + " newBarIndex=" + newBarIndex);
         }
 
-
         // Check change is not vetoed
         var event = new SectionMovedEvent(ChordLeadSheetImpl.this, cliSection, oldBarIndex, newBarIndex);
         authorizeChangeEvent(event);            // Possible exception here! 
-
 
         // Save the current position for undo
         final int indexOld = items.indexOf(cliSection);
@@ -413,24 +390,20 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             throw new IllegalArgumentException("section=" + cliSection);
         }
 
-
         // OK move is safe, change is safe
         final WritableItem<Section> wSection = (WritableItem<Section>) cliSection;
         wSection.setPosition(new Position(newBarIndex, 0));
         items.remove(wSection);
         final int indexNew = items.insertOrdered(wSection);
 
-
         // Section items adjusting must be done BEFORE firing the moved section undoable event
         // Adjust section at new position
         adjustItemsToTimeSignature(newPosPrevSection.getData().getTimeSignature(), cliSection.getData().getTimeSignature(), getItems(cliSection, ChordLeadSheetItem.class));
-
 
         // Section before old position might need to be checked too
         CLI_Section oldPosPrevSection = getSection(oldBarIndex - 1);
         var oldItems = getItems(oldBarIndex, getSectionRange(oldPosPrevSection).to, ChordLeadSheetItem.class);
         adjustItemsToTimeSignature(cliSection.getData().getTimeSignature(), oldPosPrevSection.getData().getTimeSignature(), oldItems);
-
 
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Move " + wSection)
@@ -458,7 +431,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         fireUndoableEditHappened(edit);
 
-
         // Fire ItemChange event
         fireAuthorizedChangeEvent(event);
     }
@@ -479,10 +451,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             throw new IllegalArgumentException("item=" + item);
         }
 
-
         // Change state
         items.remove(index);
-
 
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Remove " + item)
@@ -506,7 +476,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         fireUndoableEditHappened(edit);
 
-
         // Fire ItemChange event
         fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, item));
     }
@@ -519,9 +488,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             throw new IllegalArgumentException("item=" + item + " newPos=" + newPos);
         }
 
-
         LOGGER.fine("moveItem() -- item=" + item + " newPos=" + newPos);
-
 
         final WritableItem<T> wItem = (WritableItem<T>) item;
         final Position oldPos = wItem.getPosition();
@@ -531,7 +498,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return;
         }
 
-
         // Change the position 
         if (!items.remove(wItem))
         {
@@ -539,7 +505,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         }
         wItem.setPosition(newAdjustedPos);
         items.insertOrdered(wItem);
-
 
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Move " + wItem)
@@ -586,11 +551,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return;
         }
 
-
         // Change state
         final WritableItem<T> wItem = (WritableItem<T>) item;
         wItem.setData(newData);
-
 
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Change " + item)
@@ -639,7 +602,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             Exceptions.printStackTrace(ex);
         }
 
-
         // And move items to make room for the new bars
         int indexFrom = items.getItemIndex(barIndex);
         if (indexFrom == -1)
@@ -677,9 +639,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         LOGGER.fine("deleteBars() -- barIndexFrom=" + barIndexFrom + " barIndexTo=" + barIndexTo);
 
-        int range = barIndexTo - barIndexFrom + 1;
-
-
         // Save data after the bar deletions
         CLI_Section afterDeletionSection = (barIndexTo + 1 > size - 1) ? null : getSection(barIndexTo + 1);
         List<? extends ChordLeadSheetItem> afterDeletionItems = null;
@@ -688,11 +647,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             afterDeletionItems = getItems(barIndexTo + 1, getSectionRange(afterDeletionSection).to, ChordLeadSheetItem.class);
         }
 
-
         // Get items to be moved or removed
         List<ChordLeadSheetItem<?>> removedItems = new ArrayList<>();
         List<ChordLeadSheetItem<?>> movedItems = new ArrayList<>();
-
 
         // Avoid index=0  initial section
         for (int index = items.size() - 1; index > 0; index--)
@@ -700,7 +657,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             ChordLeadSheetItem<?> item = items.get(index);
             int barIndex = item.getPosition().getBar();
-
 
             if (barIndex > barIndexTo)
             {
@@ -719,7 +675,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             }
         }
 
-
         // Handle special case if barIndexFrom == 0
         if (barIndexFrom == 0 && getSection(barIndexTo + 1) != getSection(barIndexTo))
         {
@@ -727,24 +682,21 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             removedItems.add(items.get(0));
         }
 
-
         // Perform the changes
         if (!removedItems.isEmpty())
         {
             // Possible exception below! Note that some changes might have been done before exception is thrown
-            removeItemsBasic(removedItems);
+            removeSectionsAndItems(removedItems);
         }
 
-
+        int range = barIndexTo - barIndexFrom + 1;
         if (!movedItems.isEmpty())
         {
             shiftItemsPosition(movedItems, -range);
         }
 
-
         // Adjust the size
         setSize(getSize() - range);         // Possible exception here! But should not happen since we removed items/sections before.
-
 
         // Adjust positions of items after the deletion if any
         if (afterDeletionSection != null)
@@ -937,7 +889,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             throw new IllegalArgumentException("cliSection=" + cliSection);
         }
 
-
         index++;
         while (index < items.size())
         {
@@ -1019,27 +970,40 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     // --------------------------------------------------------------------------------------
     // Private methods
     // --------------------------------------------------------------------------------------
-
     /**
-     * Perform a basic undoable remove of the specified items, chord symbols or sections.
+     * Remove sections and items.
      * <p>
-     * No authorization check, no item adjusting is done when section is removed.
+     * Sections are removed one by one using removeSection() (possible exception). Then other items (chord symbols) are removed in a single
+     * undoable operation.
      *
      * @param removedItems
      * @throws UnsupportedEditException
      */
-    private void removeItemsBasic(List<ChordLeadSheetItem<?>> removedItems) throws UnsupportedEditException
+    private void removeSectionsAndItems(List<ChordLeadSheetItem<?>> removedItems) throws UnsupportedEditException
     {
         if (removedItems.isEmpty())
         {
             return;
         }
 
-        LOGGER.finer("removeItemsBasic() -- removedItems=" + removedItems);
+        LOGGER.finer("removeSectionsAndItems() -- removedItems=" + removedItems);
 
+        // First remove sections
         for (ChordLeadSheetItem<?> item : removedItems)
         {
-            items.remove(item);
+            if (item instanceof CLI_Section)
+            {
+                removeSection((CLI_Section) item);      // Possible exception here
+            }
+        }
+
+        // Remove other items
+        for (ChordLeadSheetItem<?> item : removedItems)
+        {
+            if (!(item instanceof CLI_Section))
+            {
+                items.remove(item);
+            }
         }
 
         // Create the undoable event        
@@ -1048,7 +1012,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("removeItemsBasic.undoBody() removedItems=" + removedItems);
+                LOGGER.finer("removeSectionsAndItems.undoBody() removedItems=" + removedItems);
                 for (ChordLeadSheetItem<?> item : removedItems)
                 {
                     items.insertOrdered(item);
@@ -1059,7 +1023,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("removeItemsBasic.redoBody() removedItems=" + removedItems);
+                LOGGER.finer("removeSectionsAndItems.redoBody() removedItems=" + removedItems);
                 for (ChordLeadSheetItem<?> item : removedItems)
                 {
                     items.remove(item);
@@ -1072,7 +1036,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         // Fire the change
         fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, removedItems));
     }
-
 
     /**
      * Adjust the position of the specified items from oldTs to newTs.
@@ -1106,7 +1069,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      * Shift the position of a list of items of nbBars.
      *
      * @param shiftedItems
-     * @param nbBars Shift
+     * @param nbBars       Shift
      */
     private void shiftItemsPosition(final List<ChordLeadSheetItem<?>> shiftedItems, final int nbBars)
     {
@@ -1116,7 +1079,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         }
 
         LOGGER.finer("shiftItemsPosition() -- shiftedItems=" + shiftedItems + " nbBars=" + nbBars);
-
 
         if (shiftedItems.isEmpty())
         {
@@ -1194,11 +1156,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         var event = new ItemChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData);
         authorizeChangeEvent(event);                // Possible exception here
 
-
         // Change state
         final WritableItem<Section> wSection = (WritableItem<Section>) cliSection;
         wSection.setData(newData);
-
 
         // Possibly adjust items position if we have a new time signature with less natural beats 
         // (and generate undoable SimpleEdits accordingly)        
@@ -1206,7 +1166,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         {
             adjustItemsToTimeSignature(oldData.getTimeSignature(), newData.getTimeSignature(), getItems(cliSection, ChordLeadSheetItem.class));
         }
-
 
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Change Section " + cliSection)
@@ -1228,13 +1187,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             }
         };
 
-
         fireUndoableEditHappened(edit);
 
         // Notify listeners
         fireAuthorizedChangeEvent(event);
     }
-
 
     /**
      * Make sure change is authorized by all listeners.

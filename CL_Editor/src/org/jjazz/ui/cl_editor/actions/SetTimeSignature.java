@@ -137,7 +137,6 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
     {
         CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
 
-
         if (selection.isItemSelected() && (selection.getSelectedItems().get(0) instanceof CLI_Section))
         {
 

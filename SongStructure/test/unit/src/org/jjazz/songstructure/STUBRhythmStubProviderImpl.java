@@ -20,7 +20,7 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.rhythm.stubs;
+package org.jjazz.songstructure;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,48 +30,27 @@ import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
-import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.openide.util.lookup.ServiceProvider;
-import org.openide.util.lookup.ServiceProviders;
 
-@ServiceProviders(value =
-{
-    @ServiceProvider(service = StubRhythmProvider.class),
-    @ServiceProvider(service = RhythmProvider.class)            // So that it appears in the Rhythm selection dialog box
-}
-)
-public class RhythmStubProviderImpl implements StubRhythmProvider
+/**
+ *
+ * UNIT TEST STUB.
+ */
+@ServiceProvider(service = RhythmProvider.class)
+public class STUBRhythmStubProviderImpl implements RhythmProvider
 {
 
     private Info info;
     private ArrayList<Rhythm> rhythms = new ArrayList<>();
 
-    public RhythmStubProviderImpl()
+    public STUBRhythmStubProviderImpl()
     {
-        info = new Info("StubRhythmProviderID", "Dummy rhythms", "Provides a dummy rhythm for each time signature", "JL", "1.0");
+        info = new Info("UT-RhythmProviderID", "ut rhythms", "Provides a dummy rhythm for each time signature", "JL", "1.0");
         for (TimeSignature ts : TimeSignature.values())
         {
-            rhythms.add(new RhythmStub("RhythmStubID-" + ts.toString(), ts));
+            rhythms.add(new STUBRhythm("UT-RhythmA-" + ts.toString(), ts));
+            rhythms.add(new STUBRhythm("UT-RhythmB-" + ts.toString(), ts));
         }
-    }
-
-    @Override
-    public Rhythm getStubRhythm(TimeSignature ts)
-    {
-        if (ts == null)
-        {
-            throw new NullPointerException("ts");
-        }
-        Rhythm res = null;
-        for (Rhythm r : rhythms)
-        {
-            if (r.getTimeSignature().equals(ts))
-            {
-                res = r;
-                break;
-            }
-        }
-        return res;
     }
 
     @Override
@@ -113,9 +92,8 @@ public class RhythmStubProviderImpl implements StubRhythmProvider
     @Override
     public List<Rhythm> getFileRhythms(List<Rhythm> prevList, boolean forceRescan)
     {
-        return new ArrayList<Rhythm>();
+        return new ArrayList<>();
     }
-
 
     @Override
     public String[] getSupportedFileExtensions()
@@ -132,6 +110,14 @@ public class RhythmStubProviderImpl implements StubRhythmProvider
     @Override
     public AdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts)
     {
+        if (r == null || ts == null || r.getTimeSignature().equals(ts))
+        {
+            throw new IllegalArgumentException("r=" + r + " ts=" + ts);
+        }
+        if (r instanceof STUBRhythm)
+        {
+            return new STUBAdaptedRhythm((STUBRhythm) r, ts);
+        }
         return null;
     }
 
