@@ -210,18 +210,24 @@ public class SgsUpdater implements ClsChangeListener
     {
         int newBarIndex = evt.getNewBar();
         int oldBarIndex = evt.getOldBar();
-        CLI_Section prevSection = parentCls.getSection(newBarIndex - 1);
-        CLI_Section sectionPrevBar = parentCls.getSection(oldBarIndex - 1);
 
-        if (sectionPrevBar == prevSection || sectionPrevBar == cliSection)
+
+        // Small move cases (no section crossed)
+        if (newBarIndex == oldBarIndex)
         {
-            // Small move
+            return;
+        } else if (newBarIndex > oldBarIndex && parentCls.getSection(newBarIndex) == cliSection)
+        {
+            return;
+        } else if (newBarIndex < oldBarIndex && parentCls.getSection(newBarIndex) == parentCls.getSection(oldBarIndex - 1))
+        {
             return;
         }
 
         // It's a "big move", which crosses at least another section
 
         // We remove and re-add
+        CLI_Section prevSection = parentCls.getSection(newBarIndex - 1);        
         sgs.authorizeRemoveSongParts(getSongParts(cliSection));
         SongPart spt = createSptAfterSection(cliSection, getVirtualSectionSize(newBarIndex), prevSection);
         sgs.authorizeAddSongParts(Arrays.asList(spt));
