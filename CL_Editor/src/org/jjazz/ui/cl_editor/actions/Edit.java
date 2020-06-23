@@ -27,6 +27,7 @@ import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -36,6 +37,7 @@ import javax.swing.Action;
 import javax.swing.JDialog;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -88,17 +90,17 @@ import org.openide.windows.WindowManager;
         })
 public class Edit extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
-
+    
     private Lookup context;
     private CL_ContextActionSupport cap;
     private String undoText = CTL_Edit();
     private static final Logger LOGGER = Logger.getLogger(Edit.class.getSimpleName());
-
+    
     public Edit()
     {
         this(Utilities.actionsGlobalContext());
     }
-
+    
     private Edit(Lookup context)
     {
         this.context = context;
@@ -108,7 +110,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("ENTER"));
         selectionChange(cap.getSelection());
     }
-
+    
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
@@ -172,7 +174,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
             editBarWithDialog(editor, modelBarIndex, new Preset(Preset.Type.BarEdit, null, key), cls);
         }
     }
-
+    
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
@@ -187,13 +189,13 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         LOGGER.log(Level.FINE, "selectionChange() b=" + b);
         setEnabled(b);
     }
-
+    
     @Override
     public void sizeChanged(int oldSize, int newSize)
     {
         selectionChange(cap.getSelection());
     }
-
+    
     private void editSectionWithDialog(final SectionEditorDialog dialog, final CLI_Section sectionItem, final char key, final ChordLeadSheet cls)
     {
         // Use specific editor if service is provided
@@ -228,7 +230,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         // https://stackoverflow.com/questions/53073707/my-jdialog-sometimes-receives-a-redundant-keystroke-from-the-calling-app-code      
         SwingUtilities.invokeLater(run);
     }
-
+    
     private void editCSWithDialog(final ChordSymbolEditorDialog dialog, final CLI_ChordSymbol csItem, final char key, final ChordLeadSheet cls)
     {
         Runnable run = new Runnable()
@@ -259,7 +261,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         // https://stackoverflow.com/questions/53073707/my-jdialog-sometimes-receives-a-redundant-keystroke-from-the-calling-app-code      
         SwingUtilities.invokeLater(run);
     }
-
+    
     private void editBarWithDialog(final CL_Editor editor, final int barIndex, final Preset preset, final ChordLeadSheet cls)
     {
         Runnable run = new Runnable()
@@ -278,7 +280,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                     dialog.cleanup();
                     return;
                 }
-
+                
                 JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
                 um.startCEdit(undoText);
 
@@ -290,10 +292,11 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                     if (currentSection.getPosition().getBar() == barIndex)
                     {
                         // Update existing section
+                        cls.setSectionName(currentSection, resultSection.getData().getName());
                         try
-                        {
-                            cls.setSectionName(currentSection, resultSection.getData().getName());
-                            cls.setSectionTimeSignature(currentSection, resultSection.getData().getTimeSignature());
+                        {                            
+                            // Manage the case where we change initial section, user prompt to apply to whole song
+                            SetTimeSignature.changeTimeSignaturePossiblyForWholeSong(cls, resultSection.getData().getTimeSignature(), Arrays.asList(currentSection));                            
                         } catch (UnsupportedEditException ex)
                         {
                             String msg = ERR_ChangeSection() + ": " + resultSection.getData() + ".\n" + ex.getLocalizedMessage();
@@ -319,21 +322,14 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
 
                 // Manage added/removed/changed items
                 List<ChordLeadSheetItem<?>> resultAddedItems = dialog.getAddedItems();
-                for (ChordLeadSheetItem<?> item : resultAddedItems)
-                {
-                    cls.addItem(item);
-                }
+                resultAddedItems.forEach(item -> cls.addItem(item));
+                
                 List<ChordLeadSheetItem<?>> resultRemovedItems = dialog.getRemovedItems();
-                for (ChordLeadSheetItem<?> item : resultRemovedItems)
-                {
-                    cls.removeItem(item);
-                }
+                resultRemovedItems.forEach(item -> cls.removeItem(item));
+                
                 Map<CLI_ChordSymbol, ExtChordSymbol> map = dialog.getUpdatedChordSymbols();
-                for (CLI_ChordSymbol cliCs : map.keySet())
-                {
-                    cls.changeItem(cliCs, map.get(cliCs));
-                }
-
+                map.keySet().forEach(cliCs -> cls.changeItem(cliCs, map.get(cliCs)));
+                
                 um.endCEdit(undoText);
 
                 // Go to next bar if chords have changed
@@ -345,17 +341,18 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                     editor.setFocusOnBar(barIndex + 1);
                     editor.selectBars(barIndex + 1, barIndex + 1, true);
                 }
-
+                
                 dialog.cleanup();
             }
         };
+
         // IMPORTANT: Dialog must be shown using invokeLater(), otherwise we have the problem of random double chars
         // when action is triggered by a key (InputMap/ActionMap) and key is used in the dialog.      
         // See complete explanation in my question on stackoverflow:
         // https://stackoverflow.com/questions/53073707/my-jdialog-sometimes-receives-a-redundant-keystroke-from-the-calling-app-code
         SwingUtilities.invokeLater(run);
     }
-
+    
     private void adjustDialogPosition(JDialog dialog, int barIndex)
     {
         CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
