@@ -37,7 +37,6 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.song.api.Song;
-import org.jjazz.songstructure.api.SongStructure;
 import org.openide.awt.StatusDisplayer;
 
 /**

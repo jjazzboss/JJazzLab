@@ -62,6 +62,7 @@ import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.api.SptEditorTopComponent;
+import org.jjazz.ui.utilities.JTextFieldNoKeyBinding;
 
 /**
  * Edit one or more selected SongParts.
@@ -112,13 +113,6 @@ public class SptEditor extends JPanel implements PropertyChangeListener
 
         // UI initialization
         initComponents();
-
-        // HACK ! 
-        // Key presses are not consumed by JTextField, they are also processed by the keybinding framework
-        // Discard this mechanism for some keys, eg SPACE should not trigger the play/pause action while
-        // editing the JTextField field.
-        tf_name.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("SPACE"), "doNothing");
-        tf_name.getActionMap().put("doNothing", new NoAction());
 
         setEditorEnabled(false);
 
@@ -191,7 +185,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
     {
 
         panel_RhythmParameters = new javax.swing.JPanel();
-        tf_name = new javax.swing.JTextField();
+        tf_name = new JTextFieldNoKeyBinding();
         tf_name.setFont(settings.getNameFont());
         btn_Rhythm = new javax.swing.JButton();
         lbl_ParentSection = new javax.swing.JLabel();
