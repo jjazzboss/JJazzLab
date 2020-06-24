@@ -20,18 +20,20 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.songnotesviewer;
+package org.jjazz.songmemoviewer;
 
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import org.jjazz.song.api.Song;
+import org.jjazz.songmemoviewer.api.SongMemoTopComponent;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
@@ -44,7 +46,7 @@ import org.openide.util.lookup.InstanceContent;
 /**
  * Text editor component for the song notes.
  */
-public class SongNotesEditor extends javax.swing.JPanel implements PropertyChangeListener// , DocumentListener
+public class SongMemoEditor extends javax.swing.JPanel implements PropertyChangeListener, DocumentListener
 {
 
     private final Lookup.Result<Song> songLkpResult;
@@ -52,40 +54,32 @@ public class SongNotesEditor extends javax.swing.JPanel implements PropertyChang
     private final Lookup lookup;
     private final InstanceContent instanceContent;
     private Song songModel;
-    private static final Logger LOGGER = Logger.getLogger(SongNotesEditor.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(SongMemoEditor.class.getSimpleName());
 
     /**
      * Creates new form SongNotesEditor
      */
-    public SongNotesEditor()
+    public SongMemoEditor()
     {
         initComponents();
 
-        
-        // Save changes upon focus lost
-        txt_notes.addFocusListener(new FocusAdapter()
-        {
-            @Override
-            public void focusLost(FocusEvent e)
-            {
-                updateModel();
-            }
-        });
+        // Listen to changes
+        txt_notes.getDocument().addDocumentListener(this);
 
-        
         // Our general lookup : store our action map and the edited song 
         instanceContent = new InstanceContent();
         instanceContent.add(getActionMap());
         lookup = new AbstractLookup(instanceContent);
 
-        
         // Listen to Song presence in the global context    
         songLkpListener = le -> songPresenceChanged();
         Lookup context = Utilities.actionsGlobalContext();
         songLkpResult = context.lookupResult(Song.class);
         songLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, songLkpListener, songLkpResult));
 
-        
+        // Disabled by default
+        setEditorEnabled(false);
+
         songPresenceChanged();
     }
 
@@ -128,52 +122,93 @@ public class SongNotesEditor extends javax.swing.JPanel implements PropertyChang
     {
         if (evt.getPropertyName().equals(Song.PROP_COMMENTS))
         {
-            update();
-            
+            // No need to update if we have the focus: user is typing
+            if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() != txt_notes)
+            {
+                updateText();
+                LOGGER.severe("updated externally");
+            } else
+            {
+                LOGGER.severe("updated internal=>nothing");
+            }
         } else if (evt.getPropertyName().equals(Song.PROP_CLOSED))
         {
-            txt_notes.setEnabled(false);
+            setEditorEnabled(false);
             if (songModel != null)
             {
                 resetModel();
-                update();
+                updateText();
             }
+        } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED))
+        {
+            updateTabName();
         }
     }
     // ==================================================================================
     // DocumentListener interface
     // ==================================================================================
-//
-//    public void insertUpdate(DocumentEvent e)
-//    {
-//        displayEditInfo(e);
-//    }
-//
-//    public void removeUpdate(DocumentEvent e)
-//    {
-//        displayEditInfo(e);
-//    }
-//
-//    public void changedUpdate(DocumentEvent e)
-//    {
-//        displayEditInfo(e);
-//    }
+
+    public void insertUpdate(DocumentEvent e)
+    {
+        updateModel();
+    }
+
+    public void removeUpdate(DocumentEvent e)
+    {
+        updateModel();
+    }
+
+    public void changedUpdate(DocumentEvent e)
+    {
+        updateModel();
+    }
 
     // ==================================================================================
     // Private methods
     // ==================================================================================
-    private void update()
+    private void updateText()
     {
+        // Don't trigger change event since it's not the user who is typing
+        txt_notes.getDocument().removeDocumentListener(this);
         txt_notes.setText(songModel == null ? "" : songModel.getComments());
+        txt_notes.getDocument().addDocumentListener(this);
     }
 
     private void updateModel()
     {
-        LOGGER.fine("updateModel() songModel=" + songModel);
         if (songModel != null)
         {
             songModel.setComments(txt_notes.getText());
         }
+    }
+
+    /**
+     * Update the TopComponent tab name with song name.
+     * <p>
+     */
+    private void updateTabName()
+    {
+        lbl_songName.setText(songModel == null ? "-" : songModel.getName());
+        lbl_songName.setToolTipText(songModel.getFile() == null ? null : songModel.getFile().getAbsolutePath());
+//        SongMemoTopComponent tc = SongMemoTopComponent.getInstance();
+//        if (tc != null)
+//        {
+//            String tabName;
+//            if (songModel != null)
+//            {
+//                tabName = "Memo " + org.jjazz.util.Utilities.truncateWithDots(songModel.getName(), 10);
+//            } else
+//            {
+//                tabName = "Song Memo";
+//            }
+//            tc.setDisplayName(tabName);
+//        }
+    }
+
+    private void setEditorEnabled(boolean b)
+    {
+        txt_notes.setBackground(b ? UIManager.getColor("TextArea.background") : null);
+        org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, this);
     }
 
     private void resetModel()
@@ -206,9 +241,11 @@ public class SongNotesEditor extends javax.swing.JPanel implements PropertyChang
         songModel = song;
         songModel.addPropertyChangeListener(this);
         instanceContent.add(songModel);
-        txt_notes.setEnabled(true);
-        
-        update();
+        setEditorEnabled(true);
+
+        updateText();
+
+        updateTabName();
     }
 
     /**
@@ -222,6 +259,9 @@ public class SongNotesEditor extends javax.swing.JPanel implements PropertyChang
 
         jScrollPane2 = new javax.swing.JScrollPane();
         txt_notes = new org.jjazz.ui.utilities.JTextAreaNoKeyBinding();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        lbl_songName = new javax.swing.JLabel();
 
         txt_notes.setColumns(20);
         txt_notes.setRows(5);
@@ -229,27 +269,51 @@ public class SongNotesEditor extends javax.swing.JPanel implements PropertyChang
         );
         jScrollPane2.setViewportView(txt_notes);
 
+        jScrollPane1.setBorder(null);
+
+        helpTextArea1.setColumns(20);
+        helpTextArea1.setRows(2);
+        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(SongMemoEditor.class, "SongMemoEditor.helpTextArea1.text")); // NOI18N
+        jScrollPane1.setViewportView(helpTextArea1);
+
+        lbl_songName.setFont(lbl_songName.getFont().deriveFont(lbl_songName.getFont().getSize()-1f));
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_songName, org.openide.util.NbBundle.getMessage(SongMemoEditor.class, "SongMemoEditor.lbl_songName.text")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lbl_songName)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(jScrollPane1)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 282, Short.MAX_VALUE)
+                .addComponent(lbl_songName)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 264, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JLabel lbl_songName;
     private org.jjazz.ui.utilities.JTextAreaNoKeyBinding txt_notes;
     // End of variables declaration//GEN-END:variables
 

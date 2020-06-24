@@ -36,9 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RhythmParameter;
@@ -344,7 +342,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
                     resetModel();
                 }
             }
-        }
+        } 
     }
 
     // ------------------------------------------------------------------------------------

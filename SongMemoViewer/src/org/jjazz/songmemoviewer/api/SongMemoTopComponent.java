@@ -20,9 +20,9 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.songnotesviewer.api;
+package org.jjazz.songmemoviewer.api;
 
-import org.jjazz.songnotesviewer.SongNotesEditor;
+import org.jjazz.songmemoviewer.SongMemoEditor;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -30,6 +30,7 @@ import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
+import org.openide.windows.WindowManager;
 
 /**
  * Top component which displays something.
@@ -43,32 +44,42 @@ import org.openide.util.NbBundle.Messages;
         //iconBase="SET/PATH/TO/ICON/HERE",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "explorer", openAtStartup = false)
+@TopComponent.Registration(mode = "explorer", openAtStartup = true)
 @ActionID(category = "Window", id = "org.jjazz.songnotesviewer.api.SongNotesTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
+@ActionReference(path = "Menu/Window" , position = 1, separatorAfter = 2 )
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_SongNotesAction",
         preferredID = "SongNotesTopComponent"
 )
 @Messages(
         {
-            "CTL_SongNotesAction=SongNotes",
-            "CTL_SongNotesTopComponent=SongNotes Window",
-            "HINT_SongNotesTopComponent=This is a SongNotes window"
+            "CTL_SongNotesAction=Song Memo",
+            "CTL_SongNotesTopComponent=Song Memo",
+            "HINT_SongNotesTopComponent=This is a Song Memo window"
         })
-public final class SongNotesTopComponent extends TopComponent
+public final class SongMemoTopComponent extends TopComponent
 {
-    private SongNotesEditor editor;
 
-    public SongNotesTopComponent()
+    private final SongMemoEditor editor;
+
+    public SongMemoTopComponent()
     {
         initComponents();
         setName(Bundle.CTL_SongNotesTopComponent());
         setToolTipText(Bundle.HINT_SongNotesTopComponent());
 
-        editor = new SongNotesEditor();
+        editor = new SongMemoEditor();
         add(editor);
 
+    }
+
+    /**
+     * 
+     * @return Can be null
+     */
+    static public SongMemoTopComponent getInstance()
+    {
+        return (SongMemoTopComponent) WindowManager.getDefault().findTopComponent("SongNotesTopComponent");
     }
 
     /**

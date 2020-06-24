@@ -79,7 +79,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     private SongStructure songStructure;
     private ChordLeadSheet chordLeadSheet;
     private String name;
-    private String comments = "";
+    private String comments = "Edit me...";
     private int tempo = 120;
     private ArrayList<String> tags = new ArrayList<>();
     private final Properties clientProperties = new Properties();
