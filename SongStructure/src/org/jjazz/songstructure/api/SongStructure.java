@@ -119,15 +119,18 @@ public interface SongStructure
     public ChordLeadSheet getParentChordLeadSheet();
 
     /**
-     * Create a new SongPart instance with default RhythmParameter values and container=this object.
+     * Create a new SongPart instance whose container is this object.
+     * <p>
+     * Use default rhythm parameters values, unless reusePrevParamValues is true and there is a previous song part.
      *
      * @param r
      * @param startBarIndex
      * @param nbBars
      * @param parentSection
+     * @param reusePrevParamValues
      * @return
      */
-    public SongPart createSongPart(Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection);
+    public SongPart createSongPart(Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection, boolean reusePrevParamValues);
 
     /**
      * @return A copy of the list of SongParts ordered according to their getStartBarIndex().
@@ -301,11 +304,14 @@ public interface SongStructure
     /**
      * Returns the last rhythm used in this songStructure for this TimeSignature.
      * <p>
+     * Return null if:<br>
+     * - The specified time signature has never been used by this object<br>
+     * - If the last rhythm is an AdaptedRhythm but its source rhythm is no more present
      *
      * @param ts
-     * @return Can be null if ts has never been used in this song.
+     * @return Can be null
      */
-    public Rhythm getLastUsedRhythm(TimeSignature ts);
+    public Rhythm getLastUsedRhythm(TimeSignature ts); => implement
 
     /**
      * Add a listener to changes of this object.

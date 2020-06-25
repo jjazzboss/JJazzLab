@@ -382,7 +382,9 @@ public class SS_EditorTransferHandler extends TransferHandler
     }
 
     /**
-     * Create a new SongPart corresponding to specified section. Adapt RP values from previous SongPart.
+     * Create a new SongPart corresponding to specified section. 
+     * 
+     * Adapt RP values from previous SongPart.
      *
      * @param parentSection
      * @param sptIndex

@@ -227,7 +227,7 @@ public class SgsUpdater implements ClsChangeListener
         // It's a "big move", which crosses at least another section
 
         // We remove and re-add
-        CLI_Section prevSection = parentCls.getSection(newBarIndex - 1);        
+        CLI_Section prevSection = parentCls.getSection(newBarIndex - 1);
         sgs.authorizeRemoveSongParts(getSongParts(cliSection));
         SongPart spt = createSptAfterSection(cliSection, getVirtualSectionSize(newBarIndex), prevSection);
         sgs.authorizeAddSongParts(Arrays.asList(spt));
@@ -405,6 +405,18 @@ public class SgsUpdater implements ClsChangeListener
         // Try to use the last used rhythm for this new time signature
         Rhythm newRhythm = sgs.getLastUsedRhythm(ts);
 
+
+        // Special case: last used rhythm is an adapted rhythm, but its source rhythm is no more present
+        if (newRhythm != null && newRhythm instanceof AdaptedRhythm)
+        {
+            Rhythm sourceRhythm = ((AdaptedRhythm) newRhythm).getSourceRhythm();
+            if (!sgs.getUniqueRhythms(true).contains(sourceRhythm))
+            {
+                newRhythm = null;
+            }
+        }
+
+        
         // Try to use an AdaptedRhythm for the previous song part's rhythm
         if (newRhythm == null && prevSpt != null)
         {

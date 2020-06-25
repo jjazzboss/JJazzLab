@@ -774,7 +774,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     public void generateAllAdaptedRhythms()
     {
         RhythmDatabase rdb = RhythmDatabase.getDefault();
-        List<Rhythm> rhythms = getUniqueRhythms(true);
+        List<Rhythm> rhythms = getUniqueRhythms(false);     // Need to include adapted rhythms to get all possible time signatures
         Set<TimeSignature> timeSignatures = rhythms
                 .stream()
                 .map(r -> r.getTimeSignature())
@@ -786,7 +786,11 @@ public class SongStructureImpl implements SongStructure, Serializable
             {
                 if (!ts.equals(r.getTimeSignature()))
                 {
-                    rdb.getAdaptedRhythm(r, ts);    // This will make the rhythm created and available in the database
+                    // Have the adapted rhythm created and made available in the database
+                    if (rdb.getAdaptedRhythm(r, ts) == null)
+                    {
+                        LOGGER.info("generateAllAdaptedRhythms() Can't get a " + ts + "-adapted rhythm for r=" + r);
+                    }
                 }
             }
         }
@@ -868,7 +872,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 songParts = new ArrayList<>(oldSpts);         // Must use a copy to make sure oldSpts remains unaffected
                 mapTsLastRhythm = oldMapTsRhythm.clone();           // Must use a copy to make sure map remains unaffected
                 updateStartBarIndexes();
-                
+
                 // Don't use vetoable change  : it already worked, normally there is no reason it would change
                 fireAuthorizedChangeEvent(new SptRemovedEvent(SongStructureImpl.this, Arrays.asList(spt)));
             }
@@ -877,12 +881,12 @@ public class SongStructureImpl implements SongStructure, Serializable
             public void redoBody()
             {
                 LOGGER.finer("addSongPartInternal.redoBody() spt=" + spt);
-                
+
                 ((SongPartImpl) spt).setContainer(SongStructureImpl.this);
                 songParts = new ArrayList<>(newSpts);          // Must use a copy to make sure newSpts remains unaffected
                 mapTsLastRhythm = newMapTsRhythm.clone();            // Must use a copy to make sure map remains unaffected
                 updateStartBarIndexes();
-                
+
                 // Don't use vetoable change : it already worked, normally there is no reason it would change
                 fireAuthorizedChangeEvent(new SptAddedEvent(SongStructureImpl.this, Arrays.asList(spt)));
             }
@@ -910,7 +914,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         }
 
         LOGGER.finer("removeSongPartInternal() -- spts=" + spts);
-        
+
         // Save state
         final ArrayList<SongPart> oldSpts = new ArrayList<>(songParts);
 
