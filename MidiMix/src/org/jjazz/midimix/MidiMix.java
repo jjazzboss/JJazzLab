@@ -235,32 +235,53 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     /**
      * Add the special user channel/InstrumentMix to the mix.
      * <p>
-     * Use the PREF_USER_CHANNEL if possible. If channel is already used, find the first channel available. The user channel will
-     * use the UserChannelRhythmVoiceKey instance as key.
+     * If the userChannel parameter is defined then use it if it's available. If userChannel is &lt; 0 then try to use default
+     * user channel or the first channel available.<p>
+     * The user channel will use the UserChannelRvKey instance as key.
      *
      * @param insMix The instrument mix to be used for the user channel
+     * @param userChannel Ignored if &lt; 0
      * @throws MidiUnavailableException If no Midi channel available.
+     * @throws IllegalArgumentException If userChannel is specified but not available.
      * @throws IllegalStateException If a user channel is already added.
      */
-    public void addUserChannel(final InstrumentMix insMix) throws MidiUnavailableException
+    public void addUserChannel(final InstrumentMix insMix, int userChannel) throws MidiUnavailableException
     {
         if (insMix == null)
         {
             throw new NullPointerException("insMix");
         }
-        if (getCurrentUserChannel() != -1)
+        if (getUserChannel() != -1)
         {
-            throw new IllegalStateException("User channel already enabled on channel " + getCurrentUserChannel());
+            throw new IllegalStateException("User channel already enabled on channel " + getUserChannel());
         }
-        int prefUserChannel = UserChannelRvKey.getInstance().getPreferredUserChannel();
-        final int channel = getUsedChannels().contains(prefUserChannel) ? findFreeChannel(false) : prefUserChannel;
-        if (channel == -1)
+
+
+        int channel;
+        if (MidiConst.checkMidiChannel(userChannel))
         {
-            throw new MidiUnavailableException("No Midi channels available");
+            if (getUsedChannels().contains(userChannel))
+            {
+                throw new IllegalArgumentException("insMix=" + insMix + " userChannel=" + userChannel);
+            }
+            channel = userChannel;
+
+        } else
+        {
+            // Use the default channel if possible
+            int prefUserChannel = UserChannelRvKey.getInstance().getPreferredUserChannel();
+            channel = getUsedChannels().contains(prefUserChannel) ? findFreeChannel(false) : prefUserChannel;
+            if (channel == -1)
+            {
+                throw new MidiUnavailableException("No Midi channels available");
+            }
         }
+
+
         // User channel should never be muted/soloed
         insMix.setMute(false);
         insMix.setSolo(false);
+
 
         // Perform the change
         changeInstrumentMix(channel, insMix, UserChannelRvKey.getInstance());
@@ -271,7 +292,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      */
     public void removeUserChannel()
     {
-        int channel = getCurrentUserChannel();
+        int channel = getUserChannel();
         if (channel != -1)
         {
             changeInstrumentMix(channel, null, null);
@@ -279,11 +300,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     }
 
     /**
-     * Return the Midi channel currently used when user channel is enabled.
+     * Return the Midi channel corresponding to the user channel.
      *
      * @return -1 if there is no user channel
      */
-    public int getCurrentUserChannel()
+    public int getUserChannel()
     {
         int channel = getChannel(UserChannelRvKey.getInstance());
         return channel;
@@ -666,7 +687,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             {
                 // Copy the user channel by remove/add
                 removeUserChannel();
-                addUserChannel(new InstrumentMix(fromInsMix));
+                addUserChannel(new InstrumentMix(fromInsMix), -1);
             } else
             {
                 // Normal channel
@@ -760,14 +781,14 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         }
 
         // Copy the instrumentmix of the User channel if present 
-        if (getCurrentUserChannel() != -1 && mm.getCurrentUserChannel() != -1)
+        if (getUserChannel() != -1 && mm.getUserChannel() != -1)
         {
             // Replace the existing user intrumentMix
             removeUserChannel();
-            InstrumentMix mmInsMix = mm.getInstrumentMixFromChannel(mm.getCurrentUserChannel());
+            InstrumentMix mmInsMix = mm.getInstrumentMixFromChannel(mm.getUserChannel());
             try
             {
-                addUserChannel(new InstrumentMix(mmInsMix));
+                addUserChannel(new InstrumentMix(mmInsMix), -1);
             } catch (MidiUnavailableException ex)
             {
                 // Should never happen since we had enough Midi channels
@@ -1003,7 +1024,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
 
         // Number of RhythmVoices has possibly changed
         HashSet<Rhythm> rhythms = new HashSet<>();
-        int nbVoices = getCurrentUserChannel() == -1 ? 0 : 1;
+        int nbVoices = getUserChannel() == -1 ? 0 : 1;
         for (SongPart spt : spts)
         {
             Rhythm r = spt.getRhythm();
@@ -1027,7 +1048,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     {
         LOGGER.fine("songStructureChanged() -- e=" + e);
 
-        
+
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
         if (um != null && um.isUndoRedoInProgress())
         {
@@ -1036,8 +1057,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             // the "undo/redo" restore operations will be performed twice !
             return;
         }
-        
-        
+
+
         // Used to check if rhythm is really gone in case of multi-rhythm songs
         List<Rhythm> songRhythms = song.getSongStructure().getUniqueRhythms(true);
         List<Rhythm> mixRhythms = getUniqueRhythmsWithInsMixes();
@@ -1650,7 +1671,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                     try
                     {
                         // Special case : it's a user channel, just re-enable it
-                        mm.addUserChannel(insMix);
+                        mm.addUserChannel(insMix, channel);
                     } catch (MidiUnavailableException ex)
                     {
                         msg.append("Mix file error, can't enable user channel=" + channel + ", exception=" + ex.getLocalizedMessage());
