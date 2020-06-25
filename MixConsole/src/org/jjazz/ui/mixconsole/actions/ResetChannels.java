@@ -96,7 +96,7 @@ public class ResetChannels extends AbstractAction
                     songMidiMix.removeUserChannel();
                     try
                     {
-                        songMidiMix.addUserChannel(insMix);
+                        songMidiMix.addUserChannel(insMix, -1);
                     } catch (MidiUnavailableException ex)
                     {
                         // Should never happen since we removed it just before

@@ -215,7 +215,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
         cb_panoramic.setEnabled(!b);
         cb_instrument.setEnabled(!b);
         spn_velocityShift.setValue(Integer.valueOf(insSet.getVelocityShift()));
-        b = midiMix.getCurrentUserChannel() != channel;
+        b = midiMix.getUserChannel() != channel;
         spn_velocityShift.setEnabled(b);
         lbl_velocityShift.setEnabled(b);
     }
