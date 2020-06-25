@@ -22,6 +22,8 @@
  */
 package org.jjazz.test;
 
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,22 +31,25 @@ import java.util.Enumeration;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.UIManager;
 import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.modules.OnStart;
+import org.openide.util.NbPreferences;
 
 /**
  * For debug purposes...
  */
-//@ActionID(category = "JJazz", id = "org.jjazz.test.mytestaction")
-//@ActionRegistration(displayName = "MyTestAction")
-//@ActionReferences(
-//        {
-//           @ActionReference(path = "Menu/Edit", position = 870012),
-//           @ActionReference(path = "Shortcuts", name = "D-T")
-//        })
+@ActionID(category = "JJazz", id = "org.jjazz.test.mytestaction")
+@ActionRegistration(displayName = "MyTestAction")
+@ActionReferences(
+        {
+            @ActionReference(path = "Menu/Edit", position = 870012),
+            @ActionReference(path = "Shortcuts", name = "D-T")
+        })
 public final class MyTestAction implements ActionListener
 {
 
@@ -54,6 +59,26 @@ public final class MyTestAction implements ActionListener
     public void actionPerformed(ActionEvent ae)
     {
         LOGGER.log(Level.INFO, "MyTestAction()");
+        FlatDarkLaf.install();
+        UIManager.LookAndFeelInfo plaf[] = UIManager.getInstalledLookAndFeels();
+        try
+        {
+            UIManager.setLookAndFeel(new FlatDarkLaf());
+        } catch (Exception ex)
+        {
+            System.err.println("Failed to initialize LaF");
+        }
+
+        for (int i = 0, n = plaf.length; i < n; i++)
+        {
+            LOGGER.severe("Name: " + plaf[i].getName());
+            LOGGER.severe("  Class name: " + plaf[i].getClassName());
+        }
+        if (true)
+        {
+            return;
+        }
+
         IR_ChordSymbolSettings settings = IR_ChordSymbolSettings.getDefault();
         Font f = settings.getFont();
         float fSize = f.getSize2D();
@@ -64,5 +89,30 @@ public final class MyTestAction implements ActionListener
         }
         f = f.deriveFont(fSize);
         settings.setFont(f);
+    }
+
+    // @OnStart
+    public static class TestClass implements Runnable
+    {
+
+        @Override
+        public void run()
+        {
+            LOGGER.severe("TestClass.run() --");
+            // Apply the LAF: works fine!
+
+// On Thu, 25 Jun 2020 at 00:40, Laszlo Kishalmi <laszlo.kishalmi@gmail.com> wrote:
+// > NbPreferences.root().node( "laf" ).put( "laf", "com.formdev.flatlaf.FlatDarkLaf" ); Somewhere really early, probably at an @OnStart marked runnable.
+// This probably needs to be done in ModuleInstall::validate - @OnStart
+// is too late to work consistently, unless behaviour has changed
+// recently.
+// You can see use of validate() in eg.
+// https://github.com/Revivius/nb-darcula/blob/master/src/main/java/com/revivius/nb/darcula/Installer.java#L29
+// and https://github.com/praxis-live/praxis-live/blob/v2.3.3/praxis.live.laf/src/net/neilcsmith/praxis/live/laf/Installer.java#L53
+
+
+            NbPreferences.root().node( "laf" ).put( "laf", "com.formdev.flatlaf.FlatDarkLaf" );            
+        }
+
     }
 }
