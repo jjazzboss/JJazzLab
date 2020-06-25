@@ -145,6 +145,8 @@ public class LinkedSongStructureTest
     {
         undoManager.endCEdit("UT-edit");
         undoAll();
+        redoAll();
+        undoAll();
         System.out.println("\ncls after Undo ALL=" + cls1.toDumpString());
         System.out.println("\n  sgs after Undo ALL =" + sgs);
         System.out.println("u_sgs after Undo ALL =" + u_sgs);
@@ -416,7 +418,7 @@ public class LinkedSongStructureTest
         }
         System.out.println(" cls1 after(1) =" + cls1.toDumpString());
         System.out.println(" sgs after(1) =" + sgs);
-        
+
         assertTrue(sgs.getSongParts().size() == 5);
         Rhythm r = sgs.getSongParts().get(2).getRhythm();
         boolean exceptionOccured = false;
@@ -465,6 +467,14 @@ public class LinkedSongStructureTest
         assertTrue(exceptionOccured);
         assertTrue(sgs.getSongParts().get(0).getRhythm() == r);
         assertTrue(sgs.getSongParts().size() == 5);
+    }
+
+    private void redoAll()
+    {
+        while (undoManager.canRedo())
+        {
+            undoManager.redo();
+        }
     }
 
     private void undoAll()

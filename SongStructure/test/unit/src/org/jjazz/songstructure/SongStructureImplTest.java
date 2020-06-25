@@ -106,6 +106,8 @@ public class SongStructureImplTest
     {
         undoManager.endCEdit("UT-edit");
         undoAll();
+        redoAll();
+        undoAll();
         System.out.println("sgs after Undo=" + sgs);
         assertTrue(sgs.getSizeInBars() == u_sgs.getSizeInBars());
         for (int i = 0; i < 2; i++)
@@ -241,6 +243,14 @@ public class SongStructureImplTest
         SmallMap<SongPart, Integer> sm = new SmallMap<>();
         sm.putValue(rp, i);
         return sm;
+    }
+
+    private void redoAll()
+    {
+        while (undoManager.canRedo())
+        {
+            undoManager.redo();
+        }
     }
 
     private void undoAll()

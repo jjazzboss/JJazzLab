@@ -43,13 +43,13 @@ import org.openide.util.NbPreferences;
 /**
  * For debug purposes...
  */
-@ActionID(category = "JJazz", id = "org.jjazz.test.mytestaction")
-@ActionRegistration(displayName = "MyTestAction")
-@ActionReferences(
-        {
-            @ActionReference(path = "Menu/Edit", position = 870012),
-            @ActionReference(path = "Shortcuts", name = "D-T")
-        })
+//@ActionID(category = "JJazz", id = "org.jjazz.test.mytestaction")
+//@ActionRegistration(displayName = "MyTestAction")
+//@ActionReferences(
+//        {
+//            @ActionReference(path = "Menu/Edit", position = 870012),
+//            @ActionReference(path = "Shortcuts", name = "D-T")
+//        })
 public final class MyTestAction implements ActionListener
 {
 

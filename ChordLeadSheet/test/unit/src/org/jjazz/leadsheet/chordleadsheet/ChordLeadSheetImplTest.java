@@ -127,6 +127,8 @@ public class ChordLeadSheetImplTest
         undoManager.endCEdit("UT-edit");
         System.out.println(cls1.toDumpString() + '\n');
         undoAll();
+        redoAll();
+        undoAll();
         assertTrue(diffCls(cls1, cls2));
     }
 
@@ -451,6 +453,7 @@ public class ChordLeadSheetImplTest
         assertTrue(cls1.getSize() == 3 && cls1.getItems(ChordLeadSheetItem.class).size() == 6);
     }
 
+    
     // Undo --------------------------------------------------
     private void undoAll()
     {
@@ -460,6 +463,14 @@ public class ChordLeadSheetImplTest
         }
     }
 
+        private void redoAll()
+    {
+        while (undoManager.canRedo())
+        {
+            undoManager.redo();
+        }
+    }
+    
     private boolean diffCls(ChordLeadSheetImpl ls1, ChordLeadSheetImpl ls2)
     {
         if (ls1.getSize() != ls2.getSize())

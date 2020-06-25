@@ -33,7 +33,6 @@ import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.jjazz.song.api.Song;
-import org.jjazz.songmemoviewer.api.SongMemoTopComponent;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
@@ -126,10 +125,9 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
             if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() != txt_notes)
             {
                 updateText();
-                LOGGER.severe("updated externally");
             } else
-            {
-                LOGGER.severe("updated internal=>nothing");
+            {   
+                // Do nothing
             }
         } else if (evt.getPropertyName().equals(Song.PROP_CLOSED))
         {
