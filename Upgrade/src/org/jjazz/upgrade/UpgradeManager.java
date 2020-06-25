@@ -52,7 +52,7 @@ public class UpgradeManager
      */
     public static final String[] PREVIOUS_VERSIONS = new String[]
     {
-        "2.0.1", "2.0.0"
+        "2.1.1", "2.1.0", "2.0.1", "2.0.0"
     };
     private static final String PREF_FRESH_START = "FreshStart";
 
