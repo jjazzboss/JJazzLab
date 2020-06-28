@@ -52,7 +52,7 @@ public final class PrintAllProperties implements ActionListener
     {
         LOGGER.log(Level.INFO, "PrintAllProperties()");
         Properties p = System.getProperties();
-        Enumeration keys = p.keys();
+        Enumeration<?> keys = p.keys();
         while (keys.hasMoreElements())
         {
             String key = (String) keys.nextElement();

@@ -644,10 +644,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         // Save data after the bar deletions
         CLI_Section afterDeletionSection = (barIndexTo + 1 > size - 1) ? null : getSection(barIndexTo + 1);
+        @SuppressWarnings("rawtypes")
         List<? extends ChordLeadSheetItem> afterDeletionItems = null;
         if (afterDeletionSection != null)
         {
-            afterDeletionItems = getItems(barIndexTo + 1, getSectionRange(afterDeletionSection).to, ChordLeadSheetItem.class);
+            afterDeletionItems =  getItems(barIndexTo + 1, getSectionRange(afterDeletionSection).to, ChordLeadSheetItem.class);
         }
 
 
@@ -1075,6 +1076,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      * @param newTs
      * @param items
      */
+    @SuppressWarnings("rawtypes")
     private void adjustItemsToTimeSignature(TimeSignature oldTs, TimeSignature newTs, List<? extends ChordLeadSheetItem> items)
     {
         if (newTs == null || items == null || oldTs == null)

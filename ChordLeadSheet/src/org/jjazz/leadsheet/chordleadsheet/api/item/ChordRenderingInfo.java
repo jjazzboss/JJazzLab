@@ -436,6 +436,7 @@ public class ChordRenderingInfo implements Serializable
             out.writeObject(spStdScale);
         }
 
+        @SuppressWarnings("unchecked")
         private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException
         {
             spVERSION = in.readInt();

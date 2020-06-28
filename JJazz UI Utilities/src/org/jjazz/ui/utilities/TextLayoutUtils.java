@@ -63,7 +63,7 @@ public final class TextLayoutUtils
         // Graphics2D.fill(Shape) on the returned shape then for certain fonts such as
         // Lucida Sans Typewriter size=10 on Ubuntu 10.04 the background is rendered one pixel down for certain lines
         // so there appear white lines inside a selection.
-        return (int) Math.ceil(Math.min((float)height, height2));
+        return (int) Math.ceil(Math.min(height, height2));
     }
 
     /**

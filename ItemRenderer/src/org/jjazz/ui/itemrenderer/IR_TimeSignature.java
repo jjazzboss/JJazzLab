@@ -184,8 +184,8 @@ public class IR_TimeSignature extends ItemRenderer implements IR_Copiable
         TextLayout textLayoutLower = new TextLayout(attrStrLower.getIterator(), frc);
         int wUpper = (int) TextLayoutUtils.getWidth(textLayoutUpper, upperString, true);
         int wLower = (int) TextLayoutUtils.getWidth(textLayoutLower, lowerString, true);
-        int hUpper = (int) TextLayoutUtils.getHeight(textLayoutUpper, frc);
-        int hLower = (int) TextLayoutUtils.getHeight(textLayoutLower, frc);
+        int hUpper = TextLayoutUtils.getHeight(textLayoutUpper, frc);
+        int hLower = TextLayoutUtils.getHeight(textLayoutLower, frc);
 
         // Set preferred size
         int maxWidth = Math.max(wUpper, wLower);

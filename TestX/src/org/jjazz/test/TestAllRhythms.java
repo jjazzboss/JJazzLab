@@ -101,13 +101,15 @@ public final class TestAllRhythms implements ActionListener
                 });
                 SongPart spt = sgs.getSongPart(0);
                 SongPart newSpt = spt.clone(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
-                RhythmParameter rp0 = r.getRhythmParameters().get(0);
+                RhythmParameter<?> rp0 = r.getRhythmParameters().get(0);
                 try
                 {
                     sgs.replaceSongParts(Arrays.asList(spt), Arrays.asList(newSpt));
                     if (rp0.getDisplayName().equals("Style part") && rp0.getPossibleValues().contains("Main A"))
                     {
-                        sgs.setRhythmParameterValue(newSpt, rp0, "Main A");
+                        @SuppressWarnings("unchecked")
+                        RhythmParameter<String> rpString = (RhythmParameter<String>) rp0;
+                        sgs.setRhythmParameterValue(newSpt, rpString, "Main A");
                     }
                     try
                     {

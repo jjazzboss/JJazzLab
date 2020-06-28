@@ -1238,7 +1238,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
      * @param rpClass
      * @return
      */
-    private RhythmParameter<?> getRpFromClass(List<RhythmParameter<?>> rps, Class rpClass)
+    private RhythmParameter<?> getRpFromClass(List<RhythmParameter<?>> rps, Class<?> rpClass)
     {
         return rps.stream().filter(rp -> rpClass.isAssignableFrom(rp.getClass())).findAny().orElse(null);
     }

@@ -98,7 +98,7 @@ public class ComponentTitledBorder implements Border, MouseListener, MouseMotion
 
         comp.setSize(rect.width, rect.height);
         comp.dispatchEvent(new MouseEvent(comp, id, me.getWhen(),
-                me.getModifiers(), pt.x, pt.y, me.getClickCount(),
+                me.getModifiersEx(), pt.x, pt.y, me.getClickCount(),
                 me.isPopupTrigger(), me.getButton()));
         if (!comp.isValid())
         {

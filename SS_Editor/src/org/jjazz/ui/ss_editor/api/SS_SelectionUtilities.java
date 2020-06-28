@@ -79,7 +79,9 @@ final public class SS_SelectionUtilities
         {
             throw new IllegalArgumentException("lookup=" + lookup);
         }
+        @SuppressWarnings("unchecked")
         ArrayList<SongPart> spts = (ArrayList<SongPart>) new ArrayList<>(lookup.lookupAll(SongPart.class));
+        @SuppressWarnings("unchecked")        
         ArrayList<SongPartParameter> sptps = (ArrayList<SongPartParameter>) new ArrayList<>(lookup.lookupAll(SongPartParameter.class));
         if (!spts.isEmpty() && !sptps.isEmpty())
         {

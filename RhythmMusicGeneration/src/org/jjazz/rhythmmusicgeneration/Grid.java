@@ -117,7 +117,9 @@ public class Grid implements Cloneable
             Exceptions.printStackTrace(ex);
         }
         // Everything OK with a shallow clone copy, except the mapCellNotes 
-        newGrid.mapCellNotes = (HashMap<Integer, List<NoteEvent>>) mapCellNotes.clone();
+        @SuppressWarnings("unchecked")
+        HashMap<Integer, List<NoteEvent>> tmp = (HashMap<Integer, List<NoteEvent>>) mapCellNotes.clone();
+        newGrid.mapCellNotes = tmp;
         return newGrid;
     }
 
@@ -395,7 +397,7 @@ public class Grid implements Cloneable
     {
         if (range.isEmpty())
         {
-            return (List<NoteEvent>) Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         if (!cellRange.contains(range))
         {
@@ -537,7 +539,7 @@ public class Grid implements Cloneable
     {
         if (range.isEmpty())
         {
-            return (List<NoteEvent>) Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         if (!cellRange.contains(range))
         {
