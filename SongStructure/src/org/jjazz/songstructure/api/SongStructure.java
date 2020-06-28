@@ -124,13 +124,14 @@ public interface SongStructure
      * Use default rhythm parameters values, unless reusePrevParamValues is true and there is a previous song part.
      *
      * @param r
+     * @param name The name of the created SongPart.
      * @param startBarIndex
      * @param nbBars
-     * @param parentSection
+     * @param parentSection Can be null
      * @param reusePrevParamValues
      * @return
      */
-    public SongPart createSongPart(Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection, boolean reusePrevParamValues);
+    public SongPart createSongPart(Rhythm r, String name, int startBarIndex, int nbBars, CLI_Section parentSection, boolean reusePrevParamValues);
 
     /**
      * @return A copy of the list of SongParts ordered according to their getStartBarIndex().
@@ -149,7 +150,7 @@ public interface SongStructure
      * Get the SongPart which contains a specific bar.
      *
      * @param absoluteBarIndex
-     * @return Null if absoluteBarIndex after end of SongStructure.
+     * @return Can be null
      */
     public SongPart getSongPart(int absoluteBarIndex);
 
@@ -260,7 +261,7 @@ public interface SongStructure
     /**
      * Check if replace operation is doable.
      * <p>
-     * UnsupportedEditException is thrown if replacement is impossible, for example because :<br>
+     * UnsupportedEditException is thrown if replacement is impossible, because :<br>
      * - not enough Midi channels for a new rhythm<br>
      * - if the operation removes a source rhythm of a remaining AdaptedRhyth<br>
      * - an AdaptedRhythm is added without the presence of its source Rhythm.
@@ -305,13 +306,26 @@ public interface SongStructure
      * Returns the last rhythm used in this songStructure for this TimeSignature.
      * <p>
      * Return null if:<br>
-     * - The specified time signature has never been used by this object<br>
-     * - If the last rhythm is an AdaptedRhythm but its source rhythm is no more present
+     * - The specified time signature has never been used by this SongStructure<br>
+     * - If the last used rhythm is an AdaptedRhythm but its source rhythm is no more present
      *
      * @param ts
      * @return Can be null
      */
-    public Rhythm getLastUsedRhythm(TimeSignature ts); => implement
+    public Rhythm getLastUsedRhythm(TimeSignature ts);
+
+    /**
+     * Get the recommended rhythm to use for a new SongPart.
+     * <p>
+     * If possible use getLastUsedRhythm(). If not possible then :<br>
+     * - return an AdaptedRhythm if there is a a previous SongPart<br>
+     * - otherwise return the RhythmDatabase default rhythm for the time signature.<br>
+     *
+     * @param ts The TimeSignature of the rhythm
+     * @param sptStartBarIndex The start bar index of the new song part.
+     * @return Can't be null
+     */
+    public Rhythm getRecommendedRhythm(TimeSignature ts, int sptStartBarIndex);
 
     /**
      * Add a listener to changes of this object.

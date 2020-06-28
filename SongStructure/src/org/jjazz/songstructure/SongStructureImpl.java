@@ -179,14 +179,33 @@ public class SongStructureImpl implements SongStructure, Serializable
     }
 
     @Override
-    public SongPart createSongPart(Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection)
+    public SongPart createSongPart(Rhythm r, String name, int startBarIndex, int nbBars, CLI_Section parentSection, boolean reusePrevParamValues)
     {
-        if (r == null || startBarIndex < 0 || nbBars < 0)
+        if (r == null || startBarIndex < 0 || nbBars < 0 || name == null)
         {
-            throw new IllegalArgumentException("r=" + r + " startBarIndex=" + startBarIndex + " nbBars=" + nbBars + " parentSection=" + parentSection);
+            throw new IllegalArgumentException("r=" + r + " name=" + name
+                    + " startBarIndex=" + startBarIndex + " nbBars=" + nbBars
+                    + " parentSection=" + parentSection + " reusePrevParamValues=" + reusePrevParamValues);
         }
-        SongPartImpl spt = new SongPartImpl(r, startBarIndex, nbBars, parentSection);
-        spt.setContainer(this);
+
+        SongPartImpl spt;
+
+        if (startBarIndex > 0 && reusePrevParamValues)
+        {
+            // New song part which reuse parameters from previous sont part
+            SongPart prevSpt = getSongPart(startBarIndex - 1);
+            spt = (SongPartImpl) prevSpt.clone(r, startBarIndex, nbBars, parentSection);
+
+        } else
+        {
+            // New song part with default RP values
+            spt = new SongPartImpl(r, startBarIndex, nbBars, parentSection);
+            spt.setContainer(this);
+
+        }
+
+        spt.setName(name);
+
         return spt;
     }
 
@@ -539,7 +558,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             SongPartImpl wspt = (SongPartImpl) spt;
             save.putValue(wspt, wspt.getName());
-            wspt.SetName(name);
+            wspt.setName(name);
         }
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Rename SongParts")
@@ -550,7 +569,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 LOGGER.finer("setSongPartsName.undoBody() spts=" + spts + " name=" + name);
                 for (SongPart wspt : save.getKeys())
                 {
-                    ((SongPartImpl) wspt).SetName(save.getValue(wspt));
+                    ((SongPartImpl) wspt).setName(save.getValue(wspt));
                 }
                 fireAuthorizedChangeEvent(new SptRenamedEvent(SongStructureImpl.this, save.getKeys()));
             }
@@ -561,7 +580,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 LOGGER.finer("setSongPartsName.redoBody() spts=" + spts + " name=" + name);
                 for (SongPart wspt : save.getKeys())
                 {
-                    ((SongPartImpl) wspt).SetName(name);
+                    ((SongPartImpl) wspt).setName(name);
                 }
                 fireAuthorizedChangeEvent(new SptRenamedEvent(SongStructureImpl.this, save.getKeys()));
             }
@@ -621,8 +640,61 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public Rhythm getLastUsedRhythm(TimeSignature ts)
     {
-        return mapTsLastRhythm.getValue(ts);
+        Rhythm r = mapTsLastRhythm.getValue(ts);
+        if (r instanceof AdaptedRhythm)
+        {
+            // Don't return an AdaptedRhythm if its source rhythm is present
+            Rhythm sr = ((AdaptedRhythm) r).getSourceRhythm();
+            if (!getUniqueRhythms(true).contains(sr))
+            {
+                r = null;
+            }
+        }
+        return r;
     }
+
+
+    @Override
+    public Rhythm getRecommendedRhythm(TimeSignature ts, int sptBarIndex)
+    {
+        if (ts == null || sptBarIndex < 0)
+        {
+            throw new IllegalArgumentException("ts=" + ts + " sptBarIndex=" + sptBarIndex);
+        }
+
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
+
+
+        // Try to use the last used rhythm for this new time signature
+        Rhythm r = getLastUsedRhythm(ts);
+        if (r != null)
+        {
+            return r;
+        }
+
+                
+        // Try to use an AdaptedRhythm for the previous song part's rhythm
+        SongPart prevSpt = sptBarIndex == 0 ? null : getSongPart(sptBarIndex - 1);        
+        if (prevSpt != null)
+        {
+            Rhythm prevRhythm = prevSpt.getRhythm();
+            if (prevRhythm instanceof AdaptedRhythm)
+            {
+                prevRhythm = ((AdaptedRhythm) prevRhythm).getSourceRhythm();
+            }
+            r = rdb.getAdaptedRhythm(prevRhythm, ts);        // may be null
+        }
+
+        
+        // Last option
+        if (r == null)
+        {
+            r = rdb.getDefaultRhythm(ts);        // Can't be null
+        }
+
+        return r;
+    }
+
 
     @Override
     public SongPart getSongPart(int absoluteBarIndex)
@@ -630,7 +702,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         int abi = absoluteBarIndex;
         for (SongPart spt : songParts)
         {
-            if (abi >= spt.getStartBarIndex() && abi < (spt.getStartBarIndex() + spt.getNbBars()))
+            if (spt.getBarRange().contains(abi))
             {
                 return spt;
             }
@@ -774,13 +846,12 @@ public class SongStructureImpl implements SongStructure, Serializable
     public void generateAllAdaptedRhythms()
     {
         RhythmDatabase rdb = RhythmDatabase.getDefault();
-        List<Rhythm> rhythms = getUniqueRhythms(false);     // Need to include adapted rhythms to get all possible time signatures
-        Set<TimeSignature> timeSignatures = rhythms
+        Set<TimeSignature> timeSignatures = getUniqueRhythms(false) // Include AdaptedRhythms to get all time signatures
                 .stream()
                 .map(r -> r.getTimeSignature())
                 .collect(Collectors.toSet());
 
-        for (Rhythm r : rhythms)
+        for (Rhythm r : getUniqueRhythms(true))
         {
             for (TimeSignature ts : timeSignatures)
             {

@@ -46,11 +46,11 @@ import org.openide.NotifyDescriptor;
 import org.openide.util.NbBundle.Messages;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.IntRange;
 
 public class SongPartImpl implements SongPart, Serializable
 {
 
+    public static final String NO_NAME = "NoName";
     /**
      * The rhythm of this part.
      */
@@ -105,12 +105,10 @@ public class SongPartImpl implements SongPart, Serializable
         rhythm = r;
         this.startBarIndex = startBarIndex;
         this.nbBars = nbBars;
-        name = "NoNameSet";
-        if (parentSection != null)
-        {
-            name = parentSection.getData().getName();
-        }
+        name = parentSection == null ? NO_NAME : parentSection.getData().getName();
         this.parentSection = parentSection;
+        
+        
         // Associate a default value to each RhythmParameter                    
         for (RhythmParameter<?> rp : r.getRhythmParameters())
         {
@@ -124,7 +122,7 @@ public class SongPartImpl implements SongPart, Serializable
         return name;
     }
 
-    public void SetName(String name)
+    public void setName(String name)
     {
         if (name == null || name.length() == 0)
         {
@@ -133,7 +131,7 @@ public class SongPartImpl implements SongPart, Serializable
         String oldName = this.name;
         if (!name.equals(this.name))
         {
-            // LOGGER.log(Level.FINE, "SetName getName()=" + getName() + " name=" + name);
+            // LOGGER.log(Level.FINE, "setName getName()=" + getName() + " name=" + name);
             this.name = name;
             pcs.firePropertyChange(PROPERTY_NAME, oldName, name);
         }
@@ -223,12 +221,6 @@ public class SongPartImpl implements SongPart, Serializable
     }
 
     @Override
-    public IntRange getBarRange()
-    {
-        return new IntRange(startBarIndex, startBarIndex + nbBars - 1);
-    }
-
-    @Override
     @SuppressWarnings(
             {
                 "unchecked", "rawtypes"
@@ -249,7 +241,7 @@ public class SongPartImpl implements SongPart, Serializable
 
         SongPartImpl newSpt = new SongPartImpl(newRhythm, newStartBarIndex, newNbBars, cliSection);
         newSpt.setContainer(container);
-        newSpt.SetName(name);
+        newSpt.setName(name);
 
         // Update the values for compatible RhythmParameters
         for (RhythmParameter<?> newRp : newRhythm.getRhythmParameters())
@@ -497,7 +489,7 @@ public class SongPartImpl implements SongPart, Serializable
 
             // Recreate a SongPart
             SongPartImpl newSpt = new SongPartImpl(r, spStartBarIndex, spNbBars, spParentSection);
-            newSpt.SetName(spName);
+            newSpt.setName(spName);
 
             // Update new rhythm parameters with saved values 
             for (String savedRpId : spMapRpIdPercentageValue.getKeys())

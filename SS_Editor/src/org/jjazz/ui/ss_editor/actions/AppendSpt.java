@@ -77,6 +77,9 @@ public class AppendSpt extends AbstractAction
         {
             return;
         }
+        
+        
+        // Prepare data
         SongStructure sgs = tc.getSS_Editor().getModel();
         List<SongPart> spts = sgs.getSongParts();
         ChordLeadSheet cls = sgs.getParentChordLeadSheet();
@@ -84,32 +87,47 @@ public class AppendSpt extends AbstractAction
         {
             throw new IllegalStateException("sgs=" + sgs);
         }
+        
+        
+        // Show dialog
         InsertSptDialog dlg = InsertSptDialog.getInstance();
         dlg.setClsModel(cls);
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
+        
+        
+        
         if (dlg.isExitOk())
         {
+            // Perform change
             CLI_Section parentSection = dlg.getParentSection();
             assert parentSection != null;
-            Rhythm r = sgs.getLastUsedRhythm(parentSection.getData().getTimeSignature());
-            if (r == null)
-            {
-                r = RhythmDatabase.getDefault().getDefaultRhythm(parentSection.getData().getTimeSignature());
-            }
+                                   
+            
+            // Create the song part
             int startBarIndex = 0;
             if (!spts.isEmpty())
             {
                 SongPart lastSpt = spts.get(spts.size() - 1);
                 startBarIndex = lastSpt.getStartBarIndex() + lastSpt.getNbBars();
             }
+            
+            // Choose rhythm
+            Rhythm r = sgs.getRecommendedRhythm(parentSection.getData().getTimeSignature(), startBarIndex);
+
+            
             int nbBars = cls.getSectionRange(parentSection).size();
+            SongPart newSpt = sgs.createSongPart(r, parentSection.getData().getName(), startBarIndex, nbBars, parentSection, true);            
+            
+            
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
             um.startCEdit(undoText);
-            SongPart newSpt = sgs.createSongPart(r, startBarIndex, nbBars, parentSection);
+                        
+
             try
             {
                 sgs.addSongParts(Arrays.asList(newSpt));
+                
             } catch (UnsupportedEditException ex)
             {
                 // We should not be here, we reuse an existing rhythm
@@ -117,8 +135,10 @@ public class AppendSpt extends AbstractAction
                 um.handleUnsupportedEditException(undoText, msg);
                 return;
             }
+            
             um.endCEdit(undoText);
         }
+        
         dlg.cleanup();
     }
 

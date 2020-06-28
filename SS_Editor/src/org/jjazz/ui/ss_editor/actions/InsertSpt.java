@@ -99,6 +99,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
     @Override
     public void actionPerformed(ActionEvent e)
     {
+        // Prepare data
         SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         List<SongPart> spts = sgs.getSongParts();
@@ -108,33 +109,44 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
         {
             throw new IllegalStateException("sgs=" + sgs);
         }
+
+
+        // Show dialog
         InsertSptDialog dlg = InsertSptDialog.getInstance();
         dlg.setClsModel(cls);
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
+
+
         if (dlg.isExitOk())
         {
+            // Perform change
             CLI_Section parentSection = dlg.getParentSection();
             assert parentSection != null;
-            Rhythm r = sgs.getLastUsedRhythm(parentSection.getData().getTimeSignature());
-            if (r == null)
-            {
-                r = RhythmDatabase.getDefault().getDefaultRhythm(parentSection.getData().getTimeSignature());
-            }
+                     
+
+            // Create the new song part
             int startBarIndex = spts.get(selection.getMinStartSptIndex()).getStartBarIndex();
-            int nbBars = cls.getSectionRange(parentSection).size();
-            SongPart newSpt = sgs.createSongPart(r, startBarIndex, nbBars, parentSection);
+            Rhythm r = sgs.getRecommendedRhythm(parentSection.getData().getTimeSignature(), startBarIndex);            
+            int nbBars = cls.getSectionRange(parentSection).size();                                  
+            SongPart newSpt = sgs.createSongPart(r, parentSection.getData().getName(), startBarIndex, nbBars, parentSection, true);
+
+
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
             um.startCEdit(undoText);
+
+
             try
             {
                 sgs.addSongParts(Arrays.asList(newSpt));
+
             } catch (UnsupportedEditException ex)
             {
                 String msg = ERR_InsertSpt() + "\n" + ex.getLocalizedMessage();
                 um.handleUnsupportedEditException(undoText, msg);
                 return;
             }
+
             um.endCEdit(undoText);
         }
         dlg.cleanup();

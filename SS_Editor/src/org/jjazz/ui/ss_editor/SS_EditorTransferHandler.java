@@ -382,8 +382,8 @@ public class SS_EditorTransferHandler extends TransferHandler
     }
 
     /**
-     * Create a new SongPart corresponding to specified section. 
-     * 
+     * Create a new SongPart corresponding to specified section.
+     * <p>
      * Adapt RP values from previous SongPart.
      *
      * @param parentSection
@@ -398,41 +398,41 @@ public class SS_EditorTransferHandler extends TransferHandler
     {
         SongStructure sgs = editor.getModel();
         List<SongPart> spts = sgs.getSongParts();
+
+        // Prepare data
         SongPart prevSpt = (sptIndex == 0) ? null : spts.get(sptIndex - 1);
-        int startBarIndex = (prevSpt == null) ? 0 : prevSpt.getStartBarIndex() + prevSpt.getNbBars();
+        int startBarIndex = (prevSpt == null) ? 0 : prevSpt.getBarRange().to + 1;
         int nbBars = parentSection.getContainer().getSectionRange(parentSection).size();
-        Rhythm r = sgs.getLastUsedRhythm(parentSection.getData().getTimeSignature());
-        if (r == null)
-        {
-            r = RhythmDatabase.getDefault().getDefaultRhythm(parentSection.getData().getTimeSignature());
-        }
-        SongPart spt = sgs.createSongPart(r, startBarIndex, nbBars, parentSection);
+
+
+        // Choose rhythm
+        Rhythm r = sgs.getRecommendedRhythm(parentSection.getData().getTimeSignature(), startBarIndex);
+
+
+        // Create the song part
+        SongPart spt = sgs.createSongPart(r, parentSection.getData().getName(), startBarIndex, nbBars, parentSection, true);
+
+
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
         um.startCEdit(Bundle.CTL_AddSpt());
+
+
         try
         {
-            sgs.addSongParts(Arrays.asList(spt));         // Possible exception here
-            if (prevSpt != null)
-            {
-                // Adjust RhythmParameters value from previous SongPart if possible    
-                for (RhythmParameter rp : prevSpt.getRhythm().getRhythmParameters())
-                {
-                    RhythmParameter crp = RhythmParameter.Utilities.findFirstCompatibleRp(r.getRhythmParameters(), rp);
-                    if (crp != null)
-                    {
-                        double prevValue = rp.calculatePercentage(prevSpt.getRPValue(rp));
-                        Object value = crp.calculateValue(prevValue);
-                        sgs.setRhythmParameterValue(spt, crp, value);
-                    }
-                }
-            }
+            // Perform change
+            sgs.addSongParts(Arrays.asList(spt));         // Possible exception here     
+
         } catch (UnsupportedEditException ex)
         {
             String msg = ERR_AddSpt() + " for section " + parentSection.getData() + ".\n" + ex.getLocalizedMessage();
             um.handleUnsupportedEditException(Bundle.CTL_AddSpt(), msg);
             return null;
         }
+
+
         um.endCEdit(Bundle.CTL_AddSpt());
+
+
         return spt;
     }
 }

@@ -306,8 +306,8 @@ public class SgsUpdater implements ClsChangeListener
             {
 
                 // Get the new rhythm to use
-                SongPart prevSpt = oldSpts.get(0).getStartBarIndex() == 0 ? null : sgs.getSongPart(oldSpts.get(0).getStartBarIndex() - 1);
-                Rhythm newRhythm = findNewRhythm(newTs, prevSpt);
+                Rhythm newRhythm = sgs.getRecommendedRhythm(newTs, oldSpts.get(0).getStartBarIndex());
+                
 
                 ArrayList<SongPart> newSpts = new ArrayList<>();
                 for (SongPart oldSpt : oldSpts)
@@ -387,57 +387,6 @@ public class SgsUpdater implements ClsChangeListener
     }
 
     /**
-     * Find the rhythm to be used for the specified time signature and song parts.
-     *
-     * @param ts
-     * @param prevSpt Can be null if new rhythm is for the first song part.
-     * @return
-     */
-    private Rhythm findNewRhythm(TimeSignature ts, SongPart prevSpt)
-    {
-        if (ts == null)
-        {
-            throw new IllegalArgumentException("ts=" + ts + " prevSpt=" + prevSpt);
-        }
-
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
-
-        // Try to use the last used rhythm for this new time signature
-        Rhythm newRhythm = sgs.getLastUsedRhythm(ts);
-
-
-        // Special case: last used rhythm is an adapted rhythm, but its source rhythm is no more present
-        if (newRhythm != null && newRhythm instanceof AdaptedRhythm)
-        {
-            Rhythm sourceRhythm = ((AdaptedRhythm) newRhythm).getSourceRhythm();
-            if (!sgs.getUniqueRhythms(true).contains(sourceRhythm))
-            {
-                newRhythm = null;
-            }
-        }
-
-        
-        // Try to use an AdaptedRhythm for the previous song part's rhythm
-        if (newRhythm == null && prevSpt != null)
-        {
-            Rhythm prevRhythm = prevSpt.getRhythm();
-            if (prevRhythm instanceof AdaptedRhythm)
-            {
-                prevRhythm = ((AdaptedRhythm) prevRhythm).getSourceRhythm();
-            }
-            newRhythm = rdb.getAdaptedRhythm(prevRhythm, ts);        // may be null
-        }
-
-        // Last option
-        if (newRhythm == null)
-        {
-            newRhythm = rdb.getDefaultRhythm(ts);        // Can't be null
-        }
-
-        return newRhythm;
-    }
-
-    /**
      * Get all the songParts associated to specified parent section.
      *
      * @param parentSection
@@ -513,15 +462,16 @@ public class SgsUpdater implements ClsChangeListener
         }
 
         // Choose rhythm
-        SongPart prevSpt = sptBarIndex == 0 ? null : sgs.getSongPart(sptBarIndex - 1);
-        Rhythm r = findNewRhythm(newSection.getData().getTimeSignature(), prevSpt);
+        Rhythm r= sgs.getRecommendedRhythm(newSection.getData().getTimeSignature(), sptBarIndex);
 
         // Create the song part       
         SongPart spt = sgs.createSongPart(
                 r,
+                newSection.getData().getName(),
                 sptBarIndex,
                 newSectionSize,
-                newSection);
+                newSection,
+                true);
         return spt;
     }
 

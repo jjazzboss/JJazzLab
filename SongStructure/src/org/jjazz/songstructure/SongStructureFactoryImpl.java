@@ -62,16 +62,16 @@ public class SongStructureFactoryImpl extends SongStructureFactory
         SongStructureImpl sgs = new SongStructureImpl(cls, keepSgsUpdated);
         for (CLI_Section section : cls.getItems(CLI_Section.class))
         {
-            Rhythm r = sgs.getLastUsedRhythm(section.getData().getTimeSignature());
-            if (r == null)
-            {
-                r = RhythmDatabase.getDefault().getDefaultRhythm(section.getData().getTimeSignature());
-            }
+            int sptBarIndex = section.getPosition().getBar();
+            Rhythm r = sgs.getRecommendedRhythm(section.getData().getTimeSignature(), sptBarIndex);                                                
+            
             SongPart spt = sgs.createSongPart(
                     r,
-                    section.getPosition().getBar(),
+                    section.getData().getName(),
+                    sptBarIndex,
                     cls.getSectionRange(section).size(),
-                    section);
+                    section,
+                    false);
             sgs.addSongParts(Arrays.asList(spt));
         }
         return sgs;
@@ -84,7 +84,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
         RhythmDatabase rdb = RhythmDatabase.getDefault();
         Rhythm r = rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR);
         assert r != null;
-        SongPart spt = sgs.createSongPart(r, 0, 8, null);
+        SongPart spt = sgs.createSongPart(r, "Name", 0, 8, null, false);
         try
         {
             sgs.addSongParts(Arrays.asList(spt));
