@@ -39,6 +39,7 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
+import javax.swing.text.DefaultCaret;
 import org.jjazz.chordsymboltextinput.ChordSymbolTextInput;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -128,6 +129,11 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     private CL_BarEditorDialogImpl()
     {
         initComponents();
+        
+        // Mac OSX automatically does a select all upon focus gain: this generates problem see Issue #97
+        // This is hack to make sure the default behavior is used, even on Mac OSX
+        jtfChordSymbols.setCaret(new DefaultCaret());
+        
         saveSectionFieldsForeground = jtfSectionName.getForeground();
         resultSection = null;
         resultAddedItems = new ArrayList<>();
