@@ -200,9 +200,16 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                 if (preset.getKey() != (char) 0)
                 {
                     // Append char at the end, with a leading space if required
-                    final String text = jtfChordSymbols.getText().trim();
-                    final String space = text.isEmpty() ? "" : " ";
-                    jtfChordSymbols.setText(text + space + Character.toUpperCase(preset.getKey()));
+                    String text = jtfChordSymbols.getText().trim();
+                    String space = text.isEmpty() ? "" : " ";        
+                    text = text + space + Character.toUpperCase(preset.getKey());
+                    jtfChordSymbols.setText(text);
+                    
+                    
+                    // Only on MacOSX, the inserted char ends up being selected! 
+                    // This make sure there is no selection
+                    jtfChordSymbols.setCaretPosition(text.length());    
+                    jtfChordSymbols.moveCaretPosition(text.length());
                 } else
                 {
                     jtfChordSymbols.selectAll();
