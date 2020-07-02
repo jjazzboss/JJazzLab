@@ -137,7 +137,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, CL_
 
         CLI_Section sectionStart = cls.getSection(selection.getMinBarIndexWithinCls());
         int sectionIndex = sectionStart.getPosition().getBar();
-        int sectionSize = cls.getSectionSize(sectionStart);
+        int sectionSize = cls.getSectionRange(sectionStart).size();
         CLI_Section sectionEnd = cls.getSection(selection.getMaxBarIndexWithinCls());
 
         if (sectionStart == sectionEnd && selection.getSelectedBarIndexesWithinCls().size() < sectionSize)

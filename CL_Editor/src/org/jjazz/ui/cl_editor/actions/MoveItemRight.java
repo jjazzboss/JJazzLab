@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -34,6 +35,7 @@ import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.moveitemright")
@@ -78,8 +80,15 @@ public final class MoveItemRight implements ActionListener
             int barIndex = cli.getPosition().getBar();
             if (barIndex > 0 && barIndex < (model.getSize() - 1) && model.getSection(barIndex + 1) == cli)
             {
-                // No section on the previous bar, move ok   
-                model.moveSection((CLI_Section) cli, barIndex + 1);
+                try
+                {
+                    // No section on the previous bar, move ok
+                    model.moveSection((CLI_Section) cli, barIndex + 1);
+                } catch (UnsupportedEditException ex)
+                {
+                    // Should never happen
+                    Exceptions.printStackTrace(ex);
+                }
             }
         }
     }

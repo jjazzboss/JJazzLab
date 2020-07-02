@@ -27,6 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -174,9 +175,16 @@ public class CL_ContextActionSupport implements ClsChangeListener
         listeners.remove(l);
     }
 
-    //----------------------------------------------------------------------------------------
-    // ClsChangeListener interface
-    //----------------------------------------------------------------------------------------      
+    // ============================================================================================= 
+    // ClsChangeListener implementation
+    // =============================================================================================      
+       
+    @Override
+    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+ 
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
     {

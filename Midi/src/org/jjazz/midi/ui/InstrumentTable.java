@@ -138,7 +138,7 @@ public class InstrumentTable extends JTable
         public static final int COL_BANK = 2;
         private List<? extends Instrument> instruments = new ArrayList<>();
 
-        public void setInstruments(List<Instrument> instruments)
+        public void setInstruments(List<? extends Instrument> instruments)
         {
             if (instruments == null)
             {

@@ -79,7 +79,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     private SongStructure songStructure;
     private ChordLeadSheet chordLeadSheet;
     private String name;
-    private String comments = "";
+    private String comments = "Edit me...";
     private int tempo = 120;
     private ArrayList<String> tags = new ArrayList<>();
     private final Properties clientProperties = new Properties();
@@ -349,7 +349,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         songStructure.removeSgsChangeListener(this);
         if (releaseRhythmResources)
         {
-            for (Rhythm r : SongStructure.getUniqueRhythms(songStructure, false))
+            for (Rhythm r : songStructure.getUniqueRhythms(false))
             {
                 r.releaseResources();
             }
@@ -571,18 +571,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     }
 
     @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event)
-    {
-        fireIsModified();
-    }
-
-    @Override
-    public void songStructureChanged(SgsChangeEvent e)
-    {
-        fireIsModified();
-    }
-
-    @Override
     public String toString()
     {
         return this.getName();
@@ -600,6 +588,40 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             return str.substring(0, indexExt);
         }
     }
+
+    // ============================================================================================= 
+    // ClsChangeListener implementation
+    // =============================================================================================      
+       
+    @Override
+    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+
+    @Override
+    public void chordLeadSheetChanged(ClsChangeEvent event)
+    {
+        fireIsModified();
+    }
+
+
+    //------------------------------------------------------------------------------
+    // SgsChangeListener interface
+    //------------------------------------------------------------------------------
+    @Override
+    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+
+
+    @Override
+    public void songStructureChanged(SgsChangeEvent e)
+    {
+        fireIsModified();
+    }
+
 
     // ----------------------------------------------------------------------------
     // Private functions 

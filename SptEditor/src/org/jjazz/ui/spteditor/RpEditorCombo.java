@@ -41,7 +41,7 @@ import org.jjazz.songstructure.api.SongPart;
 public class RpEditorCombo extends RpEditor implements ActionListener
 {
     
-    private final JComboBox combo_rpValue;
+    private final JComboBox<String> combo_rpValue;
     private static final Logger LOGGER = Logger.getLogger(RpEditorCombo.class.getSimpleName());
     
     public RpEditorCombo(SongPart spt, RhythmParameter<?> rp)
@@ -54,7 +54,7 @@ public class RpEditorCombo extends RpEditor implements ActionListener
         }
 
         // Prepare our editor component
-        combo_rpValue = new JComboBox<String>();
+        combo_rpValue = new JComboBox<>();
         combo_rpValue.addActionListener(this);
         RhythmParameter<?> rpModel = getRpModel();
         SongPart sptModel = getSptModel();        

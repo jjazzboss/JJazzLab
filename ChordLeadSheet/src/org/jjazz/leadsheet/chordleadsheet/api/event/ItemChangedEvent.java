@@ -33,11 +33,13 @@ public class ItemChangedEvent extends ClsChangeEvent
 {
 
     private Object oldData;
+    private Object newData;
 
-    public ItemChangedEvent(ChordLeadSheet src, ChordLeadSheetItem<?> item, Object oldData)
+    public ItemChangedEvent(ChordLeadSheet src, ChordLeadSheetItem<?> item, Object oldData, Object newData)
     {
         super(src, item);
         this.oldData = oldData;
+        this.newData = newData;
     }
 
     public Object getOldData()
@@ -45,9 +47,14 @@ public class ItemChangedEvent extends ClsChangeEvent
         return oldData;
     }
 
+    public Object getNewData()
+    {
+        return newData;
+    }
+
     @Override
     public String toString()
     {
-        return "ItemChangedEvent[item=" + getItem() + " prevData=" + oldData + "]";
+        return "ItemChangedEvent[item=" + getItem() + ", prevData=" + oldData + ", newData=" + newData + "]";
     }
 }

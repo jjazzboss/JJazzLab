@@ -273,7 +273,9 @@ public class RhythmFeatures
         {
             if (value != null && c.isInstance(value))
             {
-                return (T) value;
+                @SuppressWarnings("unchecked")
+                T res = (T) value;
+                return res;
             }
         }
         return null;

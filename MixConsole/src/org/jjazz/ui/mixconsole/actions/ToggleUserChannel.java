@@ -98,7 +98,7 @@ public class ToggleUserChannel extends AbstractAction implements Presenter.Menu
                             songMidiMix = res.iterator().next();
                             if (checkbox != null)
                             {
-                                checkbox.setSelected(songMidiMix.getCurrentUserChannel() != -1);
+                                checkbox.setSelected(songMidiMix.getUserChannel() != -1);
                             }
                         }
                     }
@@ -122,7 +122,7 @@ public class ToggleUserChannel extends AbstractAction implements Presenter.Menu
             InstrumentMix insMix = new InstrumentMix(OutputSynthManager.getInstance().getOutputSynth().getUserInstrument(), new InstrumentSettings());
             try
             {
-                songMidiMix.addUserChannel(insMix);
+                songMidiMix.addUserChannel(insMix, -1);
             } catch (MidiUnavailableException ex)
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.WARNING_MESSAGE);

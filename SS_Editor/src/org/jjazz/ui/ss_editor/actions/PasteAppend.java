@@ -79,7 +79,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, CTL_PasteAppend());
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | InputEvent.SHIFT_DOWN_MASK));
+        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK));
         setEnabled(false);
         CopyBuffer buffer = CopyBuffer.getInstance();
         buffer.addChangeListener(this);

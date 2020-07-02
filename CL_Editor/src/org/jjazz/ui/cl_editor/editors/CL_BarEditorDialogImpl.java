@@ -39,6 +39,7 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
+import javax.swing.text.DefaultCaret;
 import org.jjazz.chordsymboltextinput.ChordSymbolTextInput;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -128,6 +129,11 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     private CL_BarEditorDialogImpl()
     {
         initComponents();
+        
+        // Mac OSX automatically does a select all upon focus gain: this generates problem see Issue #97
+        // This is hack to make sure the default behavior is used, even on Mac OSX
+        jtfChordSymbols.setCaret(new DefaultCaret());
+        
         saveSectionFieldsForeground = jtfSectionName.getForeground();
         resultSection = null;
         resultAddedItems = new ArrayList<>();
@@ -200,9 +206,16 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                 if (preset.getKey() != (char) 0)
                 {
                     // Append char at the end, with a leading space if required
-                    final String text = jtfChordSymbols.getText().trim();
-                    final String space = text.isEmpty() ? "" : " ";
-                    jtfChordSymbols.setText(text + space + Character.toUpperCase(preset.getKey()));
+                    String text = jtfChordSymbols.getText().trim();
+                    String space = text.isEmpty() ? "" : " ";        
+                    text = text + space + Character.toUpperCase(preset.getKey());
+                    jtfChordSymbols.setText(text);
+                    
+                    
+                    // Only on MacOSX, the inserted char ends up being selected! 
+                    // This make sure there is no selection
+                    jtfChordSymbols.setCaretPosition(text.length());    
+                    jtfChordSymbols.moveCaretPosition(text.length());
                 } else
                 {
                     jtfChordSymbols.selectAll();

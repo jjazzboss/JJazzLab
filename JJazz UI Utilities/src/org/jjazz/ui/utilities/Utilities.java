@@ -180,7 +180,7 @@ public class Utilities
      */
     public static KeyStroke getGenericControlKeyStroke(int keyEventCode)
     {
-        return KeyStroke.getKeyStroke(keyEventCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+        return KeyStroke.getKeyStroke(keyEventCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
     }
 
     /**
@@ -191,7 +191,7 @@ public class Utilities
      */
     public static KeyStroke getGenericAltKeyStroke(int keyEventCode)
     {
-        return KeyStroke.getKeyStroke(keyEventCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+        return KeyStroke.getKeyStroke(keyEventCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
     }
 
     public static Color calculateDisabledColor(Color c)

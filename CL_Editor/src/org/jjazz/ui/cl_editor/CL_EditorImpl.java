@@ -72,6 +72,7 @@ import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.openide.util.lookup.ProxyLookup;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.savablesong.SavableSong;
 import org.jjazz.savablesong.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
@@ -930,11 +931,15 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     // ----------------------------------------------------------------------------------
     // ClsChangeListener interface
     // ----------------------------------------------------------------------------------
-    /**
-     * Don't throw UnsupportedEditException: not needed
-     *
-     * @param event
-     */
+    
+    
+    @Override
+    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+    
+    
     @Override
     public void chordLeadSheetChanged(final ClsChangeEvent event)
     {
@@ -1026,7 +1031,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                     ItemMovedEvent e = (ItemMovedEvent) event;
                     ChordLeadSheetItem<?> item = e.getItem();
                     int barIndex = item.getPosition().getBar();
-                    int oldBarIndex = e.getPrevPosition().getBar();
+                    int oldBarIndex = e.getOldPosition().getBar();
                     boolean selected = isSelected(item);
                     if (barIndex == oldBarIndex)
                     {
@@ -1050,11 +1055,11 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                     CLI_Section section = e.getSection();
                     setSectionStartOnNewLine(section, false);
                     int barIndex = section.getPosition().getBar();
-                    int prevBarIndex = e.getPrevBar();
+                    int prevBarIndex = e.getOldBar();
                     boolean selected = isSelected(section);
                     removeItem(prevBarIndex, section, true);
                     addItem(barIndex, section);       // This will updatePaddingBoxes if needed
-                    propagateSectionChange(clsModel.getSection(e.getPrevBar()));
+                    propagateSectionChange(clsModel.getSection(e.getOldBar()));
                     selectItem(section, selected);
                     if (section == fItem)
                     {
@@ -1477,7 +1482,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private void propagateSectionChange(CLI_Section cliSection)
     {
-        int sectionSize = clsModel.getSectionSize(cliSection);
+        int sectionSize = clsModel.getSectionRange(cliSection).size();
         int barIndex = cliSection.getPosition().getBar();
         Quantization q = getDisplayQuantizationValue(cliSection);
         for (int i = barIndex; i < barIndex + sectionSize; i++)

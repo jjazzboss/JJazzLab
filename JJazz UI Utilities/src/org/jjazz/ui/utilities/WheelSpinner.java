@@ -39,6 +39,9 @@ import javax.swing.SpinnerNumberModel;
  * A JSpinner with mousewheel support and some convenience functions.
  * <p>
  * Supports only SpinnerListModel and SpinnerNumberModel.
+ * <p>
+ * This JSpinner consumes all the printable char key events. Use a normal JSpinner if you want the default behavior with key events being
+ * processed by JSpinner AND forwarded to component hierarchy via the key binding framework.
  */
 public class WheelSpinner extends JSpinner implements MouseWheelListener
 {
@@ -49,19 +52,21 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
     private boolean loopValues;
     private static final Logger LOGGER = Logger.getLogger(WheelSpinner.class.getSimpleName());
 
-    /**
-     * Todo: Need to replace the hack...
-     */
     public WheelSpinner()
     {
         addMouseWheelListener(this);
 
         // HACK ! 
         // Key presses are not consumed by JSpinner, they are also processed by the keybinding framework
-        // Discard this mechanism for some keys, eg SPACE should not trigger the play/pause action while
-        // editing the JSpinner field.
-        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("SPACE"), "doNothing");
+        // Only way is to capture all the keys...
+        // see https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html
+        for (char c = 32; c <= 126; c++)
+        {
+            getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, 0), "doNothing");
+            getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, InputEvent.SHIFT_DOWN_MASK), "doNothing");
+        }
         getActionMap().put("doNothing", new NoAction());
+
         setColumns(3);
         setCtrlWheelStep(3);
         setWheelStep(1);

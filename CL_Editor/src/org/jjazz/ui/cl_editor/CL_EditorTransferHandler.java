@@ -126,13 +126,16 @@ public class CL_EditorTransferHandler extends TransferHandler
     @Override
     public boolean canImport(TransferSupport info)
     {
-        LOGGER.fine("canImport() ENTERING info.getComponent()=" + info.getComponent());
+        LOGGER.fine("canImport() -- info.getComponent()=" + info.getComponent());
+
+
         // Check data flavor
         if (!info.isDataFlavorSupported(CLI_ChordSymbol.DATA_FLAVOR) && !info.isDataFlavorSupported(CLI_Section.DATA_FLAVOR))
         {
             LOGGER.fine("canImport() return false: unsupported DataFlavor");
             return false;
         }
+
 
         // Check target location
         Position newPos = getDropPosition(info);
@@ -142,6 +145,7 @@ public class CL_EditorTransferHandler extends TransferHandler
             return false;
         }
 
+
         // Don't allow cross-chordleadsheet import
         ChordLeadSheetItem<?> sourceItem = getTransferredItem(info.getTransferable());
         assert sourceItem != null;
@@ -150,6 +154,7 @@ public class CL_EditorTransferHandler extends TransferHandler
             LOGGER.fine("canImport() return false: cross-chordleadsheet drag n drop not managed");
             return false;
         }
+
 
         // Check if the source actions (a bitwise-OR of supported actions)
         // contains the COPY or MOVE action
@@ -168,8 +173,10 @@ public class CL_EditorTransferHandler extends TransferHandler
             info.setDropAction(MOVE);
         }
 
+
         // Show the insertion point
         editor.showInsertionPoint(true, sourceItem, newPos, (info.getDropAction() & COPY) == COPY);
+
 
         return true;
     }
@@ -177,12 +184,16 @@ public class CL_EditorTransferHandler extends TransferHandler
     @Override
     public boolean importData(TransferSupport info)
     {
-        LOGGER.fine("importData() ENTERING info.getComponent()=" + info.getComponent());
+        LOGGER.fine("importData() -- info.getComponent()=" + info.getComponent());
+
+        
         if (!info.isDrop())
         {
             LOGGER.fine("importData() not a drop");
             return false;
         }
+
+
         if (!canImport(info))
         {
             LOGGER.fine("importData() can't import");
@@ -193,6 +204,7 @@ public class CL_EditorTransferHandler extends TransferHandler
         ChordLeadSheetItem<?> sourceItem = getTransferredItem(info.getTransferable());
         assert sourceItem != null;
 
+
         // Get the drop position
         Position newPos = getDropPosition(info);
         if (newPos == null)
@@ -201,16 +213,23 @@ public class CL_EditorTransferHandler extends TransferHandler
             return false;
         }
 
+
         int sourceBarIndex = sourceItem.getPosition().getBar();
         int newBarIndex = newPos.getBar();
         ChordLeadSheet cls = editor.getModel();
+
+
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
+
 
         if (sourceItem instanceof CLI_Section)
         {
             CLI_Section section = (CLI_Section) sourceItem;
+
+
             if (sourceBarIndex == newBarIndex)
             {
+                LOGGER.fine("importData() sourceBarIndex=" + sourceBarIndex + "=newBarIndex");
                 return false;
             }
 
@@ -218,10 +237,14 @@ public class CL_EditorTransferHandler extends TransferHandler
             CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
             selection.unselectAll(editor);
 
+
             CLI_Section curSection = cls.getSection(newBarIndex);
             if (info.getDropAction() == COPY)
             {
+                
                 um.startCEdit("Copy section");
+                
+                
                 CLI_Section sectionCopy = (CLI_Section) section.getCopy(null, newPos);
                 if (curSection.getPosition().getBar() == newBarIndex)
                 {
@@ -260,10 +283,10 @@ public class CL_EditorTransferHandler extends TransferHandler
                 um.startCEdit("Move section");
                 if (curSection.getPosition().getBar() == newBarIndex)
                 {
-                    // There is already a section there, just update the content      
-                    cls.removeSection(section);
+                    // There is already a section there, just update the content                          
                     try
                     {
+                        cls.removeSection(section);
                         cls.setSectionName(curSection, section.getData().getName());
                         cls.setSectionTimeSignature(curSection, section.getData().getTimeSignature());
                     } catch (UnsupportedEditException ex)
@@ -277,8 +300,16 @@ public class CL_EditorTransferHandler extends TransferHandler
                     editor.setFocusOnItem(curSection, IR_Type.Section);
                 } else
                 {
-                    // No section there, we can move
-                    cls.moveSection(section, newBarIndex);
+                    try
+                    {
+                        // No section there, we can move
+                        cls.moveSection(section, newBarIndex);
+                    } catch (UnsupportedEditException ex)
+                    {
+                        String msg = "Impossible to move section.\n" + ex.getLocalizedMessage();
+                        um.handleUnsupportedEditException("Move section", msg);
+                        return false;
+                    }
                     editor.selectItem(section, true);
                     editor.setFocusOnItem(section, IR_Type.Section);
                 }
@@ -303,7 +334,9 @@ public class CL_EditorTransferHandler extends TransferHandler
                 um.endCEdit("Move item");
             }
         }
+        
         LOGGER.fine("importData() EXIT with success");
+        
         return true;
     }
 

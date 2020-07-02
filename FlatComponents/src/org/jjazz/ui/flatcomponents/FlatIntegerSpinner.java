@@ -55,7 +55,7 @@ public class FlatIntegerSpinner extends FlatSpinner<Integer>
         Integer r = null;
         try
         {
-            r = new Integer(s);
+            r = Integer.valueOf(s);
         } catch (NumberFormatException e)
         {
         }

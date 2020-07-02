@@ -120,8 +120,8 @@ public final class TestAction implements ActionListener
 
         ic = new InstanceContent();
         lc = new AbstractLookup(ic);
-        ic.add(new Integer(1));
-        ic.add(new Float(1));
+        ic.add(1);
+        ic.add(1f);
 
         lc1 = new ProxyLookup(l1, lc);
         lc2 = new ProxyLookup(l2, lc);

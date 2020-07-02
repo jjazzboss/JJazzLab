@@ -100,8 +100,8 @@ public class RhythmStub implements Rhythm
         boolean res = false;
         if (o instanceof RhythmStub)
         {
-            RhythmStub ar = (RhythmStub) o;
-            res = ar.uniqueId.equals(uniqueId);
+            RhythmStub rs = (RhythmStub) o;
+            res = rs.uniqueId.equals(uniqueId);
         }
         return res;
     }

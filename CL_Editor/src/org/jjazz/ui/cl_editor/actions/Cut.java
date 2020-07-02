@@ -33,14 +33,15 @@ import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.SMALL_ICON;
 import javax.swing.Icon;
-import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ui.cl_editor.api.CopyBuffer;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
+import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.actions.CutAction;
 import org.openide.awt.ActionID;
@@ -102,32 +103,58 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
         CopyBuffer copyBuffer = CopyBuffer.getInstance();
         ArrayList<ChordLeadSheetItem<?>> items = new ArrayList<>();
+
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
+        um.startCEdit(undoText);
+
+
         if (selection.isBarSelectedWithinCls())
         {
             for (Integer modelBarIndex : selection.getSelectedBarIndexesWithinCls())
             {
                 items.addAll((Collection<? extends ChordLeadSheetItem<?>>) cls.getItems(modelBarIndex, modelBarIndex, ChordLeadSheetItem.class));
             }
+
+
             int minBarIndex = selection.getMinBarIndexWithinCls();
             int maxBarIndex = selection.getMaxBarIndexWithinCls();
+
+
             copyBuffer.barModeCopy(items, maxBarIndex, maxBarIndex);
-            // Delete bars
-            cls.deleteBars(minBarIndex, maxBarIndex);
+            try
+            {
+                cls.deleteBars(minBarIndex, maxBarIndex);
+            } catch (UnsupportedEditException ex)
+            {
+                String msg = "Impossible to cut bars.\n" + ex.getLocalizedMessage();
+                um.handleUnsupportedEditException(undoText, msg);
+                return;
+            }
         } else if (selection.isItemSelected())
         {
             items.addAll(selection.getSelectedItems());
             copyBuffer.itemModeCopy(items);
+
+
             // Remove the items
             for (ChordLeadSheetItem item : items)
             {
                 if (item instanceof CLI_Section)
                 {
-                    if (item.getPosition().getBar() > 0)
+                    CLI_Section section = (CLI_Section) item;
+                    if (section.getPosition().getBar() > 0)
                     {
-                        cls.removeSection((CLI_Section) item);
+                        try
+                        {
+                            cls.removeSection(section);
+                        } catch (UnsupportedEditException ex)
+                        {
+                            String msg = "Impossible to cut section " + section.getData().getName() + ".\n" + ex.getLocalizedMessage();
+                            um.handleUnsupportedEditException(undoText, msg);
+                            return;
+                        }
                     }
                 } else
                 {
@@ -135,7 +162,9 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
                 }
             }
         }
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+
+
+        um.endCEdit(undoText);
     }
 
     @Override

@@ -156,9 +156,16 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
 
     // ============================================================================================= 
     // ClsChangeListener implementation
-    // =============================================================================================      
+    // =============================================================================================   
+
     @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event) throws UnsupportedEditException
+    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+
+    @Override
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
         var selection = cap.getSelection();
         if (event instanceof ItemChangedEvent && selection.getSelectedItems().contains(event.getItem()))

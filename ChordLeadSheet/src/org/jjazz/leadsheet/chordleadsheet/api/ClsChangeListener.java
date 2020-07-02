@@ -25,15 +25,26 @@ package org.jjazz.leadsheet.chordleadsheet.api;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
 
 /**
- * Objects that wants to listen to ChordLeadSheet changes must implement this interface.
+ * Objects that want to listen to ChordLeadSheet changes must implement this interface.
  */
 public interface ClsChangeListener
 {
 
     /**
+     * Some change events might need to be authorized by all listeners before being processed by chordLeadSheetChanged().
      *
-     * @param event
-     * @throws UnsupportedEditException If listener wants to veto the change.
+     * @param e The change to authorize.
+     * @throws UnsupportedEditException Listener shall throw this exception if change is not acceptable. Exception message might
+     * be shown to user to explain the problem.
      */
-    public void chordLeadSheetChanged(ClsChangeEvent event) throws UnsupportedEditException;
+    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException;
+
+
+    /**
+     * Process the change.
+     *
+     * @param e
+     * @throws IllegalStateException If change is not authorized by this listener.
+     */
+    public void chordLeadSheetChanged(ClsChangeEvent e);
 }

@@ -25,9 +25,11 @@ package org.jjazz.song.api;
 
 import java.util.List;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.openide.util.Exceptions;
 
 /**
  * Song utilities methods.
@@ -41,8 +43,9 @@ public class SongUtils
      * Move all chord symbols and sections accordingly.
      *
      * @param song
+     * @throws UnsupportedEditException
      */
-    static public void halfChordLeadsheet(Song song)
+    static public void halfChordLeadsheet(Song song) throws UnsupportedEditException
     {
         ChordLeadSheet cls = song.getChordLeadSheet();
         for (ChordLeadSheetItem<?> cli : cls.getItems())
@@ -93,8 +96,15 @@ public class SongUtils
         }
         ChordLeadSheet cls = song.getChordLeadSheet();
 
-        // Update size     
-        cls.setSize(cls.getSize() * 2);
+        try
+        {
+            // Update size
+            cls.setSize(cls.getSize() * 2);
+        } catch (UnsupportedEditException ex)
+        {
+            // Should never happen
+            Exceptions.printStackTrace(ex);
+        }
 
         // Move items
         List<ChordLeadSheetItem<?>> items = cls.getItems();
@@ -116,7 +126,14 @@ public class SongUtils
                 CLI_Section section = (CLI_Section) cli;
                 if (bar > 0)
                 {
-                    cls.moveSection(section, newBar);
+                    try
+                    {
+                        cls.moveSection(section, newBar);
+                    } catch (UnsupportedEditException ex)
+                    {
+                        // Should never happen
+                        Exceptions.printStackTrace(ex);
+                    }
                 }
             } else
             {

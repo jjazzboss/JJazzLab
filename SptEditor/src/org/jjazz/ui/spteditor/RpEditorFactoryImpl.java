@@ -114,7 +114,7 @@ public class RpEditorFactoryImpl implements RpEditorFactory
         }
 
         @Override
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
         {
             JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             String muteValue = (String) value;      // Normally it's the RhythmVoice name            

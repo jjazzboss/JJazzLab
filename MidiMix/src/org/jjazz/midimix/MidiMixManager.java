@@ -37,7 +37,6 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.song.api.Song;
-import org.jjazz.songstructure.api.SongStructure;
 import org.openide.awt.StatusDisplayer;
 
 /**
@@ -166,7 +165,7 @@ public class MidiMixManager implements PropertyChangeListener
     {
         LOGGER.fine("createMix() -- sg=" + sg);
         MidiMix mm = new MidiMix(sg);
-        for (Rhythm r : SongStructure.getUniqueRhythms(sg.getSongStructure(), true))
+        for (Rhythm r : sg.getSongStructure().getUniqueRhythms(true))
         {
             MidiMix rMm = findMix(r);
             mm.addInstrumentMixes(rMm, r);

@@ -422,7 +422,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         btn_HearRemap = new javax.swing.JButton();
         btn_ResetInstrument = new javax.swing.JButton();
         pnl_advanced = new javax.swing.JPanel();
-        combo_sendMessageUponPlay = new JComboBox(SendModeOnUponStartup.values());
+        combo_sendMessageUponPlay = new JComboBox<>(SendModeOnUponStartup.values());
         jLabel1 = new javax.swing.JLabel();
         btn_userInstrument = new javax.swing.JButton();
         jLabel6 = new javax.swing.JLabel();
@@ -834,7 +834,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         {
             return;
         }
-        InstrumentBank bank = list_Banks.getSelectedValue();
+        InstrumentBank<? extends Instrument> bank = list_Banks.getSelectedValue();
         tbl_Instruments.getModel().setInstruments((bank != null) ? bank.getInstruments() : new ArrayList<>());
     }//GEN-LAST:event_list_BanksValueChanged
 
@@ -1087,8 +1087,9 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
     private void combo_sendMessageUponPlayActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_combo_sendMessageUponPlayActionPerformed
     {//GEN-HEADEREND:event_combo_sendMessageUponPlayActionPerformed
-        JComboBox cb = (JComboBox) evt.getSource();
-        SendModeOnUponStartup mode = (SendModeOnUponStartup) cb.getSelectedItem();
+        @SuppressWarnings("unchecked")
+        JComboBox<SendModeOnUponStartup> cb =  (JComboBox<SendModeOnUponStartup>) evt.getSource();
+        SendModeOnUponStartup mode = (SendModeOnUponStartup)cb.getSelectedItem();
         outputSynth.setSendModeOnUponPlay(mode);
     }//GEN-LAST:event_combo_sendMessageUponPlayActionPerformed
 
@@ -1137,7 +1138,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JScrollPane jScrollPane7;
-    private javax.swing.JList<InstrumentBank<?>> list_Banks;
+    private javax.swing.JList<InstrumentBank<? extends Instrument>> list_Banks;
     private javax.swing.JList<MidiSynth> list_MidiSynths;
     private javax.swing.JPanel pnl_Compatibility;
     private javax.swing.JPanel pnl_advanced;

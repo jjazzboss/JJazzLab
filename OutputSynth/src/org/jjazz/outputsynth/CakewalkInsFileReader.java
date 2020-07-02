@@ -336,7 +336,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         } else
                         {
                             // Create the actual bank with BankSelectMethod.PC_ONLY
-                            InstrumentBank bank = new InstrumentBank(bankName, 0, 0, BankSelectMethod.PC_ONLY);
+                            InstrumentBank<Instrument> bank = new InstrumentBank<>(bankName, 0, 0, BankSelectMethod.PC_ONLY);
                             currentSynth.addBank(bank);
                             // Add the instruments
                             for (Instrument ins : bankInstruments)
@@ -411,7 +411,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                         } else
                         {
                             // Create the actual bank with current parameters
-                            InstrumentBank bank = new InstrumentBank(bankName, msb, lsb, currentBsm);
+                            InstrumentBank<Instrument> bank = new InstrumentBank<>(bankName, msb, lsb, currentBsm);
                             currentSynth.addBank(bank);
                             // Add the instruments
                             for (Instrument ins : bankInstruments)

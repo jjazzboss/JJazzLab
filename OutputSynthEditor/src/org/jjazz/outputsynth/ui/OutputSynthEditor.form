@@ -151,7 +151,7 @@
                         <EventHandler event="valueChanged" listener="javax.swing.event.ListSelectionListener" parameters="javax.swing.event.ListSelectionEvent" handler="list_BanksValueChanged"/>
                       </Events>
                       <AuxValues>
-                        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;InstrumentBank&lt;?&gt;&gt;"/>
+                        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;InstrumentBank&lt;? extends Instrument&gt;&gt;"/>
                       </AuxValues>
                     </Component>
                   </SubComponents>
@@ -446,7 +446,7 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="combo_sendMessageUponPlayActionPerformed"/>
                   </Events>
                   <AuxValues>
-                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new JComboBox(SendModeOnUponStartup.values());"/>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new JComboBox&lt;&gt;(SendModeOnUponStartup.values());"/>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;SendModeOnUponStartup&gt;"/>
                   </AuxValues>
                 </Component>

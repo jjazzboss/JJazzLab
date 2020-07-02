@@ -34,10 +34,12 @@ import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.actions.DeleteAction;
 import org.openide.awt.ActionID;
@@ -45,6 +47,7 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
@@ -103,8 +106,13 @@ public class DeleteItem extends AbstractAction implements ContextAwareAction, CL
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
         ArrayList<ChordLeadSheetItem<?>> items = new ArrayList<>();
+
+        
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
+        um.startCEdit(undoText);
+
+
         if (selection.isBarSelectedWithinCls())
         {
             for (Integer modelBarIndex : selection.getSelectedBarIndexesWithinCls())
@@ -117,21 +125,31 @@ public class DeleteItem extends AbstractAction implements ContextAwareAction, CL
             items.addAll(selection.getSelectedItems());
         }
 
+
         // Remove items
         for (ChordLeadSheetItem<?> item : items)
         {
             if (item instanceof CLI_Section)
             {
-                if (item.getPosition().getBar() > 0)
+                CLI_Section section = (CLI_Section) item;
+                if (section.getPosition().getBar() > 0)
                 {
-                    cls.removeSection((CLI_Section) item);
+                    try
+                    {
+                        cls.removeSection(section);
+                    } catch (UnsupportedEditException ex)
+                    {
+                        String msg = "Impossible to cut section " + section.getData().getName() + ".\n" + ex.getLocalizedMessage();
+                        um.handleUnsupportedEditException(undoText, msg);
+                        return;
+                    }
                 }
             } else
             {
                 cls.removeItem(item);
             }
         }
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+        um.endCEdit(undoText);
     }
 
     @Override

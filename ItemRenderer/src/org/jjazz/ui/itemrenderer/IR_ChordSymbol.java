@@ -200,7 +200,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         // Create the TextLayout to get its dimension       
         TextLayout textLayout = new TextLayout(attChordString.getIterator(), frc);
         chordSymbolWidth = (int) TextLayoutUtils.getWidth(textLayout, strChord2, false);
-        chordSymbolHeight = (int) TextLayoutUtils.getHeight(textLayout, frc);
+        chordSymbolHeight = TextLayoutUtils.getHeight(textLayout, frc);
         Insets in = getInsets();
         final int PADDING = 1;
         int wFinal = chordSymbolWidth + 2 * PADDING + in.left + in.right; //  + (needOptionDots(ecs) ? CORNER_SIZE : 0);

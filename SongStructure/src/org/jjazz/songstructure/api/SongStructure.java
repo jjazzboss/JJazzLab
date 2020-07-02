@@ -49,16 +49,15 @@ public interface SongStructure
 {
 
     /**
-     * Return the list of unique rhythms used in a SongStructure.
+     * Return the list of unique rhythms used in this SongStructure.
      *
-     * @param sgs
      * @param excludeAdaptedRhythms
      * @return
      */
-    static public List<Rhythm> getUniqueRhythms(SongStructure sgs, boolean excludeAdaptedRhythms)
+    default public List<Rhythm> getUniqueRhythms(boolean excludeAdaptedRhythms)
     {
         ArrayList<Rhythm> res = new ArrayList<>();
-        for (SongPart spt : sgs.getSongParts())
+        for (SongPart spt : getSongParts())
         {
             Rhythm r = spt.getRhythm();
             if (!res.contains(r) && (!excludeAdaptedRhythms || !(r instanceof AdaptedRhythm)))
@@ -70,16 +69,38 @@ public interface SongStructure
     }
 
     /**
-     * All the RhythmVoices of sgs.
+     * Return the list of unique AdaptedRhythms used in this SongStructure.
      *
-     * @param sgs
+     * @return Can be empty.
+     */
+    default public List<AdaptedRhythm> getUniqueAdaptedRhythms()
+    {
+        ArrayList<AdaptedRhythm> res = new ArrayList<>();
+        for (SongPart spt : getSongParts())
+        {
+            Rhythm r = spt.getRhythm();
+            if (!(r instanceof AdaptedRhythm))
+            {
+                continue;
+            }
+            AdaptedRhythm ar = (AdaptedRhythm) r;
+            {
+                res.add(ar);
+            }
+        }
+        return res;
+    }
+
+    /**
+     * All the RhythmVoices used by this SongStructure.
+     *
      * @param excludeRhythmVoiceDelegates
      * @return
      */
-    static public List<RhythmVoice> getUniqueRhythmVoices(SongStructure sgs, boolean excludeRhythmVoiceDelegates)
+    default public List<RhythmVoice> getUniqueRhythmVoices(boolean excludeRhythmVoiceDelegates)
     {
         ArrayList<RhythmVoice> rvs = new ArrayList<>();
-        for (Rhythm r : getUniqueRhythms(sgs, false))
+        for (Rhythm r : getUniqueRhythms(false))
         {
             r.getRhythmVoices().stream()
                     .filter(rv -> !excludeRhythmVoiceDelegates || !(rv instanceof RhythmVoiceDelegate))
@@ -98,21 +119,24 @@ public interface SongStructure
     public ChordLeadSheet getParentChordLeadSheet();
 
     /**
-     * Create a new SongPart instance with default RhythmParameter values and container=this object.
+     * Create a new SongPart instance whose container is this object.
+     * <p>
+     * Use default rhythm parameters values, unless reusePrevParamValues is true and there is a previous song part.
      *
      * @param r
+     * @param name The name of the created SongPart.
      * @param startBarIndex
      * @param nbBars
-     * @param parentSection
+     * @param parentSection Can be null
+     * @param reusePrevParamValues
      * @return
      */
-    public SongPart createSongPart(Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection);
+    public SongPart createSongPart(Rhythm r, String name, int startBarIndex, int nbBars, CLI_Section parentSection, boolean reusePrevParamValues);
 
     /**
      * @return A copy of the list of SongParts ordered according to their getStartBarIndex().
      */
     public List<SongPart> getSongParts();
-
 
     /**
      * Get the SongParts which match the tester.
@@ -126,7 +150,7 @@ public interface SongStructure
      * Get the SongPart which contains a specific bar.
      *
      * @param absoluteBarIndex
-     * @return Null if absoluteBarIndex after end of SongStructure.
+     * @return Can be null
      */
     public SongPart getSongPart(int absoluteBarIndex);
 
@@ -177,6 +201,18 @@ public interface SongStructure
      */
     public Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem);
 
+
+    /**
+     * Check if add operation is doable.
+     * <p>
+     * Operation is not doable if a new rhythm could not be accepted by listeners, or if the operation adds an AdaptedRhythm but
+     * its source rhythm will not be present in this SongStructure.
+     *
+     * @param spts
+     * @throws UnsupportedEditException
+     */
+    public void authorizeAddSongParts(List<SongPart> spts) throws UnsupportedEditException;
+
     /**
      * Add one by one a list of SongParts.
      * <p>
@@ -185,14 +221,22 @@ public interface SongStructure
      * - the last barIndex+1 <br>
      * The startBarIndex of the trailing SongParts is shifted accordingly. The SongPart container will be set to this object.
      * <p>
-     * If the added SongPart uses an AdaptedRhythm, its source rhythm must be also present in this object (possibly added by this
-     * operation).
      *
      * @param spts
-     * @throws UnsupportedEditException If a new rhythm could not be accepted, or if the operation adds an AdaptedRhythm but its
-     * source rhythm is not present in this object.
+     * @throws UnsupportedEditException Exception is thrown before any change is done. See authorizeAddSongParts().
      */
     public void addSongParts(List<SongPart> spts) throws UnsupportedEditException;
+
+
+    /**
+     * Check if remove operation is doable.
+     * <p>
+     * If an AdaptedRhythm is used in this SongStructure, the song part for its source rhythm can't be removed.
+     *
+     * @param spts
+     * @throws UnsupportedEditException
+     */
+    public void authorizeRemoveSongParts(List<SongPart> spts) throws UnsupportedEditException;
 
     /**
      * Remove some SongParts.
@@ -200,7 +244,7 @@ public interface SongStructure
      * The startBarIndex of the trailing SongParts are updated.
      *
      * @param spts A List of SongParts.
-     * @throws UnsupportedEditException If the operation removes a source rhythm of a remaining AdaptedRhythm.
+     * @throws UnsupportedEditException Exception is thrown before any change is done. See authorizeRemoveSongParts()
      */
     public void removeSongParts(List<SongPart> spts) throws UnsupportedEditException;
 
@@ -213,6 +257,21 @@ public interface SongStructure
      */
     public void resizeSongParts(SmallMap<SongPart, Integer> mapSptSize);
 
+
+    /**
+     * Check if replace operation is doable.
+     * <p>
+     * UnsupportedEditException is thrown if replacement is impossible, because :<br>
+     * - not enough Midi channels for a new rhythm<br>
+     * - if the operation removes a source rhythm of a remaining AdaptedRhyth<br>
+     * - an AdaptedRhythm is added without the presence of its source Rhythm.
+     *
+     * @param oldSpts
+     * @param newSpts
+     * @throws UnsupportedEditException
+     */
+    public void authorizeReplaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException;
+
     /**
      * Replace SongParts by other SongParts.
      * <p>
@@ -221,9 +280,7 @@ public interface SongStructure
      *
      * @param oldSpts
      * @param newSpts size must match oldSpts
-     * @throws UnsupportedEditException If replacement was impossible, typically because not enough Midi channels for a new
-     * rhythm, or if the operation removes a source rhythm of a remaining AdaptedRhythm, or an AdaptedRhythm is added without the
-     * presence of its source Rhythm.
+     * @throws UnsupportedEditException Exception is thrown before any change is done. See authorizeReplaceSongParts()
      */
     public void replaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException;
 
@@ -248,11 +305,27 @@ public interface SongStructure
     /**
      * Returns the last rhythm used in this songStructure for this TimeSignature.
      * <p>
+     * Return null if:<br>
+     * - The specified time signature has never been used by this SongStructure<br>
+     * - If the last used rhythm is an AdaptedRhythm but its source rhythm is no more present
      *
      * @param ts
-     * @return Can be null if ts has never been used in this song.
+     * @return Can be null
      */
     public Rhythm getLastUsedRhythm(TimeSignature ts);
+
+    /**
+     * Get the recommended rhythm to use for a new SongPart.
+     * <p>
+     * If possible use getLastUsedRhythm(). If not possible then :<br>
+     * - return an AdaptedRhythm if there is a a previous SongPart<br>
+     * - otherwise return the RhythmDatabase default rhythm for the time signature.<br>
+     *
+     * @param ts The TimeSignature of the rhythm
+     * @param sptStartBarIndex The start bar index of the new song part.
+     * @return Can't be null
+     */
+    public Rhythm getRecommendedRhythm(TimeSignature ts, int sptStartBarIndex);
 
     /**
      * Add a listener to changes of this object.
