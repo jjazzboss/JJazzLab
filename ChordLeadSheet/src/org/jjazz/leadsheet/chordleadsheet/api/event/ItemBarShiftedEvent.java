@@ -37,6 +37,7 @@ public class ItemBarShiftedEvent extends ClsChangeEvent
     /**
      * Items have been shifted left or right.
      *
+     * @param src
      * @param items This can include sections.
      * @param nbBars positive or negative integer
      */

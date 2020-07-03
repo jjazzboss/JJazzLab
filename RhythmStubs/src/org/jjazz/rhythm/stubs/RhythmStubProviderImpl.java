@@ -127,7 +127,7 @@ public class RhythmStubProviderImpl implements StubRhythmProvider
     public Rhythm readFast(File f) throws IOException
     {
         throw new IOException("This RhythmProvider (" + getInfo().getName() + ") does not support file reading.");
-    }  
+    }
 
     @Override
     public AdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts)

@@ -26,7 +26,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 
 /**
- * One section has been moved from a number of bars.
+ * One section has been moved.
  */
 public class SectionMovedEvent extends ClsChangeEvent
 {
@@ -34,20 +34,26 @@ public class SectionMovedEvent extends ClsChangeEvent
     /**
      * The index of the section before it was moved.
      */
-    private int prevBar;
+    private int oldBar, newBar;
 
-    public SectionMovedEvent(ChordLeadSheet src, CLI_Section item, int prevBar)
+    public SectionMovedEvent(ChordLeadSheet src, CLI_Section item, int oldBar, int newBar)
     {
         super(src, item);
-        this.prevBar = prevBar;
+        this.oldBar = oldBar;
+        this.newBar = newBar;
     }
 
     /**
      * @return The barIndex of the section before it was moved
      */
-    public int getPrevBar()
+    public int getOldBar()
     {
-        return prevBar;
+        return oldBar;
+    }
+
+    public int getNewBar()
+    {
+        return newBar;
     }
 
     public CLI_Section getSection()
@@ -58,6 +64,6 @@ public class SectionMovedEvent extends ClsChangeEvent
     @Override
     public String toString()
     {
-        return "SectionMovedEvent[section=" + getSection() + " prevBar=" + prevBar + "]";
+        return "SectionMovedEvent[section=" + getSection() + ", oldBar=" + oldBar + ", newBar=" + newBar + "]";
     }
 }

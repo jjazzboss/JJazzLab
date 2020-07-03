@@ -81,6 +81,66 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
         // Useless
     }
 
+    /**
+     * Change the time signature of the specified sections.
+     * <p>
+     * If there is only 1 section and it's the initial section, ask user if he wants to apply the setting to all sections.
+     *
+     * @param editor
+     * @param ts
+     * @param cliSections
+     */
+    static public void changeTimeSignaturePossiblyForWholeSong(ChordLeadSheet cls, TimeSignature ts, List<CLI_Section> cliSections) throws UnsupportedEditException
+    {
+        if (cls == null || ts == null || cliSections == null)
+        {
+            throw new IllegalArgumentException("cls=" + cls + " ts=" + ts + " cliSections=" + cliSections);
+        }
+        if (cliSections.isEmpty())
+        {
+            return;
+        }
+
+        var allSections = cls.getItems(CLI_Section.class);
+        CLI_Section cliSection = cliSections.get(0);
+        List<CLI_Section> changedSections = new ArrayList<>();
+
+        if (cliSections.size() == 1 && cliSection.getPosition().getBar() == 0 && allSections.size() > 1)
+        {
+            // If several sections but only first bar section changed, propose to change the whole song                
+
+            if (ts.equals(cliSection.getData().getTimeSignature()))
+            {
+                return;
+            }
+
+            String msg = "Set time signature " + ts.toString() + " for the whole song ?";
+            NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
+            Object result = DialogDisplayer.getDefault().notify(d);
+
+            if (NotifyDescriptor.YES_OPTION == result)
+            {
+                changedSections.addAll(allSections);
+
+            } else if (NotifyDescriptor.NO_OPTION == result)
+            {
+                changedSections.add(cliSection);
+
+            } else
+            {
+                return;
+            }
+        } else
+        {
+            changedSections.addAll(cliSections);
+        }
+
+        for (CLI_Section section : changedSections)
+        {
+            cls.setSectionTimeSignature(section, ts);
+        }
+    }
+
     // ============================================================================================= 
     // Presenter.Popup implementation
     // =============================================================================================      
@@ -102,93 +162,51 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
     {
         // Prepare the TimeSignature subMenu
         RhythmDatabase rdb = RhythmDatabase.getDefault();
+        
+        
         menu.removeAll();
+        
+        
         for (final TimeSignature ts : TimeSignature.values())
         {
             JMenuItem mi = new JMenuItem(ts.toString());
-            mi.addActionListener(new ActionListener()
+            
+            
+            mi.addActionListener((ActionEvent e) ->
             {
-                @Override
-                public void actionPerformed(ActionEvent e)
+                CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
+                CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
+                ChordLeadSheet cls = editor.getModel();
+                
+                
+                JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);                                
+                um.startCEdit(undoText);
+                
+                try
                 {
-                    CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
-                    ChordLeadSheet cls = editor.getModel();
-                    JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
-                    um.startCEdit(undoText);
-                    try
-                    {
-                        changeTimeSignature(editor, ts);
-                    } catch (UnsupportedEditException ex)
-                    {
-                        String msg = ERR_SetTimeSignature() + ": " + ts + ".\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException(undoText, msg);
-                        return;
-                    }
-                    um.endCEdit(undoText);
+                    changeTimeSignaturePossiblyForWholeSong(cls, ts, selection.getSelectedSections());
+                } catch (UnsupportedEditException ex)
+                {
+                    String msg = ERR_SetTimeSignature() + ": " + ts + ".\n" + ex.getLocalizedMessage();
+                    um.handleUnsupportedEditException(undoText, msg);
+                    return;
                 }
+                
+                um.endCEdit(undoText);
+                
             });
+            
+            
             boolean b = rdb.getDefaultRhythm(ts) != null;
             mi.setEnabled(b);
             menu.add(mi);
         }
     }
 
-    private void changeTimeSignature(CL_Editor editor, TimeSignature ts) throws UnsupportedEditException
-    {
-        CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
 
-
-        if (selection.isItemSelected() && (selection.getSelectedItems().get(0) instanceof CLI_Section))
-        {
-
-            List<ChordLeadSheetItem<?>> items;
-            var selItems = selection.getSelectedItems();
-            var allSections = editor.getModel().getItems(CLI_Section.class);
-            CLI_Section cliSection = (CLI_Section) selItems.get(0);
-
-
-            if (selItems.size() == 1 && cliSection.getPosition().getBar() == 0 && allSections.size() > 1)
-            {
-                // If several sections but only first bar section changed, propose to change the whole song                
-
-                if (ts.equals(cliSection.getData().getTimeSignature()))
-                {
-                    return;
-                }
-                
-                String msg = "Set time signature " + ts.toString() + " for the whole song ?";
-                NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
-                
-                
-                Object result = DialogDisplayer.getDefault().notify(d);
-                if (NotifyDescriptor.YES_OPTION == result)
-                {
-                    items = new ArrayList<>(allSections);
-
-                } else if (NotifyDescriptor.NO_OPTION == result)
-                {
-                    items = Arrays.asList(cliSection);
-
-                } else
-                {
-                    return;
-                }
-            } else
-            {
-                items = selItems;
-            }
-
-
-            for (ChordLeadSheetItem<?> item : items)
-            {
-                editor.getModel().setSectionTimeSignature((CLI_Section) item, ts);
-            }
-        }
-    }
     // ============================================================================================= 
     // Private class
     // =============================================================================================    
-
     class MyDynamicMenu extends JMenu implements ChangeListener
     {
 

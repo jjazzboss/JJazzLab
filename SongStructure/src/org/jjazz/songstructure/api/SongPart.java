@@ -62,7 +62,10 @@ public interface SongPart extends Transferable
      *
      * @return The range [getStartBarIndex(); getStartBarIndex()+getNbBars()-1]
      */
-    public IntRange getBarRange();
+    default public IntRange getBarRange()
+    {
+        return new IntRange(getStartBarIndex(), getStartBarIndex() + getNbBars() - 1);
+    }
 
     /**
      * By default set to the parentSection's name
@@ -100,9 +103,9 @@ public interface SongPart extends Transferable
      * Parameters of the new SongPart can be adjusted.<br>
      * If using a different rhythm, try to adapt the value of compatible RhythmParameters.
      *
-     * @param r             The new Rhythm to be used. If null Rhythm is unchanged.
+     * @param r The new Rhythm to be used. If null Rhythm is unchanged.
      * @param startBarIndex The startBarIndex of the new SongPart
-     * @param nbBars        The nbBars of the new SongPart
+     * @param nbBars The nbBars of the new SongPart
      * @param parentSection The parentSection of the new SongPart. TimeSignature must match the specified rhythm. Can be null.
      * @return A new SongPart.
      */

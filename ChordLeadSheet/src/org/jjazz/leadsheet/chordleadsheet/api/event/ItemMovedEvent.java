@@ -23,38 +23,54 @@
 package org.jjazz.leadsheet.chordleadsheet.api.event;
 
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 
 /**
- * One item (no section) have been moved.
+ * One item (but not a section) has been moved.
  */
 public class ItemMovedEvent extends ClsChangeEvent
 {
 
-    Position prevPosition;
+    Position oldPosition;
+    Position newPosition;
 
-    public ItemMovedEvent(ChordLeadSheet src, ChordLeadSheetItem<?> item, Position prevPos)
+    /**
+     *
+     * @param src
+     * @param item Must not be a CLI_Section.
+     * @param oldPos
+     * @param newPos
+     */
+    public ItemMovedEvent(ChordLeadSheet src, ChordLeadSheetItem<?> item, Position oldPos, Position newPos)
     {
         super(src, item);
-        if (prevPos == null)
+        if (oldPos == null || newPos == null || item instanceof CLI_Section)
         {
-            throw new NullPointerException("prevPos=" + prevPos);
+            throw new IllegalArgumentException("item=" + item + " oldPos=" + oldPos + " newPos=" + newPos);
         }
-        prevPosition = prevPos;
+        oldPosition = oldPos;
+        newPosition = newPos;
     }
 
     /**
      * @return The previous position of the item.
      */
-    public Position getPrevPosition()
+    public Position getOldPosition()
     {
-        return prevPosition;
+        return oldPosition;
     }
+
+    public Position getNewPosition()
+    {
+        return newPosition;
+    }
+
 
     @Override
     public String toString()
     {
-        return "ItemMovedEvent[item=" + getItem() + " prevPosition=" + prevPosition + "]";
+        return "ItemMovedEvent[item=" + getItem() + ", prevPosition=" + oldPosition + ", newPosition=" + newPosition + "]";
     }
 }

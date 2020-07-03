@@ -118,7 +118,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
     @Override
     protected Set<Option> getOptions()
     {
-        HashSet set = new HashSet();
+        HashSet<Option> set = new HashSet<>();
         set.add(openOption);
         return set;
     }

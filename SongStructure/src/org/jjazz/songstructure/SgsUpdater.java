@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -37,7 +38,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ItemChangedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ItemRemovedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
@@ -47,8 +47,8 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.openide.util.Exceptions;
 
 /**
  * Responsible for listening to sgs parentChordLeadSheet changes and update sgs accordingly.
@@ -74,13 +74,34 @@ public class SgsUpdater implements ClsChangeListener
         }
     }
 
-    //------------------------------------------------------------------------------------
-    // Implements ClsChangeListener
-    //------------------------------------------------------------------------------------
+    // ============================================================================================= 
+    // ClsChangeListener implementation
+    // =============================================================================================      
+
     @Override
-    public void chordLeadSheetChanged(ClsChangeEvent evt) throws UnsupportedEditException
+    public void authorizeChange(ClsChangeEvent evt) throws UnsupportedEditException
     {
-        LOGGER.log(Level.FINE, "chordLeadSheetChanged() evt=" + evt);
+        processChangeEvent(evt, true);
+    }
+
+    @Override
+    public void chordLeadSheetChanged(ClsChangeEvent evt)
+    {
+        try
+        {
+            processChangeEvent(evt, false);
+        } catch (UnsupportedEditException ex)
+        {
+            // Should never happen if it has been authorized first
+            Exceptions.printStackTrace(ex);
+            throw new IllegalStateException();
+        }
+    }
+
+    private void processChangeEvent(ClsChangeEvent evt, boolean authorizeOnly) throws UnsupportedEditException
+    {
+        LOGGER.log(Level.FINE, "processChangeEvent() evt=" + evt + " authorizeOnly=" + authorizeOnly);
+
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
         if (um != null && um.isUndoRedoInProgress())
@@ -88,204 +109,282 @@ public class SgsUpdater implements ClsChangeListener
             // IMPORTANT : SongStructure generates his own undoableEdits,
             // so we must not listen to chordleadsheet changes if undo/redo in progress, otherwise 
             // the "undo/redo" restore operations will be performed twice !
+            LOGGER.log(Level.FINE, "processChangeEvent() undo is in progress, exiting");
             return;
         }
 
-        // To store resize operations
-        SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
 
-        // Check if there are sections in the event's items
-        List<CLI_Section> cliSections = new ArrayList<>();
-        for (ChordLeadSheetItem<?> cli : evt.getItems())
-        {
-            if (cli instanceof CLI_Section)
-            {
-                cliSections.add((CLI_Section) cli);
-            }
-        }
+        // Get the sections in the event's items
+        var cliSections = evt.getItems().stream()
+                .filter(cli -> cli instanceof CLI_Section)
+                .map(cli -> (CLI_Section) cli)
+                .collect(Collectors.toList());
+
 
         if (evt instanceof SizeChangedEvent)
         {
-            SizeChangedEvent e = (SizeChangedEvent) evt;
-            // Need to update size of impacted SongParts
-            CLI_Section lastSection = parentCls.getSection(parentCls.getSize() - 1);
-            fillMapSptSize(mapSptSize, lastSection);
-            sgs.resizeSongParts(mapSptSize);
+            processSizeChanged(authorizeOnly);
+
         } else if (!cliSections.isEmpty() && (evt instanceof ItemBarShiftedEvent))
         {
-            // Resize sections before and after the shifted bars.
-            ItemBarShiftedEvent e = (ItemBarShiftedEvent) evt;
+            processSectionsShifted((ItemBarShiftedEvent) evt, cliSections, authorizeOnly);
 
-            // Size of the section before the shifted items has changed
-            int firstBarIndex = cliSections.get(0).getPosition().getBar();
-            if (firstBarIndex > 0)
-            {
-                CLI_Section prevSection = parentCls.getSection(firstBarIndex - 1);
-                fillMapSptSize(mapSptSize, prevSection);
-            }
-
-            // Size of the last section of the shifted items has changed too
-            int lastBarIndex = e.getItems().get(e.getItems().size() - 1).getPosition().getBar();
-            CLI_Section lastSection = parentCls.getSection(lastBarIndex);
-            fillMapSptSize(mapSptSize, lastSection);
-            sgs.resizeSongParts(mapSptSize);
         } else if (!cliSections.isEmpty() && (evt instanceof ItemChangedEvent))
         {
-            // Update rhythm if signature has changed
-            CLI_Section cliSection = cliSections.get(0);
-            ItemChangedEvent e = (ItemChangedEvent) evt;
-            TimeSignature newTs = cliSection.getData().getTimeSignature();
-            TimeSignature oldTs = ((Section) e.getOldData()).getTimeSignature();
-            String oldName = ((Section) e.getOldData()).getName();
-            if (!newTs.equals(oldTs))
-            {
-                // Time Signature has changed
+            processSectionChanged((ItemChangedEvent) evt, cliSections.get(0), authorizeOnly);
 
-                // Need to replace all impacted SongParts based on this section
-                List<SongPart> oldSpts = getSongParts(cliSection);
-                if (!oldSpts.isEmpty())
-                {
-                    // Try to use the last used rhythm for this new time signature
-                    Rhythm newRhythm = sgs.getLastUsedRhythm(newTs);
-
-                    // Try to use an AdaptedRhythm if possible           
-                    RhythmDatabase rdb = RhythmDatabase.getDefault();
-                    if (newRhythm == null)
-                    {
-                        if (oldSpts.get(0).getStartBarIndex() > 0)
-                        {
-                            Rhythm prevRhythm = sgs.getSongPart(oldSpts.get(0).getStartBarIndex() - 1).getRhythm();
-                            if (prevRhythm instanceof AdaptedRhythm)
-                            {
-                                prevRhythm = ((AdaptedRhythm) prevRhythm).getSourceRhythm();
-                            }
-                            newRhythm = rdb.getAdaptedRhythm(prevRhythm, newTs);        // may be null
-                        }
-                    }
-
-                    // Last option
-                    if (newRhythm == null)
-                    {
-                        newRhythm = rdb.getDefaultRhythm(newTs);        // Can't be null
-                    }
-
-                    ArrayList<SongPart> newSpts = new ArrayList<>();
-                    for (SongPart oldSpt : oldSpts)
-                    {
-                        SongPart newSpt = oldSpt.clone(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
-                        newSpts.add(newSpt);
-                    }
-
-                    // Possible exception here : to be handled by caller 
-                    sgs.replaceSongParts(oldSpts, newSpts);
-
-                } else
-                {
-                    // It's just a renaming: rename songparts which have not been renamed by user
-                    List<SongPart> spts = getSongParts(cliSection);
-                    for (SongPart spt : spts.toArray(new SongPart[0]))
-                    {
-                        if (!spt.getName().equalsIgnoreCase(oldName))
-                        {
-                            spts.remove(spt);
-                        }
-                    }
-                    sgs.setSongPartsName(spts, cliSection.getData().getName());
-                }
-            }
         } else if (!cliSections.isEmpty() && (evt instanceof ItemAddedEvent))
         {
-            // For each section add a SongPart, and resize the previous section
-            for (CLI_Section cliSection : cliSections)
-            {
-                int barIndex = cliSection.getPosition().getBar();
-                CLI_Section prevSection = (barIndex > 0) ? parentCls.getSection(barIndex - 1) : null;
-                SongPart spt = createSptAfterSection(cliSection, prevSection);
-                UnsupportedEditException exception = null;
-                try
-                {
-                    // Possible exception here !
-                    sgs.addSongParts(Arrays.asList(spt));
-                } catch (UnsupportedEditException ex)
-                {
-                    // Delay the exception propagation later to do the previous section resize operation.
-                    // This will ensure that we leave in a clean state that can be correctly undone
-                    // by the caller who will handle the exception.              
-                    exception = ex;
-                }
-                if (prevSection != null)
-                {
-                    // Resize previous section if there is one
-                    fillMapSptSize(mapSptSize, prevSection);
-                    sgs.resizeSongParts(mapSptSize);
-                }
-                if (exception != null)
-                {
-                    // We're in an clean undoable state, throw exception now
-                    throw exception;
-                }
-            }
+            processSectionsAdded((ItemAddedEvent) evt, cliSections, authorizeOnly);
+
         } else if (!cliSections.isEmpty() && (evt instanceof ItemRemovedEvent))
         {
-            // Remove the linked SongParts and resize previous section
-            for (CLI_Section cliSection : cliSections)
-            {
-                sgs.removeSongParts(getSongParts(cliSection));
-                int barIndex = cliSection.getPosition().getBar();
-                if (barIndex > 0)
-                {
-                    CLI_Section prevSection = parentCls.getSection(barIndex - 1);
-                    fillMapSptSize(mapSptSize, prevSection);
-                    sgs.resizeSongParts(mapSptSize);
-                }
-            }
+            processSectionsRemoved((ItemRemovedEvent) evt, cliSections, authorizeOnly);
+
         } else if (evt instanceof SectionMovedEvent)
         {
-            CLI_Section cliSection = cliSections.get(0);
-            SectionMovedEvent e = (SectionMovedEvent) evt;
-            int barIndex = cliSection.getPosition().getBar();
-            assert barIndex > 0 : "cliSection=" + cliSection;
-            CLI_Section prevSection = parentCls.getSection(barIndex - 1);
-            CLI_Section sectionPrevBar = parentCls.getSection(e.getPrevBar());
-            if (sectionPrevBar == prevSection || sectionPrevBar == cliSection)
+            if (authorizeOnly)
             {
-                // It's a "small move", do not cross any other section, so it's just resize operations
-                fillMapSptSize(mapSptSize, cliSection);
-                fillMapSptSize(mapSptSize, prevSection);
-                sgs.resizeSongParts(mapSptSize);
+                authorizeSectionMove((SectionMovedEvent) evt, cliSections.get(0));
             } else
             {
-                // It's a "big move", which crosses at least another section
-
-                // We remove and re-add
-                sgs.removeSongParts(getSongParts(cliSection));
-                SongPart spt = this.createSptAfterSection(cliSection, prevSection);
-                UnsupportedEditException exception = null;
-                try
-                {
-                    sgs.addSongParts(Arrays.asList(spt));
-                } catch (UnsupportedEditException ex)
-                {
-                    // Delay the exception propagation later to do the resize operation anyway.
-                    // This will ensure that we leave in a clean state that can be correctly undone
-                    // by the caller who will handle the exception.                             
-                    exception = ex;
-                }
-                // Resize impacted SongParts 
-                fillMapSptSize(mapSptSize, sectionPrevBar);
-                fillMapSptSize(mapSptSize, prevSection);
-                sgs.resizeSongParts(mapSptSize);
-                if (exception != null)
-                {
-                    // We're in an clean undoable state, throw exception now
-                    throw exception;
-                }
+                processSectionMoved((SectionMovedEvent) evt, cliSections.get(0));
             }
+
         }
     }
+
     //----------------------------------------------------------------------------------------------------
     // Private functions
     //----------------------------------------------------------------------------------------------------  
+
+    /**
+     * Section was already moved.
+     *
+     * @param evt
+     * @param cliSection
+     * @param authorizeOnly
+     * @throws UnsupportedEditException
+     */
+    private void processSectionMoved(SectionMovedEvent evt, CLI_Section cliSection) throws UnsupportedEditException
+    {
+        int newBarIndex = cliSection.getPosition().getBar();
+        assert newBarIndex > 0 : "cliSection=" + cliSection;
+        CLI_Section prevSection = parentCls.getSection(newBarIndex - 1);
+        CLI_Section sectionPrevBar = parentCls.getSection(evt.getOldBar());
+        SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
+
+        if (sectionPrevBar == prevSection || sectionPrevBar == cliSection)
+        {
+            // It's a "small move", do not cross any other section, so it's just resize operations
+            fillMapSptSize(mapSptSize, cliSection);
+            fillMapSptSize(mapSptSize, prevSection);
+            sgs.resizeSongParts(mapSptSize);
+
+        } else
+        {
+            // It's a "big move", which crosses at least another section
+
+            // We remove and re-add
+            sgs.removeSongParts(getSongParts(cliSection));
+            SongPart spt = createSptAfterSection(cliSection, parentCls.getSectionRange(cliSection).size(), prevSection);
+            sgs.addSongParts(Arrays.asList(spt));
+
+            // Resize impacted SongParts 
+            fillMapSptSize(mapSptSize, sectionPrevBar);
+            fillMapSptSize(mapSptSize, prevSection);
+            sgs.resizeSongParts(mapSptSize);
+
+        }
+
+    }
+
+    /**
+     * Section has NOT moved yet.
+     *
+     * @param evt
+     * @param cliSection
+     * @throws UnsupportedEditException
+     */
+    private void authorizeSectionMove(SectionMovedEvent evt, CLI_Section cliSection) throws UnsupportedEditException
+    {
+        int newBarIndex = evt.getNewBar();
+        int oldBarIndex = evt.getOldBar();
+
+
+        // Small move cases (no section crossed)
+        if (newBarIndex == oldBarIndex)
+        {
+            return;
+        } else if (newBarIndex > oldBarIndex && parentCls.getSection(newBarIndex) == cliSection)
+        {
+            return;
+        } else if (newBarIndex < oldBarIndex && parentCls.getSection(newBarIndex) == parentCls.getSection(oldBarIndex - 1))
+        {
+            return;
+        }
+
+        // It's a "big move", which crosses at least another section
+
+        // We remove and re-add
+        CLI_Section prevSection = parentCls.getSection(newBarIndex - 1);
+        sgs.authorizeRemoveSongParts(getSongParts(cliSection));
+        SongPart spt = createSptAfterSection(cliSection, getVirtualSectionSize(newBarIndex), prevSection);
+        sgs.authorizeAddSongParts(Arrays.asList(spt));
+
+    }
+
+    private void processSectionsRemoved(ItemRemovedEvent evt, List<CLI_Section> cliSections, boolean authorizeOnly) throws UnsupportedEditException
+    {
+        // Remove the linked SongParts and resize previous section
+        for (CLI_Section cliSection : cliSections)
+        {
+            if (authorizeOnly)
+            {
+                sgs.authorizeRemoveSongParts(getSongParts(cliSection));
+            } else
+            {
+                sgs.removeSongParts(getSongParts(cliSection));
+            }
+
+
+            int barIndex = cliSection.getPosition().getBar();
+            if (barIndex > 0 && !authorizeOnly)
+            {
+                SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
+                CLI_Section prevSection = parentCls.getSection(barIndex - 1);
+                fillMapSptSize(mapSptSize, prevSection);
+                sgs.resizeSongParts(mapSptSize);
+            }
+        }
+    }
+
+    private void processSectionsAdded(ItemAddedEvent evt, List<CLI_Section> cliSections, boolean authorizeOnly) throws UnsupportedEditException
+    {
+        // For each section add a SongPart, and resize the previous section
+        for (CLI_Section cliSection : cliSections)
+        {
+            int barIndex = cliSection.getPosition().getBar();
+            CLI_Section prevSection = (barIndex > 0) ? parentCls.getSection(barIndex - 1) : null;
+
+            if (authorizeOnly)
+            {
+                SongPart spt = createSptAfterSection(cliSection, getVirtualSectionSize(barIndex), prevSection);
+                sgs.authorizeAddSongParts(Arrays.asList(spt));
+            } else
+            {
+                // Possible exception here !
+                SongPart spt = createSptAfterSection(cliSection, parentCls.getSectionRange(cliSection).size(), prevSection);
+                sgs.addSongParts(Arrays.asList(spt));
+            }
+            if (prevSection != null && !authorizeOnly)
+            {
+                // Resize previous section if there is one
+                SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
+                fillMapSptSize(mapSptSize, prevSection);
+                sgs.resizeSongParts(mapSptSize);
+            }
+        }
+
+    }
+
+    private void processSectionChanged(ItemChangedEvent evt, CLI_Section cliSection, boolean authorizeOnly) throws UnsupportedEditException
+    {
+        TimeSignature newTs = ((Section) evt.getNewData()).getTimeSignature();
+        TimeSignature oldTs = ((Section) evt.getOldData()).getTimeSignature();
+        String newName = ((Section) evt.getNewData()).getName();
+        String oldName = ((Section) evt.getOldData()).getName();
+
+
+        if (!newTs.equals(oldTs))
+        {
+            // Time Signature has changed
+
+            // Need to replace all impacted SongParts based on this section
+            List<SongPart> oldSpts = getSongParts(cliSection);
+            if (!oldSpts.isEmpty())
+            {
+
+                // Get the new rhythm to use
+                Rhythm newRhythm = sgs.getRecommendedRhythm(newTs, oldSpts.get(0).getStartBarIndex());
+                
+
+                ArrayList<SongPart> newSpts = new ArrayList<>();
+                for (SongPart oldSpt : oldSpts)
+                {
+                    SongPart newSpt;
+                    if (authorizeOnly)
+                    {
+                        // Can't pass cliSection as argument
+                        // cliSection is not changed yet, clone would fail because time signature doesn't match newRhythm
+                        newSpt = oldSpt.clone(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), null);
+                    } else
+                    {
+                        newSpt = oldSpt.clone(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
+                    }
+                    newSpts.add(newSpt);
+                }
+
+                if (authorizeOnly)
+                {
+                    // Possible exception here                        
+                    sgs.authorizeReplaceSongParts(oldSpts, newSpts);
+                } else
+                {
+                    // Possible exception here
+                    sgs.replaceSongParts(oldSpts, newSpts);
+                }
+            }
+        }
+
+
+        if (!newName.equals(oldName) && !authorizeOnly)
+        {
+            // Section name has changed : rename songparts which have not been renamed by user
+            List<SongPart> spts = getSongParts(cliSection).stream()
+                    .filter(spt -> spt.getName().equalsIgnoreCase(oldName))
+                    .collect(Collectors.toList());
+            sgs.setSongPartsName(spts, newName);
+        }
+    }
+
+    private void processSectionsShifted(ItemBarShiftedEvent evt, List<CLI_Section> cliSections, boolean authorizeOnly)
+    {
+        if (authorizeOnly)
+        {
+            return;
+        }
+
+        // Resize sections before and after the shifted bars.
+        // Size of the section before the shifted items has changed
+        SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
+        int firstBarIndex = cliSections.get(0).getPosition().getBar();
+        if (firstBarIndex > 0)
+        {
+            CLI_Section prevSection = parentCls.getSection(firstBarIndex - 1);
+            fillMapSptSize(mapSptSize, prevSection);
+        }
+
+        // Size of the last section of the shifted items has changed too
+        int lastBarIndex = evt.getItems().get(evt.getItems().size() - 1).getPosition().getBar();
+        CLI_Section lastSection = parentCls.getSection(lastBarIndex);
+        fillMapSptSize(mapSptSize, lastSection);
+        sgs.resizeSongParts(mapSptSize);
+    }
+
+    private void processSizeChanged(boolean authorizeOnly)
+    {
+        if (authorizeOnly)
+        {
+            return;
+        }
+
+        // Need to update size of impacted SongParts
+        SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
+        CLI_Section lastSection = parentCls.getSection(parentCls.getSize() - 1);
+        fillMapSptSize(mapSptSize, lastSection);
+        sgs.resizeSongParts(mapSptSize);
+    }
 
     /**
      * Get all the songParts associated to specified parent section.
@@ -314,7 +413,7 @@ public class SgsUpdater implements ClsChangeListener
      */
     private void fillMapSptSize(SmallMap<SongPart, Integer> mapSptSize, CLI_Section parentSection)
     {
-        int size = parentCls.getSectionSize(parentSection);
+        int size = parentCls.getSectionRange(parentSection).size();
         for (SongPart spt : getSongParts(parentSection))
         {
             mapSptSize.putValue(spt, size);
@@ -330,19 +429,22 @@ public class SgsUpdater implements ClsChangeListener
      * If prevSection is null, locate the new SongPart at first position.
      *
      * @param newSection
+     * @param newSectionSize Size in bars
      * @param prevSection The section before cliSection. Can be null.
      * @return The created SongPart, ready to be added to the SongStructure.
      */
-    private SongPart createSptAfterSection(CLI_Section newSection, CLI_Section prevSection)
+    private SongPart createSptAfterSection(CLI_Section newSection, int newSectionSize, CLI_Section prevSection)
     {
         int sptBarIndex;
         if (prevSection == null)
         {
             sptBarIndex = 0;
+
         } else if (getSongParts(prevSection).isEmpty())
         {
             // Append
             sptBarIndex = sgs.getSizeInBars();
+
         } else
         {
             // Locate the new SongPart after the first raw of consecutive SongParts for prevSection
@@ -359,16 +461,30 @@ public class SgsUpdater implements ClsChangeListener
             assert sptBarIndex != - 1 : "prevSpts=" + prevSpts + " prevSection=" + prevSection + " newSection=" + newSection;
         }
 
-        Rhythm r = sgs.getLastUsedRhythm(newSection.getData().getTimeSignature());
-        if (r == null)
-        {
-            r = RhythmDatabase.getDefault().getDefaultRhythm(newSection.getData().getTimeSignature());
-        }
+        // Choose rhythm
+        Rhythm r= sgs.getRecommendedRhythm(newSection.getData().getTimeSignature(), sptBarIndex);
+
+        // Create the song part       
         SongPart spt = sgs.createSongPart(
                 r,
+                newSection.getData().getName(),
                 sptBarIndex,
-                parentCls.getSectionSize(newSection),
-                newSection);
+                newSectionSize,
+                newSection,
+                true);
         return spt;
+    }
+
+
+    /**
+     * Get the size of a section at sectionBar which is possibly not yet inserted in the parentChordLeadSheet.
+     *
+     * @param sectionBar
+     * @return
+     */
+    private int getVirtualSectionSize(int sectionBar)
+    {
+        CLI_Section curSection = parentCls.getSection(sectionBar);
+        return parentCls.getSectionRange(curSection).to - sectionBar + 1;
     }
 }

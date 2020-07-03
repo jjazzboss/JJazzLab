@@ -42,7 +42,6 @@ import org.jjazz.midi.device.MidiFilter;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midimix.UserChannelRvKey;
 import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.songeditormanager.SongEditorManager;
 import org.jjazz.songeditormanager.StartupShutdownSongManager;
 import org.jjazz.ui.utilities.Utilities;
 import org.openide.DialogDisplayer;
@@ -71,7 +70,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         {
             List<String> names = new ArrayList<>();
             Properties p = System.getProperties();
-            Enumeration keys = p.keys();
+            Enumeration<?> keys = p.keys();
             while (keys.hasMoreElements())
             {
                 String key = (String) keys.nextElement();
@@ -140,8 +139,8 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         btn_setLogger = new javax.swing.JButton();
-        cb_loggerLevel = new JComboBox(ALL_LEVELS);
-        cb_loggerName = new JComboBox(loggerNames);
+        cb_loggerLevel = new JComboBox<>(ALL_LEVELS);
+        cb_loggerName = new JComboBox<>(loggerNames);
         cb_loggerName.setRenderer(new ToolTipRenderer());
         jPanel3 = new javax.swing.JPanel();
         cb_logMidiOut = new javax.swing.JCheckBox();
@@ -274,15 +273,13 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
             panel_DebugLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panel_DebugLayout.createSequentialGroup()
                 .addGroup(panel_DebugLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(panel_DebugLayout.createSequentialGroup()
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(panel_DebugLayout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(btn_showLog)
                         .addGap(205, 205, 205)
                         .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         panel_DebugLayout.setVerticalGroup(
             panel_DebugLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

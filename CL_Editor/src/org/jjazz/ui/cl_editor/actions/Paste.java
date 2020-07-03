@@ -49,6 +49,7 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
@@ -108,13 +109,17 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
     @Override
     public void actionPerformed(ActionEvent e)
     {
+        CopyBuffer copyBuffer = CopyBuffer.getInstance();
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet targetCls = selection.getChordLeadSheet();
-        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(targetCls);
-        um.startCEdit(undoText);
-        CopyBuffer copyBuffer = CopyBuffer.getInstance();
         int targetBarIndex = selection.geMinBarIndex();
         int lastBar = targetCls.getSize() - 1;
+
+
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(targetCls);
+        um.startCEdit(undoText);
+
+
         if (!copyBuffer.isEmpty())
         {
             if (copyBuffer.isBarCopyMode())
@@ -123,7 +128,16 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
                 // First insert required bars
                 if (targetBarIndex > lastBar)
                 {
-                    targetCls.setSize(targetBarIndex + range);
+                    try
+                    {
+                        targetCls.setSize(targetBarIndex + range);
+                    } catch (UnsupportedEditException ex)
+                    {
+                        // Should never happen when resizing bigger
+                        String msg = "Impossible to resize.\n" + ex.getLocalizedMessage();
+                        um.handleUnsupportedEditException(undoText, msg);
+                        return;
+                    }
                 } else
                 {
                     targetCls.insertBars(targetBarIndex, range);

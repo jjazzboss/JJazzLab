@@ -23,10 +23,13 @@
 package org.jjazz.helpers.midiwizard;
 
 import java.awt.Component;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -34,14 +37,15 @@ import org.openide.WizardDescriptor;
 import org.openide.util.Utilities;
 
 public final class MidiWizardIterator implements WizardDescriptor.Iterator<WizardDescriptor>
-{ 
+{
+
     private int index;
     private WizardDescriptor wizardDesc;
-    private WizardDescriptor.Panel<WizardDescriptor>[] currentPanels;
-    private WizardDescriptor.Panel<WizardDescriptor>[] sfSequenceWin;
-    private WizardDescriptor.Panel<WizardDescriptor>[] sfSequenceLinux;
-    private WizardDescriptor.Panel<WizardDescriptor>[] sfSequenceMac;
-    private WizardDescriptor.Panel<WizardDescriptor>[] midiSequence;
+    private List<WizardDescriptor.Panel<WizardDescriptor>> currentPanels;
+    private List<WizardDescriptor.Panel<WizardDescriptor>> sfSequenceWin;
+    private List<WizardDescriptor.Panel<WizardDescriptor>> sfSequenceLinux;
+    private List<WizardDescriptor.Panel<WizardDescriptor>> sfSequenceMac;
+    private List<WizardDescriptor.Panel<WizardDescriptor>> midiSequence;
     private Set<ChangeListener> listeners = new HashSet<>(2);
     private static final Logger LOGGER = Logger.getLogger(MidiWizardIterator.class.getSimpleName());
 
@@ -50,6 +54,7 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
      *
      * @param wizardDescriptor
      */
+    @SuppressWarnings("rawtype")
     public void setWizardDescriptor(WizardDescriptor wizardDescriptor)
     {
         wizardDesc = wizardDescriptor;
@@ -57,6 +62,8 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
         // Initialize all the panels and sequences
         final MidiWizardPanelStart panelStart = new MidiWizardPanelStart();        // Special first common panel to decide which panel sequence to go
         final MidiWizardPanelFinal panelFinal = new MidiWizardPanelFinal();        // Last common panel
+
+
         panelStart.addChangeListener(new ChangeListener()
         {
             @Override
@@ -67,30 +74,25 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
             }
         });
 
-        sfSequenceWin = new WizardDescriptor.Panel[]
-        {
-            panelStart, new MidiWizardPanel_SfWin_1(), new MidiWizardPanel_SfWin_2(), panelFinal
-        };
+
+        sfSequenceWin = Arrays.asList(panelStart, new MidiWizardPanel_SfWin_1(), new MidiWizardPanel_SfWin_2(), panelFinal);
         initPanels(sfSequenceWin);
-        
-        sfSequenceLinux = new WizardDescriptor.Panel[]
-        {
-            panelStart, new MidiWizardPanel_SfLinux_1(), panelFinal
-        };
+
+
+        sfSequenceLinux = Arrays.asList(panelStart, new MidiWizardPanel_SfLinux_1(), panelFinal);
         initPanels(sfSequenceLinux);
-        
-        sfSequenceMac = new WizardDescriptor.Panel[]
-        {
-            panelStart, new MidiWizardPanel_SfMac_1(), panelFinal
-        };
+
+
+        sfSequenceMac = Arrays.asList(
+                panelStart, new MidiWizardPanel_SfMac_1(), panelFinal
+        );
         initPanels(sfSequenceMac);
-        
-        midiSequence = new WizardDescriptor.Panel[]
-        {
-            panelStart, new MidiWizardPanelSelectMidiOut(), new MidiWizardPanel4(), new MidiWizardPanel5(), panelFinal
-        };
+
+
+        midiSequence = Arrays.asList(panelStart, new MidiWizardPanelSelectMidiOut(), new MidiWizardPanel4(), new MidiWizardPanel5(), panelFinal);
         initPanels(midiSequence);
-        
+
+
         index = 0;
         setPanelSequence(false);
     }
@@ -98,19 +100,19 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
     @Override
     public WizardDescriptor.Panel<WizardDescriptor> current()
     {
-        return currentPanels[index];
+        return currentPanels.get(index);
     }
 
     @Override
     public String name()
     {
-        return (index + 1) + " of " + currentPanels.length;
+        return (index + 1) + " of " + currentPanels.size();
     }
 
     @Override
     public boolean hasNext()
     {
-        return index < currentPanels.length - 1;
+        return index < currentPanels.size() - 1;
     }
 
     @Override
@@ -185,12 +187,11 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
             if (Utilities.isMac())
             {
                 currentPanels = sfSequenceMac;
-            } 
-            else if (Utilities.isUnix())
+            } else if (Utilities.isUnix())
             {
                 currentPanels = sfSequenceLinux;
-            } else 
-            {                
+            } else
+            {
                 currentPanels = sfSequenceWin;
             }
         }
@@ -198,19 +199,15 @@ public final class MidiWizardIterator implements WizardDescriptor.Iterator<Wizar
         fireChangeEvent();
     }
 
-    private String[] getStepNames(WizardDescriptor.Panel<WizardDescriptor>[] panels)
+    private String[] getStepNames(List<WizardDescriptor.Panel<WizardDescriptor>> panels)
     {
-        String[] stepNames = new String[panels.length];
-        for (int i = 0; i < panels.length; i++)
-        {
-            stepNames[i] = panels[i].getComponent().getName();
-        }
-        return stepNames;
+        List<String> stepNames = panels.stream().map(p -> p.getComponent().getName()).collect(Collectors.toList());
+        return stepNames.toArray(new String[0]);
     }
 
-    private void initPanels(WizardDescriptor.Panel<WizardDescriptor>[] panels)
+    private void initPanels(List<WizardDescriptor.Panel<WizardDescriptor>> panels)
     {
-        for (WizardDescriptor.Panel<WizardDescriptor> panel : panels)
+        for (var panel : panels)
         {
             Component c = panel.getComponent();
             if (c instanceof JComponent)

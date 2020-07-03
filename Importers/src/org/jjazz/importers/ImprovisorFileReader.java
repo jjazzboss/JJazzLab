@@ -51,6 +51,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
+import org.openide.util.Exceptions;
 
 /**
  * Improvisor leadsheet file reader.
@@ -247,7 +248,14 @@ public class ImprovisorFileReader
         List<ChordSymbol> currentBarCsBuffer = new ArrayList<>();
         while (scanner.hasNext())
         {
-            cls.setSize(barIndex + 1);// Make sure chordleadsheet is big enough            
+            try
+            {
+                cls.setSize(barIndex + 1);     // Make sure chordleadsheet is big enough            
+            } catch (UnsupportedEditException ex)
+            {
+                // Should never happen 
+                Exceptions.printStackTrace(ex);
+            }
             String token = scanner.next();
             char firstChar = token.charAt(0);
             if (firstChar >= 'A' && firstChar <= 'G')

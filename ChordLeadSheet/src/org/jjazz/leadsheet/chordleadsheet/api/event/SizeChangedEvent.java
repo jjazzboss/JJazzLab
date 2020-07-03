@@ -24,9 +24,9 @@ package org.jjazz.leadsheet.chordleadsheet.api.event;
 
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 
+
 public class SizeChangedEvent extends ClsChangeEvent
 {
-
     private int oldSize, newSize;
 
     public SizeChangedEvent(ChordLeadSheet src, int oldSize, int newSize)

@@ -28,6 +28,7 @@ import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.util.IntRange;
 
 /**
  * The model for a chord leadsheet.
@@ -71,7 +72,8 @@ public interface ChordLeadSheet
      *
      * @param section
      * @throws IllegalArgumentException If section already exists at specified position or invalid section.
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener veto this edit.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
+     * before any change is done.
      */
     public void addSection(CLI_Section section) throws UnsupportedEditException;
 
@@ -82,8 +84,10 @@ public interface ChordLeadSheet
      * change.
      *
      * @param section
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
+     * before any change is done.
      */
-    public void removeSection(CLI_Section section);
+    public void removeSection(CLI_Section section) throws UnsupportedEditException;
 
     /**
      * Change the name of section.
@@ -102,21 +106,24 @@ public interface ChordLeadSheet
      * @param section The section to be changed.
      * @param ts
      * @throws IllegalArgumentException If section does not belong to this leadsheet.
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener veto this edit.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
+     * before any change is done.
      */
     public void setSectionTimeSignature(CLI_Section section, TimeSignature ts) throws UnsupportedEditException;
 
     /**
-     * Move a section to a new position. N
+     * Move a section to a new position.
      * <p>
      * New position must be free of a section. Section on first bar can not be moved. Some items position might be adjusted to the
      * new bar's TimeSignature.
      *
      * @param section The section to be moved
      * @param newBarIndex The bar index section will be moved to
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
+     * before any change is done.
      * @throws IllegalArgumentException If new position is not valid.
      */
-    public void moveSection(CLI_Section section, int newBarIndex);
+    public void moveSection(CLI_Section section, int newBarIndex) throws UnsupportedEditException;
 
     /**
      * Move an item to a new position.
@@ -168,8 +175,10 @@ public interface ChordLeadSheet
      *
      * @param barIndexFrom
      * @param barIndexTo
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. IMPORTANT:some undoable
+     * changes might have been done before exception is thrown, caller will need to rollback them.
      */
-    public void deleteBars(int barIndexFrom, int barIndexTo);
+    public void deleteBars(int barIndexFrom, int barIndexTo) throws UnsupportedEditException;
 
     /**
      * Cleanup function to be called so that the object can be garbaged.
@@ -237,10 +246,13 @@ public interface ChordLeadSheet
     public CLI_Section getSection(String sectionName);
 
     /**
+     * The bar range corresponding to this section.
+     *
      * @param section
-     * @return int The size in bars of the section. -1 if section does not exist.
+     * @return
+     * @throws IllegalArgumentException If section does not exist in this ChordLeadSheet.
      */
-    public int getSectionSize(CLI_Section section);
+    public IntRange getSectionRange(CLI_Section section);
 
     /**
      * Get the size of the leadsheet in bars.
@@ -253,8 +265,10 @@ public interface ChordLeadSheet
      * Set the size of the ChordLeadSheet.
      *
      * @param size The numbers of bars, must be &gt;= 1 and &lt; MAX_SIZE.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown
+     * before any change is done.
      */
-    public void setSize(int size);
+    public void setSize(int size) throws UnsupportedEditException;
 
     /**
      * Add a listener to item changes of this object.

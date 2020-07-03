@@ -144,7 +144,7 @@ public class UtilitiesTest
     public void testReverseGet()
     {
         System.out.println("reverseGet");
-        Map map = null;
+        Map<?,?> map = null;
         Object v = null;
         Object expResult = null;
         Object result = Utilities.reverseGet(map, v);
@@ -159,8 +159,8 @@ public class UtilitiesTest
     public void testIndexOfInstance()
     {
         System.out.println("indexOfInstance");
-        List list = null;
-        Class clazz = null;
+        List<?> list = null;
+        Class<?> clazz = null;
         int expResult = 0;
         int result = Utilities.indexOfInstance(list, clazz);
         assertEquals(expResult, result);
@@ -235,7 +235,7 @@ public class UtilitiesTest
     public void testGetLocation()
     {
         System.out.println("getLocation");
-        Class c = Utilities.class;
+        Class<?> c = Utilities.class;
         URL result = Utilities.getLocation(c);
         System.out.println("result=" + result);
         // TODO review the generated test code and remove the default call to fail.

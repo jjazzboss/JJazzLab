@@ -161,8 +161,15 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
     // ============================================================================================= 
     // ClsChangeListener implementation
     // =============================================================================================      
+
     @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event) throws UnsupportedEditException
+    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+
+    @Override
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
         var selection = cap.getSelection();
         if (event instanceof ItemChangedEvent && selection.getSelectedItems().contains(event.getItem()))
@@ -193,7 +200,7 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
                 .anyMatch(item -> !((CLI_ChordSymbol) item).getData().getRenderingInfo().hasOneFeature(Feature.EXTENDED_HOLD_SHOT));
         checkBox.setSelected(!accentNormal);
         checkBox.setEnabled(isEnabled());
-        
+
         return checkBox;
     }
 
