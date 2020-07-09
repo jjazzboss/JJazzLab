@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.ss_editor.spi;
+package org.jjazz.ui.ss_editor.actions;
 
 import java.awt.event.ActionListener;
 import java.beans.PropertyVetoException;
@@ -41,6 +41,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
@@ -48,7 +49,7 @@ import org.openide.util.Exceptions;
 /**
  * A RhythmPreviewProvider instance which plays a song part.
  */
-public class RhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewProvider
+public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewProvider
 {
 
     private MusicGenerationContext context;
@@ -57,9 +58,10 @@ public class RhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewProvi
     private boolean isPreviewRunning;
     private int saveLoopCount;
     private boolean savePrecountEnabled;
+    private boolean save
     private Song previewSong;
     private Song song;
-    private static final Logger LOGGER = Logger.getLogger(RhythmPreviewer.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(EditRhythmPreviewer.class.getSimpleName());
 
     /**
      *
@@ -67,7 +69,7 @@ public class RhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewProvi
      * @param spt The spt for which rhythm is changed
      * @throws MidiUnavailableException
      */
-    public RhythmPreviewer(Song sg, SongPart spt) throws MidiUnavailableException
+    public EditRhythmPreviewer(Song sg, SongPart spt) throws MidiUnavailableException
     {
         if (sg == null || spt == null)
         {

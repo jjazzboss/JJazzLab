@@ -55,7 +55,6 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import org.jjazz.ui.ss_editor.spi.RhythmPreviewer;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.editrhythm")
 @ActionRegistration(displayName = "#CTL_EditRhythm", lazy = false)
@@ -126,10 +125,10 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         // Initialize and show dialog
         RhythmSelectionDialog dlg = RhythmSelectionDialog.getDefault();
         Rhythm rSelSpt0 = selSpt0.getRhythm();
-        RhythmPreviewer previewer;
+        EditRhythmPreviewer previewer;
         try
         {
-            previewer = new RhythmPreviewer(song, selSpt0);
+            previewer = new EditRhythmPreviewer(song, selSpt0);
         } catch (MidiUnavailableException ex)
         {
             LOGGER.warning("changeRhythm() Can't create RhythmPreviewer ex=" + ex.getLocalizedMessage() + ". RhythmPreviewer disabled.");

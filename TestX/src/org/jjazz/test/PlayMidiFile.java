@@ -50,14 +50,15 @@ import org.openide.windows.WindowManager;
  * Play Midi file using default JJazzLab Midi configuration.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.test.playmidifile")
-@ActionRegistration(displayName = "Play Midi File", lazy=true)
+@ActionRegistration(displayName = "Play Midi File", lazy = true)
 @ActionReferences(
         {
-             // @ActionReference(path = "Menu/Edit", position = 37893),
-             @ActionReference(path = "Shortcuts", name = "SD-P")    // ctrl-shift-P
+            // @ActionReference(path = "Menu/Edit", position = 37893),
+            @ActionReference(path = "Shortcuts", name = "SD-P")    // ctrl-shift-P
         })
 public final class PlayMidiFile implements ActionListener, MetaEventListener
 {
+
     private static final Logger LOGGER = Logger.getLogger(PlayMidiFile.class.getSimpleName());
     private static File lastFile = null;
     private Sequencer sequencer;
@@ -83,7 +84,13 @@ public final class PlayMidiFile implements ActionListener, MetaEventListener
 
         try
         {
-            sequencer = JJazzMidiSystem.getInstance().getDefaultSequencer();
+            var jms = JJazzMidiSystem.getInstance();
+             sequencer = jms.getSequencer(this);
+            if (sequencer == null)
+            {
+                LOGGER.severe("actionPerformed() can't get sequencer lock, current lock=" + jms.getSequencerLock().toString());
+                return;
+            }
             sequencer.addMetaEventListener(this);
             InputStream is = new BufferedInputStream(new FileInputStream(lastFile));
             sequencer.setSequence(is);
@@ -109,6 +116,7 @@ public final class PlayMidiFile implements ActionListener, MetaEventListener
                 public void run()
                 {
                     sequencer.stop();
+                    JJazzMidiSystem.getInstance().releaseSequencer(PlayMidiFile.this);
                 }
             };
             SwingUtilities.invokeLater(doRun);
