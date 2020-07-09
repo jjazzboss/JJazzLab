@@ -37,7 +37,7 @@ The Netbeans Platform turns JJazzLab-X into a pluggable application where plugin
 
 If you're looking for a binary distribution visit [www.jjazzlab.com](https://www.jjazzlab.com).
 
-The current version is an Ant-based Netbeans IDE project (Netbeans 11, JDK>=8).
+The current version is an Ant-based Netbeans IDE project (Netbeans 11, JDK 11).
 
 From Netbeans IDE:
 - menu Team/Git/Clone, enter repository address: https://github.com/jjazzboss/JJazzLab-X.git
