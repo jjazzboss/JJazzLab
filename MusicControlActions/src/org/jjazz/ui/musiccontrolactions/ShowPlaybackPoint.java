@@ -393,14 +393,14 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
     {
         Song activeSong = ActiveSongManager.getInstance().getActiveSong();
         boolean currentIsActive = (currentSong != null) && (currentSong == activeSong);
-        MusicController.State state = MusicController.getInstance().getPlaybackState();
+        MusicController.State state = MusicController.getInstance().getState();
         switch (state)
         {
-            case PLAYBACK_STARTED:
-            case PLAYBACK_PAUSED:
+            case PLAYING:
+            case PAUSED:
                 setEnabled(currentIsActive && !songWasModifiedDuringPlayback);
                 break;
-            case PLAYBACK_STOPPED:
+            case STOPPED:
                 setEnabled(currentIsActive);
                 break;
             default:
@@ -418,16 +418,16 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
      */
     private void updateShowing()
     {
-        MusicController.State state = MusicController.getInstance().getPlaybackState();
+        MusicController.State state = MusicController.getInstance().getState();
         if (songWasModifiedDuringPlayback)
         {
             switch (state)
             {
-                case PLAYBACK_STARTED:
-                case PLAYBACK_PAUSED:
+                case PLAYING:
+                case PAUSED:
                     hidePlaybackPoint();
                     break;
-                case PLAYBACK_STOPPED:
+                case STOPPED:
                     songWasModifiedDuringPlayback = false;
                     break;
                 default:
@@ -437,8 +437,8 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         {
             switch (state)
             {
-                case PLAYBACK_STARTED:
-                case PLAYBACK_PAUSED:
+                case PLAYING:
+                case PAUSED:
                     if (currentCL_Editor != null && getBooleanState() == false)
                     {
                         hidePlaybackPoint();
@@ -447,7 +447,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                         showPlaybackPoint();
                     }
                     break;
-                case PLAYBACK_STOPPED:
+                case STOPPED:
                     if (currentCL_Editor != null)
                     {
                         hidePlaybackPoint();

@@ -57,7 +57,7 @@ public class RecentSongsProvider implements RecentFilesProvider, PropertyChangeL
     {
         Song song = SongEditorManager.getInstance().showSong(f);
         
-        if (song != null && MusicController.getInstance().getPlaybackState().equals(MusicController.State.PLAYBACK_STOPPED))
+        if (song != null && MusicController.getInstance().getState().equals(MusicController.State.STOPPED))
         {
             MidiMix mm;
             try

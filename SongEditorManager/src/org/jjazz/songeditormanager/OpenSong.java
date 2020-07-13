@@ -88,7 +88,7 @@ public final class OpenSong implements ActionListener
         }
 
         // Activate the last opened song
-        if (lastSong != null && MusicController.getInstance().getPlaybackState().equals(MusicController.State.PLAYBACK_STOPPED))
+        if (lastSong != null && MusicController.getInstance().getState().equals(MusicController.State.STOPPED))
         {
             MidiMix mm;
             try

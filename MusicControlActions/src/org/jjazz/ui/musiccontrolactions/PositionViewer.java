@@ -113,7 +113,7 @@ public class PositionViewer extends JLabel implements PropertyChangeListener
         {
             if (evt.getPropertyName() == MusicController.PROP_PLAYBACK_STATE)
             {
-                if (mc.getPlaybackState() == MusicController.State.PLAYBACK_STARTED)
+                if (mc.getState() == MusicController.State.PLAYING)
                 {
                     saveBackground = getBackground();
                     setBackground(playBackground);

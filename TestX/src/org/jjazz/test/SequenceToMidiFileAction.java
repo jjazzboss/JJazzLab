@@ -56,7 +56,12 @@ public final class SequenceToMidiFileAction implements ActionListener
     {
         LOGGER.info("actionPerformed() --");
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-        Sequencer s = jms.getDefaultSequencer();
+        Sequencer s = jms.getSequencer(this);
+        if (s == null)
+        {
+            LOGGER.severe("actionPerformed() can't get sequencer lock, current lock=" + jms.getSequencerLock().toString());
+            return;
+        }
         Sequence seq = s.getSequence();
         if (seq == null)
         {
@@ -109,6 +114,9 @@ public final class SequenceToMidiFileAction implements ActionListener
             {
                 Exceptions.printStackTrace(ex);
                 return;
+            } finally
+            {
+                JJazzMidiSystem.getInstance().releaseSequencer(SequenceToMidiFileAction.this);
             }
             LOGGER.info("Starting Midi Editor...");
             ProcessBuilder pb = new ProcessBuilder("C:\\Program Files (x86)\\MidiEditor\\MidiEditor.exe", midiTempFile.getAbsolutePath());

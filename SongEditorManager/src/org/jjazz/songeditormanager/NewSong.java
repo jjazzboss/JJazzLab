@@ -63,7 +63,7 @@ public final class NewSong implements ActionListener
         SongEditorManager.getInstance().showSong(song);
 
         // Activate the song if possible
-        if (MusicController.getInstance().getPlaybackState().equals(MusicController.State.PLAYBACK_STOPPED))
+        if (MusicController.getInstance().getState().equals(MusicController.State.STOPPED))
         {
             MidiMix mm;
             try

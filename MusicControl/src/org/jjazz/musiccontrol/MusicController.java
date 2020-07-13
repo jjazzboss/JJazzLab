@@ -58,10 +58,13 @@ import org.jjazz.rhythmmusicgeneration.NoteEvent;
 import org.jjazz.rhythmmusicgeneration.Phrase;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
+import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
 
 /**
  * Control the music playback.
+ * <p>
+ * Acquire a lock on the JJazzMidiSystem sequencer when playing s song. Lock is released as soon as sequencer is not running.
  * <p>
  * Property changes are fired for:<br>
  * - start/pause/stop state changes<br>
@@ -90,7 +93,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     public static final String PROP_CLICK = "PropClick";
     public static final String PROP_LOOPCOUNT = "PropLoopCount";
 
-
     /**
      * The playback states.
      * <p>
@@ -98,9 +100,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     public enum State
     {
-        PLAYBACK_STOPPED,
-        PLAYBACK_PAUSED,
-        PLAYBACK_STARTED
+        DISABLED,
+        STOPPED,
+        PAUSED,
+        PLAYING
     }
     private static MusicController INSTANCE;
     /**
@@ -116,12 +119,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private MusicGenerator.PostProcessor[] postProcessors;
 
-    private State playbackState;
+    private State state;
     /**
      * The current beat position during playback.
      */
     Position currentBeatPosition = new Position();
-    private final Sequencer sequencer;
+    // private final Sequencer sequencer;
     private int loopCount;
     private boolean isClickEnabled;
     /**
@@ -169,22 +172,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private MusicController()
     {
         loopCount = 0;
-        playbackState = State.PLAYBACK_STOPPED;
+        state = State.DISABLED;
         isClickEnabled = false;
-
-
-        // Initialize the sequencer
-        sequencer = JJazzMidiSystem.getInstance().getDefaultSequencer();
-        sequencer.addMetaEventListener(this);
-        int[] res = sequencer.addControllerEventListener(this, listenedControllers);
-        if (res.length != listenedControllers.length)
-        {
-            LOGGER.severe(ERR_SequencerLimited());
-        }
-        sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
 
         // Listen to click settings changes
         ClickManager.getInstance().addPropertyChangeListener(this);
+
+        // Listen to sequencer lock changes
+        JJazzMidiSystem.getInstance().addPropertyChangeListener(this);
     }
 
     /**
@@ -208,20 +203,17 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         stop();
         songPartTempoFactor = 1f;
 
-
         if (mgContext != null)
         {
             mgContext.getMidiMix().removePropertyListener(this);
             mgContext.getSong().removePropertyChangeListener(this);
         }
 
-
         if (playbackContext != null)
         {
             playbackContext.close();
             playbackContext = null;
         }
-
 
         mgContext = context;
         if (mgContext != null)
@@ -249,12 +241,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * Song is played from the beginning of the context range. Before playing the song, vetoable listeners are notified with a
      * PROPVETO_PRE_PLAYBACK property change.<p>
      *
+     *
      * @param fromBarIndex Play the song from this bar. Bar must be within the context's range.
      *
      * @throws java.beans.PropertyVetoException If a vetoable listener vetoed the playback start. A listener who has already
      * notified user should throw an exception with a null message.
      * @throws MusicGenerationException If a problem occurred which prevents song playing: no Midi out, song is already playing,
-     * rhythm music generation problem, etc.
+     * rhythm music generation problem, MusicController is disabled, etc.
      * @throws IllegalStateException If context is null.
      *
      * @see #getPlayingSongCopy()
@@ -272,7 +265,16 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
         checkMidi();                // throws MusicGenerationException
-        checkPlaybackNotStarted();  // throws MusicGenerationException
+
+
+        // Check state
+        if (state == State.PLAYING)
+        {
+            throw new MusicGenerationException("A song is already playing.");
+        } else if (state == State.DISABLED)
+        {
+            throw new MusicGenerationException("Playback is disabled.");
+        }        
 
 
         // If we're here then playbackState = PAUSE or STOPPED
@@ -285,6 +287,18 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         // Check that all listeners are OK to start playback
         vcs.fireVetoableChange(PROPVETO_PRE_PLAYBACK, null, mgContext);  // can raise PropertyVetoException
+
+
+        // Get the sequencer and initialize it if required
+        Sequencer sequencer;
+        checkSequencerLock();           // throws MusicGenerationException if can't access sequencer
+        var jms = JJazzMidiSystem.getInstance();
+        if (jms.getSequencerLock() == null)
+        {
+            // First use, initialize sequencer
+            initSequencer();
+        }
+        sequencer = jms.getSequencer(this);
 
 
         // Regenerate the sequence and the related data if needed
@@ -302,28 +316,31 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         sequencer.setLoopCount(loopCount);
         seqStart();
 
-        State old = this.getPlaybackState();
-        playbackState = State.PLAYBACK_STARTED;
+
+        State old = this.getState();
+        state = State.PLAYING;
 
 
-        pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, playbackState);
+        pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, state);
     }
 
     /**
      * Resume playback from the pause state.
      * <p>
-     * If played/paused song was modified, then resume() will just redirect to the play() method. If state is not PLAYBACK_PAUSED,
-     * nothing is done.
+     * If played/paused song was modified, then resume() will just redirect to the play() method. If state is not PAUSED, nothing
+     * is done.
      *
-     * @throws org.jjazz.rhythm.api.MusicGenerationException
+     * @throws org.jjazz.rhythm.api.MusicGenerationException For example if can't get sequencer lock.
      * @throws java.beans.PropertyVetoException
      */
     public void resume() throws MusicGenerationException, PropertyVetoException
     {
-        if (!playbackState.equals(State.PLAYBACK_PAUSED))
+        if (!state.equals(State.PAUSED))
         {
             return;
         }
+
+
         if (playbackContext.isDirty())
         {
             // Song was modified during playback, do play() instead
@@ -331,36 +348,59 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             return;
         }
 
+
+        checkSequencerLock();       // throws MusicGenerationException
+
+
         if (mgContext == null)
         {
             throw new IllegalStateException("context=" + mgContext);
         }
 
+
         checkMidi();                // throws MusicGenerationException
+
 
         // Check that all listeners are OK to resume playback
         vcs.fireVetoableChange(PROPVETO_PRE_PLAYBACK, null, mgContext.getSong());  // can raise PropertyVetoException
 
+
         // Let's go again
         seqStart();
 
-        State old = this.getPlaybackState();
-        playbackState = State.PLAYBACK_STARTED;
 
-        pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, playbackState);
+        State old = this.getState();
+        state = State.PLAYING;
+        pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, state);
 
     }
 
     /**
      * Stop the playback of the sequence if it was playing, and reset the position to the beginning of the sequence.
+     * <p>
+     * Release the sequencer lock.
      */
     public void stop()
     {
-        sequencer.stop();
+        if (state == State.STOPPED || state == State.DISABLED)
+        {
+            return;
+        } else if (state == State.PLAYING)
+        {
+            Sequencer sequencer = JJazzMidiSystem.getInstance().getSequencer(this);
+            assert sequencer != null : "sequencer lock=" + JJazzMidiSystem.getInstance().getSequencerLock();
+            sequencer.stop();
+        }
+
+        JJazzMidiSystem.getInstance().releaseSequencer(this);
+
         songPartTempoFactor = 1;
-        State old = this.getPlaybackState();
-        playbackState = State.PLAYBACK_STOPPED;
-        pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, playbackState);
+
+        State old = this.getState();
+        state = State.STOPPED;
+        pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, state);
+
+
         // Position must be reset after the stop so that playback beat change tracking listeners are not reset upon stop
         int bar = mgContext != null ? mgContext.getBarRange().from : 0;
         setPosition(bar);
@@ -370,24 +410,33 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * Stop the playback of the sequence and leave the position unchanged.
      * <p>
      * If played song was modified after playback started, then pause() will just redirect to the stop() method. If state is not
-     * PLAYBACK_STARTED, nothing is done.
+     * PLAYING, nothing is done.
      */
     public void pause()
     {
-        if (!playbackState.equals(State.PLAYBACK_STARTED))
+
+        if (!state.equals(State.PLAYING))
         {
             return;
         }
+
+
         if (playbackContext.isDirty())
         {
             // Song was modified during playback, pause() not allowed, do stop() instead
             stop();
             return;
         }
+
+        Sequencer sequencer = JJazzMidiSystem.getInstance().getSequencer(this);
+        assert sequencer != null : "sequencer lock=" + JJazzMidiSystem.getInstance().getSequencerLock();
         sequencer.stop();
-        State old = getPlaybackState();
-        playbackState = State.PLAYBACK_PAUSED;
-        pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, playbackState);
+
+        JJazzMidiSystem.getInstance().releaseSequencer(this);
+
+        State old = getState();
+        state = State.PAUSED;
+        pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, state);
     }
 
     /**
@@ -415,22 +464,46 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         return currentBeatPosition;
     }
 
-    public State getPlaybackState()
+    public State getState()
     {
-        return playbackState;
+        return state;
     }
 
+    /**
+     * Enable the click or not.
+     * <p>
+     * Do nothing if can't get sequencer lock.
+     *
+     * @param b
+     */
     public void setClickEnabled(boolean b)
     {
-        if (isClickEnabled != b)
+        if (isClickEnabled == b)
         {
-            isClickEnabled = b;
-            if (sequencer.isRunning())
-            {
-                sequencer.setTrackMute(playbackContext.clickTrackId, !isClickEnabled);
-            }
-            pcs.firePropertyChange(PROP_CLICK, !b, b);
+            return;
         }
+
+        try
+        {
+            checkSequencerLock();
+        } catch (MusicGenerationException ex)
+        {
+            LOGGER.warning("setClickEnabled() can't access sequencer, current lock=" + JJazzMidiSystem.getInstance().getSequencerLock());
+            return;
+        }
+
+
+        isClickEnabled = b;
+
+
+        Sequencer sequencer = JJazzMidiSystem.getInstance().getSequencer(this);
+        if (sequencer.isRunning())
+        {
+            sequencer.setTrackMute(playbackContext.clickTrackId, !isClickEnabled);
+        }
+
+
+        pcs.firePropertyChange(PROP_CLICK, !b, b);
     }
 
     public boolean isClickEnabled()
@@ -445,6 +518,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
     /**
      * Set the loop count of the playback.
+     * <p>
+     * Do nothing if can't get sequencer lock.
      *
      * @param loopCount If 0, play the song once (no loop). Use Sequencer.LOOP_CONTINUOUSLY for endless loop.
      */
@@ -454,9 +529,22 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             throw new IllegalArgumentException("loopCount=" + loopCount);
         }
+
+        try
+        {
+            checkSequencerLock();
+        } catch (MusicGenerationException ex)
+        {
+            LOGGER.warning("setLoopCount() can't access sequencer, current lock=" + JJazzMidiSystem.getInstance().getSequencerLock());
+            return;
+        }
+
         int old = this.loopCount;
         this.loopCount = loopCount;
-        this.sequencer.setLoopCount(loopCount);
+
+        Sequencer sequencer = JJazzMidiSystem.getInstance().getSequencer(this);
+        sequencer.setLoopCount(loopCount);
+
         pcs.firePropertyChange(PROP_LOOPCOUNT, old, this.loopCount);
     }
 
@@ -473,7 +561,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Add a listener to be notified of playback bar/beat changes events etc.
      * <p>
-     * Listeners should note they will be called out of the Swing EDT (Event Dispatch Thread).
+     * Listeners will be called out of the Swing EDT (Event Dispatch Thread).
      *
      * @param listener
      */
@@ -562,7 +650,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         try
         {
             checkMidi();
-            checkPlaybackNotStarted();
+            checkState();
         } catch (MusicGenerationException ex)
         {
             if (endAction != null)
@@ -584,22 +672,22 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             p.fillTrack(track);
 
             // create an object to listen to the End of Track MetaEvent and stop the sequencer
-            MetaEventListener stopSequencer = new MetaEventListener()
+            if (endAction != null)
             {
-                @Override
-                public void meta(MetaMessage event)
+                MetaEventListener stopSequencer = new MetaEventListener()
                 {
-                    if (event.getType() == 47) // Meta Event for end of sequence
+                    @Override
+                    public void meta(MetaMessage event)
                     {
-                        sequencer.removeMetaEventListener(this);
-                        if (endAction != null)
+                        if (event.getType() == 47) // Meta Event for end of sequence
                         {
+                            sequencer.removeMetaEventListener(this);
                             endAction.run();
                         }
                     }
-                }
-            };
-            sequencer.addMetaEventListener(stopSequencer);
+                };
+                sequencer.addMetaEventListener(stopSequencer);
+            }
 
             // play the sequence
             sequencer.setTickPosition(0);
@@ -625,6 +713,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     @Override
     public void controlChange(ShortMessage event)
     {
+        Sequencer sequencer = JJazzMidiSystem.getInstance().getSequencer(this);
+        if (sequencer == null)
+        {
+            throw new IllegalStateException("sequencer=" + sequencer + " lock=" + JJazzMidiSystem.getInstance().getSequencerLock());
+        }
         long tick = sequencer.getTickPosition() - playbackContext.songTickStart;
         int data1 = event.getData1();
         switch (data1)
@@ -697,10 +790,49 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     public void propertyChange(PropertyChangeEvent e)
     {
         LOGGER.log(Level.FINE, "propertyChange() e={0}", e);
+
+        var jms = JJazzMidiSystem.getInstance();
+
+        if (e.getSource() == jms)
+        {
+            if (e.getPropertyName().equals(JJazzMidiSystem.PROP_SEQUENCER_LOCK))
+            {
+                if (e.getNewValue() == this)
+                {
+                    // We just acquired the sequencer
+                    initSequencer();
+                    State old = getState();
+                    assert old == State.DISABLED : "old=" + old;
+                    state = State.STOPPED;
+                    pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, state);
+
+                } else if (e.getOldValue() == this)
+                {
+                    // We released the sequencer
+                    // Do nothing
+                } else if (e.getNewValue() != null)
+                {
+                    // Another user acquired the sequencer
+
+                    // We don't have the lock anymore use getSystemSequencer()
+                    Sequencer sequencer = JJazzMidiSystem.getInstance().getSystemSequencer();
+                    releaseSequencer(sequencer);
+
+                    // We are disabled now
+                    State old = getState();
+                    state = State.DISABLED;
+                    pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, state);
+                }
+            }
+        }
+
+        // Following properties are meaningless if no context
         if (mgContext == null)
         {
             return;
         }
+
+
         if (e.getSource() == mgContext.getSong())
         {
             if (e.getPropertyName() == Song.PROP_MODIFIED_OR_SAVED)
@@ -748,7 +880,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             playbackContext.setDirty();
         }
 
-        if (playbackContext.isDirty() && playbackState == State.PLAYBACK_PAUSED)
+        if (playbackContext.isDirty() && state == State.PAUSED)
         {
             stop();
         }
@@ -757,6 +889,45 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     // =====================================================================================
     // Private methods
     // =====================================================================================
+    /**
+     * Initialize the sequencer for our usage.
+     */
+    private void initSequencer()
+    {
+        Sequencer sequencer = JJazzMidiSystem.getInstance().getSequencer(this);
+        sequencer.addMetaEventListener(this);
+        int[] res = sequencer.addControllerEventListener(this, listenedControllers);
+        if (res.length != listenedControllers.length)
+        {
+            LOGGER.severe(ERR_SequencerLimited());
+        }
+        sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
+    }
+
+    /**
+     * Remove our listeners.
+     */
+    private void releaseSequencer(Sequencer sequencer)
+    {
+        // We released the sequencer, remove our listeners       
+        sequencer.removeMetaEventListener(this);
+        sequencer.removeControllerEventListener(this, listenedControllers);
+    }
+
+    /**
+     * Check that we own or can own the sequencer lock.
+     *
+     * @throws MusicGenerationException
+     */
+    private void checkSequencerLock() throws MusicGenerationException
+    {
+        var jms = JJazzMidiSystem.getInstance();
+        if (jms.getSequencerLock() != null && jms.getSequencerLock() != this)
+        {
+            throw new MusicGenerationException("Can't access sequencer");
+        }
+    }
+
     /**
      *
      * Set the sequencer and model position to the specified bar.
@@ -777,11 +948,20 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 tick = playbackContext.songTickStart + mgContext.getRelativeTick(new Position(relativeBar, 0));
             }
         }
-        sequencer.setTickPosition(tick);
+
+        Sequencer sequencer = JJazzMidiSystem.getInstance().getSequencer(this);
+        if (sequencer != null)
+        {
+            sequencer.setTickPosition(tick);
+        }
+
         setCurrentBeatPosition(fromBar, 0);
     }
 
     /**
+     * Update the muted tracks
+     * <p>
+     * Do nothing if can't access sequencer lock.
      *
      * @param insMix
      * @param mapRvTrack The map which provides the track index corresponding to each rhythmvoice.
@@ -836,16 +1016,23 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
     }
 
-
     /**
      * Start the sequencer with the bug fix (tempo reset at 120 upon each start).
      */
     private void seqStart()
     {
-        sequencer.start();
+        Sequencer sequencer = JJazzMidiSystem.getInstance().getSequencer(this);
+        if (sequencer != null)
+        {
+            sequencer.start();
 
-        // JDK -11 BUG: start() resets tempo at 120 !
-        sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
+            // JDK -11 BUG: start() resets tempo at 120 !
+            sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
+        } else
+        {
+            LOGGER.info("seqStart() can't get sequencer. lock=" + JJazzMidiSystem.getInstance().getSequencerLock());
+        }
+
     }
 
     private void setCurrentBeatPosition(int bar, float beat)
@@ -886,14 +1073,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         if (JJazzMidiSystem.getInstance().getDefaultOutDevice() == null)
         {
             throw new MusicGenerationException("No MIDI Out device set. Go to menu Tools/Options/Midi and select a Midi device.");
-        }
-    }
-
-    private void checkPlaybackNotStarted() throws MusicGenerationException
-    {
-        if (playbackState == State.PLAYBACK_STARTED)
-        {
-            throw new MusicGenerationException("A song is already playing.");
         }
     }
 
@@ -960,6 +1139,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             try
             {
+                checkSequencerLock();       // Possible MusicGenerationException
+                Sequencer sequencer = JJazzMidiSystem.getInstance().getSequencer(MusicController.this);
+
+
                 // Build the sequence
                 MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(context, postProcessors);
                 sequence = seqBuilder.buildSequence(false);                  // Can raise MusicGenerationException
@@ -1013,6 +1196,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         private void updateAllTracksMuteState(MidiMix mm)
         {
+            Sequencer sequencer = JJazzMidiSystem.getInstance().getSequencer(MusicController.this);
+            assert sequencer != null : "sequencer lock=" + JJazzMidiSystem.getInstance().getSequencerLock();
+
             for (RhythmVoice rv : mm.getRhythmVoices())
             {
                 if (!(rv instanceof UserChannelRvKey))

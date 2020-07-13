@@ -56,9 +56,8 @@ import org.openide.util.lookup.ServiceProvider;
  * <p>
  * Scan the available Midi IN/OUT devices at startup. Restore the default Midi IN/OUT devices when possible using Preferences.
  * <p>
- * The application should only connect to JJazzMidiIn and JJazzMidiOut virtual devices. These devices are implemented by a
- * MidiFilter object, enabling filtering and dumping. These devices are connected internally to the selected physical MIDI In/Out
- * devices.
+ * The application should only connect to JJazzMidiIn and JJazzMidiOut virtual devices. These devices are implemented by a MidiFilter
+ * object, enabling filtering and dumping. These devices are connected internally to the selected physical MIDI In/Out devices.
  * <p>
  * Manage a Midi master volume: a factor between 0 and 2 (default=1) which is used on all volume Midi messages.
  */
@@ -77,6 +76,7 @@ public final class JJazzMidiSystem
     public final static String PROP_MIDI_THRU = "MidiThruProp";
     public final static String PROP_MASTER_VOL_FACTOR = "MasterVolumeFactor";
     public final static String PROP_MIDI_OUT_FILTERING = "MidiOutFiltering";
+    public final static String PROP_SEQUENCER_LOCK = "SequencerLock";
     public final static String PREF_JAVA_SYNTH_SOUNDFONT_FILE = "JavaSynthSoundFontFile";
 
     /**
@@ -104,6 +104,7 @@ public final class JJazzMidiSystem
      */
     private MidiDevice defaultOutDevice;
 
+    private Object sequencerLock;
     /**
      * The default system Sequencer
      */
@@ -348,9 +349,68 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * @return The default sequencer opened and ready to play music on the JJazzMidiOutDevice
+     * If available, get the system java sequencer opened and ready to play music on the JJazzMidiOutDevice.
+     * <p>
+     * When done with the sequencer, caller must call releaseSequencer(lock), so sequencer can be used by others.<p>
+     * If lock is changed the method fires a PROP_SEQUENCER_LOCK property change with old value=null and new value=lock.
+     *
+     * @param lock A non-null object used as a lock on this sequencer.
+     * @return Null if sequencer has already a different lock
      */
-    public Sequencer getDefaultSequencer()
+    public synchronized Sequencer getSequencer(Object lock)
+    {
+        if (lock == null)
+        {
+            throw new NullPointerException("lock");
+        }
+        if (sequencerLock == lock)
+        {
+            return defaultSequencer;
+        } else if (sequencerLock == null)
+        {
+            sequencerLock = lock;
+            pcs.firePropertyChange(PROP_SEQUENCER_LOCK, null, lock);
+            return defaultSequencer;
+        }
+        return null;
+    }
+
+    /**
+     * Get the current sequencer lock object.
+     *
+     * @return null if no lock.
+     */
+    public synchronized Object getSequencerLock()
+    {
+        return sequencerLock;
+    }
+
+    /**
+     * Release the specified sequencer lock.
+     * <p>
+     * Fire a PROP_SEQUENCER_LOCK property change with old value=lock and new value=null.
+     *
+     * @param lock
+     * @throws IllegalArgumentException If lock is not the current sequencer lock
+     */
+    public synchronized void releaseSequencer(Object lock)
+    {
+        if (lock == null || sequencerLock != lock)
+        {
+            throw new IllegalArgumentException("lock=" + lock + " sequencerLock=" + sequencerLock);
+        }
+        sequencerLock = null;
+        pcs.firePropertyChange(PROP_SEQUENCER_LOCK, lock, null);
+    }
+
+    /**
+     * Get direct access to the system java sequencer opened and ready to play music on the JJazzMidiOutDevice.
+     * <p>
+     * In general getSequencer(Object lock) should be preferred, as it allows for access synchronization between various users.
+     *
+     * @return
+     */
+    public Sequencer getSystemSequencer()
     {
         return defaultSequencer;
     }
@@ -416,12 +476,11 @@ public final class JJazzMidiSystem
     /**
      * Try to load the soundfont2 (or DLS) file in the default Java synth.
      * <p>
-     * Previous soundbank instruments are unloaded first. This triggers a specific task since loading a soundfont can take some
-     * time.
+     * Previous soundbank instruments are unloaded first. This triggers a specific task since loading a soundfont can take some time.
      *
      * @param f
-     * @param silentRun If false wait until completion of the task and show progress bar. If true nothing is shown and method
-     * immediatly returns true.
+     * @param silentRun If false wait until completion of the task and show progress bar. If true nothing is shown and method immediatly
+     *                  returns true.
      * @return true If success. If silentRun=true always return true.
      */
     public boolean loadSoundbankFileOnSynth(final File f, boolean silentRun)
@@ -860,8 +919,7 @@ public final class JJazzMidiSystem
     /**
      * Get a friendly name for a MidiDevice.
      * <p>
-     * For now only used to rename the Java default synth (sometimes "Gervill") to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name
-     * otherwise.
+     * For now only used to rename the Java default synth (sometimes "Gervill") to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name otherwise.
      *
      * @param md
      * @return
@@ -918,7 +976,6 @@ public final class JJazzMidiSystem
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
-
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
@@ -931,6 +988,5 @@ public final class JJazzMidiSystem
         }
 
     }
-
 
 }

@@ -112,11 +112,11 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
         setBooleanState(newState);      // Notify all listeners eg UI button                
 
         MusicController mc = MusicController.getInstance();
-        MusicController.State playBackState = mc.getPlaybackState();
+        MusicController.State playBackState = mc.getState();
         LOGGER.fine("setSelected() newState=" + newState + " playBackState=" + playBackState);
         switch (playBackState)
         {
-            case PLAYBACK_PAUSED:
+            case PAUSED:
                 if (newState)
                 {
                     // Start from last position
@@ -139,7 +139,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                     // Nothing
                 }
                 break;
-            case PLAYBACK_STOPPED:
+            case STOPPED:
                 if (newState)
                 {
                     // Start playback from initial position
@@ -166,7 +166,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                 }
                 break;
 
-            case PLAYBACK_STARTED:
+            case PLAYING:
                 if (newState)
                 {
                     // Nothing
@@ -261,8 +261,8 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
     private void playbackStateChanged()
     {
         MusicController mc = MusicController.getInstance();
-        LOGGER.fine("playbackStateChanged() actionState=" + getBooleanState() + " mc.getPlaybackState()=" + mc.getPlaybackState());
-        setBooleanState(mc.getPlaybackState() == MusicController.State.PLAYBACK_STARTED);
+        LOGGER.fine("playbackStateChanged() actionState=" + getBooleanState() + " mc.getPlaybackState()=" + mc.getState());
+        setBooleanState(mc.getState() == MusicController.State.PLAYING);
     }
 
 }
