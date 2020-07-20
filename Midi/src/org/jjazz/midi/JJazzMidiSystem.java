@@ -56,8 +56,9 @@ import org.openide.util.lookup.ServiceProvider;
  * <p>
  * Scan the available Midi IN/OUT devices at startup. Restore the default Midi IN/OUT devices when possible using Preferences.
  * <p>
- * The application should only connect to JJazzMidiIn and JJazzMidiOut virtual devices. These devices are implemented by a MidiFilter
- * object, enabling filtering and dumping. These devices are connected internally to the selected physical MIDI In/Out devices.
+ * The application should only connect to JJazzMidiIn and JJazzMidiOut virtual devices. These devices are implemented by a
+ * MidiFilter object, enabling filtering and dumping. These devices are connected internally to the selected physical MIDI In/Out
+ * devices.
  * <p>
  * Manage a Midi master volume: a factor between 0 and 2 (default=1) which is used on all volume Midi messages.
  */
@@ -385,6 +386,7 @@ public final class JJazzMidiSystem
         return sequencerLock;
     }
 
+
     /**
      * Release the specified sequencer lock.
      * <p>
@@ -399,6 +401,7 @@ public final class JJazzMidiSystem
         {
             throw new IllegalArgumentException("lock=" + lock + " sequencerLock=" + sequencerLock);
         }
+      
         sequencerLock = null;
         pcs.firePropertyChange(PROP_SEQUENCER_LOCK, lock, null);
     }
@@ -476,11 +479,12 @@ public final class JJazzMidiSystem
     /**
      * Try to load the soundfont2 (or DLS) file in the default Java synth.
      * <p>
-     * Previous soundbank instruments are unloaded first. This triggers a specific task since loading a soundfont can take some time.
+     * Previous soundbank instruments are unloaded first. This triggers a specific task since loading a soundfont can take some
+     * time.
      *
      * @param f
-     * @param silentRun If false wait until completion of the task and show progress bar. If true nothing is shown and method immediatly
-     *                  returns true.
+     * @param silentRun If false wait until completion of the task and show progress bar. If true nothing is shown and method
+     * immediatly returns true.
      * @return true If success. If silentRun=true always return true.
      */
     public boolean loadSoundbankFileOnSynth(final File f, boolean silentRun)
@@ -919,7 +923,8 @@ public final class JJazzMidiSystem
     /**
      * Get a friendly name for a MidiDevice.
      * <p>
-     * For now only used to rename the Java default synth (sometimes "Gervill") to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name otherwise.
+     * For now only used to rename the Java default synth (sometimes "Gervill") to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name
+     * otherwise.
      *
      * @param md
      * @return
