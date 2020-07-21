@@ -31,6 +31,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.jjazz.midi.ui.MidiOutDeviceList;
+import org.jjazz.musiccontrol.TestPlayer;
 
 public final class MidiWizardVisualPanelSelectMidiOut extends JPanel
 {
@@ -125,10 +126,10 @@ public final class MidiWizardVisualPanelSelectMidiOut extends JPanel
             }
         };
 
-        MusicController mc = MusicController.getInstance();
+        TestPlayer tp = TestPlayer.getInstance();
         try
         {
-            mc.playTestNotes(0, -1, 0, endAction);
+            tp.playTestNotes(0, -1, 0, endAction);
         } catch (MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);

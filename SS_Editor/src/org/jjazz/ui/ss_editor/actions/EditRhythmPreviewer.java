@@ -58,7 +58,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
     private boolean isPreviewRunning;
     private int saveLoopCount;
     private boolean savePrecountEnabled;
-    private boolean save
+    private boolean save;
     private Song previewSong;
     private Song song;
     private static final Logger LOGGER = Logger.getLogger(EditRhythmPreviewer.class.getSimpleName());

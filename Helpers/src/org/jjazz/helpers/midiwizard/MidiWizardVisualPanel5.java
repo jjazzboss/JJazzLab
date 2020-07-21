@@ -33,6 +33,7 @@ import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midi.synths.Family;
 import org.jjazz.midi.synths.GSSynth;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.musiccontrol.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -196,10 +197,10 @@ public final class MidiWizardVisualPanel5 extends JPanel
             }
         };
 
-        MusicController mc = MusicController.getInstance();
+        TestPlayer tp = TestPlayer.getInstance();
         try
         {
-            mc.playTestNotes(channel, -1, transpose, endAction);
+            tp.playTestNotes(channel, -1, transpose, endAction);
         } catch (MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);

@@ -143,7 +143,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_PLAYBACK_STATE)
+            if (evt.getPropertyName() == MusicController.PROP_STATE)
             {
                 playbackStateChanged();
             }

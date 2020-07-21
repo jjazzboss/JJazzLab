@@ -52,6 +52,7 @@ import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.ui.InstrumentTable;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.musiccontrol.TestPlayer;
 import org.jjazz.outputsynth.GMRemapTable;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -690,12 +691,12 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             }
         };
         // Send MIDI messages for the selected instrument             
-        MusicController mc = MusicController.getInstance();
+        TestPlayer tp = TestPlayer.getInstance();
         try
         {
             final int TRANSPOSE = ins.isDrumKit() ? -24 : 0;
             JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(channel));
-            mc.playTestNotes(channel, -1, TRANSPOSE + getTransposition(), endAction);
+            tp.playTestNotes(channel, -1, TRANSPOSE + getTransposition(), endAction);
         } catch (MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);

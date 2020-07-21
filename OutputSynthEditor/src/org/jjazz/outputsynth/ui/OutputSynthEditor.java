@@ -58,6 +58,7 @@ import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.ui.InstrumentTable;
 import org.jjazz.midimix.UserChannelRvKey;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.musiccontrol.TestPlayer;
 import org.jjazz.outputsynth.GMRemapTable;
 import org.jjazz.outputsynth.GMRemapTable.ArgumentsException;
 import org.jjazz.outputsynth.MidiSynthManager;
@@ -971,13 +972,13 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             }
         };
         // Send MIDI messages for the selected instrument             
-        MusicController mc = MusicController.getInstance();
+        TestPlayer tp = TestPlayer.getInstance();
         try
         {
             final int CHANNEL = ins.isDrumKit() ? MidiConst.CHANNEL_DRUMS : 0;
             final int TRANSPOSE = ins.isDrumKit() ? -24 : 0;
             JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(CHANNEL));
-            mc.playTestNotes(CHANNEL, -1, TRANSPOSE, endAction);
+            tp.playTestNotes(CHANNEL, -1, TRANSPOSE, endAction);
         } catch (MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -1041,13 +1042,13 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             }
         };
         // Send MIDI messages for the selected instrument             
-        MusicController mc = MusicController.getInstance();
+        TestPlayer tp = TestPlayer.getInstance();
         try
         {
             final int CHANNEL = ins.isDrumKit() ? MidiConst.CHANNEL_DRUMS : 0;
             final int TRANSPOSE = ins.isDrumKit() ? -24 : 0;
             JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(CHANNEL));
-            mc.playTestNotes(CHANNEL, -1, TRANSPOSE, endAction);
+            tp.playTestNotes(CHANNEL, -1, TRANSPOSE, endAction);
 
         } catch (MusicGenerationException ex)
         {

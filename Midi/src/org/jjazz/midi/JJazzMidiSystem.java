@@ -52,15 +52,20 @@ import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Manage the Midi IN and OUT devices for the JJazz application, plus some convenience methods.
+ * Manage the Midi IN and OUT devices for the JJazz application, plus some
+ * convenience methods.
  * <p>
- * Scan the available Midi IN/OUT devices at startup. Restore the default Midi IN/OUT devices when possible using Preferences.
+ * Scan the available Midi IN/OUT devices at startup. Restore the default Midi
+ * IN/OUT devices when possible using Preferences.
  * <p>
- * The application should only connect to JJazzMidiIn and JJazzMidiOut virtual devices. These devices are implemented by a
- * MidiFilter object, enabling filtering and dumping. These devices are connected internally to the selected physical MIDI In/Out
+ * The application should only connect to JJazzMidiIn and JJazzMidiOut virtual
+ * devices. These devices are implemented by a
+ * MidiFilter object, enabling filtering and dumping. These devices are
+ * connected internally to the selected physical MIDI In/Out
  * devices.
  * <p>
- * Manage a Midi master volume: a factor between 0 and 2 (default=1) which is used on all volume Midi messages.
+ * Manage a Midi master volume: a factor between 0 and 2 (default=1) which is
+ * used on all volume Midi messages.
  */
 @Messages(
         "ERR_ProblemSynthFile=Problem reading sound file for the Java internal synth"
@@ -77,7 +82,6 @@ public final class JJazzMidiSystem
     public final static String PROP_MIDI_THRU = "MidiThruProp";
     public final static String PROP_MASTER_VOL_FACTOR = "MasterVolumeFactor";
     public final static String PROP_MIDI_OUT_FILTERING = "MidiOutFiltering";
-    public final static String PROP_SEQUENCER_LOCK = "SequencerLock";
     public final static String PREF_JAVA_SYNTH_SOUNDFONT_FILE = "JavaSynthSoundFontFile";
 
     /**
@@ -105,7 +109,6 @@ public final class JJazzMidiSystem
      */
     private MidiDevice defaultOutDevice;
 
-    private Object sequencerLock;
     /**
      * The default system Sequencer
      */
@@ -124,7 +127,6 @@ public final class JJazzMidiSystem
     private Soundbank lastLoadedSoundbank;
     private File lastLoadedSoundbankFile;
     private float masterVolumeFactor = 1;
-    private List<Runnable> startupTasks;
 
     /**
      * The Preferences of this object.
@@ -146,7 +148,8 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * Collect midi devices information, open the default sequencer, restore the default Midi devices, thru mode, send startup
+     * Collect midi devices information, open the default sequencer, restore the
+     * default Midi devices, thru mode, send startup
      * initialization messages, etc.
      */
     private JJazzMidiSystem()
@@ -258,7 +261,8 @@ public final class JJazzMidiSystem
     /**
      * Scan the MidiSystem for IN MidiDevices.
      *
-     * @return A List containing the MIDI out devices. Java Sequencer is excluded.
+     * @return A List containing the MIDI out devices. Java Sequencer is
+     * excluded.
      */
     public List<MidiDevice> getInDeviceList()
     {
@@ -287,7 +291,8 @@ public final class JJazzMidiSystem
     /**
      * Scan the MidiSystem for OUT MidiDevices.
      *
-     * @return A List containing the available MIDI out devices, excluding the Java synth and the Java Sequencer.
+     * @return A List containing the available MIDI out devices, excluding the
+     * Java synth and the Java Sequencer.
      */
     public List<MidiDevice> getOutDeviceList()
     {
@@ -350,70 +355,14 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * If available, get the system java sequencer opened and ready to play music on the JJazzMidiOutDevice.
+     * Get the java sequencer opened and ready to play music on the JJazzMidiOutDevice.
      * <p>
-     * When done with the sequencer, caller must call releaseSequencer(lock), so sequencer can be used by others.<p>
-     * If lock is changed the method fires a PROP_SEQUENCER_LOCK property change with old value=null and new value=lock.
-     *
-     * @param lock A non-null object used as a lock on this sequencer.
-     * @return Null if sequencer has already a different lock
-     */
-    public synchronized Sequencer getSequencer(Object lock)
-    {
-        if (lock == null)
-        {
-            throw new NullPointerException("lock");
-        }
-        if (sequencerLock == lock)
-        {
-            return defaultSequencer;
-        } else if (sequencerLock == null)
-        {
-            sequencerLock = lock;
-            pcs.firePropertyChange(PROP_SEQUENCER_LOCK, null, lock);
-            return defaultSequencer;
-        }
-        return null;
-    }
-
-    /**
-     * Get the current sequencer lock object.
-     *
-     * @return null if no lock.
-     */
-    public synchronized Object getSequencerLock()
-    {
-        return sequencerLock;
-    }
-
-
-    /**
-     * Release the specified sequencer lock.
-     * <p>
-     * Fire a PROP_SEQUENCER_LOCK property change with old value=lock and new value=null.
-     *
-     * @param lock
-     * @throws IllegalArgumentException If lock is not the current sequencer lock
-     */
-    public synchronized void releaseSequencer(Object lock)
-    {
-        if (lock == null || sequencerLock != lock)
-        {
-            throw new IllegalArgumentException("lock=" + lock + " sequencerLock=" + sequencerLock);
-        }
-      
-        sequencerLock = null;
-        pcs.firePropertyChange(PROP_SEQUENCER_LOCK, lock, null);
-    }
-
-    /**
-     * Get direct access to the system java sequencer opened and ready to play music on the JJazzMidiOutDevice.
-     * <p>
-     * In general getSequencer(Object lock) should be preferred, as it allows for access synchronization between various users.
+     * In general you should use MusicController.acquireSequencer(Object lock), as it allows for access synchronization between
+     * various users.
      *
      * @return
      */
-    public Sequencer getSystemSequencer()
+    public Sequencer getDefaultSequencer()
     {
         return defaultSequencer;
     }
@@ -479,11 +428,13 @@ public final class JJazzMidiSystem
     /**
      * Try to load the soundfont2 (or DLS) file in the default Java synth.
      * <p>
-     * Previous soundbank instruments are unloaded first. This triggers a specific task since loading a soundfont can take some
+     * Previous soundbank instruments are unloaded first. This triggers a
+     * specific task since loading a soundfont can take some
      * time.
      *
      * @param f
-     * @param silentRun If false wait until completion of the task and show progress bar. If true nothing is shown and method
+     * @param silentRun If false wait until completion of the task and show
+     * progress bar. If true nothing is shown and method
      * immediatly returns true.
      * @return true If success. If silentRun=true always return true.
      */
@@ -579,10 +530,12 @@ public final class JJazzMidiSystem
     /**
      * Connect the output of JJazzMidiOut device to this device.
      * <p>
-     * Fire a PROP_MIDI_OUT property chane event.property change event if device is modified.
+     * Fire a PROP_MIDI_OUT property chane event.property change event if device
+     * is modified.
      *
      * @param md Can be null.
-     * @throws javax.sound.midi.MidiUnavailableException If exception occurs, the default IN device is unchanged.
+     * @throws javax.sound.midi.MidiUnavailableException If exception occurs,
+     * the default IN device is unchanged.
      */
     public void setDefaultOutDevice(MidiDevice md) throws MidiUnavailableException
     {
@@ -643,7 +596,8 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * Close the default out device. Special handling of the Java Internal Synth.
+     * Close the default out device. Special handling of the Java Internal
+     * Synth.
      */
     public void closeDefaultOutDevice()
     {
@@ -677,7 +631,8 @@ public final class JJazzMidiSystem
      * Fire a PROP_MIDI_IN property change event if device is modified.
      *
      * @param md Can be null.
-     * @throws javax.sound.midi.MidiUnavailableException If exception occurs, the default IN device is unchanged.
+     * @throws javax.sound.midi.MidiUnavailableException If exception occurs,
+     * the default IN device is unchanged.
      */
     public void setDefaultInDevice(MidiDevice md) throws MidiUnavailableException
     {
@@ -777,7 +732,8 @@ public final class JJazzMidiSystem
     /**
      * The Midi panic method.
      * <p>
-     * Send ALL_NOTES_OFF + SUSTAIN OFF + RESET_ALL_CONTROLLERS on all channels on the default JJazz midi out device.
+     * Send ALL_NOTES_OFF + SUSTAIN OFF + RESET_ALL_CONTROLLERS on all channels
+     * on the default JJazz midi out device.
      */
     public void panic()
     {
@@ -826,7 +782,8 @@ public final class JJazzMidiSystem
     /**
      * Get the default Jazz Midi Out device MidiFilter log config.
      * <p>
-     * Can be used to adjust Midi Out log settings, e.g: getMidiOutLogConfig().add(MidiFilter.ConfigLog.LOG_ALL_PASSED);
+     * Can be used to adjust Midi Out log settings, e.g:
+     * getMidiOutLogConfig().add(MidiFilter.ConfigLog.LOG_ALL_PASSED);
      *
      * @return
      */
@@ -871,7 +828,8 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * Send the specified MidiMessages on the JJazzMidiOut device with timing -1 (immediate play).
+     * Send the specified MidiMessages on the JJazzMidiOut device with timing -1
+     * (immediate play).
      * <p>
      * Midi volume messages are multiplicated by the master volume factor.
      *
@@ -923,7 +881,8 @@ public final class JJazzMidiSystem
     /**
      * Get a friendly name for a MidiDevice.
      * <p>
-     * For now only used to rename the Java default synth (sometimes "Gervill") to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name
+     * For now only used to rename the Java default synth (sometimes "Gervill")
+     * to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name
      * otherwise.
      *
      * @param md
@@ -958,7 +917,8 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * Find the MidiDevice whose Device.Info.name() is equals to mdName in the devices list.
+     * Find the MidiDevice whose Device.Info.name() is equals to mdName in the
+     * devices list.
      *
      * @param midiDevices
      * @param mdName

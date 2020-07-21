@@ -119,6 +119,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
                 }
                 break;
             case STOPPED:
+            case DISABLED:
                 if (newState)
                 {
                     // Nothing
@@ -194,7 +195,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_PLAYBACK_STATE)
+            if (evt.getPropertyName() == MusicController.PROP_STATE)
             {
                 playbackStateChanged();
             }
@@ -240,6 +241,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
     {
         MusicController mc = MusicController.getInstance();
         LOGGER.fine("playbackStateChanged() actionState=" + getBooleanState() + " mc.getPlaybackState()=" + mc.getState());
+        setEnabled(!mc.getState().equals(MusicController.State.DISABLED));
         setBooleanState(mc.getState() == MusicController.State.STOPPED);
     }
 

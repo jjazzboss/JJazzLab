@@ -56,6 +56,7 @@ import org.jjazz.midi.keymap.KeyMapXG;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.ui.InstrumentTable;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.musiccontrol.TestPlayer;
 import org.jjazz.outputsynth.GMRemapTable;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.ui.spi.RemapTableInstrumentChooser;
@@ -665,12 +666,12 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             }
         };
         // Send MIDI messages for the selected instrument             
-        MusicController mc = MusicController.getInstance();
+        TestPlayer tp = TestPlayer.getInstance();
         try
         {
             final int CHANNEL = ins.isDrumKit() ? MidiConst.CHANNEL_DRUMS : 0;
             JJazzMidiSystem.getInstance().sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(CHANNEL));
-            mc.playTestNotes(CHANNEL, -1, 0, endAction);
+            tp.playTestNotes(CHANNEL, -1, 0, endAction);
         } catch (MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);

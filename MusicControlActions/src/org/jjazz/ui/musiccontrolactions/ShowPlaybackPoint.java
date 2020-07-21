@@ -311,7 +311,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_PLAYBACK_STATE)
+            if (evt.getPropertyName() == MusicController.PROP_STATE)
             {
                 updateShowing();
                 updateEnabled();
@@ -381,7 +381,6 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
     }
 
     /**
-     *
      * Set the enabled state depending on:
      * <p>
      * - current and active song <br>
@@ -402,6 +401,9 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                 break;
             case STOPPED:
                 setEnabled(currentIsActive);
+                break;
+            case DISABLED:
+                setEnabled(false);
                 break;
             default:
                 throw new IllegalStateException("state=" + state);
@@ -428,8 +430,9 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                     hidePlaybackPoint();
                     break;
                 case STOPPED:
+                case DISABLED:
                     songWasModifiedDuringPlayback = false;
-                    break;
+                    break;                                    
                 default:
                     throw new IllegalStateException("state=" + state + " currentCL_Editor=" + currentCL_Editor + " songWasModified=" + songWasModifiedDuringPlayback + " isEnabled()=" + isEnabled() + " getBooleanState()=" + getBooleanState());
             }
@@ -448,6 +451,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                     }
                     break;
                 case STOPPED:
+                case DISABLED:
                     if (currentCL_Editor != null)
                     {
                         hidePlaybackPoint();

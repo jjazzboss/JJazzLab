@@ -38,6 +38,7 @@ import javax.sound.midi.Sequencer;
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
 import org.jjazz.midi.JJazzMidiSystem;
+import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.ui.utilities.Utilities;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -84,11 +85,11 @@ public final class PlayMidiFile implements ActionListener, MetaEventListener
 
         try
         {
-            var jms = JJazzMidiSystem.getInstance();
-             sequencer = jms.getSequencer(this);
+            var mc = MusicController.getInstance();
+            sequencer = mc.acquireSequencer(this);
             if (sequencer == null)
             {
-                LOGGER.severe("actionPerformed() can't get sequencer lock, current lock=" + jms.getSequencerLock().toString());
+                LOGGER.severe("actionPerformed() can't acquire sequencer");
                 return;
             }
             sequencer.addMetaEventListener(this);
@@ -116,7 +117,9 @@ public final class PlayMidiFile implements ActionListener, MetaEventListener
                 public void run()
                 {
                     sequencer.stop();
-                    JJazzMidiSystem.getInstance().releaseSequencer(PlayMidiFile.this);
+                    sequencer.removeMetaEventListener(PlayMidiFile.this);
+                    var mc = MusicController.getInstance();
+                    mc.releaseSequencer(PlayMidiFile.this);
                 }
             };
             SwingUtilities.invokeLater(doRun);

@@ -36,6 +36,7 @@ import static org.jjazz.options.Bundle.*;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.ui.MidiDeviceRenderer;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.musiccontrol.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.*;
 import org.openide.util.NbBundle;
@@ -497,10 +498,10 @@ final class MidiPanel extends javax.swing.JPanel
             }
         };
 
-        MusicController mc = MusicController.getInstance();
+        TestPlayer tp = TestPlayer.getInstance();
         try
         {
-            mc.playTestNotes(MidiConst.CHANNEL_MIN, -1, 0, endAction);
+            tp.playTestNotes(MidiConst.CHANNEL_MIN, -1, 0, endAction);
         } catch (MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);

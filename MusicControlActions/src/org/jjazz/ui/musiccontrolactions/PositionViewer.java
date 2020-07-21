@@ -111,7 +111,7 @@ public class PositionViewer extends JLabel implements PropertyChangeListener
             updateEditor(posModel);
         } else if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_PLAYBACK_STATE)
+            if (evt.getPropertyName() == MusicController.PROP_STATE)
             {
                 if (mc.getState() == MusicController.State.PLAYING)
                 {

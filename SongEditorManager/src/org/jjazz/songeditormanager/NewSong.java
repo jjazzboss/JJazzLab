@@ -33,6 +33,7 @@ import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.musiccontrol.MusicController.State;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.openide.awt.ActionID;
@@ -63,7 +64,8 @@ public final class NewSong implements ActionListener
         SongEditorManager.getInstance().showSong(song);
 
         // Activate the song if possible
-        if (MusicController.getInstance().getState().equals(MusicController.State.STOPPED))
+        State mcState = MusicController.getInstance().getState();
+        if (!mcState.equals(MusicController.State.PLAYING) && !mcState.equals(MusicController.State.PAUSED))
         {
             MidiMix mm;
             try
@@ -76,7 +78,6 @@ public final class NewSong implements ActionListener
             }
         }
     }
-
 
     /**
      * Create a new song with its mix based on the saved template file.

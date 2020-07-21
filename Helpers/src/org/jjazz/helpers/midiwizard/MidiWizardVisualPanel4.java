@@ -27,6 +27,7 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JPanel;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.musiccontrol.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -96,10 +97,10 @@ public final class MidiWizardVisualPanel4 extends JPanel
             }
         };
 
-        MusicController mc = MusicController.getInstance();
+        TestPlayer tp = TestPlayer.getInstance();
         try
         {
-            mc.playTestNotes(channel, -1, 0, endAction);
+            tp.playTestNotes(channel, -1, 0, endAction);
         } catch (MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);

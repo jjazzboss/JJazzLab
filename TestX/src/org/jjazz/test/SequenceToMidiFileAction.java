@@ -31,6 +31,7 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import org.jjazz.midi.JJazzMidiSystem;
+import org.jjazz.musiccontrol.MusicController;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -55,11 +56,11 @@ public final class SequenceToMidiFileAction implements ActionListener
     public void actionPerformed(ActionEvent ae)
     {
         LOGGER.info("actionPerformed() --");
-        JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-        Sequencer s = jms.getSequencer(this);
+        
+        Sequencer s = JJazzMidiSystem.getInstance().getDefaultSequencer();
         if (s == null)
         {
-            LOGGER.severe("actionPerformed() can't get sequencer lock, current lock=" + jms.getSequencerLock().toString());
+            LOGGER.severe("actionPerformed() can't acquire sequencer");
             return;
         }
         Sequence seq = s.getSequence();
@@ -114,10 +115,8 @@ public final class SequenceToMidiFileAction implements ActionListener
             {
                 Exceptions.printStackTrace(ex);
                 return;
-            } finally
-            {
-                JJazzMidiSystem.getInstance().releaseSequencer(SequenceToMidiFileAction.this);
-            }
+            } 
+            
             LOGGER.info("Starting Midi Editor...");
             ProcessBuilder pb = new ProcessBuilder("C:\\Program Files (x86)\\MidiEditor\\MidiEditor.exe", midiTempFile.getAbsolutePath());
             try

@@ -161,7 +161,7 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_PLAYBACK_STATE)
+            if (evt.getPropertyName() == MusicController.PROP_STATE)
             {
                 playbackStateChanged();
             } else if (evt.getPropertyName() == MusicController.PROP_CLICK)

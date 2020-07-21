@@ -30,6 +30,7 @@ import org.jjazz.midi.MidiConst;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.musiccontrol.ClickManager;
 import org.jjazz.musiccontrol.ClickManager.PrecountMode;
+import org.jjazz.musiccontrol.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.NoteEvent;
 import org.jjazz.rhythmmusicgeneration.Phrase;
@@ -344,10 +345,10 @@ final class ClickPanel extends javax.swing.JPanel
            p.addOrdered(new NoteEvent(pitch, 0.25f, vel, i * 0.5f));
        }
 
-       MusicController mc = MusicController.getInstance();
+       TestPlayer tp = TestPlayer.getInstance();
        try
        {
-           mc.playTestNotes(p, endAction);
+           tp.playTestNotes(p, endAction);
        } catch (MusicGenerationException ex)
        {
            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);

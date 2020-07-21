@@ -22,9 +22,6 @@
  */
 package org.jjazz.musiccontrol;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaEventListener;
@@ -41,7 +38,7 @@ import org.jjazz.rhythmmusicgeneration.Phrase;
 /**
  * Play test notes.
  */
-public class TestPlayer implements PropertyChangeListener
+public class TestPlayer
 {
 
     private static TestPlayer INSTANCE;
@@ -62,8 +59,6 @@ public class TestPlayer implements PropertyChangeListener
     private TestPlayer()
     {
 
-        // Listen to sequencer lock changes
-        JJazzMidiSystem.getInstance().addPropertyChangeListener(this);
     }
 
     /**
@@ -108,9 +103,8 @@ public class TestPlayer implements PropertyChangeListener
             throw new NullPointerException("p=" + p + " endAction=" + endAction);
         }
 
-
-        final var jms = JJazzMidiSystem.getInstance();
-        Sequencer sequencer = jms.getSequencer(TestPlayer.this);
+        final MusicController mc = MusicController.getInstance();
+        Sequencer sequencer = mc.acquireSequencer(this);
         if (sequencer == null)
         {
             throw new MusicGenerationException("Can't access sequencer");
@@ -147,7 +141,7 @@ public class TestPlayer implements PropertyChangeListener
                     {
                         sequencer.removeMetaEventListener(this);
                         sequencer.stop();
-                        jms.releaseSequencer(TestPlayer.this);
+                        mc.releaseSequencer(TestPlayer.this);
                         if (endAction != null)
                         {
                             endAction.run();
@@ -167,70 +161,9 @@ public class TestPlayer implements PropertyChangeListener
 
         } catch (InvalidMidiDataException e)
         {
-            jms.releaseSequencer(TestPlayer.this);
+            mc.releaseSequencer(TestPlayer.this);
             throw new MusicGenerationException(e.getLocalizedMessage());
         }
-    }
-
-
-    //-----------------------------------------------------------------------
-    // Implementation of the PropertiesListener interface
-    //-----------------------------------------------------------------------
-    @SuppressWarnings(
-            {
-                "unchecked", "rawtypes"
-            })
-    @Override
-    public void propertyChange(PropertyChangeEvent e)
-    {
-        LOGGER.log(Level.FINE, "propertyChange() e={0}", e);
-
-        var jms = JJazzMidiSystem.getInstance();
-
-        if (e.getSource() == jms)
-        {
-            if (e.getPropertyName().equals(JJazzMidiSystem.PROP_SEQUENCER_LOCK))
-            {
-                if (e.getNewValue() == this)
-                {
-                    // We acquired the sequencer                    
-
-                    // Initialize it, add our listeners
-                    sequencerAcquired();
-
-                    if (state.equals(State.DISABLED))
-                    {
-                        // Sequencer has been used meanwhile                        
-                        jms.getSystemSequencer().stop();
-                        if (playbackContext != null)
-                        {
-                            playbackContext.setDirty();
-                        }
-                        state = State.STOPPED;
-                        pcs.firePropertyChange(PROP_PLAYBACK_STATE, State.DISABLED, state);
-                    }
-
-                } else if (e.getOldValue() == this)
-                {
-                    // We released the sequencer
-                    sequencerReleased();
-
-                    // Nothing: don't change state
-
-                } else if (e.getNewValue() != null)
-                {
-                    // Another user acquired the sequencer
-                    sequencerReleased();
-
-
-                    // Change state
-                    State old = getState();
-                    state = State.DISABLED;
-                    pcs.firePropertyChange(PROP_PLAYBACK_STATE, old, state);
-                }
-            }
-        }
-
     }
 
     // ===============================================================================================

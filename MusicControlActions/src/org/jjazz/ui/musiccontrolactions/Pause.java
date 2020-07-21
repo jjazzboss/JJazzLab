@@ -35,6 +35,7 @@ import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.musiccontrol.MusicController.State;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.FlatToggleButton;
@@ -114,6 +115,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
         switch (playBackState)
         {
             case STOPPED:
+            case DISABLED:
                 if (newState)
                 {
                     // Can't pause if already stopped, revert back
@@ -215,7 +217,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_PLAYBACK_STATE)
+            if (evt.getPropertyName() == MusicController.PROP_STATE)
             {
                 playbackStateChanged();
             }
@@ -259,8 +261,9 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
     private void playbackStateChanged()
     {
         MusicController mc = MusicController.getInstance();
-        LOGGER.fine("playbackStateChanged() actionState=" + getBooleanState() + " mc.getPlaybackState()=" + mc.getState());
-        setBooleanState(mc.getState() == MusicController.State.PAUSED);
+        LOGGER.fine("playbackStateChanged() actionState=" + getBooleanState() + " mc.getPlaybackState()=" + mc.getState());        
+        setEnabled(!mc.getState().equals(State.DISABLED));
+        setBooleanState(mc.getState().equals(MusicController.State.PAUSED));
     }
 
 }
