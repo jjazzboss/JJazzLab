@@ -621,6 +621,43 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     }
 
     /**
+     * Get the channels which normally need drums rerouting.
+     * <p>
+     * A channel needs rerouting if all the following conditions are met:<br>
+     * 1/ channel != MidiConst.CHANNEL_DRUMS <br>
+     * 2/ rv.isDrums() == true and rerouting is not already enabled <br>
+     * 3/ instrument (or new instrument if one is provided in the mapChannelNewIns parameter) is the VoidInstrument<br>
+     *
+     * @param mapChannelNewIns Optional new instruments to use for some channels. Ignored if null. See
+     * OutputSynth.getNeedFixInstruments().
+     * @return Can be empty
+     */
+    public List<Integer> getChannelsNeedingDrumsRerouting(HashMap<Integer, Instrument> mapChannelNewIns)
+    {
+        List<Integer> res = new ArrayList<>();
+        for (RhythmVoice rv : getRhythmVoices())
+        {
+            int channel = getChannel(rv);
+            InstrumentMix insMix = getInstrumentMixFromKey(rv);
+            Instrument newIns = mapChannelNewIns == null ? null : mapChannelNewIns.get(channel);
+            Instrument ins = (newIns != null) ? newIns : insMix.getInstrument();
+            LOGGER.fine("getChannelsNeedingDrumsRerouting() rv=" + rv + " channel=" + channel + " ins=" + ins);
+
+
+            if (channel != MidiConst.CHANNEL_DRUMS
+                    && rv.isDrums()
+                    && !getDrumsReroutedChannels().contains(channel)
+                    && ins == StdSynth.getInstance().getVoidInstrument())
+            {
+                res.add(channel);
+            }
+
+        }
+        LOGGER.fine("getChannelsNeedingDrumsRerouting() res=" + res);
+        return res;
+    }
+
+    /**
      * Return a free channel to be used in this MidiMix.
      * <p>
      * Try to keep channels in one section above the drums channel reserved to Drums. If not enough channels extend to channel
@@ -961,6 +998,28 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     public String toString()
     {
         return "MidiMix[song=" + song + ", channels=" + Arrays.toString(getUsedChannels().toArray(new Integer[0])) + "]";
+    }
+
+    public String toDumpString()
+    {
+        StringBuilder sb = new StringBuilder();
+        var reroutedChannels = getDrumsReroutedChannels();
+        sb.append(toString()).append(":\n");
+        for (int i = 0; i < 15; i++)
+        {
+            InstrumentMix insMix = instrumentMixes[i];
+            if (insMix != null)
+            {
+                sb.append(" ").append(i).append(": ").append(insMix);
+                if (reroutedChannels.contains(i))
+                {
+                    sb.append(" REROUTED");
+                }
+                sb.append("\n");
+            }
+        }
+        sb.append(" delegates:").append(getRhythmVoiceDelegates().toString());
+        return sb.toString();
     }
 
     /**

@@ -24,6 +24,7 @@ package org.jjazz.ui.ss_editor.spi;
 
 import java.awt.event.ActionListener;
 import javax.swing.JDialog;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.ui.ss_editor.editors.SimpleRhythmSelectionDialog;
 import org.openide.util.Lookup;
@@ -51,13 +52,16 @@ abstract public class RhythmSelectionDialog extends JDialog
         /**
          * Hear a "preview" of the specified rhythm.
          * <p>
-         * If a preview is already being played, stop it and start a new one.
+         * If a preview is already being played on a different rhythm, stop it and start a new one.
          *
          * @param r
-         * @param endActionListener Called when preview is complete or cancelled. Can be null.
-         * @return False if preview could not be started for some reason (endActionListener is not called).
+         * @param useRhythmTempo If true use r preferred tempo, otherwise use default tempo.
+         * @param loop If true the rhythm preview loops until stop() is called.
+         * @param endActionListener Called when preview is complete (if loop disabled) or stopped. Called on the EDT. Can be null if not used.
+         * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occured. endActionListener is not called in this
+         * case.
          */
-        boolean previewRhythm(Rhythm r, ActionListener endActionListener);
+        void previewRhythm(Rhythm r, boolean useRhythmTempo, boolean loop, ActionListener endActionListener) throws MusicGenerationException;
 
         /**
          * @return True if a rhythm preview is being played.
@@ -65,11 +69,11 @@ abstract public class RhythmSelectionDialog extends JDialog
         boolean isPreviewRunning();
 
         /**
-         * Cancel the current preview.
+         * Stop the current preview.
          * <p>
-         * Do nothing if isPreviewRunning() returns false.
+         * Do nothing if isPreviewRunning() returns false. If endActionListener is specified in previewRhythm(), it is called.
          */
-        void cancel();
+        void stop();
     }
 
     public static RhythmSelectionDialog getDefault()

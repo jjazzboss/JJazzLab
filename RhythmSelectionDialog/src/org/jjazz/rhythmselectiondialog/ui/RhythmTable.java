@@ -22,18 +22,23 @@
  */
 package org.jjazz.rhythmselectiondialog.ui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
@@ -47,6 +52,8 @@ import org.jjazz.rhythm.database.api.FavoriteRhythms;
 
 /**
  * A JTable to show a list of rhythms.
+ * <p>
+ * Highlight the favorite rhythms.
  */
 public class RhythmTable extends JTable implements PropertyChangeListener
 {
@@ -84,6 +91,25 @@ public class RhythmTable extends JTable implements PropertyChangeListener
     public Model getModel()
     {
         return model;
+    }
+
+    /**
+     * The rhythm corresponding to the row which encloses the specified point.
+     *
+     * @param p
+     * @return Can be null.
+     */
+    public Rhythm getRhythm(Point p)
+    {
+        Rhythm r = null;
+        int rowIndex = rowAtPoint(p);
+        if (rowIndex != -1)
+        {
+            int modelIndex = convertRowIndexToModel(rowIndex);
+            r = model.getRhythms().get(modelIndex);
+        }
+
+        return r;
     }
 
     /**
@@ -140,6 +166,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         public static final int COL_NB_VOICES = 4;
         public static final int COL_DIR = 5;
         private List<? extends Rhythm> rhythms = new ArrayList<>();
+        private Set<Rhythm> highlightedRhythms = new HashSet<>();
 
         public void setRhythms(List<Rhythm> rhythms)
         {
@@ -156,6 +183,34 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         List<? extends Rhythm> getRhythms()
         {
             return rhythms;
+        }
+
+        /**
+         * Show specified rhythm as highlighted (e.g. use a different font colour).
+         *
+         * @param r
+         * @param b Highlighted state
+         */
+        public void setHighlighted(Rhythm r, boolean b)
+        {
+            int mIndex = model.getRhythms().indexOf(r);
+            if (mIndex == -1)
+            {
+                throw new IllegalArgumentException("r=" + r + " b=" + b);
+            }
+            if (b)
+            {
+                highlightedRhythms.add(r);
+            } else
+            {
+                highlightedRhythms.remove(r);
+            }
+            fireTableRowsUpdated(mIndex, mIndex);
+        }
+
+        public boolean isHighlighted(Rhythm r)
+        {
+            return highlightedRhythms.contains(r);
         }
 
         @Override
@@ -275,14 +330,19 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         if (e.getSource() == fr && e.getPropertyName().equals(FavoriteRhythms.PROP_FAVORITE_RHYTHM))
         {
             // A favorite rhythm was removed or added
-            // Repaint the corresponding cell
+            // Update the corresponding row           
             Rhythm r = (Rhythm) (e.getNewValue() == null ? e.getOldValue() : e.getNewValue());
             int row = model.getRhythms().indexOf(r);
             if (row != -1)
             {
-                int vRow = convertRowIndexToView(row);
-                repaint(getCellRect(vRow, 0, false));      // Our cell renderer takes care about the favorite status
+                model.fireTableRowsUpdated(row, row);
             }
+
+//            if (row != -1)
+//            {
+//                int vRow = convertRowIndexToView(row);
+//                repaint(getCellRect(vRow, 0, false));      // Our cell renderer takes care about the favorite status
+//            }
         }
     }
 
@@ -437,6 +497,23 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                 Font newFont = font.deriveFont(Font.BOLD);
                 lbl.setFont(newFont);
             }
+
+            // Highlight rendering
+            if (model.isHighlighted(r))
+            {
+                switch (col)
+                {
+                    case Model.COL_ID:
+                        lbl.setText(">>>");
+                        break;
+                    case Model.COL_NAME:
+                        lbl.setText(">>> " + lbl.getText());
+                        break;
+                    default:
+                    // Nothing
+                }      
+            }
+
             return lbl;
         }
     }

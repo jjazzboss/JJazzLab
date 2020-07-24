@@ -92,7 +92,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
 
         OutputSynth outputSynth = OutputSynthManager.getInstance().getOutputSynth();
         HashMap<Integer, Instrument> mapNewInstruments = outputSynth.getNeedFixInstruments(midiMix);
-        List<Integer> reroutableChannels = getChannelsToBeRerouted(midiMix, mapNewInstruments);
+        List<Integer> reroutableChannels = midiMix.getChannelsNeedingDrumsRerouting(mapNewInstruments);
 
         if (!mapNewInstruments.isEmpty() || !reroutableChannels.isEmpty())
         {
@@ -161,38 +161,6 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
         }
     }
 
-    /**
-     * Get the channels which need rerouting.
-     * <p>
-     * A channel needs rerouting if all the following conditions are met:<br>
-     * 1/ channel != 10 <br>
-     * 2/ rv.isDrums()==true and rerouting is not already enabled <br>
-     * 3/ instrument (or new instrument if defined) is the VoidInstrument<br>
-     *
-     * @param midiMix
-     * @param mapChannelNewIns Possible new instruments to use for some channels
-     * @return Can't be null
-     */
-    private List<Integer> getChannelsToBeRerouted(MidiMix midiMix, HashMap<Integer, Instrument> mapChannelNewIns)
-    {
-        List<Integer> res = new ArrayList<>();
-        for (RhythmVoice rv : midiMix.getRhythmVoices())
-        {
-            int channel = midiMix.getChannel(rv);
-            InstrumentMix insMix = midiMix.getInstrumentMixFromKey(rv);
-            Instrument newIns = mapChannelNewIns.get(channel);
-            Instrument ins = (newIns != null) ? newIns : insMix.getInstrument();
-            LOGGER.fine("getChannelsToBeRerouted() rv=" + rv + " channel=" + channel + " ins=" + ins);
-            if (channel != MidiConst.CHANNEL_DRUMS
-                    && rv.isDrums()
-                    && !midiMix.getDrumsReroutedChannels().contains(channel)
-                    && ins == StdSynth.getInstance().getVoidInstrument())
-            {
-                res.add(channel);
-            }
-        }
-        LOGGER.fine("getChannelsToBeRerouted() res=" + res);
-        return res;
-    }
+
 
 }
