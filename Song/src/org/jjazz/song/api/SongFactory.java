@@ -336,20 +336,25 @@ public class SongFactory implements PropertyChangeListener
         }
 
         // Recreate each SongPart copy
+        var newSpts = new ArrayList<SongPart>();
         for (SongPart spt : song.getSongStructure().getSongParts())
         {
             CLI_Section newParentSection = newCls.getSection(spt.getParentSection().getData().getName());
             assert newParentSection != null : "spt=" + spt;
             SongPart sptCopy = spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
-            try
-            {
-                newSgs.addSongParts(Arrays.asList(sptCopy));        // Can raise UnsupportedEditException
-            } catch (UnsupportedEditException ex)
-            {
-                // Should not occur since it's a clone, ie already accepted edits
-                throw new IllegalArgumentException("getCopy() failed. Song's name=" + song.getName() + " newSgs=" + newSgs + " sptCopy=" + sptCopy, ex);
-            }
+            newSpts.add(sptCopy);
         }
+        // Add new song parts in one shot to avoid issue if an AdaptedRhythm is used
+        try
+        {
+            newSgs.addSongParts(newSpts);            // Can raise UnsupportedEditException
+        } catch (UnsupportedEditException ex)
+        {
+            // Should never happen
+            throw new IllegalArgumentException("getCopy() failed. Song's name=" + song.getName() + " newSgs=" + newSgs + " newSpts=" + newSpts, ex);
+        }
+
+
         s.resetNeedSave();
         registerSong(s);
         return s;
@@ -378,16 +383,23 @@ public class SongFactory implements PropertyChangeListener
         {
             ss = SongStructureFactory.getDefault().createSgs(cls, false);     // Don't link sgs to cls.  Can raise UnsupportedEditException
             ss.removeSongParts(ss.getSongParts());
+            
+            
+            // Get a copy for each SongPart
+            var newSpts = new ArrayList<SongPart>();
             for (SongPart spt : song.getSongStructure().getSongParts())
             {
                 String parentSectionName = spt.getParentSection().getData().getName();
                 CLI_Section parentSectionCopy = cls.getSection(parentSectionName);
                 SongPart sptCopy = spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), parentSectionCopy);
-                ss.addSongParts(Arrays.asList(sptCopy));        // Can raise UnsupportedEditException
+                newSpts.add(sptCopy);
             }
+            
+            
+            // Add new song parts in one shot to avoid issue if an AdaptedRhythm is used      
+            ss.addSongParts(newSpts);            // Can raise UnsupportedEditException     
         } catch (UnsupportedEditException ex)
         {
-            // Should not occur since it's a copy, ie already accepted edits
             throw new IllegalArgumentException("getCopyUnlinked() failed. Song's name=" + song.getName() + " ss=" + ss, ex);
         }
 
