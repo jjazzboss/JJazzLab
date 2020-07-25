@@ -142,12 +142,12 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         }
         dlg.setVisible(true);
 
-
         // Dialog exited
         if (previewer != null)
         {
             previewer.cleanup();
         }
+        
         dialogShown = true;
         if (!dlg.isExitOk())
         {

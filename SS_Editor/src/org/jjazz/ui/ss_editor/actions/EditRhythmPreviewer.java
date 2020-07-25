@@ -38,7 +38,9 @@ import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import javax.swing.SwingUtilities;
 import org.jjazz.activesong.ActiveSongManager;
+import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.MidiConst;
@@ -49,6 +51,7 @@ import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
@@ -185,6 +188,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             LOGGER.warning("previewRhythm() ex=" + ex.getLocalizedMessage());
             throw new MusicGenerationException(ex.getLocalizedMessage());
         }
+        SongPart spt0 = song.getSongStructure().getSongPart(0);
         song.setTempo(useRhythmTempo ? r.getPreferredTempo() : originalSong.getTempo());
 
 
@@ -220,7 +224,9 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
         sequencer.setTickPosition(0);
         sequencer.setLoopCount(loop ? Sequencer.LOOP_CONTINUOUSLY : 0);
-
+        sequencer.setLoopStartPoint(0);
+        long songTickEnd = (long) (context.getSptBeatRange(spt0).size() * MidiConst.PPQ_RESOLUTION);
+        sequencer.setLoopEndPoint(songTickEnd);
 
         // Start
         sequencer.start();
@@ -327,7 +333,10 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
     }
 
     /**
-     * Build a song with only one song part and the specified rhythm.
+     * Build the song used for preview of the specified rhythm.
+     * <p>
+     * Song will be only one SongPart, unless r is an AdaptedRhythm and another similar SongPart is added with the source rhythm.
+     * Only the first SongPart should be used.
      *
      * @param song
      * @param spt
@@ -339,14 +348,37 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         // Get a copy
         Song newSong = SongFactory.getInstance().getCopy(song);
         SongStructure newSs = newSong.getSongStructure();
+        ChordLeadSheet newCls = newSong.getChordLeadSheet();
 
-        // Remove all song parts except spt
-        newSs.removeSongParts(newSs.getSongParts(spti -> spti.getStartBarIndex() != spt.getStartBarIndex()));
 
-        // Update rhythm
-        SongPart spt0 = newSs.getSongPart(0);
-        SongPart newSpt0 = spt.clone(r, spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
-        newSs.replaceSongParts(Arrays.asList(spt0), Arrays.asList(newSpt0));
+        // Remove everything
+        newSs.removeSongParts(newSs.getSongParts());
+
+
+        // Get the first SongPart with the new rhythm
+        List<SongPart> newSpts = new ArrayList<>();
+        var parentSection = newCls.getSection(spt.getParentSection().getData().getName());
+        var newSpt = spt.clone(r, 0, spt.getNbBars(), parentSection);
+        newSpts.add(newSpt);
+
+
+        // If r is an AdaptedRhythm we must also add its the source rhythm
+        if (r instanceof AdaptedRhythm)
+        {
+            AdaptedRhythm ar = (AdaptedRhythm) r;
+            Rhythm sourceRhythm = ar.getSourceRhythm();
+            parentSection = newCls.getItems(CLI_Section.class)  // Find a parent section with the right signature
+                    .stream()
+                    .filter(s -> s.getData().getTimeSignature().equals(sourceRhythm.getTimeSignature()))
+                    .findFirst().orElseThrow();     // Exception should never be thrown
+            newSpt = spt.clone(ar.getSourceRhythm(), spt.getNbBars(), spt.getNbBars(), parentSection);
+            newSpts.add(newSpt);
+        }
+
+
+        // Add the SongParts
+        newSs.addSongParts(newSpts);
+
 
         return newSong;
     }

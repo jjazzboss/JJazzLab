@@ -196,7 +196,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             int mIndex = model.getRhythms().indexOf(r);
             if (mIndex == -1)
             {
-                throw new IllegalArgumentException("r=" + r + " b=" + b);
+                return;
             }
             if (b)
             {
@@ -511,7 +511,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                         break;
                     default:
                     // Nothing
-                }      
+                }
             }
 
             return lbl;

@@ -57,7 +57,8 @@ abstract public class RhythmSelectionDialog extends JDialog
          * @param r
          * @param useRhythmTempo If true use r preferred tempo, otherwise use default tempo.
          * @param loop If true the rhythm preview loops until stop() is called.
-         * @param endActionListener Called when preview is complete (if loop disabled) or stopped. Called on the EDT. Can be null if not used.
+         * @param endActionListener Called when preview is complete (if loop disabled) or stopped. Called on the EDT. Can be null
+         * if not used.
          * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occured. endActionListener is not called in this
          * case.
          */
@@ -98,7 +99,8 @@ abstract public class RhythmSelectionDialog extends JDialog
      * Initialize the dialog for the specified song rhythm.
      *
      * @param r
-     * @param rpp If null then the rhythm preview feature is disabled.
+     * @param rpp If null then the rhythm preview feature is disabled. If not null caller is responsible to call rpp.cleanup()
+     * when rpp is not used anymore.
      */
     abstract public void preset(Rhythm r, RhythmPreviewProvider rpp);
 
