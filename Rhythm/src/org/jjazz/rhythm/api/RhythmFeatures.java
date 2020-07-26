@@ -29,7 +29,6 @@ import java.util.Objects;
  */
 public class RhythmFeatures
 {
-
     private Feel feel;
     private Beat beat;
     private Genre genre;

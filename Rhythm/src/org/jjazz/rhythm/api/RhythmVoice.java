@@ -40,7 +40,6 @@ import org.jjazz.midi.synths.StdSynth;
  */
 public class RhythmVoice
 {
-
     /**
      * The main types of a rhythm voice.
      */

@@ -187,24 +187,6 @@ public interface RhythmDatabase
 
 
     /**
-     * Get the next rhythm in the database with same timesignature.
-     *
-     * @param rhythm
-     * @return The next rhythm. Can be rhythm if rhythm was not in the database or was the only one with this TimeSignature.
-     * @exception IllegalArgumentException If rhythm is not part of this database.
-     */
-    Rhythm getNextRhythm(Rhythm rhythm);
-
-    /**
-     * Get the previous rhythm in the database with same timesignature.
-     *
-     * @param rhythm
-     * @return The previous rhythm. Can be rhythm if rhythm was not in the database or was the only one with this TimeSignature.
-     * @exception IllegalArgumentException If rhythm is not part of this database.
-     */
-    Rhythm getPreviousRhythm(Rhythm rhythm);
-
-    /**
      * @return The number of rhythms in the database.
      */
     int size();

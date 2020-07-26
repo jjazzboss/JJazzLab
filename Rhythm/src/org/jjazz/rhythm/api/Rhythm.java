@@ -122,4 +122,16 @@ public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
         return new String[0];
     }
 
+    /**
+     * Compare alphabetically on the rhythm's name.
+     *
+     * @param o
+     * @return
+     */
+    @Override
+    default public int compareTo(Rhythm o)
+    {
+        return getName().compareTo(o.getName());
+    }
+
 }

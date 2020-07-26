@@ -77,7 +77,8 @@ public interface RhythmProvider
     /**
      * A fast method to read specified rhythm file and extract only information needed for description/catalog purposes.
      * <p>
-     * Call the loadResources() on the returned rhythm to make it ready to generate music.
+     * Caller must use loadResources() on the returned rhythm before using it to generate music (possibly lenghty operation, eg if
+     * new file reading required).
      *
      * @param f
      * @return

@@ -24,10 +24,21 @@ package org.jjazz.rhythm.api;
 
 /**
  * The rhythm feel.
- * 
+ * <p>
  * Pop is usually BINARY, swing is TERNARY.
  */
 public enum Feel
 {
-    TERNARY, BINARY, UNKNOWN
+    TERNARY, BINARY, UNKNOWN;
+
+    static public Feel valueOf(String s, Feel defaultValue)
+    {
+        try
+        {
+            return valueOf(s);
+        } catch (IllegalArgumentException e)
+        {
+            return defaultValue;
+        }
+    }
 }
