@@ -31,10 +31,10 @@ import javax.swing.JList;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.database.api.FavoriteRhythmProvider;
+import org.jjazz.rhythmselectiondialog.FavoriteRhythmProvider;
 import org.jjazz.rhythm.database.api.FavoriteRhythms;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
+import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.openide.util.WeakListeners;
 
@@ -99,6 +99,7 @@ public class RhythmProviderList extends JList<RhythmProvider> implements ChangeL
 
     private class RhythmProviderRenderer extends DefaultListCellRenderer
     {
+
         /**
          * Add the nb of the rhythms of the RhythmProvider and a tooltip.
          * <p>
@@ -119,11 +120,14 @@ public class RhythmProviderList extends JList<RhythmProvider> implements ChangeL
             RhythmDatabase rdb = RhythmDatabase.getDefault();
             RhythmProvider rp = (RhythmProvider) value;
             RhythmProvider.Info rpi = rp.getInfo();
-            List<Rhythm> rhythms = (rp == FavoriteRhythmProvider.getInstance()) ? FavoriteRhythmProvider.getInstance().getBuiltinRhythms() : rdb.getRhythms(rp);
-            //int size = tsFilter == null ? rhythms.size() : rdb.getRhythms(tsFilter, rhythms).size();
-            int size = tsFilter == null ? rhythms.size() : (int)rhythms.stream().filter(r -> r.getTimeSignature().equals(tsFilter)).count();
+            var frp = FavoriteRhythmProvider.getInstance();
+            
+            List<RhythmInfo> rhythms = (rp == frp) ? frp.getBuiltinRhythmInfos() : rdb.getRhythms(rp);           
+            int size = tsFilter == null ? rhythms.size() : (int) rhythms.stream().filter(r -> r.getTimeSignature().equals(tsFilter)).count();
+
             setText(rpi.getName() + " (" + size + ")");
             setToolTipText(rpi.getDescription() + " - version " + rpi.getVersion());
+
             return c;
         }
     }

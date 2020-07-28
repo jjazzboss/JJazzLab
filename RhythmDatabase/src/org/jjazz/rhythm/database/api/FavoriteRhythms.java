@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.TimeSignature;
-import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
@@ -51,7 +50,7 @@ public class FavoriteRhythms
      * Used internally to store the nb of favorites
      */
     private static final String PROP_NB_FAVORITE_RHYTHMS = "PropNbFavoriteRhythms";
-    private ArrayList<Rhythm> rhythms = new ArrayList<>();
+    private ArrayList<RhythmInfo> rhythms = new ArrayList<>();
     private static Preferences prefs = NbPreferences.forModule(FavoriteRhythms.class);
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(FavoriteRhythms.class.getSimpleName());
@@ -76,20 +75,20 @@ public class FavoriteRhythms
     /**
      * Add a favorite rhythm.
      *
-     * @param r
+     * @param ri
      * @return True if added successfully (r was not already present).
      */
-    public boolean addRhythm(Rhythm r)
+    public boolean addRhythm(RhythmInfo ri)
     {
-        if (r == null)
+        if (ri == null)
         {
-            throw new NullPointerException("r=" + r);
+            throw new NullPointerException("r=" + ri);
         }
-        if (!rhythms.contains(r))
+        if (!rhythms.contains(ri))
         {
-            rhythms.add(r);
+            rhythms.add(ri);
             updateProperties();
-            pcs.firePropertyChange(PROP_FAVORITE_RHYTHM, null, r);
+            pcs.firePropertyChange(PROP_FAVORITE_RHYTHM, null, ri);
             return true;
         }
         return false;
@@ -98,27 +97,27 @@ public class FavoriteRhythms
     /**
      * Remove a favorite rhythm.
      *
-     * @param r
+     * @param ri
      * @return True if removed successfully (r was present).
      */
-    public boolean removeRhythm(Rhythm r)
+    public boolean removeRhythm(RhythmInfo ri)
     {
-        if (r == null)
+        if (ri == null)
         {
-            throw new NullPointerException("r");
+            throw new NullPointerException("ri");
         }
-        if (rhythms.remove(r))
+        if (rhythms.remove(ri))
         {
             updateProperties();
-            pcs.firePropertyChange(PROP_FAVORITE_RHYTHM, r, null);
+            pcs.firePropertyChange(PROP_FAVORITE_RHYTHM, ri, null);
             return true;
         }
         return false;
     }
 
-    public boolean contains(Rhythm r)
+    public boolean contains(RhythmInfo ri)
     {
-        return rhythms.contains(r);
+        return rhythms.contains(ri);
     }
 
     /**
@@ -126,7 +125,7 @@ public class FavoriteRhythms
      *
      * @return
      */
-    public List<Rhythm> getRhythms()
+    public List<RhythmInfo> getRhythms()
     {
         return new ArrayList<>(rhythms);
     }
@@ -137,19 +136,19 @@ public class FavoriteRhythms
      * @param rp
      * @return
      */
-    public List<Rhythm> getRhythms(RhythmProvider rp)
+    public List<RhythmInfo> getRhythms(RhythmProvider rp)
     {
         if (rp == null)
         {
             throw new NullPointerException("rp");
         }
         RhythmDatabase rdb = RhythmDatabase.getDefault();
-        ArrayList<Rhythm> res = new ArrayList<>();
-        for (Rhythm r : rhythms)
+        ArrayList<RhythmInfo> res = new ArrayList<>();
+        for (RhythmInfo ri : rhythms)
         {
-            if (rdb.getRhythmProvider(r) == rp)
+            if (rdb.getRhythmProvider(ri) == rp)
             {
-                res.add(r);
+                res.add(ri);
             }
         }
         return res;
@@ -161,14 +160,14 @@ public class FavoriteRhythms
      * @param ts
      * @return
      */
-    public List<Rhythm> getRhythms(TimeSignature ts)
+    public List<RhythmInfo> getRhythms(TimeSignature ts)
     {
         if (ts == null)
         {
             throw new NullPointerException("ts");
         }
-        ArrayList<Rhythm> res = new ArrayList<>();
-        for (Rhythm r : rhythms)
+        ArrayList<RhythmInfo> res = new ArrayList<>();
+        for (RhythmInfo r : rhythms)
         {
             if (r.getTimeSignature().equals(ts))
             {
@@ -203,9 +202,9 @@ public class FavoriteRhythms
         prefs.putInt(PROP_NB_FAVORITE_RHYTHMS, rhythms.size());
         // And recreate the needed properties
         int i = 0;
-        for (Rhythm r : rhythms)
+        for (RhythmInfo ri : rhythms)
         {
-            prefs.put(PROP_FAVORITE_RHYTHM + i, r.getUniqueId());
+            prefs.put(PROP_FAVORITE_RHYTHM + i, ri.getRhythmUniqueId());
             i++;
         }
     }
@@ -222,10 +221,10 @@ public class FavoriteRhythms
                 continue;
             }
             RhythmDatabase rdb = RhythmDatabase.getDefault();
-            Rhythm r = rdb.getRhythm(rId);
-            if (r != null)
+            RhythmInfo ri = rdb.getRhythm(rId);
+            if (ri != null)
             {
-                rhythms.add(r);
+                rhythms.add(ri);
             } else
             {
                 LOGGER.warning("Could not restore favorite rhythm using saved property rhythmId=" + rId);
@@ -233,7 +232,6 @@ public class FavoriteRhythms
             }
         }
     }
-
 
     // =====================================================================================
     // Upgrade Task
@@ -250,6 +248,5 @@ public class FavoriteRhythms
         }
 
     }
-
 
 }

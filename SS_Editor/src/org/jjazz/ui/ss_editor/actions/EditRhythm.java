@@ -36,6 +36,9 @@ import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.database.api.RhythmDatabase;
+import org.jjazz.rhythm.database.api.RhythmInfo;
+import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import static org.jjazz.ui.ss_editor.actions.Bundle.*;
@@ -55,6 +58,9 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.editrhythm")
 @ActionRegistration(displayName = "#CTL_EditRhythm", lazy = false)
@@ -134,8 +140,10 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             LOGGER.warning("changeRhythm() Can't create RhythmPreviewer ex=" + ex.getLocalizedMessage() + ". RhythmPreviewer disabled.");
             previewer = null;
         }
-        dlg.preset(rSelSpt0, previewer);
-        dlg.setTitleLabel("Select a " + rSelSpt0.getTimeSignature() + " rhythm");
+        var rdb = RhythmDatabase.getDefault();
+        RhythmInfo ri = rdb.getRhythm(rSelSpt0.getUniqueId());
+        dlg.preset(ri, previewer);
+        dlg.setTitleLabel("Select a " + ri.getTimeSignature() + " rhythm");
         if (!dialogShown)
         {
             dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
@@ -147,7 +155,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         {
             previewer.cleanup();
         }
-        
+
         dialogShown = true;
         if (!dlg.isExitOk())
         {
@@ -157,8 +165,19 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
 
 
         // Get the new rhythm
-        Rhythm newRhythm = dlg.getSelectedRhythm();
-        LOGGER.fine("changeRhythm() selected newRhythm=" + newRhythm);
+        RhythmInfo newRhythmInfo = dlg.getSelectedRhythm();
+        LOGGER.fine("changeRhythm() selected newRhythm=" + newRhythmInfo);
+        Rhythm newRhythm;
+        try
+        {
+            newRhythm = rdb.getRhythmInstance(newRhythmInfo);
+        } catch (UnavailableRhythmException ex)
+        {
+            LOGGER.warning("changeRhythm() can't get Rhythm instance from RhythmInfo=" + newRhythmInfo);
+            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            return;
+        }
 
 
         // Start the edit : update the tempo (optional) and each songpart's rhythm
@@ -243,5 +262,4 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
     // ================================================================================
     // Private classes
     // ================================================================================
-
 }

@@ -23,23 +23,25 @@
 package org.jjazz.rhythm.database;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.database.api.RhythmInfo;
+import org.jjazz.rhythm.database.api.RhythmParameterInfo;
+import org.jjazz.rhythm.database.api.RhythmVoiceInfo;
 import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.spi.RhythmProvider;
 
-/**
- * A description of a Rhythm for catalog purpose.
- * <p>
- */
-public class RhythmInfo implements Serializable
+public class RhythmInfoImpl implements RhythmInfo
 {
 
     private String rhythmProviderId;
+    private String rhythmUniqueId;
     private File file;
     private String name;
     private String[] tags;
@@ -52,19 +54,29 @@ public class RhythmInfo implements Serializable
     private final List<RhythmVoiceInfo> cacheRvs = new ArrayList<>();
     private final List<RhythmParameterInfo> cacheRps = new ArrayList<>();
 
+    /**
+     * Reserved for deserialization only.
+     */
+    private RhythmInfoImpl()
+    {
+
+    }
 
     /**
-     * Constructs a cache instance from an existing file-based rhythm.
+     * Constructs a RhythmInfo from an existing rhythm.
      *
      * @param rhythm
+     * @param rhythmProvider
+     * @throws IllegalArgumentException If rhythm is an AdaptedRhythm
      */
-    public RhythmInfo(Rhythm rhythm, String rhythmProviderId)
+    public RhythmInfoImpl(Rhythm rhythm, RhythmProvider rhythmProvider)
     {
-        if (rhythm == null || rhythmProviderId == null || rhythmProviderId.isBlank())
+        if (rhythm == null || rhythmProvider == null || rhythm instanceof AdaptedRhythm)
         {
-            throw new IllegalArgumentException("r=" + rhythm + " rhythm.getFile()=" + rhythm.getFile() + " rhythmProviderId=" + rhythmProviderId);
+            throw new IllegalArgumentException("rhythm=" + rhythm + " rhythm.getFile()=" + rhythm.getFile() + " rhythmProvider=" + rhythmProvider);
         }
-        this.rhythmProviderId = rhythmProviderId;
+        this.rhythmProviderId = rhythmProvider.getInfo().getUniqueId();
+        this.rhythmUniqueId = rhythm.getUniqueId();
         this.file = rhythm.getFile();
         this.name = rhythm.getName();
         this.tags = rhythm.getTags();
@@ -84,71 +96,121 @@ public class RhythmInfo implements Serializable
         }
     }
 
-    public List<RhythmVoiceInfo> getCacheRhythmVoices()
+    @Override
+    public List<RhythmVoiceInfo> getRhythmVoiceInfos()
     {
         return new ArrayList<>(cacheRvs);
     }
 
-    public List<RhythmParameterInfo> getCacheRhythmParameters()
+    @Override
+    public List<RhythmParameterInfo> getRhythmParametersInfos()
     {
         return new ArrayList<>(cacheRps);
     }
 
-
+    @Override
     public RhythmFeatures getFeatures()
     {
         return rhythmFeatures;
     }
 
+    @Override
     public File getFile()
     {
         return file;
     }
 
+    @Override
+    public String getRhythmUniqueId()
+    {
+        return this.rhythmUniqueId;
+    }
+
+    @Override
     public String getRhythmProviderId()
     {
         return rhythmProviderId;
     }
 
+    @Override
     public String getDescription()
     {
         return description;
     }
 
-
+    @Override
     public int getPreferredTempo()
     {
         return preferredTempo;
     }
 
+    @Override
     public TimeSignature getTimeSignature()
     {
         return timeSignature;
     }
 
-
+    @Override
     public String getName()
     {
         return name;
     }
 
-
+    @Override
     public String getAuthor()
     {
         return author;
     }
 
+    @Override
     public String getVersion()
     {
         return version;
     }
 
-
+    @Override
     public String[] getTags()
     {
         return tags;
     }
 
+    @Override
+    public String toString()
+    {
+        return "Rinfo[" + getName() + "-" + getTimeSignature() + "]";
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = 7;
+        hash = 59 * hash + Objects.hashCode(this.rhythmProviderId);
+        hash = 59 * hash + Objects.hashCode(this.rhythmUniqueId);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final RhythmInfoImpl other = (RhythmInfoImpl) obj;
+        if (!Objects.equals(this.rhythmProviderId, other.rhythmProviderId))
+        {
+            return false;
+        }
+        return true;
+    }
 
     // ===========================================================================================
     // Private methods

@@ -37,6 +37,7 @@ import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
+import org.jjazz.rhythm.database.api.RhythmInfo;
 import static org.jjazz.ui.ss_editor.editors.Bundle.*;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
 import org.openide.util.NbBundle;
@@ -57,7 +58,7 @@ import org.openide.util.NbBundle;
 public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implements ListSelectionListener
 {
 
-    private Rhythm selectedRhythm;
+    private RhythmInfo selectedRhythm;
     private TimeSignature timeSignature;
     private boolean exitOk;
 
@@ -73,22 +74,22 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
     }
 
     @Override
-    public void preset(Rhythm r, RhythmPreviewProvider rpp)
+    public void preset(RhythmInfo ri, RhythmPreviewProvider rpp)
     {
-        if (r == null)
+        if (ri == null)
         {
-            throw new IllegalArgumentException("r=" + r);
+            throw new IllegalArgumentException("ri=" + ri);
         }
         exitOk = false;
         cleanup();
 
-        selectedRhythm = r;
+        selectedRhythm = ri;
         timeSignature = selectedRhythm.getTimeSignature();
         updateRhythmInfo(selectedRhythm);
 
         // Populate the list of rhythms for this TimeSignature
         RhythmDatabase rdb = RhythmDatabase.getDefault();
-        Rhythm[] rInfos = rdb.getRhythms(timeSignature).toArray(new Rhythm[0]);
+        RhythmInfo[] rInfos = rdb.getRhythms(timeSignature).toArray(new RhythmInfo[0]);
         list_Rhythms.setListData(rInfos);
         list_Rhythms.setSelectedValue(selectedRhythm, true);
     }
@@ -98,7 +99,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
     {
         selectedRhythm = null;
         timeSignature = null;
-        list_Rhythms.setListData(new Rhythm[0]);
+        list_Rhythms.setListData(new RhythmInfo[0]);
     }
 
     @Override
@@ -114,7 +115,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
         return false;
     }
 
-    private void updateRhythmInfo(Rhythm ri)
+    private void updateRhythmInfo(RhythmInfo ri)
     {
         if (ri == null)
         {
@@ -183,7 +184,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
     }
 
     @Override
-    public Rhythm getSelectedRhythm()
+    public RhythmInfo getSelectedRhythm()
     {
         return selectedRhythm;
     }
@@ -397,7 +398,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lbl_Title;
-    private javax.swing.JList<Rhythm> list_Rhythms;
+    private javax.swing.JList<RhythmInfo> list_Rhythms;
     private javax.swing.JTable tbl_props;
     // End of variables declaration//GEN-END:variables
 

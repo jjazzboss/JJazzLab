@@ -29,6 +29,7 @@ import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
+import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.jjazz.util.SmallMap;
@@ -48,6 +49,8 @@ public class SongStructureImplTest
     SongPartImpl spt1, spt2, spt3, spt4;
     SongPart u_spt0;
     SongPart u_spt1, u_spt2, u_spt3, u_spt4;
+    Rhythm r44_1, r44_2;
+    Rhythm r34;
     JJazzUndoManager undoManager;
 
     public SongStructureImplTest()
@@ -75,13 +78,14 @@ public class SongStructureImplTest
             sgs = new SongStructureImpl();
             sgs.addUndoableEditListener(undoManager);
             JJazzUndoManagerFinder.getDefault().put(undoManager, sgs);
-            Rhythm r44 = rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR);
-            Rhythm r34 = rdb.getDefaultRhythm(TimeSignature.THREE_FOUR);
-            spt0 = new SongPartImpl(r44, 0, 10, null);
-            spt1 = new SongPartImpl(r44, 10, 4, null);
-            spt2 = new SongPartImpl(r44, 14, 6, null);
+            r44_1 = rdb.getRhythmInstance(rdb.getRhythms().get(0));
+            r44_2 = rdb.getRhythmInstance(rdb.getRhythms().get(1));
+            r34 = rdb.getDefaultRhythm(TimeSignature.THREE_FOUR);
+            spt0 = new SongPartImpl(r44_1, 0, 10, null);
+            spt1 = new SongPartImpl(r44_1, 10, 4, null);
+            spt2 = new SongPartImpl(r44_1, 14, 6, null);
             spt3 = new SongPartImpl(r34, 10, 12, null);
-            spt4 = new SongPartImpl(r44, 30, 8, null);
+            spt4 = new SongPartImpl(r44_1, 30, 8, null);
             u_spt0 = spt0.clone(spt0.getRhythm(), spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
             u_spt1 = spt1.clone(spt1.getRhythm(), spt1.getStartBarIndex(), spt1.getNbBars(), spt0.getParentSection());
             u_spt2 = spt2.clone(spt2.getRhythm(), spt2.getStartBarIndex(), spt2.getNbBars(), spt0.getParentSection());
@@ -95,7 +99,7 @@ public class SongStructureImplTest
             // Copy to make the undo test
             u_sgs = new SongStructureImpl();
             u_sgs.addSongParts(Arrays.asList(u_spt0, u_spt1, u_spt2));
-        } catch (UnsupportedEditException ex)
+        } catch (UnsupportedEditException | UnavailableRhythmException ex)
         {
             Exceptions.printStackTrace(ex);
         }
@@ -194,7 +198,7 @@ public class SongStructureImplTest
         System.out.println("after replace sp1=>spt3 sgs=" + sgs);
         assertTrue(sgs.getSizeInBars() == 20);
         assertTrue(sgs.getSongParts().get(1) == spt3);
-        Rhythm r = rdb.getNextRhythm(spt0.getRhythm());
+        Rhythm r = r44_2;
         SongPartImpl newSpt = (SongPartImpl) spt0.clone(r, spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
         try
         {

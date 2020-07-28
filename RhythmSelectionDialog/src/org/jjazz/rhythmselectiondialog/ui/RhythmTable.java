@@ -22,7 +22,6 @@
  */
 package org.jjazz.rhythmselectiondialog.ui;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.Point;
@@ -38,7 +37,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.JTable;
-import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
@@ -47,8 +45,9 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.database.api.FavoriteRhythms;
+import org.jjazz.rhythm.database.api.RhythmInfo;
+import org.jjazz.rhythm.database.api.RhythmVoiceInfo;
 
 /**
  * A JTable to show a list of rhythms.
@@ -99,35 +98,35 @@ public class RhythmTable extends JTable implements PropertyChangeListener
      * @param p
      * @return Can be null.
      */
-    public Rhythm getRhythm(Point p)
+    public RhythmInfo getRhythm(Point p)
     {
-        Rhythm r = null;
+        RhythmInfo ri = null;
         int rowIndex = rowAtPoint(p);
         if (rowIndex != -1)
         {
             int modelIndex = convertRowIndexToModel(rowIndex);
-            r = model.getRhythms().get(modelIndex);
+            ri = model.getRhythms().get(modelIndex);
         }
 
-        return r;
+        return ri;
     }
 
     /**
      * @return The Rhythm corresponding to the selected row, or null if no selection.
      */
-    public Rhythm getSelectedRhythm()
+    public RhythmInfo getSelectedRhythm()
     {
-        Rhythm r = null;
+        RhythmInfo ri = null;
         if (model != null)
         {
             int rowIndex = getSelectedRow();
             if (rowIndex != -1)
             {
                 int modelIndex = convertRowIndexToModel(rowIndex);
-                r = model.getRhythms().get(modelIndex);
+                ri = model.getRhythms().get(modelIndex);
             }
         }
-        return r;
+        return ri;
     }
 
     /**
@@ -135,11 +134,11 @@ public class RhythmTable extends JTable implements PropertyChangeListener
      * <p>
      * The method also scroll the table to make the selected instrument visible.
      *
-     * @param r
+     * @param ri
      */
-    public void setSelectedRhythm(Rhythm r)
+    public void setSelectedRhythm(RhythmInfo ri)
     {
-        int mIndex = model.getRhythms().indexOf(r);
+        int mIndex = model.getRhythms().indexOf(ri);
         if (mIndex != -1)
         {
             TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) this.getRowSorter();
@@ -165,10 +164,10 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         public static final int COL_TEMPO = 2;
         public static final int COL_NB_VOICES = 4;
         public static final int COL_DIR = 5;
-        private List<? extends Rhythm> rhythms = new ArrayList<>();
-        private Set<Rhythm> highlightedRhythms = new HashSet<>();
+        private List<? extends RhythmInfo> rhythms = new ArrayList<>();
+        private Set<RhythmInfo> highlightedRhythms = new HashSet<>();
 
-        public void setRhythms(List<Rhythm> rhythms)
+        public void setRhythms(List<RhythmInfo> rhythms)
         {
             if (rhythms == null)
             {
@@ -180,7 +179,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             adjustWidths();
         }
 
-        List<? extends Rhythm> getRhythms()
+        List<? extends RhythmInfo> getRhythms()
         {
             return rhythms;
         }
@@ -188,29 +187,29 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         /**
          * Show specified rhythm as highlighted (e.g. use a different font colour).
          *
-         * @param r
+         * @param ri
          * @param b Highlighted state
          */
-        public void setHighlighted(Rhythm r, boolean b)
+        public void setHighlighted(RhythmInfo ri, boolean b)
         {
-            int mIndex = model.getRhythms().indexOf(r);
+            int mIndex = model.getRhythms().indexOf(ri);
             if (mIndex == -1)
             {
                 return;
             }
             if (b)
             {
-                highlightedRhythms.add(r);
+                highlightedRhythms.add(ri);
             } else
             {
-                highlightedRhythms.remove(r);
+                highlightedRhythms.remove(ri);
             }
             fireTableRowsUpdated(mIndex, mIndex);
         }
 
-        public boolean isHighlighted(Rhythm r)
+        public boolean isHighlighted(RhythmInfo ri)
         {
-            return highlightedRhythms.contains(r);
+            return highlightedRhythms.contains(ri);
         }
 
         @Override
@@ -276,24 +275,24 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         @Override
         public Object getValueAt(int row, int col)
         {
-            Rhythm r = rhythms.get(row);
+            RhythmInfo ri = rhythms.get(row);
             switch (col)
             {
                 case COL_TEMPO:
-                    return r.getPreferredTempo();
+                    return ri.getPreferredTempo();
                 case COL_DIR:
                     // Show the file path relative to the user rhythm directory
                     FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-                    if (r.getFile() == null || "".equals(r.getFile().getPath()))
+                    if (ri.getFile() == null || "".equals(ri.getFile().getPath()))
                     {
                         return " - ";
-                    } else if (r.getFile().getAbsolutePath().contains(FileDirectoryManager.APP_CONFIG_PREFIX_DIR))
+                    } else if (ri.getFile().getAbsolutePath().contains(FileDirectoryManager.APP_CONFIG_PREFIX_DIR))
                     {
                         // Don't show path of the builtin files
                         return "builtin";
                     }
                     Path pDir = fdm.getUserRhythmDirectory().toPath();
-                    Path pFile = r.getFile().getParentFile().toPath();
+                    Path pFile = ri.getFile().getParentFile().toPath();
                     String s = null;
                     try
                     {
@@ -306,11 +305,11 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                     }
                     return s;
                 case COL_NB_VOICES:
-                    return r.getRhythmVoices().size();
+                    return ri.getRhythmVoiceInfos().size();
                 case COL_NAME:
-                    return r.getName();
+                    return ri.getName();
                 case COL_FEEL:
-                    return r.getFeatures().getFeel().toString();
+                    return ri.getFeatures().getFeel().toString();
                 case COL_ID:
                     return row + 1;
                 default:
@@ -412,15 +411,15 @@ public class RhythmTable extends JTable implements PropertyChangeListener
     /**
      * Get a string representing the instruments used by the specified rhythm.
      *
-     * @param r
+     * @param ri
      * @return
      */
-    private String getInstrumentsString(Rhythm r)
+    private String getInstrumentsString(RhythmInfo ri)
     {
         List<String> list = new ArrayList<>();
-        for (RhythmVoice rv : r.getRhythmVoices())
+        for (RhythmVoiceInfo rvi : ri.getRhythmVoiceInfos())
         {
-            switch (rv.getType())
+            switch (rvi.getType())
             {
                 case DRUMS:
                     list.add("drums");
@@ -429,7 +428,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                     list.add("perc.");
                     break;
                 default:    // VOICE       
-                    list.add(rv.getPreferredInstrument().getSubstitute().getFamily().getShortName());
+                    list.add(rvi.getPreferredInstrument().getSubstitute().getFamily().getShortName());
             }
         }
         return list.toString();
@@ -449,16 +448,16 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                 return lbl;
             }
             int modelRow = table.convertRowIndexToModel(row);
-            Rhythm r = model.getRhythms().get(modelRow);
-            File f = r.getFile();
+            RhythmInfo ri = model.getRhythms().get(modelRow);
+            File f = ri.getFile();
             switch (col)
             {
                 case Model.COL_NB_VOICES:
-                    lbl.setToolTipText(RhythmTable.this.getInstrumentsString(r));
+                    lbl.setToolTipText(RhythmTable.this.getInstrumentsString(ri));
                     break;
                 case Model.COL_NAME:
                     String s = f == null ? "" : ", File: " + f.getName();
-                    lbl.setToolTipText("Desc.: " + r.getDescription() + s);
+                    lbl.setToolTipText("Desc.: " + ri.getDescription() + s);
                     break;
                 case Model.COL_DIR:
                     lbl.setToolTipText("Relative file path to the User Rhythm Directory");
@@ -491,7 +490,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
 
             // Different rendering if it's a favorite
             FavoriteRhythms fr = FavoriteRhythms.getInstance();
-            if (fr.contains(r))
+            if (fr.contains(ri))
             {
                 Font font = lbl.getFont();
                 Font newFont = font.deriveFont(Font.BOLD);
@@ -499,7 +498,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             }
 
             // Highlight rendering
-            if (model.isHighlighted(r))
+            if (model.isHighlighted(ri))
             {
                 switch (col)
                 {

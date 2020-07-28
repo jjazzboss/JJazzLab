@@ -27,6 +27,7 @@ import java.awt.event.ActionListener;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
+import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -55,9 +56,9 @@ public final class DumpRdbAction implements ActionListener
         for (RhythmProvider rp : rdb.getRhythmProviders())
         {
             LOGGER.severe("\n===== RhythmProvider = " + rp.getInfo().getName() + '@' + Integer.toHexString(rp.hashCode()));
-            for (Rhythm r : rdb.getRhythms(rp))
+            for (RhythmInfo ri : rdb.getRhythms(rp))
             {
-                LOGGER.severe("  " + r);
+                LOGGER.severe("  " + ri);
             }
 
         }

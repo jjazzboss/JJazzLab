@@ -20,7 +20,7 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.rhythm.database;
+package org.jjazz.rhythm.database.api;
 
 import org.jjazz.rhythm.parameters.RhythmParameter;
 

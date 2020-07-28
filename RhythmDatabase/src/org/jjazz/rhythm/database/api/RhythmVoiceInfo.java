@@ -20,7 +20,7 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.rhythm.database;
+package org.jjazz.rhythm.database.api;
 
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
@@ -57,7 +57,7 @@ public class RhythmVoiceInfo
     /**
      * @return the instrument
      */
-    public Instrument getInstrument()
+    public Instrument getPreferredInstrument()
     {
         return instrument;
     }

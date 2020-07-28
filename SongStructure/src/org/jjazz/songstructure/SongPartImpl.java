@@ -475,7 +475,7 @@ public class SongPartImpl implements SongPart, Serializable
             // Restore the rhythm
             String errRhythm = null;
             RhythmDatabase rdb = RhythmDatabase.getDefault();
-            Rhythm r = rdb.getRhythm(spRhythmId);
+            Rhythm r = rdb.getRhythmInstance(spRhythmId);
             if (r == null)
             {
                 // Problem ! The saved rhythm does not exist on the system, need to find another one

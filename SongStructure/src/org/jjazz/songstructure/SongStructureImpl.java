@@ -682,7 +682,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             {
                 prevRhythm = ((AdaptedRhythm) prevRhythm).getSourceRhythm();
             }
-            r = rdb.getAdaptedRhythm(prevRhythm, ts);        // may be null
+            r = rdb.getAdaptedRhythmInstance(prevRhythm, ts);        // may be null
         }
 
         
@@ -858,7 +858,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 if (!ts.equals(r.getTimeSignature()))
                 {
                     // Have the adapted rhythm created and made available in the database
-                    if (rdb.getAdaptedRhythm(r, ts) == null)
+                    if (rdb.getAdaptedRhythmInstance(r, ts) == null)
                     {
                         LOGGER.info("generateAllAdaptedRhythms() Can't get a " + ts + "-adapted rhythm for r=" + r);
                     }

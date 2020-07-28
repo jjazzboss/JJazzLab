@@ -32,6 +32,8 @@ import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
+import org.jjazz.rhythm.database.api.RhythmInfo;
+import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.undomanager.JJazzUndoManager;
@@ -93,12 +95,21 @@ public final class TestAllRhythms implements ActionListener
             um.setLimit(1);      // to not use too much memory with all rhythms instances...
             RhythmDatabase rdb = RhythmDatabase.getDefault();
             TimeSignature ts0 = sgs.getSongPart(0).getRhythm().getTimeSignature();
-            for (Rhythm r : rdb.getRhythms(ts0))
+            for (RhythmInfo ri : rdb.getRhythms(ts0))
             {
-                LOGGER.log(Level.SEVERE, "-- r={0} file={1}", new Object[]
+                LOGGER.log(Level.SEVERE, "-- ri={0} file={1}", new Object[]
                 {
-                    r.getName(), r.getFile().getAbsolutePath()
+                    ri.getName(), ri.getFile().getAbsolutePath()
                 });
+                Rhythm r;
+                try
+                {
+                    r = rdb.getRhythmInstance(ri);
+                } catch (UnavailableRhythmException ex)
+                {
+                    LOGGER.severe("Can't get rhythm instance, skipped");
+                    continue;
+                }
                 SongPart spt = sgs.getSongPart(0);
                 SongPart newSpt = spt.clone(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
                 RhythmParameter<?> rp0 = r.getRhythmParameters().get(0);

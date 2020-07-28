@@ -26,6 +26,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JDialog;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.ui.ss_editor.editors.SimpleRhythmSelectionDialog;
 import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;
@@ -98,11 +99,11 @@ abstract public class RhythmSelectionDialog extends JDialog
     /**
      * Initialize the dialog for the specified song rhythm.
      *
-     * @param r
+     * @param ri
      * @param rpp If null then the rhythm preview feature is disabled. If not null caller is responsible to call rpp.cleanup()
      * when rpp is not used anymore.
      */
-    abstract public void preset(Rhythm r, RhythmPreviewProvider rpp);
+    abstract public void preset(RhythmInfo ri, RhythmPreviewProvider rpp);
 
     /**
      * @return True if dialog was exited OK, false if dialog operation was cancelled.
@@ -114,7 +115,7 @@ abstract public class RhythmSelectionDialog extends JDialog
      *
      * @return Null if no valid rhythm was selected, or user chose Cancel
      */
-    abstract public Rhythm getSelectedRhythm();
+    abstract public RhythmInfo getSelectedRhythm();
 
     /**
      * Set the title of the dialogm eg "Rhythm for bar XX".

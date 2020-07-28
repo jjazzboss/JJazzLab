@@ -24,6 +24,7 @@ package org.jjazz.rhythm.database;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,6 +44,8 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
+import org.jjazz.rhythm.database.api.RhythmInfo;
+import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
@@ -52,7 +55,16 @@ import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Retrieve available rhythms by polling all RhythmProviders at runtime.
+ * RhythmDatabase implementation.
+ * <p>
+ * Upon clean/fresh start:<br>
+ * - retrieve all available builtin & file-based rhythm instances by polling RhythmProviders (this can be long if many rhythm files need to
+ * be scanned).<br>
+ * - create RhythmInfo instances from the Rhythm instances and save the file-based RhythmInfos to a cache file.<p>
+ * Then upon normal start :<br>
+ * - retrieve all available builtin rhythm instances by polling RhythmProviders, create the corresponding RhythmInfos.<br>
+ * - load additional file-based RhythmInfos from the cache file<br>
+ * - create Rhythm instances only when required.<p>
  * <p>
  * Default rhythms are stored as Preferences.
  */
@@ -62,13 +74,13 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     private static final String PREF_DEFAULT_RHYTHM = "DefaultRhythm";
     private static RhythmDatabaseImpl INSTANCE;
     /**
-     * Primary data structure
+     * Main data structure
      */
-    private final HashMap<RhythmProvider, List<Rhythm>> mapRpRhythms = new HashMap<>();
+    private final HashMap<RhythmProvider, List<RhythmInfo>> mapRpRhythms = new HashMap<>();
     /**
-     * Mirror map to get Rhythms sorted per TimeSignature. First rhythm is the default for each TimeSignature.
+     * Save the created Rhythm instances.
      */
-    private final HashMap<TimeSignature, ArrayList<Rhythm>> mapTsRhythms = new HashMap<>();
+    private final HashMap<RhythmInfo, Rhythm> mapInfoInstance = new HashMap<>();
     /**
      * Keep the AdaptedRhythms instances created on-demand.
      * <p>
@@ -129,17 +141,103 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     }
 
     @Override
-    public List<Rhythm> getRhythms(Predicate<Rhythm> tester)
+    public Rhythm getRhythmInstance(RhythmInfo ri) throws UnavailableRhythmException
+    {
+        if (ri == null)
+        {
+            throw new IllegalArgumentException("ri=" + ri);
+        }
+
+
+        Rhythm r = mapInfoInstance.get(ri);
+        if (r != null)
+        {
+            return r;
+        }
+
+        // Builtin rhythms should not be there, they must have a RhythmInfo defined
+        assert r.getFile() != null : "r=" + r;
+
+
+        // Get the instance from provider
+        RhythmProvider rp = getRhythmProvider(ri);
+        if (rp == null)
+        {
+            throw new UnavailableRhythmException("Can't access Rhythm Provider for RhythmInfo=" + ri);
+        }
+        try
+        {
+            r = rp.readFast(ri.getFile());
+        } catch (IOException ex)
+        {
+            throw new UnavailableRhythmException(ex.getLocalizedMessage());
+        }
+
+        // Save the instance
+        mapInfoInstance.put(ri, r);
+
+        return r;
+    }
+
+    @Override
+    public RhythmInfo getRhythm(String rhythmId)
+    {
+        for (RhythmProvider rp : mapRpRhythms.keySet())
+        {
+            for (RhythmInfo ri : mapRpRhythms.get(rp))
+            {
+                if (ri.getRhythmUniqueId().equals(rhythmId))
+                {
+                    return ri;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public RhythmProvider getRhythmProvider(RhythmInfo ri)
+    {
+        if (ri == null)
+        {
+            throw new IllegalArgumentException("ri=" + ri);
+        }
+        for (RhythmProvider rp : mapRpRhythms.keySet())
+        {
+            for (RhythmInfo rInfo : mapRpRhythms.get(rp))
+            {
+                if (rInfo.equals(ri))
+                {
+                    return rp;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public List<RhythmInfo> getRhythms(Predicate<RhythmInfo> tester)
     {
         if (tester == null)
         {
             throw new NullPointerException("tester");
         }
-        return getRhythms().stream().filter(tester).collect(Collectors.toList());
+        List<RhythmInfo> res = new ArrayList<>();
+        for (RhythmProvider rp : mapRpRhythms.keySet())
+        {
+            for (RhythmInfo ri : mapRpRhythms.get(rp))
+            {
+                if (tester.test(ri))
+                {
+                    res.add(ri);
+                }
+            }
+        }
+        return res;
     }
 
     @Override
-    public List<Rhythm> getRhythms(TimeSignature ts)
+    public List<RhythmInfo> getRhythms(TimeSignature ts)
     {
         if (ts == null)
         {
@@ -148,53 +246,31 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         return getRhythms(r -> r.getTimeSignature().equals(ts));
     }
 
-    /**
-     * For now just find another rhythm which share the same time signature and if possible same name (ignoring case).
-     *
-     * @param rhythm
-     * @return
-     */
     @Override
-    public Rhythm getSimilarRhythm(final Rhythm rhythm)
+    public RhythmInfo getSimilarRhythm(final RhythmInfo ri)
     {
-        List<Rhythm> rhythms = mapTsRhythms.get(rhythm.getTimeSignature());
-        if (rhythms == null)
+        int max = 0;
+        var 
+        for (RhythmInfo rii : getRhythms())
         {
-            return null;
-        }
-        List<Rhythm> rhythms1 = new ArrayList<>(rhythms);
-
-        // Remove rhythm corresponding to r
-        for (Rhythm r : rhythms1.toArray(new Rhythm[0]))
-        {
-            if (r.getUniqueId().equals(rhythm.getUniqueId()))
+            if (!rii.getTimeSignature().equals(ri.getTimeSignature()) || rii == ri)
             {
-                rhythms1.remove(r);
-                break;
+                continue;
             }
-        }
-
-        if (rhythms1.isEmpty())
-        {
-            return null;
-        }
-
-        // Search same name
-        for (Rhythm r : rhythms1)
-        {
-            if (r.getName().equalsIgnoreCase(rhythm.getName()))
+            int score = ri.getFeatures().getMatchingScore(rii.getFeatures());
+            if (score > max)
             {
-                return r;
+                max = score;
+                res = rii;
             }
+            max = Math.max(max, score);
         }
 
-        // stop searching...
-        return rhythms1.get(0);
+        return res;
     }
 
-
     @Override
-    public Rhythm getRhythm(String rId)
+    public Rhythm getRhythmInstance(String rId)
     {
         Rhythm r = null;
         if (rId.contains(AdaptedRhythm.RHYTHM_ID_DELIMITER))
@@ -219,13 +295,13 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                     LOGGER.warning("getRhythm() Unknown rhythm provider id in AdaptedRhythm rId=" + rId);
                     return null;
                 }
-                Rhythm rOriginal = getRhythm(rIdOriginal);
+                Rhythm rOriginal = getRhythmInstance(rIdOriginal);
                 if (rOriginal == null)
                 {
                     LOGGER.warning("getRhythm() Unknown rhythmId in AdaptedRhythm rId=" + rId);
                     return null;
                 }
-                r = getAdaptedRhythm(rOriginal, newTs);
+                r = getAdaptedRhythmInstance(rOriginal, newTs);
             }
         } else
         {
@@ -235,7 +311,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     }
 
     @Override
-    public List<Rhythm> getRhythms()
+    public List<RhythmInfo> getRhythms()
     {
         ArrayList<Rhythm> rhythms = new ArrayList<>();
         for (ArrayList<Rhythm> vr : mapTsRhythms.values())
@@ -246,7 +322,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     }
 
     @Override
-    public List<Rhythm> getRhythms(RhythmProvider rp)
+    public List<RhythmInfo> getRhythms(RhythmProvider rp)
     {
         if (rp == null)
         {
@@ -262,38 +338,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     }
 
     @Override
-    public Rhythm getNextRhythm(Rhythm r)
-    {
-        if (r == null)
-        {
-            throw new IllegalArgumentException("r=" + r);
-        }
-        List<Rhythm> rhythms = getRhythms(r.getTimeSignature());
-        int index = rhythms.indexOf(r);
-        if (index == -1)
-        {
-            return r;
-        }
-        return (index == rhythms.size() - 1) ? rhythms.get(0) : rhythms.get(index + 1);
-    }
-
-    @Override
-    public Rhythm getPreviousRhythm(Rhythm r)
-    {
-        if (r == null)
-        {
-            throw new IllegalArgumentException("r=" + r);
-        }
-        List<Rhythm> rhythms = getRhythms(r.getTimeSignature());
-        int index = rhythms.indexOf(r);
-        if (index == -1)
-        {
-            return r;
-        }
-        return (index == 0) ? rhythms.get(rhythms.size() - 1) : rhythms.get(index - 1);
-    }
-
-    @Override
     public Rhythm getDefaultRhythm(TimeSignature ts)
     {
         // Try to restore the Rhythm from the preferences
@@ -306,11 +350,11 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
         // Retrieve the Rhythm id
         String rId = prefs.get(prefName, rIdDefault);
-        Rhythm r = getRhythm(rId);
+        Rhythm r = getRhythmInstance(rId);
         if (r == null)
         {
             // Saved rhythm is no longer in the database
-            r = getRhythm(rIdDefault);
+            r = getRhythmInstance(rIdDefault);
             if (r == null)
             {
                 // Use the StubRhythmProvider
@@ -332,7 +376,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         {
             throw new NullPointerException("ts=" + ts + " r=" + null);
         }
-        if (getRhythm(r.getUniqueId()) == null)
+        if (getRhythmInstance(r.getUniqueId()) == null)
         {
             throw new IllegalArgumentException("Rhythm r not in this database. ts=" + ts + " r=" + r);
         }
@@ -350,7 +394,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     }
 
     @Override
-    public AdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts)
+    public AdaptedRhythm getAdaptedRhythmInstance(Rhythm r, TimeSignature ts)
     {
         if (r == null || ts == null || r.getTimeSignature().equals(ts))
         {
@@ -406,7 +450,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     }
 
     @Override
-    public int addRhythms(List<RpRhythmPair> pairs)
+    public int addExtraRhythms(List<RpRhythmPair> pairs)
     {
         if (pairs == null)
         {
@@ -588,7 +632,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         return r.getUniqueId() + "-" + ts.name();
     }
 
-
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
@@ -604,6 +647,5 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
 
     }
-
 
 }

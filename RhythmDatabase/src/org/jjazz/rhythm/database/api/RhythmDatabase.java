@@ -33,7 +33,13 @@ import org.openide.util.Lookup;
 import org.jjazz.rhythm.database.RhythmDatabaseImpl;
 
 /**
- * Operations to get information and retrieve installed rhythms.
+ * The RhythmDatabase is the central place to get information about installed rhythms and get Rhythm instances.
+ * <p>
+ * Implementation should populate the database upon creation.
+ * <p>
+ * RhythmInfo instances are used to describe the available rhythms. They can be serialized by a Rhythmdatabase implementation to avoid
+ * requesting all the Rhythm instances upon each startup -this is very time consuming when hundreds of rhythm files are used.
+ * getRhythmInstance(RhythmInfo) is used to get the Rhythm instance.
  */
 public interface RhythmDatabase
 {
@@ -73,45 +79,50 @@ public interface RhythmDatabase
     }
 
     /**
-     * Listeners are notified when the rhythm database has changed.
+     * Get a rhythm instance from its id.
      * <p>
-     * Note that listeners might be notified out of the Event Dispatch Thread.
+     * If rhythmId contains 2 instances of the AdaptedRhythm.RHYTHM_ID_DELIMITER, then this id represents an AdaptedRhythm which is created
+     * on demand, see AdaptedRhythm.getUniqueId(). The rhythm provider, the original rhythm and the time signature are obtained from
+     * rhythmId, and the returned rhythm instance is obtained by calling RhythmProvider.getAdaptedRhythmInstance(Rhythm, TimeSignature).
+     * Rhythm instances are cached.
      *
-     * @param l
+     * @param rhythmId A unique id
+     * @return The rhythm whose uniqueSerialId matches the specified id. Null if not found.
      */
-    void addChangeListener(ChangeListener l);
-
-    void removeChangeListener(ChangeListener l);
+    Rhythm getRhythmInstance(String rhythmId);
 
     /**
-     * Get the default Rhythm for TimeSignature ts.
-     *
-     * @param ts TimeSignature
-     * @return Can not be null: the database should provide at least a stub rhythm.
-     */
-    Rhythm getDefaultRhythm(TimeSignature ts);
-
-    /**
-     * Set the default rhythm for this TimeSignature.
-     *
-     * @param ts TimeSignature
-     * @param rhythm
-     * @exception IllegalArgumentException If rhythm is not part of this database.
-     */
-    void setDefaultRhythm(TimeSignature ts, Rhythm rhythm);
-
-
-    /**
-     * Try to provide a new rhythm which is an adapted version of r for a different time signature.
+     * Get a rhythm instance from a RhythmInfo.
      * <p>
-     * If the adapted rhythm could be obtained it is added in the database.
+     * This might result in a lengthy operation (e.g. because of file reading). Rhythm instances are cached.
+     *
+     * @param rhythmInfo
+     * @return
+     * @throws org.jjazz.rhythm.database.api.UnavailableRhythmException
+     */
+    Rhythm getRhythmInstance(RhythmInfo rhythmInfo) throws UnavailableRhythmException;
+
+    /**
+     * Get the RhythmInfo instance from the specified rhythm unique id.
+     * <p>
+     * RhyhmtInfo instances are cached.
+     *
+     * @param rhythmId
+     * @return Can be null if not found.
+     */
+    RhythmInfo getRhythm(String rhythmId);
+
+    /**
+     * Try to provide the rhythm instance which is an adapted version of r for a different time signature.
+     * <p>
+     * If the adapted rhythm could be obtained it is added in the database. AdaptedRhythm instances are cached.
      *
      * @param r
      * @param ts
      * @return Can be null if no adapted rhythm is available.
      * @throws IllegalArgumentException If ts is the time signature of r, or if r is not a rhythm of this database.
      */
-    AdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts);
+    AdaptedRhythm getAdaptedRhythmInstance(Rhythm r, TimeSignature ts);
 
     /**
      * Get the rhythms which are tested OK.
@@ -119,7 +130,7 @@ public interface RhythmDatabase
      * @param tester
      * @return
      */
-    List<Rhythm> getRhythms(Predicate<Rhythm> tester);
+    List<RhythmInfo> getRhythms(Predicate<RhythmInfo> tester);
 
     /**
      * Get the rhythms which match the specified time signature.
@@ -127,7 +138,7 @@ public interface RhythmDatabase
      * @param ts TimeSignature
      * @return All rhythms corresponding to TimeSignature ts.
      */
-    List<Rhythm> getRhythms(TimeSignature ts);
+    List<RhythmInfo> getRhythms(TimeSignature ts);
 
     /**
      * The rhythms associated to the specified RhythmProvider
@@ -136,42 +147,37 @@ public interface RhythmDatabase
      * @return
      * @exception IllegalArgumentException If rp is not a RhythmProvider available.
      */
-    List<Rhythm> getRhythms(RhythmProvider rp);
-
-    /**
-     * Get a rhythm from its id.
-     * <p>
-     * If rhythmId contains 2 instances of the AdaptedRhythm.RHYTHM_ID_DELIMITER, then this id represents an AdaptedRhythm which
-     * is created on demand, see AdaptedRhythm.getUniqueId(). The rhythm provider, the original rhythm and the time signature are
-     * obtained from rhythmId, and the returned rhythm instance is obtained by calling RhythmProvider.getAdaptedRhythm(Rhythm,
-     * TimeSignature).
-     *
-     * @param rhythmId A unique id
-     * @return The rhythm whose uniqueSerialId matches the specified id. Null if not found.
-     */
-    Rhythm getRhythm(String rhythmId);
+    List<RhythmInfo> getRhythms(RhythmProvider rp);
 
     /**
      * Try to find a rhythm in the database which is "similar" to the specified rhythm info.
      * <p>
-     * "similar" means at least share the same time signature. Then algorithm can use other Info fields (temporange, tags, ...) to
-     * calculate how "similar" we are.
+     * "Similar" means at least share the same time signature. The implementation could for example use RhythmFeatures.getMatchingScore() to
+     * help identify the most similar rhythm.
      *
-     * @param rhythm
+     * @param ri
      * @return A "similar" rhythm which at least share the same timesignature. Null if nothing relevant found.
      */
-    Rhythm getSimilarRhythm(Rhythm rhythm);
+    RhythmInfo getSimilarRhythm(RhythmInfo ri);
 
     /**
      * @return All rhythms stored in the database.
      */
-    List<Rhythm> getRhythms();
+    List<RhythmInfo> getRhythms();
 
     /**
      * @param rhythm
      * @return The RhythmProvider of the specified rhythm. Null if not found.
      */
     RhythmProvider getRhythmProvider(Rhythm rhythm);
+
+    /**
+     * Get the RhythmProvider for specified RhythmInfo.
+     *
+     * @param ri
+     * @return The RhythmProvider of the specified RhythmInfo. Can be null.
+     */
+    RhythmProvider getRhythmProvider(RhythmInfo ri);
 
     /**
      * The RhythmProviders instances available, sorted by name.
@@ -185,6 +191,22 @@ public interface RhythmDatabase
      */
     List<TimeSignature> getTimeSignatures();
 
+    /**
+     * Get the default Rhythm for TimeSignature ts.
+     *
+     * @param ts TimeSignature
+     * @return Can not be null: the database should provide at least a stub rhythm.
+     */
+    Rhythm getDefaultRhythm(TimeSignature ts);
+
+    /**
+     * Set the default rhythm for this TimeSignature.
+     *
+     * @param ts     TimeSignature
+     * @param rhythm
+     * @exception IllegalArgumentException If rhythm is not part of this database.
+     */
+    void setDefaultRhythm(TimeSignature ts, Rhythm rhythm);
 
     /**
      * @return The number of rhythms in the database.
@@ -197,19 +219,29 @@ public interface RhythmDatabase
      * Note: once added in the database, a RhythmProvider and its Rhythms can't be removed (until program restarts).<br>
      * Fire a change event if database has changed after the refresh.
      *
-     * @param forceRescan If true force a complete rescan for each RhythmProvider. If false RhythmProviders are provided with the
-     * previous list so they can only update possible added rhythms.
+     * @param forceRescan If true force a complete rescan for each RhythmProvider. If false RhythmProviders are provided with the previous
+     *                    list so they can only update possible added rhythms.
      */
     void refresh(boolean forceRescan);
 
     /**
-     * Add some rhythms to the database (if not already present).
+     * Add extra rhythms to the database.
      * <p>
-     * Fire a change event after rhythms have been added.
+     * Add new rhythms to a populated database. Fire a change event after rhythms have been added.
      *
      * @param pairs
      * @return The nb of rhythms actually added.
      */
-    int addRhythms(List<RpRhythmPair> pairs);
+    int addExtraRhythms(List<RpRhythmPair> pairs);
 
+    /**
+     * Listeners are notified when the rhythm database has changed.
+     * <p>
+     * Note that listeners might be notified out of the Event Dispatch Thread.
+     *
+     * @param l
+     */
+    void addChangeListener(ChangeListener l);
+
+    void removeChangeListener(ChangeListener l);
 }

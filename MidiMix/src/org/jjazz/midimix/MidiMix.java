@@ -1799,7 +1799,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                 }
                 RhythmVoice rv = null;
                 RhythmDatabase rdb = RhythmDatabase.getDefault();
-                Rhythm r = rdb.getRhythm(rhythmId);
+                Rhythm r = rdb.getRhythmInstance(rhythmId);
                 if (r != null)
                 {
                     rv = r.getRhythmVoices().stream().filter(rhv -> rhv.getName().equals(rvName)).findAny().orElse(null);

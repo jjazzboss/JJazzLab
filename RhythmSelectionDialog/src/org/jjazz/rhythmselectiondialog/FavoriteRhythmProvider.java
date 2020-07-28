@@ -20,7 +20,7 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.rhythm.database.api;
+package org.jjazz.rhythmselectiondialog;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,10 +29,12 @@ import java.util.List;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.database.api.FavoriteRhythms;
+import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.spi.RhythmProvider;
 
 /**
- * A special RhythmProvider instance which provides (as built-in rhythms) the favorite rhythms from FavoriteRhythms.
+ * A "fake" RhythmProvider instance which provides the favorite rhythms from FavoriteRhythms for UI purposes.
  * <p>
  */
 public class FavoriteRhythmProvider implements RhythmProvider
@@ -58,6 +60,11 @@ public class FavoriteRhythmProvider implements RhythmProvider
 
     }
 
+    public List<RhythmInfo> getBuiltinRhythmInfos()
+    {
+        return FavoriteRhythms.getInstance().getRhythms();
+    }
+
     // ======================================================================
     // RhythmProvider interface
     // ======================================================================    
@@ -68,18 +75,22 @@ public class FavoriteRhythmProvider implements RhythmProvider
     }
 
     /**
-     * Return the rhythms from the FavoriteRhythms object.
+     * Return an empty list.
+     * <p>
+     * See getBuiltinRhythmInfos().
      *
      * @return
      */
     @Override
     public List<Rhythm> getBuiltinRhythms()
     {
-        return FavoriteRhythms.getInstance().getRhythms();
+        return (List<Rhythm>) Collections.EMPTY_LIST;
     }
 
     /**
      * Return an empty list.
+     * <p>
+     * See getBuiltinRhythmInfos().
      *
      * @param prevList
      * @return
@@ -114,11 +125,6 @@ public class FavoriteRhythmProvider implements RhythmProvider
     {
         throw new IOException("This RhythmProvider (" + getInfo().getName() + ") does not support file reading.");
     }
- 
-
-    // ======================================================================
-    // Private methods
-    // ======================================================================
 
     @Override
     public AdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts)
