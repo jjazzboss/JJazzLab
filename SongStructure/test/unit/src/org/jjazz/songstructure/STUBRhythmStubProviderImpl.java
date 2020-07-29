@@ -90,7 +90,7 @@ public class STUBRhythmStubProviderImpl implements RhythmProvider
     }
 
     @Override
-    public List<Rhythm> getFileRhythms(List<Rhythm> prevList, boolean forceRescan)
+    public List<Rhythm> getFileRhythms( boolean forceRescan)
     {
         return new ArrayList<>();
     }

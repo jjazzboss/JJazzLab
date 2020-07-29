@@ -39,6 +39,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
+import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import static org.jjazz.songstructure.Bundle.*;
 import org.jjazz.util.SmallMap;
 import org.openide.DialogDisplayer;
@@ -475,16 +476,17 @@ public class SongPartImpl implements SongPart, Serializable
             // Restore the rhythm
             String errRhythm = null;
             RhythmDatabase rdb = RhythmDatabase.getDefault();
-            Rhythm r = rdb.getRhythmInstance(spRhythmId);
-            if (r == null)
+            Rhythm r;
+            try
+            {
+                r = rdb.getRhythmInstance(spRhythmId);
+                saveUnavailableRhythmIds.remove(spRhythmId);    // Rhythm is now available
+            } catch (UnavailableRhythmException ex)
             {
                 // Problem ! The saved rhythm does not exist on the system, need to find another one
                 r = rdb.getDefaultRhythm(spRhythmTs);
                 errRhythm = ERR_RhythmNotFound() + ": " + spRhythmName + ". " + ERR_UsingReplacementRhythm() + ": " + r.getName();
-            } else
-            {
-                saveUnavailableRhythmIds.remove(spRhythmId);    // Rhythm is now available
-            }
+            }            
             assert r != null;
 
             // Recreate a SongPart

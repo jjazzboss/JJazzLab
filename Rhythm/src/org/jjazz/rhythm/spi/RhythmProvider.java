@@ -37,6 +37,17 @@ public interface RhythmProvider
 {
 
     /**
+     * See getFileRhythms().
+     */
+    public static final String PREFIX_IGNORED_SUBDIR = "_";
+    /**
+     * See getFileRhythms().
+     */
+    public static final int SUBDIR_MAX_DEPTH = 2;
+
+  
+
+    /**
      * Descriptive information about this provider.
      *
      * @return
@@ -47,23 +58,21 @@ public interface RhythmProvider
      * Get the built-in rhythms.
      * <p>
      *
-     * @return
+     * @return All non file-based rhythms provided by this RhythmProvider. List can be empty but not null.
      */
     public List<Rhythm> getBuiltinRhythms();
 
     /**
      * Get the file-based rhythms.
      * <p>
-     * If prevList is non-null and non-empty, prevList must be used to detect added or removed Rhythm files. They might be
-     * hundreds of rhythm files in a directory, so this allows to only parse new added files.
+     * User-provided rhythm files should be scanned in the User directory for rhythm files, see
+     * FileDirectoryManager.getUserRhythmDirectory(). SUBDIR_MAX_DEPTH levels of subdirectories should be scanned. Subdirectories starting
+     * with PREFIX_IGNORED_SUBDIR are ignored.
      *
-     * @param prevList Can be null.
-     * @param forceRescan If true, force rescan of the files, possibly using prevList if not null. If false the method may return
-     * cached data.
+     * @param forceRescan If true RhythmProvider should not rely on its cached data.
      * @return All non builtin rhythms provided by this RhythmProvider. List can be empty but not null.
      */
-    public List<Rhythm> getFileRhythms(List<Rhythm> prevList, boolean forceRescan);
-
+    public List<Rhythm> getFileRhythms(boolean forceRescan);
 
     /**
      * Get the file extensions accepted by readFast().
@@ -77,8 +86,8 @@ public interface RhythmProvider
     /**
      * A fast method to read specified rhythm file and extract only information needed for description/catalog purposes.
      * <p>
-     * Caller must use loadResources() on the returned rhythm before using it to generate music (possibly lenghty operation, eg if
-     * new file reading required).
+     * Caller must use loadResources() on the returned rhythm before using it to generate music (possibly lenghty operation, eg if new file
+     * reading required).
      *
      * @param f
      * @return
@@ -100,8 +109,7 @@ public interface RhythmProvider
     /**
      * Show a modal dialog to modify the user settings of this RhythmProvider.
      * <p>
-     * The RhythmProvider is responsible for the persistence of its settings. The method does nothing if hasUserSettings() returns
-     * false.
+     * The RhythmProvider is responsible for the persistence of its settings. The method does nothing if hasUserSettings() returns false.
      *
      * @see hasUserSettings()
      */
@@ -129,7 +137,7 @@ public interface RhythmProvider
 
         /**
          * @param uniqueId
-         * @param name Must be a non empty string (spaces are trimmed).
+         * @param name        Must be a non empty string (spaces are trimmed).
          * @param description
          * @param author
          * @param version

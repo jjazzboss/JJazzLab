@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 import org.jjazz.harmony.TimeSignature;
+import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 
 /**
@@ -42,11 +43,20 @@ public interface RhythmInfo extends Serializable
 {
 
     /**
+     * Check that this RhythmInfo object matches data from specified rhythm.
+     * <p>
+     *
+     * @param r
+     * @return False if inconsistency detected
+     */
+    boolean checkConsistency(Rhythm r);
+
+    /**
      * The unique Id of the target rhythm.
      *
      * @return
      */
-    String getRhythmUniqueId();
+    String getUniqueId();
 
     /**
      * The unique id of the provider of the target rhythm.

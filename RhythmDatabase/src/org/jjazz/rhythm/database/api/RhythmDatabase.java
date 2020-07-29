@@ -87,9 +87,10 @@ public interface RhythmDatabase
      * Rhythm instances are cached.
      *
      * @param rhythmId A unique id
-     * @return The rhythm whose uniqueSerialId matches the specified id. Null if not found.
+     * @return The rhythm whose uniqueSerialId matches the specified id
+     * @throws org.jjazz.rhythm.database.api.UnavailableRhythmException
      */
-    Rhythm getRhythmInstance(String rhythmId);
+    Rhythm getRhythmInstance(String rhythmId) throws UnavailableRhythmException;
 
     /**
      * Get a rhythm instance from a RhythmInfo.
@@ -219,8 +220,7 @@ public interface RhythmDatabase
      * Note: once added in the database, a RhythmProvider and its Rhythms can't be removed (until program restarts).<br>
      * Fire a change event if database has changed after the refresh.
      *
-     * @param forceRescan If true force a complete rescan for each RhythmProvider. If false RhythmProviders are provided with the previous
-     *                    list so they can only update possible added rhythms.
+     * @param forceRescan Flag passed to RhythmProvider.getFileRhythms().
      */
     void refresh(boolean forceRescan);
 

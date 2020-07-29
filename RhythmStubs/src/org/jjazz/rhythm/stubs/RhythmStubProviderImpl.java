@@ -111,7 +111,7 @@ public class RhythmStubProviderImpl implements StubRhythmProvider
     }
 
     @Override
-    public List<Rhythm> getFileRhythms(List<Rhythm> prevList, boolean forceRescan)
+    public List<Rhythm> getFileRhythms(boolean forceRescan)
     {
         return new ArrayList<Rhythm>();
     }

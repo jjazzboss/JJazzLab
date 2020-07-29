@@ -97,7 +97,7 @@ public class FavoriteRhythmProvider implements RhythmProvider
      */
     @SuppressWarnings("unchecked")
     @Override
-    public List<Rhythm> getFileRhythms(List<Rhythm> prevList, boolean forceRescan)
+    public List<Rhythm> getFileRhythms(boolean forceRescan)
     {
         return (List<Rhythm>) Collections.EMPTY_LIST;
     }

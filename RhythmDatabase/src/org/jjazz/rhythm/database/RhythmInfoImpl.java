@@ -26,11 +26,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.RhythmParameterInfo;
 import org.jjazz.rhythm.database.api.RhythmVoiceInfo;
@@ -53,6 +55,7 @@ public class RhythmInfoImpl implements RhythmInfo
     private RhythmFeatures rhythmFeatures;
     private final List<RhythmVoiceInfo> cacheRvs = new ArrayList<>();
     private final List<RhythmParameterInfo> cacheRps = new ArrayList<>();
+    private static final Logger LOGGER = Logger.getLogger(RhythmInfoImpl.class.getSimpleName());
 
     /**
      * Reserved for deserialization only.
@@ -96,6 +99,47 @@ public class RhythmInfoImpl implements RhythmInfo
         }
     }
 
+    /**
+     * Check that this RhythmInfo object matches data from specified rhythm.
+     * <p>
+     * Test only the main fields.
+     *
+     * @param r
+     * @return False if inconsistency detected (see log file for details).
+     */
+    public boolean checkConsistency(Rhythm r)
+    {
+        boolean b = true;
+        if (!rhythmUniqueId.equals(r.getUniqueId()))
+        {
+            LOGGER.warning("checkConsistency() r=" + r + ": uniqueId mismatch. rhythmUniqueId=" + rhythmUniqueId + " r.getUniqueId()=" + r.getUniqueId());
+            b = false;
+        }
+        if (!rhythmProviderId.equals(RhythmDatabase.getDefault().getRhythmProvider(r).getInfo().getUniqueId()))
+        {
+            LOGGER.warning("checkConsistency() r=" + r + ": rhythmProviderId mismatch. rhythmProviderId=" + rhythmProviderId
+                    + " rdb.rp.uniqueId=" + RhythmDatabase.getDefault().getRhythmProvider(r).getInfo().getUniqueId());
+            b = false;
+        }
+        if (!name.equals(r.getName()))
+        {
+            LOGGER.warning("checkConsistency() r=" + r + ": name mismatch. name=" + name + " r.getName()=" + r.getName());
+            b = false;
+        }
+        if (!file.equals(r.getFile()))
+        {
+            LOGGER.warning("checkConsistency() r=" + r + ": file mismatch. file=" + file.getAbsolutePath() + " r.getFile()=" + r.getFile().getAbsolutePath());
+            b = false;
+        }
+        if (!timeSignature.equals(r.getTimeSignature()))
+        {
+            LOGGER.warning("checkConsistency() r=" + r + ": timeSignature mismatch. timeSignature=" + timeSignature + " r.getTimeSignature()=" + r.getTimeSignature());
+            b = false;
+        }
+
+        return b;
+    }
+
     @Override
     public List<RhythmVoiceInfo> getRhythmVoiceInfos()
     {
@@ -121,7 +165,7 @@ public class RhythmInfoImpl implements RhythmInfo
     }
 
     @Override
-    public String getRhythmUniqueId()
+    public String getUniqueId()
     {
         return this.rhythmUniqueId;
     }

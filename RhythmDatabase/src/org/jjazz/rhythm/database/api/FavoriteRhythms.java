@@ -204,7 +204,7 @@ public class FavoriteRhythms
         int i = 0;
         for (RhythmInfo ri : rhythms)
         {
-            prefs.put(PROP_FAVORITE_RHYTHM + i, ri.getRhythmUniqueId());
+            prefs.put(PROP_FAVORITE_RHYTHM + i, ri.getUniqueId());
             i++;
         }
     }
