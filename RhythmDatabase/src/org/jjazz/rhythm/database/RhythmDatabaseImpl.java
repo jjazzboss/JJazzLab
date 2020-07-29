@@ -57,8 +57,8 @@ import org.openide.util.lookup.ServiceProvider;
  * RhythmDatabase implementation.
  * <p>
  * Upon clean/fresh start:<br>
- * - retrieve all available builtin & file-based rhythm instances by polling RhythmProviders (this can be long if many rhythm files need to
- * be scanned).<br>
+ * - retrieve all available builtin & file-based rhythm instances by polling RhythmProviders (this can be long if many rhythm
+ * files need to be scanned).<br>
  * - create RhythmInfo instances from the Rhythm instances and save the file-based RhythmInfos to a cache file.<p>
  * Then upon normal start:<br>
  * - retrieve all available builtin rhythm instances by polling RhythmProviders, create the corresponding RhythmInfos.<br>
@@ -121,30 +121,32 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
         // Perform a scan or use the cache file
         if (prefs.getBoolean(PREF_NEED_RESCAN, true))
-        {            
-            fullScan();
+        {
+            fullScanAndBuildCacheFile();
 
         } else
         {
 
-            // Get all builtin Rhythm+RhythmInfo instances
+            // Get all builtin Rhythm + RhythmInfo instances
             performRefresh(true, false);
 
 
             try
             {
                 // Add RhythmInfo instances from cache
-                cacheFile.loadCacheFile(mapRpRhythms);
+                int n = addRhythms(cacheFile.load());
+                LOGGER.info("RhythmDatabaseImpl() read " + n + " RhythmInfos from cache file");
+
             } catch (IOException ex)
             {
-                LOGGER.severe("RhythmDatabaseImpl() Can't load cache file=" + cacheFile.getFile().getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());
-                String msg = "Error loading rhythm database cache file " + cacheFile.getFile().getAbsolutePath() + "\n\n"
-                        + "Need to relaunch full scan of the rhythm files, this may take some time...";
+                LOGGER.severe("RhythmDatabaseImpl() Can't load cache file. ex=" + ex.getLocalizedMessage());
+                String msg = "Error loading rhythm database cache file " + cacheFile.getFile().getAbsolutePath() + " (see log file for details)\n\n"
+                        + "JJazzLab needs to relaunch a full scan of the rhythm files, this may take some time...";
                 NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
-                
+
                 // Rescan
-                fullScan();
+                fullScanAndBuildCacheFile();
             }
         }
     }
@@ -238,25 +240,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         return null;
     }
 
-    @Override
-    public RhythmProvider getRhythmProvider(RhythmInfo ri)
-    {
-        if (ri == null)
-        {
-            throw new IllegalArgumentException("ri=" + ri);
-        }
-        for (RhythmProvider rp : mapRpRhythms.keySet())
-        {
-            for (RhythmInfo rInfo : mapRpRhythms.get(rp))
-            {
-                if (rInfo.equals(ri))
-                {
-                    return rp;
-                }
-            }
-        }
-        return null;
-    }
 
     @Override
     public List<RhythmInfo> getRhythms(Predicate<RhythmInfo> tester)
@@ -491,9 +474,39 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     }
 
     @Override
+    public RhythmProvider getRhythmProvider(RhythmInfo ri)
+    {
+        if (ri == null)
+        {
+            throw new IllegalArgumentException("ri=" + ri);
+        }
+        for (RhythmProvider rp : mapRpRhythms.keySet())
+        {
+            for (RhythmInfo rInfo : mapRpRhythms.get(rp))
+            {
+                if (rInfo.equals(ri))
+                {
+                    return rp;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public RhythmProvider getRhythmProvider(String rpId)
+    {
+        return getRhythmProviders()
+                .stream()
+                .filter(rp -> rp.getInfo().getUniqueId().equals(rpId))
+                .findAny()
+                .orElse(null);
+    }
+
+    @Override
     public List<RhythmProvider> getRhythmProviders()
     {
-        List<RhythmProvider> res = new ArrayList<>(mapRpRhythms.keySet());
+        List<RhythmProvider> res = new ArrayList<>(Lookup.getDefault().lookupAll(RhythmProvider.class));
         res.sort((rp1, rp2) -> rp1.getInfo().getName().compareTo(rp2.getInfo().getName()));
         return res;
     }
@@ -572,10 +585,10 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         LOGGER.fine("performRefresh() builtinOnly=" + builtinOnly + " forceFileRescan=" + forceFileRescan);
 
         // Get all the available RhythmProviders 
-        Collection<? extends RhythmProvider> rps = Lookup.getDefault().lookupAll(RhythmProvider.class);
+        var rps = getRhythmProviders();
         if (rps.isEmpty())
         {
-            LOGGER.warning("refresh() - no RhythmProvider found, database will be empty");
+            LOGGER.warning("performRefresh() - no RhythmProvider found, database might be empty");
         }
 
         for (RhythmProvider rp : rps)
@@ -601,7 +614,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
     }
 
-    private void fullScan()
+    private void fullScanAndBuildCacheFile()
     {
         // Get all rhythm instances from RhythmProviders
         refresh(true);
@@ -611,11 +624,11 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         // Save file-based RhythmInfos
         try
         {
-            cacheFile.saveCacheFile(getRhythms(r -> r.getFile() != null));  // Possible exception here
+            cacheFile.save(getRhythms(r -> r.getFile() != null));  // Possible exception here
             prefs.putBoolean(PREF_NEED_RESCAN, false);
         } catch (IOException ex)
         {
-            LOGGER.severe("firstScan() Can't save cache file=" + cacheFile.getFile().getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());
+            LOGGER.severe("fullScanAndBuildCacheFile() Can't save cache file=" + cacheFile.getFile().getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());
             prefs.putBoolean(PREF_NEED_RESCAN, true);
         }
     }
@@ -650,6 +663,46 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         {
             return false;
         }
+    }
+
+    /**
+     * Add the RhythmInfos to the database.
+     *
+     * @param map The RhythmInfos lists for each RhythmProviderId
+     * @return The number of added rhythms.
+     */
+    private int addRhythms(HashMap<String, List<RhythmInfo>> map)
+    {
+        var rps = getRhythmProviders();
+        int n = 0;
+
+        for (String rpId : map.keySet())
+        {
+            List<RhythmInfo> rhythms = map.get(rpId);
+
+            // Get the RhythmProvider
+            RhythmProvider rp = rps.stream()
+                    .filter(rpi -> rpi.getInfo().getUniqueId().equals(rpId))
+                    .findAny()
+                    .orElse(null);
+            if (rp == null)
+            {
+                LOGGER.warning("addRhythms() No RhythmProvider found for rpId=" + rpId + ". Ignoring " + rhythms.size() + " rhythms.");
+                continue;
+            }
+
+            // Update state
+            var rpRhythms = mapRpRhythms.get(rp);
+            if (rpRhythms == null)
+            {
+                rpRhythms = new ArrayList<RhythmInfo>();
+                mapRpRhythms.put(rp, rpRhythms);
+            }
+            rpRhythms.addAll(rhythms);
+            n += rhythms.size();
+        }
+
+        return n;
     }
 
     private String getPrefString(TimeSignature ts)
@@ -695,6 +748,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     {
         return r.getUniqueId() + "-" + ts.name();
     }
+
 
     // =====================================================================================
     // Upgrade Task

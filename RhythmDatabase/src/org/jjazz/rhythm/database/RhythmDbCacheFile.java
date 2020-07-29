@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.rhythm.database.api.RhythmInfo;
-import org.jjazz.rhythm.spi.RhythmProvider;
 
 /**
  * The cache file of RhythmInfos for file-based rhythms.
@@ -42,19 +41,25 @@ public class RhythmDbCacheFile implements Serializable
     /**
      * Save the specified RhythmInfos.
      *
+     * @param ris
      * @return
+     * @throws IOException
      */
-    public boolean saveCacheFile(List<RhythmInfo> ris) throws IOException
+    public void save(List<RhythmInfo> ris) throws IOException
     {
-        return true;
+
     }
 
+
     /**
-     * Load RhythmInfos of file-based rhythms and add them to mapRpRhythm.
+     * Load file to retrieve the RhythmInfos of file-based rhythms.
+     *
+     * @return A map with keys=RhythmProviderIds
+     * @throws IOException
      */
-    public void loadCacheFile(HashMap<RhythmProvider, List<RhythmInfo>> mapRpRhythm) throws IOException
+    public HashMap<String, List<RhythmInfo>> load() throws IOException
     {
-        
+        return null;
     }
 
     public File getFile()

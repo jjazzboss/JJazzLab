@@ -37,9 +37,9 @@ import org.jjazz.rhythm.database.RhythmDatabaseImpl;
  * <p>
  * Implementation should populate the database upon creation.
  * <p>
- * RhythmInfo instances are used to describe the available rhythms. They can be serialized by a Rhythmdatabase implementation to avoid
- * requesting all the Rhythm instances upon each startup -this is very time consuming when hundreds of rhythm files are used.
- * getRhythmInstance(RhythmInfo) is used to get the Rhythm instance.
+ * RhythmInfo instances are used to describe the available rhythms. They can be serialized by a Rhythmdatabase implementation to
+ * avoid requesting all the Rhythm instances upon each startup -this is very time consuming when hundreds of rhythm files are
+ * used. getRhythmInstance(RhythmInfo) is used to get the Rhythm instance.
  */
 public interface RhythmDatabase
 {
@@ -81,10 +81,10 @@ public interface RhythmDatabase
     /**
      * Get a rhythm instance from its id.
      * <p>
-     * If rhythmId contains 2 instances of the AdaptedRhythm.RHYTHM_ID_DELIMITER, then this id represents an AdaptedRhythm which is created
-     * on demand, see AdaptedRhythm.getUniqueId(). The rhythm provider, the original rhythm and the time signature are obtained from
-     * rhythmId, and the returned rhythm instance is obtained by calling RhythmProvider.getAdaptedRhythmInstance(Rhythm, TimeSignature).
-     * Rhythm instances are cached.
+     * If rhythmId contains 2 instances of the AdaptedRhythm.RHYTHM_ID_DELIMITER, then this id represents an AdaptedRhythm which
+     * is created on demand, see AdaptedRhythm.getUniqueId(). The rhythm provider, the original rhythm and the time signature are
+     * obtained from rhythmId, and the returned rhythm instance is obtained by calling
+     * RhythmProvider.getAdaptedRhythmInstance(Rhythm, TimeSignature). Rhythm instances are cached.
      *
      * @param rhythmId A unique id
      * @return The rhythm whose uniqueSerialId matches the specified id
@@ -153,8 +153,8 @@ public interface RhythmDatabase
     /**
      * Try to find a rhythm in the database which is "similar" to the specified rhythm info.
      * <p>
-     * "Similar" means at least share the same time signature. The implementation could for example use RhythmFeatures.getMatchingScore() to
-     * help identify the most similar rhythm.
+     * "Similar" means at least share the same time signature. The implementation could for example use
+     * RhythmFeatures.getMatchingScore() to help identify the most similar rhythm.
      *
      * @param ri
      * @return A "similar" rhythm which at least share the same timesignature. Null if nothing relevant found.
@@ -181,7 +181,15 @@ public interface RhythmDatabase
     RhythmProvider getRhythmProvider(RhythmInfo ri);
 
     /**
-     * The RhythmProviders instances available, sorted by name.
+     * Get the RhythmProviderId which matchs the specified unique id.
+     *
+     * @param rpId
+     * @return
+     */
+    RhythmProvider getRhythmProvider(String rpId);
+
+    /**
+     * The RhythmProviders instances currently available, sorted by name.
      *
      * @return
      */
@@ -203,7 +211,7 @@ public interface RhythmDatabase
     /**
      * Set the default rhythm for this TimeSignature.
      *
-     * @param ts     TimeSignature
+     * @param ts TimeSignature
      * @param rhythm
      * @exception IllegalArgumentException If rhythm is not part of this database.
      */
