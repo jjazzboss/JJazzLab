@@ -356,6 +356,10 @@ final class EditorPanel extends javax.swing.JPanel
                 mapIdValues.put(id, new FCvalues(fcs));
             }
         }
+
+        // Sort the list by name
+        listValues.sort((fcs1, fcs2) -> fcs1.getDisplayName().compareToIgnoreCase(fcs2.getDisplayName()));
+
         list_fcSettings.setListData(listValues.toArray(new FCSetting[0]));
         if (!listValues.isEmpty())
         {

@@ -23,20 +23,21 @@
 package org.jjazz.songmemoviewer;
 
 import java.awt.KeyboardFocusManager;
-import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
+import java.util.prefs.Preferences;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.jjazz.song.api.Song;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.songmemoviewer.api.SongMemoEditorSettings;
+import org.jjazz.undomanager.JJazzUndoManager;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.util.LookupListener;
+import org.openide.util.NbPreferences;
 import org.openide.util.Utilities;
 import org.openide.util.WeakListeners;
 import org.openide.util.lookup.AbstractLookup;
@@ -53,7 +54,10 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     private final Lookup lookup;
     private final InstanceContent instanceContent;
     private Song songModel;
+    private SongMemoEditorSettings settings;
+    private JJazzUndoManager undoManager;
     private static final Logger LOGGER = Logger.getLogger(SongMemoEditor.class.getSimpleName());
+    private static Preferences prefs = NbPreferences.forModule(SongMemoEditor.class);
 
     /**
      * Creates new form SongNotesEditor
@@ -62,13 +66,27 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     {
         initComponents();
 
+
         // Listen to changes
         txt_notes.getDocument().addDocumentListener(this);
+
+
+        // Add local Undo/Redo support        
+        undoManager = new JJazzUndoManager();
+        txt_notes.getDocument().addUndoableEditListener(e -> undoManager.addEdit(e.getEdit()));
+
+
+        // UI Settings
+        settings = SongMemoEditorSettings.getDefault();
+        settings.addPropertyChangeListener(this);
+        uiSettingsChanged();
+
 
         // Our general lookup : store our action map and the edited song 
         instanceContent = new InstanceContent();
         instanceContent.add(getActionMap());
         lookup = new AbstractLookup(instanceContent);
+
 
         // Listen to Song presence in the global context    
         songLkpListener = le -> songPresenceChanged();
@@ -76,8 +94,10 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
         songLkpResult = context.lookupResult(Song.class);
         songLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, songLkpListener, songLkpResult));
 
+
         // Disabled by default
         setEditorEnabled(false);
+
 
         songPresenceChanged();
     }
@@ -94,9 +114,15 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
 
     }
 
+    /**
+     * Use a local UndoManager, not the song one.
+     *
+     * @return
+     */
     public UndoRedo getUndoManager()
     {
-        return songModel == null ? null : JJazzUndoManagerFinder.getDefault().get(songModel);
+        // return songModel == null ? null : JJazzUndoManagerFinder.getDefault().get(songModel);
+        return undoManager;
     }
 
     public Lookup getLookup()
@@ -119,33 +145,41 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getPropertyName().equals(Song.PROP_COMMENTS))
+        if (evt.getSource() == songModel)
         {
-            // No need to update if we have the focus: user is typing
-            if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() != txt_notes)
+            if (evt.getPropertyName().equals(Song.PROP_COMMENTS))
             {
-                updateText();
-            } else
-            {   
-                // Do nothing
-            }
-        } else if (evt.getPropertyName().equals(Song.PROP_CLOSED))
-        {
-            setEditorEnabled(false);
-            if (songModel != null)
+                // No need to update if we have the focus: user is typing
+                if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() != txt_notes)
+                {
+                    updateText();
+                } else
+                {
+                    // Do nothing
+                }
+            } else if (evt.getPropertyName().equals(Song.PROP_CLOSED))
             {
-                resetModel();
-                updateText();
+                setEditorEnabled(false);
+                if (songModel != null)
+                {
+                    resetModel();
+                    updateText();
+                }
+            } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED))
+            {
+                updateTabName();
             }
-        } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED))
+        } else if (evt.getSource() == settings)
         {
-            updateTabName();
+            uiSettingsChanged();
         }
+
     }
+
+
     // ==================================================================================
     // DocumentListener interface
     // ==================================================================================
-
     public void insertUpdate(DocumentEvent e)
     {
         updateModel();
@@ -205,7 +239,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
 
     private void setEditorEnabled(boolean b)
     {
-        txt_notes.setBackground(b ? UIManager.getColor("TextArea.background") : null);
+        txt_notes.setBackground(b ? settings.getBackgroundColor() : null);
         org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, this);
     }
 
@@ -246,9 +280,16 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
         updateTabName();
     }
 
+    private void uiSettingsChanged()
+    {
+        txt_notes.setForeground(settings.getFontColor());
+        txt_notes.setFont(settings.getFont());
+        setEditorEnabled(isEnabled());  // This will update background if enabled
+    }
+
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
-     * method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
+     * this method is always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -263,6 +304,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
 
         txt_notes.setColumns(20);
         txt_notes.setRows(5);
+        txt_notes.setDragEnabled(true);
         txt_notes.setFont(UIManager.getFont("label.font")
         );
         jScrollPane2.setViewportView(txt_notes);
@@ -315,14 +357,5 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     private org.jjazz.ui.utilities.JTextAreaNoKeyBinding txt_notes;
     // End of variables declaration//GEN-END:variables
 
-    private class NoAction extends AbstractAction
-    {
-
-        @Override
-        public void actionPerformed(ActionEvent e)
-        {
-            //do nothing
-        }
-    }
 
 }

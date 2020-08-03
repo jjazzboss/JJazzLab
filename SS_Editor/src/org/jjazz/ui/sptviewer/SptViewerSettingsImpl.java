@@ -335,7 +335,7 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
         res.add(fcs);
 
 
-        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SongPartRhythmId", "rhythm")
+        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SongPartRhythmId", "Rhythm name")
         {
             @Override
             public Font getFont()

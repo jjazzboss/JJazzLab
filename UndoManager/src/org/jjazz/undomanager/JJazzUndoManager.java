@@ -34,7 +34,7 @@ import org.openide.awt.UndoRedo;
 import org.openide.util.ChangeSupport;
 
 /**
- * This is a copy of UndoRedo.Manager with a few convenience functions added to work with CompoundEdits.
+ * This is a copy of UndoRedo.Manager with a few convenience methods added to work with CompoundEdits.
  */
 public class JJazzUndoManager extends UndoManager implements UndoRedo
 {

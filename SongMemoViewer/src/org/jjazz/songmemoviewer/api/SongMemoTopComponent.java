@@ -82,11 +82,6 @@ public final class SongMemoTopComponent extends TopComponent
         return (SongMemoTopComponent) WindowManager.getDefault().findTopComponent("SongNotesTopComponent");
     }
 
-    /**
-     * Override to proxy the undoManager of the sptEditor.
-     *
-     * @return
-     */
     @Override
     public UndoRedo getUndoRedo()
     {

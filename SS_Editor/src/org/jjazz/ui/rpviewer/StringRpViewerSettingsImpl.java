@@ -120,7 +120,7 @@ public class StringRpViewerSettingsImpl implements StringRpViewerSettings, FontC
         List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
 
 
-        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("rpStringId", "Rhythm param. value")
+        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("rpStringId", "Rhythm parameter value")
         {
             @Override
             public Font getFont()

@@ -91,7 +91,7 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
     @Override
     public String getDisplayName()
     {
-        return "Chord Symbol";
+        return "Chord symbol";
     }
 
     @Override
@@ -223,7 +223,7 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
     {
         List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
         res.add(this);
-        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("AccentedStrongChordSymbolId", "Chord Symbol with strong accent")
+        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("AccentedStrongChordSymbolId", "Chord symbol strong accent")
         {
             @Override
             public Color getColor()
