@@ -130,7 +130,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
         logStats();
 
-        dump();
+        // dump();
 
     }
 
@@ -678,7 +678,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         // Buid the cache
         RhythmDbCache cacheFile = new RhythmDbCache(mapRpRhythms);
 
-        cacheFile.dump();
+        // cacheFile.dump();
 
         // Save to file
         Runnable run = () ->
