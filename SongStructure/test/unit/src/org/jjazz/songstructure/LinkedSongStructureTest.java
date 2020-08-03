@@ -36,6 +36,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
+import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.songstructure.api.SongStructureFactory;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
@@ -114,7 +115,14 @@ public class LinkedSongStructureTest
             SongStructureFactory sgsf = SongStructureFactory.getDefault();
 
             sgs = sgsf.createSgs(cls1, true);
-            Rhythm r = rdb.getDefaultRhythm(TimeSignature.THREE_FOUR);
+            Rhythm r = null;
+            try
+            {
+                r = rdb.getRhythmInstance(rdb.getDefaultRhythm(TimeSignature.THREE_FOUR));
+            } catch (UnavailableRhythmException ex)
+            {
+                Exceptions.printStackTrace(ex);
+            }
             spt0 = new SongPartImpl(r, 8, 3, section2);
             sgs.addSongParts(Arrays.asList(spt0));
 

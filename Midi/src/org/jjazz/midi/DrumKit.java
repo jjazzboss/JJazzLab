@@ -23,25 +23,32 @@
  */
 package org.jjazz.midi;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import org.jjazz.midi.keymap.KeyRange;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 import org.jjazz.midi.keymap.KeyMapGM;
+import org.jjazz.midi.spi.KeyMapProvider;
 
 /**
  * The main parameters of a drum kit instrument: a drum/key map and its ambience type.
  * <p>
  * This is an immutable class.
  */
-public class DrumKit
+public class DrumKit implements Serializable
 {
+
 
     /**
      * Defines a key map for a drumkit: associate a percussion name to a note pitch.
      * <p>
      * 36=Kick, 37=Rimshot, 38=Snare, etc.
      */
-    public interface KeyMap
+    public interface KeyMap extends Serializable
     {
 
         /**
@@ -123,6 +130,7 @@ public class DrumKit
 
     private Type type;
     private KeyMap map;
+    private static final Logger LOGGER = Logger.getLogger(DrumKit.class.getSimpleName());
 
     /**
      * Create a DrumKit with type=STANDARD and keyMap=GM
@@ -200,5 +208,58 @@ public class DrumKit
         }
         return true;
     }
+
+    // --------------------------------------------------------------------- 
+    // Serialization
+    // ---------------------------------------------------------------------
+    private Object writeReplace()
+    {
+        return new SerializationProxy(this);
+    }
+
+    private void readObject(ObjectInputStream stream)
+            throws InvalidObjectException
+    {
+        throw new InvalidObjectException("Serialization proxy required");
+
+    }
+
+    /**
+     * RhythmVoices must be stored in a simplified way in order to avoid storing rhythm stuff which depend on InstrumentBanks
+     * which are themselves system dependent.
+     * <p>
+     * Also need to do some cleaning: mapInstruments can contain useless entries if some songparts have been removed .
+     */
+    private static class SerializationProxy implements Serializable
+    {
+        private static final long serialVersionUID = -10218260387192L;
+        private final int spVERSION = 1;
+        private final Type spType;
+        private final String spKeyMapName;
+
+        private SerializationProxy(DrumKit kit)
+        {
+            spType = kit.type;
+            spKeyMapName = kit.map.getName();
+        }
+
+        private Object readResolve() throws ObjectStreamException
+        {
+            DrumKit kit;
+
+            // Retrieve the KeyMap from name
+            KeyMap map = KeyMapProvider.Util.getKeyMap(spKeyMapName);
+            if (map == null)
+            {
+                map = KeyMapGM.getInstance();
+                LOGGER.warning("readResolve() Can't find KeyMap from name=" + spKeyMapName + ". Using GM keymap instead.");
+            }
+            
+            // Rebuild the instance
+            kit = new DrumKit(spType, map);
+            return kit;
+        }
+    }
+
 
 }

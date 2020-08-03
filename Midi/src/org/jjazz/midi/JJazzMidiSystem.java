@@ -452,70 +452,65 @@ public final class JJazzMidiSystem
         }
 
         // Prepare task
-        Runnable run;
         final AtomicBoolean resultOk = new AtomicBoolean(false);       // False by default
-        run = new Runnable()
+        Runnable run = () ->
         {
-            @Override
-            public void run()
+            Soundbank newSb = null;
+            Synthesizer synth = null;
+            try
             {
-                Soundbank newSb = null;
-                Synthesizer synth = null;
-                try
-                {
-                    newSb = MidiSystem.getSoundbank(f);      // throw InvalidMidiDataException + IOException
-                    synth = getDefaultJavaSynth();
-                    if (synth == null)
-                    {
-                        return;
-                    }
-                    if (!synth.isOpen())
-                    {
-                        synth.open();                                   // throw MidiUnavailableException
-                    }
-                } catch (InvalidMidiDataException | IOException | MidiUnavailableException ex)
-                {
-                    LOGGER.log(Level.WARNING, "loadSoundbankFileOnSynth() {0}", ex.getLocalizedMessage());
-                    return;
-                }
-
-                if (!synth.isSoundbankSupported(newSb))
+                newSb = MidiSystem.getSoundbank(f);      // throw InvalidMidiDataException + IOException
+                synth = getDefaultJavaSynth();
+                if (synth == null)
                 {
                     return;
                 }
-
-                if (lastLoadedSoundbank != null)
+                if (!synth.isOpen())
                 {
-                    try
-                    {
-                        synth.unloadAllInstruments(lastLoadedSoundbank);
-                    } catch (IllegalArgumentException ex)
-                    {
-                        LOGGER.warning("loadSoundbankFileOnSynth() Problem unloading Soundbank " + lastLoadedSoundbank.getName() + " : " + ex.getLocalizedMessage());
-                        return;
-                    }
+                    synth.open();                                   // throw MidiUnavailableException
                 }
+            } catch (InvalidMidiDataException | IOException | MidiUnavailableException ex)
+            {
+                LOGGER.log(Level.WARNING, "loadSoundbankFileOnSynth() {0}", ex.getLocalizedMessage());
+                return;
+            }
+            
+            if (!synth.isSoundbankSupported(newSb))
+            {
+                return;
+            }
+            
+            if (lastLoadedSoundbank != null)
+            {
                 try
                 {
-                    LOGGER.info("loadSoundbankFileOnSynth() start loading... Java Synth sound file " + f.getAbsolutePath());
-                    synth.loadAllInstruments(newSb);       // Ignore return value (false is incomplete loading) throw IllegalArgumentException
+                    synth.unloadAllInstruments(lastLoadedSoundbank);
                 } catch (IllegalArgumentException ex)
                 {
-                    // Reload previous soundbank
-                    LOGGER.warning("loadSoundbankFileOnSynth() Problem loading Soundbank " + newSb.getName() + " : " + ex.getLocalizedMessage());
-                    if (lastLoadedSoundbank != null)
-                    {
-                        synth.loadAllInstruments(lastLoadedSoundbank);
-                    }
+                    LOGGER.warning("loadSoundbankFileOnSynth() Problem unloading Soundbank " + lastLoadedSoundbank.getName() + " : " + ex.getLocalizedMessage());
                     return;
                 }
-                lastLoadedSoundbank = newSb;
-                lastLoadedSoundbankFile = f;
-                // Save the new preference
-                prefs.put(PREF_JAVA_SYNTH_SOUNDFONT_FILE, f.getAbsolutePath());
-                resultOk.set(true);
-                LOGGER.info("loadSoundbankFileOnSynth() successfully loaded Java Synth sound file " + f.getAbsolutePath());
             }
+            try
+            {
+                LOGGER.info("loadSoundbankFileOnSynth() start loading... Java Synth sound file " + f.getAbsolutePath());
+                synth.loadAllInstruments(newSb);       // Ignore return value (false is incomplete loading) throw IllegalArgumentException
+            } catch (IllegalArgumentException ex)
+            {
+                // Reload previous soundbank
+                LOGGER.warning("loadSoundbankFileOnSynth() Problem loading Soundbank " + newSb.getName() + " : " + ex.getLocalizedMessage());
+                if (lastLoadedSoundbank != null)
+                {
+                    synth.loadAllInstruments(lastLoadedSoundbank);
+                }
+                return;
+            }
+            lastLoadedSoundbank = newSb;
+            lastLoadedSoundbankFile = f;
+            // Save the new preference
+            prefs.put(PREF_JAVA_SYNTH_SOUNDFONT_FILE, f.getAbsolutePath());
+            resultOk.set(true);
+            LOGGER.info("loadSoundbankFileOnSynth() successfully loaded Java Synth sound file " + f.getAbsolutePath());
         };
         if (silentRun)
         {

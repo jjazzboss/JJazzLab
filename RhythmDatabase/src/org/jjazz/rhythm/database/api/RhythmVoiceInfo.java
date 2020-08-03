@@ -22,6 +22,8 @@
  */
 package org.jjazz.rhythm.database.api;
 
+import java.io.Serializable;
+import java.util.Objects;
 import org.jjazz.midi.DrumKit;
 import org.jjazz.midi.Instrument;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -32,13 +34,17 @@ import org.jjazz.rhythm.api.RhythmVoice.Type;
  * A description of a RhythmVoice for catalog purpose.
  * <p>
  */
-public class RhythmVoiceInfo
+public class RhythmVoiceInfo implements Serializable
 {
+
+    private static final long serialVersionUID = -92002769910L;
     private final String name;
     private Instrument instrument;
     private final int preferredChannel;
     private final DrumKit drumKit;
     private final Type type;
+
+  
 
     public RhythmVoiceInfo(RhythmVoice rv)
     {
@@ -84,5 +90,51 @@ public class RhythmVoiceInfo
     public Type getType()
     {
         return type;
+    }
+    
+      @Override
+    public int hashCode()
+    {
+        int hash = 5;
+        hash = 83 * hash + Objects.hashCode(this.name);
+        hash = 83 * hash + Objects.hashCode(this.instrument);
+        hash = 83 * hash + this.preferredChannel;
+        hash = 83 * hash + Objects.hashCode(this.type);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final RhythmVoiceInfo other = (RhythmVoiceInfo) obj;
+        if (!Objects.equals(this.name, other.name))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.instrument, other.instrument))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.drumKit, other.drumKit))
+        {
+            return false;
+        }
+        if (this.type != other.type)
+        {
+            return false;
+        }
+        return true;
     }
 }

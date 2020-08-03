@@ -44,6 +44,8 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
+import org.jjazz.midi.Instrument;
+import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.FavoriteRhythms;
 import org.jjazz.rhythm.database.api.RhythmInfo;
@@ -289,7 +291,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                     } else if (ri.getFile().getAbsolutePath().contains(FileDirectoryManager.APP_CONFIG_PREFIX_DIR))
                     {
                         // Don't show path of the builtin files
-                        return "builtin";
+                        return "default";
                     }
                     Path pDir = fdm.getUserRhythmDirectory().toPath();
                     Path pFile = ri.getFile().getParentFile().toPath();
@@ -330,7 +332,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         {
             // A favorite rhythm was removed or added
             // Update the corresponding row           
-            Rhythm r = (Rhythm) (e.getNewValue() == null ? e.getOldValue() : e.getNewValue());
+            RhythmInfo r = (RhythmInfo) (e.getNewValue() == null ? e.getOldValue() : e.getNewValue());
             int row = model.getRhythms().indexOf(r);
             if (row != -1)
             {
@@ -427,8 +429,9 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                 case PERCUSSION:
                     list.add("perc.");
                     break;
-                default:    // VOICE       
-                    list.add(rvi.getPreferredInstrument().getSubstitute().getFamily().getShortName());
+                default:    // VOICE     
+                    GM1Instrument substitute = rvi.getPreferredInstrument().getSubstitute();
+                    list.add(substitute == null ? "?????" : substitute.getFamily().getShortName());
             }
         }
         return list.toString();

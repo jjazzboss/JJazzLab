@@ -33,7 +33,6 @@ import org.jjazz.midi.DrumKit;
  */
 public class KeyMapGM implements DrumKit.KeyMap
 {
-
     public static final String NAME = "GM";
     private static final Integer[] CRASH_KEYS = new Integer[]
     {

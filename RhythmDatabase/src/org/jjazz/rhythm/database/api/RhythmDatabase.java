@@ -37,9 +37,9 @@ import org.jjazz.rhythm.database.RhythmDatabaseImpl;
  * <p>
  * Implementation should populate the database upon creation.
  * <p>
- * RhythmInfo instances are used to describe the available rhythms. They can be serialized by a Rhythmdatabase implementation to
- * avoid requesting all the Rhythm instances upon each startup -this is very time consuming when hundreds of rhythm files are
- * used. getRhythmInstance(RhythmInfo) is used to get the Rhythm instance.
+ * RhythmInfo instances are used to describe the available rhythms. They can be serialized by a Rhythmdatabase implementation in a
+ * cache file to avoid requesting all the Rhythm instances upon each startup -this is very time consuming when hundreds of rhythm
+ * files are used. Use getRhythmInstance(RhythmInfo) to get the Rhythm instance.
  */
 public interface RhythmDatabase
 {
@@ -206,16 +206,16 @@ public interface RhythmDatabase
      * @param ts TimeSignature
      * @return Can not be null: the database should provide at least a stub rhythm.
      */
-    Rhythm getDefaultRhythm(TimeSignature ts);
+    RhythmInfo getDefaultRhythm(TimeSignature ts);
 
     /**
      * Set the default rhythm for this TimeSignature.
      *
      * @param ts TimeSignature
-     * @param rhythm
-     * @exception IllegalArgumentException If rhythm is not part of this database.
+     * @param ri
+     * @exception IllegalArgumentException If rhythm is not part of this database or if ri is an AdaptedRhythm
      */
-    void setDefaultRhythm(TimeSignature ts, Rhythm rhythm);
+    void setDefaultRhythm(TimeSignature ts, RhythmInfo ri);
 
     /**
      * @return The number of rhythms in the database.
@@ -223,14 +223,17 @@ public interface RhythmDatabase
     int size();
 
     /**
-     * Scan all the RhythmProviders available in the lookup to add rhythms in the database.
+     * Force a rescan of all the RhythmProviders available in the lookup to add rhythms in the database.
+     * <p>
+     * Rescan is programmed to be performed at next application startup. If might be done immediatly if the immediate parameter is
+     * true and if the implementation supports it.
      * <p>
      * Note: once added in the database, a RhythmProvider and its Rhythms can't be removed (until program restarts).<br>
-     * Fire a change event if database has changed after the refresh.
+     * Fire a change event if database has changed after the forceRescanUponStartup.
      *
-     * @param forceRescan Flag passed to RhythmProvider.getFileRhythms().
+     * @param immediate If true try to rescan immediatly (without waiting for a restart).
      */
-    void refresh(boolean forceRescan);
+    void forceRescan(boolean immediate);
 
     /**
      * Add extra rhythms to the database.

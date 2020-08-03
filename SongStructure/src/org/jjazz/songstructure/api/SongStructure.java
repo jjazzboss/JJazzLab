@@ -318,7 +318,7 @@ public interface SongStructure
      * Get the recommended rhythm to use for a new SongPart.
      * <p>
      * If possible use getLastUsedRhythm(). If not possible then :<br>
-     * - return an AdaptedRhythm if there is a a previous SongPart<br>
+     * - return an AdaptedRhythm if there is a previous SongPart<br>
      * - otherwise return the RhythmDatabase default rhythm for the time signature.<br>
      *
      * @param ts The TimeSignature of the rhythm

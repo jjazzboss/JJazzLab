@@ -22,13 +22,16 @@
  */
 package org.jjazz.rhythm.api;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Rhythm general features.
  */
-public class RhythmFeatures
+public class RhythmFeatures implements Serializable
 {
+
+    private static final long serialVersionUID = 1223380872L;
     private Feel feel;
     private Beat beat;
     private Genre genre;

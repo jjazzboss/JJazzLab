@@ -84,7 +84,7 @@ public class FavoriteRhythmProvider implements RhythmProvider
     @Override
     public List<Rhythm> getBuiltinRhythms()
     {
-        return (List<Rhythm>) Collections.EMPTY_LIST;
+        return  Collections.emptyList();
     }
 
     /**

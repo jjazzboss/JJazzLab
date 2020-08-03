@@ -31,7 +31,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
 import org.jjazz.midi.JJazzMidiSystem;
@@ -50,7 +49,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbPreferences;
 import org.openide.util.Utilities;
 import org.openide.windows.OnShowing;
 
@@ -62,8 +60,8 @@ import org.openide.windows.OnShowing;
  */
 @ActionID(category = "JJazz", id = "org.jjazz.helpers.midiwizard.MidiWizardAction")
 @ActionRegistration(displayName = "Midi configuration wizard...")
-@ActionReference(path = "Menu/Tools", position = 1650)
-@OnShowing          
+@ActionReference(path = "Menu/Tools", position = 1650, separatorAfter = 1651)
+@OnShowing
 public final class MidiWizardAction implements ActionListener, Runnable
 {
 

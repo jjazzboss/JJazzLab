@@ -22,20 +22,24 @@
  */
 package org.jjazz.rhythm.database.api;
 
+import java.io.Serializable;
+import java.util.Objects;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 
 
 /**
  * A description of a RhythmParameter for catalog purpose.
- * <p> 
+ * <p>
  */
-public class RhythmParameterInfo
+public class RhythmParameterInfo implements Serializable
 {
+
+    private static final long serialVersionUID = 379373611L;
     private final String displayName;
     private final String description;
     private final String className;
 
-    public RhythmParameterInfo(RhythmParameter rp)
+    public RhythmParameterInfo(RhythmParameter<?> rp)
     {
         displayName = rp.getDisplayName();
         description = rp.getDescription();
@@ -57,4 +61,44 @@ public class RhythmParameterInfo
         return className;
     }
 
+    @Override
+    public int hashCode()
+    {
+        int hash = 7;
+        hash = 67 * hash + Objects.hashCode(this.displayName);
+        hash = 67 * hash + Objects.hashCode(this.description);
+        hash = 67 * hash + Objects.hashCode(this.className);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final RhythmParameterInfo other = (RhythmParameterInfo) obj;
+        if (!Objects.equals(this.displayName, other.displayName))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.description, other.description))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.className, other.className))
+        {
+            return false;
+        }
+        return true;
+    }
 }

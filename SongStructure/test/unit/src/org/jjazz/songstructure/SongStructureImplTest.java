@@ -80,7 +80,7 @@ public class SongStructureImplTest
             JJazzUndoManagerFinder.getDefault().put(undoManager, sgs);
             r44_1 = rdb.getRhythmInstance(rdb.getRhythms().get(0));
             r44_2 = rdb.getRhythmInstance(rdb.getRhythms().get(1));
-            r34 = rdb.getDefaultRhythm(TimeSignature.THREE_FOUR);
+            r34 = rdb.getRhythmInstance(rdb.getDefaultRhythm(TimeSignature.THREE_FOUR));
             spt0 = new SongPartImpl(r44_1, 0, 10, null);
             spt1 = new SongPartImpl(r44_1, 10, 4, null);
             spt2 = new SongPartImpl(r44_1, 14, 6, null);
@@ -135,7 +135,14 @@ public class SongStructureImplTest
         assertTrue(sgs.getSizeInBars() == 20);
         assertTrue(sgs.getSongParts().get(0) == spt0 && sgs.getSongParts().get(1) == spt1);
         assertTrue(spt0.getStartBarIndex() == 0 && spt1.getStartBarIndex() == 10);
-        Rhythm r54 = rdb.getDefaultRhythm(TimeSignature.FIVE_FOUR);
+        Rhythm r54 = null;
+        try
+        {
+            r54 = rdb.getRhythmInstance(rdb.getDefaultRhythm(TimeSignature.FIVE_FOUR));
+        } catch (UnavailableRhythmException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
         SongPartImpl sptX = new SongPartImpl(r54, 0, 1, null);
         try
         {

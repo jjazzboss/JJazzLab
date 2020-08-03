@@ -28,13 +28,14 @@ import java.util.List;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
+import org.jjazz.rhythm.spi.RhythmProvider;
 
 /**
  * A description of a Rhythm for catalog purpose.
  * <p>
- * A RhythmInfo contains descriptive information of a Rhythm instance. It allows to defer creation of Rhythm instances when possible,
- * because Rhythm instance creation can be very time consuming when dealing with hundreds of file-based Rhythms. The RhythmDatabase provides
- * methods to get RhythmInfo/Rhythm instances.
+ * A RhythmInfo contains descriptive information of a Rhythm instance. It allows to defer creation of Rhythm instances when
+ * possible, because Rhythm instance creation can be very time consuming when dealing with hundreds of file-based Rhythms. The
+ * RhythmDatabase provides methods to get RhythmInfo/Rhythm instances.
  * <p>
  * This is an immutable class.
  * <p>
@@ -43,13 +44,22 @@ public interface RhythmInfo extends Serializable
 {
 
     /**
-     * Check that this RhythmInfo object matches data from specified rhythm.
+     * Check that this RhythmInfo object matches data from the specified rhythm.
      * <p>
      *
+     * @param rp The RhythmProvider for r
      * @param r
      * @return False if inconsistency detected
      */
-    boolean checkConsistency(Rhythm r);
+    boolean checkConsistency(RhythmProvider rp, Rhythm r);
+
+    /**
+     * True if this RhythmInfo if for an AdaptedRhythm.
+     *
+     * @return
+     */
+    boolean isAdaptedRhythm();
+
 
     /**
      * The unique Id of the target rhythm.

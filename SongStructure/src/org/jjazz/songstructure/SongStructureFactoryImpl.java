@@ -22,6 +22,7 @@
  */
 package org.jjazz.songstructure;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -29,10 +30,13 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
+import org.jjazz.rhythm.database.api.RhythmInfo;
+import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.songstructure.api.SongStructureFactory;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.openide.util.Exceptions;
 
 @ServiceProvider(service = SongStructureFactory.class)
 public class SongStructureFactoryImpl extends SongStructureFactory
@@ -59,12 +63,28 @@ public class SongStructureFactoryImpl extends SongStructureFactory
         {
             throw new IllegalArgumentException("cls=" + cls);
         }
+
         SongStructureImpl sgs = new SongStructureImpl(cls, keepSgsUpdated);
+
+        var rdb = RhythmDatabase.getDefault();
+
+        var newSpts = new ArrayList<SongPart>();
         for (CLI_Section section : cls.getItems(CLI_Section.class))
         {
             int sptBarIndex = section.getPosition().getBar();
-            Rhythm r = sgs.getRecommendedRhythm(section.getData().getTimeSignature(), sptBarIndex);                                                
             
+            
+            Rhythm r = null;
+            try
+            {
+                RhythmInfo ri = rdb.getDefaultRhythm(section.getData().getTimeSignature());
+                r = rdb.getRhythmInstance(ri);
+            } catch (UnavailableRhythmException ex)
+            {
+                // Should never be there
+                Exceptions.printStackTrace(ex);
+            }
+
             SongPart spt = sgs.createSongPart(
                     r,
                     section.getData().getName(),
@@ -72,8 +92,12 @@ public class SongStructureFactoryImpl extends SongStructureFactory
                     cls.getSectionRange(section).size(),
                     section,
                     false);
-            sgs.addSongParts(Arrays.asList(spt));
+            newSpts.add(spt);
         }
+
+        // Add new song parts in one shot to avoid issue if an AdaptedRhythm is used      
+        sgs.addSongParts(newSpts);      // Can raise exception
+
         return sgs;
     }
 
@@ -82,7 +106,15 @@ public class SongStructureFactoryImpl extends SongStructureFactory
     {
         SongStructureImpl sgs = new SongStructureImpl();
         RhythmDatabase rdb = RhythmDatabase.getDefault();
-        Rhythm r = rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR);
+        Rhythm r = null;
+        try
+        {
+            r = rdb.getRhythmInstance(rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR));
+        } catch (UnavailableRhythmException ex)
+        {
+            // Should never be there
+            Exceptions.printStackTrace(ex);
+        }
         assert r != null;
         SongPart spt = sgs.createSongPart(r, "Name", 0, 8, null, false);
         try

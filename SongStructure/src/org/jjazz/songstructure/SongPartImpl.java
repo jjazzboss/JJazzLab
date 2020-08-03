@@ -39,6 +39,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
+import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import static org.jjazz.songstructure.Bundle.*;
 import org.jjazz.util.SmallMap;
@@ -47,10 +48,11 @@ import org.openide.NotifyDescriptor;
 import org.openide.util.NbBundle.Messages;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.openide.util.Exceptions;
 
 public class SongPartImpl implements SongPart, Serializable
 {
-
+    
     public static final String NO_NAME = "NoName";
     /**
      * The rhythm of this part.
@@ -108,21 +110,21 @@ public class SongPartImpl implements SongPart, Serializable
         this.nbBars = nbBars;
         name = parentSection == null ? NO_NAME : parentSection.getData().getName();
         this.parentSection = parentSection;
-        
-        
+
+
         // Associate a default value to each RhythmParameter                    
         for (RhythmParameter<?> rp : r.getRhythmParameters())
         {
             mapRpValue.putValue(rp, rp.getDefaultValue());
         }
     }
-
+    
     @Override
     public String getName()
     {
         return name;
     }
-
+    
     public void setName(String name)
     {
         if (name == null || name.length() == 0)
@@ -137,13 +139,13 @@ public class SongPartImpl implements SongPart, Serializable
             pcs.firePropertyChange(PROPERTY_NAME, oldName, name);
         }
     }
-
+    
     @Override
     public SongStructure getContainer()
     {
         return container;
     }
-
+    
     public void setContainer(SongStructure sgs)
     {
         container = sgs;
@@ -189,7 +191,7 @@ public class SongPartImpl implements SongPart, Serializable
             pcs.firePropertyChange(PROPERTY_RP_VALUE, rp, value);
         }
     }
-
+    
     @Override
     public Rhythm getRhythm()
     {
@@ -214,13 +216,13 @@ public class SongPartImpl implements SongPart, Serializable
             pcs.firePropertyChange(SongPart.PROPERTY_START_BAR_INDEX, old, startBarIndex);
         }
     }
-
+    
     @Override
     public int getStartBarIndex()
     {
         return startBarIndex;
     }
-
+    
     @Override
     @SuppressWarnings(
             {
@@ -239,7 +241,7 @@ public class SongPartImpl implements SongPart, Serializable
         {
             throw new IllegalArgumentException("r=" + r + " newRhythm=" + newRhythm + " cliSection=" + cliSection);
         }
-
+        
         SongPartImpl newSpt = new SongPartImpl(newRhythm, newStartBarIndex, newNbBars, cliSection);
         newSpt.setContainer(container);
         newSpt.setName(name);
@@ -287,25 +289,25 @@ public class SongPartImpl implements SongPart, Serializable
             pcs.firePropertyChange(PROPERTY_NB_BARS, old, nbBars);
         }
     }
-
+    
     @Override
     public int getNbBars()
     {
         return nbBars;
     }
-
+    
     @Override
     public CLI_Section getParentSection()
     {
         return parentSection;
     }
-
+    
     @Override
     public String toString()
     {
         return "[" + name + ", r=" + rhythm + ", startBarIndex=" + startBarIndex + ", nbBars=" + nbBars + "]";
     }
-
+    
     public String toDumpString()
     {
         StringBuilder sb = new StringBuilder();
@@ -316,13 +318,13 @@ public class SongPartImpl implements SongPart, Serializable
         }
         return sb.toString();
     }
-
+    
     @Override
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
-
+    
     @Override
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
@@ -333,19 +335,19 @@ public class SongPartImpl implements SongPart, Serializable
     // Implementation of interface Transferable
     // ------------------------------------------------------------------------------
     private static DataFlavor flavor = DATA_FLAVOR;
-
+    
     private static DataFlavor[] supportedFlavors =
     {
         DATA_FLAVOR,
         DataFlavor.stringFlavor
     };
-
+    
     @Override
     public DataFlavor[] getTransferDataFlavors()
     {
         return supportedFlavors;
     }
-
+    
     @Override
     public boolean isDataFlavorSupported(DataFlavor fl)
     {
@@ -355,7 +357,7 @@ public class SongPartImpl implements SongPart, Serializable
         }
         return false;
     }
-
+    
     @Override
     public Object getTransferData(DataFlavor fl) throws UnsupportedFlavorException
     {
@@ -401,12 +403,12 @@ public class SongPartImpl implements SongPart, Serializable
     {
         return new SerializationProxy(this);
     }
-
+    
     private void readObject(ObjectInputStream stream)
             throws InvalidObjectException
     {
         throw new InvalidObjectException("Serialization proxy required");
-
+        
     }
 
     /**
@@ -420,13 +422,13 @@ public class SongPartImpl implements SongPart, Serializable
             })
     private static class SerializationProxy implements Serializable
     {
-
+        
         private static final long serialVersionUID = 99812309123112L;
         /**
          * To avoid multiple error messages when one rhythm is not available, store it here for the session.
          */
         private static transient List<String> saveUnavailableRhythmIds = new ArrayList<>();
-
+        
         private final int spVERSION = 1;
         private String spRhythmId;
         private String spRhythmName;
@@ -452,7 +454,7 @@ public class SongPartImpl implements SongPart, Serializable
             spRhythmId = spt.getRhythm().getUniqueId();
             spRhythmName = spt.getRhythm().getName();
             spRhythmTs = spt.getRhythm().getTimeSignature();
-
+            
             for (RhythmParameter rp : spt.getRhythm().getRhythmParameters())
             {
                 Object value = spt.getRPValue(rp);
@@ -466,7 +468,7 @@ public class SongPartImpl implements SongPart, Serializable
                 }
             }
         }
-
+        
         @SuppressWarnings(
                 {
                     "unchecked", "rawtypes"
@@ -476,7 +478,7 @@ public class SongPartImpl implements SongPart, Serializable
             // Restore the rhythm
             String errRhythm = null;
             RhythmDatabase rdb = RhythmDatabase.getDefault();
-            Rhythm r;
+            Rhythm r = null;
             try
             {
                 r = rdb.getRhythmInstance(spRhythmId);
@@ -484,9 +486,18 @@ public class SongPartImpl implements SongPart, Serializable
             } catch (UnavailableRhythmException ex)
             {
                 // Problem ! The saved rhythm does not exist on the system, need to find another one
-                r = rdb.getDefaultRhythm(spRhythmTs);
+                RhythmInfo ri = rdb.getDefaultRhythm(spRhythmTs);
+                try
+                {
+                    r = rdb.getRhythmInstance(ri);
+                } catch (UnavailableRhythmException ex1)
+                {
+                    // We should never be there...
+                    LOGGER.severe("readResolve() ex1=" + ex1.getLocalizedMessage());
+                    Exceptions.printStackTrace(ex1);
+                }
                 errRhythm = ERR_RhythmNotFound() + ": " + spRhythmName + ". " + ERR_UsingReplacementRhythm() + ": " + r.getName();
-            }            
+            }
             assert r != null;
 
             // Recreate a SongPart
@@ -520,7 +531,7 @@ public class SongPartImpl implements SongPart, Serializable
                     LOGGER.log(Level.WARNING, msg);
                 }
             }
-
+            
             if (errRhythm != null && !saveUnavailableRhythmIds.contains(spRhythmId))
             {
                 LOGGER.warning(errRhythm);
@@ -528,7 +539,7 @@ public class SongPartImpl implements SongPart, Serializable
                 DialogDisplayer.getDefault().notify(nd);
                 saveUnavailableRhythmIds.add(spRhythmId);
             }
-
+            
             return newSpt;
         }
 

@@ -86,14 +86,14 @@ public class RhythmProviderList extends JList<RhythmProvider> implements ChangeL
     @Override
     public void stateChanged(ChangeEvent e)
     {
-        // The rhythmdatabase has changed, force a refresh
+        // The rhythmdatabase has changed, force a forceRescanUponStartup
         repaint();
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        // Nb of favorite rhythms has changed, force a refresh
+        // Nb of favorite rhythms has changed, force a forceRescanUponStartup
         repaint();
     }
 

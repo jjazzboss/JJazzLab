@@ -56,11 +56,14 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.AdaptedRhythm;
+import org.jjazz.rhythm.database.api.RhythmInfo;
+import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.FloatRange;
 import org.jjazz.util.IntRange;
+import org.openide.util.Exceptions;
 
 public class SongStructureImpl implements SongStructure, Serializable
 {
@@ -643,13 +646,14 @@ public class SongStructureImpl implements SongStructure, Serializable
         Rhythm r = mapTsLastRhythm.getValue(ts);
         if (r instanceof AdaptedRhythm)
         {
-            // Don't return an AdaptedRhythm if its source rhythm is present
+            // Don't return an AdaptedRhythm if its source rhythm is not present
             Rhythm sr = ((AdaptedRhythm) r).getSourceRhythm();
             if (!getUniqueRhythms(true).contains(sr))
             {
                 r = null;
             }
         }
+        LOGGER.fine("getLastUsedRhythm() ts=" + ts + " result r=" + r);
         return r;
     }
 
@@ -665,33 +669,44 @@ public class SongStructureImpl implements SongStructure, Serializable
         RhythmDatabase rdb = RhythmDatabase.getDefault();
 
 
+        LOGGER.fine("getRecommendedRhythm() ts=" + ts + " sptBarIndex=" + sptBarIndex);
+
         // Try to use the last used rhythm for this new time signature
         Rhythm r = getLastUsedRhythm(ts);
-        if (r != null)
-        {
-            return r;
-        }
 
-                
+
         // Try to use an AdaptedRhythm for the previous song part's rhythm
-        SongPart prevSpt = sptBarIndex == 0 ? null : getSongPart(sptBarIndex - 1);        
-        if (prevSpt != null)
+        if (r == null)
         {
-            Rhythm prevRhythm = prevSpt.getRhythm();
-            if (prevRhythm instanceof AdaptedRhythm)
+            SongPart prevSpt = sptBarIndex == 0 ? null : getSongPart(sptBarIndex - 1);
+            if (prevSpt != null)
             {
-                prevRhythm = ((AdaptedRhythm) prevRhythm).getSourceRhythm();
+                Rhythm prevRhythm = prevSpt.getRhythm();
+                if (prevRhythm instanceof AdaptedRhythm)
+                {
+                    prevRhythm = ((AdaptedRhythm) prevRhythm).getSourceRhythm();
+                }
+                r = rdb.getAdaptedRhythmInstance(prevRhythm, ts);        // may be null
             }
-            r = rdb.getAdaptedRhythmInstance(prevRhythm, ts);        // may be null
         }
 
-        
+
         // Last option
         if (r == null)
         {
-            r = rdb.getDefaultRhythm(ts);        // Can't be null
+            try
+            {
+                RhythmInfo ri = rdb.getDefaultRhythm(ts);
+                r = rdb.getRhythmInstance(ri);
+            } catch (UnavailableRhythmException ex)
+            {
+                // Should never be there
+                LOGGER.severe("getRecommendedRhythm() Unexpected exception ex=" + ex.getLocalizedMessage() + ". rdb.getDefaultRhythm(ts)=" + rdb.getDefaultRhythm(ts));
+                Exceptions.printStackTrace(ex);
+            }
         }
 
+        LOGGER.fine("getRecommendedRhythm() ts=" + ts + " sptBarIndex=" + sptBarIndex + " result r=" + r);
         return r;
     }
 

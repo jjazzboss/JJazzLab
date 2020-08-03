@@ -23,7 +23,9 @@
 package org.jjazz.rhythm.database;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -39,9 +41,10 @@ import org.jjazz.rhythm.database.api.RhythmVoiceInfo;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.rhythm.spi.RhythmProvider;
 
-public class RhythmInfoImpl implements RhythmInfo
+public class RhythmInfoImpl implements RhythmInfo, Serializable
 {
 
+    private static final long serialVersionUID = 87291200331L;
     private String rhythmProviderId;
     private String rhythmUniqueId;
     private File file;
@@ -53,13 +56,11 @@ public class RhythmInfoImpl implements RhythmInfo
     private TimeSignature timeSignature;
     private int preferredTempo;
     private RhythmFeatures rhythmFeatures;
+    private boolean isAdaptedRhythm;
     private final List<RhythmVoiceInfo> cacheRvs = new ArrayList<>();
     private final List<RhythmParameterInfo> cacheRps = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(RhythmInfoImpl.class.getSimpleName());
 
-    /**
-     * Reserved for deserialization only.
-     */
     private RhythmInfoImpl()
     {
 
@@ -70,16 +71,16 @@ public class RhythmInfoImpl implements RhythmInfo
      *
      * @param rhythm
      * @param rhythmProvider
-     * @throws IllegalArgumentException If rhythm is an AdaptedRhythm
      */
     public RhythmInfoImpl(Rhythm rhythm, RhythmProvider rhythmProvider)
     {
-        if (rhythm == null || rhythmProvider == null || rhythm instanceof AdaptedRhythm)
+        if (rhythm == null || rhythmProvider == null )
         {
             throw new IllegalArgumentException("rhythm=" + rhythm + " rhythm.getFile()=" + rhythm.getFile() + " rhythmProvider=" + rhythmProvider);
         }
         this.rhythmProviderId = rhythmProvider.getInfo().getUniqueId();
         this.rhythmUniqueId = rhythm.getUniqueId();
+        this.isAdaptedRhythm = rhythm instanceof AdaptedRhythm;
         this.file = rhythm.getFile();
         this.name = rhythm.getName();
         this.tags = rhythm.getTags();
@@ -93,7 +94,7 @@ public class RhythmInfoImpl implements RhythmInfo
         {
             cacheRvs.add(new RhythmVoiceInfo(rv));
         }
-        for (RhythmParameter rp : rhythm.getRhythmParameters())
+        for (RhythmParameter<?> rp : rhythm.getRhythmParameters())
         {
             cacheRps.add(new RhythmParameterInfo(rp));
         }
@@ -107,7 +108,9 @@ public class RhythmInfoImpl implements RhythmInfo
      * @param r
      * @return False if inconsistency detected (see log file for details).
      */
-    public boolean checkConsistency(Rhythm r)
+
+    @Override
+    public boolean checkConsistency(RhythmProvider rp, Rhythm r)
     {
         boolean b = true;
         if (!rhythmUniqueId.equals(r.getUniqueId()))
@@ -115,7 +118,7 @@ public class RhythmInfoImpl implements RhythmInfo
             LOGGER.warning("checkConsistency() r=" + r + ": uniqueId mismatch. rhythmUniqueId=" + rhythmUniqueId + " r.getUniqueId()=" + r.getUniqueId());
             b = false;
         }
-        if (!rhythmProviderId.equals(RhythmDatabase.getDefault().getRhythmProvider(r).getInfo().getUniqueId()))
+        if (!rhythmProviderId.equals(rp.getInfo().getUniqueId()))
         {
             LOGGER.warning("checkConsistency() r=" + r + ": rhythmProviderId mismatch. rhythmProviderId=" + rhythmProviderId
                     + " rdb.rp.uniqueId=" + RhythmDatabase.getDefault().getRhythmProvider(r).getInfo().getUniqueId());
@@ -218,18 +221,38 @@ public class RhythmInfoImpl implements RhythmInfo
         return tags;
     }
 
+
+    @Override
+    public boolean isAdaptedRhythm()
+    {
+        return isAdaptedRhythm;
+    }
+
     @Override
     public String toString()
     {
         return "Rinfo[" + getName() + "-" + getTimeSignature() + "]";
     }
 
+
     @Override
     public int hashCode()
     {
         int hash = 7;
-        hash = 59 * hash + Objects.hashCode(this.rhythmProviderId);
-        hash = 59 * hash + Objects.hashCode(this.rhythmUniqueId);
+        hash = 83 * hash + Objects.hashCode(this.rhythmProviderId);
+        hash = 83 * hash + Objects.hashCode(this.rhythmUniqueId);
+        hash = 83 * hash + Objects.hashCode(this.file);
+        hash = 83 * hash + Objects.hashCode(this.name);
+        hash = 83 * hash + Arrays.deepHashCode(this.tags);
+        hash = 83 * hash + Objects.hashCode(this.description);
+        hash = 83 * hash + Objects.hashCode(this.version);
+        hash = 83 * hash + Objects.hashCode(this.author);
+        hash = 83 * hash + Objects.hashCode(this.timeSignature);
+        hash = 83 * hash + this.preferredTempo;
+        hash = 83 * hash + Objects.hashCode(this.rhythmFeatures);
+        hash = 83 * hash + (this.isAdaptedRhythm ? 1 : 0);
+        hash = 83 * hash + Objects.hashCode(this.cacheRvs);
+        hash = 83 * hash + Objects.hashCode(this.cacheRps);
         return hash;
     }
 
@@ -249,7 +272,59 @@ public class RhythmInfoImpl implements RhythmInfo
             return false;
         }
         final RhythmInfoImpl other = (RhythmInfoImpl) obj;
+        if (this.preferredTempo != other.preferredTempo)
+        {
+            return false;
+        }
+        if (this.isAdaptedRhythm != other.isAdaptedRhythm)
+        {
+            return false;
+        }
         if (!Objects.equals(this.rhythmProviderId, other.rhythmProviderId))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.rhythmUniqueId, other.rhythmUniqueId))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.name, other.name))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.description, other.description))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.version, other.version))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.author, other.author))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.file, other.file))
+        {
+            return false;
+        }
+        if (!Arrays.deepEquals(this.tags, other.tags))
+        {
+            return false;
+        }
+        if (this.timeSignature != other.timeSignature)
+        {
+            return false;
+        }
+        if (!Objects.equals(this.rhythmFeatures, other.rhythmFeatures))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.cacheRvs, other.cacheRvs))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.cacheRps, other.cacheRps))
         {
             return false;
         }
@@ -259,4 +334,5 @@ public class RhythmInfoImpl implements RhythmInfo
     // ===========================================================================================
     // Private methods
     // ===========================================================================================
+
 }

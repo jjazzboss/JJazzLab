@@ -24,11 +24,16 @@ package org.jjazz.rhythm.spi;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.AdaptedRhythm;
+import org.jjazz.util.Utilities;
 
 /**
  * An object that can provide Rhythms instances.
@@ -45,7 +50,6 @@ public interface RhythmProvider
      */
     public static final int SUBDIR_MAX_DEPTH = 2;
 
-  
 
     /**
      * Descriptive information about this provider.
@@ -67,7 +71,7 @@ public interface RhythmProvider
      * <p>
      * User-provided rhythm files should be scanned in the User directory for rhythm files, see
      * FileDirectoryManager.getUserRhythmDirectory(). SUBDIR_MAX_DEPTH levels of subdirectories should be scanned. Subdirectories starting
-     * with PREFIX_IGNORED_SUBDIR are ignored.
+     * with PREFIX_IGNORED_SUBDIR must be ignored.
      *
      * @param forceRescan If true RhythmProvider should not rely on its cached data.
      * @return All non builtin rhythms provided by this RhythmProvider. List can be empty but not null.
