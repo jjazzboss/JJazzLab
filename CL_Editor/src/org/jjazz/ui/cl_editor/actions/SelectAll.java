@@ -165,7 +165,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, CL_
         Class<? extends ChordLeadSheetItem> itemClass = items.get(0).getClass();
         CLI_Section sectionStart = cls.getSection(minBarIndex);
         CLI_Section sectionEnd = cls.getSection(maxBarIndex);
-        List<ChordLeadSheetItem<?>> sectionItems = (List<ChordLeadSheetItem<?>>) cls.getItems(sectionStart, itemClass);
+        var sectionItems = cls.getItems(sectionStart, (Class<ChordLeadSheetItem<?>>) itemClass);
 
         if (sectionStart == sectionEnd && items.size() < sectionItems.size())
         {
@@ -174,7 +174,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, CL_
         } else
         {
             // Select all similar items in the leadsheet
-            editor.selectItems((List<ChordLeadSheetItem<?>>) cls.getItems(itemClass), true);
+            editor.selectItems((List<? extends ChordLeadSheetItem<?>>) cls.getItems(itemClass), true);
         }
 
     }

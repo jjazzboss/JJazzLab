@@ -639,7 +639,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
-    public void selectItems(List<ChordLeadSheetItem<?>> items, boolean b)
+    public void selectItems(List<? extends ChordLeadSheetItem<?>> items, boolean b)
     {
         Collection<? extends Object> result = selectionLookup.lookupAll(Object.class);
         selectionLastContent.clear();

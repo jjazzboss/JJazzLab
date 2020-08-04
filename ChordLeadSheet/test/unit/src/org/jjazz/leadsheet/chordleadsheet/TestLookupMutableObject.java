@@ -144,9 +144,9 @@ public class TestLookupMutableObject
         ic.add(cliCS0);
         ic.add(cliCS1);
         ic.add(cliCS2);
-        cliCS0.setData(cliCS0.getData().getTransposedChordSymbol(1));
-        cliCS1.setData(cliCS1.getData().getTransposedChordSymbol(1));
-        cliCS2.setData(cliCS2.getData().getTransposedChordSymbol(1));
+        cliCS0.setData(cliCS0.getData().getTransposedChordSymbol(1, null));
+        cliCS1.setData(cliCS1.getData().getTransposedChordSymbol(1, null));
+        cliCS2.setData(cliCS2.getData().getTransposedChordSymbol(1, null));
         ic.remove(cliCS0);
         ic.remove(cliCS1);
         ic.remove(cliCS2);
