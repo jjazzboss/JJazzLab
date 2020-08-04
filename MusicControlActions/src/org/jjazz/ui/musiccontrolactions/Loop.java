@@ -35,6 +35,7 @@ import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.FlatToggleButton;
 import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.HelpCtx;
@@ -52,12 +53,12 @@ import org.openide.util.actions.BooleanStateAction;
 @ActionRegistration(displayName = "#CTL_Loop", lazy = false)
 @ActionReferences(
         {
-            // 
+            @ActionReference(path = "Shortcuts", name = "L") 
         })
 @NbBundle.Messages(
         {
             "CTL_Loop=Loop",
-            "CTL_LoopTooltip=Loop playback"
+            "CTL_LoopTooltip=Loop playback (L)"
         })
 public class Loop extends BooleanStateAction implements PropertyChangeListener, LookupListener
 {
