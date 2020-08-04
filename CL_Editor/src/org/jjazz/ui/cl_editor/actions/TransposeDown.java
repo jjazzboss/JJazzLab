@@ -29,6 +29,7 @@ import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
+import org.jjazz.harmony.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
@@ -77,14 +78,22 @@ public final class TransposeDown extends AbstractAction implements ContextAwareA
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        CL_SelectionUtilities selection = cap.getSelection();
+   CL_SelectionUtilities selection = cap.getSelection();
+
+        
         ChordLeadSheet cls = selection.getChordLeadSheet();
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
+
+        
+        // Transpose up use FLAT            
         for (CLI_ChordSymbol cliCs : selection.getSelectedChordSymbols())
         {
-            ExtChordSymbol ecs = cliCs.getData();
-            cliCs.getContainer().changeItem(cliCs, ecs.getTransposedChordSymbol(-1));
+            ExtChordSymbol ecs = cliCs.getData();           
+            ExtChordSymbol newEcs = ecs.getTransposedChordSymbol(-1, Note.Alteration.FLAT);                        
+            cliCs.getContainer().changeItem(cliCs, newEcs);
         }
+        
+        
         JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
     }
 

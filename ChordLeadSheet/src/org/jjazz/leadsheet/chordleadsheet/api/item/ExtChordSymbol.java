@@ -275,14 +275,15 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
      * Get a transposed ExtChordSymbol.
      *
      * @param t The amount of transposition in semi-tons.
+     * @param alt If not null alteration is unchanged, otherwise use alt
      * @return A new transposed ExtChordSymbol.
      */
     @Override
-    public ExtChordSymbol getTransposedChordSymbol(int t)
+    public ExtChordSymbol getTransposedChordSymbol(int t, Note.Alteration alt)
     {
-        ChordSymbol cs = super.getTransposedChordSymbol(t);
+        ChordSymbol cs = super.getTransposedChordSymbol(t, alt);
         ChordRenderingInfo cri = getRenderingInfo().getTransposed(t);
-        AltExtChordSymbol altCs = (altChordSymbol == null) ? null : altChordSymbol.getTransposedChordSymbol(t);
+        AltExtChordSymbol altCs = (altChordSymbol == null) ? null : altChordSymbol.getTransposedChordSymbol(t, alt);
         ExtChordSymbol ecs = new ExtChordSymbol(cs.getRootNote(), cs.getBassNote(), cs.getChordType(), cri, altCs, altFilter);
         return ecs;
     }

@@ -30,9 +30,10 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
-import javax.swing.KeyStroke;
+import org.jjazz.harmony.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
@@ -81,14 +82,21 @@ public final class TransposeUp extends AbstractAction implements ContextAwareAct
     public void actionPerformed(ActionEvent e)
     {
         CL_SelectionUtilities selection = cap.getSelection();
+
+        
         ChordLeadSheet cls = selection.getChordLeadSheet();
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
+
+        
+        // Transpose up use SHARP            
         for (CLI_ChordSymbol cliCs : selection.getSelectedChordSymbols())
         {
-            ExtChordSymbol ecs = cliCs.getData();
-            ExtChordSymbol newEcs = ecs.getTransposedChordSymbol(+1);
+            ExtChordSymbol ecs = cliCs.getData();           
+            ExtChordSymbol newEcs = ecs.getTransposedChordSymbol(+1, Note.Alteration.SHARP);                        
             cliCs.getContainer().changeItem(cliCs, newEcs);
         }
+        
+        
         JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
     }
 

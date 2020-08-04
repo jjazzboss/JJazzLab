@@ -252,11 +252,15 @@ public class ChordSymbol implements Serializable, Cloneable
      * Get a transposed ChordSymbol.
      *
      * @param t The amount of transposition in semi-tons.
+     * @param alt If null, alteration of returned root & bass notes is unchanged. If not null use alt as root & bass notes
+     * alteration.
      * @return A new transposed ChordSymbol.
      */
-    public ChordSymbol getTransposedChordSymbol(int t)
+    public ChordSymbol getTransposedChordSymbol(int t, Note.Alteration alt)
     {
-        ChordSymbol cs = new ChordSymbol(rootNote.getTransposedWithinOctave(t), bassNote.getTransposedWithinOctave(t), chordType);
+        Note root = alt == null ? rootNote : new Note(rootNote, alt);
+        Note bass = alt == null ? bassNote : new Note(bassNote, alt);
+        ChordSymbol cs = new ChordSymbol(root.getTransposedWithinOctave(t), bass.getTransposedWithinOctave(t), chordType);
         return cs;
     }
 

@@ -63,9 +63,9 @@ public class AltExtChordSymbol extends ExtChordSymbol
     }
 
     @Override
-    public AltExtChordSymbol getTransposedChordSymbol(int t)
+    public AltExtChordSymbol getTransposedChordSymbol(int t, Note.Alteration alt)
     {
-        ChordSymbol cs = super.getTransposedChordSymbol(t);
+        ChordSymbol cs = super.getTransposedChordSymbol(t, alt);
         ChordRenderingInfo cri = getRenderingInfo().getTransposed(t);
         AltExtChordSymbol aecs = new AltExtChordSymbol(cs.getRootNote(), cs.getBassNote(), cs.getChordType(), cri);
         return aecs;
