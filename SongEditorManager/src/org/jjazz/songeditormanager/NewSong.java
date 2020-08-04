@@ -61,22 +61,7 @@ public final class NewSong implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
         Song song = createSongFromTemplate();
-        SongEditorManager.getInstance().showSong(song);
-
-        // Activate the song if possible
-        State mcState = MusicController.getInstance().getState();
-        if (!mcState.equals(MusicController.State.PLAYING) && !mcState.equals(MusicController.State.PAUSED))
-        {
-            MidiMix mm;
-            try
-            {
-                mm = MidiMixManager.getInstance().findMix(song);
-                ActiveSongManager.getInstance().setActive(song, mm);
-            } catch (MidiUnavailableException ex)
-            {
-                Exceptions.printStackTrace(ex);
-            }
-        }
+        SongEditorManager.getInstance().showSong(song, true);    
     }
 
     /**

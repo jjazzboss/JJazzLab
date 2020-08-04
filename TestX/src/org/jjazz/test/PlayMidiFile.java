@@ -69,6 +69,7 @@ public final class PlayMidiFile implements ActionListener, MetaEventListener
     {
         LOGGER.log(Level.INFO, "actionPerformed()");
         JFileChooser chooser = Utilities.getFileChooserInstance();
+        chooser.setDialogTitle("Play midi file");                
         chooser.resetChoosableFileFilters();
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);

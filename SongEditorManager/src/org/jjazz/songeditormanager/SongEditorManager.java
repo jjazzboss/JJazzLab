@@ -42,12 +42,15 @@ import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.openide.util.Exceptions;
 import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
 /**
  * The central place where all song editors are created (from scratch, loaded from file, etc.) and managed.
+ * <p>
+ * You can register to get some change events (opened, saved, closed) from any song managed by this object.
  */
 public class SongEditorManager implements PropertyChangeListener
 {
@@ -61,22 +64,21 @@ public class SongEditorManager implements PropertyChangeListener
     /**
      * This property change event is fired when a song is closed.
      * <p>
-     * NewValue is the song object. Note that the Song object also fires a Closed event when it is closed by the
-     * SongEditorManager.
+     * NewValue is the song object. Note that a Song object also fires a Closed event when it is closed by the SongEditorManager.
      */
     public static final String PROP_SONG_CLOSED = "SongClosed";
     /**
      * This property change event is fired when a song is saved.
      * <p>
-     * NewValue is the song object.
+     * NewValue is the song object. This is just a forward of a Song Saved event.
      */
     public static final String PROP_SONG_SAVED = "SongSaved";
-    
+
     private static SongEditorManager INSTANCE;
-    private HashMap<Song, Editors> mapSongEditors;       // Don't use WeakHashMap here
+    private final HashMap<Song, Editors> mapSongEditors;       // Don't use WeakHashMap here
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(SongEditorManager.class.getSimpleName());
-    
+
     static public SongEditorManager getInstance()
     {
         synchronized (SongEditorManager.class)
@@ -88,13 +90,12 @@ public class SongEditorManager implements PropertyChangeListener
         }
         return INSTANCE;
     }
-    
+
     private SongEditorManager()
     {
         mapSongEditors = new HashMap<>();
         TopComponent.getRegistry().addPropertyChangeListener(this);
-        
-        
+
     }
 
     /**
@@ -114,24 +115,26 @@ public class SongEditorManager implements PropertyChangeListener
             }
         } else
         {
-            songClosed(song);
+            songEditorClosed(song);
         }
     }
 
     /**
      * Do what's required to show a song in the application.
      * <p>
-     * Create undomanager, create and show editors, etc. If song is already shown in an editor, just make its editor active.
+     * Create undomanager, create and show editors, etc. If song is already shown in an editor, just make its TopComponent active.
+     *
      *
      * @param song
+     * @param makeActive If true try to make the song musically active, see ActiveSongManager.
      */
-    public void showSong(final Song song)
+    public void showSong(final Song song, boolean makeActive)
     {
         if (song == null)
         {
             throw new IllegalArgumentException("song=" + song);
         }
-        
+
         for (Song s : getOpenedSongs())
         {
             if (s == song)
@@ -141,7 +144,7 @@ public class SongEditorManager implements PropertyChangeListener
                 return;
             }
         }
-        
+
         Runnable run = new Runnable()
         {
             @Override
@@ -153,20 +156,23 @@ public class SongEditorManager implements PropertyChangeListener
                 JJazzUndoManagerFinder.getDefault().put(undoManager, song.getChordLeadSheet());
                 JJazzUndoManagerFinder.getDefault().put(undoManager, song.getSongStructure());
 
+
                 // Connect our undoManager to the song. 
                 // Note that for cls/sgs this will be done in each editor's constructor
                 song.addUndoableEditListener(undoManager);
+
 
                 // Create the editors
                 CL_EditorTopComponent clTC = new CL_EditorTopComponent(song);
                 Mode mode = WindowManager.getDefault().findMode("editor");
                 mode.dockInto(clTC);
                 clTC.open();
-                
+
                 SS_EditorTopComponent ssTC = new SS_EditorTopComponent(song);
                 mode = WindowManager.getDefault().findMode("output");
                 mode.dockInto(ssTC);
                 ssTC.open();
+
 
                 // Bind the editors together
                 clTC.setPairedTopComponent(ssTC);
@@ -175,8 +181,22 @@ public class SongEditorManager implements PropertyChangeListener
                 song.addPropertyChangeListener(SongEditorManager.this);
                 mapSongEditors.put(song, new Editors(clTC, ssTC));
                 pcs.firePropertyChange(PROP_SONG_OPENED, false, song);
-                
-                updateActiveSong();
+
+
+                // Try to make it active if requested
+                var asm = ActiveSongManager.getInstance();
+                if (makeActive && asm.isActivable(song) == null)
+                {
+                    try
+                    {
+                        MidiMix mm = MidiMixManager.getInstance().findMix(song);
+                        asm.setActive(song, mm);
+                    } catch (MidiUnavailableException ex)
+                    {
+                        // Should never be there
+                        Exceptions.printStackTrace(ex);
+                    }
+                }
             }
         };
         // Make sure everything is run on the EDT
@@ -186,12 +206,13 @@ public class SongEditorManager implements PropertyChangeListener
     /**
      * Load a song from a file and show it.
      * <p>
-     * If song is already shown in an editor, just activate the editor.
+     * Load the song from file and call showSong(song, makeActive).
      *
      * @param f
+     * @param makeActive
      * @return The opened song, or null if a problem occured.
      */
-    public Song showSong(File f)
+    public Song showSong(File f, boolean makeActive)
     {
         for (Song s : getOpenedSongs())
         {
@@ -205,12 +226,12 @@ public class SongEditorManager implements PropertyChangeListener
         Song song = sf.createFromFile(f);
         if (song != null)
         {
-            showSong(song);
+            showSong(song, makeActive);
             FileDirectoryManager.getInstance().setLastSongDirectory(f.getAbsoluteFile().getParentFile());
         }
         return song;
     }
-    
+
     public List<Song> getOpenedSongs()
     {
         return new ArrayList<>(mapSongEditors.keySet());
@@ -228,12 +249,12 @@ public class SongEditorManager implements PropertyChangeListener
         }
         return mapSongEditors.get(s);
     }
-    
+
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
-    
+
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
@@ -251,8 +272,9 @@ public class SongEditorManager implements PropertyChangeListener
             {
                 if (evt.getNewValue() instanceof CL_EditorTopComponent)
                 {
+                    // User closed a song
                     CL_EditorTopComponent clTc = (CL_EditorTopComponent) evt.getNewValue();
-                    songClosed(clTc.getSongModel());
+                    songEditorClosed(clTc.getSongModel());
                 }
             }
         } else if (evt.getSource() instanceof Song)
@@ -270,21 +292,21 @@ public class SongEditorManager implements PropertyChangeListener
     // Private
     //=============================================================================  
     /**
-     * Song is closed, notify listeners and do some cleanup
+     * Song editor is closed, notify listeners and do some cleanup
      *
      * @param s
      */
-    private void songClosed(Song s)
+    private void songEditorClosed(Song s)
     {
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(s);
         s.removeUndoableEditListener(um);
         s.removePropertyChangeListener(this);
         mapSongEditors.remove(s);
         pcs.firePropertyChange(PROP_SONG_CLOSED, false, s); // Event used for example by RecentSongProvider
-        s.close(true);
+        s.close(true);  // This will trigger an "activeSong=null" event from the ActiveSongManager
         updateActiveSong();
     }
-    
+
     private void songSaved(Song s)
     {
         File f = s.getFile();
@@ -292,14 +314,14 @@ public class SongEditorManager implements PropertyChangeListener
         FileDirectoryManager.getInstance().setLastSongDirectory(f.getAbsoluteFile().getParentFile());
         pcs.firePropertyChange(PROP_SONG_SAVED, false, s);
     }
-    
+
     private void updateActiveSong()
     {
         if (mapSongEditors.isEmpty())
         {
             return;
         }
-               
+
         final Song song = (mapSongEditors.size() == 1) ? mapSongEditors.keySet().iterator().next() : null;
 
         // Need to wait for the new TopComponent to be selected, hence the runnable on the EDT
@@ -328,9 +350,9 @@ public class SongEditorManager implements PropertyChangeListener
             activateSong(sg);
         };
         SwingUtilities.invokeLater(r);
-        
+
     }
-    
+
     private void activateSong(Song song)
     {
         ActiveSongManager am = ActiveSongManager.getInstance();
@@ -357,21 +379,21 @@ public class SongEditorManager implements PropertyChangeListener
     //============================================================================= 
     public class Editors
     {
-        
+
         private CL_EditorTopComponent tcCle;
         private SS_EditorTopComponent tcRle;
-        
+
         protected Editors(CL_EditorTopComponent tcCle, SS_EditorTopComponent tcRle)
         {
             this.tcCle = tcCle;
             this.tcRle = tcRle;
         }
-        
+
         public CL_EditorTopComponent getTcCle()
         {
             return tcCle;
         }
-        
+
         public SS_EditorTopComponent getTcRle()
         {
             return tcRle;

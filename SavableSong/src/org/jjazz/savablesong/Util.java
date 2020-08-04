@@ -64,6 +64,7 @@ class Util
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setFileFilter(filter);
+        chooser.setDialogTitle("Save song");                
 
         if (presetFile != null)
         {

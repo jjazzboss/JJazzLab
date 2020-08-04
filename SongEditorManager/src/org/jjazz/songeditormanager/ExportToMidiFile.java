@@ -124,6 +124,7 @@ public class ExportToMidiFile extends AbstractAction
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setSelectedFile(midiFile);
+        chooser.setDialogTitle("Export to Midi file");                
         int res = chooser.showSaveDialog(WindowManager.getDefault().getMainWindow());
         if (res != JFileChooser.APPROVE_OPTION)
         {

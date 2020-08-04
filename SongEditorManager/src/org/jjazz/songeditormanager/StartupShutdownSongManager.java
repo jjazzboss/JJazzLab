@@ -141,8 +141,8 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
 
         if (values.containsKey(openOption))
         {
-
-            for (String fileName : values.get(openOption))
+            var fileNames = values.get(openOption);
+            for (String fileName : fileNames)
             {
                 LOGGER.info("process() Opening command line file: " + fileName + ", current dir: " + env.getCurrentDirectory().getAbsolutePath());
 
@@ -163,8 +163,10 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
                 {
                     if (isUIready)
                     {
-                        // Directly open the file
-                        if (SongEditorManager.getInstance().showSong(file) == null)
+                        // Directly open the file and activate it
+                        boolean last = fileName == fileNames[fileNames.length - 1];
+                        Song song = SongEditorManager.getInstance().showSong(file, last);
+                        if (song == null)
                         {
                             LOGGER.warning("process() Problem opening song file: " + file.getAbsolutePath());
                         }
@@ -191,17 +193,22 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
     public void run()
     {
         LOGGER.fine("run() --");
-        var sem = SongEditorManager.getInstance();
+
         // If command line arguments specified, just open them
         if (!cmdLineFilesToOpen.isEmpty())
         {
+            var sem = SongEditorManager.getInstance();
+
             for (File f : cmdLineFilesToOpen)
             {
-                if (sem.showSong(f) == null)
+                boolean last = f == cmdLineFilesToOpen.get(cmdLineFilesToOpen.size() - 1);
+                Song song = sem.showSong(f, last);
+                if (song == null)
                 {
                     LOGGER.warning("run() Problem opening song file: " + f.getAbsolutePath());
                 }
             }
+
         } else if (isOpenRecentFilesUponStartup())
         {
             openRecentFilesUponStartup();
@@ -286,20 +293,22 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
                     for (int i = 0; i < max; i++)
                     {
                         File f = new File(strFiles.get(i).trim());
-                        Song sg = SongEditorManager.getInstance().showSong(f);
+                        boolean last = (i == max - 1);
+                        Song sg = SongEditorManager.getInstance().showSong(f, last);
                         if (sg != null)
                         {
                             lastSong = sg;
                         }
                     }
                     // Make the last open song active
-                    if (lastSong != null)
+                    var asm = ActiveSongManager.getInstance();
+                    if (lastSong != null && asm.isActivable(lastSong) == null)
                     {
                         MidiMix mm;
                         try
                         {
                             mm = MidiMixManager.getInstance().findMix(lastSong);
-                            ActiveSongManager.getInstance().setActive(lastSong, mm);
+                            asm.setActive(lastSong, mm);
                         } catch (MidiUnavailableException ex)
                         {
                             Exceptions.printStackTrace(ex);

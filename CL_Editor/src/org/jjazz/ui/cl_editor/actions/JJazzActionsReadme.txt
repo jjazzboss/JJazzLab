@@ -52,6 +52,18 @@ If a same shortcut key has always same meaning but different operatinos dependin
 then use callbacks actions, shortcut key can be defined in xml.
 If a same shortcut key is used completly differently on 2 topcomponents (e.g. shift UP), then don't define shortcut in xml. Juste define
 classic actions and bind it to a key in the topcomponent (usually in the controller).
+Netbeans Shortcut code:
+"Modifier-Key" ex C-A for ctrl-A, preferably D-A for portability
+Key=XXX part of KeyEvent.VK_XXX  
+Modifiers:
+C=ctrl
+A=alt
+S=shift
+M=Meta key, for example Command button
+D=standard accel key, ctrl on Win/Linux, Command on Mac
+O=Alternative accel key, Alt on Win/Linux, ctrl on Mac
+
+
 
 
 Use NbPlatformAdapter modeul layer.xml to hide unuse items/actions.

@@ -57,7 +57,7 @@ public final class RandomSong implements ActionListener
         // Create the song
         SongFactory sf = SongFactory.getInstance();
         Song song = createRandomSong(sf.getNewSongName(), 16, 120);
-        SongEditorManager.getInstance().showSong(song);
+        SongEditorManager.getInstance().showSong(song, true);
     }
 
     /**

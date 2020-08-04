@@ -67,7 +67,7 @@ public final class DuplicateSong implements ActionListener
         newSong.setName(song.getName() + " Copy" + counter);
         newSong.resetNeedSave();;
         SongEditorManager sm = SongEditorManager.getInstance();
-        sm.showSong(newSong);
+        sm.showSong(newSong, false);
         counter++;
     }
 }

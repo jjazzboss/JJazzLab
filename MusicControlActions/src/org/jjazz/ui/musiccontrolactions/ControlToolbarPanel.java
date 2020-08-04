@@ -289,7 +289,6 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
 
         fbtn_Loop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Loop-OFF-24x24.png"))); // NOI18N
         org.openide.awt.Mnemonics.setLocalizedText(fbtn_Loop, org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Loop.text")); // NOI18N
-        fbtn_Loop.setToolTipText(org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Loop.toolTipText")); // NOI18N
         fbtn_Loop.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Loop-ON-24x24.png"))); // NOI18N
         add(fbtn_Loop);
 

@@ -85,9 +85,9 @@ public class ExportMix extends AbstractAction
     }
 
     /**
-     * Prepare the JFileChooser to save specified file. Add extension to selected file if required.
+     * Prepare the JFileChooser to save specified file. 
      * <p>
-     * Ask for confirmation if file overwrite.
+     * Ask for confirmation if file overwrite. Add extension to selected file if required.
      *
      * @param presetFile If null JFileChooser is not preset.
      * @return The actual save file selected by user. Null if cancelled.
@@ -99,6 +99,7 @@ public class ExportMix extends AbstractAction
         chooser.resetChoosableFileFilters();
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        chooser.setDialogTitle("Save mix file");        
         chooser.setFileFilter(filter);
 
         if (presetFile != null)

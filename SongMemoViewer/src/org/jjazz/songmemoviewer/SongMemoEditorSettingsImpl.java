@@ -176,21 +176,21 @@ public class SongMemoEditorSettingsImpl implements SongMemoEditorSettings, FontC
             }
         };
         res.add(fcs);
-        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SongMemoBackgroundId", "Song memo")
-        {
-            @Override
-            public Color getColor()
-            {
-                return getBackgroundColor();
-            }
-
-            @Override
-            public void setColor(Color c)
-            {
-                setBackgroundColor(c);
-            }
-        };
-        res.add(fcs);
+//        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SongMemoBackgroundId", "Song memo")
+//        {
+//            @Override
+//            public Color getColor()
+//            {
+//                return getBackgroundColor();
+//            }
+//
+//            @Override
+//            public void setColor(Color c)
+//            {
+//                setBackgroundColor(c);
+//            }
+//        };
+//        res.add(fcs);
 
         return res;
     }

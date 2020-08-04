@@ -56,7 +56,7 @@ public final class SampleSong implements ActionListener
         // Create the song
         SongFactory sf = SongFactory.getInstance();
         Song song = createSample12BarsSong(sf.getNewSongName(), 32, 120);
-        SongEditorManager.getInstance().showSong(song);
+        SongEditorManager.getInstance().showSong(song, true);
     }
 
     /**

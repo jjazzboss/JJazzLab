@@ -55,21 +55,8 @@ public class RecentSongsProvider implements RecentFilesProvider, PropertyChangeL
     @Override
     public boolean open(File f)
     {
-        Song song = SongEditorManager.getInstance().showSong(f);
-        
-        if (song != null && MusicController.getInstance().getState().equals(MusicController.State.STOPPED))
-        {
-            MidiMix mm;
-            try
-            {
-                mm = MidiMixManager.getInstance().findMix(song);
-                ActiveSongManager.getInstance().setActive(song, mm);
-            } catch (MidiUnavailableException ex)
-            {
-                Exceptions.printStackTrace(ex);
-            }
-        }
-        
+        Song song = SongEditorManager.getInstance().showSong(f, true);
+      
         return song != null;
     }
 

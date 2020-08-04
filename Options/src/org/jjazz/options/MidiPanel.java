@@ -272,6 +272,7 @@ final class MidiPanel extends javax.swing.JPanel
        chooser.setMultiSelectionEnabled(false);
        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
        chooser.setFileFilter(filter);
+        chooser.setDialogTitle("Load sound bank file");               
        File previousFile = jms.getDefaultJavaSynthPreferredSoundFontFile();
        if (previousFile == null)
        {

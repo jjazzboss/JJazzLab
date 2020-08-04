@@ -163,6 +163,9 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
         } else
         {
             ActiveSongManager.getInstance().setActive(null, null);
+
+            // Nothing : don't try to activate another open song
+
         }
         setBooleanState(b);  // Notify action listeners
     }

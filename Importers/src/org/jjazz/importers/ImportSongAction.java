@@ -203,7 +203,8 @@ public final class ImportSongAction implements ActionListener
 
     private void importFiles(HashMap<File, SongImporter> mapFileImporter)
     {
-        for (File f : mapFileImporter.keySet())
+        var songFiles = new ArrayList<>(mapFileImporter.keySet());
+        for (File f : songFiles)
         {
             SongImporter importer = mapFileImporter.get(f);
             Song song = null;
@@ -219,7 +220,6 @@ public final class ImportSongAction implements ActionListener
                 continue;
             }
 
-
             if (song == null)
             {
                 LOGGER.log(Level.WARNING, "importFiles() song=null, importer=" + importer.getId() + " f=" + f.getAbsolutePath());
@@ -228,13 +228,11 @@ public final class ImportSongAction implements ActionListener
             } else
             {
                 // Ok we got the new song show it !
-//                if (true)
-//                {
-//                    continue;
-//                }
                 song.setFile(null);     // Make sure song is not associated with the import file
                 SongFactory.getInstance().registerSong(song);
-                SongEditorManager.getInstance().showSong(song);
+                
+                boolean last = (f==songFiles.get(songFiles.size()-1));                
+                SongEditorManager.getInstance().showSong(song, last);
             }
         }
     }
@@ -299,8 +297,7 @@ public final class ImportSongAction implements ActionListener
         }
         return f;
     }
-    
-    
+
 
     // =====================================================================================
     // Upgrade Task
@@ -317,7 +314,6 @@ public final class ImportSongAction implements ActionListener
         }
 
     }
-
 
 
 }

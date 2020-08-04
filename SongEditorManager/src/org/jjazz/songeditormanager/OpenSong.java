@@ -74,31 +74,14 @@ public final class OpenSong implements ActionListener
         chooser.setMultiSelectionEnabled(true);
         chooser.setCurrentDirectory(FileDirectoryManager.getInstance().getLastSongDirectory());
         chooser.setSelectedFile(new File(""));
-        chooser.setDialogTitle(CTL_JJazzOpenSongs());
+        chooser.setDialogTitle("Open song from file");
         chooser.showOpenDialog(WindowManager.getDefault().getMainWindow());
 
-        Song lastSong = null;
-        for (File songFile : chooser.getSelectedFiles())
+        var songFiles = chooser.getSelectedFiles();
+        for (File songFile : songFiles)
         {
-            Song sg = SongEditorManager.getInstance().showSong(songFile);
-            if (sg != null)
-            {
-                lastSong = sg;
-            }
-        }
-
-        // Activate the last opened song
-        if (lastSong != null && MusicController.getInstance().getState().equals(MusicController.State.STOPPED))
-        {
-            MidiMix mm;
-            try
-            {
-                mm = MidiMixManager.getInstance().findMix(lastSong);
-                ActiveSongManager.getInstance().setActive(lastSong, mm);
-            } catch (MidiUnavailableException ex)
-            {
-                Exceptions.printStackTrace(ex);
-            }
+            boolean last = (songFile == songFiles[songFiles.length - 1]);
+            SongEditorManager.getInstance().showSong(songFile, last);
         }
     }
 }
