@@ -41,7 +41,6 @@ import org.openide.util.Lookup;
  * <p>
  * Editor's lookup contains :<br>
  * - editor's ActionMap<br>
- * - editor's JJazzUndoManager<br>
  * - edited ChordLeadSheet<br>
  * - edited Song (container of the ChordLeadSheet if there is one)<br>
  * - selected items or bars<br>

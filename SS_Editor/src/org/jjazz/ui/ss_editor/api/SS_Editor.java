@@ -42,7 +42,6 @@ import org.jjazz.songstructure.api.SongPart;
  * <p>
  * his Lookup contains :<br>
  * - editor's ActionMap<br>
- * - editor's JJazzUndoManager<br>
  * - edited SongStructure<br>
  * - edited Song (container of the SongStructure if there is one) <br>
  * - the selected SongParts or RhythmParameters.<br>
