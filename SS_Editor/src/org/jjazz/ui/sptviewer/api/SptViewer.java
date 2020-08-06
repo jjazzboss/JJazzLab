@@ -81,6 +81,8 @@ public abstract class SptViewer extends JPanel
     public abstract void setMultiSelectMode(boolean b, boolean first);
 
     public abstract void setNameVisible(boolean b);
+    
+    public abstract void setTimeSignatureVisible(boolean b);
 
     public abstract void cleanup();
 

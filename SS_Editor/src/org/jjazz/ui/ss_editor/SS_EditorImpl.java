@@ -53,6 +53,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.base.actions.Savable;
+import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.Rhythm;
@@ -262,7 +263,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             addSptViewer(spt);
         }
-        updateSptsVisibleRhythm();
+        updateSptsVisibleRhythmAndTimeSignature();
         updateSptMultiSelectMode();
     }
 
@@ -670,23 +671,23 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             return;
         }
-        
-        
+
+
         int oldFactor = zoomHFactor;
         zoomHFactor = factor;
         for (SptViewer sptv : getSptViewers())
         {
             sptv.setZoomHFactor(zoomHFactor);
         }
-        
-        
+
+
         zoomable.fireXPropertyChange(oldFactor, zoomHFactor);
 
 
         // Save the zoom factor with the song as a client property
         songModel.putClientProperty(PROP_ZOOM_FACTOR_X, Integer.toString(factor));
-        
-        
+
+
         revalidate();
         repaint();
     }
@@ -786,15 +787,14 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     //------------------------------------------------------------------------------
     // SgsChangeListener interface
     //------------------------------------------------------------------------------   
-    
-        
+
     @Override
     public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
     {
         // Nothing
     }
-    
-    
+
+
     @Override
     public void songStructureChanged(final SgsChangeEvent e)
     {
@@ -817,7 +817,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                     }
                     panel_SongParts.revalidate();
                     panel_SongParts.repaint();     // Needed if removed Spt was the last one
-                    updateSptsVisibleRhythm();
+                    updateSptsVisibleRhythmAndTimeSignature();
                     updateSptMultiSelectMode();
                 } else if (e instanceof SptAddedEvent)
                 {
@@ -826,7 +826,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                         addSptViewer(spt);
                     }
                     panel_SongParts.revalidate();  // Needed to get immediate UI update
-                    updateSptsVisibleRhythm();
+                    updateSptsVisibleRhythmAndTimeSignature();
                     updateSptMultiSelectMode();
                 } else if (e instanceof SptReplacedEvent)
                 {
@@ -889,7 +889,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
                     panel_SongParts.revalidate();     // Needed to get immediate UI update       
                     panel_SongParts.repaint();        // Needed to avoid glitch if replaced viewer is smaller
-                    updateSptsVisibleRhythm();
+                    updateSptsVisibleRhythmAndTimeSignature();
                     updateSptMultiSelectMode();
                 } else if (e instanceof SptResizedEvent)
                 {
@@ -1088,18 +1088,18 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Show/Hide the rhythm of all SongParts.
+     * Show/Hide the rhythm and the time signature of all SongParts.
      */
-    private void updateSptsVisibleRhythm()
+    private void updateSptsVisibleRhythmAndTimeSignature()
     {
         Rhythm lastRhythm = null;
-        for (Iterator<SptViewer> it = getSptViewers().iterator(); it.hasNext();)
+        for (SptViewer sptv : getSptViewers())
         {
-            SptViewer sptv = it.next();
             Rhythm rhythm = sptv.getModel().getRhythm();
+            TimeSignature ts = rhythm.getTimeSignature();
             sptv.setRhythmVisible(!rhythm.equals(lastRhythm));
+            sptv.setTimeSignatureVisible(lastRhythm==null ? true : !ts.equals(lastRhythm.getTimeSignature()));
             lastRhythm = rhythm;
-
         }
     }
 
