@@ -49,7 +49,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
  */
 public class ExtChordSymbol extends ChordSymbol implements Serializable
 {
-    
+
     private ChordRenderingInfo renderingInfo;
     private AltExtChordSymbol altChordSymbol;
     private AltDataFilter altFilter;
@@ -63,7 +63,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     {
         this(new Note(0), ChordTypeDatabase.getInstance().getChordType(""));
     }
-    
+
     public ExtChordSymbol(Note rootDg, ChordType ct)
     {
         this(rootDg, rootDg, ct);
@@ -80,7 +80,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     {
         this(rootDg, bassDg, ct, null, null, null);
     }
-    
+
     public ExtChordSymbol(ChordSymbol cs, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
     {
         this(cs.getRootNote(), cs.getBassNote(), cs.getChordType(), rInfo, altChordSymbol, altFilter);
@@ -144,7 +144,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         this.altChordSymbol = altChordSymbol;
         this.altFilter = altFilter;
     }
-    
+
     @Override
     public boolean equals(Object obj)
     {
@@ -179,7 +179,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         }
         return true;
     }
-    
+
     @Override
     public int hashCode()
     {
@@ -328,45 +328,69 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     {
         return new SerializationProxy(this);
     }
-    
+
     private void readObject(ObjectInputStream stream)
             throws InvalidObjectException
     {
         throw new InvalidObjectException("Serialization proxy required");
     }
-    
+
     private static class SerializationProxy implements Serializable
     {
-        
+
         private static final long serialVersionUID = -6112620289882L;
-        private final int spVERSION = 1;
+        private final int spVERSION = 2;
         private final String spName;
+        private final String spOriginalName;        // from VERSION 2 only
         private final ChordRenderingInfo spRenderingInfo;
         private final AltExtChordSymbol spAltChordSymbol;
         private final AltDataFilter spAltFilter;
         // XStream can't deserialize the ° char : little hack to avoid the issue
         private static final String DOT_REPLACEMENT = "_UpperDot_";
-        
+
         private SerializationProxy(ExtChordSymbol cs)
         {
-            spName = cs.getOriginalName().replace("°", DOT_REPLACEMENT);
+            spName = cs.getName().replace("°", DOT_REPLACEMENT);
+            spOriginalName = cs.getOriginalName().replace("°", DOT_REPLACEMENT);
             spRenderingInfo = cs.getRenderingInfo();
             spAltChordSymbol = cs.getAlternateChordSymbol();
             spAltFilter = cs.getAlternateFilter();
         }
-        
+
         private Object readResolve() throws ObjectStreamException
         {
-            String s = spName.replace(DOT_REPLACEMENT, "°");
+
+            // First try with originalName (or spName if originalName not saved due to V1 .sng file)
+            String s = spOriginalName == null ? spName.replace(DOT_REPLACEMENT, "°") : spOriginalName.replace(DOT_REPLACEMENT, "°");            
             ChordSymbol cs = null;
+            
             try
             {
                 cs = new ExtChordSymbol(s, spRenderingInfo, spAltChordSymbol, spAltFilter);
             } catch (ParseException e)
             {
+                // Nothing
+            }
+            
+            if (cs == null && spOriginalName != null)
+            {
+                // If spOriginalName used, the error may be due to a missing user alias on current system
+                // Retry with standard name
+                try
+                {
+                    cs = new ExtChordSymbol(spName, spRenderingInfo, spAltChordSymbol, spAltFilter);
+                    LOGGER.log(Level.WARNING, spOriginalName + ": Invalid chord symbol. Using '" + spName + "' instead.");
+                } catch (ParseException e)
+                {
+                    // Nothing
+                }
+            }
+            if (cs == null)
+            {
                 LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol. Using 'C' ChordSymbol instead.");
                 cs = new ExtChordSymbol();
             }
+            
             return cs;
         }
     }

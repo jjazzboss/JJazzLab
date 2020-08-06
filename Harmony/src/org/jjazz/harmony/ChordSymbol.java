@@ -24,6 +24,7 @@ package org.jjazz.harmony;
 
 import java.io.*;
 import java.text.ParseException;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openide.util.NbBundle.Messages;
@@ -43,7 +44,7 @@ import org.jjazz.harmony.ChordType.DegreeIndex;
             "CTL_InvalidChordSymbol=Invalid chord symbol",
         }
 )
-public class ChordSymbol implements Serializable, Cloneable
+public class ChordSymbol implements Cloneable
 {
 
     /**
@@ -108,18 +109,14 @@ public class ChordSymbol implements Serializable, Cloneable
      */
     public ChordSymbol(String str) throws ParseException
     {
-        if (str == null)
+        if (str == null || str.isBlank())
         {
             throw new IllegalArgumentException("str=\"" + str + "\"");
         }
+        str = str.trim();
 
-        // save the original name of the chord symbol
-        originalName = str.trim();
-
-        if (originalName.length() == 0)
-        {
-            throw new IllegalArgumentException("str=" + str);
-        }
+        // Save the original name of the chord symbol, making sure first letter is uppercase
+        originalName = str.substring(0, 1).toUpperCase() + str.substring(1);
 
         int bass_index;
         StringBuilder sb = new StringBuilder(originalName);
@@ -222,9 +219,9 @@ public class ChordSymbol implements Serializable, Cloneable
     }
 
     /**
-     * Return the name used at creation if the ChordType(String) constructor or valueOf(String) function has been used. I
+     * Return the name used at creation if the ChordType(String) constructor has been used.
      * <p>
-     * In this case this string may differ from the name. Otherwise it's same as name.
+     * It may differ from the getName() if an chord type alias was used. First char is always upper case.
      *
      * @return
      */
@@ -357,42 +354,64 @@ public class ChordSymbol implements Serializable, Cloneable
         return relPitch;
     }
 
+
     /**
-     * Comparison is based on rootNote and bassNote relative pitch and the ChordType.
+     * Comparison is based on rootNote and bassNote relative pitch, ChordType and originalName.
      * <p>
-     * Note that ChordSymbol names are not taken into account.
      *
-     * @param o
+     * @param obj
      * @return
      */
     @Override
-    public boolean equals(Object o)
+    public boolean equals(Object obj)
     {
-        if (o instanceof ChordSymbol)
+        if (this == obj)
         {
-            ChordSymbol cs = (ChordSymbol) o;
-
-            return rootNote.equalsRelativePitch(cs.rootNote) && bassNote.equalsRelativePitch(cs.bassNote) && isSameChordType(cs);
-        } else
+            return true;
+        }
+        if (obj == null)
         {
             return false;
         }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final ChordSymbol other = (ChordSymbol) obj;
+        if (!Objects.equals(this.originalName, other.originalName))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.rootNote, other.rootNote))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.bassNote, other.bassNote))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.chordType, other.chordType))
+        {
+            return false;
+        }
+        return true;
     }
+
 
     @Override
     public int hashCode()
     {
-        int rootRelPitch = rootNote != null ? rootNote.getRelativePitch() : 0;
-        int bassRelPitch = bassNote != null ? bassNote.getRelativePitch() : 0;
-        int hash = 3;
-        hash = 17 * hash + rootRelPitch;
-        hash = 17 * hash + bassRelPitch;
-        hash = 17 * hash + (chordType != null ? chordType.hashCode() : 0);
+        int hash = 5;
+        hash = 23 * hash + Objects.hashCode(this.originalName);
+        hash = 23 * hash + Objects.hashCode(this.rootNote);
+        hash = 23 * hash + Objects.hashCode(this.bassNote);
+        hash = 23 * hash + Objects.hashCode(this.chordType);
         return hash;
     }
 
-    /* --------------------------------------------------------------------- Private methods
-    * --------------------------------------------------------------------- */
+    // --------------------------------------------------------------------- 
+    // Private methods
+    // ---------------------------------------------------------------------
     /**
      * Compute default name from ChordSymbol components.
      */
@@ -403,47 +422,52 @@ public class ChordSymbol implements Serializable, Cloneable
         return s;
     }
 
-    /* --------------------------------------------------------------------- Serialization
-    * --------------------------------------------------------------------- */
-    private Object writeReplace()
-    {
-        return new SerializationProxy(this);
-    }
-
-    private void readObject(ObjectInputStream stream)
-            throws InvalidObjectException
-    {
-        throw new InvalidObjectException("Serialization proxy required");
-    }
-
-    private static class SerializationProxy implements Serializable
-    {
-
-        private static final long serialVersionUID = 199237687633L;
-        private final int spVERSION = 1;
-        private final String spName;
-        // XStream can't deserialize the ° char : little hack to avoid the issue
-        private static final String DOT_REPLACEMENT = "_UpperDot_";
-
-        private SerializationProxy(ChordSymbol cs)
-        {
-            spName = cs.getOriginalName().replace("°", DOT_REPLACEMENT);
-        }
-
-        private Object readResolve() throws ObjectStreamException
-        {
-            String s = spName.replace(DOT_REPLACEMENT, "°");
-            ChordSymbol cs;
-            try
-            {
-                cs = new ChordSymbol(s);
-            } catch (ParseException e)
-            {
-                LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol, " + e.getLocalizedMessage() + ". Using 'C' ChordSymbol instead.");
-                cs = new ChordSymbol();
-            }
-            return cs;
-        }
-    }
+    // --------------------------------------------------------------------- 
+    // Serialization
+    // ---------------------------------------------------------------------
+//    private Object writeReplace()
+//    {
+//        return new SerializationProxy(this);
+//    }
+//
+//    private void readObject(ObjectInputStream stream)
+//            throws InvalidObjectException
+//    {
+//        throw new InvalidObjectException("Serialization proxy required");
+//    }
+//
+//    private static class SerializationProxy implements Serializable
+//    {
+//
+//        private static final long serialVersionUID = 199237687633L;
+//        private final int spVERSION = 2;
+//        private final String spName;   
+//        private final String spOriginalName;
+//        // XStream can't deserialize the ° char : little hack to avoid the issue
+//        private static final String DOT_REPLACEMENT = "_UpperDot_";
+//
+//        private SerializationProxy(ChordSymbol cs)
+//        {
+//            spName = cs.getOriginalName().replace("°", DOT_REPLACEMENT);
+//            spOriginalName = cs.getOriginalName().replace("°", DOT_REPLACEMENT);
+//        }
+//
+//        private Object readResolve() throws ObjectStreamException
+//        {
+//            String s = spOriginalName == null ? spName.replace(DOT_REPLACEMENT, "°") : spOriginalName.replace(DOT_REPLACEMENT, "°");
+//            ChordSymbol cs;
+//            try
+//            {
+//                cs = new ChordSymbol(s);
+//            } catch (ParseException e)
+//            {
+//                LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol, " + e.getLocalizedMessage() + ". Using 'C' ChordSymbol instead.");
+//                cs = new ChordSymbol();
+//            }
+//
+//
+//            return cs;
+//        }
+//    }
 
 }

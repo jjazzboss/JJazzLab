@@ -54,6 +54,9 @@ public class ChordTypeDatabase
     private List<ChordType> chordTypes = new ArrayList<>();
     private HashMap<ChordType, String> mapCtDefaultAliases = new HashMap<>();
     private HashMap<String, ChordType> mapAliasCt = new HashMap<>(450);     // Try to avoid rehash
+    private HashMap<String, Integer> mapExtensionIndex = new HashMap<>();
+    private HashMap<String, Integer> mapExtensionIndexIgnoreCase = new HashMap<>(40);
+
     private static Preferences prefs = NbPreferences.forModule(ChordTypeDatabase.class);
     private static final Logger LOGGER = Logger.getLogger(ChordTypeDatabase.class.getSimpleName());
 
@@ -80,7 +83,7 @@ public class ChordTypeDatabase
         addBuiltin("M7", "b5", MAJ, ":maj7b5:maj-5:Mb5:7M-5:7Mb5:ma7b5:ma-5:b5:Maj7b5:", NP, 0, NP, -1, NP, 0);
         addBuiltin("M7", "#5", MAJ, ":maj7#5:7M+5:7M#5:ma7#5:Maj7aug:Maj7#5:", NP, 0, NP, +1, NP, 0);
         addBuiltin("M7", "#11", MAJ, ":maj7#11:7M#11:Maj7#11:ma7#11:", NP, 0, +1, 0, NP, 0);
-        addBuiltin("M9", "#11", MAJ, ":maj9#11:9M#11:ma9#11:Maj9#11:Lyd:Maj7Lyd:", 0, 0, +1, 0, NP, 0);
+        addBuiltin("M9", "#11", MAJ, ":maj9#11:9M#11:ma9#11:Maj9#11:Lyd:lyd:Maj7Lyd:7Mlyd:M7lyd:", 0, 0, +1, 0, NP, 0);
         addBuiltin("M13", "#11", MAJ, ":maj13#11:13M#11:ma13#11:Maj13#11:", 0, 0, +1, 0, 0, 0);
 
         // SEVENTH
@@ -145,6 +148,10 @@ public class ChordTypeDatabase
         buildAliasMap();
         // LOGGER.severe("DEBUG DUMP AliasMap=============");
         // mapAliasCt.keySet().stream().forEach(s -> LOGGER.severe(s + " -> " + mapAliasCt.get(s)));
+
+        buildExtensionMap();
+
+
     }
 
     public static ChordTypeDatabase getInstance()
@@ -154,9 +161,56 @@ public class ChordTypeDatabase
             if (INSTANCE == null)
             {
                 INSTANCE = new ChordTypeDatabase();
+
             }
         }
         return INSTANCE;
+    }
+
+
+    /**
+     * Try to guess where the extension part of a chord type string starts.
+     * <p>
+     * For example for "madd9", return 1 because base=m and extension="add9". Should be used only if a ChordType.getOriginalName()
+     * differs from ChordType.getName().
+     *
+     * @param ctStr A chord type string like "", "sus7", "7dim7M", "Maj7aug", "madd9", etc.
+     * @return The index of the first char of the extension. -1 if no extension found.
+     */
+    public int guessExtension(String ctStr)
+    {
+        if (ctStr == null)
+        {
+            throw new IllegalArgumentException("ctStr=" + ctStr);
+        }
+        if (ctStr.isBlank())
+        {
+            return -1;
+        }
+
+        Integer res;
+        int start = Math.min(ctStr.length(), 5);
+
+        // Need to start by longer strings first
+        for (int length = start; length >= 1; length--)
+        {
+            String first = ctStr.substring(0, length);
+
+            // Try first case aware strings
+            res = mapExtensionIndex.get(first);
+            if (res != null)
+            {
+                return res;
+            }
+
+            res = mapExtensionIndexIgnoreCase.get(first.toLowerCase());
+            if (res != null)
+            {
+                return res;
+            }
+        }
+
+        return -1;
     }
 
     /**
@@ -423,6 +477,90 @@ public class ChordTypeDatabase
         {
             prefs.put(key, s);
         }
+    }
+
+    /**
+     * Build the data to guess base/extension of a chord string.
+     */
+    private void buildExtensionMap()
+    {
+        
+        // mapExtensionIndexIgnoreCase data must be lowercase
+
+        // 5 first letters
+        mapExtensionIndexIgnoreCase.put("maj11", 5);
+        mapExtensionIndexIgnoreCase.put("maj13", 5);
+        mapExtensionIndexIgnoreCase.put("min11", 5);
+        mapExtensionIndexIgnoreCase.put("min13", 5);
+        mapExtensionIndex.put("min7m", 3);        
+        mapExtensionIndex.put("min9M", 3);
+
+        // 4 letters
+        mapExtensionIndexIgnoreCase.put("maj6", 4);
+        mapExtensionIndexIgnoreCase.put("maj7", 4);
+        mapExtensionIndexIgnoreCase.put("maj9", 4);
+        mapExtensionIndexIgnoreCase.put("min6", 4);
+        mapExtensionIndexIgnoreCase.put("min7", 4);
+        mapExtensionIndexIgnoreCase.put("min9", 4);
+        mapExtensionIndexIgnoreCase.put("ma11", 4);
+        mapExtensionIndexIgnoreCase.put("ma13", 4);
+        mapExtensionIndexIgnoreCase.put("mi11", 4);
+        mapExtensionIndexIgnoreCase.put("mi13", 4);
+        mapExtensionIndexIgnoreCase.put("bass", 4);
+        mapExtensionIndex.put("mi7M", 2);
+        mapExtensionIndex.put("mi9M", 2);
+
+        // 3 letters
+        mapExtensionIndexIgnoreCase.put("ma6", 3);
+        mapExtensionIndexIgnoreCase.put("ma7", 3);
+        mapExtensionIndexIgnoreCase.put("ma9", 3);
+        mapExtensionIndexIgnoreCase.put("mi6", 3);
+        mapExtensionIndexIgnoreCase.put("mi7", 3);
+        mapExtensionIndexIgnoreCase.put("mi9", 3);
+        mapExtensionIndex.put("11M", 3);
+        mapExtensionIndex.put("13M", 3);
+        mapExtensionIndex.put("M11", 3);
+        mapExtensionIndex.put("M13", 3);
+        mapExtensionIndexIgnoreCase.put("maj", 3);
+        mapExtensionIndexIgnoreCase.put("min", 3);
+        mapExtensionIndex.put("-7M", 1);
+        mapExtensionIndex.put("-9M", 1);
+        mapExtensionIndexIgnoreCase.put("dim", 0);
+        mapExtensionIndexIgnoreCase.put("add", 0);
+        mapExtensionIndexIgnoreCase.put("lyd", 0);
+        mapExtensionIndexIgnoreCase.put("sus", 0);
+
+        // 2 letters
+        mapExtensionIndex.put("6M", 2);
+        mapExtensionIndex.put("7M", 2);
+        mapExtensionIndex.put("9M", 2);
+        mapExtensionIndex.put("M6", 2);
+        mapExtensionIndex.put("M7", 2);
+        mapExtensionIndex.put("M9", 2);
+        mapExtensionIndex.put("m6", 2);
+        mapExtensionIndex.put("m7", 2);
+        mapExtensionIndex.put("m9", 2);
+        mapExtensionIndex.put("-6", 2);
+        mapExtensionIndex.put("-7", 2);
+        mapExtensionIndex.put("-9", 2);
+        mapExtensionIndexIgnoreCase.put("ma", 2);
+        mapExtensionIndexIgnoreCase.put("mi", 2);
+        mapExtensionIndex.put("11", 2);
+        mapExtensionIndex.put("13", 2);
+
+        // 1 letter
+        mapExtensionIndex.put("m", 1);
+        mapExtensionIndex.put("M", 1);
+        mapExtensionIndex.put("-", 1);
+        mapExtensionIndex.put("4", 1);
+        mapExtensionIndex.put("6", 1);
+        mapExtensionIndex.put("7", 1);
+        mapExtensionIndex.put("9", 1);
+        mapExtensionIndex.put("°", 1);
+        mapExtensionIndex.put("o", 1);
+        mapExtensionIndex.put("h", 1);
+
+
     }
 
 

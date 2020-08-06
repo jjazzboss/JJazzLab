@@ -207,6 +207,8 @@ public class ChordSymbolTextInput
 //      // Return the added events
 //      return newItems;
 //   }
+    
+    
     /**
      * Analyze a string describing a bar like "C Fm7" and return the list of CLI_ChordSymbols.
      * <p>
@@ -396,7 +398,7 @@ public class ChordSymbolTextInput
      */
     public static String toString(CLI_ChordSymbol cli, PositionDisplay pDisplay)
     {
-        StringBuilder str = new StringBuilder(cli.getData().toString());
+        StringBuilder str = new StringBuilder(cli.getData().getOriginalName());
         Position pos = cli.getPosition();
         switch (pDisplay)
         {

@@ -192,14 +192,9 @@ public class Note implements Comparable<Note>, Cloneable
         if (str.length() == 0)
         {
             throw new ParseException(ERR_EmptyString(), 0);
-        }
+        }   
 
-        // Special case 
-        if (str.equals("Cb"))
-        {
-
-        }
-
+        
         // Get the degree string, eg "A", "G", "Eb", "F#" etc.
         String degreeStr = str.substring(0, 1);
         if (str.length() > 1 && (str.charAt(1) == 'b' || str.charAt(1) == '#'))
