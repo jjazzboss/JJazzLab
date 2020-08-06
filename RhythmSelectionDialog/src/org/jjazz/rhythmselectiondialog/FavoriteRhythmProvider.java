@@ -60,6 +60,11 @@ public class FavoriteRhythmProvider implements RhythmProvider
 
     }
 
+    /**
+     * Get the list of favorite rhythms.
+     *
+     * @return
+     */
     public List<RhythmInfo> getBuiltinRhythmInfos()
     {
         return FavoriteRhythms.getInstance().getRhythms();
@@ -84,7 +89,7 @@ public class FavoriteRhythmProvider implements RhythmProvider
     @Override
     public List<Rhythm> getBuiltinRhythms()
     {
-        return  Collections.emptyList();
+        return Collections.emptyList();
     }
 
     /**
