@@ -671,6 +671,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
         LOGGER.fine("getRecommendedRhythm() ts=" + ts + " sptBarIndex=" + sptBarIndex);
 
+
         // Try to use the last used rhythm for this new time signature
         Rhythm r = getLastUsedRhythm(ts);
 
@@ -694,15 +695,15 @@ public class SongStructureImpl implements SongStructure, Serializable
         // Last option
         if (r == null)
         {
+            RhythmInfo ri = null;
             try
             {
-                RhythmInfo ri = rdb.getDefaultRhythm(ts);
+                ri = rdb.getDefaultRhythm(ts);
                 r = rdb.getRhythmInstance(ri);
             } catch (UnavailableRhythmException ex)
             {
-                // Should never be there
-                LOGGER.severe("getRecommendedRhythm() Unexpected exception ex=" + ex.getLocalizedMessage() + ". rdb.getDefaultRhythm(ts)=" + rdb.getDefaultRhythm(ts));
-                Exceptions.printStackTrace(ex);
+                LOGGER.warning("getRecommendedRhythm() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getLocalizedMessage());
+                r = rdb.getDefaultStubRhythmInstance(ts);  // non null
             }
         }
 

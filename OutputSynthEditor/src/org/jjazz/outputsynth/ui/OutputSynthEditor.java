@@ -57,11 +57,10 @@ import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.ui.InstrumentTable;
 import org.jjazz.midimix.UserChannelRvKey;
-import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.midisynthmanager.api.MidiSynthManager;
 import org.jjazz.musiccontrol.TestPlayer;
 import org.jjazz.outputsynth.GMRemapTable;
 import org.jjazz.outputsynth.GMRemapTable.ArgumentsException;
-import org.jjazz.outputsynth.MidiSynthManager;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynth.SendModeOnUponStartup;
 import org.jjazz.outputsynth.ui.spi.RemapTableInstrumentChooser;
@@ -917,7 +916,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
     private void btn_AddSynthActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_AddSynthActionPerformed
     {//GEN-HEADEREND:event_btn_AddSynthActionPerformed
-        MidiSynthManager msm = MidiSynthManager.getInstance();
+        MidiSynthManager msm = MidiSynthManager.getDefault();
         File f = msm.showSelectSynthFileDialog();
         if (f != null)
         {

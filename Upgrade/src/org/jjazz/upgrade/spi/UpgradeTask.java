@@ -31,7 +31,14 @@ public interface UpgradeTask
 {
 
     /**
+     * UpgradeManager calls this method first on all UpgradeTasks.
+     */
+    void initialize();
+
+    /**
      * Perform an upgrade task, typically import settings from oldVersion.
+     * <p>
+     * UpgradeManager calls this method after initialize(), and only if a valid oldVersion is available.
      *
      * @param oldVersion The reference JJazzLab version from which upgrade should be done.
      */

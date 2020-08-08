@@ -34,6 +34,8 @@ import javax.swing.KeyStroke;
 import javax.swing.SpinnerListModel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
+import org.openide.util.RequestProcessor;
+import org.openide.util.Task;
 
 /**
  * A JSpinner with mousewheel support and some convenience functions.
@@ -54,7 +56,7 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
 
     public WheelSpinner()
     {
-        addMouseWheelListener(this);
+        addMouseWheelListener(this);        
 
         // HACK ! 
         // Key presses are not consumed by JSpinner, they are also processed by the keybinding framework

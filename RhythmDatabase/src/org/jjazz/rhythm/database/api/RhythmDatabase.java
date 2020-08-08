@@ -204,9 +204,18 @@ public interface RhythmDatabase
      * Get the default Rhythm for TimeSignature ts.
      *
      * @param ts TimeSignature
-     * @return Can not be null: the database should provide at least a stub rhythm.
+     * @return Can not be null, but there is no guarantee that getRhythmInstance() on the returned value will work (e.g. if this
+     * RhythmInfo depends on a file which is no more available).
      */
     RhythmInfo getDefaultRhythm(TimeSignature ts);
+
+    /**
+     * Get the default stub rhythm for the specified TimeSignature.
+     *
+     * @param ts
+     * @return Can't be null.
+     */
+    Rhythm getDefaultStubRhythmInstance(TimeSignature ts);
 
     /**
      * Set the default rhythm for this TimeSignature.

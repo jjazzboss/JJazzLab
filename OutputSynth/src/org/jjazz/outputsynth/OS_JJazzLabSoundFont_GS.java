@@ -23,20 +23,16 @@
 package org.jjazz.outputsynth;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.midi.MidiSynth;
-import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midi.synths.StdSynth;
+import org.jjazz.midisynthmanager.api.MidiSynthManager;
 
 /**
  * The builtin OutputSynth for the JJazzLabSoundFont in GS mode.
  */
 public class OS_JJazzLabSoundFont_GS extends OutputSynth
 {    
-    private static final String JJAZZLAB_SOUNDFONT_SYNTH_PATH = "resources/JJazzLabSoundFontSynth_GS.ins";
     private static OS_JJazzLabSoundFont_GS INSTANCE;
     private final MidiSynth midiSynth;
     private static final Logger LOGGER = Logger.getLogger(OS_JJazzLabSoundFont_GS.class.getSimpleName());
@@ -55,21 +51,8 @@ public class OS_JJazzLabSoundFont_GS extends OutputSynth
     
     private OS_JJazzLabSoundFont_GS()
     {
-        // Read the synth from the .ins file
-        InputStream is = getClass().getResourceAsStream(JJAZZLAB_SOUNDFONT_SYNTH_PATH);
-        assert is != null : "JJAZZLAB_SOUNDFONT_SYNTH_PATH=" + JJAZZLAB_SOUNDFONT_SYNTH_PATH;
-        MidiSynthFileReader r = MidiSynthFileReader.Util.getReader("ins");
-        assert r != null;
-        try
-        {
-            List<MidiSynth> synths = r.readSynthsFromStream(is, null);
-            assert synths.size() == 1;
-            midiSynth = synths.get(0);
-        } catch (IOException ex)
-        {
-            throw new IllegalStateException("Unexpected error", ex);
-        }
-
+        midiSynth = MidiSynthManager.getDefault().getMidiSynth(MidiSynthManager.JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME);
+                
         // Adjust settings
         addCustomSynth(midiSynth);
         removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());

@@ -300,15 +300,20 @@ public class BarBoxSettingsImpl extends BarBoxSettings implements FontColorUserS
     {
         return fcSettings;
     }
-    
+
 
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
-
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
+
+        @Override
+        public void initialize()
+        {
+            // Do nothing
+        }
 
         @Override
         public void upgrade(String oldVersion)
@@ -319,6 +324,5 @@ public class BarBoxSettingsImpl extends BarBoxSettings implements FontColorUserS
 
     }
 
-    
 
 }

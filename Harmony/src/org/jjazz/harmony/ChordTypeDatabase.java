@@ -484,7 +484,7 @@ public class ChordTypeDatabase
      */
     private void buildExtensionMap()
     {
-        
+
         // mapExtensionIndexIgnoreCase data must be lowercase
 
         // 5 first letters
@@ -492,7 +492,7 @@ public class ChordTypeDatabase
         mapExtensionIndexIgnoreCase.put("maj13", 5);
         mapExtensionIndexIgnoreCase.put("min11", 5);
         mapExtensionIndexIgnoreCase.put("min13", 5);
-        mapExtensionIndex.put("min7m", 3);        
+        mapExtensionIndex.put("min7m", 3);
         mapExtensionIndex.put("min9M", 3);
 
         // 4 letters
@@ -570,6 +570,12 @@ public class ChordTypeDatabase
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
+
+        @Override
+        public void initialize()
+        {
+            // Do nothing
+        }
 
         @Override
         public void upgrade(String oldVersion)

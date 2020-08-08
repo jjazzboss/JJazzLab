@@ -38,6 +38,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.openide.filesystems.FileObject;
@@ -57,6 +58,27 @@ public class Utilities
     {
         String str = System.getProperty("user.dir");
         return str;
+    }
+
+    /**
+     * Check if a directory is empty.
+     * <p>
+     * Best performance as the Java 8 Files.list() returns a lazily populated stream (avoid reading all files).
+     *
+     * @param dirPath
+     * @return
+     * @throws IOException
+     */
+    public static boolean isEmpty(Path dirPath) throws IOException
+    {
+        if (Files.isDirectory(dirPath))
+        {
+            try (Stream<Path> entries = Files.list(dirPath))
+            {
+                return !entries.findFirst().isPresent();
+            }
+        }
+        return false;
     }
 
     /**

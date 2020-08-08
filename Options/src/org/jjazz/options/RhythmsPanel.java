@@ -160,7 +160,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
 
             // Select default rhythm if there is one         
             RhythmDatabase rdb = RhythmDatabase.getDefault();
-            RhythmInfo ri = rdb.getDefaultRhythm(selectedTimeSignature);  // Can be null
+            RhythmInfo ri = rdb.getDefaultRhythm(selectedTimeSignature);  // Can't be null
             RhythmProvider rp = list_rhythmProviders.getSelectedValue();   // Can be null
             if (ri != null)
             {
@@ -531,9 +531,9 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     private void updateDefaultRhythmField()
     {
         RhythmDatabase rdb = RhythmDatabase.getDefault();
-        RhythmInfo ri = rdb.getDefaultRhythm(selectedTimeSignature);
-        String s = (ri == null) ? "-" : ri.getName();
-        String t = (ri == null) ? "-" : "Rhythm Provider: " + rdb.getRhythmProvider(ri).getInfo().getName();
+        RhythmInfo ri = rdb.getDefaultRhythm(selectedTimeSignature);    // Can't be null
+        String s =  ri.getName();
+        String t =  "Rhythm Provider: " + rdb.getRhythmProvider(ri).getInfo().getName();
         tf_defaultRhythm.setText(s);
         tf_defaultRhythm.setToolTipText(t);
     }

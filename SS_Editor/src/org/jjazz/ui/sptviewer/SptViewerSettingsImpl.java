@@ -425,6 +425,12 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     {
 
         @Override
+        public void initialize()
+        {
+            // Do nothing
+        }
+
+        @Override
         public void upgrade(String oldVersion)
         {
             UpgradeManager um = UpgradeManager.getInstance();

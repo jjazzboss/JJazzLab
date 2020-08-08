@@ -44,6 +44,7 @@ public class FileDirectoryManager
 {
 
     public static final String APP_CONFIG_PREFIX_DIR = ".jjazz";
+    public static final String JJAZZLAB_USER_DIR = "JJazzLab";
     public static final String TEMPLATE_SONG_NAME = "NewSongTemplate";
     public static final String MIX_FILE_EXTENSION = "mix";
     public static final String SONG_EXTENSION = "sng";
@@ -139,6 +140,40 @@ public class FileDirectoryManager
         File dir = fdm.getAppConfigDirectory(null);
         File f = new File(dir, TEMPLATE_SONG_NAME + "." + FileDirectoryManager.SONG_EXTENSION);
         return f;
+    }
+
+    /**
+     * The directory user.home/DEFAULT_USER_DIR.
+     * <p>
+     * Directory is created if it does not exist.
+     *
+     * @return Can't be null. Default to user.home property.
+     */
+    public File getJJazzLabUserDirectory()
+    {
+        // We need a valid user.home directory        
+        String uh = System.getProperty("user.home");
+        assert uh != null : "user.home property does not exist: " + uh;
+        File userHome = new File(uh);
+        assert userHome.isDirectory() : "user.home directory does not exist: " + uh;
+
+
+        // Our user dir
+        File userDir = new File(uh + "/" + JJAZZLAB_USER_DIR);
+        if (!userDir.isDirectory())
+        {
+            // Create the directory
+            if (!userDir.mkdir())
+            {
+                LOGGER.warning("getJJazzLabUserDirectory() Can't create directory " + userDir.getAbsolutePath() + ". Using " + uh + " instead...");
+                userDir = userHome;
+            } else
+            {
+                LOGGER.warning("getJJazzLabUserDirectory() Created JJazzLab user directory " + userDir.getAbsolutePath());
+            }
+        }
+
+        return userDir;
     }
 
     /**
@@ -347,7 +382,7 @@ public class FileDirectoryManager
     /**
      * The last directory used for song open or song save.
      * <p>
-     * If not set return the file for System.getProperty("user.dir").
+     * If not set return getJJazzLabUserDirectory() unless it does not exist anymore.
      *
      * @return Can be null
      */
@@ -366,14 +401,10 @@ public class FileDirectoryManager
         }
         if (f == null)
         {
-            String ud = System.getProperty("user.dir");
-            if (ud != null)
+            f = getJJazzLabUserDirectory();
+            if (!f.isDirectory())
             {
-                f = new File(ud);
-                if (!f.isDirectory())
-                {
-                    f = null;
-                }
+                f = null;
             }
         }
         LOGGER.fine("getLastSongDirectory() f=" + f);
@@ -416,8 +447,18 @@ public class FileDirectoryManager
     {
 
         @Override
+        public void initialize()
+        {
+            // Set the JJazzLab User Directory as LastSongDirectory
+            getInstance().setLastSongDirectory(getInstance().getJJazzLabUserDirectory());
+        }
+
+        @Override
         public void upgrade(String oldVersion)
         {
+
+
+            // Copy preferences if any
             UpgradeManager um = UpgradeManager.getInstance();
             um.duplicateOldPreferences(prefs);
         }

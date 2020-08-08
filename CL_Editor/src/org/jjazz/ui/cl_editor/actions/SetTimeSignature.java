@@ -157,9 +157,8 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
     // =============================================================================================    
     private void updateMenu(JMenu menu)
     {
-        // Prepare the TimeSignature subMenu
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
-        
+        // Prepare the TimeSignature subMenu      
+
         
         menu.removeAll();
         
@@ -194,8 +193,7 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
             });
             
             
-            boolean b = rdb.getDefaultRhythm(ts) != null;
-            mi.setEnabled(b);
+            mi.setEnabled(true);
             menu.add(mi);
         }
     }

@@ -216,6 +216,12 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
     {
 
         @Override
+        public void initialize()
+        {
+            // Do nothing
+        }
+
+        @Override
         public void upgrade(String oldVersion)
         {
             UpgradeManager um = UpgradeManager.getInstance();

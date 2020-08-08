@@ -947,6 +947,11 @@ public final class JJazzMidiSystem
             um.duplicateOldPreferences(prefs);
         }
 
+        @Override
+        public void initialize()
+        {
+            // Do nothing
+        }
     }
 
 }

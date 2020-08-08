@@ -26,8 +26,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
@@ -115,7 +113,7 @@ public class UpgradeManager
             prop.load(reader);
         } catch (IOException ex)
         {
-            LOGGER.warning("getPropertiesFromPrefs() problem reading file="+f.getAbsolutePath()+": ex="+ex.getLocalizedMessage());
+            LOGGER.warning("getPropertiesFromPrefs() problem reading file=" + f.getAbsolutePath() + ": ex=" + ex.getLocalizedMessage());
             return null;
         }
 
@@ -254,16 +252,18 @@ public class UpgradeManager
             }
             String importVersion = um.getImportSourceVersion();
             LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion);
-            if (importVersion != null)
+            for (var task : Lookup.getDefault().lookupAll(UpgradeTask.class))
             {
-                for (var task : Lookup.getDefault().lookupAll(UpgradeTask.class))
+                task.initialize();
+                if (importVersion != null)
                 {
                     task.upgrade(importVersion);
                 }
             }
         }
-
     }
 
-
 }
+
+
+

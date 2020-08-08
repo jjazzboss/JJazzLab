@@ -250,9 +250,15 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
     {
 
         @Override
+        public void initialize()
+        {
+            // Do nothing
+        }
+
+        @Override
         public void upgrade(String oldVersion)
         {
-            UpgradeManager um= UpgradeManager.getInstance();
+            UpgradeManager um = UpgradeManager.getInstance();
             um.duplicateOldPreferences(prefs);
         }
 

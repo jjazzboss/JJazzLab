@@ -65,7 +65,7 @@ public class OutputSynthManager implements PropertyChangeListener
     private static OutputSynthManager INSTANCE;
     private static JFileChooser CHOOSER_INSTANCE;
     private OutputSynth outputSynth;
-    private static Preferences prefs = NbPreferences.forModule(MidiSynthManager.class);
+    private static Preferences prefs = NbPreferences.forModule(OutputSynthManager.class);
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(OutputSynthManager.class.getSimpleName());
 
@@ -291,7 +291,12 @@ public class OutputSynthManager implements PropertyChangeListener
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
-
+        @Override
+        public void initialize()
+        {
+            // Do nothing
+        }
+        
         @Override
         public void upgrade(String oldVersion)
         {

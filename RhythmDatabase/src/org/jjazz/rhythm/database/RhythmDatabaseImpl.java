@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythm.database;
 
+import org.jjazz.ui.utilities.PleaseWaitDialog;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -52,14 +53,17 @@ import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.util.Utilities;
+import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.Lookup;
-import org.netbeans.api.progress.BaseProgressUtils;
 import org.netbeans.api.progress.ProgressHandle;
-import org.netbeans.api.progress.ProgressRunnable;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.NbPreferences;
+import org.openide.util.RequestProcessor;
 import org.openide.util.lookup.ServiceProvider;
+import org.openide.windows.OnShowing;
+import org.openide.windows.WindowManager;
 
 /**
  * RhythmDatabase implementation.
@@ -75,7 +79,8 @@ import org.openide.util.lookup.ServiceProvider;
  * <p>
  * Default rhythms are stored as Preferences.
  */
-public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListener
+@OnShowing
+public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListener, Runnable
 {
 
     private static final String PREF_DEFAULT_RHYTHM = "DefaultRhythm";
@@ -98,6 +103,10 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
      */
     private final HashMap<String, AdaptedRhythm> mapAdaptedRhythms = new HashMap<>();
     /**
+     * The initialization task.
+     */
+    protected volatile RequestProcessor.Task initTask;
+    /**
      * Used to store the default rhythms
      */
     private static Preferences prefs = NbPreferences.forModule(RhythmDatabaseImpl.class);
@@ -105,33 +114,74 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     private final ArrayList<ChangeListener> listeners = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(RhythmDatabaseImpl.class.getSimpleName());
 
+    /**
+     * If database is not ready yet (scanning) then the call blocks and shows a dialog to inform user we're waiting.
+     *
+     * @return
+     */
     static public RhythmDatabaseImpl getInstance()
     {
-        synchronized (RhythmDatabaseImpl.class)
+        if (INSTANCE == null || INSTANCE.initTask == null)
         {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new RhythmDatabaseImpl();
-            }
+            // getInstance() calls should happen after our @onShowing.run
+            throw new IllegalStateException("INSTANCE=" + INSTANCE + " initTask=" + INSTANCE.initTask);
+        }
+
+        // Init is done
+        if (INSTANCE.initTask.isFinished())
+        {
+            return INSTANCE;
+        }
+
+        // Show a dialog while waiting for end of the init task
+        PleaseWaitDialog dlg = new PleaseWaitDialog(WindowManager.getDefault().getMainWindow());
+
+
+        // Add listener before showing modal dialog. If initTask is finished now directly call the listener
+        INSTANCE.initTask.addTaskListener(task ->
+        {
+            // LOGGER.severe("getInstance().lambda.taskFinished() --");
+            dlg.setVisible(false);
+            dlg.dispose();
+        });
+
+
+        // Show dialog if really not finished (may happen just before this source code line)
+        if (!INSTANCE.initTask.isFinished())
+        {
+            dlg.setVisible(true);
         }
         return INSTANCE;
     }
 
-    private RhythmDatabaseImpl()
+    public RhythmDatabaseImpl()
     {
+        // LOGGER.severe("RhythmDatabaseImpl() --");
+        INSTANCE = this;
         FileDirectoryManager.getInstance().addPropertyChangeListener(this);
 
-        // Our progress
-        ProgressRunnable<Boolean> operation = ph ->
-        {
-            return initDatabase(ph);
-        };
-        BaseProgressUtils.showProgressDialogAndRun(operation, "Initializing rhythm database", true);
+    }
 
-        logStats();
 
-        // dump();
+    /**
+     * Starts the scanning in a background task.
+     */
+    @Override
+    public void run()
+    {
+        // LOGGER.severe("run() --");
 
+        // Prepare the ProgressHandle
+        boolean needRescan = prefs.getBoolean(PREF_NEED_RESCAN, true);
+        String dir = FileDirectoryManager.getInstance().getUserRhythmDirectory().getAbsolutePath();
+        String msg = needRescan ? "Scanning all rhythms in " + dir + "..." : "Reading rhythm list...";
+        ProgressHandle ph = ProgressHandle.createHandle(msg);
+        ph.start();
+
+
+        // Start the task
+        Runnable run = () -> initDatabase(ph, needRescan);
+        initTask = RequestProcessor.getDefault().post(run);
     }
 
     @Override
@@ -285,13 +335,8 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                     LOGGER.warning("getRhythm() Unknown rhythm provider id in AdaptedRhythm rId=" + rId);
                     return null;
                 }
-                Rhythm rOriginal = getRhythmInstance(rIdOriginal);
-                if (rOriginal == null)
-                {
-                    LOGGER.warning("getRhythm() Unknown rhythmId in AdaptedRhythm rId=" + rId);
-                    return null;
-                }
-                r = getAdaptedRhythmInstance(rOriginal, newTs);
+                Rhythm rOriginal = getRhythmInstance(rIdOriginal);  // Possible exception here
+                r = getAdaptedRhythmInstance(rOriginal, newTs);     // Can be null
             }
         } else
         {
@@ -366,6 +411,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
     }
 
+
     @Override
     public void setDefaultRhythm(TimeSignature ts, RhythmInfo ri)
     {
@@ -382,6 +428,14 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         // Store the uniqueId of the Rhythm as a preference
         prefs.put(getPrefString(ts), ri.getUniqueId());
     }
+
+    @Override
+    public Rhythm getDefaultStubRhythmInstance(TimeSignature ts)
+    {
+        var srp = StubRhythmProvider.getDefault();
+        return srp.getStubRhythm(ts);
+    }
+
 
     @Override
     public List<TimeSignature> getTimeSignatures()
@@ -556,10 +610,9 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
      * @param ph Used to monitor progress (already started)
      * @return True if ok
      */
-    private boolean initDatabase(ProgressHandle ph)
+    private void initDatabase(ProgressHandle ph, boolean needRescan)
     {
         File rDir = FileDirectoryManager.getInstance().getUserRhythmDirectory();
-        boolean needRescan = prefs.getBoolean(PREF_NEED_RESCAN, true);
         boolean cacheFilePresent = RhythmDbCache.getFile().isFile();
         LOGGER.info("init() needRescan=" + needRescan + " cacheFilePresent=" + cacheFilePresent);
 
@@ -615,7 +668,8 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
 
         ph.finish();
-        return true;
+
+        logStats();
     }
 
     /**
@@ -869,12 +923,69 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     static public class RestoreSettingsTask implements UpgradeTask
     {
 
+        @StaticResource(relative = true)
+        public static final String ZIP_RESOURCE_PATH = "resources/Rhythms.zip";
+        public static final String DIR_NAME = "Rhythms";
+
+        @Override
+        public void initialize()
+        {
+            // Create the dir if it does not exists, and set it as the default user rhythm directory
+            var fdm = FileDirectoryManager.getInstance();
+            File dir = new File(fdm.getJJazzLabUserDirectory(), DIR_NAME);
+            if (!dir.isDirectory() && !dir.mkdir())
+            {
+                LOGGER.warning("upgrade() Could not create directory " + dir.getAbsolutePath() + ".");
+            } else
+            {
+                // Copy files 
+                copyFilesOrNot(dir);
+                fdm.setUserRhythmDirectory(dir);
+            }
+        }
+
         @Override
         public void upgrade(String oldVersion)
         {
+            // Copy preferences
             UpgradeManager um = UpgradeManager.getInstance();
             um.duplicateOldPreferences(prefs);
-        }
-    }
 
+        }
+
+        /**
+         * If dir is not empty ask user confirmation to replace files.
+         *
+         * @param dir Must exist.
+         */
+        private void copyFilesOrNot(File dir)
+        {
+            boolean isEmpty;
+            try
+            {
+                isEmpty = Utilities.isEmpty(dir.toPath());
+            } catch (IOException ex)
+            {
+                LOGGER.warning("copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getLocalizedMessage());
+                return;
+            }
+            if (!isEmpty)
+            {
+                String msg = "Fresh start: copying default rhythm files to " + dir.getAbsolutePath() + ".\n\n"
+                        + "OK to proceed?";
+                NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
+                Object result = DialogDisplayer.getDefault().notify(d);
+                if (NotifyDescriptor.YES_OPTION != result)
+                {
+                    return;
+                }
+            }
+
+            // Copy the default rhythms
+            List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
+            LOGGER.info("copyFilesOrNot() Copied " + res.size() + " rhythm files to " + dir.getAbsolutePath());
+
+        }
+
+    }
 }

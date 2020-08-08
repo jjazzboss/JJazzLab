@@ -21,11 +21,13 @@
  * Contributor(s): 
  *
  */
-package org.jjazz.outputsynth;
+package org.jjazz.midisynthmanager;
 
+import org.jjazz.midisynthmanager.api.MidiSynthManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,57 +41,57 @@ import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midi.synths.GSSynth;
 import org.jjazz.midi.synths.StdSynth;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
-import org.netbeans.api.progress.BaseProgressUtils;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
+import org.netbeans.api.annotations.common.StaticResource;
+import org.openide.*;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
 
-/**
- * A central place to manage MidiSynths.
- */
-public class MidiSynthManager
+
+public class MidiSynthManagerImpl implements MidiSynthManager
 {
 
+    @StaticResource(relative = true)
+    private final static String JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH = "resources/JJazzLabSoundFontSynth_GM2.ins";
+    @StaticResource(relative = true)
+    private final static String JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH = "resources/JJazzLabSoundFontSynth_GS.ins";
+    @StaticResource(relative = true)
+    private final static String JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH = "resources/JJazzLabSoundFontSynth_XG.ins";
+    @StaticResource(relative = true)
+    private final static String YAMAHA_REF_SYNTH_PATH = "resources/YamahaRefSynth.ins";
     private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
-    private static final String MIDISYNTH_FILES_RESOURCE_ZIP = "resources/MidiSynthFiles.zip";
-    private static MidiSynthManager INSTANCE;
-    private File lastSynthDir;
-    private List<WeakReference<MidiSynth>> midiSynthRefs = new ArrayList<>();
-    private static final Logger LOGGER = Logger.getLogger(MidiSynthManager.class.getSimpleName());
+    private static MidiSynthManagerImpl INSTANCE;
 
-    public static MidiSynthManager getInstance()
+
+    private File lastSynthDir;
+    private final List<MidiSynth> builtinSynths = new ArrayList<>();
+    private final List<WeakReference<MidiSynth>> midiSynthRefs = new ArrayList<>();
+    private static final Logger LOGGER = Logger.getLogger(MidiSynthManagerImpl.class.getSimpleName());
+
+
+    public static MidiSynthManagerImpl getInstance()
     {
-        synchronized (MidiSynthManager.class)
+        synchronized (UpgradeManager.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new MidiSynthManager();
+                INSTANCE = new MidiSynthManagerImpl();
             }
         }
         return INSTANCE;
     }
 
-    private MidiSynthManager()
+    private MidiSynthManagerImpl()
     {
-        // Copy the default MidiSynths if not done
-        final File dir = getMidiSynthFilesDir();
-        final File[] files = dir.listFiles();
-        if (files.length == 0)
-        {
-            Runnable run = new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    File[] res = MidiSynthManager.this.copyMidiSynthFilesFromZipResource(dir);
-                    LOGGER.info("MidiSynthManager() First time initialization - copied " + res.length + " files into " + dir.getAbsolutePath());
-                }
-            };
-            BaseProgressUtils.showProgressDialogAndRun(run, "First time initialization - copying builtin Midi synth files...");
-        }
+        // LOGGER.severe("MidiSynthManagerImpl() --");
+        // Read the builtin synths        
+        builtinSynths.add(readOneResourceSynth(JJAZZLAB_SOUNDFONT_GS_SYNTH_PATH));
+        builtinSynths.add(readOneResourceSynth(JJAZZLAB_SOUNDFONT_GM2_SYNTH_PATH));
+        builtinSynths.add(readOneResourceSynth(JJAZZLAB_SOUNDFONT_XG_SYNTH_PATH));
+        builtinSynths.add(readOneResourceSynth(YAMAHA_REF_SYNTH_PATH));
     }
 
     /**
@@ -99,22 +101,20 @@ public class MidiSynthManager
      *
      * @return
      */
+    @Override
     public List<MidiSynth> getBuiltinSynths()
     {
-        ArrayList<MidiSynth> res = new ArrayList<>();
-        res.add(OS_JJazzLabSoundFont_GS.getInstance().getJJazzLabSoundFontSynth());
-        res.add(OS_JJazzLabSoundFont_GM2.getInstance().getJJazzLabSoundFontSynth());
-        res.add(OS_JJazzLabSoundFont_XG.getInstance().getJJazzLabSoundFontSynth());
-        res.add(OS_YamahaRef.getInstance().getYamahaRefSynth());
-        return res;
+        return new ArrayList<>(builtinSynths);
     }
 
     /**
-     * Search the standard synths, the builtin synths and then through our active MidiSynth references to find a synth with synthName.
+     * Search the standard synths, the builtin synths and then through our active MidiSynth references to find a synth with
+     * synthName.
      *
      * @param synthName
      * @return Can be null.
      */
+    @Override
     public MidiSynth getMidiSynth(String synthName)
     {
         if (synthName == null)
@@ -136,7 +136,7 @@ public class MidiSynthManager
                 return synth;
             }
         }
-        for (WeakReference<MidiSynth> ref : getInstance().midiSynthRefs)
+        for (WeakReference<MidiSynth> ref : midiSynthRefs)
         {
             MidiSynth synth = ref.get();
             if (synth != null)
@@ -158,6 +158,7 @@ public class MidiSynthManager
      * @param synthFile
      * @return A list of loaded MidiSynths. Can be empty. MidiSynths have their getFile() property set to synthFile.
      */
+    @Override
     public List<MidiSynth> loadSynths(File synthFile)
     {
         if (synthFile == null)
@@ -180,9 +181,9 @@ public class MidiSynthManager
         {
             // Ask provider to read the file and add the non-empty synths
             List<MidiSynth> synths = null;
-            try
+            try (FileInputStream fis = new FileInputStream(synthFile))
             {
-                synths = reader.readSynthsFromStream(new FileInputStream(synthFile), synthFile); // Can raise exception
+                synths = reader.readSynthsFromStream(fis, synthFile); // Can raise exception
                 for (MidiSynth synth : synths)
                 {
                     if (synth.getNbInstruments() > 0)
@@ -209,6 +210,7 @@ public class MidiSynthManager
      *
      * @return The selected file. Null if user cancelled or no selection.
      */
+    @Override
     public File showSelectSynthFileDialog()
     {
         // Collect all file extensions managed by the MidiSynthFileReaders
@@ -252,6 +254,10 @@ public class MidiSynthManager
         return synthFile;
     }
 
+    // ===============================================================================
+    // Internal classes
+    // ===============================================================================
+
     @ServiceProvider(service = MidiSynth.Finder.class)
     static public class SynthFinder implements MidiSynth.Finder
     {
@@ -260,8 +266,8 @@ public class MidiSynthManager
          * Search the MidiSynthManager instance.
          *
          * @param synthName
-         * @param synthFile If null, search the builtin synths. If no parent directory, search the MidiSynthManager default directory for
-         *                  output synth config files.
+         * @param synthFile If null, search the builtin synths. If no parent directory, search the MidiSynthManager default
+         * directory for output synth config files.
          * @return
          */
         @Override
@@ -271,8 +277,10 @@ public class MidiSynthManager
             {
                 throw new IllegalArgumentException("synthName=" + synthName + " synthFile=" + synthFile);
             }
+            var msm = MidiSynthManagerImpl.getInstance();
+
             // First search via the name in registered instances
-            MidiSynth res = getInstance().getMidiSynth(synthName);
+            MidiSynth res = msm.getMidiSynth(synthName);
 
             // Try to read the file if not null
             if (res == null && synthFile != null)
@@ -283,7 +291,7 @@ public class MidiSynthManager
                     File dir = FileDirectoryManager.getInstance().getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
                     synthFile = new File(dir, synthFile.getName());
                 }
-                List<MidiSynth> synths = getInstance().loadSynths(synthFile);
+                List<MidiSynth> synths = msm.loadSynths(synthFile);
                 for (MidiSynth synth : synths)
                 {
                     if (synth.getName().equals(synthName))
@@ -300,6 +308,24 @@ public class MidiSynthManager
     // ===============================================================================
     // Private methods
     // ===============================================================================
+
+    private MidiSynth readOneResourceSynth(String insResourcePath)
+    {
+        InputStream is = getClass().getResourceAsStream(insResourcePath);
+        assert is != null : "insResourcePath=" + insResourcePath;
+        MidiSynthFileReader r = MidiSynthFileReader.Util.getReader("ins");
+        assert r != null;
+        try
+        {
+            List<MidiSynth> synths = r.readSynthsFromStream(is, null);
+            assert synths.size() == 1;
+            return synths.get(0);
+        } catch (IOException ex)
+        {
+            throw new IllegalStateException("Unexpected error", ex);
+        }
+    }
+
     /**
      * The last used directory, or if not set the standard directory for MidiSynth.
      * <p>
@@ -322,18 +348,75 @@ public class MidiSynthManager
         return rDir;
     }
 
-    /**
-     * Copy the builtin Midi synth files within the JAR to destPath.
-     * <p>
-     *
-     * @param destPath
-     *
-     */
-    private File[] copyMidiSynthFilesFromZipResource(File destDir)
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
     {
-        List<File> res = Utilities.extractZipResource(getClass(), MIDISYNTH_FILES_RESOURCE_ZIP, destDir.toPath(), true);
-        LOGGER.info("copyBuiltinResourceFiles() Copied " + res.size() + " instrument definition files found in " + destDir.getAbsolutePath());
-        return res.toArray(new File[0]);
+
+        @StaticResource(relative = true)
+        public static final String ZIP_RESOURCE_PATH = "resources/MidiSynthFiles.zip";
+
+
+        @Override
+        public void upgrade(String oldVersion)
+        {
+            // Nothing
+        }
+
+        @Override
+        public void initialize()
+        {
+            // Create the dir if it does not exists
+            File dir = FileDirectoryManager.getInstance().getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
+            if (dir == null || (!dir.isDirectory() && !dir.mkdir()))
+            {
+                LOGGER.warning("upgrade() Could not create directory " + dir + ".");
+            } else
+            {
+                // Copy files 
+                copyFilesOrNot(dir);
+            }
+
+
+        }
+
+        /**
+         * If dir is not empty ask user confirmation to replace files.
+         *
+         * @param dir Must exist.
+         */
+        private void copyFilesOrNot(File dir)
+        {
+            boolean isEmpty;
+            try
+            {
+                isEmpty = Utilities.isEmpty(dir.toPath());
+            } catch (IOException ex)
+            {
+                LOGGER.warning("copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getLocalizedMessage());
+                return;
+            }
+            if (!isEmpty)
+            {
+                String msg = "Fresh start: copying default Midi synth definition files to " + dir.getAbsolutePath() + ".\n\n"
+                        + "OK to proceed?";
+                NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
+                Object result = DialogDisplayer.getDefault().notify(d);
+                if (NotifyDescriptor.YES_OPTION != result)
+                {
+                    return;
+                }
+            }
+
+            // Copy the default rhythms
+            List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
+            LOGGER.info("copyFilesOrNot() Copied " + res.size() + " Midi synth definition files to " + dir.getAbsolutePath());
+
+        }
+
     }
 
 }

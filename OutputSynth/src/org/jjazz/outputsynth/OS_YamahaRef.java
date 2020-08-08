@@ -32,14 +32,13 @@ import org.jjazz.midi.MidiAddress;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midi.synths.StdSynth;
+import org.jjazz.midisynthmanager.api.MidiSynthManager;
 
 /**
  * The builtin OutputSynth for the Yamaha Tyros/PSR reference synth.
  */
 public class OS_YamahaRef extends OutputSynth
 {
-
-    private static final String YAMAHA_REF_SYNTH_PATH = "resources/YamahaRefSynth.ins";
 
     private static OS_YamahaRef INSTANCE;
     private final MidiSynth midiSynth;
@@ -59,20 +58,7 @@ public class OS_YamahaRef extends OutputSynth
 
     private OS_YamahaRef()
     {
-        // Read the synth from the .ins file
-        InputStream is = getClass().getResourceAsStream(YAMAHA_REF_SYNTH_PATH);
-        assert is != null : "YAMAHA_REF_SYNTH_PATH=" + YAMAHA_REF_SYNTH_PATH;
-        MidiSynthFileReader r = MidiSynthFileReader.Util.getReader("ins");
-        assert r != null;
-        try
-        {
-            List<MidiSynth> synths = r.readSynthsFromStream(is, null);
-            assert synths.size() == 1;
-            midiSynth = synths.get(0);
-        } catch (IOException ex)
-        {
-            throw new IllegalStateException("Unexpected error", ex);
-        }
+        midiSynth = MidiSynthManager.getDefault().getMidiSynth(MidiSynthManager.YAMAHA_REF_SYNTH_NAME);
 
         // Adjust settings
         addCustomSynth(midiSynth);

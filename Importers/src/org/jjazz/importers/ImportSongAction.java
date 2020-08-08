@@ -230,8 +230,8 @@ public final class ImportSongAction implements ActionListener
                 // Ok we got the new song show it !
                 song.setFile(null);     // Make sure song is not associated with the import file
                 SongFactory.getInstance().registerSong(song);
-                
-                boolean last = (f==songFiles.get(songFiles.size()-1));                
+
+                boolean last = (f == songFiles.get(songFiles.size() - 1));
                 SongEditorManager.getInstance().showSong(song, last);
             }
         }
@@ -305,6 +305,12 @@ public final class ImportSongAction implements ActionListener
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
+
+        @Override
+        public void initialize()
+        {
+            // Do nothing
+        }
 
         @Override
         public void upgrade(String oldVersion)

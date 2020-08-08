@@ -127,15 +127,20 @@ public class IR_SectionSettingsImpl implements IR_SectionSettings, FontColorUser
     {
         return Arrays.asList((FontColorUserSettingsProvider.FCSetting) this);
     }
-    
-    
+
+
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
-
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
+
+        @Override
+        public void initialize()
+        {
+            // Do nothing
+        }
 
         @Override
         public void upgrade(String oldVersion)

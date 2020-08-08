@@ -226,6 +226,11 @@ public class FavoriteInstruments
             um.duplicateOldPreferences(prefs);
         }
 
+        @Override
+        public void initialize()
+        {
+            // Do nothing
+        }
     }
 
 

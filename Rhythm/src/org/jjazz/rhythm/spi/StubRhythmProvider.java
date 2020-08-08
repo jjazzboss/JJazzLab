@@ -24,12 +24,24 @@ package org.jjazz.rhythm.spi;
 
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
+import org.openide.util.Lookup;
 
 /**
  * The service provider in charge of providing the rhythm stubs when no valid rhythm is available for a given time signature.
  */
 public interface StubRhythmProvider extends RhythmProvider
 {
+
+    static public StubRhythmProvider getDefault()
+    {
+        StubRhythmProvider result = Lookup.getDefault().lookup(StubRhythmProvider.class);
+        if (result == null)
+        {
+            throw new NullPointerException("result=" + result);
+        }
+        return result;
+    }
+
 
     /**
      * Get the stub rhythm for the specified time signature.

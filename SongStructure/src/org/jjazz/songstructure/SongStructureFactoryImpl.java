@@ -24,6 +24,7 @@ package org.jjazz.songstructure;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Logger;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -36,13 +37,13 @@ import org.jjazz.songstructure.api.SongStructureFactory;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.openide.util.Exceptions;
 
 @ServiceProvider(service = SongStructureFactory.class)
 public class SongStructureFactoryImpl extends SongStructureFactory
 {
 
     static private SongStructureFactoryImpl INSTANCE;
+    private static final Logger LOGGER = Logger.getLogger(SongStructureFactoryImpl.class.getSimpleName());
 
     static public SongStructureFactoryImpl getInstance()
     {
@@ -72,17 +73,19 @@ public class SongStructureFactoryImpl extends SongStructureFactory
         for (CLI_Section section : cls.getItems(CLI_Section.class))
         {
             int sptBarIndex = section.getPosition().getBar();
-            
-            
+
+
             Rhythm r = null;
+            RhythmInfo ri = null;
             try
             {
-                RhythmInfo ri = rdb.getDefaultRhythm(section.getData().getTimeSignature());
+                ri = rdb.getDefaultRhythm(section.getData().getTimeSignature());
                 r = rdb.getRhythmInstance(ri);
             } catch (UnavailableRhythmException ex)
             {
-                // Should never be there
-                Exceptions.printStackTrace(ex);
+                // Might happen if file deleted
+                LOGGER.warning("createSgs() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getLocalizedMessage());
+                r = rdb.getDefaultStubRhythmInstance(section.getData().getTimeSignature());  // non null
             }
 
             SongPart spt = sgs.createSongPart(
@@ -107,13 +110,16 @@ public class SongStructureFactoryImpl extends SongStructureFactory
         SongStructureImpl sgs = new SongStructureImpl();
         RhythmDatabase rdb = RhythmDatabase.getDefault();
         Rhythm r = null;
+        RhythmInfo ri = null;
         try
         {
-            r = rdb.getRhythmInstance(rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR));
+            ri = rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR);
+            r = rdb.getRhythmInstance(ri);
         } catch (UnavailableRhythmException ex)
         {
-            // Should never be there
-            Exceptions.printStackTrace(ex);
+            // Might happen if file deleted
+            LOGGER.warning("createSimpleSgs() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getLocalizedMessage());
+            r = rdb.getDefaultStubRhythmInstance(TimeSignature.FOUR_FOUR);  // non null
         }
         assert r != null;
         SongPart spt = sgs.createSongPart(r, "Name", 0, 8, null, false);

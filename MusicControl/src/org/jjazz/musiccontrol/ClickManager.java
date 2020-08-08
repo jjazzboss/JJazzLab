@@ -233,8 +233,7 @@ public class ClickManager
      * The actual Midi channel to be used with he specified MidiMix.
      * <p>
      * If in the midiMix channel=getPreferredClickChannel() is used and is not a drums/percussion instrument, return the Midi
-     * channel
-     * MidiConst.CHANNEL_DRUMS. Otherwise return getPreferredClickChannel().
+     * channel MidiConst.CHANNEL_DRUMS. Otherwise return getPreferredClickChannel().
      *
      * @param midiMix
      * @return
@@ -376,8 +375,7 @@ public class ClickManager
      * Add a precount click track to the sequence for the specified song.
      * <p>
      * Except for the cases below, all existing sequence MidiEvents are shifted 1 or 2 bars later in order to leave room for the
-     * precount
-     * bars.
+     * precount bars.
      * <p>
      * Not moved Meta events: Track name and Time signature.
      *
@@ -473,7 +471,6 @@ public class ClickManager
         long nextTick = tickOffset + (long) (nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
         return nextTick;
     }
-    
 
 
     // =====================================================================================
@@ -490,8 +487,12 @@ public class ClickManager
             um.duplicateOldPreferences(prefs);
         }
 
+        @Override
+        public void initialize()
+        {
+            // Do nothing
+        }
     }
 
-    
-    
+
 }

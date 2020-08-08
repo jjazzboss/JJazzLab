@@ -147,13 +147,14 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 
 
         // Request attention if option mark was ON and remains ON and only one of the following option has changed:
-        // crash/no crash/extended holdshot/scale/altChord
+        // crash/no crash/extended holdshot/scale/pedalBass/altChord
         if (oldCri != null
                 && oldChordSymbolString.equals(chordSymbolString)
                 && needOptionMark(ecs, cri)
                 && needOptionMark(oldEcs, oldCri)
                 && (oldAltChordSymbol != altChordSymbol
                 || !Objects.equals(cri.getScaleInstance(), oldCri.getScaleInstance())
+                || cri.hasOneFeature(Feature.PEDAL_BASS) != oldCri.hasOneFeature(Feature.PEDAL_BASS)
                 || cri.hasOneFeature(Feature.CRASH) != oldCri.hasOneFeature(Feature.CRASH)
                 || cri.hasOneFeature(Feature.NO_CRASH) != oldCri.hasOneFeature(Feature.NO_CRASH)
                 || cri.hasOneFeature(Feature.EXTENDED_HOLD_SHOT) != oldCri.hasOneFeature(Feature.EXTENDED_HOLD_SHOT)))
@@ -372,7 +373,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
             // Create the timer
             ActionListener al = new ActionListener()
             {
-                static final int NB_FLASH = 5;
+                static final int NB_FLASH = 11;
                 int count = NB_FLASH;
 
                 @Override
@@ -446,7 +447,9 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     {
         return ((cri.getAccentFeature() != null && cri.hasOneFeature(Feature.CRASH, Feature.EXTENDED_HOLD_SHOT, Feature.NO_CRASH))
                 || cri.getScaleInstance() != null
-                || extCs.getAlternateChordSymbol() != null);
+                || extCs.getAlternateChordSymbol() != null
+                || cri.hasOneFeature(Feature.PEDAL_BASS)
+                );
     }
 
 
