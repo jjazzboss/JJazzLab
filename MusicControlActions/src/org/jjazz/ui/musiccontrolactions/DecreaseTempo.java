@@ -37,7 +37,8 @@ import org.openide.util.NbBundle.Messages;
 @ActionRegistration(displayName = "#CTL_DecreaseTempo", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Shortcuts", name = "S-DOWN")
+            @ActionReference(path = "Shortcuts", name = "SUBTRACT"),
+            @ActionReference(path = "Shortcuts", name = "MINUS")
         })
 @Messages(
         {

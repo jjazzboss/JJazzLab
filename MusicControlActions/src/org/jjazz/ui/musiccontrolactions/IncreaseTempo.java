@@ -37,7 +37,8 @@ import org.openide.util.NbBundle.Messages;
 @ActionRegistration(displayName = "#CTL_IncreaseTempo", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Shortcuts", name = "S-UP")
+            @ActionReference(path = "Shortcuts", name = "ADD"),
+            @ActionReference(path = "Shortcuts", name = "S-EQUALS")
         })
 @Messages(
         {

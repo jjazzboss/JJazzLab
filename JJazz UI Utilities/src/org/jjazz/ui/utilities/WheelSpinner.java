@@ -24,26 +24,29 @@ package org.jjazz.ui.utilities;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SpinnerListModel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
-import org.openide.util.RequestProcessor;
-import org.openide.util.Task;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
+import javax.swing.text.PlainDocument;
 
 /**
- * A JSpinner with mousewheel support and some convenience functions.
+ * A JSpinner with mousewheel support, and some convenience methods.
  * <p>
- * Supports only SpinnerListModel and SpinnerNumberModel.
- * <p>
- * This JSpinner consumes all the printable char key events. Use a normal JSpinner if you want the default behavior with key events being
- * processed by JSpinner AND forwarded to component hierarchy via the key binding framework.
+ * Supports only SpinnerListModel and SpinnerNumberModel. Mouse-wheel support is enabled according to GeneralUISettings. If model
+ * is a SpinnerNumberModel prevent insertion of anything except digit.
  */
 public class WheelSpinner extends JSpinner implements MouseWheelListener
 {
@@ -52,28 +55,79 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
     private int ctrlWheelStep;
     private int columns;
     private boolean loopValues;
+    private boolean blockKeyEventForwarding;
     private static final Logger LOGGER = Logger.getLogger(WheelSpinner.class.getSimpleName());
 
     public WheelSpinner()
     {
-        addMouseWheelListener(this);        
 
-        // HACK ! 
-        // Key presses are not consumed by JSpinner, they are also processed by the keybinding framework
-        // Only way is to capture all the keys...
-        // see https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html
-        for (char c = 32; c <= 126; c++)
-        {
-            getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, 0), "doNothing");
-            getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, InputEvent.SHIFT_DOWN_MASK), "doNothing");
-        }
-        getActionMap().put("doNothing", new NoAction());
+        // Use mouse wheel only if enabled
+        GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
 
         setColumns(3);
         setCtrlWheelStep(3);
         setWheelStep(1);
         setLoopValues(true);
 
+        // setBlockKeyEventForwarding(true);
+
+        // Support for ctrl+UP/DOWN arrow (up/down arrow is supported by default by JSpinner if editor is editable)
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_DOWN_MASK), "actionIncreaseBig");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_DOWN_MASK), "actionDecreaseBig");
+        getActionMap().put("actionIncreaseBig", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                LOGGER.severe("WheelSpinner.actionPerformed() actionIncreaseBig");
+                for (int i = 0; i < ctrlWheelStep; i++)
+                {
+                    setValue(getNext());
+                }
+            }
+        });
+        getActionMap().put("actionDecreaseBig", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                LOGGER.severe("WheelSpinner.actionPerformed() actionDecreaseBig");
+                for (int i = 0; i < ctrlWheelStep; i++)
+                {
+                    setValue(getPrevious());
+                }
+            }
+        });
+
+    }
+
+    /**
+     * Block/unblock key event forwarding for printable keys.
+     * <p>
+     * Key presses are not consumed by JSpinner , they are also processed by the keybinding framework. The Only way is to capture
+     * all the keys... /* see https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html
+     *
+     * @param b
+     */
+    public void setBlockKeyEventForwarding(boolean b)
+    {
+        blockKeyEventForwarding = b;
+        String actionName = b ? "noAction" : "donotexist";
+        for (char c = 32; c <= 126; c++)
+        {
+            getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, 0), actionName);
+            getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, InputEvent.SHIFT_DOWN_MASK), actionName);
+        }
+        getActionMap().put("noAction", new NoAction());
+    }
+
+    /**
+     *
+     * @return False by default.
+     */
+    public boolean isBlockKeyEventForwarding()
+    {
+        return blockKeyEventForwarding;
     }
 
     /**
@@ -87,6 +141,31 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
             throw new IllegalArgumentException("model=" + model);
         }
         super.setModel(model);
+
+        if (model instanceof SpinnerNumberModel)
+        {
+            JTextField tf = getDefaultEditor().getTextField();
+            // Can't juste set DocumentFilter on the Spinner textfield !!!
+            // Need to replace the document, and this document needs setDocumentFilter to be overridden
+            // See https://stackoverflow.com/questions/9778958/make-jspinner-only-read-numbers-but-also-detect-backspace
+            AbstractDocument jsDoc = (AbstractDocument) tf.getDocument();
+            if (jsDoc instanceof PlainDocument)
+            {
+                AbstractDocument doc = new PlainDocument()
+                {
+                    @Override
+                    public void setDocumentFilter(DocumentFilter filter)
+                    {
+                        if (filter instanceof DigitOnlyFilter)
+                        {
+                            super.setDocumentFilter(filter);
+                        }
+                    }
+                };
+                doc.setDocumentFilter(new DigitOnlyFilter());
+                tf.setDocument(doc);
+            }
+        }
     }
 
     public JSpinner.DefaultEditor getDefaultEditor()
@@ -192,7 +271,7 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
 
     // -----------------------------------------------------------------------------
     // Private functions
-    // -----------------------------------------------------------------------------    
+    // -----------------------------------------------------------------------------        
     private Object getNext()
     {
         Object nextValue = getModel().getNextValue();
@@ -239,6 +318,41 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
         public void actionPerformed(ActionEvent e)
         {
             //do nothing
+        }
+    }
+
+    private class DigitOnlyFilter extends DocumentFilter
+    {
+
+        @Override
+        public void insertString(DocumentFilter.FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException
+        {
+            if (digitOnly(string))
+            {
+                super.insertString(fb, offset, string, attr);
+            }
+        }
+
+        @Override
+        public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException
+        {
+            if (digitOnly(text))
+            {
+                super.replace(fb, offset, length, text, attrs);
+            }
+        }
+
+        private boolean digitOnly(String text)
+        {
+            for (int i = 0; i < text.length(); i++)
+            {
+                char c = text.charAt(i);
+                if (!Character.isDigit(text.charAt(i)))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
