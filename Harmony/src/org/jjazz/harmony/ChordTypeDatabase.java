@@ -167,7 +167,6 @@ public class ChordTypeDatabase
         return INSTANCE;
     }
 
-
     /**
      * Try to guess where the extension part of a chord type string starts.
      * <p>
@@ -563,19 +562,12 @@ public class ChordTypeDatabase
 
     }
 
-
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
-
-        @Override
-        public void initialize()
-        {
-            // Do nothing
-        }
 
         @Override
         public void upgrade(String oldVersion)
@@ -585,6 +577,5 @@ public class ChordTypeDatabase
         }
 
     }
-
 
 }

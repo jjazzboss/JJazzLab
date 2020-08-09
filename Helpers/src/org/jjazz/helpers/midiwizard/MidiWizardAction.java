@@ -41,7 +41,7 @@ import org.jjazz.outputsynth.OS_JJazzLabSoundFont_GS;
 import org.jjazz.outputsynth.OS_JJazzLabSoundFont_XG;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
-import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.WizardDescriptor;
@@ -50,7 +50,7 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.Utilities;
-import org.openide.windows.OnShowing;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Start the Midi configuration wizard.
@@ -61,8 +61,7 @@ import org.openide.windows.OnShowing;
 @ActionID(category = "JJazz", id = "org.jjazz.helpers.midiwizard.MidiWizardAction")
 @ActionRegistration(displayName = "Midi configuration wizard...")
 @ActionReference(path = "Menu/Tools", position = 1650, separatorAfter = 1651)
-@OnShowing
-public final class MidiWizardAction implements ActionListener, Runnable
+public final class MidiWizardAction implements ActionListener
 {
 
     // SoundFont sequence data
@@ -179,18 +178,6 @@ public final class MidiWizardAction implements ActionListener, Runnable
         }
     }
 
-    @Override
-    public void run()
-    {
-        // Show the wizard at fresh start and only if no settings to import
-        UpgradeManager um = UpgradeManager.getInstance();
-        if (um.isFreshStart() && um.getImportSourceVersion() == null)
-        {
-
-            actionPerformed(null);
-        }
-    }
-
     public static void openInBrowser(URL url)
     {
         String errMsg = null;
@@ -218,6 +205,26 @@ public final class MidiWizardAction implements ActionListener, Runnable
     {
         Boolean b = (Boolean) wiz.getProperty(prop);
         return b == null ? false : b;
+    }
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade(String oldVersion)
+        {
+            // Show the wizard only if no previous settings to import
+            if (oldVersion == null)
+            {
+                var wizard = new MidiWizardAction();
+                wizard.actionPerformed(null);
+            }
+        }
+
     }
 
 }

@@ -487,11 +487,6 @@ public class ClickManager
             um.duplicateOldPreferences(prefs);
         }
 
-        @Override
-        public void initialize()
-        {
-            // Do nothing
-        }
     }
 
 

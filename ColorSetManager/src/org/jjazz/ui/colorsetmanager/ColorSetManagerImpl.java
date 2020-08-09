@@ -210,12 +210,6 @@ public class ColorSetManagerImpl implements ColorSetManager
     {
 
         @Override
-        public void initialize()
-        {
-            // Do nothing
-        }
-
-        @Override
         public void upgrade(String oldVersion)
         {
             UpgradeManager um = UpgradeManager.getInstance();

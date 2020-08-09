@@ -176,7 +176,6 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
         pcs.removePropertyChangeListener(listener);
     }
 
-
     // =====================================================================================
     // FontColorUserSettingsProvider implementation
     // =====================================================================================
@@ -200,13 +199,11 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
                 RpViewerSettingsImpl.this.setFont(f);
             }
 
-
         };
         res.add(fcs);
 
         return res;
     }
-
 
     // =====================================================================================
     // Upgrade Task
@@ -216,12 +213,6 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
     {
 
         @Override
-        public void initialize()
-        {
-            // Do nothing
-        }
-
-        @Override
         public void upgrade(String oldVersion)
         {
             UpgradeManager um = UpgradeManager.getInstance();
@@ -229,6 +220,5 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
         }
 
     }
-
 
 }

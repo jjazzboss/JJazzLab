@@ -25,7 +25,6 @@ package org.jjazz.helpers;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -33,23 +32,20 @@ import java.util.logging.Logger;
 import org.jjazz.helpers.FixMidiMixDialog.FixChoice;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
-import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
-import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
-import org.openide.modules.OnStart;
+import org.openide.windows.OnShowing;
 
 /**
  * Listen to pre-playback events, show the FixMidiMixDialog and fix the instruments if needed.
  */
-@OnStart               // Used only to get the automatic object creation upon startup
+@OnShowing              // Used only to get the automatic object creation upon startup
 public class FixMidiMixAction implements VetoableChangeListener, Runnable
 {
-
     private static FixMidiMixDialog DIALOG;
     private static final Logger LOGGER = Logger.getLogger(FixMidiMixAction.class.getSimpleName());
     FixChoice savedChoice = FixChoice.CANCEL;
@@ -64,7 +60,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
     @Override
     public void run()
     {
-        // Do nothing, we just use @OnStart just to get the automatic object creation...
+        // Do nothing, we just use @OnShowing just to get the automatic object creation...
     }
 
     /**

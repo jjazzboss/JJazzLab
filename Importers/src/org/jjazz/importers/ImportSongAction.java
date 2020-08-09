@@ -307,12 +307,6 @@ public final class ImportSongAction implements ActionListener
     {
 
         @Override
-        public void initialize()
-        {
-            // Do nothing
-        }
-
-        @Override
         public void upgrade(String oldVersion)
         {
             UpgradeManager um = UpgradeManager.getInstance();

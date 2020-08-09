@@ -103,12 +103,6 @@ public class ItemRendererSettingsImpl implements ItemRendererSettings
     {
 
         @Override
-        public void initialize()
-        {
-            // Do nothing
-        }
-
-        @Override
         public void upgrade(String oldVersion)
         {
             UpgradeManager um = UpgradeManager.getInstance();

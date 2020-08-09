@@ -50,7 +50,6 @@ import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
 
-
 public class MidiSynthManagerImpl implements MidiSynthManager
 {
 
@@ -65,12 +64,10 @@ public class MidiSynthManagerImpl implements MidiSynthManager
     private static final String MIDISYNTH_FILES_DEST_DIRNAME = "MidiSynthFiles";
     private static MidiSynthManagerImpl INSTANCE;
 
-
     private File lastSynthDir;
     private final List<MidiSynth> builtinSynths = new ArrayList<>();
     private final List<WeakReference<MidiSynth>> midiSynthRefs = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(MidiSynthManagerImpl.class.getSimpleName());
-
 
     public static MidiSynthManagerImpl getInstance()
     {
@@ -257,7 +254,6 @@ public class MidiSynthManagerImpl implements MidiSynthManager
     // ===============================================================================
     // Internal classes
     // ===============================================================================
-
     @ServiceProvider(service = MidiSynth.Finder.class)
     static public class SynthFinder implements MidiSynth.Finder
     {
@@ -308,7 +304,6 @@ public class MidiSynthManagerImpl implements MidiSynthManager
     // ===============================================================================
     // Private methods
     // ===============================================================================
-
     private MidiSynth readOneResourceSynth(String insResourcePath)
     {
         InputStream is = getClass().getResourceAsStream(insResourcePath);
@@ -348,7 +343,6 @@ public class MidiSynthManagerImpl implements MidiSynthManager
         return rDir;
     }
 
-
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
@@ -359,15 +353,8 @@ public class MidiSynthManagerImpl implements MidiSynthManager
         @StaticResource(relative = true)
         public static final String ZIP_RESOURCE_PATH = "resources/MidiSynthFiles.zip";
 
-
         @Override
         public void upgrade(String oldVersion)
-        {
-            // Nothing
-        }
-
-        @Override
-        public void initialize()
         {
             // Create the dir if it does not exists
             File dir = FileDirectoryManager.getInstance().getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
@@ -379,8 +366,6 @@ public class MidiSynthManagerImpl implements MidiSynthManager
                 // Copy files 
                 copyFilesOrNot(dir);
             }
-
-
         }
 
         /**

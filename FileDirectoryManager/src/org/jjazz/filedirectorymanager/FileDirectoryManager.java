@@ -438,7 +438,6 @@ public class FileDirectoryManager
         pcs.removePropertyChangeListener(l);
     }
 
-
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
@@ -447,16 +446,10 @@ public class FileDirectoryManager
     {
 
         @Override
-        public void initialize()
+        public void upgrade(String oldVersion)
         {
             // Set the JJazzLab User Directory as LastSongDirectory
             getInstance().setLastSongDirectory(getInstance().getJJazzLabUserDirectory());
-        }
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-
 
             // Copy preferences if any
             UpgradeManager um = UpgradeManager.getInstance();
@@ -464,6 +457,5 @@ public class FileDirectoryManager
         }
 
     }
-
 
 }

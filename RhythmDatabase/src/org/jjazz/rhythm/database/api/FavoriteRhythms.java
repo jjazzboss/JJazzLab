@@ -247,11 +247,6 @@ public class FavoriteRhythms
             um.duplicateOldPreferences(prefs);
         }
 
-        @Override
-        public void initialize()
-        {
-            // Do nothing
-        }
     }
 
 }

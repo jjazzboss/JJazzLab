@@ -95,11 +95,6 @@ public class UserChannelRvKey extends RhythmVoice
     static public class RestoreSettingsTask implements UpgradeTask
     {
 
-        @Override
-        public void initialize()
-        {
-            // Do nothing
-        }
 
         @Override
         public void upgrade(String oldVersion)

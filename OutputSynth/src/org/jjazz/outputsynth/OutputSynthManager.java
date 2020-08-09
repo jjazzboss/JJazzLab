@@ -291,11 +291,6 @@ public class OutputSynthManager implements PropertyChangeListener
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
-        @Override
-        public void initialize()
-        {
-            // Do nothing
-        }
         
         @Override
         public void upgrade(String oldVersion)

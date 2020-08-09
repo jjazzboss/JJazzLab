@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
@@ -50,12 +49,6 @@ public class ExampleSongs implements UpgradeTask
     @Override
     public void upgrade(String oldVersion)
     {
-        // Nothing
-    }
-
-    @Override
-    public void initialize()
-    {
         // Create the dir if it does not exists
         var fdm = FileDirectoryManager.getInstance();
         File dir = new File(fdm.getJJazzLabUserDirectory(), DIR_NAME);
@@ -67,7 +60,6 @@ public class ExampleSongs implements UpgradeTask
             // Copy files
             copyFilesOrNot(dir);
         }
-
     }
 
     /**

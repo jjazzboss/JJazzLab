@@ -96,12 +96,6 @@ public class SS_EditorSettingsImpl extends SS_EditorSettings
     {
 
         @Override
-        public void initialize()
-        {
-            // Do nothing
-        }
-
-        @Override
         public void upgrade(String oldVersion)
         {
             UpgradeManager um = UpgradeManager.getInstance();

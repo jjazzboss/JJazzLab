@@ -81,14 +81,8 @@ public class CL_EditorSettingsImpl extends CL_EditorSettings
     {
 
         @Override
-        public void initialize()
-        {
-            // Do nothing
-        }
-
-        @Override
         public void upgrade(String oldVersion)
-        {
+        {            
             UpgradeManager um = UpgradeManager.getInstance();
             um.duplicateOldPreferences(prefs);
         }

@@ -73,7 +73,6 @@ public class UpgradeManager
         return INSTANCE;
     }
 
-
     private UpgradeManager()
     {
         isFreshStart = prefs.getBoolean(PREF_FRESH_START, true);
@@ -90,7 +89,6 @@ public class UpgradeManager
     {
         return isFreshStart;
     }
-
 
     /**
      * Get the properties object of a module Netbeans preferences from the import source version.
@@ -231,7 +229,6 @@ public class UpgradeManager
         return importSourceVersion;
     }
 
-
     // =============================================================================================================
     // Private methods
     // =============================================================================================================
@@ -250,20 +247,13 @@ public class UpgradeManager
             {
                 return;
             }
-            String importVersion = um.getImportSourceVersion();
+            String importVersion = um.getImportSourceVersion();     // May be null
             LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion);
             for (var task : Lookup.getDefault().lookupAll(UpgradeTask.class))
             {
-                task.initialize();
-                if (importVersion != null)
-                {
-                    task.upgrade(importVersion);
-                }
+                task.upgrade(importVersion);
             }
         }
     }
 
 }
-
-
-

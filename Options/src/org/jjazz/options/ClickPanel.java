@@ -146,10 +146,8 @@ final class ClickPanel extends javax.swing.JPanel
         org.openide.awt.Mnemonics.setLocalizedText(lbl_soundLow, org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.lbl_soundLow.text")); // NOI18N
         lbl_soundLow.setToolTipText(org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.lbl_soundLow.toolTipText")); // NOI18N
 
-        jScrollPane1.setBackground(null);
         jScrollPane1.setBorder(null);
 
-        helpTextArea1.setBackground(null);
         helpTextArea1.setColumns(20);
         helpTextArea1.setRows(5);
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.helpTextArea1.text")); // NOI18N
@@ -233,10 +231,8 @@ final class ClickPanel extends javax.swing.JPanel
         org.openide.awt.Mnemonics.setLocalizedText(rbtn_precount1, org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.rbtn_precount1.text")); // NOI18N
         rbtn_precount1.setToolTipText(org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.rbtn_precount1.toolTipText")); // NOI18N
 
-        jScrollPane2.setBackground(null);
         jScrollPane2.setBorder(null);
 
-        helpTextArea2.setBackground(null);
         helpTextArea2.setColumns(20);
         helpTextArea2.setRows(5);
         helpTextArea2.setText(org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.helpTextArea2.text")); // NOI18N
@@ -249,26 +245,30 @@ final class ClickPanel extends javax.swing.JPanel
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(rbtn_precount2)
-                    .addComponent(rbtn_precount1)
-                    .addComponent(rbtn_precount_auto))
-                .addGap(18, 18, 18)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(rbtn_precount2)
+                            .addComponent(rbtn_precount1))
+                        .addGap(204, 204, 204))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                        .addComponent(rbtn_precount_auto)
+                        .addGap(18, 18, 18)))
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 223, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(rbtn_precount1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(rbtn_precount2))
-                    .addComponent(jScrollPane2))
+                .addComponent(jScrollPane2)
+                .addGap(42, 42, 42))
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(rbtn_precount1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(rbtn_precount2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(rbtn_precount_auto)
-                .addGap(17, 17, 17))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);

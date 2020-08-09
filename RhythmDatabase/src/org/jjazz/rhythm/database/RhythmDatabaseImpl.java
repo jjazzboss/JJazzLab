@@ -162,7 +162,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
     }
 
-
     /**
      * Starts the scanning in a background task.
      */
@@ -254,7 +253,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
         return null;
     }
-
 
     @Override
     public List<RhythmInfo> getRhythms(Predicate<RhythmInfo> tester)
@@ -411,7 +409,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
     }
 
-
     @Override
     public void setDefaultRhythm(TimeSignature ts, RhythmInfo ri)
     {
@@ -435,7 +432,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         var srp = StubRhythmProvider.getDefault();
         return srp.getStubRhythm(ts);
     }
-
 
     @Override
     public List<TimeSignature> getTimeSignatures()
@@ -603,7 +599,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     // ---------------------------------------------------------------------
     // Private 
     // --------------------------------------------------------------------- 
-
     /**
      * Initialization operations.
      *
@@ -847,7 +842,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
     }
 
-
     private String getPrefString(TimeSignature ts)
     {
         return PREF_DEFAULT_RHYTHM + "__" + ts.name();
@@ -915,7 +909,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
     }
 
-
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
@@ -928,7 +921,17 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         public static final String DIR_NAME = "Rhythms";
 
         @Override
-        public void initialize()
+        public void upgrade(String oldVersion)
+        {
+            initializeUserRhythmDir();
+
+            // Copy preferences
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs);
+
+        }
+
+        private void initializeUserRhythmDir()
         {
             // Create the dir if it does not exists, and set it as the default user rhythm directory
             var fdm = FileDirectoryManager.getInstance();
@@ -942,15 +945,6 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                 copyFilesOrNot(dir);
                 fdm.setUserRhythmDirectory(dir);
             }
-        }
-
-        @Override
-        public void upgrade(String oldVersion)
-        {
-            // Copy preferences
-            UpgradeManager um = UpgradeManager.getInstance();
-            um.duplicateOldPreferences(prefs);
-
         }
 
         /**
@@ -971,7 +965,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             }
             if (!isEmpty)
             {
-                String msg = "Fresh start: copying default rhythm files to " + dir.getAbsolutePath() + ".\n\n"
+                String msg = "<html><b>JJazzLab first time initialization</b></html>\nJJazzLab will copy default rhythm files to " + dir.getAbsolutePath() + "\n"
                         + "OK to proceed?";
                 NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
                 Object result = DialogDisplayer.getDefault().notify(d);
