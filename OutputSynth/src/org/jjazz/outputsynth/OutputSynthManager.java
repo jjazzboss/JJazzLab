@@ -119,7 +119,6 @@ public class OutputSynthManager implements PropertyChangeListener
         return outputSynth;
     }
 
-
     /**
      * Set the current OutputSynth.
      *
@@ -284,20 +283,24 @@ public class OutputSynthManager implements PropertyChangeListener
         return CHOOSER_INSTANCE;
     }
 
-
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
-        
+
         @Override
         public void upgrade(String oldVersion)
         {
+
+            if (oldVersion == null)
+            {
+                return;
+            }
+
             var um = UpgradeManager.getInstance();
             var fdm = FileDirectoryManager.getInstance();
-
 
             // Get the old output synth config file name
             Properties oldProp = um.getPropertiesFromPrefs(prefs);
@@ -308,13 +311,11 @@ public class OutputSynthManager implements PropertyChangeListener
             }
             String oldCfgFileName = oldProp.getProperty(PROP_DEFAULT_OUTPUTSYNTH);
 
-
             if (oldCfgFileName == null)
             {
                 LOGGER.warning("upgrade() oldVersion=" + oldVersion + ", undefined Output Synth config file property" + PROP_DEFAULT_OUTPUTSYNTH);
                 return;
             }
-
 
             // Try to get the old file
             File prevAppConfigDir = fdm.getOldAppConfigDirectory(oldVersion, OUTPUT_SYNTH_FILES_DIR);

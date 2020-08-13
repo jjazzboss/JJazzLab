@@ -41,6 +41,7 @@ import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midi.synths.GSSynth;
 import org.jjazz.midi.synths.StdSynth;
+import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
@@ -347,59 +348,26 @@ public class MidiSynthManagerImpl implements MidiSynthManager
     // Upgrade Task
     // =====================================================================================
     @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
+    static public class CopyMidiSynthsTask implements UpgradeTask
     {
-
         @StaticResource(relative = true)
         public static final String ZIP_RESOURCE_PATH = "resources/MidiSynthFiles.zip";
 
         @Override
-        public void upgrade(String oldVersion)
+        public void upgrade(String importVersion)
         {
+
             // Create the dir if it does not exists
             File dir = FileDirectoryManager.getInstance().getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
             if (dir == null || (!dir.isDirectory() && !dir.mkdir()))
             {
-                LOGGER.warning("upgrade() Could not create directory " + dir + ".");
+                LOGGER.warning("CopyMidiSynthsTask.upgrade() Could not create directory " + dir + ".");
             } else
             {
-                // Copy files 
-                copyFilesOrNot(dir);
+                // Copy the default rhythms
+                List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
+                LOGGER.info("CopyMidiSynthsTask.upgrade() Copied " + res.size() + " Midi synth definition files to " + dir.getAbsolutePath());
             }
-        }
-
-        /**
-         * If dir is not empty ask user confirmation to replace files.
-         *
-         * @param dir Must exist.
-         */
-        private void copyFilesOrNot(File dir)
-        {
-            boolean isEmpty;
-            try
-            {
-                isEmpty = Utilities.isEmpty(dir.toPath());
-            } catch (IOException ex)
-            {
-                LOGGER.warning("copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getLocalizedMessage());
-                return;
-            }
-            if (!isEmpty)
-            {
-                String msg = "Fresh start: copying default Midi synth definition files to " + dir.getAbsolutePath() + ".\n\n"
-                        + "OK to proceed?";
-                NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
-                Object result = DialogDisplayer.getDefault().notify(d);
-                if (NotifyDescriptor.YES_OPTION != result)
-                {
-                    return;
-                }
-            }
-
-            // Copy the default rhythms
-            List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
-            LOGGER.info("copyFilesOrNot() Copied " + res.size() + " Midi synth definition files to " + dir.getAbsolutePath());
-
         }
 
     }

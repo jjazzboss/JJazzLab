@@ -47,7 +47,7 @@ import org.openide.util.NbBundle.Messages;
 @ActionRegistration(displayName = "#CTL_HalfLeadsheet", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/Tools", position = 100)
+            @ActionReference(path = "Menu/Tools", position = 110)
         })
 @Messages("CTL_HalfLeadsheet=Half leadsheet")
 public class HalfLeadsheet implements ActionListener

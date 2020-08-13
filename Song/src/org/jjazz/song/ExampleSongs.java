@@ -27,7 +27,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.startup.spi.StartupTask;
+import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.util.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.DialogDisplayer;
@@ -36,30 +37,54 @@ import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Copy example songs in the JJazzLab user directory/ExampleSongs upon fresh start.
+ * <p>
+ * Can't use @OnStart or UpgradeTask because on Linux the NotifyDialogs are hidden behind the splash screen!
  */
-@ServiceProvider(service = UpgradeTask.class)
-public class ExampleSongs implements UpgradeTask
+@ServiceProvider(service = StartupTask.class)
+public class ExampleSongs implements StartupTask
 {
+
+    public static final int PRIORITY = 1000;
 
     @StaticResource(relative = true)
     public static final String ZIP_RESOURCE_PATH = "resources/ExampleSongs.zip";
     public static final String DIR_NAME = "ExampleSongs";
-    private static final Logger LOGGER = Logger.getLogger(UpgradeTask.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(ExampleSongs.class.getSimpleName());
 
     @Override
-    public void upgrade(String oldVersion)
+    public boolean run()
     {
+        // If not fresh startup do nothing
+        if (!UpgradeManager.getInstance().isFreshStart())
+        {
+            return false;
+        }
+
         // Create the dir if it does not exists
         var fdm = FileDirectoryManager.getInstance();
         File dir = new File(fdm.getJJazzLabUserDirectory(), DIR_NAME);
         if (!dir.isDirectory() && !dir.mkdir())
         {
-            LOGGER.warning("upgrade() Could not create directory " + dir.getAbsolutePath() + ".");
+            LOGGER.warning("run() Could not create directory " + dir.getAbsolutePath() + ".");
+            return false;
         } else
         {
             // Copy files
             copyFilesOrNot(dir);
+            return true;
         }
+    }
+
+    @Override
+    public int getPriority()
+    {
+        return PRIORITY;
+    }
+
+    @Override
+    public String getName()
+    {
+        return "Copy example song files";
     }
 
     /**
@@ -80,10 +105,11 @@ public class ExampleSongs implements UpgradeTask
         }
         if (!isEmpty)
         {
-            String msg = "Fresh start: copying example song files to " + dir.getAbsolutePath() + ".\n\n"
+            String msg = "<html><b>JJazzLab first time initialization</b></html>\nJJazzLab will copy example song files to " + dir.getAbsolutePath() + "\n"
                     + "OK to proceed?";
-            NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
+            NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
             Object result = DialogDisplayer.getDefault().notify(d);
+            
             if (NotifyDescriptor.YES_OPTION != result)
             {
                 return;

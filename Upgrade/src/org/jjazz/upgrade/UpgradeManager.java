@@ -39,7 +39,8 @@ import org.openide.util.NbPreferences;
 /**
  * Manage the tasks to upgrade settings from a previous version of JJazzLab to the current version.
  * <p>
- * Find the source import JJazzLab version. Call all the UpgradeTasks found in the global Lookup upon fresh start.
+ * Find the source import JJazzLab version. Call all the UpgradeTasks found in the global Lookup upon fresh start at module
+ * install (UI is not yet ready!).
  * <p>
  */
 public class UpgradeManager
@@ -106,7 +107,7 @@ public class UpgradeManager
         }
 
         Properties prop = new Properties();
-        try (FileReader reader = new FileReader(f))
+        try ( FileReader reader = new FileReader(f))
         {
             prop.load(reader);
         } catch (IOException ex)
@@ -196,10 +197,8 @@ public class UpgradeManager
             return importSourceVersion;
         }
 
-
         importSourceVersionComputed = true;
         importSourceVersion = null;
-
 
         File userDir = Places.getUserDirectory();
         if (userDir == null || !userDir.isDirectory() || userDir.getParentFile() == null)
@@ -208,9 +207,7 @@ public class UpgradeManager
             return importSourceVersion;
         }
 
-
         Path parentPath = userDir.getParentFile().toPath();
-
 
         for (var oldVersion : PREVIOUS_VERSIONS)
         {

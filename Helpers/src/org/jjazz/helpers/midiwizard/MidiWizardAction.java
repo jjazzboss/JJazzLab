@@ -33,6 +33,7 @@ import java.text.MessageFormat;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
+import javax.swing.Action;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.synths.GSSynth;
 import org.jjazz.midi.synths.StdSynth;
@@ -41,13 +42,15 @@ import org.jjazz.outputsynth.OS_JJazzLabSoundFont_GS;
 import org.jjazz.outputsynth.OS_JJazzLabSoundFont_XG;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
-import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.startup.spi.StartupTask;
+import org.jjazz.upgrade.UpgradeManager;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.WizardDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
+import org.openide.awt.Actions;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.Utilities;
 import org.openide.util.lookup.ServiceProvider;
@@ -208,21 +211,44 @@ public final class MidiWizardAction implements ActionListener
     }
 
     // =====================================================================================
-    // Upgrade Task
+    // Startup Task
     // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class RestoreSettingsTask implements UpgradeTask
+    @ServiceProvider(service = StartupTask.class)
+    static public class FreshStartupTask implements StartupTask
     {
 
+        /**
+         * Must be done last upon a fresh startup.
+         */
+        public static final int PRIORITY = 100000;
+
         @Override
-        public void upgrade(String oldVersion)
+        public boolean run()
         {
-            // Show the wizard only if no previous settings to import
-            if (oldVersion == null)
+            // Show the wizard upon fresh start and only if no settings to import
+            UpgradeManager um = UpgradeManager.getInstance();
+            if (um.isFreshStart() && um.getImportSourceVersion() == null)
             {
-                var wizard = new MidiWizardAction();
-                wizard.actionPerformed(null);
+                Action a = Actions.forID("JJazz", "org.jjazz.helpers.midiwizard.MidiWizardAction");
+                assert a != null;
+                a.actionPerformed(null);
+                return true;
+            } else
+            {
+                return false;
             }
+        }
+
+        @Override
+        public int getPriority()
+        {
+            return PRIORITY;
+        }
+
+        @Override
+        public String getName()
+        {
+            return "Midi configuration wizard";
         }
 
     }
