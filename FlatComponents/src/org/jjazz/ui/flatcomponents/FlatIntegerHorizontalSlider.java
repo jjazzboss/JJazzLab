@@ -50,6 +50,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
+import org.jjazz.ui.utilities.GeneralUISettings;
 import org.openide.windows.WindowManager;
 
 /**
@@ -157,7 +158,8 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
         });
         addMouseListener(this);
         addMouseMotionListener(this);
-        addMouseWheelListener(this);
+        // Use mouse wheel only if enabled
+        GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
         addPropertyChangeListener(this);
         FlatHoverManager.getInstance().associate(this);
     }

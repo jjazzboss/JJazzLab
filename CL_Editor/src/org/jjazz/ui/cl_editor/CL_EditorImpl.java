@@ -914,8 +914,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 // Implements MouseWheelListener interface
 // ---------------------------------------------------------------
     @Override
-    public void mouseWheelMoved(MouseWheelEvent e
-    )
+    public void mouseWheelMoved(MouseWheelEvent e    )
     {
         Component c = (Component) e.getSource();
         if (c instanceof ItemRenderer)

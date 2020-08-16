@@ -57,6 +57,7 @@ import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
+import org.jjazz.ui.utilities.GeneralUISettings;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.ui.utilities.Zoomable;
 import org.openide.awt.Actions;
@@ -324,6 +325,13 @@ public class CL_EditorController implements CL_EditorMouseListener
         {
             return;
         }
+
+        if (e.isControlDown())
+        {
+            // Not managed
+            return;
+        }
+
         // Make sure our TopComponent is active so that global lookup represents our editor's selection. 
         // Because wheel action can be enabled even if the TopComponent is inactive, if editor's selection was indirectly 
         // changed while editor was not active (e.g. via an editor from another TopComponent), 
@@ -333,30 +341,25 @@ public class CL_EditorController implements CL_EditorMouseListener
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
         clTc.requestActive();
 
-        ArrayList<CLI_ChordSymbol> css = new ArrayList<>();
-        for (ChordLeadSheetItem<?> cli : items)
+        boolean isWheelChangeEnabled = GeneralUISettings.getInstance().isChangeValueWithMouseWheelEnabled();
+        LOGGER.log(Level.FINER, "itemWheelMoved() e.getPreciseWheelRotation()={0} isWheelChangeEnabled={1}", new Object[]
         {
-            css.add((CLI_ChordSymbol) cli);
-        }
-        LOGGER.log(Level.FINER, "itemWheelMoved() e.getPreciseWheelRotation()=" + e.getPreciseWheelRotation());
+            e.getPreciseWheelRotation(), isWheelChangeEnabled
+        });
+
+
         if (e.getPreciseWheelRotation() > 0)
         {
-            if (e.isShiftDown())
-            {
-                PreviousChordType action = new PreviousChordType(css);
-                action.actionPerformed(null);
-            } else
+            if (e.isShiftDown() || isWheelChangeEnabled)
             {
                 transposeDownAction.actionPerformed(null);
             }
-        } else if (e.isShiftDown())
-        {
-            NextChordType action = new NextChordType(css);
-            action.actionPerformed(null);
         } else
         {
-
-            transposeUpAction.actionPerformed(null);
+            if (e.isShiftDown() || isWheelChangeEnabled)
+            {
+                transposeUpAction.actionPerformed(null);
+            }
         }
     }
 

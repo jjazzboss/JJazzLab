@@ -50,6 +50,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
+import org.jjazz.ui.utilities.GeneralUISettings;
 import org.openide.windows.WindowManager;
 
 /**
@@ -107,9 +108,6 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
     };
     private static final Logger LOGGER = Logger.getLogger(FlatIntegerKnob.class.getSimpleName());
 
-    /**
-     * Creates new form PanoramicPanel
-     */
     public FlatIntegerKnob()
     {
         putClientProperty(PROP_LINE_THICKNESS, 2);
@@ -131,7 +129,8 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
         });
         addMouseListener(this);
         addMouseMotionListener(this);
-        addMouseWheelListener(this);
+        // Use mouse wheel only if enabled
+        GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
         addPropertyChangeListener(this);
         FlatHoverManager.getInstance().associate(this);
     }

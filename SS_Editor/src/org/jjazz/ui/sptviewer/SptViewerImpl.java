@@ -56,6 +56,7 @@ import org.jjazz.ui.sptviewer.api.SptViewerSettings;
 import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.ui.rpviewer.api.RpViewerFactory;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.utilities.GeneralUISettings;
 
 /**
  * An implementation of a SptViewer.
@@ -695,7 +696,8 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     {
         rpv.addMouseListener(this);
         rpv.addMouseMotionListener(this);
-        rpv.addMouseWheelListener(this);
+        // Use mouse wheel only if enabled
+        GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(rpv, this);
     }
 
     private void unregisterRpViewer(RpViewer rpv)

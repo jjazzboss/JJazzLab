@@ -24,6 +24,11 @@ package org.jjazz.ui.utilities;
 
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeListener;
+import java.lang.ref.WeakReference;
+import java.nio.file.spi.FileSystemProvider;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.prefs.Preferences;
 import javax.swing.JComponent;
 import javax.swing.event.SwingPropertyChangeSupport;
@@ -37,6 +42,7 @@ public class GeneralUISettings
 
     public static final String PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL = "ChangeWithMouseWheel";
     private static GeneralUISettings INSTANCE;
+    private HashMap<WeakReference<JComponent>, MouseWheelListener> mouseWheelInstalledComponents = new HashMap<>();
     private static Preferences prefs = NbPreferences.forModule(GeneralUISettings.class);
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
 
@@ -61,12 +67,22 @@ public class GeneralUISettings
      * Users with trackpad or "touch motion" mouse like the Apple Magic mouse should set this to false.
      * <p>
      * Because these devices don't have a "unitary" scroll unit, therefore usually values change much too fast with these devices.
+     * Register/unregister all installed components via installChangeValueWithMouseWheelSupport().
      *
      * @param b
      */
     public void setChangeValueWithMouseWheelEnabled(boolean b)
     {
         boolean old = isChangeValueWithMouseWheelEnabled();
+        if (b == old)
+        {
+            return;
+        }
+
+
+        updateMouseWheelInstalledComponents(b);
+
+
         prefs.putBoolean(PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL, b);
         pcs.firePropertyChange(PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL, old, b);
     }
@@ -77,8 +93,8 @@ public class GeneralUISettings
     }
 
     /**
-     * Helper method to register a component and its MouseWheelListener depending on the PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL value
-     * changes.
+     * Helper method to register/unregister a component and its MouseWheelListener depending on the
+     * PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL value changes.
      * <p>
      *
      * @param comp
@@ -94,19 +110,9 @@ public class GeneralUISettings
             comp.removeMouseWheelListener(compListener);
         }
 
-        addPropertyChangeListener(e ->
-        {
-            if (e.getPropertyName().equals(PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL))
-            {
-                if (isChangeValueWithMouseWheelEnabled())
-                {
-                    comp.addMouseWheelListener(compListener);
-                } else
-                {
-                    comp.removeMouseWheelListener(compListener);
-                }
-            }
-        });
+        // Use a WeakReference because comp might be garbage collected in the future       
+        mouseWheelInstalledComponents.put(new WeakReference(comp), compListener);
+
     }
 
     public synchronized void addPropertyChangeListener(PropertyChangeListener listener)
@@ -119,4 +125,34 @@ public class GeneralUISettings
         pcs.removePropertyChangeListener(listener);
     }
 
+    //=============================================================================
+    // Private methods
+    //=============================================================================
+    /**
+     * add/remove MouseWheelListener for all installed components depending on isEnabled.
+     *
+     * @param isEnabled
+     */
+    private void updateMouseWheelInstalledComponents(boolean isEnabled)
+    {
+        for (var it = mouseWheelInstalledComponents.keySet().iterator(); it.hasNext();)
+        {
+            var compWeakRef = it.next();
+            JComponent jc = compWeakRef.get();
+            if (jc == null)
+            {
+                // Component has been garbage-collected, remove it
+                it.remove();
+                continue;
+            }
+            var listener = mouseWheelInstalledComponents.get(compWeakRef);
+            if (isEnabled)
+            {
+                jc.addMouseWheelListener(listener);
+            } else
+            {
+                jc.removeMouseWheelListener(listener);
+            }
+        }
+    }
 }
