@@ -38,6 +38,7 @@ import org.jjazz.harmony.Degree;
 import org.jjazz.harmony.Note;
 import org.jjazz.harmony.SymbolicDuration;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
+import org.openide.util.Exceptions;
 
 /**
  * An extended chord symbol with additionnal features:
@@ -284,7 +285,15 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         ChordSymbol cs = super.getTransposedChordSymbol(t, alt);
         ChordRenderingInfo cri = getRenderingInfo().getTransposed(t);
         AltExtChordSymbol altCs = (altChordSymbol == null) ? null : altChordSymbol.getTransposedChordSymbol(t, alt);
-        ExtChordSymbol ecs = new ExtChordSymbol(cs.getRootNote(), cs.getBassNote(), cs.getChordType(), cri, altCs, altFilter);
+        ExtChordSymbol ecs = null;
+        try
+        {
+            ecs = new ExtChordSymbol(cs.getOriginalName(), cri, altCs, altFilter);  
+        } catch (ParseException ex)
+        {
+            // Should never happen
+            Exceptions.printStackTrace(ex);
+        }
         return ecs;
     }
 
@@ -361,9 +370,9 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         {
 
             // First try with originalName (or spName if originalName not saved due to V1 .sng file)
-            String s = spOriginalName == null ? spName.replace(DOT_REPLACEMENT, "°") : spOriginalName.replace(DOT_REPLACEMENT, "°");            
+            String s = spOriginalName == null ? spName.replace(DOT_REPLACEMENT, "°") : spOriginalName.replace(DOT_REPLACEMENT, "°");
             ChordSymbol cs = null;
-            
+
             try
             {
                 cs = new ExtChordSymbol(s, spRenderingInfo, spAltChordSymbol, spAltFilter);
@@ -371,7 +380,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
             {
                 // Nothing
             }
-            
+
             if (cs == null && spOriginalName != null)
             {
                 // If spOriginalName used, the error may be due to a missing user alias on current system
@@ -390,7 +399,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
                 LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol. Using 'C' ChordSymbol instead.");
                 cs = new ExtChordSymbol();
             }
-            
+
             return cs;
         }
     }

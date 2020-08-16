@@ -22,10 +22,8 @@
  */
 package org.jjazz.harmony;
 
-import java.io.*;
 import java.text.ParseException;
 import java.util.Objects;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openide.util.NbBundle.Messages;
 import static org.jjazz.harmony.Bundle.*;
@@ -99,6 +97,24 @@ public class ChordSymbol implements Cloneable
         chordType = ct;
         name = computeName();
         originalName = name;
+    }
+
+    /**
+     * A protected constructor to alter the originalName.
+     *
+     * @param rootDg
+     * @param bassDg If null reuse rootDg
+     * @param ct
+     * @param originalName No check is performed on this originalName, so caller must be careful.
+     */
+    protected ChordSymbol(Note rootDg, Note bassDg, ChordType ct, String originalName)
+    {
+        this(rootDg, bassDg, ct);
+        if (originalName == null || originalName.isBlank())
+        {
+            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct + " originalName=" + originalName);
+        }
+        this.originalName = originalName;
     }
 
     /**
@@ -247,6 +263,8 @@ public class ChordSymbol implements Cloneable
 
     /**
      * Get a transposed ChordSymbol.
+     * <p>
+     * If this ChordSymbol uses a specific originalName, it will be reused in the returned value.
      *
      * @param t The amount of transposition in semi-tons.
      * @param alt If null, alteration of returned root & bass notes is unchanged. If not null use alt as root & bass notes
@@ -257,7 +275,16 @@ public class ChordSymbol implements Cloneable
     {
         Note root = alt == null ? rootNote : new Note(rootNote, alt);
         Note bass = alt == null ? bassNote : new Note(bassNote, alt);
-        ChordSymbol cs = new ChordSymbol(root.getTransposedWithinOctave(t), bass.getTransposedWithinOctave(t), chordType);
+        Note transposedRoot = root.getTransposedWithinOctave(t);
+        ChordSymbol cs = new ChordSymbol(transposedRoot, bass.getTransposedWithinOctave(t), chordType);
+
+        // If current chord symbol has a special original name, reuse it
+        if (!name.equals(originalName))
+        {
+            String strEnd = originalName.substring(rootNote.toRelativeNoteString().length());
+            cs.originalName = transposedRoot.toRelativeNoteString() + strEnd;
+        }
+
         return cs;
     }
 
@@ -354,7 +381,6 @@ public class ChordSymbol implements Cloneable
         return relPitch;
     }
 
-
     /**
      * Comparison is based on rootNote and bassNote relative pitch, ChordType and originalName.
      * <p>
@@ -396,7 +422,6 @@ public class ChordSymbol implements Cloneable
         }
         return true;
     }
-
 
     @Override
     public int hashCode()
@@ -469,5 +494,4 @@ public class ChordSymbol implements Cloneable
 //            return cs;
 //        }
 //    }
-
 }
