@@ -40,11 +40,11 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.PlainDocument;
 import org.jjazz.song.api.Song;
 import org.jjazz.songmemoviewer.api.SongMemoEditorSettings;
-import org.jjazz.songmemoviewer.api.SongMemoTopComponent;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
+import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
 import org.openide.util.Utilities;
 import org.openide.util.WeakListeners;
@@ -56,7 +56,7 @@ import org.openide.util.lookup.InstanceContent;
  */
 public class SongMemoEditor extends javax.swing.JPanel implements PropertyChangeListener, DocumentListener
 {
-    
+
     private final Lookup.Result<Song> songLkpResult;
     private LookupListener songLkpListener;
     private final Lookup lookup;
@@ -66,11 +66,11 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     /**
      * Save the JTextArea context for each song: a document and its UndoManager wrapped into an Undoer
      */
-    private final HashMap<Song, Undoer> mapSongUndoer = new HashMap<>();
+    private final HashMap<Song, UndoSupport> mapSongUndoer = new HashMap<>();
     /**
      * Special Undoer when songModel is null.
      */
-    private Undoer emptyUndoer = new Undoer("", this);
+    private UndoSupport emptyUndoer = new UndoSupport("UM-Empty", "", this);
     private static final Logger LOGGER = Logger.getLogger(SongMemoEditor.class.getSimpleName());
 
     /**
@@ -94,7 +94,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
 
 
         // Listen to Song presence in the global context    
-        songLkpListener = le -> songPresenceChanged();
+        songLkpListener = le -> songPresenceChanged(le);
         Lookup context = Utilities.actionsGlobalContext();
         songLkpResult = context.lookupResult(Song.class);
         songLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, songLkpListener, songLkpResult));
@@ -102,9 +102,9 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
 
         // Disabled by default
         setEditorEnabled(false);
-        
-        
-        songPresenceChanged();
+
+
+        songPresenceChanged(null);
     }
 
     /**
@@ -114,9 +114,11 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
      */
     public UndoRedo getUndoManager()
     {
-        return songModel == null ? null : mapSongUndoer.get(songModel).getUndoManager();
+        UndoRedo res = songModel == null ? null : mapSongUndoer.get(songModel).getUndoManager();
+        LOGGER.fine("getUndoManager() songModel=" + songModel + " UndoRedo=" + res);
+        return res;
     }
-    
+
     public Lookup getLookup()
     {
         return this.lookup;
@@ -131,16 +133,22 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
         if (evt.getSource() == songModel)
         {
             if (evt.getPropertyName().equals(Song.PROP_COMMENTS))
-            {                
+            {
                 Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+                JJazzUndoManager um = ((JJazzUndoManager) getUndoManager());
                 if (c == txt_notes)
                 {
                     // If we have the focus, user is typing and we generated the change event via updateModel(), nothing to do
+
+                } else if (um != null && um.isUndoRedoInProgress())
+                {
+                    // We're in the middle of an undo/redo operation, do nothing
                 } else
                 {
                     // An external component has changed the comments
                     var undoer = mapSongUndoer.get(songModel);
                     String txt = (String) evt.getNewValue();
+                    LOGGER.fine("propertyChange() an external component has changed the text to: " + txt);
                     undoer.setTextSilently(txt);    // This will not trigger a document change event
                 }
             } else if (evt.getPropertyName().equals(Song.PROP_CLOSED))
@@ -148,39 +156,36 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
                 setEditorEnabled(false);
                 mapSongUndoer.remove(songModel);   // We don't need this UndoManager anymore                
                 resetModel();
-                
+
             } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED)
                     && evt.getNewValue() == Boolean.FALSE)
             {
                 songNameChanged();
-                
+
             }
         } else if (evt.getSource() == settings)
         {
             uiSettingsChanged();
         }
-        
-    }
 
+    }
 
     // ==================================================================================
     // DocumentListener interface
     // ==================================================================================
-
     // Methods called only when user has changed the text
-    
     @Override
     public void insertUpdate(DocumentEvent e)
     {
         updateModel();
     }
-    
+
     @Override
     public void removeUpdate(DocumentEvent e)
     {
         updateModel();
     }
-    
+
     @Override
     public void changedUpdate(DocumentEvent e)
     {
@@ -190,8 +195,6 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     // ==================================================================================
     // Private methods
     // ==================================================================================
-
-    
     private void songNameChanged()
     {
         // Update memo name
@@ -201,9 +204,9 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
             lbl_songName.setToolTipText(songModel.getFile() == null ? null : songModel.getFile().getAbsolutePath());
         }
     }
-    
+
     /**
-     * User has typed something.
+     * Text has been changed in the JTextArea (user typing or undo)
      */
     private void updateModel()
     {
@@ -211,22 +214,15 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
         {
             String txt = txt_notes.getText();
             songModel.setComments(txt);
-            
-            // Make sure our TopComponent is active 
-            // Needed because when cursor is in the memo and you click another song tab
-            // the cursor remains in memo and if directly typing, the SongMemoTopComponent being not active, then the Undo/Redo 
-            // buttons are not updated.
-            SongMemoTopComponent.getInstance().requestActive();
         }
     }
-    
-    
+
     private void setEditorEnabled(boolean b)
     {
         txt_notes.setBackground(b ? settings.getBackgroundColor() : null);
         org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, this);
     }
-    
+
     private void resetModel()
     {
         if (songModel != null)
@@ -235,10 +231,10 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
             songModel.removePropertyChangeListener(this);
             songModel = null;
         }
-        
+
         // Install the empty Undoer
         emptyUndoer.install(txt_notes);
-        
+
         // Update UI
         songNameChanged();
     }
@@ -247,46 +243,68 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
      * Called when SongStructure presence changed in the lookup.
      * <p>
      * If a new song is detected, listen to the SS_Editor lookup selection changes.
+     *
+     * @param le If null search the global Lookup for a song
      */
-    private void songPresenceChanged()
+    private void songPresenceChanged(LookupEvent le)
     {
-        Song song = Utilities.actionsGlobalContext().lookup(Song.class);
+        Song song;
+        if (le != null)
+        {
+            Lookup.Result<Song> leRes = (Lookup.Result<Song>) le.getSource();
+            var songs = leRes.allInstances();
+            song = songs.isEmpty() ? null : songs.iterator().next();
+
+        } else
+        {
+            song = Utilities.actionsGlobalContext().lookup(Song.class);
+        }
         LOGGER.log(Level.FINE, "songPresenceChanged() -- song=" + song);
-        
+
         if (song == songModel || song == null)
         {
             // Do nothing
             return;
         }
-        
-        
+
+        // There is a new (non-null) song
+
         resetModel();
-        
-        
+
+
         songModel = song;
         songModel.addPropertyChangeListener(this);
         setEditorEnabled(true);
 
 
         // Make sure we have an Undoer for this song and install it
-        Undoer undoer = mapSongUndoer.get(songModel);
+        UndoSupport undoer = mapSongUndoer.get(songModel);
         if (undoer == null)
         {
-            undoer = new Undoer(songModel.getComments(), this);
+            undoer = new UndoSupport("UM-" + songModel.getName(), songModel.getComments(), this);
             mapSongUndoer.put(songModel, undoer);
         }
         undoer.install(txt_notes);
-        
+
+
+        // Make sure the Undo/Redo buttons enabled state is updated: active CL/SS_Editor TopComponents may change but if focus remains
+        // in our JTextArea, Undo/Redo buttons are not updated        
+        var fm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        if (fm.getFocusOwner() == txt_notes)
+        {
+            fm.clearGlobalFocusOwner();
+        }
+
 
         // Update UI
         songNameChanged();
-        
+
 
         // Last
         instanceContent.add(songModel);
-        
+
     }
-    
+
     private void uiSettingsChanged()
     {
         txt_notes.setForeground(settings.getFontColor());
@@ -364,18 +382,20 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     private org.jjazz.ui.utilities.JTextAreaNoKeyBinding txt_notes;
     // End of variables declaration//GEN-END:variables
 
-    
-    private class Undoer implements UndoableEditListener
+    /**
+     * Need to change the Document for undo/redo to work with multiple UndoManagers.
+     */
+    private class UndoSupport
     {
-        
+
         private JJazzUndoManager um;
         private Document doc;
         private DocumentListener listener;
-        
-        public Undoer(String txt, DocumentListener docListener)
+
+        public UndoSupport(String umName, String txt, DocumentListener docListener)
         {
-            um = new JJazzUndoManager();
-            doc = createDocument();
+            um = new JJazzUndoManager(umName);
+            doc = new PlainDocument();
             listener = docListener;
             try
             {
@@ -385,20 +405,20 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
                 // Should never happen
                 Exceptions.printStackTrace(ex);
             }
-            doc.addUndoableEditListener(this);
+            doc.addUndoableEditListener(um);
             doc.addDocumentListener(listener);
         }
 
         /**
-         * Update the text of this document without firing document change events
+         * Update the text of this document without firing any event.
          * <p>
-         * Note that UndoableEvents are generated.
          *
          * @param txt
          */
         public void setTextSilently(String txt)
         {
             doc.removeDocumentListener(listener);
+            doc.removeUndoableEditListener(um);
             try
             {
                 doc.remove(0, doc.getLength());
@@ -409,39 +429,19 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
             } finally
             {
                 doc.addDocumentListener(listener);
+                doc.addUndoableEditListener(um);
             }
         }
-        
+
         public JJazzUndoManager getUndoManager()
         {
             return um;
         }
-        
-        public void undo()
-        {
-            um.undo();
-        }
-        
-        public void undoOrRedo()
-        {
-            um.undoOrRedo();
-        }
-        
-        protected Document createDocument()
-        {
-            return new PlainDocument();
-        }
-        
+
         public void install(JTextComponent comp)
         {
             comp.setDocument(doc);
         }
-        
-        @Override
-        public void undoableEditHappened(UndoableEditEvent e)
-        {
-            um.addEdit(e.getEdit());
-        }
-        
+
     }
 }

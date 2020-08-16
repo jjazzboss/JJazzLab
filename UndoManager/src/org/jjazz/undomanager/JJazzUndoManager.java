@@ -56,6 +56,29 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
      */
     private boolean undoRedoInProgress = false;
 
+    /**
+     * for debug purposes.
+     */
+    private String name;
+
+    public JJazzUndoManager()
+    {
+        name = "JJazzUndoManager";
+    }
+
+    /**
+     *
+     * @param name Used for debug purpose, returned by toString()
+     */
+    public JJazzUndoManager(String name)
+    {
+        if (name == null || name.isBlank())
+        {
+            throw new IllegalArgumentException("name=" + name);
+        }
+        this.name = name;
+    }
+
     public boolean isUndoRedoInProgress()
     {
         return undoRedoInProgress;
@@ -220,7 +243,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
             // Make redo not possible
             trimLastEdit();
         }
-        
+
         fireChange();
     }
 
@@ -249,6 +272,14 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
             }
         }
         fireChange();
+    }
+
+    /**
+     * Notify listeners of a state change.
+     */
+    public void fireChange()
+    {
+        cs.fireChange();
     }
 
     /*
@@ -283,6 +314,9 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
         return this.canRedo() ? super.getRedoPresentationName() : ""; // NOI18N
     }
 
+    // ========================================================================================================
+    // Private methods
+    // ========================================================================================================
     /**
      * Called from undoableEditHappened() inner class
      */
@@ -300,14 +334,6 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     }
 
     /**
-     * Notify listeners.
-     */
-    private void fireChange()
-    {
-        cs.fireChange();
-    }
-
-    /**
      * Remove the last edit from the UndoManager.
      * <p>
      * Must be used with care, e.g. only when you know that the last edit is an empty CompoundEdit.
@@ -320,7 +346,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     @Override
     public String toString()
     {
-        return "JJazzUndoManager";
+        return name;
     }
 }
 

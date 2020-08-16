@@ -150,14 +150,14 @@ public class SongEditorManager implements PropertyChangeListener
             @Override
             public void run()
             {
-                // Create the undo manager and associate it to both leadsheets
+                // Create the undo managers
                 JJazzUndoManager undoManager = new JJazzUndoManager();
                 JJazzUndoManagerFinder.getDefault().put(undoManager, song);
                 JJazzUndoManagerFinder.getDefault().put(undoManager, song.getChordLeadSheet());
                 JJazzUndoManagerFinder.getDefault().put(undoManager, song.getSongStructure());
 
 
-                // Connect our undoManager to the song. 
+                // Connect our undoManager to the song. Used by the MixConsole for MidiMix undo/redo changes
                 // Note that for cls/sgs this will be done in each editor's constructor
                 song.addUndoableEditListener(undoManager);
 
@@ -287,7 +287,6 @@ public class SongEditorManager implements PropertyChangeListener
         }
     }
 
-
     //=============================================================================
     // Private
     //=============================================================================  
@@ -372,7 +371,6 @@ public class SongEditorManager implements PropertyChangeListener
             }
         }
     }
-
 
     //=============================================================================
     // Inner classes
