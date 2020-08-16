@@ -39,6 +39,7 @@ import org.jjazz.base.actions.Savable;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.song.api.Song;
+import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.netbeans.api.sendopts.CommandException;
@@ -51,7 +52,6 @@ import org.openide.modules.OnStop;
 import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
-import org.openide.windows.OnShowing;
 
 /**
  * Manage the opening/closing of song files at startup/shutdown.
@@ -60,9 +60,8 @@ import org.openide.windows.OnShowing;
  * depending on setting. Upon shutdown ask for user confirmation for unsaved songs.
  */
 @ServiceProvider(service = OptionProcessor.class)
-@OnShowing
 @OnStop
-public class StartupShutdownSongManager extends OptionProcessor implements Runnable, Callable<Boolean>
+public class StartupShutdownSongManager extends OptionProcessor implements Callable<Boolean>
 {
 
     /**
@@ -82,7 +81,6 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
     private static Preferences prefs = NbPreferences.forModule(StartupShutdownSongManager.class);
     private static final Logger LOGGER = Logger.getLogger(StartupShutdownSongManager.class.getSimpleName());
 
-
     static public final StartupShutdownSongManager getInstance()
     {
         if (INSTANCE == null)
@@ -100,7 +98,6 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
         INSTANCE = this;
     }
 
-
     public void setOpenRecentFilesUponStartup(boolean b)
     {
         prefs.putBoolean(PREF_OPEN_RECENT_FILES_UPON_STARTUP, b);
@@ -110,7 +107,6 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
     {
         return prefs.getBoolean(PREF_OPEN_RECENT_FILES_UPON_STARTUP, true);
     }
-
 
     // ==================================================================================
     // OptionProcessor implementation
@@ -182,44 +178,9 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
 
     }
 
-
-    // ==================================================================================
-    // Runnable implementation
-    // ==================================================================================
-    /**
-     * Called upon startup after UI's ready, so AFTER process() which collects optional files from the command line.
-     */
-    @Override
-    public void run()
-    {
-        LOGGER.fine("run() --");
-
-        // If command line arguments specified, just open them
-        if (!cmdLineFilesToOpen.isEmpty())
-        {
-            var sem = SongEditorManager.getInstance();
-
-            for (File f : cmdLineFilesToOpen)
-            {
-                boolean last = f == cmdLineFilesToOpen.get(cmdLineFilesToOpen.size() - 1);
-                Song song = sem.showSong(f, last);
-                if (song == null)
-                {
-                    LOGGER.warning("run() Problem opening song file: " + f.getAbsolutePath());
-                }
-            }
-
-        } else if (isOpenRecentFilesUponStartup())
-        {
-            openRecentFilesUponStartup();
-        }
-        isUIready = true;
-    }
-
     // ==================================================================================
     // Callable implementation
     // ==================================================================================
-
     /**
      * Called upon shutdown.
      * <p>
@@ -277,49 +238,83 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
     // ==================================================================================
     // Private methods
     // ==================================================================================
-    private void openRecentFilesUponStartup()
+    // =====================================================================================
+    // Startup Task
+    // =====================================================================================
+    @ServiceProvider(service = StartupTask.class)
+    static public class OpenFilesAtStartupTask implements StartupTask
     {
-        String s = prefs.get(PREF_FILES_TO_BE_REOPENED_UPON_STARTUP, NO_FILE).trim();
-        if (!s.equals(NO_FILE))
+
+        public final int PRIORITY = 600;            // Right after Rhythm files loading, but before Example songs and MidiWizard
+
+        /**
+         * Open command line files and recent files.
+         * <p>
+         * Called upon startup after UI's ready, so AFTER process() which collects optional files from the command line.
+         */
+        @Override
+        public boolean run()
         {
-            final List<String> strFiles = Arrays.asList(s.split(","));
-            final int max = Math.min(strFiles.size(), MAX_FILES);         // Robustness
-            Runnable run = new Runnable()
+            LOGGER.fine("OpenFilesAtStartupTask.run() --");
+
+            // If command line arguments specified, just open them and ignore recent open files
+            var instance = StartupShutdownSongManager.getInstance();
+            if (!instance.cmdLineFilesToOpen.isEmpty())
             {
-                @Override
-                public void run()
+                var sem = SongEditorManager.getInstance();
+
+                for (File f : instance.cmdLineFilesToOpen)
                 {
-                    Song lastSong = null;
+                    boolean last = f == instance.cmdLineFilesToOpen.get(instance.cmdLineFilesToOpen.size() - 1);
+                    Song song = sem.showSong(f, last);
+                    if (song == null)
+                    {
+                        LOGGER.warning("OpenFilesAtStartupTask.run() Problem opening song file: " + f.getAbsolutePath());
+                    }
+                }
+
+            } else if (instance.isOpenRecentFilesUponStartup())
+            {
+                openRecentFilesUponStartup();
+            }
+            instance.isUIready = true;
+
+            return true;
+        }
+
+        @Override
+        public int getPriority()
+        {
+            return PRIORITY;
+        }
+
+        @Override
+        public String getName()
+        {
+            return "Open command line and recent files";
+        }
+
+        private void openRecentFilesUponStartup()
+        {
+            String s = prefs.get(PREF_FILES_TO_BE_REOPENED_UPON_STARTUP, NO_FILE).trim();
+            if (!s.equals(NO_FILE))
+            {
+                final List<String> strFiles = Arrays.asList(s.split(","));
+                final int max = Math.min(strFiles.size(), MAX_FILES);         // Robustness
+                Runnable run = () ->
+                {
                     for (int i = 0; i < max; i++)
                     {
                         File f = new File(strFiles.get(i).trim());
                         boolean last = (i == max - 1);
-                        Song sg = SongEditorManager.getInstance().showSong(f, last);
-                        if (sg != null)
-                        {
-                            lastSong = sg;
-                        }
+                        SongEditorManager.getInstance().showSong(f, last);
                     }
-                    // Make the last open song active
-                    var asm = ActiveSongManager.getInstance();
-                    if (lastSong != null && asm.isActivable(lastSong) == null)
-                    {
-                        MidiMix mm;
-                        try
-                        {
-                            mm = MidiMixManager.getInstance().findMix(lastSong);
-                            asm.setActive(lastSong, mm);
-                        } catch (MidiUnavailableException ex)
-                        {
-                            Exceptions.printStackTrace(ex);
-                        }
-                    }
-                }
-            };
-            SwingUtilities.invokeLater(run);
+                };
+                SwingUtilities.invokeLater(run);
+            }
         }
-    }
 
+    }
 
     // =====================================================================================
     // Upgrade Task
@@ -336,6 +331,5 @@ public class StartupShutdownSongManager extends OptionProcessor implements Runna
         }
 
     }
-
 
 }

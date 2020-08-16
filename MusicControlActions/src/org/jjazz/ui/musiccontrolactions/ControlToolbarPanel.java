@@ -24,13 +24,8 @@ package org.jjazz.ui.musiccontrolactions;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JTextField;
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DocumentFilter;
-import javax.swing.text.PlainDocument;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.MusicController;
@@ -112,6 +107,10 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         {
             // Do nothing : player is still using the last valid song
         }
+        LOGGER.log(Level.FINE, "resultChanged() newSong={0} => currentSong={1}", new Object[]
+        {
+            newSong, currentSong
+        });
     }
     // ======================================================================
     // Playbackistener interface
@@ -180,9 +179,19 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     // ======================================================================   
     private void activeSongChanged()
     {
-        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
         currentSongChanged();    // Enable/Disable components       
+
+
+        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
         boolean b = (currentSong != null) && (currentSong == activeSong);
+
+
+        LOGGER.log(Level.FINE, "activeSongChanged() b={0} currentSong={1} activeSong={2}", new Object[]
+        {
+            b, currentSong, activeSong
+        });
+
+
         if (b)
         {
             // Current song is active, initialize Tempo and PositionViewer
@@ -368,7 +377,5 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     private org.jjazz.ui.musiccontrolactions.PositionViewer posViewer;
     private org.jjazz.ui.utilities.WheelSpinner spn_Tempo;
     // End of variables declaration//GEN-END:variables
-
-  
 
 }

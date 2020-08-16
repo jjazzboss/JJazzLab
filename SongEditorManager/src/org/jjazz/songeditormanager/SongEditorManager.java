@@ -145,60 +145,62 @@ public class SongEditorManager implements PropertyChangeListener
             }
         }
 
-        Runnable run = new Runnable()
+        Runnable run = () ->
         {
-            @Override
-            public void run()
+            // Create the undo managers
+            JJazzUndoManager undoManager = new JJazzUndoManager();
+            JJazzUndoManagerFinder.getDefault().put(undoManager, song);
+            JJazzUndoManagerFinder.getDefault().put(undoManager, song.getChordLeadSheet());
+            JJazzUndoManagerFinder.getDefault().put(undoManager, song.getSongStructure());
+
+
+            // Connect our undoManager to the song. Used by the MixConsole for MidiMix undo/redo changes
+            // Note that for cls/sgs this will be done in each editor's constructor
+            song.addUndoableEditListener(undoManager);
+
+
+            // Create the editors
+            CL_EditorTopComponent clTC = new CL_EditorTopComponent(song);
+            Mode mode = WindowManager.getDefault().findMode("editor");
+            mode.dockInto(clTC);
+            clTC.open();
+
+            SS_EditorTopComponent ssTC = new SS_EditorTopComponent(song);
+            mode = WindowManager.getDefault().findMode("output");
+            mode.dockInto(ssTC);
+            ssTC.open();
+
+
+            // Bind the editors together
+            clTC.setPairedTopComponent(ssTC);
+            ssTC.setPairedTopComponent(clTC);
+            clTC.requestActive();
+            song.addPropertyChangeListener(SongEditorManager.this);
+            mapSongEditors.put(song, new Editors(clTC, ssTC));
+            pcs.firePropertyChange(PROP_SONG_OPENED, false, song);
+
+
+            // Try to make it active if requested
+            var asm = ActiveSongManager.getInstance();
+            if (makeActive && asm.isActivable(song) == null)
             {
-                // Create the undo managers
-                JJazzUndoManager undoManager = new JJazzUndoManager();
-                JJazzUndoManagerFinder.getDefault().put(undoManager, song);
-                JJazzUndoManagerFinder.getDefault().put(undoManager, song.getChordLeadSheet());
-                JJazzUndoManagerFinder.getDefault().put(undoManager, song.getSongStructure());
-
-
-                // Connect our undoManager to the song. Used by the MixConsole for MidiMix undo/redo changes
-                // Note that for cls/sgs this will be done in each editor's constructor
-                song.addUndoableEditListener(undoManager);
-
-
-                // Create the editors
-                CL_EditorTopComponent clTC = new CL_EditorTopComponent(song);
-                Mode mode = WindowManager.getDefault().findMode("editor");
-                mode.dockInto(clTC);
-                clTC.open();
-
-                SS_EditorTopComponent ssTC = new SS_EditorTopComponent(song);
-                mode = WindowManager.getDefault().findMode("output");
-                mode.dockInto(ssTC);
-                ssTC.open();
-
-
-                // Bind the editors together
-                clTC.setPairedTopComponent(ssTC);
-                ssTC.setPairedTopComponent(clTC);
-                clTC.requestActive();
-                song.addPropertyChangeListener(SongEditorManager.this);
-                mapSongEditors.put(song, new Editors(clTC, ssTC));
-                pcs.firePropertyChange(PROP_SONG_OPENED, false, song);
-
-
-                // Try to make it active if requested
-                var asm = ActiveSongManager.getInstance();
-                if (makeActive && asm.isActivable(song) == null)
+                try
                 {
-                    try
-                    {
-                        MidiMix mm = MidiMixManager.getInstance().findMix(song);
-                        asm.setActive(song, mm);
-                    } catch (MidiUnavailableException ex)
-                    {
-                        // Should never be there
-                        Exceptions.printStackTrace(ex);
-                    }
+                    final MidiMix mm = MidiMixManager.getInstance().findMix(song);
+
+                    // To avoid problem (Issue #109 Tempo sometimes not right after 1st song auto-loaded), make sure activation
+                    // comes AFTER the clTc.requestActive() above.
+                    SwingUtilities.invokeLater(() -> asm.setActive(song, mm));
+
+                } catch (MidiUnavailableException ex)
+                {
+                    // Should never be there
+                    Exceptions.printStackTrace(ex);
                 }
             }
         };
+
+
         // Make sure everything is run on the EDT
         SwingUtilities.invokeLater(run);
     }
@@ -219,9 +221,28 @@ public class SongEditorManager implements PropertyChangeListener
             if (s.getFile() == f)
             {
                 getEditors(s).getTcCle().requestActive();
+
+                if (makeActive)
+                {
+                    var asm = ActiveSongManager.getInstance();
+                    if (asm.isActivable(s) == null)
+                    {
+                        try
+                        {
+                            final MidiMix mm = MidiMixManager.getInstance().findMix(s);
+                            SwingUtilities.invokeLater(() -> asm.setActive(s, mm)); // So it happen after the requestActive above
+                        } catch (MidiUnavailableException ex)
+                        {
+                            // Should never be there
+                            Exceptions.printStackTrace(ex);
+                        }
+                    }
+                }
                 return s;
             }
         }
+
+
         SongFactory sf = SongFactory.getInstance();
         Song song = sf.createFromFile(f);
         if (song != null)
@@ -230,6 +251,8 @@ public class SongEditorManager implements PropertyChangeListener
             FileDirectoryManager.getInstance().setLastSongDirectory(f.getAbsoluteFile().getParentFile());
         }
         return song;
+
+
     }
 
     public List<Song> getOpenedSongs()
