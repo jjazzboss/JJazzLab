@@ -975,13 +975,16 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             }
             if (!isEmpty)
             {
-                String msg = "<html><b>JJazzLab first time initialization</b></html>\n"
-                        + "JJazzLab will copy default rhythm files to " + dir.getAbsolutePath() + "\n"
+                String msg = "<html><b>RHYTHM FILES</b><br/>JJazzLab will copy default rhythm files (.sty, ...) to: <i>" + dir.getAbsolutePath() + "</i><br/>"
                         + "OK to proceed?";
-                NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
+                String[] options = new String[]
+                {
+                    "OK", "Skip"
+                };
+                NotifyDescriptor d = new NotifyDescriptor(msg, "JJazzLab first time initialization", 0, NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
                 Object result = DialogDisplayer.getDefault().notify(d);
 
-                if (NotifyDescriptor.YES_OPTION != result)
+                if (!result.equals("OK"))
                 {
                     return;
                 }
@@ -995,6 +998,9 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
     }
 
+    /**
+     * Create the database instance once the CopyDefaultRhythmFilesTask is complete.
+     */
     @ServiceProvider(service = StartupTask.class)
     public static class CreateDatabaseTask implements StartupTask
     {

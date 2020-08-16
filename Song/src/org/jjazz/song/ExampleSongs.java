@@ -105,12 +105,18 @@ public class ExampleSongs implements StartupTask
         }
         if (!isEmpty)
         {
-            String msg = "<html><b>JJazzLab first time initialization</b></html>\nJJazzLab will copy example song files to " + dir.getAbsolutePath() + "\n"
+            String msg = "<html><b>EXAMPLE SONG FILES</b><br/>JJazzLab will copy example song files to: <i>" + dir.getAbsolutePath() + "</i><br/>"
                     + "OK to proceed?";
-            NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
+            //NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
+            String[] options = new String[]
+            {
+                "OK", "Skip"
+            };
+            NotifyDescriptor d = new NotifyDescriptor(msg, "JJazzLab first time initialization", 0, NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
+            //NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
             Object result = DialogDisplayer.getDefault().notify(d);
-            
-            if (NotifyDescriptor.YES_OPTION != result)
+
+            if (!result.equals("OK"))
             {
                 return;
             }

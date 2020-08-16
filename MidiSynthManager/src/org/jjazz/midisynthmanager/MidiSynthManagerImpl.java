@@ -345,29 +345,104 @@ public class MidiSynthManagerImpl implements MidiSynthManager
     }
 
     // =====================================================================================
-    // Upgrade Task
+    // Startup Task
     // =====================================================================================
-    @ServiceProvider(service = UpgradeTask.class)
-    static public class CopyMidiSynthsTask implements UpgradeTask
+    /**
+     * Copy the default Midi files in the app config directory.
+     * <p>
+     * Could be an UpgradeTask since it should be executed only upon fresh start. But we use a StartupTask because a user dialog
+     * might be used.
+     */
+    @ServiceProvider(service = StartupTask.class)
+    public static class CopyMidiSynthsTask implements StartupTask
     {
+
+        public static final int PRIORITY = 100;
         @StaticResource(relative = true)
         public static final String ZIP_RESOURCE_PATH = "resources/MidiSynthFiles.zip";
 
         @Override
-        public void upgrade(String importVersion)
+        public boolean run()
         {
-
-            // Create the dir if it does not exists
-            File dir = FileDirectoryManager.getInstance().getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
-            if (dir == null || (!dir.isDirectory() && !dir.mkdir()))
+            if (!UpgradeManager.getInstance().isFreshStart())
             {
-                LOGGER.warning("CopyMidiSynthsTask.upgrade() Could not create directory " + dir + ".");
+                return false;
             } else
             {
-                // Copy the default rhythms
-                List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
-                LOGGER.info("CopyMidiSynthsTask.upgrade() Copied " + res.size() + " Midi synth definition files to " + dir.getAbsolutePath());
+                initializeDir();
+                return true;
             }
+        }
+
+        @Override
+        public int getPriority()
+        {
+            return PRIORITY;
+        }
+
+        @Override
+        public String getName()
+        {
+            return "Copy default Midi synth definition files";
+        }
+
+        private void initializeDir()
+        {
+            File dir = FileDirectoryManager.getInstance().getAppConfigDirectory(MIDISYNTH_FILES_DEST_DIRNAME);
+            if (dir == null)
+            {
+                return;
+            }
+            if (!dir.isDirectory())
+            {
+                LOGGER.warning("CopyMidiSynthsTask.initializeDir() Could not access directory " + dir.getAbsolutePath() + ".");
+            } else
+            {
+                // Copy files 
+                copyFilesOrNot(dir);
+            }
+        }
+
+        /**
+         * If dir is not empty ask user confirmation to replace files.
+         * <p>
+         * Normally dir will be empty for a real fresh start. But if user deleted its user settings and has changed some Midi
+         * synth definition file, better to ask him if it's OK to copy the files over.
+         *
+         * @param dir Must exist.
+         */
+        private void copyFilesOrNot(File dir)
+        {
+            boolean isEmpty;
+            try
+            {
+                isEmpty = Utilities.isEmpty(dir.toPath());
+            } catch (IOException ex)
+            {
+                LOGGER.warning("CopyMidiSynthsTask.copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getLocalizedMessage());
+                return;
+            }
+            if (!isEmpty)
+            {
+                String msg = "<html><b>MIDI SYNTH DEFINITION FILES</b><br/>JJazzLab will copy default Midi synth definition files (.ins) to: <i>" + dir.getAbsolutePath() + "</i><br/>"
+                        + "OK to proceed?";
+                String[] options = new String[]
+                {
+                    "OK", "Skip"
+                };
+                NotifyDescriptor d = new NotifyDescriptor(msg, "JJazzLab first time initialization", 0, NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
+                Object result = DialogDisplayer.getDefault().notify(d);
+
+                if (!result.equals("OK"))
+                {
+                    return;
+                }
+            }
+
+            // Copy the default rhythms
+            List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
+            LOGGER.info("CopyMidiSynthsTask.copyFilesOrNot() Copied " + res.size() + " Midi synth definition files to " + dir.getAbsolutePath());
+
         }
 
     }
