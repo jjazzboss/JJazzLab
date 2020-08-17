@@ -41,6 +41,7 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.PlainDocument;
+import org.openide.util.Exceptions;
 
 /**
  * A JSpinner with mousewheel support, and some convenience methods.
@@ -145,6 +146,7 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
         if (model instanceof SpinnerNumberModel)
         {
             JTextField tf = getDefaultEditor().getTextField();
+
             // Can't juste set DocumentFilter on the Spinner textfield !!!
             // Need to replace the document, and this document needs setDocumentFilter to be overridden
             // See https://stackoverflow.com/questions/9778958/make-jspinner-only-read-numbers-but-also-detect-backspace
@@ -164,6 +166,14 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
                 };
                 doc.setDocumentFilter(new DigitOnlyFilter());
                 tf.setDocument(doc);
+                try
+                {
+                    doc.insertString(0, String.valueOf(model.getValue()), null);
+                } catch (BadLocationException ex)
+                {
+                    // Should never happen
+                    Exceptions.printStackTrace(ex);
+                }
             }
         }
     }
