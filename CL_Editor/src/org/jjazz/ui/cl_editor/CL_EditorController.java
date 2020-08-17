@@ -335,21 +335,19 @@ public class CL_EditorController implements CL_EditorMouseListener
         clTc.requestActive();
 
         boolean isWheelChangeEnabled = GeneralUISettings.getInstance().isChangeValueWithMouseWheelEnabled();
-        LOGGER.log(Level.FINER, "itemWheelMoved() e.getPreciseWheelRotation()={0} isWheelChangeEnabled={1}", new Object[]
+        LOGGER.log(Level.FINER, "itemWheelMoved() e.getWheelRotation()={0} isWheelChangeEnabled={1}", new Object[]
         {
-            e.getPreciseWheelRotation(), isWheelChangeEnabled
+            e.getWheelRotation(), isWheelChangeEnabled
         });
 
 
-        if (e.getPreciseWheelRotation() > 0)
+        if (isWheelChangeEnabled)
         {
-            if (e.isShiftDown() || isWheelChangeEnabled)
+            if (e.getWheelRotation() > 0)
             {
                 transposeDownAction.actionPerformed(null);
-            }
-        } else
-        {
-            if (e.isShiftDown() || isWheelChangeEnabled)
+
+            } else
             {
                 transposeUpAction.actionPerformed(null);
             }
@@ -500,7 +498,7 @@ public class CL_EditorController implements CL_EditorMouseListener
         clTc.requestActive();
 
         int factor = zoomable.getZoomXFactor();
-        if (e.getPreciseWheelRotation() < 0)
+        if (e.getWheelRotation() < 0)
         {
             factor = Math.min(100, factor + STEP);
         } else

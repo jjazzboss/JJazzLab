@@ -389,7 +389,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         ssTc.requestActive();
 
         int factor = editor.getZoomHFactor();
-        if (e.getPreciseWheelRotation() < 0)
+        if (e.getWheelRotation() < 0)
         {
             factor = Math.min(100, factor + STEP);
         } else
@@ -553,7 +553,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(CTL_SetRpValue());
         }
 
-        if (e.getPreciseWheelRotation() < 0)
+        if (e.getWheelRotation() < 0)
         {
             Action action = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.nextrpvalue");
             action.actionPerformed(null);
