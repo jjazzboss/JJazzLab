@@ -38,7 +38,9 @@ import org.openide.util.NbBundle.Messages;
 @ActionReferences(
         {
             @ActionReference(path = "Shortcuts", name = "ADD"),
-            @ActionReference(path = "Shortcuts", name = "S-EQUALS")
+            @ActionReference(path = "Shortcuts", name = "S-EQUALS"),
+            @ActionReference(path = "Shortcuts", name = "PLUS"),
+            @ActionReference(path = "Shortcuts", name = "K"),
         })
 @Messages(
         {
