@@ -26,6 +26,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.Toolkit;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +39,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.text.JTextComponent;
 import org.openide.awt.MenuBar;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
@@ -76,7 +79,6 @@ public class Utilities
             SwingUtilities.invokeLater(run);
         }
     }
-
 
     /**
      * Create one or more JMenuItems or JSeparators from a Netbeans action.
@@ -170,6 +172,23 @@ public class Utilities
         float b = hsb[2] * 256;
         nc = (b < 50) ? Color.WHITE : Color.BLACK;
         return nc;
+    }
+
+    /**
+     * Install a listener to automatically select all text when component gets the focus.
+     *
+     * @param comp
+     */
+    public static void installSelectAllWhenFocused(JTextComponent comp)
+    {
+        comp.addFocusListener(new FocusAdapter()
+        {
+            @Override
+            public void focusGained(FocusEvent e)
+            {
+                comp.selectAll();
+            }
+        });
     }
 
     /**
@@ -298,4 +317,8 @@ public class Utilities
         }
         return newDir;
     }
+
+    // =================================================================================================
+    // Static classes
+    // =================================================================================================
 }

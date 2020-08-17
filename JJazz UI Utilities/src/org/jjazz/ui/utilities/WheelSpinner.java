@@ -80,7 +80,6 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                LOGGER.severe("WheelSpinner.actionPerformed() actionIncreaseBig");
                 for (int i = 0; i < ctrlWheelStep; i++)
                 {
                     setValue(getNext());
@@ -92,7 +91,6 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                LOGGER.severe("WheelSpinner.actionPerformed() actionDecreaseBig");
                 for (int i = 0; i < ctrlWheelStep; i++)
                 {
                     setValue(getPrevious());

@@ -23,6 +23,7 @@
 package org.jjazz.ui.ss_editor.actions;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JRootPane;
@@ -57,6 +58,8 @@ public class InsertSptDialog extends javax.swing.JDialog
     {
         super(parent, modal);
         initComponents();
+
+        cbo_sections.requestFocusInWindow();
     }
 
     public void cleanup()
@@ -78,6 +81,7 @@ public class InsertSptDialog extends javax.swing.JDialog
             cbo_sections.addItem(cli.getData().getName());
         }
         exitOk = false;
+        cbo_sections.requestFocusInWindow();
     }
 
     public boolean isExitOk()
@@ -156,6 +160,13 @@ public class InsertSptDialog extends javax.swing.JDialog
         org.openide.awt.Mnemonics.setLocalizedText(lbl_text, org.openide.util.NbBundle.getMessage(InsertSptDialog.class, "InsertSptDialog.lbl_text.text_1")); // NOI18N
 
         cbo_sections.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        cbo_sections.addKeyListener(new java.awt.event.KeyAdapter()
+        {
+            public void keyPressed(java.awt.event.KeyEvent evt)
+            {
+                cbo_sectionsKeyPressed(evt);
+            }
+        });
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_ok, org.openide.util.NbBundle.getMessage(InsertSptDialog.class, "InsertSptDialog.btn_ok.text_1")); // NOI18N
         btn_ok.addActionListener(new java.awt.event.ActionListener()
@@ -222,6 +233,14 @@ public class InsertSptDialog extends javax.swing.JDialog
     {//GEN-HEADEREND:event_btn_cancelActionPerformed
         actionCancel();
     }//GEN-LAST:event_btn_cancelActionPerformed
+
+    private void cbo_sectionsKeyPressed(java.awt.event.KeyEvent evt)//GEN-FIRST:event_cbo_sectionsKeyPressed
+    {//GEN-HEADEREND:event_cbo_sectionsKeyPressed
+        if (evt.getKeyChar() == KeyEvent.VK_ENTER)
+        {
+            actionOK();
+        }
+    }//GEN-LAST:event_cbo_sectionsKeyPressed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_cancel;

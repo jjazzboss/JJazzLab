@@ -33,7 +33,7 @@
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jtfBlockName" min="-2" pref="69" max="-2" attributes="0"/>
+                      <Component id="jtfSectionName" min="-2" pref="69" max="-2" attributes="0"/>
                       <EmptySpace pref="15" max="32767" attributes="0"/>
                       <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
@@ -52,7 +52,7 @@
               <Component id="jtfChordSymbols" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="jtfBlockName" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jtfSectionName" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jtfTimeSignature" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -84,23 +84,21 @@
         </Property>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new NoSelectOnFocusGainedJTF();"/>
         <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="jtfChordSymbols.getDocument().addUndoableEditListener(undoManager);"/>
-        <AuxValue name="JavaCodeGenerator_CreateCodePre" type="java.lang.String" value="        "/>
       </AuxValues>
     </Component>
-    <Component class="javax.swing.JTextField" name="jtfBlockName">
+    <Component class="javax.swing.JTextField" name="jtfSectionName">
       <Properties>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.jtfBlockName.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.jtfSectionName.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
       <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="jtfBlockNameFocusGained"/>
-        <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="jtfBlockNameKeyPressed"/>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="jtfSectionNameFocusGained"/>
+        <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="jtfSectionNameKeyPressed"/>
       </Events>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="        jtfBlockName.getDocument().addUndoableEditListener(undoManager);"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="jtfSectionName.getDocument().addUndoableEditListener(undoManager);"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel1">

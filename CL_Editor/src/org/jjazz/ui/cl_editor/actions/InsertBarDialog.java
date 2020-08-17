@@ -23,6 +23,8 @@
 package org.jjazz.ui.cl_editor.actions;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.util.logging.Logger;
 import javax.swing.*;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.openide.windows.WindowManager;
@@ -32,7 +34,7 @@ public final class InsertBarDialog extends javax.swing.JDialog
 
     private static InsertBarDialog INSTANCE;
     private boolean exitOk;
-    private SpinnerNumberModel spinnerModel;
+    private static final Logger LOGGER = Logger.getLogger(InsertBarDialog.class.getSimpleName());
 
     public static InsertBarDialog getInstance()
     {
@@ -67,8 +69,7 @@ public final class InsertBarDialog extends javax.swing.JDialog
             throw new IllegalArgumentException("cls=" + cls + " fromBar=" + fromBar + " nbBars=" + nbBars);
         }
         lblFromBar.setText(String.valueOf(fromBar + 1));
-        spinnerModel = new SpinnerNumberModel(Math.min(nbBars, 200), 1, 200, 1);
-        spnNbBars.setModel(spinnerModel);
+        spnNbBars.setValue(Integer.valueOf(Math.min(nbBars, 200)));
     }
 
     /**
@@ -80,7 +81,7 @@ public final class InsertBarDialog extends javax.swing.JDialog
      */
     public int getNbBars()
     {
-        return spinnerModel.getNumber().intValue();
+        return (Integer) spnNbBars.getValue();
     }
 
     public boolean exitedOk()
@@ -102,14 +103,23 @@ public final class InsertBarDialog extends javax.swing.JDialog
     private void initComponents()
     {
 
-        spnNbBars = new org.jjazz.ui.utilities.WheelSpinner();
-        spnNbBars.setColumns(2);
         jLabel2 = new javax.swing.JLabel();
         lblFromBar = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
+        spnNbBars = new org.jjazz.ui.utilities.WheelSpinner();
 
         setTitle(org.openide.util.NbBundle.getMessage(InsertBarDialog.class, "InsertBarDialog.title")); // NOI18N
+        addWindowFocusListener(new java.awt.event.WindowFocusListener()
+        {
+            public void windowGainedFocus(java.awt.event.WindowEvent evt)
+            {
+                formWindowGainedFocus(evt);
+            }
+            public void windowLostFocus(java.awt.event.WindowEvent evt)
+            {
+            }
+        });
 
         jLabel2.setText(org.openide.util.NbBundle.getMessage(InsertBarDialog.class, "InsertBarDialog.jLabel2.text")); // NOI18N
 
@@ -133,6 +143,8 @@ public final class InsertBarDialog extends javax.swing.JDialog
             }
         });
 
+        spnNbBars.setModel(new javax.swing.SpinnerNumberModel(1, 1, 100, 1));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -141,16 +153,16 @@ public final class InsertBarDialog extends javax.swing.JDialog
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(spnNbBars, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lblFromBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jButton1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton2))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(spnNbBars, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lblFromBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(jButton2)))
                 .addContainerGap())
         );
 
@@ -161,9 +173,9 @@ public final class InsertBarDialog extends javax.swing.JDialog
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(spnNbBars, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2)
-                    .addComponent(lblFromBar))
+                    .addComponent(lblFromBar)
+                    .addComponent(spnNbBars, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 30, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
@@ -183,6 +195,12 @@ public final class InsertBarDialog extends javax.swing.JDialog
     {//GEN-HEADEREND:event_jButton2ActionPerformed
         actionCancel();
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void formWindowGainedFocus(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowGainedFocus
+    {//GEN-HEADEREND:event_formWindowGainedFocus
+        spnNbBars.getDefaultEditor().getTextField().requestFocusInWindow();
+    }//GEN-LAST:event_formWindowGainedFocus
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
@@ -200,7 +218,29 @@ public final class InsertBarDialog extends javax.swing.JDialog
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
+//        {
+//
+//            @Override
+//            protected boolean processKeyBinding(KeyStroke ks, KeyEvent ke, int condition, boolean pressed)
+//            {
+//                boolean ret = super.processKeyBinding(ks, ke, condition, pressed);
+//                LOGGER.severe("processKeyBinding() ks=" + ks + " ke=" + ke + " ret=" + ret);
+//                return ret;
+//            }
+//
+//            @Override
+//            protected void processKeyEvent(KeyEvent ke)
+//            {
+//                LOGGER.severe("processKeyEvent() ke=" + ke);
+//            }
+//        };
         contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
+        // HACK ! On Windows (I was not able to test this on Linux/Mac), when first showing the Dialog, if pressing ENTER directly,
+        // contentPane's processKeyBinding() receives a "released ENTER" keystroke !!?? It's like the "pressed ENTER" was captured 
+        // somewhere by the JSpinner, and we only receive the last part of the event.
+        // If pressing ENTER again then it's always the correct "pressed ENTER", problem disappears.
+        // So we add a specific entry for "released ENTER" as well...
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("released ENTER"), "actionOk");
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -235,4 +275,5 @@ public final class InsertBarDialog extends javax.swing.JDialog
         exitOk = false;
         setVisible(false);
     }
+
 }

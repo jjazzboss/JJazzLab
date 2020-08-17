@@ -72,6 +72,7 @@ public class DuplicateSptDialog extends javax.swing.JDialog
         }
         this.spts = spts;
         exitOk = false;
+        spn_Number.requestFocusInWindow();
     }
 
     public boolean isExitOk()
@@ -94,6 +95,12 @@ public class DuplicateSptDialog extends javax.swing.JDialog
     {
         JRootPane contentPane = new JRootPane();
         contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
+        // HACK ! On Windows (I was not able to test this on Linux/Mac), when first showing the Dialog, if pressing ENTER directly,
+        // contentPane's processKeyBinding() receives a "released ENTER" keystroke !!?? It's like the "pressed ENTER" was captured 
+        // somewhere by the JSpinner, and we only receive the last part of the event.
+        // If pressing ENTER again then it's always the correct "pressed ENTER", problem disappears.
+        // So we add a specific entry for "released ENTER" as well...
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("released ENTER"), "actionOk");
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -144,6 +151,16 @@ public class DuplicateSptDialog extends javax.swing.JDialog
         spn_Number = new org.jjazz.ui.utilities.WheelSpinner();
 
         setTitle(org.openide.util.NbBundle.getMessage(DuplicateSptDialog.class, "DuplicateSptDialog.title")); // NOI18N
+        addWindowFocusListener(new java.awt.event.WindowFocusListener()
+        {
+            public void windowGainedFocus(java.awt.event.WindowEvent evt)
+            {
+                formWindowGainedFocus(evt);
+            }
+            public void windowLostFocus(java.awt.event.WindowEvent evt)
+            {
+            }
+        });
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_text, org.openide.util.NbBundle.getMessage(DuplicateSptDialog.class, "DuplicateSptDialog.lbl_text.text_1")); // NOI18N
 
@@ -215,6 +232,11 @@ public class DuplicateSptDialog extends javax.swing.JDialog
     {//GEN-HEADEREND:event_btn_cancelActionPerformed
         actionCancel();
     }//GEN-LAST:event_btn_cancelActionPerformed
+
+    private void formWindowGainedFocus(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowGainedFocus
+    {//GEN-HEADEREND:event_formWindowGainedFocus
+        spn_Number.getDefaultEditor().getTextField().requestFocusInWindow();
+    }//GEN-LAST:event_formWindowGainedFocus
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_cancel;

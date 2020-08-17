@@ -53,7 +53,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.leadsheet.chordleadsheet.api.item.VoidAltExtChordSymbol;
 import org.jjazz.rhythm.parameters.RP_SYS_Marker;
 import org.jjazz.ui.cl_editor.spi.ChordSymbolEditorDialog;
-import org.jjazz.ui.utilities.NoSelectOnFocusGainedJTF;
 import org.jjazz.ui.utilities.Utilities;
 
 /**
@@ -530,7 +529,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         btnGroup_Condition = new javax.swing.ButtonGroup();
         btnGroup_Accent = new javax.swing.ButtonGroup();
         pnl_ChordDescription = new javax.swing.JPanel();
-        tf_ChordSymbolName = new NoSelectOnFocusGainedJTF();
+        tf_ChordSymbolName = new javax.swing.JTextField();
         lbl_chordNotes = new javax.swing.JLabel();
         lbl_optionalText = new javax.swing.JLabel();
         lbl_optionalAltText = new javax.swing.JLabel();
@@ -608,14 +607,10 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_ChordDescriptionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnl_ChordDescriptionLayout.createSequentialGroup()
-                        .addComponent(lbl_chordNotes)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(pnl_ChordDescriptionLayout.createSequentialGroup()
-                        .addGroup(pnl_ChordDescriptionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lbl_optionalAltText)
-                            .addComponent(lbl_optionalText))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                    .addComponent(lbl_chordNotes)
+                    .addComponent(lbl_optionalAltText)
+                    .addComponent(lbl_optionalText))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pnl_ChordDescriptionLayout.setVerticalGroup(
             pnl_ChordDescriptionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
