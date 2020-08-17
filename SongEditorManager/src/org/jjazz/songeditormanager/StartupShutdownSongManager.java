@@ -32,12 +32,8 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.SwingUtilities;
-import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.base.actions.Savable;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.UpgradeManager;
@@ -49,7 +45,6 @@ import org.netbeans.spi.sendopts.OptionProcessor;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.modules.OnStop;
-import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -328,6 +323,9 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
         {
             UpgradeManager um = UpgradeManager.getInstance();
             um.duplicateOldPreferences(prefs);
+
+            // Reset recent files list : avoid opening files upon fresh startup, which can mess the UI with the fresh startup dialogs
+            prefs.put(PREF_FILES_TO_BE_REOPENED_UPON_STARTUP, NO_FILE);
         }
 
     }
