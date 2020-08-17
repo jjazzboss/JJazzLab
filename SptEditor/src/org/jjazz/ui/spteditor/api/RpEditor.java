@@ -23,12 +23,11 @@
 package org.jjazz.ui.spteditor.api;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JLabel;
 import javax.swing.UIManager;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
@@ -42,7 +41,7 @@ import org.jjazz.songstructure.api.SongPart;
  */
 public abstract class RpEditor extends JPanel
 {
-
+    
     public static final Color MULTI_FOREGROUND_COLOR = new Color(121, 21, 42);      // Dark brown/red
 
     /**
@@ -53,7 +52,7 @@ public abstract class RpEditor extends JPanel
     private RhythmParameter<?> rpModel;
     private boolean isMultiValueMode = false;
     private static final Logger LOGGER = Logger.getLogger(RpEditor.class.getSimpleName());
-
+    
     private RpEditor()
     {
         initComponents();
@@ -80,26 +79,41 @@ public abstract class RpEditor extends JPanel
         lbl_rpName.setText(rpModel.getDisplayName().toLowerCase());
         lbl_rpName.setToolTipText(rpModel.getDescription());
     }
-
+    
     @Override
     public void setEnabled(boolean b)
     {
         super.setEnabled(b);
         getEditor().setEnabled(b);
     }
-
+    
     public final SongPart getSptModel()
     {
         return sptModel;
     }
-
+    
     public final RhythmParameter<?> getRpModel()
     {
         return rpModel;
     }
+    
+    public JLabel getRpNameLabel()
+    {
+        return lbl_rpName;
+    }
 
+    /**
+     * Fix the width of the column used for the RpNames.
+     *
+     * @param w
+     */
+    public void setRpNameColumnWidth(int w)
+    {
+        pnl_rpName.setFixedPreferredWidth(w);
+    }
+    
     abstract protected JComponent getEditor();
-
+    
     abstract public Object getRpValue();
 
     /**
@@ -109,9 +123,9 @@ public abstract class RpEditor extends JPanel
      * @param firePropChangeEvent If false don't fire a change event.
      */
     abstract public void setRpValue(Object value, boolean firePropChangeEvent);
-
+    
     abstract public void cleanup();
-
+    
     abstract protected void showMultiValueMode(boolean b);
 
     /**
@@ -128,12 +142,12 @@ public abstract class RpEditor extends JPanel
         isMultiValueMode = b;
         showMultiValueMode(isMultiValueMode);
     }
-
+    
     public boolean isMultiValueMode()
     {
         return isMultiValueMode;
     }
-
+    
     public void setHighlighted(boolean b)
     {
         String txt = lbl_rpName.getText();
@@ -147,12 +161,12 @@ public abstract class RpEditor extends JPanel
             lbl_rpName.setText(txt);
         }
     }
-
+    
     public boolean isHighlighted()
     {
         return lbl_rpName.getText().contains("</U></HTML>");
     }
-
+    
     protected final void setEditor(JComponent editor)
     {
         // Replace the placeHolder by this editor      
@@ -193,14 +207,12 @@ public abstract class RpEditor extends JPanel
     private void initComponents()
     {
 
-        lbl_rpName = new FixedWidthLabel();
-        pnl_placeHolder = new FixedWidthPanel();
+        pnl_placeHolder = new javax.swing.JPanel();
         lbl_placeHolder = new javax.swing.JLabel();
+        pnl_rpName = new org.jjazz.ui.utilities.FixedPreferredWidthPanel();
+        lbl_rpName = new javax.swing.JLabel();
 
         setMaximumSize(new java.awt.Dimension(30000, 3000));
-
-        lbl_rpName.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_rpName, org.openide.util.NbBundle.getMessage(RpEditor.class, "RpEditor.lbl_rpName.text_1")); // NOI18N
 
         pnl_placeHolder.setLayout(new javax.swing.BoxLayout(pnl_placeHolder, javax.swing.BoxLayout.LINE_AXIS));
 
@@ -208,14 +220,21 @@ public abstract class RpEditor extends JPanel
         org.openide.awt.Mnemonics.setLocalizedText(lbl_placeHolder, org.openide.util.NbBundle.getMessage(RpEditor.class, "RpEditor.lbl_placeHolder.text")); // NOI18N
         pnl_placeHolder.add(lbl_placeHolder);
 
+        pnl_rpName.setFixedPreferredWidth(60);
+        pnl_rpName.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEADING, 5, 0));
+
+        lbl_rpName.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_rpName, org.openide.util.NbBundle.getMessage(RpEditor.class, "RpEditor.lbl_rpName.text_1")); // NOI18N
+        pnl_rpName.add(lbl_rpName);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(lbl_rpName)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addContainerGap()
+                .addComponent(pnl_rpName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(2, 2, 2)
                 .addComponent(pnl_placeHolder, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -224,9 +243,9 @@ public abstract class RpEditor extends JPanel
             .addGroup(layout.createSequentialGroup()
                 .addGap(0, 0, 0)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(pnl_placeHolder, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lbl_rpName))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(pnl_rpName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(pnl_placeHolder, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -234,34 +253,7 @@ public abstract class RpEditor extends JPanel
     private javax.swing.JLabel lbl_placeHolder;
     private javax.swing.JLabel lbl_rpName;
     private javax.swing.JPanel pnl_placeHolder;
+    private org.jjazz.ui.utilities.FixedPreferredWidthPanel pnl_rpName;
     // End of variables declaration//GEN-END:variables
-
-    private class FixedWidthLabel extends JLabel
-    {
-
-        static final int WIDTH = 100;
-
-        @Override
-        public Dimension getPreferredSize()
-        {
-            Dimension d = super.getPreferredSize();
-            d.width = WIDTH;
-            return d;
-        }
-    }
-
-    private class FixedWidthPanel extends JPanel
-    {
-
-        static final int WIDTH = 130;
-
-        @Override
-        public Dimension getPreferredSize()
-        {
-            Dimension d = super.getPreferredSize();
-            d.width = WIDTH;
-            return d;
-        }
-    }
 
 }

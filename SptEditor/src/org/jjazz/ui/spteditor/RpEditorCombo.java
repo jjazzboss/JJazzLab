@@ -25,6 +25,7 @@ package org.jjazz.ui.spteditor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -58,7 +59,7 @@ public class RpEditorCombo extends RpEditor implements ActionListener
         combo_rpValue.addActionListener(this);
         RhythmParameter<?> rpModel = getRpModel();
         SongPart sptModel = getSptModel();        
-        ComboBoxModel<String> cbModel = new DefaultComboBoxModel<>(rpModel.getPossibleValues().toArray(new String[0]));
+        ComboBoxModel<String> cbModel = new DefaultComboBoxModel<>(rpModel.getPossibleValues().toArray(new String[0]));               
         combo_rpValue.setModel(cbModel);
         combo_rpValue.setSelectedItem(sptModel.getRPValue(rpModel));
         setEditor(combo_rpValue);

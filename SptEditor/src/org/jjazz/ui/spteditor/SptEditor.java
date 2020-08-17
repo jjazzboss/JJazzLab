@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.spteditor;
 
+import java.awt.Color;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -342,7 +343,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
                     resetModel();
                 }
             }
-        } 
+        }
     }
 
     // ------------------------------------------------------------------------------------
@@ -497,10 +498,10 @@ public class SptEditor extends JPanel implements PropertyChangeListener
             {
                 removeRpEditor(rpe);
             }
-            for (RhythmParameter<?> rp : rhythm0.getRhythmParameters())
-            {
-                addRpEditor(spt0, rp);
-            }
+
+            // Add RpEditors
+            addRpEditors(spt0, rhythm0.getRhythmParameters());
+
             previousRhythm = rhythm0;
         }
 
@@ -588,19 +589,46 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         }
     }
 
-    private RpEditor addRpEditor(SongPart spt, RhythmParameter<?> rp)
+    /**
+     * Create the RpEditors and add them to the dedicated panel.
+     *
+     *
+     * @param spt
+     * @param rps
+     */
+    private void addRpEditors(SongPart spt, List<RhythmParameter<?>> rps)
     {
-        // Add an editor for each rp        
-        RpEditor rpe = RpEditorFactory.getCustomOrGenericRpEditor(songModel, spt, rp);
-        rpe.addPropertyChangeListener(RpEditor.PROP_RPVALUE ,this);     // To avoid getting all UI property change events
-        rpe.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        // We use a boxlayout Y in panel_RhythmParameters. We must limit the maximum height so that
-        // rp editors do not take all the vertical place.
-        int pHeight = rpe.getPreferredSize().height;
-        rpe.setMaximumSize(new Dimension(rpe.getMaximumSize().width, pHeight));
-        panel_RhythmParameters.add(rpe);
+        int rpNameMaxPrefWidth = 0;
+        var rpes = new ArrayList<RpEditor>();
+
+        for (var rp : rps)
+        {
+            // Get the editor      
+            RpEditor rpe = RpEditorFactory.getCustomOrGenericRpEditor(songModel, spt, rp);
+            rpes.add(rpe);
+            rpe.addPropertyChangeListener(RpEditor.PROP_RPVALUE, this);     // To avoid getting all UI property change events
+            rpe.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+
+
+            // We use a boxlayout Y in panel_RhythmParameters. We must limit the maximum height so that
+            // rp editors do not take all the vertical place.
+            int pHeight = rpe.getPreferredSize().height;
+            rpe.setMaximumSize(new Dimension(rpe.getMaximumSize().width, pHeight));
+            panel_RhythmParameters.add(rpe);
+
+            // Find the wider label
+            rpNameMaxPrefWidth = Math.max(rpNameMaxPrefWidth, rpe.getRpNameLabel().getPreferredSize().width);
+        }
+
+
+        // Set the rpName column width
+        for (RpEditor rpe : rpes)
+        {
+            rpe.setRpNameColumnWidth(rpNameMaxPrefWidth + 15);
+        }
+
+
         panel_RhythmParameters.repaint();
-        return rpe;
     }
 
     private void removeRpEditor(RpEditor rpe)
