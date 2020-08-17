@@ -347,6 +347,10 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
             for (int i = 0; i < text.length(); i++)
             {
                 char c = text.charAt(i);
+                if (i == 0 && c == '-')
+                {
+                    continue;
+                }
                 if (!Character.isDigit(text.charAt(i)))
                 {
                     return false;
