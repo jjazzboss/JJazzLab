@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import javax.sound.midi.ControllerEventListener;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaEventListener;
@@ -57,6 +58,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.NbPreferences;
 
 /**
  * Control the music playback.
@@ -77,6 +79,7 @@ import org.openide.util.NbBundle.Messages;
 public class MusicController implements PropertyChangeListener, MetaEventListener, ControllerEventListener
 {
 
+    public static final String PROP_PLAYBACK_TRANSPOSITION = "PlaybackTransposition";
     public static final String PROP_STATE = "PropPlaybackState";
     /**
      * This vetoable property is changed/fired just before playing song and can be vetoed by vetoables listeners to cancel
@@ -152,6 +155,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private final VetoableChangeSupport vcs = new VetoableChangeSupport(this);
     private final List<PlaybackListener> playbackListeners = new ArrayList<>();
+    private static Preferences prefs = NbPreferences.forModule(MusicController.class);
     private static final Logger LOGGER = Logger.getLogger(MusicController.class.getSimpleName());
 
     public static MusicController getInstance()
@@ -189,8 +193,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Try to temporarily acquire the java sequencer opened and connected to the default Midi out device.
      * <p>
-     * You can acquire the sequencer only if MusicController is not in the PLAYING state. If acquisition is successful
-     * the MusicController is put in DISABLED state. When done with the sequencer, caller must call releaseSequencer(lockHolder).
+     * You can acquire the sequencer only if MusicController is not in the PLAYING state. If acquisition is successful the
+     * MusicController is put in DISABLED state. When done with the sequencer, caller must call releaseSequencer(lockHolder).
      *
      * @param lockHolder Must be non-null
      * @return Null if sequencer has already a different lock or if MusicController is in the PLAYING state.
@@ -201,9 +205,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             throw new NullPointerException("lockHolder");
         }
-        
-        LOGGER.fine("acquireSequencer() -- lockHolder="+lockHolder);
-        
+
+        LOGGER.fine("acquireSequencer() -- lockHolder=" + lockHolder);
+
         if (sequencerLockHolder == lockHolder)
         {
             // lock already acquired
@@ -220,12 +224,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             state = State.DISABLED;
             pcs.firePropertyChange(PROP_STATE, old, state);
 
-            LOGGER.fine("acquireSequencer() external lock acquired.  MusicController released the sequencer, oldState="+old+" newState=DISABLED");
-            
+            LOGGER.fine("acquireSequencer() external lock acquired.  MusicController released the sequencer, oldState=" + old + " newState=DISABLED");
+
             return sequencer;
         } else
         {
-            LOGGER.fine("acquireSequencer() can't give lock to "+lockHolder+", current lock="+sequencerLockHolder);
+            LOGGER.fine("acquireSequencer() can't give lock to " + lockHolder + ", current lock=" + sequencerLockHolder);
             return null;
         }
     }
@@ -244,16 +248,16 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             throw new IllegalArgumentException("lockHolder=" + lockHolder + " sequencerLockHolder=" + sequencerLockHolder);
         }
 
-        LOGGER.fine("releaseSequencer() -- lockHolder="+lockHolder);
-        
+        LOGGER.fine("releaseSequencer() -- lockHolder=" + lockHolder);
+
         sequencerLockHolder = null;
 
         sequencer.stop(); // Just to make sure
 
         // Initialize sequencer for MusicController
         initSequencer();
-        
-        if (playbackContext!=null)
+
+        if (playbackContext != null)
         {
             playbackContext.setDirty();
         }
@@ -532,6 +536,45 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     public State getState()
     {
         return state;
+    }
+
+    /**
+     * Get the leadsheet transposition amount applied when playing a song.
+     * <p>
+     *
+     * @return [0;11] Default is 0.
+     */
+    public int getPlaybackLeadSheetTransposition()
+    {
+        return prefs.getInt(PROP_PLAYBACK_TRANSPOSITION, 0);
+    }
+
+    /**
+     * Set the leadsheet transposition amount applied when playing a song.
+     * <p>
+     * Ex: if transposition=2, chord=B7 will be replaced by C#7.
+     *
+     * @param t
+     */
+    public void setPlaybackLeadSheetTransposition(int t)
+    {
+        // Normalize value
+        t = t % 12;
+        if (t < 0)
+        {
+            t += 12;
+        }
+
+        int old = getPlaybackLeadSheetTransposition();
+        if (old != t)
+        {
+            if (playbackContext != null)
+            {
+                playbackContext.setDirty();
+            }
+            prefs.putInt(PROP_PLAYBACK_TRANSPOSITION, t);
+            pcs.firePropertyChange(PROP_PLAYBACK_TRANSPOSITION, old, t);
+        }
     }
 
     /**

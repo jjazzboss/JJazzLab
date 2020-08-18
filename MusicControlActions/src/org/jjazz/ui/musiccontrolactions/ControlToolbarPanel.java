@@ -236,17 +236,18 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
 
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         fbtn_Active = new org.jjazz.ui.flatcomponents.FlatToggleButton();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(8, 0), new java.awt.Dimension(8, 0), new java.awt.Dimension(5, 32767));
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         panel_PlayButtons = new javax.swing.JPanel();
         fbtn_Stop = new org.jjazz.ui.flatcomponents.FlatToggleButton();
         fbtn_Play = new org.jjazz.ui.flatcomponents.FlatToggleButton();
         fbtn_Pause = new org.jjazz.ui.flatcomponents.FlatToggleButton();
-        filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(15, 0), new java.awt.Dimension(15, 0), new java.awt.Dimension(15, 32767));
+        filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
+        filler10 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
         posViewer = new org.jjazz.ui.musiccontrolactions.PositionViewer();
         filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
         fbtn_Loop = new org.jjazz.ui.flatcomponents.FlatToggleButton();
         fbtn_PlaybackPoint = new org.jjazz.ui.flatcomponents.FlatToggleButton();
-        filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(15, 0), new java.awt.Dimension(15, 0), new java.awt.Dimension(15, 32767));
+        filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
         panel_Tempo = new javax.swing.JPanel()
         {
             @Override
@@ -295,6 +296,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
 
         add(panel_PlayButtons);
         add(filler3);
+        add(filler10);
 
         posViewer.setBackground(new java.awt.Color(204, 204, 204));
         posViewer.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 102, 153)), javax.swing.BorderFactory.createEmptyBorder(1, 8, 1, 8)));
@@ -364,6 +366,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Precount;
     private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Stop;
     private javax.swing.Box.Filler filler1;
+    private javax.swing.Box.Filler filler10;
     private javax.swing.Box.Filler filler2;
     private javax.swing.Box.Filler filler3;
     private javax.swing.Box.Filler filler4;

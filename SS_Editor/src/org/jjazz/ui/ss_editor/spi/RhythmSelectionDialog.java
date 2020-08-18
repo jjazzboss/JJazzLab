@@ -38,7 +38,7 @@ abstract public class RhythmSelectionDialog extends JDialog
 {
 
     /**
-     * The instance responsible to preview a rhythm.
+     * The object responsible to preview a rhythm.
      */
     public interface RhythmPreviewProvider
     {

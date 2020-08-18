@@ -154,7 +154,6 @@ public class InsertSptDialog extends javax.swing.JDialog
         btn_ok = new javax.swing.JButton();
         btn_cancel = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(org.openide.util.NbBundle.getMessage(InsertSptDialog.class, "InsertSptDialog.title")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_text, org.openide.util.NbBundle.getMessage(InsertSptDialog.class, "InsertSptDialog.lbl_text.text_1")); // NOI18N

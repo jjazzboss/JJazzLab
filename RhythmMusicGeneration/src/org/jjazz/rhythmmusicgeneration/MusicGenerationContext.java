@@ -40,7 +40,8 @@ import org.jjazz.util.LongRange;
 /**
  * Information to be used by a Rhythm to generate music.
  * <p>
- * The class also provides convenient methods to extract song data (e.g. song parts) relevant to the context defined by this object.
+ * The class also provides convenient methods to extract song data (e.g. song parts) relevant to the context defined by this
+ * object.
  */
 public class MusicGenerationContext
 {
@@ -61,22 +62,11 @@ public class MusicGenerationContext
     }
 
     /**
-     * Create a MusicGenerationContext which reuse mgc's Song and MidiMix, but with the specified range.
-     *
-     * @param mgc
-     * @param newRange
-     */
-    public MusicGenerationContext(MusicGenerationContext mgc, IntRange newRange)
-    {
-        this(mgc.getSong(), mgc.getMidiMix(), newRange);
-    }
-
-    /**
      * Create a MusicGenerationContext object for a whole or a part of the song.
      *
      * @param s
      * @param mix
-     * @param r   If null, the range will represent the whole song from first to last bar.
+     * @param r If null, the range will represent the whole song from first to last bar.
      */
     public MusicGenerationContext(Song s, MidiMix mix, IntRange r)
     {
@@ -100,6 +90,17 @@ public class MusicGenerationContext
         {
             this.range = r;
         }
+    }
+
+    /**
+     * Create a MusicGenerationContext which reuse mgc's Song and MidiMix, but with the specified range.
+     *
+     * @param mgc
+     * @param newRange
+     */
+    public MusicGenerationContext(MusicGenerationContext mgc, IntRange newRange)
+    {
+        this(mgc.getSong(), mgc.getMidiMix(), newRange);
     }
 
     @Override

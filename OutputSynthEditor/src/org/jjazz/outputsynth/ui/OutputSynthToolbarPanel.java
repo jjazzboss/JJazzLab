@@ -47,6 +47,7 @@ public class OutputSynthToolbarPanel extends javax.swing.JPanel implements Prope
     {
         initComponents();
         this.fbtn_editOutputSynth.setAction(Actions.forID("OutputSynth", "org.jjazz.outputsynth.ui.editoutputsynth"));
+        this.fbtn_playbackTransposition.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.transposeplayback"));
 
         var osm = OutputSynthManager.getInstance();
         osm.addPropertyChangeListener(this);
@@ -96,6 +97,8 @@ public class OutputSynthToolbarPanel extends javax.swing.JPanel implements Prope
     {
 
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
+        fbtn_playbackTransposition = new org.jjazz.ui.flatcomponents.FlatButton();
+        filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         fbtn_editOutputSynth = new org.jjazz.ui.flatcomponents.FlatButton();
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(2, 0), new java.awt.Dimension(2, 0), new java.awt.Dimension(2, 32767));
         pnl_labels = new javax.swing.JPanel();
@@ -104,6 +107,10 @@ public class OutputSynthToolbarPanel extends javax.swing.JPanel implements Prope
 
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
         add(filler1);
+
+        fbtn_playbackTransposition.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/Sax-OFF-24x24.png"))); // NOI18N
+        add(fbtn_playbackTransposition);
+        add(filler3);
 
         fbtn_editOutputSynth.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/OutputSynth2.png"))); // NOI18N
         fbtn_editOutputSynth.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthToolbarPanel.class, "OutputSynthToolbarPanel.fbtn_editOutputSynth.toolTipText")); // NOI18N
@@ -128,12 +135,13 @@ public class OutputSynthToolbarPanel extends javax.swing.JPanel implements Prope
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.jjazz.ui.flatcomponents.FlatButton fbtn_editOutputSynth;
+    private org.jjazz.ui.flatcomponents.FlatButton fbtn_playbackTransposition;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
+    private javax.swing.Box.Filler filler3;
     private javax.swing.JLabel lbl_stdBanks;
     private javax.swing.JLabel lbl_synths;
     private javax.swing.JPanel pnl_labels;
     // End of variables declaration//GEN-END:variables
-
 
 }
