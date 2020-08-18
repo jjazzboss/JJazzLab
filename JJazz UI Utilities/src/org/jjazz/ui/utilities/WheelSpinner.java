@@ -143,6 +143,7 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
 
         if (model instanceof SpinnerNumberModel)
         {
+            SpinnerNumberModel snm = (SpinnerNumberModel) model;
             JTextField tf = getDefaultEditor().getTextField();
 
             // Can't juste set DocumentFilter on the Spinner textfield !!!
@@ -162,7 +163,7 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
                         }
                     }
                 };
-                doc.setDocumentFilter(new DigitOnlyFilter());
+                doc.setDocumentFilter(new DigitOnlyFilter((Integer) snm.getMinimum() < 0));
                 tf.setDocument(doc);
                 try
                 {
@@ -332,10 +333,21 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
     private class DigitOnlyFilter extends DocumentFilter
     {
 
+        boolean allowNegative;
+
+        DigitOnlyFilter(boolean allowNegative)
+        {
+            this.allowNegative = allowNegative;
+        }
+
         @Override
         public void insertString(DocumentFilter.FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException
         {
-            if (digitOnly(string))
+            string = allowNegative ? string.charAt(0) + string.substring(1).replace("-", "") : string.replace("-", "");
+            String docText = fb.getDocument().getText(0, fb.getDocument().getLength());
+            if (digitOnly(string)
+                    && !(offset == 0 && string.startsWith("-") && docText.startsWith("-"))
+                    && !(offset > 0 && string.startsWith("-")))
             {
                 super.insertString(fb, offset, string, attr);
             }
@@ -344,7 +356,9 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
         @Override
         public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException
         {
-            if (digitOnly(text))
+            text = allowNegative ? text.charAt(0) + text.substring(1).replace("-", "") : text.replace("-", "");
+            if (digitOnly(text)
+                    && !(offset > 0 && text.startsWith("-")))
             {
                 super.replace(fb, offset, length, text, attrs);
             }
@@ -352,14 +366,18 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
 
         private boolean digitOnly(String text)
         {
+            if (text.isEmpty())
+            {
+                return false;
+            }
             for (int i = 0; i < text.length(); i++)
             {
                 char c = text.charAt(i);
-                if (i == 0 && c == '-')
+                if (allowNegative && i == 0 && c == '-')
                 {
                     continue;
                 }
-                if (!Character.isDigit(text.charAt(i)))
+                if (!Character.isDigit(c))
                 {
                     return false;
                 }
