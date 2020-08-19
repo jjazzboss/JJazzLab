@@ -131,7 +131,6 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         asm.setActive(previouslyActivatedSong, mm);
     }
 
-
     @Override
     public void previewRhythm(Rhythm r, boolean useRhythmTempo, boolean loop, ActionListener endListener) throws MusicGenerationException
     {
@@ -151,11 +150,9 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             stopSequencer();
         }
 
-
         isPreviewRunning = false;
         rhythm = r;
         endAction = endListener;
-
 
         // If sequencer not already acquired, stop any previous playing and acquire sequencer
         if (sequencer == null)
@@ -169,7 +166,6 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             }
             sequencer.addMetaEventListener(this);
         }
-
 
         // Build the preview song and context
         Song song;
@@ -191,11 +187,9 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         SongPart spt0 = song.getSongStructure().getSongPart(0);
         song.setTempo(useRhythmTempo ? r.getPreferredTempo() : originalSong.getTempo());
 
-
         // Activate the song to initialize Midi instruments
         ActiveSongManager asm = ActiveSongManager.getInstance();
         asm.setActive(song, mm);
-
 
         // Build the sequence from context
         MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(context, originalPostProcessors);
@@ -203,13 +197,13 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         if (sequence == null)
         {
             // Can happen if unexpected error, assertion error etc.
+            song.close(false);
             throw new MusicGenerationException("Unexpected error while building sequence. Consult log for details.");
         }
 
         // Reroute drums channels if needed
         List<Integer> toBeRerouted = mm.getDrumsReroutedChannels();
         MidiUtilities.rerouteShortMessages(sequence, toBeRerouted, MidiConst.CHANNEL_DRUMS);
-
 
         // Prepare sequencer
         try
@@ -234,12 +228,13 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         float songTempoFactor = (float) song.getTempo() / MidiConst.SEQUENCER_REF_TEMPO;
         sequencer.setTempoFactor(songTempoFactor);
 
-
         // Update state
         isPreviewRunning = true;
         previewedRhythms.add(rhythm);
-    }
 
+        // Close the song but don't release the rhythm resources: it will be done by cleanup()
+        song.close(false);
+    }
 
     @Override
     public boolean isPreviewRunning()
@@ -283,7 +278,6 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
     // ===============================================================================================
     // Private methods
     // ===============================================================================================
-
     private void stopSequencer()
     {
         assert sequencer != null;
@@ -321,7 +315,6 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             }
         }
 
-
         // Reroute drums channels
         List<Integer> reroutableChannels = mm.getChannelsNeedingDrumsRerouting(mapNewInstruments);
         LOGGER.fine("fixMidiMix()    reroutableChannels=" + reroutableChannels);
@@ -350,10 +343,8 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         SongStructure newSs = newSong.getSongStructure();
         ChordLeadSheet newCls = newSong.getChordLeadSheet();
 
-
         // Remove everything
         newSs.removeSongParts(newSs.getSongParts());
-
 
         // Get the first SongPart with the new rhythm
         List<SongPart> newSpts = new ArrayList<>();
@@ -361,13 +352,12 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         var newSpt = spt.clone(r, 0, spt.getNbBars(), parentSection);
         newSpts.add(newSpt);
 
-
         // If r is an AdaptedRhythm we must also add its the source rhythm
         if (r instanceof AdaptedRhythm)
         {
             AdaptedRhythm ar = (AdaptedRhythm) r;
             Rhythm sourceRhythm = ar.getSourceRhythm();
-            parentSection = newCls.getItems(CLI_Section.class)  // Find a parent section with the right signature
+            parentSection = newCls.getItems(CLI_Section.class) // Find a parent section with the right signature
                     .stream()
                     .filter(s -> s.getData().getTimeSignature().equals(sourceRhythm.getTimeSignature()))
                     .findFirst().orElseThrow();     // Exception should never be thrown
@@ -375,13 +365,10 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             newSpts.add(newSpt);
         }
 
-
         // Add the SongParts
         newSs.addSongParts(newSpts);
 
-
         return newSong;
     }
-
 
 }

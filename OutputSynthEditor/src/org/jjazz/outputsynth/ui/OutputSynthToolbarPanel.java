@@ -47,7 +47,7 @@ public class OutputSynthToolbarPanel extends javax.swing.JPanel implements Prope
     {
         initComponents();
         this.fbtn_editOutputSynth.setAction(Actions.forID("OutputSynth", "org.jjazz.outputsynth.ui.editoutputsynth"));
-        this.fbtn_playbackTransposition.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.transposeplayback"));
+        this.fbtn_playbackTransposition.setAction(Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.transposeplaybackkey"));
 
         var osm = OutputSynthManager.getInstance();
         osm.addPropertyChangeListener(this);

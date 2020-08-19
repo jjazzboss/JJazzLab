@@ -40,8 +40,7 @@ import org.jjazz.util.LongRange;
 /**
  * Information to be used by a Rhythm to generate music.
  * <p>
- * The class also provides convenient methods to extract song data (e.g. song parts) relevant to the context defined by this
- * object.
+ * The class also provides convenient methods to extract song data (e.g. song parts) relevant to the context.
  */
 public class MusicGenerationContext
 {

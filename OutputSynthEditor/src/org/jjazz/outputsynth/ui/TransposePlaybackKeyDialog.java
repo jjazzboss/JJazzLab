@@ -11,38 +11,41 @@ import org.openide.windows.WindowManager;
 /**
  * Dialog to select playback transposition.
  */
-public class TransposePlaybackDialog extends javax.swing.JDialog
+public class TransposePlaybackKeyDialog extends javax.swing.JDialog
 {
 
-    static private TransposePlaybackDialog INSTANCE;
+    static private TransposePlaybackKeyDialog INSTANCE;
     private boolean exitOk;
 
-    public static TransposePlaybackDialog getInstance()
+    public static TransposePlaybackKeyDialog getInstance()
     {
-        synchronized (TransposePlaybackDialog.class)
+        synchronized (TransposePlaybackKeyDialog.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new TransposePlaybackDialog(WindowManager.getDefault().getMainWindow(), true);
+                INSTANCE = new TransposePlaybackKeyDialog(WindowManager.getDefault().getMainWindow(), true);
             }
         }
         return INSTANCE;
     }
 
-    private TransposePlaybackDialog(java.awt.Frame parent, boolean modal)
+    private TransposePlaybackKeyDialog(java.awt.Frame parent, boolean modal)
     {
         super(parent, modal);
         initComponents();
     }
 
-    public void preset(int transposition)
+    /**
+     *
+     * @param keyTransposition [-11;0]
+     */
+    public void preset(int keyTransposition)
     {
-        transposition %= 12;
-        if (transposition < 0)
+        if (keyTransposition < -11 || keyTransposition > 0)
         {
-            transposition += 12;
+            throw new IllegalArgumentException("transposition=" + keyTransposition);
         }
-        cb_transposition.setSelectedIndex(transposition);
+        cb_transposition.setSelectedIndex(-keyTransposition);
         pack();
         cb_transposition.requestFocusInWindow();
     }
@@ -54,15 +57,15 @@ public class TransposePlaybackDialog extends javax.swing.JDialog
     }
 
     /**
-     * Get the transposition value.
+     * Get the key transposition value.
      * <p>
      * Note that value is meaningless if isExitOk() returns false.
      *
      * @return
      */
-    public int getPlaybackTransposition()
+    public int getPlaybackKeyTransposition()
     {
-        return cb_transposition.getSelectedIndex();
+        return -cb_transposition.getSelectedIndex();
     }
 
     // ====================================================================================================
@@ -128,9 +131,9 @@ public class TransposePlaybackDialog extends javax.swing.JDialog
         jScrollPane1 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
 
-        setTitle(org.openide.util.NbBundle.getMessage(TransposePlaybackDialog.class, "TransposePlaybackDialog.title")); // NOI18N
+        setTitle(org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.title")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(TransposePlaybackDialog.class, "TransposePlaybackDialog.btn_Ok.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.btn_Ok.text")); // NOI18N
         btn_Ok.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -139,7 +142,7 @@ public class TransposePlaybackDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(TransposePlaybackDialog.class, "TransposePlaybackDialog.btn_Cancel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.btn_Cancel.text")); // NOI18N
         btn_Cancel.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -148,7 +151,7 @@ public class TransposePlaybackDialog extends javax.swing.JDialog
             }
         });
 
-        cb_transposition.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "No transposition (piano, guitar, ...)", "+1", "+2   (sax tenor Bb, trumpet Bb, ...)", "+3 ", "+4 ", "+5  (flute alto G, ...)", "+6 ", "+7", "+8", "+9   (sax alto Eb, ...)", "+10", "+11  (piccolo Db, ...)" }));
+        cb_transposition.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "No transposition (piano, guitar, ...)", "-1", "-2   (sax tenor Bb, trumpet Bb, ...)", "-3 ", "-4 ", "-5  (flute alto G, ...)", "-6 ", "-7", "-8", "-9   (sax alto Eb, ...)", "-10", "-11  (piccolo Db, ...)" }));
         cb_transposition.addKeyListener(new java.awt.event.KeyAdapter()
         {
             public void keyPressed(java.awt.event.KeyEvent evt)
@@ -157,11 +160,13 @@ public class TransposePlaybackDialog extends javax.swing.JDialog
             }
         });
 
+        jScrollPane1.setBackground(null);
         jScrollPane1.setBorder(null);
 
+        helpTextArea1.setBackground(null);
         helpTextArea1.setColumns(20);
         helpTextArea1.setRows(2);
-        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(TransposePlaybackDialog.class, "TransposePlaybackDialog.helpTextArea1.text")); // NOI18N
+        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.helpTextArea1.text")); // NOI18N
         jScrollPane1.setViewportView(helpTextArea1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -179,7 +184,7 @@ public class TransposePlaybackDialog extends javax.swing.JDialog
                         .addComponent(btn_Cancel))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(cb_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 93, Short.MAX_VALUE)))
+                        .addGap(0, 90, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -191,8 +196,8 @@ public class TransposePlaybackDialog extends javax.swing.JDialog
                 .addContainerGap()
                 .addComponent(cb_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane1)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btn_Ok)
                     .addComponent(btn_Cancel))

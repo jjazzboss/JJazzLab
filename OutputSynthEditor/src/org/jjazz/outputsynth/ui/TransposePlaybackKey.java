@@ -29,23 +29,20 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.song.api.Song;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 
 /**
  * Transpose the leadsheet for playback.
  */
-@ActionID(category = "MusicControls", id = "org.jjazz.ui.musiccontrolactions.transposeplayback")
-@ActionRegistration(displayName = "Transpose playback", lazy = false)
-public class TransposePlayback extends AbstractAction implements PropertyChangeListener
+@ActionID(category = "MusicControls", id = "org.jjazz.ui.musiccontrolactions.transposeplaybackkey")
+@ActionRegistration(displayName = "Transpose playback key", lazy = false)
+public class TransposePlaybackKey extends AbstractAction implements PropertyChangeListener
 {
 
     @StaticResource(relative = true)
@@ -53,9 +50,9 @@ public class TransposePlayback extends AbstractAction implements PropertyChangeL
     @StaticResource(relative = true)
     private static final String ON_ICON = "resources/Sax-ON-24x24.png";
 
-    private static final Logger LOGGER = Logger.getLogger(TransposePlayback.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(TransposePlaybackKey.class.getSimpleName());
 
-    public TransposePlayback()
+    public TransposePlaybackKey()
     {
         putValue("hideActionText", true);
         updateButtonUI();
@@ -67,19 +64,19 @@ public class TransposePlayback extends AbstractAction implements PropertyChangeL
     public void actionPerformed(ActionEvent e)
     {
         var mc = MusicController.getInstance();
-        var dlg = TransposePlaybackDialog.getInstance();
-        dlg.preset(mc.getPlaybackLeadSheetTransposition());
+        var dlg = TransposePlaybackKeyDialog.getInstance();
+        dlg.preset(mc.getPlaybackKeyTransposition());
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
 
 
         if (dlg.isExitOk())
         {
-            int old = mc.getPlaybackLeadSheetTransposition();
-            mc.setPlaybackLeadSheetTransposition(dlg.getPlaybackTransposition());
-            if (old != dlg.getPlaybackTransposition() && mc.getState().equals(MusicController.State.PLAYING))
+            int old = mc.getPlaybackKeyTransposition();
+            mc.setPlaybackKeyTransposition(dlg.getPlaybackKeyTransposition());
+            if (old != dlg.getPlaybackKeyTransposition() && mc.getState().equals(MusicController.State.PLAYING))
             {
-                String msg = "Change will take place when current song play back is over.";
+                String msg = "Change will take effect when current song play back is over.";
                 NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
             }
@@ -95,7 +92,7 @@ public class TransposePlayback extends AbstractAction implements PropertyChangeL
         var mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_PLAYBACK_TRANSPOSITION)
+            if (evt.getPropertyName() == MusicController.PROP_PLAYBACK_KEY_TRANSPOSITION)
             {
                 updateButtonUI();
             }
@@ -107,14 +104,14 @@ public class TransposePlayback extends AbstractAction implements PropertyChangeL
     // ======================================================================   
     private void updateButtonUI()
     {
-        int t = MusicController.getInstance().getPlaybackLeadSheetTransposition();
+        int t = MusicController.getInstance().getPlaybackKeyTransposition();
 
 
         String iconPath = t == 0 ? OFF_ICON : ON_ICON;
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource(iconPath)));
 
 
-        String s = "Current playback transposition: " + (t == 0 ? "0" : "+" + t);
+        String s = "Current playback key transposition: " + t;
         putValue(Action.SHORT_DESCRIPTION, s);
 
     }

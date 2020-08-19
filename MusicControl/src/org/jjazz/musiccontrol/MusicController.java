@@ -43,6 +43,10 @@ import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import javax.swing.SwingUtilities;
+import org.jjazz.harmony.Note;
+import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.MidiConst;
@@ -57,6 +61,8 @@ import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongFactory;
+import org.jjazz.util.IntRange;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
 
@@ -79,7 +85,7 @@ import org.openide.util.NbPreferences;
 public class MusicController implements PropertyChangeListener, MetaEventListener, ControllerEventListener
 {
 
-    public static final String PROP_PLAYBACK_TRANSPOSITION = "PlaybackTransposition";
+    public static final String PROP_PLAYBACK_KEY_TRANSPOSITION = "PlaybackTransposition";
     public static final String PROP_STATE = "PropPlaybackState";
     /**
      * This vetoable property is changed/fired just before playing song and can be vetoed by vetoables listeners to cancel
@@ -539,41 +545,39 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Get the leadsheet transposition amount applied when playing a song.
+     * Get the key transposition applied to chord symbols when playing a song.
      * <p>
      *
-     * @return [0;11] Default is 0.
+     * @return [0;-11] Default is 0.
      */
-    public int getPlaybackLeadSheetTransposition()
+    public int getPlaybackKeyTransposition()
     {
-        return prefs.getInt(PROP_PLAYBACK_TRANSPOSITION, 0);
+        return prefs.getInt(PROP_PLAYBACK_KEY_TRANSPOSITION, 0);
     }
 
     /**
-     * Set the leadsheet transposition amount applied when playing a song.
+     * Set the key transposition applied to chord symbols when playing a song.
      * <p>
-     * Ex: if transposition=2, chord=B7 will be replaced by C#7.
+     * Ex: if transposition=-2, chord=C#7 will be replaced by B7.
      *
-     * @param t
+     * @param t [0;-11]
      */
-    public void setPlaybackLeadSheetTransposition(int t)
+    public void setPlaybackKeyTransposition(int t)
     {
-        // Normalize value
-        t = t % 12;
-        if (t < 0)
+        if (t < -11 || t > 0)
         {
-            t += 12;
+            throw new IllegalArgumentException("t=" + t);
         }
 
-        int old = getPlaybackLeadSheetTransposition();
+        int old = getPlaybackKeyTransposition();
         if (old != t)
         {
             if (playbackContext != null)
             {
                 playbackContext.setDirty();
             }
-            prefs.putInt(PROP_PLAYBACK_TRANSPOSITION, t);
-            pcs.firePropertyChange(PROP_PLAYBACK_TRANSPOSITION, old, t);
+            prefs.putInt(PROP_PLAYBACK_KEY_TRANSPOSITION, t);
+            pcs.firePropertyChange(PROP_PLAYBACK_KEY_TRANSPOSITION, old, t);
         }
     }
 
@@ -1015,7 +1019,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private class PlaybackContext
     {
 
-        MusicGenerationContext context;
+        MusicGenerationContext playbackContext;
         /**
          * The generated sequence.
          */
@@ -1052,7 +1056,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             {
                 throw new NullPointerException("context");
             }
-            this.context = context;
+            this.playbackContext = buildPlaybackContext(context);
             dirty = true;
             this.postProcessors = postProcessors;
 
@@ -1074,7 +1078,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             {
 
                 // Build the sequence
-                MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(context, postProcessors);
+                MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(playbackContext, postProcessors);
                 sequence = seqBuilder.buildSequence(false);                  // Can raise MusicGenerationException
                 if (sequence == null)
                 {
@@ -1085,23 +1089,23 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 mapRvTrackId = seqBuilder.getRvTrackIdMap();                 // Used to identify a RhythmVoice's track
 
                 // Add the control track
-                ControlTrackBuilder ctm = new ControlTrackBuilder(context);
+                ControlTrackBuilder ctm = new ControlTrackBuilder(playbackContext);
                 controlTrackId = ctm.addControlTrack(sequence);
                 naturalBeatPositions = ctm.getNaturalBeatPositions();
 
                 // Add the click track
-                clickTrackId = prepareClickTrack(sequence, context);
+                clickTrackId = prepareClickTrack(sequence);
 
                 // Add the click precount track - this must be done last because it will shift all song events
-                songTickStart = preparePrecountClickTrack(sequence, context);
+                songTickStart = preparePrecountClickTrack(sequence);
                 precountTrackId = sequence.getTracks().length - 1;
 
                 // Update the sequence if rerouting needed
-                rerouteDrumsChannels(sequence, context.getMidiMix());
+                rerouteDrumsChannels(sequence, playbackContext.getMidiMix());
 
                 if (debugBuiltSequence)
                 {
-                    LOGGER.info("update() song=" + context.getSong().getName() + " sequence :");
+                    LOGGER.info("buildSequence() song=" + playbackContext.getSong().getName() + " sequence :");
                     LOGGER.info(MidiUtilities.toString(sequence));
                 }
 
@@ -1109,14 +1113,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 sequencer.setSequence(sequence);    // Can raise InvalidMidiDataException                                               
 
                 // Update muted state for each track
-                updateAllTracksMuteState(context.getMidiMix());
+                updateAllTracksMuteState(playbackContext.getMidiMix());
                 sequencer.setTrackMute(controlTrackId, false);
                 sequencer.setTrackMute(precountTrackId, false);
                 sequencer.setTrackMute(clickTrackId, !isClickEnabled);
 
                 // Set position and loop points
                 sequencer.setLoopStartPoint(songTickStart);
-                songTickEnd = (long) (songTickStart + mgContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
+                songTickEnd = (long) (songTickStart + playbackContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
                 sequencer.setLoopEndPoint(songTickEnd);
 
                 // We're clean
@@ -1149,21 +1153,60 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
 
         /**
+         * Prepare the playback context.
+         * <p>
+         * Apply the key transposition.
+         *
+         * @param context
+         * @return
+         */
+        private MusicGenerationContext buildPlaybackContext(MusicGenerationContext context)
+        {
+            if (getPlaybackKeyTransposition() == 0)
+            {
+                return context;
+            }
+
+            // Create a new song with transposed chord symbols
+            var sf = SongFactory.getInstance();
+            CLI_Factory clif = CLI_Factory.getDefault();
+            int kt = MusicController.this.getPlaybackKeyTransposition();
+
+
+            Song songCopy = sf.getCopy(context.getSong());
+            sf.unregisterSong(songCopy);
+            ChordLeadSheet clsCopy = songCopy.getChordLeadSheet();
+
+
+            for (var oldCli : clsCopy.getItems(CLI_ChordSymbol.class))
+            {
+                var newEcs = oldCli.getData().getTransposedChordSymbol(kt, Note.Alteration.FLAT);
+                var newCli = clif.createChordSymbol(clsCopy, newEcs, oldCli.getPosition());
+                clsCopy.removeItem(oldCli);
+                clsCopy.addItem(newCli);
+            }
+
+            var res = new MusicGenerationContext(songCopy, context.getMidiMix(), context.getBarRange());
+            return res;
+
+        }
+
+        /**
          *
          * @param sequence
          * @param mm
          * @param sg
          * @return The track id
          */
-        private int prepareClickTrack(Sequence sequence, MusicGenerationContext context)
+        private int prepareClickTrack(Sequence sequence)
         {
             // Add the click track
             ClickManager cm = ClickManager.getInstance();
-            int trackId = cm.addClickTrack(sequence, context);
+            int trackId = cm.addClickTrack(sequence, playbackContext);
 
             // Send a Drums program change if Click channel is not used in the current MidiMix
             int clickChannel = ClickManager.getInstance().getPreferredClickChannel();
-            if (context.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
+            if (playbackContext.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
             {
 //                Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
 //                JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
@@ -1179,15 +1222,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
          * @param sg
          * @return The tick position of the start of the song.
          */
-        private long preparePrecountClickTrack(Sequence sequence, MusicGenerationContext context)
+        private long preparePrecountClickTrack(Sequence sequence)
         {
             // Add the click track
             ClickManager cm = ClickManager.getInstance();
-            long tickPos = cm.addPreCountClickTrack(sequence, context);
+            long tickPos = cm.addPreCountClickTrack(sequence, playbackContext);
 
             // Send a Drums program change if Click channel is not used in the current MidiMix
             int clickChannel = ClickManager.getInstance().getPreferredClickChannel();
-            if (context.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
+            if (playbackContext.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
             {
 //                Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
 //                JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
