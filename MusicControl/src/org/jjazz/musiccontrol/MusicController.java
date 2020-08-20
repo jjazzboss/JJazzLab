@@ -62,7 +62,6 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import org.jjazz.util.IntRange;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
 
@@ -276,7 +275,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Set the music context on which this controller's methods (play/pause/etc.) will operate and build the sequence.
+     * Set the music context on which this controller's methods (play/pause/etc.) will operate, and build the sequence.
      * <p>
      * Stop the playback if it was on. Tempo is set to song's tempo.
      *
@@ -361,7 +360,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             throw new IllegalArgumentException("context=" + mgContext + ", fromBarIndex=" + fromBarIndex);
         }
 
+
         checkMidi();                // throws MusicGenerationException
+
 
         // Check state
         if (state == State.PLAYING)
@@ -372,6 +373,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             throw new MusicGenerationException("Playback is disabled.");
         }
 
+
         // If we're here then playbackState = PAUSE or STOPPED
         if (mgContext.getBarRange().isEmpty())
         {
@@ -379,8 +381,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             throw new MusicGenerationException("Nothing to play");
         }
 
+
         // Check that all listeners are OK to start playback
         vcs.fireVetoableChange(PROPVETO_PRE_PLAYBACK, null, mgContext);  // can raise PropertyVetoException
+
 
         // Regenerate the sequence and the related data if needed
         if (playbackContext.isDirty())
@@ -394,15 +398,19 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             }
         }
 
+
         // Set start position
         setPosition(fromBarIndex);
+
 
         // Start or restart the sequencer
         sequencer.setLoopCount(loopCount);
         seqStart();
 
+
         State old = this.getState();
         state = State.PLAYING;
+
 
         pcs.firePropertyChange(PROP_STATE, old, state);
     }
@@ -426,6 +434,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             return;
         }
 
+
         if (playbackContext.isDirty())
         {
             // Song was modified during playback, do play() instead
@@ -433,19 +442,25 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             return;
         }
 
+
         if (mgContext == null)
         {
             throw new IllegalStateException("context=" + mgContext);
         }
 
+
         checkMidi();                // throws MusicGenerationException
+
 
         // Check that all listeners are OK to resume playback
         vcs.fireVetoableChange(PROPVETO_PRE_PLAYBACK, null, mgContext.getSong());  // can raise PropertyVetoException
 
+
         // Let's go again
         seqStart();
 
+
+        // Update state
         State old = this.getState();
         state = State.PLAYING;
         pcs.firePropertyChange(PROP_STATE, old, state);
@@ -686,8 +701,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Listeners will be notified via the PROPVETO_PRE_PLAYBACK property change before a playback is started.
      * <p>
-     * The NewValue is a MusicGenerationContext object. Note that listener is responsible for informing the user if the change was
-     * vetoed.
+     * The NewValue is a MusicGenerationContext object. Listener is responsible for informing the user if the change was vetoed.
      *
      * @param listener
      */
@@ -1013,13 +1027,17 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
     }
 
+    // =============================================================================================
+    // Private classes
+    // =============================================================================================
     /**
-     * The playback data associated to a single version of a song.
+     * The playback data associated to a snapshot of a song and other parameters (e.g. click, playback key transposition, etc.)
      */
     private class PlaybackContext
     {
 
-        MusicGenerationContext playbackContext;
+        MusicGenerationContext originalContext;
+
         /**
          * The generated sequence.
          */
@@ -1056,7 +1074,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             {
                 throw new NullPointerException("context");
             }
-            this.playbackContext = buildPlaybackContext(context);
+            this.originalContext = context;
             dirty = true;
             this.postProcessors = postProcessors;
 
@@ -1074,11 +1092,16 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
          */
         final void buildSequence() throws MusicGenerationException
         {
+
+            // Prepare our work MusicGenerationContext
+            MusicGenerationContext workMgContext = buildWorkMgContext(originalContext);
+
+
             try
             {
 
                 // Build the sequence
-                MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(playbackContext, postProcessors);
+                MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(workMgContext, postProcessors);
                 sequence = seqBuilder.buildSequence(false);                  // Can raise MusicGenerationException
                 if (sequence == null)
                 {
@@ -1086,42 +1109,52 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                     throw new MusicGenerationException("Unexpected error while building sequence. Consult log for details.");
                 }
 
+
                 mapRvTrackId = seqBuilder.getRvTrackIdMap();                 // Used to identify a RhythmVoice's track
 
+
                 // Add the control track
-                ControlTrackBuilder ctm = new ControlTrackBuilder(playbackContext);
+                ControlTrackBuilder ctm = new ControlTrackBuilder(workMgContext);
                 controlTrackId = ctm.addControlTrack(sequence);
                 naturalBeatPositions = ctm.getNaturalBeatPositions();
 
+
                 // Add the click track
-                clickTrackId = prepareClickTrack(sequence);
+                clickTrackId = prepareClickTrack(sequence, workMgContext);
+
 
                 // Add the click precount track - this must be done last because it will shift all song events
-                songTickStart = preparePrecountClickTrack(sequence);
+                songTickStart = preparePrecountClickTrack(sequence, workMgContext);
                 precountTrackId = sequence.getTracks().length - 1;
 
+                
                 // Update the sequence if rerouting needed
-                rerouteDrumsChannels(sequence, playbackContext.getMidiMix());
+                rerouteDrumsChannels(sequence, workMgContext.getMidiMix());
+
 
                 if (debugBuiltSequence)
                 {
-                    LOGGER.info("buildSequence() song=" + playbackContext.getSong().getName() + " sequence :");
+                    LOGGER.info("buildSequence() song=" + workMgContext.getSong().getName() + " sequence :");
                     LOGGER.info(MidiUtilities.toString(sequence));
                 }
+
 
                 // Initialize sequencer with the built sequence
                 sequencer.setSequence(sequence);    // Can raise InvalidMidiDataException                                               
 
+
                 // Update muted state for each track
-                updateAllTracksMuteState(playbackContext.getMidiMix());
+                updateAllTracksMuteState(workMgContext.getMidiMix());
                 sequencer.setTrackMute(controlTrackId, false);
                 sequencer.setTrackMute(precountTrackId, false);
                 sequencer.setTrackMute(clickTrackId, !isClickEnabled);
 
+
                 // Set position and loop points
                 sequencer.setLoopStartPoint(songTickStart);
-                songTickEnd = (long) (songTickStart + playbackContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
+                songTickEnd = (long) (songTickStart + workMgContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
                 sequencer.setLoopEndPoint(songTickEnd);
+
 
                 // We're clean
                 dirty = false;
@@ -1153,14 +1186,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
 
         /**
-         * Prepare the playback context.
+         * Prepare a music generation context possibly modified from the original.
          * <p>
-         * Apply the key transposition.
+         * Apply the playback key transposition.
          *
          * @param context
          * @return
          */
-        private MusicGenerationContext buildPlaybackContext(MusicGenerationContext context)
+        private MusicGenerationContext buildWorkMgContext(MusicGenerationContext context)
         {
             if (getPlaybackKeyTransposition() == 0)
             {
@@ -1198,15 +1231,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
          * @param sg
          * @return The track id
          */
-        private int prepareClickTrack(Sequence sequence)
+        private int prepareClickTrack(Sequence sequence, MusicGenerationContext context)
         {
             // Add the click track
             ClickManager cm = ClickManager.getInstance();
-            int trackId = cm.addClickTrack(sequence, playbackContext);
+            int trackId = cm.addClickTrack(sequence, context);
 
             // Send a Drums program change if Click channel is not used in the current MidiMix
             int clickChannel = ClickManager.getInstance().getPreferredClickChannel();
-            if (playbackContext.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
+            if (context.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
             {
 //                Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
 //                JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
@@ -1222,15 +1255,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
          * @param sg
          * @return The tick position of the start of the song.
          */
-        private long preparePrecountClickTrack(Sequence sequence)
+        private long preparePrecountClickTrack(Sequence sequence, MusicGenerationContext context)
         {
             // Add the click track
             ClickManager cm = ClickManager.getInstance();
-            long tickPos = cm.addPreCountClickTrack(sequence, playbackContext);
+            long tickPos = cm.addPreCountClickTrack(sequence, context);
 
             // Send a Drums program change if Click channel is not used in the current MidiMix
             int clickChannel = ClickManager.getInstance().getPreferredClickChannel();
-            if (playbackContext.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
+            if (context.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
             {
 //                Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
 //                JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
@@ -1265,7 +1298,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
 
         /**
-         * The context song has been modified, should call update().
+         * Something has been modified, should rebuild sequence
          *
          * @return
          */

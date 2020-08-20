@@ -23,6 +23,7 @@
 package org.jjazz.outputsynth.ui;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
@@ -49,7 +50,6 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
     private static final String OFF_ICON = "resources/Sax-OFF-24x24.png";
     @StaticResource(relative = true)
     private static final String ON_ICON = "resources/Sax-ON-24x24.png";
-
     private static final Logger LOGGER = Logger.getLogger(TransposePlaybackKey.class.getSimpleName());
 
     public TransposePlaybackKey()
@@ -65,6 +65,15 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
     {
         var mc = MusicController.getInstance();
         var dlg = TransposePlaybackKeyDialog.getInstance();
+
+
+        boolean ctrl = (e.getModifiers() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
+        if (ctrl)
+        {
+            // Directly toggle 
+        }
+
+
         dlg.preset(mc.getPlaybackKeyTransposition());
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);

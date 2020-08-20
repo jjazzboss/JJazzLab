@@ -45,9 +45,14 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
         {
             throw new IllegalArgumentException("transposition=" + keyTransposition);
         }
-        cb_transposition.setSelectedIndex(-keyTransposition);
+        cb_enableKeyTransposition.setSelected(keyTransposition != 0);
+        cmb_transposition.setEnabled(keyTransposition != 0);
+        if (keyTransposition != 0)
+        {
+            cmb_transposition.setSelectedIndex(-keyTransposition - 1);
+        }
         pack();
-        cb_transposition.requestFocusInWindow();
+        cb_enableKeyTransposition.requestFocusInWindow();       // After pack
     }
 
     public boolean isExitOk()
@@ -65,8 +70,8 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
      */
     public int getPlaybackKeyTransposition()
     {
-        return -cb_transposition.getSelectedIndex();
-    }
+        return !cb_enableKeyTransposition.isSelected() ? 0 : -cmb_transposition.getSelectedIndex() - 1;
+    }    
 
     // ====================================================================================================
     // Private methods
@@ -127,9 +132,10 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
 
         btn_Ok = new javax.swing.JButton();
         btn_Cancel = new javax.swing.JButton();
-        cb_transposition = new javax.swing.JComboBox<>();
+        cmb_transposition = new javax.swing.JComboBox<>();
         jScrollPane1 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        cb_enableKeyTransposition = new javax.swing.JCheckBox();
 
         setTitle(org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.title")); // NOI18N
 
@@ -151,40 +157,54 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
             }
         });
 
-        cb_transposition.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "No transposition (piano, guitar, ...)", "-1", "-2   (sax tenor Bb, trumpet Bb, ...)", "-3 ", "-4 ", "-5  (flute alto G, ...)", "-6 ", "-7", "-8", "-9   (sax alto Eb, ...)", "-10", "-11  (piccolo Db, ...)" }));
-        cb_transposition.addKeyListener(new java.awt.event.KeyAdapter()
+        cmb_transposition.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "-1", "-2   (sax tenor Bb, trumpet Bb, ...)", "-3 ", "-4 ", "-5  (flute alto G, ...)", "-6 ", "-7", "-8", "-9   (sax alto Eb, ...)", "-10", "-11  (piccolo Db, ...)" }));
+        cmb_transposition.setSelectedIndex(1);
+        cmb_transposition.addKeyListener(new java.awt.event.KeyAdapter()
         {
             public void keyPressed(java.awt.event.KeyEvent evt)
             {
-                cb_transpositionKeyPressed(evt);
+                cmb_transpositionKeyPressed(evt);
             }
         });
 
-        jScrollPane1.setBackground(null);
         jScrollPane1.setBorder(null);
 
-        helpTextArea1.setBackground(null);
         helpTextArea1.setColumns(20);
-        helpTextArea1.setRows(2);
+        helpTextArea1.setRows(3);
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.helpTextArea1.text")); // NOI18N
         jScrollPane1.setViewportView(helpTextArea1);
+
+        org.openide.awt.Mnemonics.setLocalizedText(cb_enableKeyTransposition, org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.cb_enableKeyTransposition.text")); // NOI18N
+        cb_enableKeyTransposition.addChangeListener(new javax.swing.event.ChangeListener()
+        {
+            public void stateChanged(javax.swing.event.ChangeEvent evt)
+            {
+                cb_enableKeyTranspositionStateChanged(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(btn_Ok)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(cb_enableKeyTransposition)
+                                .addGap(0, 137, Short.MAX_VALUE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(btn_Ok)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_Cancel))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(cb_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 90, Short.MAX_VALUE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(cmb_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -192,28 +212,30 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
 
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(cb_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1)
+            .addGroup(layout.createSequentialGroup()
                 .addGap(18, 18, 18)
+                .addComponent(cb_enableKeyTransposition)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cmb_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 23, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btn_Ok)
-                    .addComponent(btn_Cancel))
+                    .addComponent(btn_Cancel)
+                    .addComponent(btn_Ok))
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void cb_transpositionKeyPressed(java.awt.event.KeyEvent evt)//GEN-FIRST:event_cb_transpositionKeyPressed
-    {//GEN-HEADEREND:event_cb_transpositionKeyPressed
+    private void cmb_transpositionKeyPressed(java.awt.event.KeyEvent evt)//GEN-FIRST:event_cmb_transpositionKeyPressed
+    {//GEN-HEADEREND:event_cmb_transpositionKeyPressed
         if (evt.getKeyChar() == KeyEvent.VK_ENTER)
         {
             actionOK();
         }
-    }//GEN-LAST:event_cb_transpositionKeyPressed
+    }//GEN-LAST:event_cmb_transpositionKeyPressed
 
     private void btn_OkActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_OkActionPerformed
     {//GEN-HEADEREND:event_btn_OkActionPerformed
@@ -225,11 +247,17 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
         actionCancel();
     }//GEN-LAST:event_btn_CancelActionPerformed
 
+    private void cb_enableKeyTranspositionStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_cb_enableKeyTranspositionStateChanged
+    {//GEN-HEADEREND:event_cb_enableKeyTranspositionStateChanged
+        cmb_transposition.setEnabled(cb_enableKeyTransposition.isSelected());
+    }//GEN-LAST:event_cb_enableKeyTranspositionStateChanged
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_Cancel;
     private javax.swing.JButton btn_Ok;
-    private javax.swing.JComboBox<String> cb_transposition;
+    private javax.swing.JCheckBox cb_enableKeyTransposition;
+    private javax.swing.JComboBox<String> cmb_transposition;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
