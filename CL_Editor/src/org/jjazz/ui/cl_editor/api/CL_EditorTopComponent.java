@@ -101,6 +101,9 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
 
         // Create our editor
         clEditor = CL_EditorFactory.getDefault().createEditor(songModel);
+        
+        // Make editor printable by Netbeans PrintManager
+        clEditor.putClientProperty("print.printable", Boolean.TRUE); // NOI18N
 
         // Our controller
         clEditorController = new CL_EditorController(clEditor);

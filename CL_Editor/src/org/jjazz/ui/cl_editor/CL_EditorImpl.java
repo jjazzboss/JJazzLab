@@ -182,16 +182,15 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     private static final Logger LOGGER = Logger.getLogger(CL_EditorImpl.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public CL_EditorImpl(Song song)
+    public CL_EditorImpl(Song song, CL_EditorSettings settings)
     {
-        if (song == null)
+        if (song == null || settings == null)
         {
-            throw new IllegalArgumentException("song=" + song);
+            throw new IllegalArgumentException("song=" + song + " settings=" + settings);
         }
         songModel = song;
 
         // Listen to settings changes
-        settings = CL_EditorSettings.getDefault();
         settings.addPropertyChangeListener(this);
 
         // Graphical stuff
@@ -781,7 +780,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
     }
 
-
     // ----------------------------------------------------------------------------------
     // Lookup.Provider interface
     // ----------------------------------------------------------------------------------
@@ -914,7 +912,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 // Implements MouseWheelListener interface
 // ---------------------------------------------------------------
     @Override
-    public void mouseWheelMoved(MouseWheelEvent e    )
+    public void mouseWheelMoved(MouseWheelEvent e)
     {
         Component c = (Component) e.getSource();
         if (c instanceof ItemRenderer)
@@ -930,15 +928,12 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     // ----------------------------------------------------------------------------------
     // ClsChangeListener interface
     // ----------------------------------------------------------------------------------
-    
-    
     @Override
     public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
     {
         // Nothing
     }
-    
-    
+
     @Override
     public void chordLeadSheetChanged(final ClsChangeEvent event)
     {
@@ -1172,10 +1167,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         return false;
     }
+
     // ----------------------------------------------------------------------------------
     // Private functions
     // ----------------------------------------------------------------------------------
-
     private void setSongModified()
     {
         SavableSong s = lookup.lookup(SavableSong.class);

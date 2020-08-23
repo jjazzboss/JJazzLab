@@ -20,45 +20,27 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.cl_editor;
+package org.jjazz.ui.utilities;
 
-import org.jjazz.song.api.Song;
-import org.jjazz.ui.cl_editor.api.CL_Editor;
-import org.jjazz.ui.cl_editor.api.CL_EditorFactory;
-import org.jjazz.ui.cl_editor.api.CL_EditorSettings;
+import java.awt.Dimension;
 
-public class CL_EditorFactoryImpl implements CL_EditorFactory
+public class ProportionalDimension extends Dimension
 {
-
-    static private CL_EditorFactoryImpl INSTANCE;
-
-    static public CL_EditorFactoryImpl getInstance()
+    public ProportionalDimension(int w, int h, double widthOverHeightRatio)
     {
-        synchronized (CL_EditorFactoryImpl.class)
+        if (w / h < widthOverHeightRatio)
         {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new CL_EditorFactoryImpl();
-            }
+            width = (int) (h * widthOverHeightRatio);
+            height = (int) h;
+        } else
+        {
+            width = (int) w;
+            height = (int) (w / widthOverHeightRatio);
         }
-        return INSTANCE;
     }
 
-    private CL_EditorFactoryImpl()
+    public ProportionalDimension(Dimension d, double widthOverHeightRatio)
     {
-    }
-
-
-    @Override
-    public CL_Editor createEditor(Song song)
-    {
-        return new CL_EditorImpl(song, CL_EditorSettings.getDefault());
-    }
-
-
-    @Override
-    public CL_Editor createEditor(Song song, CL_EditorSettings settings)
-    {
-        return new CL_EditorImpl(song, settings);
+        this(d.width, d.height, widthOverHeightRatio);
     }
 }

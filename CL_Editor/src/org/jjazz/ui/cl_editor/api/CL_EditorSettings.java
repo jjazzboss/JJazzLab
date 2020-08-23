@@ -26,7 +26,7 @@ import java.awt.Color;
 import java.beans.PropertyChangeListener;
 import org.openide.util.Lookup;
 
-public abstract class CL_EditorSettings
+public interface CL_EditorSettings
 {
 
     public static String PROP_BACKGROUND_COLOR = "BackgroundColor";
@@ -41,11 +41,11 @@ public abstract class CL_EditorSettings
         return result;
     }
 
-    abstract public Color getBackgroundColor();
+    Color getBackgroundColor();
 
-    abstract public void setBackgroundColor(Color color);
+    void setBackgroundColor(Color color);
 
-    abstract public void addPropertyChangeListener(PropertyChangeListener listener);
+    void addPropertyChangeListener(PropertyChangeListener listener);
 
-    abstract public void removePropertyChangeListener(PropertyChangeListener listener);
+    void removePropertyChangeListener(PropertyChangeListener listener);
 }

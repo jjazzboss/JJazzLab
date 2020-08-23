@@ -34,7 +34,7 @@ import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
 @ServiceProvider(service = CL_EditorSettings.class)
-public class CL_EditorSettingsImpl extends CL_EditorSettings
+public class CL_EditorSettingsImpl implements CL_EditorSettings
 {
 
     /**
@@ -72,7 +72,6 @@ public class CL_EditorSettingsImpl extends CL_EditorSettings
         pcs.removePropertyChangeListener(listener);
     }
 
-
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
@@ -82,12 +81,11 @@ public class CL_EditorSettingsImpl extends CL_EditorSettings
 
         @Override
         public void upgrade(String oldVersion)
-        {            
+        {
             UpgradeManager um = UpgradeManager.getInstance();
             um.duplicateOldPreferences(prefs);
         }
 
     }
-
 
 }

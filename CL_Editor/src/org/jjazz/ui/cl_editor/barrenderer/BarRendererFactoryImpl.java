@@ -25,8 +25,9 @@ package org.jjazz.ui.cl_editor.barrenderer;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
+import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
 
-public class BarRendererFactoryImpl extends BarRendererFactory
+public class BarRendererFactoryImpl implements BarRendererFactory
 {
 
     private static BarRendererFactoryImpl INSTANCE;

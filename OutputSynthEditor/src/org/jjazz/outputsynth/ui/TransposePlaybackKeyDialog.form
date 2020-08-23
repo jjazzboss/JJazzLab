@@ -33,7 +33,7 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" attributes="0">
                               <Component id="cb_enableKeyTransposition" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="0" pref="137" max="32767" attributes="0"/>
+                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="1" attributes="0">
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
@@ -59,10 +59,10 @@
               <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
               <Component id="cb_enableKeyTransposition" min="-2" max="-2" attributes="0"/>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Component id="jScrollPane1" min="-2" pref="42" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jScrollPane1" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
               <Component id="cmb_transposition" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="23" max="32767" attributes="0"/>
+              <EmptySpace pref="35" max="32767" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="btn_Cancel" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="btn_Ok" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -134,7 +134,7 @@
         <Component class="org.jjazz.ui.utilities.HelpTextArea" name="helpTextArea1">
           <Properties>
             <Property name="columns" type="int" value="20"/>
-            <Property name="rows" type="int" value="3"/>
+            <Property name="rows" type="int" value="2"/>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="TransposePlaybackKeyDialog.helpTextArea1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>

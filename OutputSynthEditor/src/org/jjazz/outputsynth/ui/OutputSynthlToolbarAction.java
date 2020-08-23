@@ -58,13 +58,13 @@ public class OutputSynthlToolbarAction extends AbstractAction implements Present
 
     @Override
     public void actionPerformed(ActionEvent e)
-    {
+    {       
         // Not used because of Presenter.Toolbar implementation
     }
 
     @Override
     public Component getToolbarPresenter()
-    {
+    {        
         return panel;
     }
 }

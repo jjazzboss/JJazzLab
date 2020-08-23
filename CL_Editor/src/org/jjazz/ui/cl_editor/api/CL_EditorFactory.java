@@ -26,10 +26,10 @@ import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.CL_EditorFactoryImpl;
 import org.openide.util.Lookup;
 
-public abstract class CL_EditorFactory
+public interface CL_EditorFactory
 {
 
-    public static CL_EditorFactory getDefault()
+    static public CL_EditorFactory getDefault()
     {
         CL_EditorFactory clef = Lookup.getDefault().lookup(CL_EditorFactory.class);
         if (clef == null)
@@ -39,5 +39,20 @@ public abstract class CL_EditorFactory
         return clef;
     }
 
-    abstract public CL_Editor createEditor(Song song);
+    /**
+     * Create an editor with the default settings.
+     *
+     * @param song
+     * @return
+     */
+    CL_Editor createEditor(Song song);
+
+    /**
+     * Create an editor with the specified settings.
+     *
+     * @param song
+     * @param settings
+     * @return
+     */
+    CL_Editor createEditor(Song song, CL_EditorSettings settings);
 }

@@ -170,7 +170,7 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
         jScrollPane1.setBorder(null);
 
         helpTextArea1.setColumns(20);
-        helpTextArea1.setRows(3);
+        helpTextArea1.setRows(2);
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.helpTextArea1.text")); // NOI18N
         jScrollPane1.setViewportView(helpTextArea1);
 
@@ -195,7 +195,7 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(cb_enableKeyTransposition)
-                                .addGap(0, 137, Short.MAX_VALUE))
+                                .addGap(0, 0, Short.MAX_VALUE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
                                 .addComponent(btn_Ok)))
@@ -216,10 +216,10 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
                 .addGap(18, 18, 18)
                 .addComponent(cb_enableKeyTransposition)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cmb_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 23, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 35, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btn_Cancel)
                     .addComponent(btn_Ok))

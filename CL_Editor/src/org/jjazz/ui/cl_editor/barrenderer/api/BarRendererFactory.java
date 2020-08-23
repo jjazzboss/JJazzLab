@@ -29,7 +29,7 @@ import org.openide.util.Lookup;
 /**
  * Provide a consistent set of BarRenderer implementations.
  */
-public abstract class BarRendererFactory
+public interface BarRendererFactory
 {
 
     /**
@@ -56,7 +56,8 @@ public abstract class BarRendererFactory
      * @param type
      * @param barIndex
      * @param model
+     * @param settings
      * @return
      */
-    abstract public BarRenderer createBarRenderer(Type type, int barIndex, ChordLeadSheet model);
+    BarRenderer createBarRenderer(Type type, int barIndex, ChordLeadSheet model);
 }

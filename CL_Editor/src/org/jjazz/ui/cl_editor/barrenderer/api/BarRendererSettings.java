@@ -26,7 +26,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
 import org.openide.util.Lookup;
 
-public abstract class BarRendererSettings
+public interface BarRendererSettings
 {
 
     public static BarRendererSettings getDefault()
@@ -42,9 +42,9 @@ public abstract class BarRendererSettings
     /**
      * @return Can be null.
      */
-    abstract public Border getDefaultBorder();
+    Border getDefaultBorder();
 
-    abstract public void addPropertyChangeListener(PropertyChangeListener listener);
+    void addPropertyChangeListener(PropertyChangeListener listener);
 
-    abstract public void removePropertyChangeListener(PropertyChangeListener listener);
+    void removePropertyChangeListener(PropertyChangeListener listener);
 }

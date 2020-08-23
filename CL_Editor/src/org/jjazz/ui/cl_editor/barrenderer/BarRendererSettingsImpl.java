@@ -33,7 +33,7 @@ import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
 @ServiceProvider(service = BarRendererSettings.class)
-public class BarRendererSettingsImpl extends BarRendererSettings
+public class BarRendererSettingsImpl implements BarRendererSettings
 {
 
     /**

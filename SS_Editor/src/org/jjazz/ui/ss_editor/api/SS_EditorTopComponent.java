@@ -110,6 +110,11 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         ssEditorController = new SS_EditorController(ssEditor);
         ssEditor.setController(ssEditorController);
 
+
+        // Make editor printable by Netbeans PrintManager
+        ssEditor.putClientProperty("print.printable", Boolean.TRUE); // NOI18N
+
+
         // Create the toolbar
         ssToolBar = new SS_EditorToolBar(ssEditor);
 
