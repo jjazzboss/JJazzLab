@@ -80,7 +80,7 @@ public class PrintDialog extends javax.swing.JDialog
         // Preferences
         restorePrintMode(prefs.get(PREF_PRINT_MODE, null));
         cb_developLeadSheet.setSelected(prefs.getBoolean(PREF_DEVELOP_LEADSHEET, false));
-        
+
     }
 
     public void preset(Song song)

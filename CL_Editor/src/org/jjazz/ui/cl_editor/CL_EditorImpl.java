@@ -191,7 +191,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         songModel = song;
 
         // Listen to settings changes
-        settings.addPropertyChangeListener(this);
+        this.settings = settings;
+        this.settings.addPropertyChangeListener(this);
 
         // Graphical stuff
         nbColumns = 4;
