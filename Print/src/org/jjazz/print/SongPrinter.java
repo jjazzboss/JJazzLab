@@ -23,14 +23,18 @@
 package org.jjazz.print;
 
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.font.LineMetrics;
+import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
 import java.awt.print.Pageable;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
+import java.text.MessageFormat;
 import java.util.logging.Logger;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
@@ -42,10 +46,10 @@ import org.jjazz.songeditormanager.SongEditorManager;
 public class SongPrinter implements Printable, Pageable
 {
 
-    private static final int HEADER_HEIGHT_PTS = 20;
+    private static final int HEADER_HEIGHT_PTS = 40;
     private static final int FOOTER_HEIGHT_PTS = 20;
-    private Song song;
-    private CL_Editor clEditor;
+    private final Song song;
+    private final CL_Editor clEditor;
     double xMin;
     double yMin;
     double height;
@@ -59,8 +63,10 @@ public class SongPrinter implements Printable, Pageable
     private int editorWidth;
     private int editorHeight;
     private int nbPages;
-    private PageFormat pageFormat;
-    private Font font;
+    private MessageFormat headerMsg;
+    private MessageFormat footerMsg;
+    private final PageFormat pageFormat;
+    private final Font font;
     private static final Logger LOGGER = Logger.getLogger(SongPrinter.class.getSimpleName());
 
     public SongPrinter(Song song, PageFormat pageFormat)
@@ -78,7 +84,35 @@ public class SongPrinter implements Printable, Pageable
 
         font = new Font("Helvetica", Font.PLAIN, 11);
         assert font.getSize2D() <= HEADER_HEIGHT_PTS * .8f : "font=" + font;
+        assert font.getSize2D() <= FOOTER_HEIGHT_PTS * .8f : "font=" + font;
 
+        setHeaderMessage(new MessageFormat(song.getName()));
+        setFooterMessage(new MessageFormat("{0} / " + getNumberOfPages()));
+
+    }
+
+    /**
+     * Set header message.
+     * <p>
+     * {0} is replaced by pageIndex.
+     *
+     * @param msg Example new MessageFormat("Page {0}/12"). Can be null.
+     */
+    public final void setHeaderMessage(MessageFormat msg)
+    {
+        headerMsg = msg;
+    }
+
+    /**
+     * Set footer message.
+     * <p>
+     * {0} is replaced by pageIndex.
+     *
+     * @param msg Example new MessageFormat("Page {0}/12");
+     */
+    public final void setFooterMessage(MessageFormat msg)
+    {
+        footerMsg = msg;
     }
 
     // =============================================================================
@@ -89,7 +123,6 @@ public class SongPrinter implements Printable, Pageable
     {
         LOGGER.fine("print() -- pageIndex=" + pageIndex + " pageFormat.getImageableWidth()=" + pageFormat.getImageableWidth()
                 + " pageFormat.getImageableHeight()=" + pageFormat.getImageableHeight());
-
 
         Graphics2D g2d = (Graphics2D) g.create();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -106,12 +139,33 @@ public class SongPrinter implements Printable, Pageable
         g2d.translate(xMin, yMin);
 
 
-        // Header
-        g2d.drawRect(0, 0, widthInt, HEADER_HEIGHT_PTS);
+        // Header & footer
+        if (footerMsg != null || headerMsg != null)
+        {
+            Object[] args =
+            {
+                pageIndex + 1
+            };
+            FontMetrics fm = g2d.getFontMetrics(font);
 
 
-        // Footer
-        g2d.drawRoundRect(0, HEADER_HEIGHT_PTS + heightInt, widthInt, FOOTER_HEIGHT_PTS, 3, 3);
+            if (headerMsg != null)
+            {
+                String s = headerMsg.format(args);
+                Rectangle2D r = fm.getStringBounds(s, g2d);
+                g2d.setFont(font);
+                g2d.drawString(s, (float) (width / 2 - r.getWidth() / 2), (float) (HEADER_HEIGHT_PTS / 2));
+            }
+
+
+            if (footerMsg != null)
+            {
+                String s = footerMsg.format(args);
+                Rectangle2D r = fm.getStringBounds(s, g2d);
+                g2d.setFont(font);
+                g2d.drawString(s, (float) (width / 2 - r.getWidth() / 2), (float) (HEADER_HEIGHT_PTS + height + HEADER_HEIGHT_PTS / 2));
+            }
+        }
 
 
         // Main component
@@ -132,7 +186,7 @@ public class SongPrinter implements Printable, Pageable
     // Pageable implementation
     // =============================================================================
     @Override
-    public int getNumberOfPages()
+    public final int getNumberOfPages()
     {
         return nbPages;
     }

@@ -80,8 +80,7 @@ public class PrintDialog extends javax.swing.JDialog
         // Preferences
         restorePrintMode(prefs.get(PREF_PRINT_MODE, null));
         cb_developLeadSheet.setSelected(prefs.getBoolean(PREF_DEVELOP_LEADSHEET, false));
-
-
+        
     }
 
     public void preset(Song song)
@@ -102,6 +101,7 @@ public class PrintDialog extends javax.swing.JDialog
         printModeChanged();
         previewContextChanged();
 
+        pack();
     }
 
     /**
@@ -135,11 +135,9 @@ public class PrintDialog extends javax.swing.JDialog
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("UP"), "PreviousPreviewPageAction");
         contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_UP"), "PreviousPreviewPageAction");
         contentPane.getActionMap().put("PreviousPreviewPageAction", new PreviousPreviewPageAction());
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DOWN"), "NextPreviewPageAction");
         contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_DOWN"), "NextPreviewPageAction");
         contentPane.getActionMap().put("NextPreviewPageAction", new NextPreviewPageAction());
 
@@ -161,7 +159,7 @@ public class PrintDialog extends javax.swing.JDialog
     {
         if (pageable != null)
         {
-            lbl_pageNb.setText((previewedPageIndex + 1) + "/" + pageable.getNumberOfPages());
+            lbl_pageNb.setText((previewedPageIndex + 1) + " / " + pageable.getNumberOfPages());
         }
     }
 
@@ -305,11 +303,12 @@ public class PrintDialog extends javax.swing.JDialog
         rbtn_printSongStructureOnly = new javax.swing.JRadioButton();
         jSeparator1 = new javax.swing.JSeparator();
         jLabel1 = new javax.swing.JLabel();
-        btn_nextPage = new javax.swing.JButton();
-        btn_previousPage = new javax.swing.JButton();
-        lbl_pageNb = new javax.swing.JLabel();
         pnl_preview = new javax.swing.JPanel();
         pnl_previewComponent = new org.jjazz.print.PreviewPanel();
+        jPanel1 = new javax.swing.JPanel();
+        btn_previousPage = new javax.swing.JButton();
+        lbl_pageNb = new javax.swing.JLabel();
+        btn_nextPage = new javax.swing.JButton();
         btn_cancel = new javax.swing.JButton();
         btn_print = new javax.swing.JButton();
         btn_pageSetup = new javax.swing.JButton();
@@ -374,25 +373,12 @@ public class PrintDialog extends javax.swing.JDialog
                 .addComponent(rbtn_printSongStructureOnly)
                 .addGap(34, 34, 34)
                 .addComponent(cb_developLeadSheet)
-                .addContainerGap(131, Short.MAX_VALUE))
+                .addContainerGap(145, Short.MAX_VALUE))
         );
 
         jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.jLabel1.text")); // NOI18N
-
-        btn_nextPage.setAction(new NextPreviewPageAction());
-        btn_nextPage.setFont(btn_nextPage.getFont().deriveFont(btn_nextPage.getFont().getSize()-1f));
-        org.openide.awt.Mnemonics.setLocalizedText(btn_nextPage, org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.btn_nextPage.text")); // NOI18N
-        btn_nextPage.setMargin(new java.awt.Insets(2, 7, 2, 7));
-
-        btn_previousPage.setAction(new PreviousPreviewPageAction());
-        btn_previousPage.setFont(btn_previousPage.getFont().deriveFont(btn_previousPage.getFont().getSize()-1f));
-        org.openide.awt.Mnemonics.setLocalizedText(btn_previousPage, org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.btn_previousPage.text")); // NOI18N
-        btn_previousPage.setMargin(new java.awt.Insets(2, 7, 2, 7));
-
-        lbl_pageNb.setFont(lbl_pageNb.getFont().deriveFont(lbl_pageNb.getFont().getSize()-1f));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_pageNb, org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.lbl_pageNb.text")); // NOI18N
 
         pnl_preview.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         pnl_preview.setLayout(new javax.swing.BoxLayout(pnl_preview, javax.swing.BoxLayout.LINE_AXIS));
@@ -400,6 +386,28 @@ public class PrintDialog extends javax.swing.JDialog
         pnl_previewComponent.setBackground(new java.awt.Color(255, 255, 255));
         pnl_previewComponent.setLayout(null);
         pnl_preview.add(pnl_previewComponent);
+
+        jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 3, 0));
+
+        btn_previousPage.setAction(new PreviousPreviewPageAction());
+        btn_previousPage.setFont(btn_previousPage.getFont().deriveFont(btn_previousPage.getFont().getSize()-1f));
+        btn_previousPage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/print/resources/LeftArrow14.png"))); // NOI18N
+        btn_previousPage.setToolTipText(org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.btn_previousPage.toolTipText")); // NOI18N
+        btn_previousPage.setLabel(org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.btn_previousPage.label")); // NOI18N
+        btn_previousPage.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        jPanel1.add(btn_previousPage);
+
+        lbl_pageNb.setFont(lbl_pageNb.getFont());
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_pageNb, org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.lbl_pageNb.text")); // NOI18N
+        jPanel1.add(lbl_pageNb);
+
+        btn_nextPage.setAction(new NextPreviewPageAction());
+        btn_nextPage.setFont(btn_nextPage.getFont().deriveFont(btn_nextPage.getFont().getSize()-1f));
+        btn_nextPage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/print/resources/RightArrow14.png"))); // NOI18N
+        btn_nextPage.setToolTipText(org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.btn_nextPage.toolTipText")); // NOI18N
+        btn_nextPage.setLabel(org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.btn_nextPage.label")); // NOI18N
+        btn_nextPage.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        jPanel1.add(btn_nextPage);
 
         javax.swing.GroupLayout pnl_mainLayout = new javax.swing.GroupLayout(pnl_main);
         pnl_main.setLayout(pnl_mainLayout);
@@ -414,30 +422,25 @@ public class PrintDialog extends javax.swing.JDialog
                     .addGroup(pnl_mainLayout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btn_previousPage)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lbl_pageNb)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_nextPage, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(pnl_preview, javax.swing.GroupLayout.DEFAULT_SIZE, 295, Short.MAX_VALUE))
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(pnl_preview, javax.swing.GroupLayout.DEFAULT_SIZE, 287, Short.MAX_VALUE))
                 .addContainerGap())
         );
-
-        pnl_mainLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btn_nextPage, btn_previousPage});
-
         pnl_mainLayout.setVerticalGroup(
             pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_mainLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnl_mainLayout.createSequentialGroup()
-                        .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel1)
-                            .addComponent(btn_nextPage)
-                            .addComponent(btn_previousPage)
-                            .addComponent(lbl_pageNb))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(pnl_preview, javax.swing.GroupLayout.DEFAULT_SIZE, 240, Short.MAX_VALUE)
+                        .addGroup(pnl_mainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(pnl_mainLayout.createSequentialGroup()
+                                .addGap(9, 9, 9)
+                                .addComponent(jLabel1)
+                                .addGap(11, 11, 11))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnl_mainLayout.createSequentialGroup()
+                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
+                        .addComponent(pnl_preview, javax.swing.GroupLayout.DEFAULT_SIZE, 247, Short.MAX_VALUE)
                         .addContainerGap())
                     .addComponent(jSeparator1)))
             .addGroup(pnl_mainLayout.createSequentialGroup()
@@ -539,6 +542,7 @@ public class PrintDialog extends javax.swing.JDialog
     private javax.swing.JButton btn_print;
     private javax.swing.JCheckBox cb_developLeadSheet;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JLabel lbl_pageNb;
     private javax.swing.JPanel pnl_main;
