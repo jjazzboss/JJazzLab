@@ -507,12 +507,13 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             throw new IllegalArgumentException("barIndex=" + barIndex);
         }
         BarBox bb = getBarBox(barIndex);
-        Point p = bb.getLocationOnScreen();
+        Point p = bb.getLocation();
         Rectangle r = new Rectangle(p);
         r.width = bb.getWidth();
         r.height = bb.getHeight();
         return r;
     }
+    
 
     @Override
     public void selectBars(int bbIndexFrom, int bbIndexTo, boolean b)
@@ -1578,6 +1579,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 offset += padding;
             }
         }
+        
         if (needRevalidate)
         {
             revalidate();

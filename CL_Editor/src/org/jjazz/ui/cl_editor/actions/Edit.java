@@ -358,6 +358,7 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
         Rectangle r = editor.getBarRectangle(barIndex);
         Point p = r.getLocation();
+        SwingUtilities.convertPointToScreen(p, editor);
         int x = p.x - ((dialog.getWidth() - r.width) / 2);
         int y = p.y - dialog.getHeight();
         dialog.setLocation(Math.max(x, 0), Math.max(y, 0));

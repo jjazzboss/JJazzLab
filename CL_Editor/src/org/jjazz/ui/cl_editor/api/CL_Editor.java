@@ -226,10 +226,11 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     abstract public void showPlaybackPoint(boolean b, Position pos);
 
     /**
+     * Get the dimensions of the specified BarBox.
      *
-     * @param barIndex
-     * @return A Rectangle in the screen coordinates space.
+     * @param barBoxIndex 
+     * @return A Rectangle in the screen coordinates of this editor.
      */
-    abstract public Rectangle getBarRectangle(int barIndex);
+    abstract public Rectangle getBarRectangle(int barBoxIndex);
 
 }

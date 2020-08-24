@@ -95,8 +95,9 @@ public class PrintDialog extends javax.swing.JDialog
         }
 
         pageable = new SongPrinter(song, pageFormat);
+        previewedPageIndex = 0;
 
-        pnl_previewComponent.setPageable(pageable, 0);
+        pnl_previewComponent.setPageable(pageable, previewedPageIndex);
 
         printModeChanged();
         previewContextChanged();
@@ -141,6 +142,18 @@ public class PrintDialog extends javax.swing.JDialog
         contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_DOWN"), "NextPreviewPageAction");
         contentPane.getActionMap().put("NextPreviewPageAction", new NextPreviewPageAction());
 
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), "FirstPageAction");
+        contentPane.getActionMap().put("FirstPageAction", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                previewedPageIndex = 0;
+
+            }
+
+        });
+
 
         return contentPane;
     }
@@ -162,6 +175,17 @@ public class PrintDialog extends javax.swing.JDialog
             lbl_pageNb.setText((previewedPageIndex + 1) + " / " + pageable.getNumberOfPages());
         }
     }
+
+    private void setPreviewPageIndex(int pgIndex)
+    {
+        if (pgIndex >= 0 && pgIndex < pageable.getNumberOfPages())
+        {
+            previewedPageIndex = pgIndex;
+            pnl_previewComponent.setPageIndex(previewedPageIndex);
+            previewContextChanged();
+        }
+    }
+
 
     private String getPrintModeString()
     {
@@ -222,6 +246,8 @@ public class PrintDialog extends javax.swing.JDialog
 
         PrintUtil.setPageMargins(pf, top, left, bottom, right);
         return job.validatePage(pf);
+
+
     }
 
     private class NextPreviewPageAction extends AbstractAction
@@ -230,12 +256,7 @@ public class PrintDialog extends javax.swing.JDialog
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            if (previewedPageIndex < pageable.getNumberOfPages() - 1)
-            {
-                previewedPageIndex++;
-                pnl_previewComponent.setPageIndex(previewedPageIndex);
-            }
-            previewContextChanged();
+            setPreviewPageIndex(previewedPageIndex + 1);
         }
 
     }
@@ -246,12 +267,7 @@ public class PrintDialog extends javax.swing.JDialog
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            if (previewedPageIndex > 0)
-            {
-                previewedPageIndex--;
-                pnl_previewComponent.setPageIndex(previewedPageIndex);
-            }
-            previewContextChanged();
+            setPreviewPageIndex(previewedPageIndex - 1);
         }
 
     }
@@ -297,10 +313,16 @@ public class PrintDialog extends javax.swing.JDialog
         rbtnGroup_printScope = new javax.swing.ButtonGroup();
         pnl_main = new javax.swing.JPanel();
         pnl_settings = new javax.swing.JPanel();
-        cb_developLeadSheet = new javax.swing.JCheckBox();
         rbtn_printBoth = new javax.swing.JRadioButton();
         rbtn_printChordLeadsheetOnly = new javax.swing.JRadioButton();
         rbtn_printSongStructureOnly = new javax.swing.JRadioButton();
+        pnl_leadsheet = new javax.swing.JPanel();
+        cb_developLeadSheet = new javax.swing.JCheckBox();
+        jPanel2 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
+        btn_minus = new javax.swing.JButton();
+        btn_plus = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JSeparator();
         jLabel1 = new javax.swing.JLabel();
         pnl_preview = new javax.swing.JPanel();
@@ -314,9 +336,6 @@ public class PrintDialog extends javax.swing.JDialog
         btn_pageSetup = new javax.swing.JButton();
 
         setTitle(org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.title")); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(cb_developLeadSheet, org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.cb_developLeadSheet.text")); // NOI18N
-        cb_developLeadSheet.setToolTipText(org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.cb_developLeadSheet.toolTipText")); // NOI18N
 
         rbtnGroup_printScope.add(rbtn_printBoth);
         rbtn_printBoth.setSelected(true);
@@ -349,6 +368,62 @@ public class PrintDialog extends javax.swing.JDialog
             }
         });
 
+        pnl_leadsheet.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.pnl_leadsheet.border.title"))); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(cb_developLeadSheet, org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.cb_developLeadSheet.text")); // NOI18N
+        cb_developLeadSheet.setToolTipText(org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.cb_developLeadSheet.toolTipText")); // NOI18N
+
+        jPanel2.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEADING));
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.jLabel2.text")); // NOI18N
+        jPanel2.add(jLabel2);
+        jPanel2.add(filler1);
+
+        btn_minus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/print/resources/Minus12.png"))); // NOI18N
+        btn_minus.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        btn_minus.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_minusActionPerformed(evt);
+            }
+        });
+        jPanel2.add(btn_minus);
+
+        btn_plus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/print/resources/Plus12.png"))); // NOI18N
+        btn_plus.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        btn_plus.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_plusActionPerformed(evt);
+            }
+        });
+        jPanel2.add(btn_plus);
+
+        javax.swing.GroupLayout pnl_leadsheetLayout = new javax.swing.GroupLayout(pnl_leadsheet);
+        pnl_leadsheet.setLayout(pnl_leadsheetLayout);
+        pnl_leadsheetLayout.setHorizontalGroup(
+            pnl_leadsheetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnl_leadsheetLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnl_leadsheetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnl_leadsheetLayout.createSequentialGroup()
+                        .addComponent(cb_developLeadSheet)
+                        .addGap(0, 35, Short.MAX_VALUE))
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        pnl_leadsheetLayout.setVerticalGroup(
+            pnl_leadsheetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnl_leadsheetLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(cb_developLeadSheet)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(13, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout pnl_settingsLayout = new javax.swing.GroupLayout(pnl_settings);
         pnl_settings.setLayout(pnl_settingsLayout);
         pnl_settingsLayout.setHorizontalGroup(
@@ -356,24 +431,27 @@ public class PrintDialog extends javax.swing.JDialog
             .addGroup(pnl_settingsLayout.createSequentialGroup()
                 .addGap(14, 14, 14)
                 .addGroup(pnl_settingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(rbtn_printSongStructureOnly)
-                    .addComponent(rbtn_printChordLeadsheetOnly)
-                    .addComponent(rbtn_printBoth)
-                    .addComponent(cb_developLeadSheet))
-                .addContainerGap(11, Short.MAX_VALUE))
+                    .addComponent(pnl_leadsheet, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(pnl_settingsLayout.createSequentialGroup()
+                        .addGroup(pnl_settingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(rbtn_printSongStructureOnly)
+                            .addComponent(rbtn_printChordLeadsheetOnly)
+                            .addComponent(rbtn_printBoth))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         pnl_settingsLayout.setVerticalGroup(
             pnl_settingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_settingsLayout.createSequentialGroup()
-                .addGap(15, 15, 15)
+                .addGap(84, 84, 84)
                 .addComponent(rbtn_printBoth)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(rbtn_printChordLeadsheetOnly)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(rbtn_printSongStructureOnly)
                 .addGap(34, 34, 34)
-                .addComponent(cb_developLeadSheet)
-                .addContainerGap(145, Short.MAX_VALUE))
+                .addComponent(pnl_leadsheet, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
@@ -423,7 +501,7 @@ public class PrintDialog extends javax.swing.JDialog
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(pnl_preview, javax.swing.GroupLayout.DEFAULT_SIZE, 287, Short.MAX_VALUE))
+                    .addComponent(pnl_preview, javax.swing.GroupLayout.DEFAULT_SIZE, 302, Short.MAX_VALUE))
                 .addContainerGap())
         );
         pnl_mainLayout.setVerticalGroup(
@@ -440,7 +518,7 @@ public class PrintDialog extends javax.swing.JDialog
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnl_mainLayout.createSequentialGroup()
                                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
-                        .addComponent(pnl_preview, javax.swing.GroupLayout.DEFAULT_SIZE, 247, Short.MAX_VALUE)
+                        .addComponent(pnl_preview, javax.swing.GroupLayout.DEFAULT_SIZE, 468, Short.MAX_VALUE)
                         .addContainerGap())
                     .addComponent(jSeparator1)))
             .addGroup(pnl_mainLayout.createSequentialGroup()
@@ -533,18 +611,48 @@ public class PrintDialog extends javax.swing.JDialog
         printModeChanged();
     }//GEN-LAST:event_rbtn_printSongStructureOnlyActionPerformed
 
+    private void btn_minusActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_minusActionPerformed
+    {//GEN-HEADEREND:event_btn_minusActionPerformed
+        SongPrinter sp = (SongPrinter) pageable;
+        sp.decreaseDlgFactor();     // Scale change might change total nb of pages
+        if (previewedPageIndex >= sp.getNumberOfPages())
+        {
+            setPreviewPageIndex(sp.getNumberOfPages() - 1);
+        }
+        previewContextChanged();
+        pnl_previewComponent.repaint();
+    }//GEN-LAST:event_btn_minusActionPerformed
+
+    private void btn_plusActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_plusActionPerformed
+    {//GEN-HEADEREND:event_btn_plusActionPerformed
+        SongPrinter sp = (SongPrinter) pageable;
+        sp.increaseDlgFactor();     // Scale change might change total nb of pages
+        if (previewedPageIndex >= sp.getNumberOfPages())
+        {
+            setPreviewPageIndex(sp.getNumberOfPages() - 1);
+        }
+        previewContextChanged();
+        pnl_previewComponent.repaint();
+    }//GEN-LAST:event_btn_plusActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_cancel;
+    private javax.swing.JButton btn_minus;
     private javax.swing.JButton btn_nextPage;
     private javax.swing.JButton btn_pageSetup;
+    private javax.swing.JButton btn_plus;
     private javax.swing.JButton btn_previousPage;
     private javax.swing.JButton btn_print;
     private javax.swing.JCheckBox cb_developLeadSheet;
+    private javax.swing.Box.Filler filler1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JLabel lbl_pageNb;
+    private javax.swing.JPanel pnl_leadsheet;
     private javax.swing.JPanel pnl_main;
     private javax.swing.JPanel pnl_preview;
     private org.jjazz.print.PreviewPanel pnl_previewComponent;
