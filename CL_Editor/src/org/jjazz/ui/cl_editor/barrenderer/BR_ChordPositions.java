@@ -39,6 +39,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.Quantization;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
+import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
 import org.jjazz.ui.cl_editor.barrenderer.api.BeatBasedBarRenderer;
 import org.jjazz.ui.itemrenderer.api.IR_Copiable;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
@@ -79,9 +80,9 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     private static final Logger LOGGER = Logger.getLogger(BR_ChordPositions.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public BR_ChordPositions(int barIndex)
+    public BR_ChordPositions(int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
-        super(barIndex);
+        super(barIndex, settings, irf);
 
         // Default value
         lastTimeSignature = TimeSignature.FOUR_FOUR;
@@ -351,8 +352,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
         {
             throw new IllegalArgumentException("item=" + item);
         }
-        ItemRendererFactory irf = ItemRendererFactory.getDefault();
-        ItemRenderer ir = irf.createItemRenderer(IR_Type.ChordPosition, item);
+        ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.ChordPosition, item);
         return ir;
     }
 

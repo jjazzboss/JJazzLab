@@ -24,7 +24,12 @@ package org.jjazz.ui.utilities;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -62,6 +67,30 @@ public class Utilities
             }
         }
         return fileChooser;
+    }
+
+    /**
+     * Get the current screen bounds where specified component is displayed, excluding possible taskbars.
+     * <p>
+     * Supposed to handle correctly multiple monitors on various OS.<p>
+     * See https://stackoverflow.com/questions/10123735/get-effective-screen-size-from-java/10123912 (answer of Rasmus Faber)
+     *
+     * @param c
+     * @return
+     */
+    public static Rectangle getEffectiveScreenArea(Component c)
+    {
+        GraphicsConfiguration gc = c.getGraphicsConfiguration();
+        Rectangle bounds = gc.getBounds();
+        Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
+
+        var res = new Rectangle();
+        res.x = bounds.x + screenInsets.left;
+        res.y = bounds.y + screenInsets.top;
+        res.height = bounds.height - screenInsets.top - screenInsets.bottom;
+        res.width = bounds.width - screenInsets.left - screenInsets.right;
+
+        return res;
     }
 
     /**

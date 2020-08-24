@@ -150,6 +150,20 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     abstract public void makeBarVisible(int barIndex);
 
     /**
+     * Set the zoom vertical factor.
+     *
+     * @param factor A value between 0 and 100 included.
+     */
+    abstract public void setZoomVFactor(int factor);
+
+    /**
+     * Get the zoom vertical factor.
+     *
+     * @return A value between 0 and 100 included.
+     */
+    abstract public int getZoomVFactor();
+
+    /**
      * Select the bars in the specified barIndex range.
      *
      * @param barIndexFrom int
@@ -228,7 +242,7 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     /**
      * Get the dimensions of the specified BarBox.
      *
-     * @param barBoxIndex 
+     * @param barBoxIndex
      * @return A Rectangle in the screen coordinates of this editor.
      */
     abstract public Rectangle getBarRectangle(int barBoxIndex);

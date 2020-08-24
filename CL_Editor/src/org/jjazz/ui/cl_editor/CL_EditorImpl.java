@@ -84,6 +84,7 @@ import org.openide.awt.UndoRedo;
 import org.openide.util.NbBundle.Messages;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
 
 /**
  * A chordleadsheet editor using BarBox objects to render bars.
@@ -158,6 +159,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      * The number of columns.
      */
     private int nbColumns;
+    private int zoomVFactor;
     /**
      * The last position insertion point.
      */
@@ -166,6 +168,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      * The last playback point.
      */
     private Position playbackPointLastPos;
+    private BarBoxSettings bbSettings;
+    private BarRendererFactory barRendererFactory;
     /**
      * Receiver for mouse events.
      */
@@ -182,13 +186,15 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     private static final Logger LOGGER = Logger.getLogger(CL_EditorImpl.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public CL_EditorImpl(Song song, CL_EditorSettings settings)
+    public CL_EditorImpl(Song song, CL_EditorSettings settings, BarBoxSettings bbSettings, BarRendererFactory brf)
     {
-        if (song == null || settings == null)
+        if (song == null || settings == null || bbSettings == null || brf == null)
         {
-            throw new IllegalArgumentException("song=" + song + " settings=" + settings);
+            throw new IllegalArgumentException("song=" + song + " settings=" + settings + " bbSettings=" + bbSettings + " brf=" + brf);
         }
         songModel = song;
+        this.bbSettings = bbSettings;
+        this.barRendererFactory = brf;
 
         // Listen to settings changes
         this.settings = settings;
@@ -196,6 +202,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
         // Graphical stuff
         nbColumns = 4;
+        zoomVFactor = 50;
         gridLayout = new GridLayout(0, nbColumns);   // Nb of lines adjusted to number of bars
         setLayout(gridLayout);
         setBackground(settings.getBackgroundColor());
@@ -455,6 +462,26 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         return barBoxes.size();
     }
 
+    @Override
+    public void setZoomVFactor(int factor)
+    {
+        if (factor < 0 || factor > 100)
+        {
+            throw new IllegalArgumentException("factor=" + factor);
+        }
+        zoomVFactor = factor;
+        for (BarBox bb : getBarBoxes())
+        {
+            bb.setZoomVFactor(zoomVFactor);
+        }
+    }
+
+    @Override
+    public int getZoomVFactor()
+    {
+        return zoomVFactor;
+    }
+
     /**
      * Return the position (bar, beat) which corresponds to a given point in the editor. If point is in the BarBox which does not
      * have a valid modelBar (eg after the end), barIndex is set but beat is set to 0.
@@ -513,7 +540,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         r.height = bb.getHeight();
         return r;
     }
-    
 
     @Override
     public void selectBars(int bbIndexFrom, int bbIndexTo, boolean b)
@@ -1259,7 +1285,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Insert a new barbox at specified location.
+     * Insert a new BarBox at specified location.
      *
      * @param bbIndex A value between [0, getNbBarBoxes()] (the latter will append the BarBox at the end).
      * @param modelBarIndex Use a negative value if BarBox does not represent a model's bar.
@@ -1272,7 +1298,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             throw new IllegalArgumentException("bbIndex=" + bbIndex + " getNbBarBoxes()=" + getNbBarBoxes() + " modelBarIndex=" + modelBarIndex + " config=" + config + " clsModel=" + clsModel);
         }
-        BarBox bb = new BarBox(bbIndex, modelBarIndex, clsModel, config);
+        BarBox bb = new BarBox(bbIndex, modelBarIndex, clsModel, config, bbSettings, barRendererFactory);
         if (modelBarIndex >= 0)
         {
             // If bar represents the model set quantization value
@@ -1579,7 +1605,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 offset += padding;
             }
         }
-        
+
         if (needRevalidate)
         {
             revalidate();
@@ -1595,8 +1621,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     private class CL_EditorZoomable implements Zoomable
     {
 
-        private int yZoomFactor = 50;
-
         @Override
         public Zoomable.Capabilities getZoomCapabilities()
         {
@@ -1606,18 +1630,14 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         @Override
         public int getZoomYFactor()
         {
-            return yZoomFactor;
+            return getZoomVFactor();
         }
 
         @Override
         public void setZoomYFactor(int newFactor)
         {
-            int oldFactor = yZoomFactor;
-            for (BarBox bb : getBarBoxes())
-            {
-                bb.setZoomVFactor(newFactor);
-            }
-            yZoomFactor = newFactor;
+            int oldFactor = getZoomYFactor();
+            setZoomVFactor(newFactor);
             pcs.firePropertyChange(Zoomable.PROPERTY_ZOOM_Y, oldFactor, newFactor);
         }
 

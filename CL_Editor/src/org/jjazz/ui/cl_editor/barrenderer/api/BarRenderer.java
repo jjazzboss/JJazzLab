@@ -35,6 +35,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.Quantization;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
+import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
 
 /**
  * Base class for BarRenderer.
@@ -77,21 +78,30 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
      * Save the selected state.
      */
     private boolean isSelected;
+    private ItemRendererFactory itemFactory;
     private static final Logger LOGGER = Logger.getLogger(BarRenderer.class.getName());
 
     /**
      * Construct a BarRenderer.
      *
      * @param barIndex The barIndex of this BarRenderer.
+     * @param settings
+     * @param irf
      */
     @SuppressWarnings("LeakingThisInConstructor")
-    public BarRenderer(int barIndex)
+    public BarRenderer(int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
+        if (settings == null || irf == null)
+        {
+            throw new IllegalArgumentException("barIndex=" + barIndex + " settings=" + settings + " irf=" + irf);
+        }
         this.barIndex = barIndex;
 
         // Register settings changes
-        settings = BarRendererSettings.getDefault();
+        this.settings = settings;
         settings.addPropertyChangeListener(this);
+
+        itemFactory = irf;
 
         // Graphical setup
         Border border = settings.getDefaultBorder();
@@ -133,6 +143,16 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     public ChordLeadSheet getModel()
     {
         return model;
+    }
+
+    public BarRendererSettings getSettings()
+    {
+        return settings;
+    }
+
+    public ItemRendererFactory getItemRendererFactory()
+    {
+        return itemFactory;
     }
 
     /**

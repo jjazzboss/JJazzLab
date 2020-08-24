@@ -56,8 +56,8 @@ public interface BarRendererFactory
      * @param type
      * @param barIndex
      * @param model
-     * @param settings
      * @return
      */
     BarRenderer createBarRenderer(Type type, int barIndex, ChordLeadSheet model);
+
 }

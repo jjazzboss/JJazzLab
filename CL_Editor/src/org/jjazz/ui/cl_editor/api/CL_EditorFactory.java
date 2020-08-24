@@ -24,6 +24,8 @@ package org.jjazz.ui.cl_editor.api;
 
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.CL_EditorFactoryImpl;
+import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
+import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
 import org.openide.util.Lookup;
 
 public interface CL_EditorFactory
@@ -52,7 +54,9 @@ public interface CL_EditorFactory
      *
      * @param song
      * @param settings
+     * @param bbSettings
+     * @param brf
      * @return
      */
-    CL_Editor createEditor(Song song, CL_EditorSettings settings);
+    CL_Editor createEditor(Song song, CL_EditorSettings settings, BarBoxSettings bbSettings, BarRendererFactory brf);
 }

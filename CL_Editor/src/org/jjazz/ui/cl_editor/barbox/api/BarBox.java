@@ -82,6 +82,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     private boolean isPlaybackOn;
     private Quantization displayQuantization;
     private int zoomVFactor = 50;
+    private BarRendererFactory barRendererFactory;
 
     /**
      * Construct a BarBox.
@@ -90,11 +91,14 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      * @param modelBarIndex Use -1 if this BarBox does not represent model data.
      * @param model
      * @param config
+     * @param settings
+     * @param brf
      */
     @SuppressWarnings("LeakingThisInConstructor")
-    public BarBox(int bbIndex, int modelBarIndex, ChordLeadSheet model, BarBoxConfig config)
+    public BarBox(int bbIndex, int modelBarIndex, ChordLeadSheet model, BarBoxConfig config, BarBoxSettings settings, BarRendererFactory brf)
     {
         displayQuantization = Quantization.BEAT;
+
 
         // Pile up BarRenderers
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -106,9 +110,13 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         }
 
         // Register settings changes
-        settings = BarBoxSettings.getDefault();
+        this.settings = settings;
         settings.addPropertyChangeListener(this);
 
+        
+        barRendererFactory = brf;
+
+        
         this.barIndex = bbIndex;
         setModel(modelBarIndex, model);
 
@@ -481,17 +489,17 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
             removeBarRenderer(br);
         }
 
-        BarRendererFactory brf = BarRendererFactory.getDefault();
 
         // Add new ones
         for (BarRendererFactory.Type brType : barBoxConfig.getActiveBarRenderers())
         {
-            BarRenderer br = brf.createBarRenderer(brType, barIndex, model);
+            BarRenderer br = barRendererFactory.createBarRenderer(brType, barIndex, model);
             br.setZoomVFactor(zoomVFactor);
             br.setDisplayQuantizationValue(displayQuantization);
             br.setEnabled(isEnabled());
             add(br);
         }
+        
         revalidate(); // Since components have been added/removed
         return true;
     }

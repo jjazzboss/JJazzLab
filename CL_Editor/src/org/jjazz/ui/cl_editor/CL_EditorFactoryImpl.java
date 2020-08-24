@@ -26,6 +26,8 @@ import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorFactory;
 import org.jjazz.ui.cl_editor.api.CL_EditorSettings;
+import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
+import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
 
 public class CL_EditorFactoryImpl implements CL_EditorFactory
 {
@@ -48,17 +50,15 @@ public class CL_EditorFactoryImpl implements CL_EditorFactory
     {
     }
 
-
     @Override
     public CL_Editor createEditor(Song song)
     {
-        return new CL_EditorImpl(song, CL_EditorSettings.getDefault());
+        return new CL_EditorImpl(song, CL_EditorSettings.getDefault(), BarBoxSettings.getDefault(), BarRendererFactory.getDefault());
     }
 
-
     @Override
-    public CL_Editor createEditor(Song song, CL_EditorSettings settings)
+    public CL_Editor createEditor(Song song, CL_EditorSettings settings, BarBoxSettings bbSettings, BarRendererFactory brf)
     {
-        return new CL_EditorImpl(song, settings);
+        return new CL_EditorImpl(song, settings, bbSettings, brf);
     }
 }

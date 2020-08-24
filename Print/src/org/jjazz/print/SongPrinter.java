@@ -44,6 +44,8 @@ import org.jjazz.song.api.Song;
 import org.jjazz.songeditormanager.SongEditorManager;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorFactory;
+import org.jjazz.ui.utilities.Utilities;
+import org.openide.windows.WindowManager;
 
 /**
  * A printer for Song editors which fits available width and breaks pages at a BarBox edge.
@@ -53,17 +55,18 @@ public class SongPrinter implements Printable, Pageable
 
     private static final int HEADER_HEIGHT_PTS = 40;
     private static final int FOOTER_HEIGHT_PTS = 20;
-    private CL_Editor clEditor;
-    double xMin;   // Upper corner of imageable
-    double yMin;   // Upper corner of imageable
-    double centralZoneHeight;  // Between header and footer
-    int centralZoneHeightInt;
-    double width;
-    int widthInt;
-    double dlgScaleFactor = 1;
-    double scaleFactor;
-    double scaledEditorHeight;  // Until bottom of last model row
-    double scaledEditorPageHeight; // One page stopping at the bottom of bar row
+    private final CL_Editor clEditor;
+    private int refEditorWidth;
+    private double xMin;   // Upper corner of imageable
+    private double yMin;   // Upper corner of imageable
+    private double centralZoneHeight;  // Between header and footer
+    private double width;
+    private int widthInt;
+    private double dlgScaleFactor = 1;
+    private double scaleFactor;
+    private double scaledEditorHeight;  // Until bottom of last model row
+    private double scaledEditorPageHeight; // One page stopping at the bottom of bar row
+    private double scaledEditorLastPageHeight;
     private double scaledEditorBarHeight;
     private int nbPages;
     private MessageFormat headerMsg;
@@ -73,20 +76,45 @@ public class SongPrinter implements Printable, Pageable
     private static JDialog renderingDlg;
     private static final Logger LOGGER = Logger.getLogger(SongPrinter.class.getSimpleName());
 
-    public SongPrinter(Song song, PageFormat pageFormat)
+    public SongPrinter(Song song, PageFormat pageFormat, double scaleWidthFactor)
     {
         this.pageFormat = pageFormat;
 
 
-        // Build our editor
+        // Build our own editor to have full control
         CL_EditorFactory clef = CL_EditorFactory.getDefault();
         clEditor = clef.createEditor(song);
 
-        // Put it in a hidden dialog for control
-        setupRenderingDialog(song, clEditor);
+
+        // Reuse the same settings
+        var res = SongEditorManager.getInstance().getEditors(song);
+        CL_Editor actualEditor = res.getTcCle().getCL_Editor();
+        clEditor.setNbColumns(actualEditor.getNbColumns());
+        clEditor.setZoomVFactor(actualEditor.getZoomVFactor());
+        refEditorWidth = actualEditor.getWidth();
+
+        
+        // Put it in a hidden dialog to render it
+        if (renderingDlg == null)
+        {
+            renderingDlg = new JDialog();
+        } else
+        {
+            // Remove existing editor if any
+            for (Component c : renderingDlg.getComponents())
+            {
+                if (c instanceof JScrollPane)
+                {
+                    renderingDlg.remove(c);
+                }
+            }
+        }
+        // Add ours
+        renderingDlg.add(new JScrollPane(clEditor));     // Scrollpane needed!
 
 
-        computeDimensions();
+        // Adjust width and compute dimensions
+        setBarHeightScaleFactor(scaleWidthFactor);
 
 
         font = new Font("Helvetica", Font.PLAIN, 11);
@@ -97,15 +125,23 @@ public class SongPrinter implements Printable, Pageable
 
     }
 
-    public void increaseDlgFactor()
+    /**
+     * Change the bar height of the rendering CL_Editor.
+     * <p>
+     *
+     * @param scaleFactor
+     */
+    public void setBarHeightScaleFactor(double scaleFactor)
     {
-        changeRendererDialogWidth(0.9d);
-
-    }
-
-    public void decreaseDlgFactor()
-    {
-        changeRendererDialogWidth(1.1d);
+        int newWidth = Math.max(160, (int) Math.floor(refEditorWidth * scaleFactor));
+        Dimension pd = clEditor.getPreferredSize();
+        Dimension newPd = new Dimension(newWidth, pd.height);
+        if (!pd.equals(newPd))
+        {
+            clEditor.setPreferredSize(newPd);
+            renderingDlg.pack();
+            computeDimensions();
+        }
     }
 
     /**
@@ -187,7 +223,8 @@ public class SongPrinter implements Printable, Pageable
 
 
         // Main component
-        g2d.setClip(0, HEADER_HEIGHT_PTS, widthInt, (int) Math.ceil(scaledEditorPageHeight));   // Show up to bottom of last possible bar row
+        int clipHeight = pageIndex < nbPages - 1 ? (int) Math.ceil(scaledEditorPageHeight) : (int) Math.ceil(scaledEditorLastPageHeight);
+        g2d.setClip(0, HEADER_HEIGHT_PTS, widthInt, clipHeight);   // Show up to bottom of last possible bar row
         g2d.translate(0, HEADER_HEIGHT_PTS);                         // Top left of component zone
         g2d.translate(0, -yOffset);                                 // Offset to show only relevant
         g2d.scale(scaleFactor, scaleFactor);
@@ -231,7 +268,6 @@ public class SongPrinter implements Printable, Pageable
         xMin = pageFormat.getImageableX();
         yMin = pageFormat.getImageableY();
         centralZoneHeight = pageFormat.getImageableHeight() - HEADER_HEIGHT_PTS - FOOTER_HEIGHT_PTS;
-        centralZoneHeightInt = (int) Math.ceil(centralZoneHeight);
         width = pageFormat.getImageableWidth();
         widthInt = (int) Math.ceil(width);
 
@@ -250,6 +286,10 @@ public class SongPrinter implements Printable, Pageable
         nbPages = (int) Math.ceil(scaledEditorHeight / scaledEditorPageHeight);
 
 
+        // Last page clipping might be shorter
+        scaledEditorLastPageHeight = scaledEditorHeight - (nbPages - 1) * scaledEditorPageHeight;
+
+
         LOGGER.fine("computeEditorDimensions() scaledEditorBarHeight=" + scaledEditorBarHeight
                 + " scaledEditorHeight=" + scaledEditorHeight
                 + " scaledEditorPageHeight=" + scaledEditorPageHeight
@@ -257,46 +297,4 @@ public class SongPrinter implements Printable, Pageable
                 + " nbPages=" + nbPages);
     }
 
-
-    private void setupRenderingDialog(Song song, CL_Editor editor)
-    {
-        var res = SongEditorManager.getInstance().getEditors(song);
-        CL_Editor actualEditor = res.getTcCle().getCL_Editor();
-
-        if (renderingDlg == null)
-        {
-            renderingDlg = new JDialog();
-        }
-
-        // Remove existing editor if any
-        for (Component c : renderingDlg.getComponents())
-        {
-            if (c instanceof JScrollPane)
-            {
-                renderingDlg.remove(c);
-            }
-        }
-
-        // Add ours
-        renderingDlg.add(new JScrollPane(editor));     // Scrollpane needed!
-
-
-        // Start with same size than actual editor
-        editor.setPreferredSize(actualEditor.getSize());
-
-
-        // Layout everything
-        renderingDlg.pack();
-    }
-
-    private void changeRendererDialogWidth(double scaleFactor)
-    {
-        Dimension pd = clEditor.getPreferredSize();
-        int newWidth = Math.max(200, (int) Math.floor(pd.width * scaleFactor));
-        LOGGER.severe("changeRendererDialogWidth() newWidth=" + newWidth);
-        Dimension newPd = new Dimension(newWidth, pd.height);
-        clEditor.setPreferredSize(newPd);
-        renderingDlg.pack();
-        computeDimensions();
-    }
 }

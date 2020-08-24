@@ -42,6 +42,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.Quantization;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
+import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.itemrenderer.api.IR_SectionSettings;
 import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
@@ -75,9 +76,9 @@ public class BR_Sections extends BarRenderer implements ComponentListener
     private static final Logger LOGGER = Logger.getLogger(BR_Sections.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public BR_Sections(int barIndex)
+    public BR_Sections(int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
-        super(barIndex);
+        super(barIndex, settings, irf);
 
         // By default
         sectionColor = null;
@@ -239,8 +240,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener
         {
             throw new IllegalArgumentException("item=" + item);
         }
-        ItemRendererFactory irf = ItemRendererFactory.getDefault();
-        ItemRenderer ir = irf.createItemRenderer(IR_Type.Section, item);
+        ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.Section, item);
         return ir;
     }
 

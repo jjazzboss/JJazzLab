@@ -382,8 +382,8 @@ public class SongFactory implements PropertyChangeListener
         {
             ss = SongStructureFactory.getDefault().createSgs(cls, false);     // Don't link sgs to cls.  Can raise UnsupportedEditException
             ss.removeSongParts(ss.getSongParts());
-            
-            
+
+
             // Get a copy for each SongPart
             var newSpts = new ArrayList<SongPart>();
             for (SongPart spt : song.getSongStructure().getSongParts())
@@ -393,8 +393,8 @@ public class SongFactory implements PropertyChangeListener
                 SongPart sptCopy = spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), parentSectionCopy);
                 newSpts.add(sptCopy);
             }
-            
-            
+
+
             // Add new song parts in one shot to avoid issue if an AdaptedRhythm is used      
             ss.addSongParts(newSpts);            // Can raise UnsupportedEditException     
         } catch (UnsupportedEditException ex)
@@ -411,6 +411,30 @@ public class SongFactory implements PropertyChangeListener
         s.resetNeedSave();
         registerSong(s);
         return s;
+    }
+
+    /**
+     * Get a new song with the lead sheet developped/unrolled according to the song structure.
+     *
+     * @return
+     */
+    public Song getDeveloppedLeadSheet(Song song)
+    {
+        return song;
+    }
+
+    /**
+     * Get a new song with a simplified lead sheet.
+     * <p>
+     * Returned song will have no more than 2 chord symbols per bar, by default the chord symbols the closest from the first beat
+     * and half-bar beat.
+     *
+     * @param song
+     * @return
+     */
+    public Song getSimplifiedLeadSheet(Song song)
+    {
+        return song;
     }
 
     // =================================================================================
