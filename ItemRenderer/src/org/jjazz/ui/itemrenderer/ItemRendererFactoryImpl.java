@@ -30,8 +30,9 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
+import org.jjazz.ui.itemrenderer.api.ItemRendererSettings;
 
-public class ItemRendererFactoryImpl extends ItemRendererFactory
+public class ItemRendererFactoryImpl implements ItemRendererFactory
 {
 
     private static ItemRendererFactoryImpl INSTANCE;
@@ -55,32 +56,26 @@ public class ItemRendererFactoryImpl extends ItemRendererFactory
     }
 
     private ItemRendererFactoryImpl()
-    {
-        CLI_Factory cliFactory = CLI_Factory.getDefault();
-        SAMPLE_CHORD_SYMBOL_RENDERER = new IR_ChordSymbol(cliFactory.getSampleChordSymbol());
-        SAMPLE_CHORD_POSITION_RENDERER = new IR_ChordPosition(cliFactory.getSampleChordSymbol());
-        SAMPLE_SECTION_RENDERER = new IR_Section(cliFactory.getSampleSection());
-        SAMPLE_TIME_SIGNATURE_RENDERER = new IR_TimeSignature(cliFactory.getSampleSection());
-        SAMPLE_POSITION_MARK_RENDERER = new IR_PositionMark(cliFactory.getSampleSection());
+    {              
     }
 
     @Override
-    public ItemRenderer createItemRenderer(IR_Type type, ChordLeadSheetItem<?> item)
+    public ItemRenderer createItemRenderer(IR_Type type, ChordLeadSheetItem<?> item ,ItemRendererSettings settings)
     {
         ItemRenderer ir;
         switch (type)
         {
             case ChordSymbol:
-                ir = new IR_ChordSymbol((CLI_ChordSymbol) item);
+                ir = new IR_ChordSymbol((CLI_ChordSymbol) item, settings);
                 break;
             case ChordPosition:
-                ir = new IR_ChordPosition((CLI_ChordSymbol) item);
+                ir = new IR_ChordPosition((CLI_ChordSymbol) item, settings);
                 break;
             case Section:
-                ir = new IR_Section((CLI_Section) item);
+                ir = new IR_Section((CLI_Section) item, settings);
                 break;
             case TimeSignature:
-                ir = new IR_TimeSignature((CLI_Section) item);
+                ir = new IR_TimeSignature((CLI_Section) item, settings);
                 break;
             case PositionMark:
                 ir = new IR_PositionMark(item);
@@ -92,24 +87,46 @@ public class ItemRendererFactoryImpl extends ItemRendererFactory
     }
 
     @Override
-    public ItemRenderer getItemRendererSample(IR_Type type)
+    public ItemRenderer getItemRendererSample(IR_Type type,ItemRendererSettings settings)
     {
         ItemRenderer ir;
+        CLI_Factory cliFactory = CLI_Factory.getDefault();
         switch (type)
         {
             case ChordSymbol:
+                if (SAMPLE_CHORD_SYMBOL_RENDERER==null)
+                {
+                    SAMPLE_CHORD_SYMBOL_RENDERER = new IR_ChordSymbol(cliFactory.getSampleChordSymbol(), settings);
+                }
                 ir = SAMPLE_CHORD_SYMBOL_RENDERER;
+                
                 break;
-            case ChordPosition:
+            case ChordPosition:                
+                if (SAMPLE_CHORD_POSITION_RENDERER==null)
+                {
+                        SAMPLE_CHORD_POSITION_RENDERER = new IR_ChordPosition(cliFactory.getSampleChordSymbol(), settings);
+                }
                 ir = SAMPLE_CHORD_POSITION_RENDERER;
                 break;
             case Section:
+                if (SAMPLE_SECTION_RENDERER==null)
+                {
+                    SAMPLE_SECTION_RENDERER = new IR_Section(cliFactory.getSampleSection(), settings);                
+                }
                 ir = SAMPLE_SECTION_RENDERER;
                 break;
             case TimeSignature:
+                if (SAMPLE_TIME_SIGNATURE_RENDERER == null)
+                {
+                    SAMPLE_TIME_SIGNATURE_RENDERER = new IR_TimeSignature(cliFactory.getSampleSection(), settings);
+                }
                 ir = SAMPLE_TIME_SIGNATURE_RENDERER;
                 break;
             case PositionMark:
+                if (SAMPLE_POSITION_MARK_RENDERER == null)
+                {
+                    SAMPLE_POSITION_MARK_RENDERER = new IR_PositionMark(cliFactory.getSampleSection());
+                }
                 ir = SAMPLE_POSITION_MARK_RENDERER;
                 break;
             default:
@@ -119,20 +136,20 @@ public class ItemRendererFactoryImpl extends ItemRendererFactory
     }
 
     @Override
-    public ItemRenderer createDraggedItemRenderer(IR_Type type, ChordLeadSheetItem<?> item)
+    public ItemRenderer createDraggedItemRenderer(IR_Type type, ChordLeadSheetItem<?> item,ItemRendererSettings settings)
     {
         // Use default implementations, but we could imagine special renderers for dragged items.
         ItemRenderer ir;
         switch (type)
         {
             case ChordSymbol:
-                ir = new IR_ChordSymbol((CLI_ChordSymbol) item);
+                ir = new IR_ChordSymbol((CLI_ChordSymbol) item, settings);
                 break;
             case Section:
-                ir = new IR_Section((CLI_Section) item);
+                ir = new IR_Section((CLI_Section) item, settings);
                 break;
             case TimeSignature:
-                ir = new IR_TimeSignature((CLI_Section) item);
+                ir = new IR_TimeSignature((CLI_Section) item, settings);
                 break;
             default:
                 ir = null;

@@ -34,6 +34,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.Quantization;
+import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
 
@@ -47,19 +48,19 @@ import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
 abstract public class BarRenderer extends JPanel implements PropertyChangeListener
 {
 
-    private static JDialog fontMetricsDialog;
+    /**
+     * Store the font rendering hidden dialogs.
+     */
+    private static HashMap<CL_Editor, JDialog> mapEditorDialog = new HashMap<>();
+    private static JDialog noEditorDialog;
 
-    static
-    {
-        fontMetricsDialog = new JDialog();
-        fontMetricsDialog.getContentPane().setLayout(new FlowLayout(FlowLayout.LEFT, 2, 2));
-    }
 
     // GUI settings
     private static final int BARWIDTH_REDUCTION = 2;
     /**
      * Graphical settings.
      */
+    private CL_Editor editor;
     private BarRendererSettings settings;
     // APPLICATION variables
     /**
@@ -84,17 +85,19 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     /**
      * Construct a BarRenderer.
      *
+     * @param editor Can be null
      * @param barIndex The barIndex of this BarRenderer.
      * @param settings
      * @param irf
      */
     @SuppressWarnings("LeakingThisInConstructor")
-    public BarRenderer(int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
+    public BarRenderer(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
         if (settings == null || irf == null)
         {
             throw new IllegalArgumentException("barIndex=" + barIndex + " settings=" + settings + " irf=" + irf);
         }
+        this.editor = editor;
         this.barIndex = barIndex;
 
         // Register settings changes
@@ -436,6 +439,16 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
                 getHeight() - in.top - in.bottom);
     }
 
+    /**
+     * The editor to which this BarRenderer belongs to.
+     *
+     * @return Can be null
+     */
+    public CL_Editor getEditor()
+    {
+        return editor;
+    }
+
     @Override
     public String toString()
     {
@@ -443,18 +456,38 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     }
 
     /**
-     * Return a shared instance of a hidden JDialog which can be used to calculate the preferredSize of
-     * ItemRenderers/BarRenderers.
+     * Return a shared instance of a hidden JDialog used to get dimensions of Font-based objects.
      * <p>
-     * This can be needed because ItemRenderers prefSize depend on font size and we need a valid Graphics object to make the
-     * calculation.
+     * JDialog instances are shared between BarRenderers belonging to a same CL_Editor. If no editor set, a common instance is
+     * used. JDialog has an horizontal FlowLayout which layout components at their preferred size.
      *
      * @return
      */
-    static public JDialog getFontMetricsDialog()
+    public JDialog getFontMetricsDialog()
     {
-        return fontMetricsDialog;
+        JDialog dlg = null;
+        if (editor == null)
+        {
+            if (noEditorDialog == null)
+            {
+                dlg = new JDialog();
+                dlg.getContentPane().setLayout(new FlowLayout(FlowLayout.LEFT, 2, 2));
+                noEditorDialog = dlg;
+            }
+            dlg = noEditorDialog;
+        } else
+        {
+            dlg = mapEditorDialog.get(editor);
+            if (dlg == null)
+            {
+                dlg = new JDialog();
+                dlg.getContentPane().setLayout(new FlowLayout(FlowLayout.LEFT, 2, 2));
+                mapEditorDialog.put(editor, dlg);
+            }
+        }
+        return dlg;
     }
+
 
     //-----------------------------------------------------------------------
     // Implementation of the PropertiesListener interface

@@ -41,11 +41,11 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.Quantization;
+import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.itemrenderer.api.IR_SectionSettings;
-import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.ui.itemrenderer.api.IR_Copiable;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
@@ -60,7 +60,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener
     /**
      * A special shared JPanel instance used to calculate the preferred size for all BR_Chords.
      */
-    private static PrefSizePanel PREF_SIZE_SECTION_PANEL = new PrefSizePanel();
+    private static PrefSizePanel PREF_SIZE_SECTION_PANEL;
 
     private static Dimension MIN_SIZE = new Dimension(10, 4);
     /**
@@ -76,9 +76,9 @@ public class BR_Sections extends BarRenderer implements ComponentListener
     private static final Logger LOGGER = Logger.getLogger(BR_Sections.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public BR_Sections(int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
+    public BR_Sections(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
-        super(barIndex, settings, irf);
+        super(editor, barIndex, settings, irf);
 
         // By default
         sectionColor = null;
@@ -86,11 +86,21 @@ public class BR_Sections extends BarRenderer implements ComponentListener
         // Our layout manager
         setLayout(new SeqLayoutManager());
 
+
+        // The shared panel instance
+        if (PREF_SIZE_SECTION_PANEL == null)
+        {
+            PREF_SIZE_SECTION_PANEL = new PrefSizePanel();
+        }
+
+
         // Explicity set the preferred size so that layout's preferredLayoutSize() is never called
         // Use PREF_SIZE_SECTION_PANEL prefSize and listen to its changes
         setPreferredSize(PREF_SIZE_SECTION_PANEL.getPreferredSize());
         PREF_SIZE_SECTION_PANEL.addComponentListener(this);
         setMinimumSize(MIN_SIZE);
+
+
     }
 
     /**
@@ -240,7 +250,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener
         {
             throw new IllegalArgumentException("item=" + item);
         }
-        ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.Section, item);
+        ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.Section, item, getSettings().getItemRendererSettings());
         return ir;
     }
 
@@ -313,6 +323,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener
     // ---------------------------------------------------------------
     // Private classes
     // ---------------------------------------------------------------
+
     /**
      * A special shared JPanel instance used to calculate the preferred size for all BR_Sections.
      * <p>
@@ -320,7 +331,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener
      * FontMetrics can be calculated with a Graphics object.
      * <p>
      */
-    static private class PrefSizePanel extends JPanel implements PropertyChangeListener
+    private class PrefSizePanel extends JPanel implements PropertyChangeListener
     {
 
         int zoomVFactor;
@@ -332,21 +343,24 @@ public class BR_Sections extends BarRenderer implements ComponentListener
             // FlowLayout sets children size to their preferredSize
             setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
 
+
             // Listen to settings changes impacting ItemRenderers size
             // Required here because the dialog is displayable but NOT visible (see myRevalidate()).
             settings.addPropertyChangeListener(this);
 
+
             // Add the tallest possible items
             CLI_Factory clif = CLI_Factory.getDefault();
             ChordLeadSheetItem<?> item = clif.createSection(null, "SECTIONNAME", TimeSignature.TWELVE_EIGHT, 0);
-            ItemRendererFactory irf = ItemRendererFactory.getDefault();
-            ItemRenderer ir = irf.createItemRenderer(IR_Type.Section, item);
+            ItemRendererFactory irf = getItemRendererFactory();
+            ItemRenderer ir = irf.createItemRenderer(IR_Type.Section, item, getSettings().getItemRendererSettings());
             irs.add(ir);
             add(ir);
 
+
             // Add the panel to a hidden dialog so it can be made displayable (getGraphics() will return a non-null value, so font-based sizes
             // can be calculated
-            JDialog dlg = BarRenderer.getFontMetricsDialog();
+            JDialog dlg = getFontMetricsDialog();
             dlg.add(this);
             dlg.pack();    // Force all components to be displayable
         }
@@ -392,16 +406,15 @@ public class BR_Sections extends BarRenderer implements ComponentListener
             {
                 ir.setZoomFactor(vFactor);
             }
-            myRevalidate();
+            forceRevalidate();
         }
 
         /**
          * Because dialog is displayable but not visible, invalidating a component is not enough to relayout everything.
          */
-        private void myRevalidate()
+        private void forceRevalidate()
         {
-            JDialog dlg = BarRenderer.getFontMetricsDialog();
-            dlg.pack();
+            getFontMetricsDialog().pack();
         }
 
         //-----------------------------------------------------------------------
@@ -414,7 +427,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener
             {
                 if (e.getPropertyName() == IR_SectionSettings.PROP_FONT)
                 {
-                    myRevalidate();
+                    forceRevalidate();
                 }
             }
         }

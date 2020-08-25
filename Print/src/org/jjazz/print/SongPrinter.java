@@ -22,6 +22,7 @@
  */
 package org.jjazz.print;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -36,6 +37,8 @@ import java.awt.print.PageFormat;
 import java.awt.print.Pageable;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.text.MessageFormat;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
@@ -44,8 +47,9 @@ import org.jjazz.song.api.Song;
 import org.jjazz.songeditormanager.SongEditorManager;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorFactory;
-import org.jjazz.ui.utilities.Utilities;
-import org.openide.windows.WindowManager;
+import org.jjazz.ui.cl_editor.api.CL_EditorSettings;
+import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
+import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
 
 /**
  * A printer for Song editors which fits available width and breaks pages at a BarBox edge.
@@ -56,7 +60,7 @@ public class SongPrinter implements Printable, Pageable
     private static final int HEADER_HEIGHT_PTS = 40;
     private static final int FOOTER_HEIGHT_PTS = 20;
     private final CL_Editor clEditor;
-    private int refEditorWidth;
+    private final int refEditorWidth;
     private double xMin;   // Upper corner of imageable
     private double yMin;   // Upper corner of imageable
     private double centralZoneHeight;  // Between header and footer
@@ -80,20 +84,22 @@ public class SongPrinter implements Printable, Pageable
     {
         this.pageFormat = pageFormat;
 
+        // The actual application editor
+        var res = SongEditorManager.getInstance().getEditors(song);
+        CL_Editor actualEditor = res.getTcCle().getCL_Editor();
+
 
         // Build our own editor to have full control
         CL_EditorFactory clef = CL_EditorFactory.getDefault();
-        clEditor = clef.createEditor(song);
+        clEditor = clef.createEditor(song, new PrintCL_EditorSettings(actualEditor.getSettings()), BarRendererFactory.getDefault());
 
 
-        // Reuse the same settings
-        var res = SongEditorManager.getInstance().getEditors(song);
-        CL_Editor actualEditor = res.getTcCle().getCL_Editor();
+        // Reuse the settings from the actual editor
         clEditor.setNbColumns(actualEditor.getNbColumns());
         clEditor.setZoomVFactor(actualEditor.getZoomVFactor());
         refEditorWidth = actualEditor.getWidth();
 
-        
+
         // Put it in a hidden dialog to render it
         if (renderingDlg == null)
         {
@@ -296,5 +302,55 @@ public class SongPrinter implements Printable, Pageable
                 + " centralZoneHeight=" + centralZoneHeight
                 + " nbPages=" + nbPages);
     }
+
+    // =============================================================================
+    // Private classes
+    // =============================================================================
+
+    private class PrintCL_EditorSettings implements CL_EditorSettings
+    {
+
+        private CL_EditorSettings defaultSettings;
+        private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
+        private PrintCL_EditorSettings(CL_EditorSettings defaultSettings)
+        {
+            this.defaultSettings = defaultSettings;
+        }
+
+        @Override
+        public BarBoxSettings getBarBoxSettings()
+        {
+            return CL_EditorSettings.super.getBarBoxSettings(); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public Color getBackgroundColor()
+        {
+            return defaultSettings.getBackgroundColor();
+        }
+
+        @Override
+        public void setBackgroundColor(Color color)
+        {
+            Color old 
+            defaultSettings.setBackgroundColor(color);
+            pcs.firePropertyChange(CL_EditorSettings.PROP_BACKGROUND_COLOR, color, nbPages);
+        }
+
+        @Override
+        public void addPropertyChangeListener(PropertyChangeListener listener)
+        {
+            // Do nothing
+            pcs.addPropertyChangeListener(listener);
+        }
+
+        @Override
+        public void removePropertyChangeListener(PropertyChangeListener listener)
+        {
+            pcs.removePropertyChangeListener(listener);
+        }
+    }
+
 
 }

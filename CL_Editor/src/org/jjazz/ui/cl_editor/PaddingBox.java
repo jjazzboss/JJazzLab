@@ -35,19 +35,20 @@ import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
 public class PaddingBox extends JPanel implements PropertyChangeListener
 {
 
-    public PaddingBox()
+    BarBoxSettings bbSettings;
+
+    public PaddingBox(BarBoxSettings settings)
     {
+        bbSettings = settings;
         setOpaque(true);
         setPreferredSize(new Dimension(10, 10));
-        BarBoxSettings bbs = BarBoxSettings.getDefault();
-        bbs.addPropertyChangeListener(this);
-        setBackground(bbs.getPastEndColor());
+        bbSettings.addPropertyChangeListener(this);
+        setBackground(bbSettings.getPastEndColor());
     }
 
     public void cleanup()
     {
-        BarBoxSettings bbs = BarBoxSettings.getDefault();
-        bbs.removePropertyChangeListener(this);
+        bbSettings.removePropertyChangeListener(this);
     }
 
     @Override

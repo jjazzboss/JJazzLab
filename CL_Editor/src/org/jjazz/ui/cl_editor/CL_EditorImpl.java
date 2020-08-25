@@ -168,7 +168,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      * The last playback point.
      */
     private Position playbackPointLastPos;
-    private BarBoxSettings bbSettings;
     private BarRendererFactory barRendererFactory;
     /**
      * Receiver for mouse events.
@@ -186,14 +185,13 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     private static final Logger LOGGER = Logger.getLogger(CL_EditorImpl.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public CL_EditorImpl(Song song, CL_EditorSettings settings, BarBoxSettings bbSettings, BarRendererFactory brf)
+    public CL_EditorImpl(Song song, CL_EditorSettings settings, BarRendererFactory brf)
     {
-        if (song == null || settings == null || bbSettings == null || brf == null)
+        if (song == null || settings == null || brf == null)
         {
-            throw new IllegalArgumentException("song=" + song + " settings=" + settings + " bbSettings=" + bbSettings + " brf=" + brf);
+            throw new IllegalArgumentException("song=" + song + " settings=" + settings + " brf=" + brf);
         }
         songModel = song;
-        this.bbSettings = bbSettings;
         this.barRendererFactory = brf;
 
         // Listen to settings changes
@@ -277,6 +275,11 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     public Song getSongModel()
     {
         return songModel;
+    }
+
+    public CL_EditorSettings getSettings()
+    {
+        return settings;
     }
 
     @Override
@@ -1298,7 +1301,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             throw new IllegalArgumentException("bbIndex=" + bbIndex + " getNbBarBoxes()=" + getNbBarBoxes() + " modelBarIndex=" + modelBarIndex + " config=" + config + " clsModel=" + clsModel);
         }
-        BarBox bb = new BarBox(bbIndex, modelBarIndex, clsModel, config, bbSettings, barRendererFactory);
+        BarBox bb = new BarBox(this, bbIndex, modelBarIndex, clsModel, config, settings.getBarBoxSettings(), barRendererFactory);
         if (modelBarIndex >= 0)
         {
             // If bar represents the model set quantization value
@@ -1600,7 +1603,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 for (int j = 0; j < padding; j++)
                 {
                     needRevalidate = true;
-                    add(new PaddingBox(), sectionCompIndex);
+                    add(new PaddingBox(settings.getBarBoxSettings()), sectionCompIndex);
                 }
                 offset += padding;
             }

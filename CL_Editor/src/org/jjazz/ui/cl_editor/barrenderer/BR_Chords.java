@@ -40,6 +40,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.Quantization;
+import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
 import org.jjazz.ui.cl_editor.barrenderer.api.BeatBasedBarRenderer;
@@ -61,7 +62,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     /**
      * A special shared JPanel instance used to calculate the preferred size for all BR_Chords.
      */
-    private static PrefSizePanel PREF_SIZE_CHORDS_PANEL = new PrefSizePanel();
+    private static PrefSizePanel PREF_SIZE_CHORDS_PANEL;
 
     private static Dimension MIN_SIZE = new Dimension(10, 4);
     /**
@@ -81,9 +82,9 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     private static final Logger LOGGER = Logger.getLogger(BR_Chords.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public BR_Chords(int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
+    public BR_Chords(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
-        super(barIndex, settings, irf);
+        super(editor, barIndex, settings, irf);
 
         // Default value
         lastTimeSignature = TimeSignature.FOUR_FOUR;
@@ -91,6 +92,13 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         // Our layout manager
         layoutManager = new BR_ChordsLayoutManager();
         setLayout(layoutManager);
+
+
+        // The shared panel instance
+        if (PREF_SIZE_CHORDS_PANEL == null)
+        {
+            PREF_SIZE_CHORDS_PANEL = new PrefSizePanel();
+        }
 
         // Explicity set the preferred size so that layout's preferredLayoutSize() is never called
         // Use PREF_SIZE_BR_CHORDS prefSize and listen to its changes
@@ -256,11 +264,11 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         ItemRendererFactory irf = getItemRendererFactory();
         if (item instanceof CLI_ChordSymbol)
         {
-            ir = irf.createItemRenderer(IR_Type.ChordSymbol, item);
+            ir = irf.createItemRenderer(IR_Type.ChordSymbol, item, getSettings().getItemRendererSettings());
         } else
         {
             // CLI_Section
-            ir = irf.createItemRenderer(IR_Type.TimeSignature, item);
+            ir = irf.createItemRenderer(IR_Type.TimeSignature, item, getSettings().getItemRendererSettings());
         }
         return ir;
     }
@@ -320,15 +328,13 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
      * FontMetrics can be calculated with a Graphics object.
      * <p>
      */
-    static private class PrefSizePanel extends JPanel implements PropertyChangeListener
+    private class PrefSizePanel extends JPanel implements PropertyChangeListener
     {
 
         int zoomVFactor;
         final ArrayList<ItemRenderer> irs = new ArrayList<>();
         final IR_ChordSymbolSettings csSettings = IR_ChordSymbolSettings.getDefault();
         final IR_TimeSignatureSettings tsSettings = IR_TimeSignatureSettings.getDefault();
-
-        private static final Logger LOGGER2 = Logger.getLogger(PrefSizePanel.class.getName());
 
         public PrefSizePanel()
         {
@@ -353,17 +359,18 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
             item2 = clif.createSection(null, "SECTIONNAME", TimeSignature.TWELVE_EIGHT, 0);
 
             ItemRenderer ir;
-            ItemRendererFactory irf = ItemRendererFactory.getDefault();
-            ir = irf.createItemRenderer(IR_Type.ChordSymbol, item1);
+            ItemRendererFactory irf = getItemRendererFactory();
+            ir = irf.createItemRenderer(IR_Type.ChordSymbol, item1, getSettings().getItemRendererSettings());
             irs.add(ir);
             add(ir);
-            ir = irf.createItemRenderer(IR_Type.TimeSignature, item2);
+            ir = irf.createItemRenderer(IR_Type.TimeSignature, item2, getSettings().getItemRendererSettings());
             irs.add(ir);
             add(ir);
 
+
             // Add the panel to a hidden dialog so it can be made displayable (getGraphics() will return a non-null value, so font-based sizes
             // can be calculated
-            JDialog dlg = BarRenderer.getFontMetricsDialog();
+            JDialog dlg = getFontMetricsDialog();
             dlg.add(this);
             dlg.pack();    // Force all components to be displayable
         }
@@ -406,7 +413,6 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
             int pHeight = irMaxHeight + V_PADDING + in.top + in.bottom;
 
             Dimension d = new Dimension(pWidth, pHeight);
-            // LOGGER2.severe("PrefSizePanel.getPreferredSize() d=" + d);
             return d;
         }
 
@@ -416,22 +422,20 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
             {
                 return;
             }
-            //  LOGGER2.severe("PrefSizePanel.setZoomVFactor() vFactor=" + vFactor);
             zoomVFactor = vFactor;
             for (ItemRenderer ir : irs)
             {
                 ir.setZoomFactor(vFactor);
             }
-            myRevalidate();
+            forceRevalidate();
         }
 
         /**
-         * Because dialog is displayable but not visible, invalidating a component is not enough to relayout everything.
+         * Because dialog is displayable but not visible, invalidating a component is not enough to re-layout everything.
          */
-        private void myRevalidate()
+        private void forceRevalidate()
         {
-            JDialog dlg = BarRenderer.getFontMetricsDialog();
-            dlg.pack();
+            getFontMetricsDialog().pack();
         }
 
         //-----------------------------------------------------------------------
@@ -444,13 +448,13 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
             {
                 if (e.getPropertyName() == IR_ChordSymbolSettings.PROP_FONT)
                 {
-                    myRevalidate();
+                    forceRevalidate();
                 }
             } else if (e.getSource() == tsSettings)
             {
                 if (e.getPropertyName() == IR_TimeSignatureSettings.PROP_FONT)
                 {
-                    myRevalidate();
+                    forceRevalidate();
                 }
             }
         }

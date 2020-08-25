@@ -40,6 +40,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.Quantization;
+import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
 import org.jjazz.ui.cl_editor.barrenderer.api.BeatBasedBarRenderer;
@@ -53,10 +54,11 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
 {
     // GUI
 
+    private CL_Editor editor;
     /**
      * Our graphical settings.
      */
-    private BarBoxSettings settings;
+    private BarBoxSettings bbSettings;
     // APPLICATION
     /**
      * The BarRenderers displayed in this BarBox.
@@ -87,6 +89,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     /**
      * Construct a BarBox.
      *
+     * @param editor Can be null
      * @param bbIndex The index of this BarBox.
      * @param modelBarIndex Use -1 if this BarBox does not represent model data.
      * @param model
@@ -95,8 +98,9 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      * @param brf
      */
     @SuppressWarnings("LeakingThisInConstructor")
-    public BarBox(int bbIndex, int modelBarIndex, ChordLeadSheet model, BarBoxConfig config, BarBoxSettings settings, BarRendererFactory brf)
+    public BarBox(CL_Editor editor, int bbIndex, int modelBarIndex, ChordLeadSheet model, BarBoxConfig config, BarBoxSettings settings, BarRendererFactory brf)
     {
+        this.editor = editor;
         displayQuantization = Quantization.BEAT;
 
 
@@ -110,13 +114,14 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         }
 
         // Register settings changes
-        this.settings = settings;
-        settings.addPropertyChangeListener(this);
+        this.bbSettings = settings;
+        this.bbSettings.addPropertyChangeListener(this);
 
-        
+
+        // To create BarRenderers
         barRendererFactory = brf;
 
-        
+
         this.barIndex = bbIndex;
         setModel(modelBarIndex, model);
 
@@ -493,13 +498,13 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         // Add new ones
         for (BarRendererFactory.Type brType : barBoxConfig.getActiveBarRenderers())
         {
-            BarRenderer br = barRendererFactory.createBarRenderer(brType, barIndex, model);
+            BarRenderer br = barRendererFactory.createBarRenderer(editor, brType, barIndex, model, bbSettings.getBarRendererSettings(), barRendererFactory.getItemRendererFactory());
             br.setZoomVFactor(zoomVFactor);
             br.setDisplayQuantizationValue(displayQuantization);
             br.setEnabled(isEnabled());
             add(br);
         }
-        
+
         revalidate(); // Since components have been added/removed
         return true;
     }
@@ -541,7 +546,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     public void cleanup()
     {
         removeFocusListener(this);
-        settings.removePropertyChangeListener(this);
+        bbSettings.removePropertyChangeListener(this);
         model = null;
         for (BarRenderer br : getBarRenderers())
         {
@@ -575,7 +580,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
-        if (e.getSource() == settings)
+        if (e.getSource() == bbSettings)
         {
             refreshBackground();        // If a color has changed
             repaint();                  // If a border has changed
@@ -588,7 +593,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     @Override
     public void focusGained(FocusEvent e)
     {
-        Border border = settings.getFocusedTitledBorder((barIndex >= 0) ? String.valueOf(barIndex + 1) : "");
+        Border border = bbSettings.getFocusedTitledBorder((barIndex >= 0) ? String.valueOf(barIndex + 1) : "");
         if (border != null)
         {
             setBorder(border);
@@ -598,7 +603,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     @Override
     public void focusLost(FocusEvent e)
     {
-        Border border = settings.getTitledBorder((barIndex >= 0) ? String.valueOf(barIndex + 1) : "");
+        Border border = bbSettings.getTitledBorder((barIndex >= 0) ? String.valueOf(barIndex + 1) : "");
         if (border != null)
         {
             setBorder(border);
@@ -621,24 +626,24 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         if (isPlaybackOn)
         {
-            setBackground(settings.getPlaybackColor());
+            setBackground(bbSettings.getPlaybackColor());
             return;
         }
         if (!isEnabled())
         {
             if (modelBarIndex < 0 || modelBarIndex >= model.getSize())
             {
-                setBackground(settings.getDisabledPastEndColor());
+                setBackground(bbSettings.getDisabledPastEndColor());
             } else
             {
-                setBackground(settings.getDisabledColor());
+                setBackground(bbSettings.getDisabledColor());
             }
         } else if (modelBarIndex < 0 || modelBarIndex >= model.getSize())
         {
-            setBackground(isSelected ? settings.getPastEndSelectedColor() : settings.getPastEndColor());
+            setBackground(isSelected ? bbSettings.getPastEndSelectedColor() : bbSettings.getPastEndColor());
         } else
         {
-            setBackground(isSelected ? settings.getSelectedColor() : settings.getDefaultColor());
+            setBackground(isSelected ? bbSettings.getSelectedColor() : bbSettings.getDefaultColor());
         }
     }
 

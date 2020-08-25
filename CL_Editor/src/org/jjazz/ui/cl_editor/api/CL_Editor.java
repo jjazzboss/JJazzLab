@@ -79,6 +79,11 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     abstract public UndoRedo getUndoManager();
 
     /**
+     * The settings of the editor.
+     */
+    abstract public CL_EditorSettings getSettings();
+
+    /**
      * Set how chords positions are quantized for display.
      *
      * @param q

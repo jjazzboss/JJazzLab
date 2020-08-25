@@ -24,19 +24,15 @@ package org.jjazz.ui.itemrenderer;
 
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
-import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.text.AttributedString;
-import java.text.Bidi;
 import java.util.logging.Logger;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
@@ -88,7 +84,7 @@ public class IR_TimeSignature extends ItemRenderer implements IR_Copiable
     private static final Logger LOGGER = Logger.getLogger(IR_TimeSignature.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public IR_TimeSignature(CLI_Section item)
+    public IR_TimeSignature(CLI_Section item, ItemRendererSettings irSettings)
     {
         super(item, IR_Type.TimeSignature);
 
@@ -97,7 +93,7 @@ public class IR_TimeSignature extends ItemRenderer implements IR_Copiable
         lowerString = String.valueOf(timeSignature.getLower());
 
         // Register settings changes
-        settings = IR_TimeSignatureSettings.getDefault();
+        settings = irSettings.getIR_TimeSignatureSettings();
         settings.addPropertyChangeListener(this);
 
         // Init

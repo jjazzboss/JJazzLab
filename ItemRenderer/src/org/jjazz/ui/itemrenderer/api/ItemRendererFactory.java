@@ -29,7 +29,7 @@ import org.openide.util.Lookup;
 /**
  * Provide a consistent set of ItemRenderer instances.
  */
-public abstract class ItemRendererFactory
+public interface ItemRendererFactory
 {
 
     public static ItemRendererFactory getDefault()
@@ -47,24 +47,27 @@ public abstract class ItemRendererFactory
      *
      * @param type
      * @param item
+     * @param irSettings
      * @return
      */
-    abstract public ItemRenderer createItemRenderer(IR_Type type, ChordLeadSheetItem<?> item);
+    ItemRenderer createItemRenderer(IR_Type type, ChordLeadSheetItem<?> item, ItemRendererSettings irSettings);
 
     /**
      * Create an ItemRenderer used to represent a dragged item.
      *
      * @param type
      * @param item
+     * @param irSettings
      * @return Can be null if specified ItemRenderer's type can not be dragged.
      */
-    abstract public ItemRenderer createDraggedItemRenderer(IR_Type type, ChordLeadSheetItem<?> item);
+    ItemRenderer createDraggedItemRenderer(IR_Type type, ChordLeadSheetItem<?> item, ItemRendererSettings irSettings);
 
     /**
      * Get a shared instance of an ItemRenderer sample of given type.
      *
      * @param type
+     * @param irSettings
      * @return
      */
-    abstract public ItemRenderer getItemRendererSample(IR_Type type);
+    ItemRenderer getItemRendererSample(IR_Type type, ItemRendererSettings irSettings);
 }

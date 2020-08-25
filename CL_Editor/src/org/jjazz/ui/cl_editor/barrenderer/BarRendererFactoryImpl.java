@@ -23,6 +23,7 @@
 package org.jjazz.ui.cl_editor.barrenderer;
 
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
@@ -50,29 +51,28 @@ public class BarRendererFactoryImpl implements BarRendererFactory
     }
 
     /**
-     * Use the default BarRendererSettings and ItemRendererFactory.
+     * Use the default ItemRendererFactory.
      *
+     * @param editor Can be null
      * @param type
      * @param barIndex
      * @param model
      * @return
      */
     @Override
-    public BarRenderer createBarRenderer(Type type, int barIndex, ChordLeadSheet model)
+    public BarRenderer createBarRenderer(CL_Editor editor, Type type, int barIndex, ChordLeadSheet model, BarRendererSettings settings, ItemRendererFactory irf)
     {
-        var settings = BarRendererSettings.getDefault();
-        var irf = ItemRendererFactory.getDefault();
         BarRenderer br = null;
         switch (type)
         {
             case ChordSymbol:
-                br = new BR_Chords(barIndex, settings, irf);
+                br = new BR_Chords(editor, barIndex, settings, irf);
                 break;
             case ChordPosition:
-                br = new BR_ChordPositions(barIndex, settings, irf);
+                br = new BR_ChordPositions(editor, barIndex, settings, irf);
                 break;
             case Section:
-                br = new BR_Sections(barIndex, settings, irf);
+                br = new BR_Sections(editor, barIndex, settings, irf);
                 break;
             default:
                 throw new IllegalStateException("type=" + type);

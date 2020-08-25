@@ -51,14 +51,8 @@ public class CL_EditorFactoryImpl implements CL_EditorFactory
     }
 
     @Override
-    public CL_Editor createEditor(Song song)
+    public CL_Editor createEditor(Song song, CL_EditorSettings settings, BarRendererFactory brf)
     {
-        return new CL_EditorImpl(song, CL_EditorSettings.getDefault(), BarBoxSettings.getDefault(), BarRendererFactory.getDefault());
-    }
-
-    @Override
-    public CL_Editor createEditor(Song song, CL_EditorSettings settings, BarBoxSettings bbSettings, BarRendererFactory brf)
-    {
-        return new CL_EditorImpl(song, settings, bbSettings, brf);
+        return new CL_EditorImpl(song, settings, brf);
     }
 }

@@ -39,6 +39,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
+import org.jjazz.ui.itemrenderer.api.ItemRendererSettings;
 
 /**
  * Show the position of a chord.
@@ -55,13 +56,13 @@ public class IR_ChordPosition extends ItemRenderer
     private ChordRenderingInfo cri;
     private int zoomFactor = 50;
 
-    public IR_ChordPosition(CLI_ChordSymbol item)
+    public IR_ChordPosition(CLI_ChordSymbol item, ItemRendererSettings irSettings)
     {
         super(item, IR_Type.ChordPosition);
         cri = item.getData().getRenderingInfo();
 
         // Reuse same font color than chords
-        settings = IR_ChordSymbolSettings.getDefault();
+        settings = irSettings.getIR_ChordSymbolSettings();
         settings.addPropertyChangeListener(this);
         setForeground(cri.getAccentFeature() == null ? settings.getColor() : settings.getAccentColor(cri.getAccentFeature()));
         updateToolTipText();
@@ -102,19 +103,19 @@ public class IR_ChordPosition extends ItemRenderer
         float factor = 0.8f + (.4f * zFactor / 100f);
 
         Insets in = getInsets();
-        
-        
+
+
         int pw = Math.round(DEFAULT_DRAWING_AREA.width * factor);
         if (pw % 2 == 0)
         {
             // Make sure drawing area is an odd number
             pw++;
-        }        
+        }
         pw += 2 * H_MARGIN + in.left + in.right;
         int ph = Math.round(DEFAULT_DRAWING_AREA.height * factor);
         ph += 2 * V_MARGIN + in.top + in.bottom;
 
-        
+
         Dimension d = new Dimension(pw, ph);
         return d;
     }

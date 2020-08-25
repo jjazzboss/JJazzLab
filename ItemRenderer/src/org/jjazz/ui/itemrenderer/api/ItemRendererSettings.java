@@ -43,17 +43,32 @@ public interface ItemRendererSettings
         return result;
     }
 
-     void setSelectedBackgroundColor(Color color);
+    default IR_ChordSymbolSettings getIR_ChordSymbolSettings()
+    {
+        return IR_ChordSymbolSettings.getDefault();
+    }
 
-     Color getSelectedBackgroundColor();
+    default IR_SectionSettings getIR_SectionSettings()
+    {
+        return IR_SectionSettings.getDefault();
+    }
 
-     void setFocusedBorderColor(Color color);
+    default IR_TimeSignatureSettings getIR_TimeSignatureSettings()
+    {
+        return IR_TimeSignatureSettings.getDefault();
+    }   
 
-     Border getFocusedBorder();
+    void setSelectedBackgroundColor(Color color);
 
-     Border getNonFocusedBorder();
+    Color getSelectedBackgroundColor();
 
-     void addPropertyChangeListener(PropertyChangeListener listener);
+    void setFocusedBorderColor(Color color);
 
-     void removePropertyChangeListener(PropertyChangeListener listener);
+    Border getFocusedBorder();
+
+    Border getNonFocusedBorder();
+
+    void addPropertyChangeListener(PropertyChangeListener listener);
+
+    void removePropertyChangeListener(PropertyChangeListener listener);
 }

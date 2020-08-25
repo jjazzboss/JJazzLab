@@ -23,7 +23,9 @@
 package org.jjazz.ui.cl_editor.barrenderer.api;
 
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barrenderer.BarRendererFactoryImpl;
+import org.jjazz.ui.itemrenderer.api.ItemRendererFactory;
 import org.openide.util.Lookup;
 
 /**
@@ -50,14 +52,36 @@ public interface BarRendererFactory
         return result;
     }
 
+    default ItemRendererFactory getItemRendererFactory()
+    {
+        return ItemRendererFactory.getDefault();
+    }
+
     /**
-     * Create a BarRender of the specified type.
+     * Create a BarRender with default settings.
      *
+     * @param editor Can be null
      * @param type
      * @param barIndex
      * @param model
      * @return
      */
-    BarRenderer createBarRenderer(Type type, int barIndex, ChordLeadSheet model);
+    default BarRenderer createBarRenderer(CL_Editor editor, Type type, int barIndex, ChordLeadSheet model)
+    {
+        return createBarRenderer(editor, type, barIndex, model, BarRendererSettings.getDefault(), getItemRendererFactory());
+    }
+
+    /**
+     * Create a BarRender of the specified type.
+     *
+     * @param editor Can be null
+     * @param type
+     * @param barIndex
+     * @param model
+     * @param settings
+     * @param irf
+     * @return
+     */
+    BarRenderer createBarRenderer(CL_Editor editor, Type type, int barIndex, ChordLeadSheet model, BarRendererSettings settings, ItemRendererFactory irf);
 
 }

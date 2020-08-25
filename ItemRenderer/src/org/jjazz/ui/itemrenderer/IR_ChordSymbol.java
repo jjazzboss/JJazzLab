@@ -46,6 +46,7 @@ import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.ui.itemrenderer.api.IR_Copiable;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
+import org.jjazz.ui.itemrenderer.api.ItemRendererSettings;
 import org.jjazz.ui.utilities.TextLayoutUtils;
 
 /**
@@ -75,14 +76,14 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbol.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public IR_ChordSymbol(CLI_ChordSymbol item)
+    public IR_ChordSymbol(CLI_ChordSymbol item, ItemRendererSettings irSettings)
     {
         super(item, IR_Type.ChordSymbol);
         LOGGER.fine("IR_ChordSymbol() item=" + item);
 
 
         // Apply settings and listen to their changes
-        settings = IR_ChordSymbolSettings.getDefault();
+        settings = irSettings.getIR_ChordSymbolSettings();
         settings.addPropertyChangeListener(this);
         setFont(settings.getFont());
 
@@ -126,7 +127,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
                 chordSymbolBase = chordSymbolString;
                 chordSymbolExtension = "";
             } else
-            {                
+            {
                 chordSymbolBase = chordSymbolString.substring(0, baseStart + extStart);
                 chordSymbolExtension = chordSymbolString.substring(baseStart + extStart);
             }
@@ -448,8 +449,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         return ((cri.getAccentFeature() != null && cri.hasOneFeature(Feature.CRASH, Feature.EXTENDED_HOLD_SHOT, Feature.NO_CRASH))
                 || cri.getScaleInstance() != null
                 || extCs.getAlternateChordSymbol() != null
-                || cri.hasOneFeature(Feature.PEDAL_BASS)
-                );
+                || cri.hasOneFeature(Feature.PEDAL_BASS));
     }
 
 

@@ -24,6 +24,7 @@ package org.jjazz.ui.cl_editor.barrenderer.api;
 
 import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
+import org.jjazz.ui.itemrenderer.api.ItemRendererSettings;
 import org.openide.util.Lookup;
 
 public interface BarRendererSettings
@@ -37,6 +38,11 @@ public interface BarRendererSettings
             throw new NullPointerException("result=" + result);
         }
         return result;
+    }
+
+    default ItemRendererSettings getItemRendererSettings()
+    {
+        return ItemRendererSettings.getDefault();
     }
 
     /**

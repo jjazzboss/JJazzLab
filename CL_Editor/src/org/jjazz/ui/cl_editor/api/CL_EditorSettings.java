@@ -24,6 +24,7 @@ package org.jjazz.ui.cl_editor.api;
 
 import java.awt.Color;
 import java.beans.PropertyChangeListener;
+import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
 import org.openide.util.Lookup;
 
 public interface CL_EditorSettings
@@ -39,6 +40,11 @@ public interface CL_EditorSettings
             throw new NullPointerException("result=" + result);
         }
         return result;
+    }
+    
+    default BarBoxSettings getBarBoxSettings()
+    {
+        return BarBoxSettings.getDefault();
     }
 
     Color getBackgroundColor();

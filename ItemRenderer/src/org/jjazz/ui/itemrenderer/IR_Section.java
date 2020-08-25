@@ -39,6 +39,7 @@ import org.jjazz.ui.itemrenderer.api.IR_SectionSettings;
 import org.jjazz.ui.itemrenderer.api.IR_Copiable;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
+import org.jjazz.ui.itemrenderer.api.ItemRendererSettings;
 
 /**
  * Represent a section's name (upper case).
@@ -81,13 +82,13 @@ public class IR_Section extends ItemRenderer implements IR_Copiable
     private static final Logger LOGGER = Logger.getLogger(IR_Section.class.getName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public IR_Section(CLI_Section item)
+    public IR_Section(CLI_Section item, ItemRendererSettings irSettings)
     {
         super(item, IR_Type.Section);
         sectionString = item.getData().getName();
 
         // Register settings changes
-        settings = IR_SectionSettings.getDefault();
+        settings = irSettings.getIR_SectionSettings();
         settings.addPropertyChangeListener(this);
 
         // Register color manager changes

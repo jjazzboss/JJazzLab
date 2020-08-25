@@ -38,6 +38,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.Quantization;
+import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererSettings;
 import org.jjazz.ui.cl_editor.barrenderer.api.BeatBasedBarRenderer;
@@ -56,7 +57,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     /**
      * A special shared JPanel instance used to calculate the preferred size for all BR_ChordPositions.
      */
-    private static PrefSizePanel PREF_SIZE_CHORDPOSITIONS_PANEL = new PrefSizePanel();
+    private static PrefSizePanel PREF_SIZE_CHORDPOSITIONS_PANEL;
 
     private static Dimension MIN_SIZE = new Dimension(10, 4);
     /**
@@ -80,9 +81,9 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     private static final Logger LOGGER = Logger.getLogger(BR_ChordPositions.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public BR_ChordPositions(int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
+    public BR_ChordPositions(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
-        super(barIndex, settings, irf);
+        super(editor, barIndex, settings, irf);
 
         // Default value
         lastTimeSignature = TimeSignature.FOUR_FOUR;
@@ -90,6 +91,13 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
         // Set Layout
         layoutManager = new BeatBasedLayoutManager();
         setLayout(layoutManager);
+
+
+        // The shared panel instance
+        if (PREF_SIZE_CHORDPOSITIONS_PANEL == null)
+        {
+            PREF_SIZE_CHORDPOSITIONS_PANEL = new PrefSizePanel();
+        }
 
         // Explicity set the preferred size so that layout's preferredLayoutSize() is never called
         // Use PREF_SIZE_CHORDPOSITIONS_PANEL prefSize and listen to its changes
@@ -352,7 +360,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
         {
             throw new IllegalArgumentException("item=" + item);
         }
-        ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.ChordPosition, item);
+        ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.ChordPosition, item, getSettings().getItemRendererSettings());
         return ir;
     }
 
@@ -412,7 +420,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
      * FontMetrics can be calculated with a Graphics object.
      * <p>
      */
-    static private class PrefSizePanel extends JPanel
+    private class PrefSizePanel extends JPanel
     {
 
         int zoomVFactor;
@@ -434,15 +442,13 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
                 Exceptions.printStackTrace(ex);
             }
 
-            ItemRenderer ir;
-            ItemRendererFactory irf = ItemRendererFactory.getDefault();
-            ir = irf.createItemRenderer(IR_Type.ChordPosition, item);
+            ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.ChordPosition, item, getSettings().getItemRendererSettings());
             irs.add(ir);
             add(ir);
 
             // Add the panel to a hidden dialog so it can be made displayable (getGraphics() will return a non-null value, so font-based sizes
             // can be calculated
-            JDialog dlg = BarRenderer.getFontMetricsDialog();
+            JDialog dlg = getFontMetricsDialog();
             dlg.add(this);
             dlg.pack();    // Force all components to be displayable
         }
@@ -495,16 +501,15 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
             {
                 ir.setZoomFactor(vFactor);
             }
-            myRevalidate();
+            forceRevalidate();
         }
 
         /**
          * Because dialog is displayable but not visible, invalidating a component is not enough to relayout everything.
          */
-        private void myRevalidate()
+        private void forceRevalidate()
         {
-            JDialog dlg = BarRenderer.getFontMetricsDialog();
-            dlg.pack();
+            getFontMetricsDialog().pack();
         }
 
     }

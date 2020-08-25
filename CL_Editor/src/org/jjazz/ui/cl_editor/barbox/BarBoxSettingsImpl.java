@@ -59,7 +59,7 @@ import org.jjazz.upgrade.spi.UpgradeTask;
             "CTL_PlayedBar=Played bar",
         }
 )
-public class BarBoxSettingsImpl extends BarBoxSettings implements FontColorUserSettingsProvider
+public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettingsProvider
 {
 
     /**
