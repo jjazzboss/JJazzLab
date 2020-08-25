@@ -29,6 +29,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -60,9 +62,9 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
 {
 
     /**
-     * A special shared JPanel instance used to calculate the preferred size for all BR_Chords.
+     * Special shared JPanel instances per CL_Editor, used to calculate the preferred size for a BarRenderer subclass..
      */
-    private static PrefSizePanel PREF_SIZE_CHORDS_PANEL;
+    private static final WeakHashMap<CL_Editor, PrefSizePanel> mapEditorPrefSizePanel = new WeakHashMap<>();
 
     private static Dimension MIN_SIZE = new Dimension(10, 4);
     /**
@@ -94,28 +96,29 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         setLayout(layoutManager);
 
 
-        // The shared panel instance
-        if (PREF_SIZE_CHORDS_PANEL == null)
-        {
-            PREF_SIZE_CHORDS_PANEL = new PrefSizePanel();
-        }
-
         // Explicity set the preferred size so that layout's preferredLayoutSize() is never called
         // Use PREF_SIZE_BR_CHORDS prefSize and listen to its changes
-        setPreferredSize(PREF_SIZE_CHORDS_PANEL.getPreferredSize());
-        PREF_SIZE_CHORDS_PANEL.addComponentListener(this);
+        setPreferredSize(getPrefSizePanelSharedInstance().getPreferredSize());
+        getPrefSizePanelSharedInstance().addComponentListener(this);
         setMinimumSize(MIN_SIZE);
 
     }
 
     /**
-     * Overridden to unregister PREF_SIZE_BR_CHORDS.
+     * Overridden to unregister the pref size panel shared instance.
      */
     @Override
     public void cleanup()
     {
         super.cleanup();
-        PREF_SIZE_CHORDS_PANEL.removeComponentListener(this);
+        getPrefSizePanelSharedInstance().removeComponentListener(this);
+
+        // Remove only if it's the last bar of the editor
+        if (getEditor().getNbBarBoxes() == 1)
+        {
+            JDialog dlg = getFontMetricsDialog();
+            dlg.remove(getPrefSizePanelSharedInstance());
+        }
     }
 
     @Override
@@ -224,7 +227,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
             return;
         }
         // Forward to the shared panel instance
-        PREF_SIZE_CHORDS_PANEL.setZoomVFactor(factor);
+        getPrefSizePanelSharedInstance().setZoomVFactor(factor);
         // Apply to this BR_Chords object
         zoomVFactor = factor;
         for (ItemRenderer ir : getItemRenderers())
@@ -284,7 +287,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     @Override
     public void componentResized(ComponentEvent e)
     {
-        Dimension d = PREF_SIZE_CHORDS_PANEL.getSize();
+        Dimension d = getPrefSizePanelSharedInstance().getSize();
         LOGGER.fine("componentResized() d=" + d);
         setPreferredSize(d);
         revalidate();
@@ -316,6 +319,25 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     public TimeSignature getTimeSignature()
     {
         return lastTimeSignature;
+    }
+
+// ---------------------------------------------------------------
+    // Private methods
+    // ---------------------------------------------------------------
+    /**
+     * Get the PrefSizePanel shared instance for our CL_Editor.
+     *
+     * @return
+     */
+    private PrefSizePanel getPrefSizePanelSharedInstance()
+    {
+        PrefSizePanel panel = mapEditorPrefSizePanel.get(getEditor());
+        if (panel == null)
+        {
+            panel = new PrefSizePanel();
+            mapEditorPrefSizePanel.put(getEditor(), panel);
+        }
+        return panel;
     }
 
     // ---------------------------------------------------------------

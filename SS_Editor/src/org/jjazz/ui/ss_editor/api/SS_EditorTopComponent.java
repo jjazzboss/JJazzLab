@@ -112,7 +112,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
 
 
         // Make editor printable by Netbeans PrintManager
-        ssEditor.putClientProperty("print.printable", Boolean.TRUE); // NOI18N
+        // ssEditor.putClientProperty("print.printable", Boolean.TRUE); // NOI18N
 
 
         // Create the toolbar

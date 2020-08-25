@@ -32,6 +32,7 @@ import java.awt.event.ComponentListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -58,9 +59,9 @@ public class BR_Sections extends BarRenderer implements ComponentListener
 {
 
     /**
-     * A special shared JPanel instance used to calculate the preferred size for all BR_Chords.
+     * Special shared JPanel instances per CL_Editor, used to calculate the preferred size for a BarRenderer subclass..
      */
-    private static PrefSizePanel PREF_SIZE_SECTION_PANEL;
+    private static final WeakHashMap<CL_Editor, PrefSizePanel> mapEditorPrefSizePanel = new WeakHashMap<>();
 
     private static Dimension MIN_SIZE = new Dimension(10, 4);
     /**
@@ -87,17 +88,10 @@ public class BR_Sections extends BarRenderer implements ComponentListener
         setLayout(new SeqLayoutManager());
 
 
-        // The shared panel instance
-        if (PREF_SIZE_SECTION_PANEL == null)
-        {
-            PREF_SIZE_SECTION_PANEL = new PrefSizePanel();
-        }
-
-
         // Explicity set the preferred size so that layout's preferredLayoutSize() is never called
         // Use PREF_SIZE_SECTION_PANEL prefSize and listen to its changes
-        setPreferredSize(PREF_SIZE_SECTION_PANEL.getPreferredSize());
-        PREF_SIZE_SECTION_PANEL.addComponentListener(this);
+        setPreferredSize(getPrefSizePanelSharedInstance().getPreferredSize());
+        getPrefSizePanelSharedInstance().addComponentListener(this);
         setMinimumSize(MIN_SIZE);
 
 
@@ -121,13 +115,20 @@ public class BR_Sections extends BarRenderer implements ComponentListener
     }
 
     /**
-     * Overridden to unregister PREF_SIZE_SECTION_PANEL
+     * Overridden to unregister the pref size panel shared instance.
      */
     @Override
     public void cleanup()
     {
         super.cleanup();
-        PREF_SIZE_SECTION_PANEL.removeComponentListener(this);
+        getPrefSizePanelSharedInstance().removeComponentListener(this);
+
+        // Remove only if it's the last bar of the editor
+        if (getEditor().getNbBarBoxes() == 1)
+        {
+            JDialog dlg = getFontMetricsDialog();
+            dlg.remove(getPrefSizePanelSharedInstance());
+        }
     }
 
     @Override
@@ -188,7 +189,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener
             return;
         }
         // Forward to the shared panel instance
-        PREF_SIZE_SECTION_PANEL.setZoomVFactor(factor);
+        getPrefSizePanelSharedInstance().setZoomVFactor(factor);
         // Apply to this BR_Sections object
         zoomVFactor = factor;
         for (ItemRenderer ir : getItemRenderers())
@@ -265,7 +266,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener
     @Override
     public void componentResized(ComponentEvent e)
     {
-        setPreferredSize(PREF_SIZE_SECTION_PANEL.getSize());
+        setPreferredSize(getPrefSizePanelSharedInstance().getSize());
         revalidate();
         repaint();
     }
@@ -321,9 +322,27 @@ public class BR_Sections extends BarRenderer implements ComponentListener
     }
 
     // ---------------------------------------------------------------
+    // Private methods
+    // ---------------------------------------------------------------
+    /**
+     * Get the PrefSizePanel shared instance for our CL_Editor.
+     *
+     * @return
+     */
+    private PrefSizePanel getPrefSizePanelSharedInstance()
+    {
+        PrefSizePanel panel = mapEditorPrefSizePanel.get(getEditor());
+        if (panel == null)
+        {
+            panel = new PrefSizePanel();
+            mapEditorPrefSizePanel.put(getEditor(), panel);
+        }
+        return panel;
+    }
+
+    // ---------------------------------------------------------------
     // Private classes
     // ---------------------------------------------------------------
-
     /**
      * A special shared JPanel instance used to calculate the preferred size for all BR_Sections.
      * <p>

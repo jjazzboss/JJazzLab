@@ -22,9 +22,7 @@
  */
 package org.jjazz.print;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
+import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -37,19 +35,19 @@ import java.awt.print.PageFormat;
 import java.awt.print.Pageable;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JScrollPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.jjazz.song.api.Song;
 import org.jjazz.songeditormanager.SongEditorManager;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorFactory;
-import org.jjazz.ui.cl_editor.api.CL_EditorSettings;
-import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
-import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
+import org.jjazz.ui.utilities.FixedPreferredWidthPanel;
 
 /**
  * A printer for Song editors which fits available width and breaks pages at a BarBox edge.
@@ -60,13 +58,11 @@ public class SongPrinter implements Printable, Pageable
     private static final int HEADER_HEIGHT_PTS = 40;
     private static final int FOOTER_HEIGHT_PTS = 20;
     private final CL_Editor clEditor;
-    private final int refEditorWidth;
     private double xMin;   // Upper corner of imageable
     private double yMin;   // Upper corner of imageable
     private double centralZoneHeight;  // Between header and footer
     private double width;
     private int widthInt;
-    private double dlgScaleFactor = 1;
     private double scaleFactor;
     private double scaledEditorHeight;  // Until bottom of last model row
     private double scaledEditorPageHeight; // One page stopping at the bottom of bar row
@@ -77,10 +73,18 @@ public class SongPrinter implements Printable, Pageable
     private MessageFormat footerMsg;
     private final PageFormat pageFormat;
     private final Font font;
-    private static JDialog renderingDlg;
+    private List<ChangeListener> listeners = new ArrayList<>();
+    private static RenderingDialog renderingDialog;
     private static final Logger LOGGER = Logger.getLogger(SongPrinter.class.getSimpleName());
 
-    public SongPrinter(Song song, PageFormat pageFormat, double scaleWidthFactor)
+    /**
+     *
+     * @param song
+     * @param pageFormat
+     * @param zoomVFactor [0-100]
+     * @param nbColumns
+     */
+    public SongPrinter(Song song, PageFormat pageFormat, int zoomVFactor, int nbColumns)
     {
         this.pageFormat = pageFormat;
 
@@ -89,89 +93,120 @@ public class SongPrinter implements Printable, Pageable
         CL_Editor actualEditor = res.getTcCle().getCL_Editor();
 
 
-        // Build our own editor to have full control
-        CL_EditorFactory clef = CL_EditorFactory.getDefault();
-        clEditor = clef.createEditor(song, new PrintCL_EditorSettings(actualEditor.getSettings()), BarRendererFactory.getDefault());
+        // Build our own editor with own settings to have full control,  e.g. adjust size, nb of columns, change colors or chord symbol font
+        var ourEditorSettings = new PrintCL_EditorSettings(actualEditor.getSettings());
+        clEditor = CL_EditorFactory.getDefault().createEditor(song, ourEditorSettings, actualEditor.getBarRendererFactory());
+        clEditor.setNbColumns(nbColumns);
+        clEditor.setZoomVFactor(zoomVFactor);
 
 
-        // Reuse the settings from the actual editor
-        clEditor.setNbColumns(actualEditor.getNbColumns());
-        clEditor.setZoomVFactor(actualEditor.getZoomVFactor());
-        refEditorWidth = actualEditor.getWidth();
-
-
-        // Put it in a hidden dialog to render it
-        if (renderingDlg == null)
+        // Add the editor to the rendering dialog
+        if (renderingDialog == null)
         {
-            renderingDlg = new JDialog();
-        } else
-        {
-            // Remove existing editor if any
-            for (Component c : renderingDlg.getComponents())
-            {
-                if (c instanceof JScrollPane)
-                {
-                    renderingDlg.remove(c);
-                }
-            }
+            renderingDialog = new RenderingDialog();
         }
-        // Add ours
-        renderingDlg.add(new JScrollPane(clEditor));     // Scrollpane needed!
+        renderingDialog.setEditor(clEditor, (int)pageFormat.getImageableWidth());
 
 
-        // Adjust width and compute dimensions
-        setBarHeightScaleFactor(scaleWidthFactor);
+        // Layout everything
+        renderingDialog.pack();
+        // renderingDialog.setVisible(true);    
+        computeDimensions();
 
 
         font = new Font("Helvetica", Font.PLAIN, 11);
 
 
         setHeaderMessage(new MessageFormat(song.getName()));
-        setFooterMessage(new MessageFormat("{0} / " + getNumberOfPages()));
-
+        setFooterMessage(new MessageFormat("{0} / {1}"));
     }
 
     /**
-     * Change the bar height of the rendering CL_Editor.
+     * Add a change listener.
+     * <p>
+     * Change events are fired everytime the printable content might have changed.
+     *
+     * @param l
+     */
+    public void addChangeListener(ChangeListener l)
+    {
+        if (!listeners.contains(l))
+        {
+            listeners.add(l);
+        }
+    }
+
+    public void removeChangeListener(ChangeListener l)
+    {
+        listeners.remove(l);
+    }
+
+    /**
+     *
+     * @return [0-100]
+     */
+    public int getEditorZoomFactor()
+    {
+        return clEditor.getZoomVFactor();
+    }
+
+    /**
+     * Change the vertical zoom factor of the editor.
      * <p>
      *
-     * @param scaleFactor
+     * @param factor A value between 0 and 100.
      */
-    public void setBarHeightScaleFactor(double scaleFactor)
+    public final void setEditorZoomVFactor(int factor)
     {
-        int newWidth = Math.max(160, (int) Math.floor(refEditorWidth * scaleFactor));
-        Dimension pd = clEditor.getPreferredSize();
-        Dimension newPd = new Dimension(newWidth, pd.height);
-        if (!pd.equals(newPd))
+        if (factor != clEditor.getZoomVFactor())
         {
-            clEditor.setPreferredSize(newPd);
-            renderingDlg.pack();
+            clEditor.setZoomVFactor(factor);
+            renderingDialog.pack();
             computeDimensions();
+            fireChanged();
         }
+    }
+
+    public void setNbColumns(int cols)
+    {
+        if (cols != clEditor.getNbColumns())
+        {
+            clEditor.setNbColumns(cols);
+            renderingDialog.pack();
+            computeDimensions();
+            fireChanged();
+        }
+    }
+
+    public int getNbColumns()
+    {
+        return clEditor.getNbColumns();
     }
 
     /**
      * Set header message.
      * <p>
-     * {0} is replaced by pageIndex.
+     * {0} is replaced by pageIndex. {1} is replaced by nbPages.
      *
-     * @param msg Example new MessageFormat("Page {0}/12"). Can be null.
+     * @param msg Example new MessageFormat("Page {0}/{1}"). Can be null.
      */
     public final void setHeaderMessage(MessageFormat msg)
     {
         headerMsg = msg;
+        fireChanged();
     }
 
     /**
      * Set footer message.
      * <p>
-     * {0} is replaced by pageIndex.
+     * {0} is replaced by pageIndex. {1} is replaced by nbPages.
      *
-     * @param msg Example new MessageFormat("Page {0}/12");
+     * @param msg Example new MessageFormat("Page {0}/{1}"). Can be null.
      */
     public final void setFooterMessage(MessageFormat msg)
     {
         footerMsg = msg;
+        fireChanged();
     }
 
     // =============================================================================
@@ -204,7 +239,7 @@ public class SongPrinter implements Printable, Pageable
         {
             Object[] args =
             {
-                pageIndex + 1
+                pageIndex + 1, nbPages
             };
             FontMetrics fm = g2d.getFontMetrics(font);
 
@@ -303,54 +338,45 @@ public class SongPrinter implements Printable, Pageable
                 + " nbPages=" + nbPages);
     }
 
+    private void fireChanged()
+    {
+        listeners.stream().forEach(l -> l.stateChanged(new ChangeEvent(this)));
+    }
     // =============================================================================
     // Private classes
     // =============================================================================
 
-    private class PrintCL_EditorSettings implements CL_EditorSettings
+    /**
+     * Special hidden dialog (but displayable) used to render the CL_Editor.
+     * <p>
+     * A fixed width panel is used to make sure width is not changed when CL_Editor preferred width has changed, like in the
+     * application editor.
+     */
+    static private class RenderingDialog extends JDialog
     {
 
-        private CL_EditorSettings defaultSettings;
-        private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+        FixedPreferredWidthPanel fixWidthPanel;
+        JScrollPane scrollPane;
+        CL_Editor editor;
 
-        private PrintCL_EditorSettings(CL_EditorSettings defaultSettings)
+        public RenderingDialog()
         {
-            this.defaultSettings = defaultSettings;
+            fixWidthPanel = new FixedPreferredWidthPanel();
+            fixWidthPanel.setLayout(new BorderLayout());
+            add(fixWidthPanel);
         }
 
-        @Override
-        public BarBoxSettings getBarBoxSettings()
+        public void setEditor(CL_Editor editor, int refWidth)
         {
-            return CL_EditorSettings.super.getBarBoxSettings(); //To change body of generated methods, choose Tools | Templates.
+            if (this.editor != null)
+            {
+                editor.cleanup();
+                fixWidthPanel.remove(scrollPane);
+            }
+            fixWidthPanel.setFixedPreferredWidth(refWidth);
+            scrollPane = new JScrollPane(editor, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            fixWidthPanel.add(scrollPane);
         }
 
-        @Override
-        public Color getBackgroundColor()
-        {
-            return defaultSettings.getBackgroundColor();
-        }
-
-        @Override
-        public void setBackgroundColor(Color color)
-        {
-            Color old 
-            defaultSettings.setBackgroundColor(color);
-            pcs.firePropertyChange(CL_EditorSettings.PROP_BACKGROUND_COLOR, color, nbPages);
-        }
-
-        @Override
-        public void addPropertyChangeListener(PropertyChangeListener listener)
-        {
-            // Do nothing
-            pcs.addPropertyChangeListener(listener);
-        }
-
-        @Override
-        public void removePropertyChangeListener(PropertyChangeListener listener)
-        {
-            pcs.removePropertyChangeListener(listener);
-        }
     }
-
-
 }

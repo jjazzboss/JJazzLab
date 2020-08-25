@@ -84,7 +84,6 @@ import org.openide.awt.UndoRedo;
 import org.openide.util.NbBundle.Messages;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
 
 /**
  * A chordleadsheet editor using BarBox objects to render bars.
@@ -277,9 +276,16 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         return songModel;
     }
 
+    @Override
     public CL_EditorSettings getSettings()
     {
         return settings;
+    }
+
+    @Override
+    public BarRendererFactory getBarRendererFactory()
+    {
+        return barRendererFactory;
     }
 
     @Override

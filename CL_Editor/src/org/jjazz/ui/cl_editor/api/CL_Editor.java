@@ -32,6 +32,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.song.api.Song;
+import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
@@ -80,8 +81,17 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
 
     /**
      * The settings of the editor.
+     *
+     * @return
      */
     abstract public CL_EditorSettings getSettings();
+
+    /**
+     * The factory used by this editor via BarBoxes.
+     *
+     * @return
+     */
+    abstract public BarRendererFactory getBarRendererFactory();
 
     /**
      * Set how chords positions are quantized for display.

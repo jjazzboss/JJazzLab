@@ -25,7 +25,6 @@ package org.jjazz.print;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;

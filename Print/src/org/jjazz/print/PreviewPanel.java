@@ -63,6 +63,8 @@ public class PreviewPanel extends JPanel
 
     /**
      * Overridden to return an arbitrary dimension BUT with the RIGHT width/height ratio.
+     * <p>
+     * Our container layoutmanager will size us to use all space while preserving the aspect ratio.
      *
      * @return
      */
