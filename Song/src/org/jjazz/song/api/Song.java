@@ -95,10 +95,11 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     /**
      * Create a song object.
      * <p>
-     * The songStructure will be automatically created from the chordleadsheet.
+     * The songStructure will be automatically created from the chordleadsheet. Use SongFactory to create song instances.
      *
      * @param name A non-empty string.
      * @param cls
+     * @throws org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException
      */
     protected Song(String name, ChordLeadSheet cls) throws UnsupportedEditException
     {
@@ -108,10 +109,11 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     /**
      * Constructor for the SerializationProxy only.
      * <p>
+     * Use SongFactory to create song instances.
      *
      * @param name
      * @param cls
-     * @param sgs Must be kep consistent with cls changes !
+     * @param sgs Must be kept consistent with cls changes
      */
     protected Song(String name, ChordLeadSheet cls, SongStructure sgs)
     {
@@ -592,7 +594,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     // ============================================================================================= 
     // ClsChangeListener implementation
     // =============================================================================================      
-       
+
     @Override
     public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
     {

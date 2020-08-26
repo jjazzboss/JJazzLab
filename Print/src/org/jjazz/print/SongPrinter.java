@@ -79,18 +79,15 @@ public class SongPrinter implements Printable, Pageable
 
     /**
      *
+     * @param actualEditor The reference actual editor
      * @param song
      * @param pageFormat
      * @param zoomVFactor [0-100]
      * @param nbColumns
      */
-    public SongPrinter(Song song, PageFormat pageFormat, int zoomVFactor, int nbColumns)
+    public SongPrinter(CL_Editor actualEditor, Song song, PageFormat pageFormat, int zoomVFactor, int nbColumns)
     {
         this.pageFormat = pageFormat;
-
-        // The actual application editor
-        var res = SongEditorManager.getInstance().getEditors(song);
-        CL_Editor actualEditor = res.getTcCle().getCL_Editor();
 
 
         // Build our own editor with own settings to have full control,  e.g. adjust size, nb of columns, change colors or chord symbol font
@@ -105,7 +102,7 @@ public class SongPrinter implements Printable, Pageable
         {
             renderingDialog = new RenderingDialog();
         }
-        renderingDialog.setEditor(clEditor, (int)pageFormat.getImageableWidth());
+        renderingDialog.setEditor(clEditor, (int) pageFormat.getImageableWidth());
 
 
         // Layout everything
@@ -119,6 +116,11 @@ public class SongPrinter implements Printable, Pageable
 
         setHeaderMessage(new MessageFormat(song.getName()));
         setFooterMessage(new MessageFormat("{0} / {1}"));
+    }
+
+    public void cleanup()
+    {
+        renderingDialog.cleanup();
     }
 
     /**
@@ -366,13 +368,19 @@ public class SongPrinter implements Printable, Pageable
             add(fixWidthPanel);
         }
 
+        public void cleanup()
+        {
+            if (editor != null)
+            {
+                fixWidthPanel.remove(scrollPane);
+                editor.cleanup();
+            }
+        }
+
         public void setEditor(CL_Editor editor, int refWidth)
         {
-            if (this.editor != null)
-            {
-                editor.cleanup();
-                fixWidthPanel.remove(scrollPane);
-            }
+            cleanup();
+            this.editor = editor;
             fixWidthPanel.setFixedPreferredWidth(refWidth);
             scrollPane = new JScrollPane(editor, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             fixWidthPanel.add(scrollPane);

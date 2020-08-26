@@ -765,7 +765,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public void cleanup()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        // Nothing
     }
 
     @Override

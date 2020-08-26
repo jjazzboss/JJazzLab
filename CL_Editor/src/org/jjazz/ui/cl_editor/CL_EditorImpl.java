@@ -236,8 +236,11 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
         // Connect our undoManager to our model
         undoManager = JJazzUndoManagerFinder.getDefault().get(clsModel);
-        assert undoManager != null : "model=" + clsModel;
-        clsModel.addUndoableEditListener(undoManager);
+
+        if (undoManager != null)
+        {
+            clsModel.addUndoableEditListener(undoManager);
+        }
 
         // Fill our lookup
         generalLookupContent.add(new SaveAsCapableSong(songModel)); // always enabled
@@ -303,7 +306,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
         // Unregister the objects we were listening to
         clsModel.removeClsChangeListener(this);
-        clsModel.removeUndoableEditListener(undoManager);
+        if (undoManager != null)
+        {
+            clsModel.removeUndoableEditListener(undoManager);
+        }
         generalLookupContent.remove(clsModel);
         songModel.removePropertyChangeListener(this);
         SaveAsCapableSong saveAsCapableSong = lookup.lookup(SaveAsCapableSong.class);

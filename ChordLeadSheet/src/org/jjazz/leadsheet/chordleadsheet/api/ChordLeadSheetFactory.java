@@ -26,7 +26,7 @@ import org.jjazz.harmony.TimeSignature;
 import org.openide.util.Lookup;
 import org.jjazz.leadsheet.chordleadsheet.ChordLeadSheetFactoryImpl;
 
-public abstract class ChordLeadSheetFactory
+public interface ChordLeadSheetFactory
 {
 
     public static ChordLeadSheetFactory getDefault()
@@ -47,7 +47,7 @@ public abstract class ChordLeadSheetFactory
      * @param size The size in bars (must be &gt; 0)
      * @return
      */
-    abstract public ChordLeadSheet createEmptyLeadSheet(String sectionName, TimeSignature ts, int size);
+    ChordLeadSheet createEmptyLeadSheet(String sectionName, TimeSignature ts, int size);
 
     /**
      * Create a 12 bars (or more) leadsheet which contains sample sections and chords.
@@ -56,7 +56,7 @@ public abstract class ChordLeadSheetFactory
      * @param size The size in bars must be &gt;= 12.
      * @return
      */
-    abstract public ChordLeadSheet createSampleLeadSheet12bars(String sectionName, int size);
+    ChordLeadSheet createSampleLeadSheet12bars(String sectionName, int size);
 
     /**
      * Create a leadsheet with a randomly generated content (sections and chords).
@@ -66,7 +66,7 @@ public abstract class ChordLeadSheetFactory
      * @param size The size in bars must be &gt; 0.
      * @return
      */
-    abstract public ChordLeadSheet createRamdomLeadSheet(String sectionName, TimeSignature ts, int size);
+    ChordLeadSheet createRamdomLeadSheet(String sectionName, TimeSignature ts, int size);
 
     /**
      * Get a deep copy of specified chordleadsheet.
@@ -74,6 +74,19 @@ public abstract class ChordLeadSheetFactory
      * @param cls
      * @return
      */
-    abstract public ChordLeadSheet getCopy(ChordLeadSheet cls);
+    ChordLeadSheet getCopy(ChordLeadSheet cls);
+
+
+    /**
+     * Create a cls copy but with no more than 2 chord symbols per bar.
+     * <p>
+     * If more than 1 chord symbol in a bar, keep the first chord symbol and the last one. If interval between them is less than
+     * half-bar, reposition them on first beat and half-bar.
+     *
+     * @param cls
+     * @return
+     */
+    ChordLeadSheet getSimplified(ChordLeadSheet cls);
+
 
 }

@@ -38,7 +38,8 @@ import org.jjazz.song.api.SongFactory;
 import org.jjazz.songeditormanager.SongEditorManager;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.utilities.SingleComponentAspectRatioKeeperLayout;
-import org.openide.*;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.util.NbPreferences;
 import org.openide.windows.WindowManager;
 
@@ -58,6 +59,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
     private int previewedPageIndex;
     private Song workSong;
     private Song refSong;
+    private CL_Editor actualEditor;
     private static Preferences prefs = NbPreferences.forModule(PrintDialog.class);
 
     public static PrintDialog getInstance()
@@ -112,26 +114,38 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             pageFormat = checkMargins(job.defaultPage(), 15);
         }
 
-        if (songPrinter != null)
-        {
-            songPrinter.removeChangeListener(this);
-        }
 
-        // Create our pageable
+        // Create/update our SongPrinter pageable
         var res = SongEditorManager.getInstance().getEditors(refSong);
-        CL_Editor actualEditor = res.getTcCle().getCL_Editor();
+        actualEditor = res.getTcCle().getCL_Editor();
         int zoomVFactor = actualEditor.getZoomVFactor();
-        songPrinter = new SongPrinter(workSong, pageFormat, zoomVFactor, actualEditor.getNbColumns());
-        setZoomVFactor(zoomVFactor);        // To update UI
-        previewedPageIndex = 0;
-        songPrinter.addChangeListener(this);
+        int nbColumns = actualEditor.getNbColumns();
+        updateSongPrinter(zoomVFactor, nbColumns);
 
+
+        // Update UI
+        spn_nbColumns.setValue(nbColumns);
+        spn_zoomVFactor.setValue(zoomVFactor - 50);
+
+
+        previewedPageIndex = 0;
         pnl_previewComponent.setPageable(songPrinter, previewedPageIndex);
+
 
         printModeChanged();
         previewContextChanged();
 
         pack();
+    }
+
+    private void updateSongPrinter(int zoomVFactor, int nbColumns)
+    {
+        if (songPrinter != null)
+        {
+            songPrinter.removeChangeListener(this);
+        }
+        songPrinter = new SongPrinter(actualEditor, workSong, pageFormat, zoomVFactor, nbColumns);
+        songPrinter.addChangeListener(this);
     }
 
     private Song buildWorkSong()
@@ -214,7 +228,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                btn_plusActionPerformed(e);
+                spn_zoomVFactor.setValue(spn_zoomVFactor.getModel().getNextValue());
             }
 
         });
@@ -226,7 +240,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                btn_minusActionPerformed(e);
+                spn_zoomVFactor.setValue(spn_zoomVFactor.getModel().getPreviousValue());
             }
 
         });
@@ -263,9 +277,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
     private void songOrPageFormatChanged()
     {
-        songPrinter.removeChangeListener(this);
-        songPrinter = new SongPrinter(workSong, pageFormat, songPrinter.getEditorZoomFactor(), songPrinter.getNbColumns());
-        songPrinter.addChangeListener(this);
+        updateSongPrinter(songPrinter.getEditorZoomFactor(), songPrinter.getNbColumns());
         previewedPageIndex = Math.min(previewedPageIndex, songPrinter.getNumberOfPages() - 1);
         pnl_previewComponent.setPageable(songPrinter, previewedPageIndex);
         previewContextChanged();
@@ -310,12 +322,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
     private void setZoomVFactor(int value)
     {
-        songPrinter.setEditorZoomVFactor(value);
-
-        btn_minus.setEnabled(value > 0);
-        btn_minus.setToolTipText("Decrease 5 (value=" + value + ")");
-        btn_plus.setEnabled(value < 100);
-        btn_plus.setToolTipText("Increase 5 (value=" + value + ")");
+        songPrinter.setEditorZoomVFactor(value + 50);
 
         // This might have changed total nb of pages
         if (previewedPageIndex >= songPrinter.getNumberOfPages())
@@ -431,8 +438,9 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
         cb_developLeadSheet = new javax.swing.JCheckBox();
         jLabel2 = new javax.swing.JLabel();
         cb_simplifyLeadSheet = new javax.swing.JCheckBox();
-        btn_minus = new javax.swing.JButton();
-        btn_plus = new javax.swing.JButton();
+        spn_nbColumns = new javax.swing.JSpinner();
+        spn_zoomVFactor = new javax.swing.JSpinner();
+        jLabel3 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
         jLabel1 = new javax.swing.JLabel();
         pnl_preview = new javax.swing.JPanel();
@@ -446,6 +454,13 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
         btn_pageSetup = new javax.swing.JButton();
 
         setTitle(org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.title")); // NOI18N
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosed(java.awt.event.WindowEvent evt)
+            {
+                formWindowClosed(evt);
+            }
+        });
 
         rbtnGroup_printScope.add(rbtn_printBoth);
         rbtn_printBoth.setSelected(true);
@@ -502,25 +517,25 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             }
         });
 
-        btn_minus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/print/resources/Minus12.png"))); // NOI18N
-        btn_minus.setMargin(new java.awt.Insets(2, 2, 2, 2));
-        btn_minus.addActionListener(new java.awt.event.ActionListener()
+        spn_nbColumns.setModel(new javax.swing.SpinnerNumberModel(4, 1, 16, 1));
+        spn_nbColumns.addChangeListener(new javax.swing.event.ChangeListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            public void stateChanged(javax.swing.event.ChangeEvent evt)
             {
-                btn_minusActionPerformed(evt);
+                spn_nbColumnsStateChanged(evt);
             }
         });
 
-        btn_plus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/print/resources/Plus12.png"))); // NOI18N
-        btn_plus.setMargin(new java.awt.Insets(2, 2, 2, 2));
-        btn_plus.addActionListener(new java.awt.event.ActionListener()
+        spn_zoomVFactor.setModel(new javax.swing.SpinnerNumberModel(0, -50, 50, 5));
+        spn_zoomVFactor.addChangeListener(new javax.swing.event.ChangeListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            public void stateChanged(javax.swing.event.ChangeEvent evt)
             {
-                btn_plusActionPerformed(evt);
+                spn_zoomVFactorStateChanged(evt);
             }
         });
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.jLabel3.text")); // NOI18N
 
         javax.swing.GroupLayout pnl_leadsheetLayout = new javax.swing.GroupLayout(pnl_leadsheet);
         pnl_leadsheet.setLayout(pnl_leadsheetLayout);
@@ -529,28 +544,36 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             .addGroup(pnl_leadsheetLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnl_leadsheetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(cb_simplifyLeadSheet)
                     .addComponent(cb_developLeadSheet)
                     .addGroup(pnl_leadsheetLayout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btn_minus)
+                        .addComponent(spn_zoomVFactor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_plus)))
+                        .addComponent(jLabel2))
+                    .addGroup(pnl_leadsheetLayout.createSequentialGroup()
+                        .addComponent(spn_nbColumns, javax.swing.GroupLayout.DEFAULT_SIZE, 47, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel3))
+                    .addComponent(cb_simplifyLeadSheet))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
+
+        pnl_leadsheetLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {spn_nbColumns, spn_zoomVFactor});
+
         pnl_leadsheetLayout.setVerticalGroup(
             pnl_leadsheetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_leadsheetLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(cb_developLeadSheet)
-                .addGap(3, 3, 3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cb_simplifyLeadSheet)
                 .addGap(18, 18, 18)
-                .addGroup(pnl_leadsheetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(btn_minus, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btn_plus, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING))
+                .addGroup(pnl_leadsheetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(spn_nbColumns, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(pnl_leadsheetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(spn_zoomVFactor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -570,7 +593,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
         pnl_settingsLayout.setVerticalGroup(
             pnl_settingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_settingsLayout.createSequentialGroup()
-                .addGap(18, 18, 18)
+                .addGap(48, 48, 48)
                 .addComponent(rbtn_printBoth)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(rbtn_printChordLeadsheetOnly)
@@ -749,29 +772,36 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
         songOrPageFormatChanged();
     }//GEN-LAST:event_cb_simplifyLeadSheetActionPerformed
 
-    private void btn_minusActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_minusActionPerformed
-    {//GEN-HEADEREND:event_btn_minusActionPerformed
-        setZoomVFactor(Math.max(0, songPrinter.getEditorZoomFactor() - 5));
-    }//GEN-LAST:event_btn_minusActionPerformed
+    private void spn_nbColumnsStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_nbColumnsStateChanged
+    {//GEN-HEADEREND:event_spn_nbColumnsStateChanged
+        songPrinter.setNbColumns((int) spn_nbColumns.getValue());
+    }//GEN-LAST:event_spn_nbColumnsStateChanged
 
-    private void btn_plusActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_plusActionPerformed
-    {//GEN-HEADEREND:event_btn_plusActionPerformed
-        setZoomVFactor(Math.min(100, songPrinter.getEditorZoomFactor() + 5));
-    }//GEN-LAST:event_btn_plusActionPerformed
+    private void spn_zoomVFactorStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_zoomVFactorStateChanged
+    {//GEN-HEADEREND:event_spn_zoomVFactorStateChanged
+        setZoomVFactor((int) spn_zoomVFactor.getValue());
+    }//GEN-LAST:event_spn_zoomVFactorStateChanged
+
+    private void formWindowClosed(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosed
+    {//GEN-HEADEREND:event_formWindowClosed
+        if (songPrinter != null)
+        {
+            songPrinter.cleanup();
+        }
+    }//GEN-LAST:event_formWindowClosed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_cancel;
-    private javax.swing.JButton btn_minus;
     private javax.swing.JButton btn_nextPage;
     private javax.swing.JButton btn_pageSetup;
-    private javax.swing.JButton btn_plus;
     private javax.swing.JButton btn_previousPage;
     private javax.swing.JButton btn_print;
     private javax.swing.JCheckBox cb_developLeadSheet;
     private javax.swing.JCheckBox cb_simplifyLeadSheet;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JLabel lbl_pageNb;
@@ -784,5 +814,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
     private javax.swing.JRadioButton rbtn_printBoth;
     private javax.swing.JRadioButton rbtn_printChordLeadsheetOnly;
     private javax.swing.JRadioButton rbtn_printSongStructureOnly;
+    private javax.swing.JSpinner spn_nbColumns;
+    private javax.swing.JSpinner spn_zoomVFactor;
     // End of variables declaration//GEN-END:variables
 }

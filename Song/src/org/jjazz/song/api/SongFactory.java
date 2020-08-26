@@ -36,6 +36,7 @@ import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -426,15 +427,37 @@ public class SongFactory implements PropertyChangeListener
     /**
      * Get a new song with a simplified lead sheet.
      * <p>
-     * Returned song will have no more than 2 chord symbols per bar, by default the chord symbols the closest from the first beat
-     * and half-bar beat.
      *
      * @param song
      * @return
+     * @see ChordLeadSheetFactory#getSimplified(ChordLeadSheet)
      */
     public Song getSimplifiedLeadSheet(Song song)
     {
-        return song;
+        // Create a full copy to preserve links between SongParts and Sections
+        Song simplifiedSong = getCopyUnlinked(song);
+        ChordLeadSheet simplifiedCls = simplifiedSong.getChordLeadSheet();
+        unregisterSong(simplifiedSong);
+
+
+        // Get a working simplified copy and use it to update the new leadsheet
+        ChordLeadSheet tmpCls = ChordLeadSheetFactory.getDefault().getSimplified(song.getChordLeadSheet());
+
+
+        // Remove all chord symbols and copy the new ones
+        for (var item : simplifiedCls.getItems(CLI_ChordSymbol.class))
+        {
+            simplifiedCls.removeItem(item);
+        }
+        for (var item : tmpCls.getItems(CLI_ChordSymbol.class))
+        {
+            simplifiedCls.addItem(item);
+        }
+
+
+        tmpCls.cleanup();
+
+        return simplifiedSong;
     }
 
     // =================================================================================
