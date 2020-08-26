@@ -88,5 +88,4 @@ public interface ChordLeadSheetFactory
      */
     ChordLeadSheet getSimplified(ChordLeadSheet cls);
 
-
 }

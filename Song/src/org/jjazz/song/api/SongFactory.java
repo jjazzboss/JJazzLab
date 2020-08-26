@@ -37,7 +37,9 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.jjazz.songstructure.api.SongStructure;
@@ -308,6 +310,10 @@ public class SongFactory implements PropertyChangeListener
             })
     public Song getCopy(Song song)
     {
+        if (song == null)
+        {
+            throw new IllegalArgumentException("song");
+        }
         ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
         ChordLeadSheet newCls = clsf.getCopy(song.getChordLeadSheet());
 
@@ -377,6 +383,10 @@ public class SongFactory implements PropertyChangeListener
             })
     public Song getCopyUnlinked(Song song)
     {
+        if (song == null)
+        {
+            throw new IllegalArgumentException("song");
+        }
         ChordLeadSheet cls = ChordLeadSheetFactory.getDefault().getCopy(song.getChordLeadSheet());
         SongStructure ss = null;
         try
@@ -416,17 +426,127 @@ public class SongFactory implements PropertyChangeListener
 
     /**
      * Get a new song with the lead sheet developped/unrolled according to the song structure.
+     * <p>
+     * Return song where each SongPart corresponds to one Section in a linear order. Created song is registered.
      *
+     * @param song
      * @return
      */
     public Song getDeveloppedLeadSheet(Song song)
     {
-        return song;
+        if (song == null)
+        {
+            throw new IllegalArgumentException("song");
+        }
+
+
+        var cls = song.getChordLeadSheet();
+        var ss = song.getSongStructure();
+        if (ss.getSongParts().isEmpty())
+        {
+            // Special case
+            return getCopy(song);
+        }
+
+
+        // Create an empty song with the right size
+        var resSong = createEmptySong(song.getName(), ss.getSizeInBars());
+        var resCls = resSong.getChordLeadSheet();
+        for (var cliCs : resCls.getItems(CLI_ChordSymbol.class))
+        {
+            resCls.removeItem(cliCs);
+        }
+        var resSs = resSong.getSongStructure();
+        try
+        {
+            resSs.removeSongParts(resSs.getSongParts());
+        } catch (UnsupportedEditException ex)
+        {
+            // Should never happen as we remove everything
+            Exceptions.printStackTrace(ex);
+        }
+
+
+        // The created song parts
+        List<SongPart> newSpts = new ArrayList<>();
+
+
+        // Fill it from the original song data
+        for (SongPart spt : ss.getSongParts())
+        {
+            var parentCliSection = spt.getParentSection();
+            int barIndex = spt.getStartBarIndex();
+
+
+            CLI_Section resCliSection;
+
+
+            // Update the initial section or create the corresponding parent section
+            if (barIndex == 0)
+            {
+                resCliSection = resCls.getSection(0);
+                resCls.setSectionName(resCliSection, parentCliSection.getData().getName());
+                try
+                {
+                    resCls.setSectionTimeSignature(resCliSection, parentCliSection.getData().getTimeSignature());
+                } catch (UnsupportedEditException ex)
+                {
+                    // Should never happen since we copy a valid song
+                    Exceptions.printStackTrace(ex);
+                }
+            } else
+            {
+                // Create it
+                String name = CLI_Section.Util.createSectionName(parentCliSection.getData().getName(), resCls);
+                resCliSection = CLI_Factory.getDefault().createSection(resCls, name, parentCliSection.getData().getTimeSignature(), barIndex);
+                try
+                {
+                    resCls.addSection(resCliSection);
+                } catch (UnsupportedEditException ex)
+                {
+                    // Should never happen since we copy a valid song
+                    Exceptions.printStackTrace(ex);
+                }
+            }
+
+
+            // Fill the corresponding section with chord symbols copies
+            for (CLI_ChordSymbol cliCs : cls.getItems(parentCliSection, CLI_ChordSymbol.class))
+            {
+                var pos = cliCs.getPosition();
+                int resBar = barIndex + pos.getBar() - parentCliSection.getPosition().getBar();
+                var cliCsCopy = cliCs.getCopy(resCls, new Position(resBar, pos.getBeat()));
+                resCls.addItem(cliCsCopy);
+            }
+
+
+            // Create the corresponding SongPart
+            SongPart resSpt = spt.clone(null, barIndex, spt.getNbBars(), resCliSection);
+            newSpts.add(resSpt);
+
+        }
+
+
+        // Add all SongParts in one shot to avoid problem with AdaptedRhythms
+        try
+        {
+            resSs.addSongParts(newSpts);
+        } catch (UnsupportedEditException ex)
+        {
+            // Should never happen since copy of existing song
+            Exceptions.printStackTrace(ex);
+        }
+
+
+        registerSong(resSong);
+        return resSong;
     }
 
     /**
      * Get a new song with a simplified lead sheet.
      * <p>
+     * <p>
+     * Created song is registered.
      *
      * @param song
      * @return
@@ -434,30 +554,38 @@ public class SongFactory implements PropertyChangeListener
      */
     public Song getSimplifiedLeadSheet(Song song)
     {
+        if (song == null)
+        {
+            throw new IllegalArgumentException("song");
+        }
+
         // Create a full copy to preserve links between SongParts and Sections
-        Song simplifiedSong = getCopyUnlinked(song);
-        ChordLeadSheet simplifiedCls = simplifiedSong.getChordLeadSheet();
-        unregisterSong(simplifiedSong);
+        Song resSong = getCopy(song);
+        ChordLeadSheet resCls = resSong.getChordLeadSheet();
 
 
         // Get a working simplified copy and use it to update the new leadsheet
-        ChordLeadSheet tmpCls = ChordLeadSheetFactory.getDefault().getSimplified(song.getChordLeadSheet());
+        ChordLeadSheet simplifiedCls = ChordLeadSheetFactory.getDefault().getSimplified(song.getChordLeadSheet());
 
 
-        // Remove all chord symbols and copy the new ones
+        // Remove all chord symbols 
+        for (var item : resCls.getItems(CLI_ChordSymbol.class))
+        {
+            resCls.removeItem(item);
+        }
+
+        // Copy chord symboles from the simplified cls
         for (var item : simplifiedCls.getItems(CLI_ChordSymbol.class))
         {
-            simplifiedCls.removeItem(item);
-        }
-        for (var item : tmpCls.getItems(CLI_ChordSymbol.class))
-        {
-            simplifiedCls.addItem(item);
+            resCls.addItem(item);
         }
 
 
-        tmpCls.cleanup();
+        simplifiedCls.cleanup();
 
-        return simplifiedSong;
+        registerSong(resSong);
+
+        return resSong;
     }
 
     // =================================================================================

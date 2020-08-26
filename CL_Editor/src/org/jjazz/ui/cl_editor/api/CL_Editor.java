@@ -28,6 +28,7 @@ import java.awt.Rectangle;
 import java.util.List;
 import javax.swing.JPanel;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
@@ -48,19 +49,6 @@ import org.openide.util.Lookup;
  */
 public abstract class CL_Editor extends JPanel implements Lookup.Provider
 {
-
-    /**
-     * Section's display quantization.
-     * <p>
-     * Property change: oldValue=section, newValue=quantization
-     */
-    public static final String PROP_SECTION_DISPLAY_QUANTIZATION = "SectionDisplayQuantization";
-    /**
-     * Section's display quantization.
-     * <p>
-     * Property change: oldValue=section, newValue=true/false
-     */
-    public static final String PROP_SECTION_START_ON_NEW_LINE = "SectionStartOnNewLine";
 
     abstract public void setEditorMouseListener(CL_EditorMouseListener brm);
 
@@ -261,5 +249,27 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      * @return A Rectangle in the screen coordinates of this editor.
      */
     abstract public Rectangle getBarRectangle(int barBoxIndex);
+
+    /**
+     * Get the Section-quantization-value property name for the specified section.
+     *
+     * @param section
+     * @return
+     */
+    static public String getSectionQuantizeValuePropertyName(Section section)
+    {
+        return "SectionDisplayQuantization" + "-" + section.getName() + "*" + section.getTimeSignature();
+    }
+
+    /**
+     * Get the Section-starts-on-new-line property name for the specified section.
+     *
+     * @param section
+     * @return
+     */
+    static public String getSectionStartOnNewLinePropertyName(Section section)
+    {
+        return "SectionStartOnNewLine" + "-" + section.getName();
+    }
 
 }

@@ -22,13 +22,9 @@
  */
 package org.jjazz.print;
 
-import java.awt.BorderLayout;
-import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
@@ -39,25 +35,18 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.swing.JDialog;
-import javax.swing.JScrollPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.song.api.Song;
-import org.jjazz.songeditormanager.SongEditorManager;
-import org.jjazz.ui.cl_editor.api.CL_Editor;
-import org.jjazz.ui.cl_editor.api.CL_EditorFactory;
-import org.jjazz.ui.utilities.FixedPreferredWidthPanel;
+import org.jjazz.ui.ss_editor.api.SS_Editor;
 
 /**
- * A printer for Song editors which fits available width and breaks pages at a BarBox edge.
+ * A printer for a SongStructure editor.
  */
-public class SongPrinter implements Printable, Pageable
+public class SongStructurePrinter implements Printable, Pageable
 {
 
-    private static final int HEADER_HEIGHT_PTS = 40;
-    private static final int FOOTER_HEIGHT_PTS = 20;
-    private final CL_Editor clEditor;
+    private final SS_Editor ssEditor;
     private double xMin;   // Upper corner of imageable
     private double yMin;   // Upper corner of imageable
     private double centralZoneHeight;  // Between header and footer
@@ -66,16 +55,13 @@ public class SongPrinter implements Printable, Pageable
     private double scaleFactor;
     private double scaledEditorHeight;  // Until bottom of last model row
     private double scaledEditorPageHeight; // One page stopping at the bottom of bar row
-    private double scaledEditorLastPageHeight;
-    private double scaledEditorBarHeight;
+    private double scaledEditorLastPageHeight;   
     private int nbPages;
     private MessageFormat headerMsg;
     private MessageFormat footerMsg;
     private final PageFormat pageFormat;
-    private final Font font;
-    private List<ChangeListener> listeners = new ArrayList<>();
-    private static RenderingDialog renderingDialog;
-    private static final Logger LOGGER = Logger.getLogger(SongPrinter.class.getSimpleName());
+    private final List<ChangeListener> listeners = new ArrayList<>();
+    private static final Logger LOGGER = Logger.getLogger(SongStructurePrinter.class.getSimpleName());
 
     /**
      *
@@ -85,34 +71,13 @@ public class SongPrinter implements Printable, Pageable
      * @param zoomVFactor [0-100]
      * @param nbColumns
      */
-    public SongPrinter(CL_Editor actualEditor, Song song, PageFormat pageFormat, int zoomVFactor, int nbColumns)
+    public SongStructurePrinter(SS_Editor actualEditor, Song song, PageFormat pageFormat)
     {
         this.pageFormat = pageFormat;
 
+        ssEditor = actualEditor;
 
-        // Build our own editor with own settings to have full control,  e.g. adjust size, nb of columns, change colors or chord symbol font
-        var ourEditorSettings = new PrintCL_EditorSettings(actualEditor.getSettings());
-        clEditor = CL_EditorFactory.getDefault().createEditor(song, ourEditorSettings, actualEditor.getBarRendererFactory());
-        clEditor.setNbColumns(nbColumns);
-        clEditor.setZoomVFactor(zoomVFactor);
-
-
-        // Add the editor to the rendering dialog
-        if (renderingDialog == null)
-        {
-            renderingDialog = new RenderingDialog();
-        }
-        renderingDialog.setEditor(clEditor, (int) pageFormat.getImageableWidth());
-
-
-        // Layout everything
-        renderingDialog.pack();
-        // renderingDialog.setVisible(true);    
         computeDimensions();
-
-
-        font = new Font("Helvetica", Font.PLAIN, 11);
-
 
         setHeaderMessage(new MessageFormat(song.getName()));
         setFooterMessage(new MessageFormat("{0} / {1}"));
@@ -120,7 +85,7 @@ public class SongPrinter implements Printable, Pageable
 
     public void cleanup()
     {
-        renderingDialog.cleanup();
+        // Nothing
     }
 
     /**
@@ -149,40 +114,7 @@ public class SongPrinter implements Printable, Pageable
      */
     public int getEditorZoomFactor()
     {
-        return clEditor.getZoomVFactor();
-    }
-
-    /**
-     * Change the vertical zoom factor of the editor.
-     * <p>
-     *
-     * @param factor A value between 0 and 100.
-     */
-    public final void setEditorZoomVFactor(int factor)
-    {
-        if (factor != clEditor.getZoomVFactor())
-        {
-            clEditor.setZoomVFactor(factor);
-            renderingDialog.pack();
-            computeDimensions();
-            fireChanged();
-        }
-    }
-
-    public void setNbColumns(int cols)
-    {
-        if (cols != clEditor.getNbColumns())
-        {
-            clEditor.setNbColumns(cols);
-            renderingDialog.pack();
-            computeDimensions();
-            fireChanged();
-        }
-    }
-
-    public int getNbColumns()
-    {
-        return clEditor.getNbColumns();
+        return ssEditor.getZoomVFactor();
     }
 
     /**
@@ -243,15 +175,14 @@ public class SongPrinter implements Printable, Pageable
             {
                 pageIndex + 1, nbPages
             };
-            FontMetrics fm = g2d.getFontMetrics(font);
-
+            FontMetrics fm = g2d.getFontMetrics(LeadSheetPrinter.FONT);
+            g2d.setFont(LeadSheetPrinter.FONT);
 
             if (headerMsg != null)
             {
                 String s = headerMsg.format(args);
                 Rectangle2D r = fm.getStringBounds(s, g2d);
-                g2d.setFont(font);
-                g2d.drawString(s, (float) (width / 2 - r.getWidth() / 2), (float) (HEADER_HEIGHT_PTS / 2));
+                g2d.drawString(s, (float) (width / 2 - r.getWidth() / 2), (float) (LeadSheetPrinter.HEADER_HEIGHT_PTS / 2));
             }
 
 
@@ -259,19 +190,18 @@ public class SongPrinter implements Printable, Pageable
             {
                 String s = footerMsg.format(args);
                 Rectangle2D r = fm.getStringBounds(s, g2d);
-                g2d.setFont(font);
-                g2d.drawString(s, (float) (width - r.getWidth() - 1), (float) (HEADER_HEIGHT_PTS + centralZoneHeight + FOOTER_HEIGHT_PTS / 2));
+                g2d.drawString(s, (float) (width - r.getWidth() - 1), (float) (LeadSheetPrinter.HEADER_HEIGHT_PTS + centralZoneHeight + LeadSheetPrinter.FOOTER_HEIGHT_PTS / 2));
             }
         }
 
 
         // Main component
         int clipHeight = pageIndex < nbPages - 1 ? (int) Math.ceil(scaledEditorPageHeight) : (int) Math.ceil(scaledEditorLastPageHeight);
-        g2d.setClip(0, HEADER_HEIGHT_PTS, widthInt, clipHeight);   // Show up to bottom of last possible bar row
-        g2d.translate(0, HEADER_HEIGHT_PTS);                         // Top left of component zone
+        g2d.setClip(0, LeadSheetPrinter.HEADER_HEIGHT_PTS, widthInt, clipHeight);   // Show up to bottom of last possible bar row
+        g2d.translate(0, LeadSheetPrinter.HEADER_HEIGHT_PTS);                         // Top left of component zone
         g2d.translate(0, -yOffset);                                 // Offset to show only relevant
         g2d.scale(scaleFactor, scaleFactor);
-        clEditor.printAll(g2d);
+        ssEditor.printAll(g2d);
 
 
         g2d.dispose();
@@ -310,22 +240,17 @@ public class SongPrinter implements Printable, Pageable
         // Page format dimensions
         xMin = pageFormat.getImageableX();
         yMin = pageFormat.getImageableY();
-        centralZoneHeight = pageFormat.getImageableHeight() - HEADER_HEIGHT_PTS - FOOTER_HEIGHT_PTS;
+        centralZoneHeight = pageFormat.getImageableHeight() - LeadSheetPrinter.HEADER_HEIGHT_PTS - LeadSheetPrinter.FOOTER_HEIGHT_PTS;
         width = pageFormat.getImageableWidth();
         widthInt = (int) Math.ceil(width);
 
 
         // Scaled editor dimensions
-        scaleFactor = width / clEditor.getWidth();
-        Rectangle rLast = clEditor.getBarRectangle(clEditor.getModel().getSize() - 1);
-        scaledEditorBarHeight = rLast.height * scaleFactor;
-        Point pLastBar = rLast.getLocation();
-        scaledEditorHeight = pLastBar.y * scaleFactor + scaledEditorBarHeight;
-
+        scaleFactor = width / ssEditor.getWidth();
+        scaledEditorHeight = ssEditor.getHeight() * scaleFactor;
+        scaledEditorPageHeight = centralZoneHeight;
 
         // Nb of pages: need to take into account clipping at a bar row boundary
-        int maxNbRowsPerPage = (int) Math.floor(centralZoneHeight / scaledEditorBarHeight);
-        scaledEditorPageHeight = maxNbRowsPerPage * scaledEditorBarHeight;
         nbPages = (int) Math.ceil(scaledEditorHeight / scaledEditorPageHeight);
 
 
@@ -333,7 +258,7 @@ public class SongPrinter implements Printable, Pageable
         scaledEditorLastPageHeight = scaledEditorHeight - (nbPages - 1) * scaledEditorPageHeight;
 
 
-        LOGGER.fine("computeEditorDimensions() scaledEditorBarHeight=" + scaledEditorBarHeight
+        LOGGER.fine("computeEditorDimensions() "
                 + " scaledEditorHeight=" + scaledEditorHeight
                 + " scaledEditorPageHeight=" + scaledEditorPageHeight
                 + " centralZoneHeight=" + centralZoneHeight
@@ -348,43 +273,4 @@ public class SongPrinter implements Printable, Pageable
     // Private classes
     // =============================================================================
 
-    /**
-     * Special hidden dialog (but displayable) used to render the CL_Editor.
-     * <p>
-     * A fixed width panel is used to make sure width is not changed when CL_Editor preferred width has changed, like in the
-     * application editor.
-     */
-    static private class RenderingDialog extends JDialog
-    {
-
-        FixedPreferredWidthPanel fixWidthPanel;
-        JScrollPane scrollPane;
-        CL_Editor editor;
-
-        public RenderingDialog()
-        {
-            fixWidthPanel = new FixedPreferredWidthPanel();
-            fixWidthPanel.setLayout(new BorderLayout());
-            add(fixWidthPanel);
-        }
-
-        public void cleanup()
-        {
-            if (editor != null)
-            {
-                fixWidthPanel.remove(scrollPane);
-                editor.cleanup();
-            }
-        }
-
-        public void setEditor(CL_Editor editor, int refWidth)
-        {
-            cleanup();
-            this.editor = editor;
-            fixWidthPanel.setFixedPreferredWidth(refWidth);
-            scrollPane = new JScrollPane(editor, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-            fixWidthPanel.add(scrollPane);
-        }
-
-    }
 }

@@ -42,8 +42,11 @@ public class PreviewPanel extends JPanel
 
     public void setPageIndex(int index)
     {
-        pageIndex = index;
-        repaint();
+        if (index != pageIndex)
+        {
+            pageIndex = index;
+            repaint();
+        }
     }
 
     /**

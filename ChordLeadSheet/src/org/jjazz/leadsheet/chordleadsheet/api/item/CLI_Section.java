@@ -33,7 +33,7 @@ public interface CLI_Section extends ChordLeadSheetItem<Section>
 
     public static final DataFlavor DATA_FLAVOR = new DataFlavor(CLI_Section.class, "Section");
 
-    static public class SectionUtilities
+    static public class Util
     {
 
         static private Pattern PATTERN = Pattern.compile("[0-9]+$");

@@ -349,7 +349,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
         storeSectionQValue(cliSection.getData(), q);
         propagateSectionChange(cliSection);
-        firePropertyChange(CL_Editor.PROP_SECTION_DISPLAY_QUANTIZATION, cliSection, q);
+        firePropertyChange(getSectionQuantizeValuePropertyName(cliSection.getData()), cliSection, q);
     }
 
     @Override
@@ -414,15 +414,14 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             return;
         }
-        songModel.putClientProperty(getSectionStartNewLinePropName(cliSection.getData()), b ? Boolean.toString(true) : null);
+        songModel.putClientProperty(getSectionStartOnNewLinePropertyName(cliSection.getData()), b ? Boolean.toString(true) : null);
         updatePaddingBoxes();
     }
 
     @Override
     public boolean isSectionStartOnNewLine(CLI_Section cliSection)
     {
-        int sectionBar = cliSection.getPosition().getBar();
-        String boolString = songModel.getClientProperty(getSectionStartNewLinePropName(cliSection.getData()), "false");
+        String boolString = songModel.getClientProperty(getSectionStartOnNewLinePropertyName(cliSection.getData()), "false");
         boolean b = Boolean.valueOf(boolString);
         return b;
     }
@@ -1550,7 +1549,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private void storeSectionQValue(Section sectionData, Quantization q)
     {
-        songModel.putClientProperty(getSectionQValuePropName(sectionData), q == null ? null : q.name());
+        songModel.putClientProperty(getSectionQuantizeValuePropertyName(sectionData), q == null ? null : q.name());
         if (q != null)
         {
             // Store the last quantization use per TimeSignature.
@@ -1565,18 +1564,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private Quantization restoreSectionQValue(Section sectionData)
     {
-        String qString = songModel.getClientProperty(getSectionQValuePropName(sectionData), null);
+        String qString = songModel.getClientProperty(getSectionQuantizeValuePropertyName(sectionData), null);
         return Quantization.isValidStringValue(qString) ? Quantization.valueOf(qString) : null;
-    }
-
-    private String getSectionQValuePropName(Section sectionData)
-    {
-        return PROP_SECTION_DISPLAY_QUANTIZATION + "-" + sectionData.getName() + "*" + sectionData.getTimeSignature();
-    }
-
-    private String getSectionStartNewLinePropName(Section sectionData)
-    {
-        return PROP_SECTION_START_ON_NEW_LINE + "-" + sectionData.getName();
     }
 
     private void removePaddingBox(PaddingBox pd)
