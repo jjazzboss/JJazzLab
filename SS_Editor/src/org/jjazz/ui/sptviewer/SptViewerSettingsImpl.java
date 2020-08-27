@@ -45,7 +45,6 @@ import org.openide.util.lookup.ServiceProviders;
  *
  * @author Jerome
  */
-
 @ServiceProviders(value =
 {
     @ServiceProvider(service = SptViewerSettings.class),
@@ -77,6 +76,20 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
             prefs.putInt(PROP_DEFAULT_BACKGROUND_COLOR, color.getRGB());
         }
         pcs.firePropertyChange(PROP_DEFAULT_BACKGROUND_COLOR, old, color);
+    }
+
+    @Override
+    public boolean isSectionColorUsedAsBackground()
+    {
+        return prefs.getBoolean(PROP_USE_SECTION_COLOR, true);
+    }
+
+    @Override
+    public void setSectionColorUsedAsBackground(boolean b)
+    {
+        boolean old = isSectionColorUsedAsBackground();
+        prefs.putBoolean(PROP_USE_SECTION_COLOR, b);
+        pcs.firePropertyChange(PROP_USE_SECTION_COLOR, old, b);
     }
 
     @Override
@@ -295,7 +308,6 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     {
         pcs.removePropertyChangeListener(listener);
     }
-
 
     // =====================================================================================
     // FontColorUserSettingsProvider implementation

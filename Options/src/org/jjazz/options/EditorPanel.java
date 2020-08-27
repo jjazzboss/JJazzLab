@@ -34,6 +34,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import static org.jjazz.options.Bundle.ASK_ConfirmResetAll;
+import org.jjazz.ui.sptviewer.api.SptViewerSettings;
 import org.openide.awt.ColorComboBox;
 import org.openide.util.Lookup;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
@@ -82,6 +83,7 @@ final class EditorPanel extends javax.swing.JPanel
     private void initComponents()
     {
 
+        jPanel1 = new javax.swing.JPanel();
         lbl_category = new javax.swing.JLabel();
         lbl_font = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -93,6 +95,9 @@ final class EditorPanel extends javax.swing.JPanel
         btn_resetFont = new javax.swing.JButton();
         btn_resetColor = new javax.swing.JButton();
         btn_resetAll = new javax.swing.JButton();
+        cb_useTransparentBkgForSongParts = new javax.swing.JCheckBox();
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(EditorPanel.class, "EditorPanel.jPanel1.border.title"))); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_category, org.openide.util.NbBundle.getMessage(EditorPanel.class, "EditorPanel.lbl_category.text")); // NOI18N
 
@@ -164,6 +169,64 @@ final class EditorPanel extends javax.swing.JPanel
             }
         });
 
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lbl_font)
+                            .addComponent(lbl_color))
+                        .addGap(4, 4, 4)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(tf_font)
+                            .addComponent(cb_color, 0, 243, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_font)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(btn_resetFont)
+                            .addComponent(btn_resetColor)
+                            .addComponent(btn_resetAll)))
+                    .addComponent(lbl_category))
+                .addContainerGap())
+        );
+
+        jPanel1Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {lbl_color, lbl_font});
+
+        jPanel1Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btn_resetColor, btn_resetFont});
+
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(lbl_category)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(lbl_font)
+                            .addComponent(tf_font, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btn_font)
+                            .addComponent(btn_resetFont))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(lbl_color)
+                            .addComponent(cb_color, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btn_resetColor))
+                        .addGap(18, 18, 18)
+                        .addComponent(btn_resetAll))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 287, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
+        );
+
+        org.openide.awt.Mnemonics.setLocalizedText(cb_useTransparentBkgForSongParts, org.openide.util.NbBundle.getMessage(EditorPanel.class, "EditorPanel.cb_useTransparentBkgForSongParts.text")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -172,52 +235,19 @@ final class EditorPanel extends javax.swing.JPanel
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lbl_font)
-                            .addComponent(lbl_color))
-                        .addGap(4, 4, 4)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(tf_font, javax.swing.GroupLayout.DEFAULT_SIZE, 209, Short.MAX_VALUE)
-                            .addComponent(cb_color, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_font)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btn_resetFont)
-                            .addComponent(btn_resetColor)
-                            .addComponent(btn_resetAll)))
-                    .addComponent(lbl_category))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(cb_useTransparentBkgForSongParts)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
-
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {lbl_color, lbl_font});
-
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btn_resetColor, btn_resetFont});
-
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(lbl_category)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(lbl_font)
-                            .addComponent(tf_font, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btn_font)
-                            .addComponent(btn_resetFont))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(lbl_color)
-                            .addComponent(cb_color, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btn_resetColor))
-                        .addGap(18, 18, 18)
-                        .addComponent(btn_resetAll))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 287, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(cb_useTransparentBkgForSongParts)
+                .addContainerGap(35, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -366,6 +396,8 @@ final class EditorPanel extends javax.swing.JPanel
             list_fcSettings.setSelectedIndex(0);
         }
         btn_resetAll.setEnabled(!listValues.isEmpty());
+
+        cb_useTransparentBkgForSongParts.setSelected(!SptViewerSettings.getDefault().isSectionColorUsedAsBackground());
     }
 
     void store()
@@ -379,6 +411,7 @@ final class EditorPanel extends javax.swing.JPanel
         // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
 
         // Nothing: changes are done on the fly
+        SptViewerSettings.getDefault().setSectionColorUsedAsBackground(!cb_useTransparentBkgForSongParts.isSelected());
     }
 
     public void restoreOldValues()
@@ -424,6 +457,8 @@ final class EditorPanel extends javax.swing.JPanel
     private javax.swing.JButton btn_resetColor;
     private javax.swing.JButton btn_resetFont;
     private javax.swing.JComboBox cb_color;
+    private javax.swing.JCheckBox cb_useTransparentBkgForSongParts;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbl_category;
     private javax.swing.JLabel lbl_color;

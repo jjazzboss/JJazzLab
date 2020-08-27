@@ -717,19 +717,25 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             setBackground(settings.getSelectedBackgroundColor());
         } else
         {
-            setBackground(settings.getDefaultBackgroundColor());
+            // setBackground(settings.getDefaultBackgroundColor());
+            Color c = getParentSectionColor();
+            if (c == null)
+            {
+                c = settings.getDefaultBackgroundColor();
+            }
+            setBackground(c);
         }
     }
 
     private Color getParentSectionColor()
     {
-        Color color = settings.getNameFontColor();
-        if (sptModel != null)
+        Color res = null;
+        if (sptModel != null && settings.isSectionColorUsedAsBackground())
         {
-            Color sectionColor = ColorSetManager.getDefault().getColor(sptModel.getParentSection().getData().getName());
-            color = (sectionColor == null) ? color : sectionColor;
+            Color c = ColorSetManager.getDefault().getColor(sptModel.getParentSection().getData().getName());
+            res = (c == null) ? res : new Color(c.getRed(), c.getGreen(), c.getBlue(), 150);    // A bit transparent
         }
-        return color;
+        return res;
     }
 
     private void redispatchEvent(java.awt.event.MouseEvent evt)

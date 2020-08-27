@@ -40,13 +40,20 @@ public class ColorSetManagerImpl implements ColorSetManager
 
     // COLORS
     // Obtained from Paletton.com http://paletton.com/#uid=7000u0kbRt14+E48dwffUpTkImm
-    private final Color c1 = new Color(80, 178, 82);
-    private final Color c2 = new Color(206, 193, 155);
-    private final Color c3 = new Color(168, 255, 170);
-    private final Color c4 = new Color(204, 149, 104);
+    private final Color c1 = new Color(206, 193, 155);
+    private final Color c2 = new Color(0xCE9668);
+    private final Color c3 = new Color(204, 149, 104);
+    private final Color c4 = new Color(0xCE6868);
     private final Color c5 = new Color(178, 155, 136);
     private final Color c6 = new Color(151, 202, 195);
-    private final Color WHITE = new Color(255, 255, 240);        // "our" white = "ivory"
+//    private final Color c1 = new Color(0x63, 0x76, 0x8F);
+//    private final Color c2 = new Color(0xAD, 0x8E, 0x92);
+//    private final Color c3 = new Color(0xDB, 0xAF, 0x79);
+//    private final Color c4 = new Color(0xDFC889);
+//    private final Color c5 = new Color(0xD7896E);
+//    private final Color c6 = new Color(0x984B3F);
+    // private final Color WHITE = new Color(255, 255, 240);        // "our" white = "ivory"
+    private final Color WHITE = new Color(251, 248, 245);        // "our" white = "old paper"
     private final Color BLACK = new Color(5, 5, 5);    // "our" black = "gray2"
     private final Color SELECTED_BACKGROUND = new Color(229, 229, 235);  // 
     private final Color FOCUSED_BORDER_COLOR = new Color(16, 65, 242); // Blue
@@ -201,7 +208,6 @@ public class ColorSetManagerImpl implements ColorSetManager
         pcs.removePropertyChangeListener(listener);
     }
 
-
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
@@ -217,6 +223,5 @@ public class ColorSetManagerImpl implements ColorSetManager
         }
 
     }
-
 
 }

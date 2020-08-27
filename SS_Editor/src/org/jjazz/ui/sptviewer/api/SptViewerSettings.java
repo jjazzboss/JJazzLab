@@ -46,6 +46,7 @@ public interface SptViewerSettings
     public static String PROP_DEFAULT_BACKGROUND_COLOR = "DefaultBackgroundColor";
     public static String PROP_SELECTED_BACKGROUND_COLOR = "SelectedBackgroundColor";
     public static String PROP_PLAYBACK_COLOR = "PlaybackColor";
+    public static String PROP_USE_SECTION_COLOR = "UseSectionColorAsBackground";
 
     public static SptViewerSettings getDefault()
     {
@@ -57,52 +58,56 @@ public interface SptViewerSettings
         return result;
     }
 
-     void setNameFont(Font font);
+    boolean isSectionColorUsedAsBackground();
 
-     Font getNameFont();
+    void setSectionColorUsedAsBackground(boolean b);
 
-     void setNameFontColor(Color color);
+    void setNameFont(Font font);
 
-     Color getNameFontColor();
+    Font getNameFont();
 
-     void setRhythmFont(Font font);
+    void setNameFontColor(Color color);
 
-     Font getRhythmFont();
+    Color getNameFontColor();
 
-     void setRhythmFontColor(Color color);
+    void setRhythmFont(Font font);
 
-     Color getRhythmFontColor();
+    Font getRhythmFont();
 
-     void setParentSectionFont(Font font);
+    void setRhythmFontColor(Color color);
 
-     Font getParentSectionFont();
+    Color getRhythmFontColor();
 
-     void setParentSectionFontColor(Color color);
+    void setParentSectionFont(Font font);
 
-     Color getParentSectionFontColor();
+    Font getParentSectionFont();
 
-     Color getFocusedBorderColor();
+    void setParentSectionFontColor(Color color);
 
-     void setFocusedBorderColor(Color color);
+    Color getParentSectionFontColor();
 
-     void setDefaultBackgroundColor(Color color);
+    Color getFocusedBorderColor();
 
-     Color getDefaultBackgroundColor();
+    void setFocusedBorderColor(Color color);
 
-     void setSelectedBackgroundColor(Color color);
+    void setDefaultBackgroundColor(Color color);
 
-     Color getSelectedBackgroundColor();
+    Color getDefaultBackgroundColor();
 
-     void setPlaybackColor(Color color);
+    void setSelectedBackgroundColor(Color color);
 
-     Color getPlaybackColor();
+    Color getSelectedBackgroundColor();
 
-     Border getFocusedBorder();
+    void setPlaybackColor(Color color);
 
-     Border getDefaultBorder();
+    Color getPlaybackColor();
 
-     void addPropertyChangeListener(PropertyChangeListener listener);
+    Border getFocusedBorder();
 
-     void removePropertyChangeListener(PropertyChangeListener listener);
+    Border getDefaultBorder();
+
+    void addPropertyChangeListener(PropertyChangeListener listener);
+
+    void removePropertyChangeListener(PropertyChangeListener listener);
 
 }

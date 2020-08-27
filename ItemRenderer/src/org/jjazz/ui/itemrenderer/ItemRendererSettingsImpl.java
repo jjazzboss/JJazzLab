@@ -24,19 +24,29 @@ package org.jjazz.ui.itemrenderer;
 
 import java.awt.Color;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
 import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.itemrenderer.api.ItemRendererSettings;
+import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
+import org.jjazz.ui.utilities.HSLColor;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
+import org.openide.util.lookup.ServiceProviders;
 
-@ServiceProvider(service = ItemRendererSettings.class)
-public class ItemRendererSettingsImpl implements ItemRendererSettings
+@ServiceProviders(value =
+{
+    @ServiceProvider(service = ItemRendererSettings.class),
+    @ServiceProvider(service = FontColorUserSettingsProvider.class)
+}
+)
+public class ItemRendererSettingsImpl implements ItemRendererSettings, FontColorUserSettingsProvider
 {
 
     /**
@@ -51,14 +61,32 @@ public class ItemRendererSettingsImpl implements ItemRendererSettings
     @Override
     public Color getSelectedBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_ITEM_SELECTED_COLOR, ColorSetManager.getDefault().getSelectedBackgroundColor().getRGB()));
+        Color c;
+        int rgb = prefs.getInt(PROP_ITEM_SELECTED_COLOR, Integer.MAX_VALUE);
+        if (rgb == Integer.MAX_VALUE)
+        {
+            // Use the default selected background color but a bit darker because smaller items selected, more difficult to see
+            HSLColor hsl = new HSLColor(ColorSetManager.getDefault().getSelectedBackgroundColor());
+            c = hsl.adjustShade(8);
+        } else
+        {
+            c = new Color(rgb);
+        }
+        return c;
     }
 
     @Override
     public void setSelectedBackgroundColor(Color color)
     {
         Color old = getSelectedBackgroundColor();
-        prefs.putInt(PROP_ITEM_SELECTED_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_ITEM_SELECTED_COLOR);
+            color = getSelectedBackgroundColor();
+        } else
+        {
+            prefs.putInt(PROP_ITEM_SELECTED_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_ITEM_SELECTED_COLOR, old, color);
     }
 
@@ -94,6 +122,30 @@ public class ItemRendererSettingsImpl implements ItemRendererSettings
         pcs.removePropertyChangeListener(listener);
     }
 
+    // =====================================================================================
+    // FontColorUserSettingsProvider implementation
+    // =====================================================================================
+    @Override
+    public List<FontColorUserSettingsProvider.FCSetting> getFCSettings()
+    {
+        List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
+        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("Selected ", "Selected item background")
+        {
+            @Override
+            public Color getColor()
+            {
+                return getSelectedBackgroundColor();
+            }
+
+            @Override
+            public void setColor(Color c)
+            {
+                setSelectedBackgroundColor(c);
+            }
+        };
+        res.add(fcs);
+        return res;
+    }
 
     // =====================================================================================
     // Upgrade Task
@@ -110,6 +162,5 @@ public class ItemRendererSettingsImpl implements ItemRendererSettings
         }
 
     }
-
 
 }
