@@ -119,18 +119,18 @@ public class ChordTypeDatabase
         addBuiltin("m6", "", MIN, ":min6:mi6:-6:", NP, -1, NP, 0, 0, NP);
         addBuiltin("m6", "9", MIN, ":min69:mi69:-69:", 0, -1, NP, 0, 0, NP);
         addBuiltin("m7", "", MIN, ":mi7:min7:-7:", NP, -1, NP, 0, NP, -1);
-        addBuiltin("m7", "b9", MIN, ":mi7b9:min7b9:", -1, -1, NP, 0, NP, -1);
+        addBuiltin("m7", "b9", MIN, ":mi7b9:min7b9:-7b9:", -1, -1, NP, 0, NP, -1);
         addBuiltin("m7", "13", MIN, ":mi713:min713:-713:m7add13:", NP, -1, NP, 0, 0, -1);
         addBuiltin("m7", "#5", MIN, ":mi7#5:min7#5:-7#5:", NP, -1, NP, 1, NP, -1);
         addBuiltin("m9", "", MIN, ":mi9:min9:min(9):min7(9):-9:", 0, -1, NP, 0, NP, -1);
-        addBuiltin("m9", "11", MIN, ":m9(11):mi911:min911:-9(11):", 0, -1, 0, 0, NP, -1);
-        addBuiltin("m11", "", MIN, ":m711:mi711:min711:-711:min7(11):m7add11:m7add4:madd4:", NP, -1, 0, 0, NP, -1);
+        addBuiltin("m9", "11", MIN, ":m9(11):mi911:min911:-9(11):-911:", 0, -1, 0, 0, NP, -1);
+        addBuiltin("m11", "", MIN, ":m711:mi711:min711:-11:-711:min7(11):m7add11:m7add4:madd4:", NP, -1, 0, 0, NP, -1);
         addBuiltin("m11", "b5", MIN, ":m11(b5):min11(b5):-11b5:-11(b5):", NP, -1, 0, -1, NP, -1);
         addBuiltin("m13", "", MIN, ":mi13:min13:-13:m913:m9add13:", 0, -1, NP, 0, 0, -1);
         addBuiltin("m", "7M", MIN, ":-maj7:min7M:minMaj7:-7M:mM7:mMaj7:", NP, -1, NP, 0, NP, 0);
         addBuiltin("m9", "7M", MIN, ":mi9M:min9M:minMaj7(9):-9M:mM9:", 0, -1, NP, 0, NP, 0);
-        addBuiltin("m7", "b5", MIN, ":m7-5:mi7b5:mi7-5:min7b5:min7-5:", NP, -1, NP, -1, NP, -1);
-        addBuiltin("m9", "b5", MIN, ":m9-5:mi9b5:mi9-5:min9b5:min9-5:", 0, -1, NP, -1, NP, -1);
+        addBuiltin("m7", "b5", MIN, ":m7-5:mi7b5:mi7-5:min7b5:min7-5:-7b5:", NP, -1, NP, -1, NP, -1);
+        addBuiltin("m9", "b5", MIN, ":m9-5:mi9b5:mi9-5:min9b5:min9-5:-9b5:", 0, -1, NP, -1, NP, -1);
 
         // DIMINISHED
         addBuiltin("", "dim", DIM, ":°:o:h:mb5:dim5:", NP, -1, NP, -1, NP, NP);
