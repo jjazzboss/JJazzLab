@@ -39,13 +39,13 @@ public class ColorSetManagerImpl implements ColorSetManager
 {
 
     // COLORS
-    // Obtained from Paletton.com http://paletton.com/#uid=7000u0kbRt14+E48dwffUpTkImm
-    private final Color c1 = new Color(206, 193, 155);
-    private final Color c2 = new Color(0xCE9668);
+    private final Color c1 = new Color(0xCE9668);
+    private final Color c2 = new Color(0xCE6868);
     private final Color c3 = new Color(204, 149, 104);
-    private final Color c4 = new Color(0xCE6868);
+    private final Color c4 = new Color(206, 193, 155);
     private final Color c5 = new Color(178, 155, 136);
     private final Color c6 = new Color(151, 202, 195);
+ // Obtained from Paletton.com http://paletton.com/#uid=7000u0kbRt14+E48dwffUpTkImm    
 //    private final Color c1 = new Color(0x63, 0x76, 0x8F);
 //    private final Color c2 = new Color(0xAD, 0x8E, 0x92);
 //    private final Color c3 = new Color(0xDB, 0xAF, 0x79);
@@ -65,7 +65,7 @@ public class ColorSetManagerImpl implements ColorSetManager
     /**
      * Store the reference colors.
      */
-    private static Preferences prefs = NbPreferences.forModule(ColorSetManagerImpl.class);
+    private static final Preferences prefs = NbPreferences.forModule(ColorSetManagerImpl.class);
     /**
      * Associate an identifier to a color index.
      */
