@@ -82,7 +82,6 @@ import org.openide.awt.Actions;
 import org.openide.util.NbBundle;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.flatcomponents.FlatButton;
 import org.jjazz.ui.mixconsole.MixChannelPanel;
 import org.jjazz.ui.mixconsole.MixChannelPanelControllerImpl;
@@ -147,10 +146,14 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
     private static final Logger LOGGER = Logger.getLogger(MixConsole.class.getSimpleName());
 
-    public MixConsole()
+    public MixConsole(MixConsoleSettings settings)
     {
+        if (settings == null)
+        {
+            throw new IllegalArgumentException("settings=" + settings);
+        }
         // Listen to settings change events
-        settings = MixConsoleSettings.getDefault();
+        this.settings = settings;
         settings.addPropertyChangeListener(this);
 
         // Listen to active song and midimix changes
@@ -361,6 +364,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         scrollPane_mixChannelsPanel.setOpaque(false);
 
         panel_mixChannels.setBackground(new java.awt.Color(204, 204, 204));
+        panel_mixChannels.setOpaque(false);
         panel_mixChannels.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 3, 5));
         scrollPane_mixChannelsPanel.setViewportView(panel_mixChannels);
 
@@ -420,7 +424,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         LOGGER.fine("propertyChange() -- e=" + e);
         if (e.getSource() == settings)
         {
-            // TO DO
+            // No relevant settings for now
         } else if (e.getSource() == songMidiMix)
         {
             if (e.getPropertyName() == MidiMix.PROP_CHANNEL_INSTRUMENT_MIX)
@@ -590,7 +594,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         LOGGER.fine("createMixChannelPanelForRhythmVoice() -- mm=" + mm + " channel=" + channel + " rv=" + rv);
         MixChannelPanelModelImpl mcpModel = new MixChannelPanelModelImpl(mm, channel);
         MixChannelPanelControllerImpl mcpController = new MixChannelPanelControllerImpl(mm, channel);
-        MixChannelPanel mcp = new MixChannelPanel(mcpModel, mcpController);
+        MixChannelPanel mcp = new MixChannelPanel(mcpModel, mcpController, settings);
         Rhythm r = rv.getContainer();
         Color c = this.mapRhythmColor.get(r);
         if (c == null)
@@ -664,7 +668,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         LOGGER.fine("createMixChannelPanelForUserVoice() -- mm=" + mm + " channel=" + channel);
         MixChannelPanelModelImpl mcpModel = new MixChannelPanelModelImpl(mm, channel);
         MixChannelPanelControllerImpl mcpController = new MixChannelPanelControllerImpl(mm, channel);
-        MixChannelPanel mcp = new MixChannelPanel(mcpModel, mcpController);
+        MixChannelPanel mcp = new MixChannelPanel(mcpModel, mcpController, settings);
         mcp.setChannelColor(CHANNEL_COLOR_USER);
         mcp.setChannelName("User", "Channel");
         Icon icon = new ImageIcon(getClass().getResource(USER_ICON_PATH));

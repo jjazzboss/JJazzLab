@@ -79,7 +79,7 @@ public final class MixConsoleTopComponent extends TopComponent
 
         initComponents();
 
-        editor = new MixConsole();
+        editor = new MixConsole(MixConsoleSettings.getDefault());
         editor.setPreferredSize(new Dimension(80, 100));
         add(editor);
 

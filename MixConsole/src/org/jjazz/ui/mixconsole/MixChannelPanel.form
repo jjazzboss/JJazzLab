@@ -2,9 +2,6 @@
 
 <Form version="1.8" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
   <Properties>
-    <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-      <Color type="null"/>
-    </Property>
     <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
       <Dimension value="[10, 53]"/>
     </Property>
@@ -37,17 +34,12 @@
   <SubComponents>
     <Container class="org.jjazz.ui.flatcomponents.RoundedPanel" name="roundedPanel">
       <Properties>
-        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color blue="ed" green="ed" red="ed" type="rgb"/>
-        </Property>
-        <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color blue="99" green="99" red="ff" type="rgb"/>
-        </Property>
         <Property name="arcDiameter" type="int" value="20"/>
         <Property name="inheritsPopupMenu" type="boolean" value="true"/>
         <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
           <Dimension value="[20, 53]"/>
         </Property>
+        <Property name="opaque" type="boolean" value="true"/>
         <Property name="thickness" type="int" value="1"/>
       </Properties>
 
@@ -253,6 +245,9 @@
           </Events>
         </Component>
         <Container class="javax.swing.JPanel" name="pnl_mute">
+          <Properties>
+            <Property name="opaque" type="boolean" value="false"/>
+          </Properties>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
             <Property name="horizontalGap" type="int" value="0"/>
@@ -285,6 +280,9 @@
           </SubComponents>
         </Container>
         <Container class="javax.swing.JPanel" name="pnl_solo">
+          <Properties>
+            <Property name="opaque" type="boolean" value="false"/>
+          </Properties>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
             <Property name="horizontalGap" type="int" value="0"/>
@@ -318,6 +316,9 @@
           </SubComponents>
         </Container>
         <Container class="javax.swing.JPanel" name="pnl_pan">
+          <Properties>
+            <Property name="opaque" type="boolean" value="false"/>
+          </Properties>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
             <Property name="horizontalGap" type="int" value="0"/>
@@ -343,6 +344,9 @@
           </SubComponents>
         </Container>
         <Container class="javax.swing.JPanel" name="pnl_rev">
+          <Properties>
+            <Property name="opaque" type="boolean" value="false"/>
+          </Properties>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
             <Property name="horizontalGap" type="int" value="0"/>
@@ -365,6 +369,9 @@
           </SubComponents>
         </Container>
         <Container class="javax.swing.JPanel" name="pnl_cho">
+          <Properties>
+            <Property name="opaque" type="boolean" value="false"/>
+          </Properties>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
             <Property name="horizontalGap" type="int" value="0"/>
@@ -387,6 +394,9 @@
           </SubComponents>
         </Container>
         <Container class="javax.swing.JPanel" name="pnl_inst_volume">
+          <Properties>
+            <Property name="opaque" type="boolean" value="false"/>
+          </Properties>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
             <Property name="horizontalGap" type="int" value="3"/>
@@ -434,6 +444,9 @@
           </SubComponents>
         </Container>
         <Container class="javax.swing.JPanel" name="pnl_icon">
+          <Properties>
+            <Property name="opaque" type="boolean" value="false"/>
+          </Properties>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
             <Property name="horizontalGap" type="int" value="0"/>
@@ -465,6 +478,9 @@
           </SubComponents>
         </Container>
         <Container class="javax.swing.JPanel" name="pnl_name">
+          <Properties>
+            <Property name="opaque" type="boolean" value="false"/>
+          </Properties>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
             <Property name="horizontalGap" type="int" value="0"/>

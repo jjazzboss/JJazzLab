@@ -288,20 +288,21 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             }
         };
         java.awt.FlowLayout flowLayout = new java.awt.FlowLayout(FlowLayout.LEFT, 1, 5);
-        flowLayout.setAlignOnBaseline(true); // Used to get the songparts aligned on the top lince.
+        flowLayout.setAlignOnBaseline(true); // Used to get the songparts aligned on the top line.
         panel_SongParts.setOpaque(false);
         panel_SongParts.setLayout(flowLayout);
         panel_SongParts.setMinimumSize(new java.awt.Dimension(800, 50));
 
         BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
-        setLayout(boxLayout); // So that panel_SongParts uses all the available size        
+        setLayout(boxLayout); // So that panel_SongParts uses all the available space        
         // add(panel_Top);
         add(panel_SongParts);
     }
 
     private void updateUIComponents()
     {
-        setBackground(settings.getBackgroundColor());
+        // setBackground(settings.getBackgroundColor());
+        setOpaque(false);       // To reuse LAF default background
     }
 
     @Override

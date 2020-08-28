@@ -22,15 +22,17 @@
  */
 package org.jjazz.ui.mixconsole.api;
 
-import java.awt.Font;
+import java.awt.Color;
 import java.beans.PropertyChangeListener;
+import org.jjazz.ui.utilities.HSLColor;
 import org.openide.util.Lookup;
 
 public interface MixConsoleSettings
 {
 
-//    public static String PROP_NAME_FONT = "NameFont";
+// public static String PROP_NAME_FONT = "NameFont";
 //    public static String PROP_RHYTHM_FONT = "RhythmFont";
+    public static final String PROP_CHANNEL_PANEL_BACKGROUND_COLOR = "PrefChannelPanelBackgroundColor";
 
     public static MixConsoleSettings getDefault()
     {
@@ -41,6 +43,10 @@ public interface MixConsoleSettings
         }
         return result;
     }
+
+    public Color getMixChannelBackgroundColor();
+
+    public void setMixChannelBackgroundColor(Color color);
 
     void addPropertyChangeListener(PropertyChangeListener listener);
 

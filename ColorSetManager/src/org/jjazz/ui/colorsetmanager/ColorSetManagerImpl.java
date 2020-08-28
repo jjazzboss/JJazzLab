@@ -52,10 +52,10 @@ public class ColorSetManagerImpl implements ColorSetManager
 //    private final Color c4 = new Color(0xDFC889);
 //    private final Color c5 = new Color(0xD7896E);
 //    private final Color c6 = new Color(0x984B3F);
-    // private final Color WHITE = new Color(255, 255, 240);        // "our" white = "ivory"
-    private final Color WHITE = new Color(251, 248, 245);        // "our" white = "old paper"
+    // private final Color WHITE = new Color(251, 248, 245);        // "our" white = "old paper"
+    private final Color WHITE = new Color(235, 232, 225);        // "our" white for FlatLAF
     private final Color BLACK = new Color(5, 5, 5);    // "our" black = "gray2"
-    private final Color SELECTED_BACKGROUND = new Color(229, 229, 235);  // 
+    private final Color SELECTED_BACKGROUND = new Color(194, 194, 208);  // 
     private final Color FOCUSED_BORDER_COLOR = new Color(16, 65, 242); // Blue
     // 
     // Application variables

@@ -23,12 +23,9 @@
 package org.jjazz.test;
 
 import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatLightLaf;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Enumeration;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.UIManager;
@@ -44,7 +41,7 @@ import org.openide.util.NbPreferences;
  * For debug purposes...
  */
 //@ActionID(category = "JJazz", id = "org.jjazz.test.mytestaction")
-//@ActionRegistration(displayName = "MyTestAction")
+//@ActionRegistration(displayName = "MyTestAction", )
 //@ActionReferences(
 //        {
 //            @ActionReference(path = "Menu/Edit", position = 870012),
@@ -91,7 +88,7 @@ public final class MyTestAction implements ActionListener
         settings.setFont(f);
     }
 
-    // @OnStart
+    @OnStart
     public static class TestClass implements Runnable
     {
 

@@ -22,7 +22,7 @@
  */
 package org.jjazz.ui.mixconsole;
 
-import java.awt.Font;
+import java.awt.Color;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,8 @@ import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.mixconsole.api.MixConsoleSettings;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
-import org.jjazz.util.Utilities;
+import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
@@ -43,6 +44,7 @@ import org.openide.util.lookup.ServiceProviders;
 )
 public class MixConsoleSettingsImpl implements MixConsoleSettings, FontColorUserSettingsProvider
 {
+
     /**
      * The Preferences of this object.
      */
@@ -51,6 +53,28 @@ public class MixConsoleSettingsImpl implements MixConsoleSettings, FontColorUser
      * The listeners for changes of this object.
      */
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+
+    @Override
+    public Color getMixChannelBackgroundColor()
+    {
+        Color color = new Color(prefs.getInt(PROP_CHANNEL_PANEL_BACKGROUND_COLOR, new Color(202, 198, 198).getRGB()));
+        return color;
+    }
+
+    @Override
+    public void setMixChannelBackgroundColor(Color color)
+    {
+        Color old = getMixChannelBackgroundColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_CHANNEL_PANEL_BACKGROUND_COLOR);
+            color = getMixChannelBackgroundColor();
+        } else
+        {
+            prefs.putInt(PROP_CHANNEL_PANEL_BACKGROUND_COLOR, color.getRGB());
+        }
+        pcs.firePropertyChange(PROP_CHANNEL_PANEL_BACKGROUND_COLOR, old, color);
+    }
 
 //    @Override
 //    public void setNameFont(Font font)
@@ -97,7 +121,6 @@ public class MixConsoleSettingsImpl implements MixConsoleSettings, FontColorUser
 //        String strFont = prefs.get(PROP_RHYTHM_FONT, "Helvetica-PLAIN-10");
 //        return Font.decode(strFont);
 //    }
-
     @Override
     public synchronized void addPropertyChangeListener(PropertyChangeListener listener)
     {
@@ -110,7 +133,6 @@ public class MixConsoleSettingsImpl implements MixConsoleSettings, FontColorUser
         pcs.removePropertyChangeListener(listener);
     }
 
-
     // =====================================================================================
     // FontColorUserSettingsProvider implementation
     // =====================================================================================
@@ -118,42 +140,37 @@ public class MixConsoleSettingsImpl implements MixConsoleSettings, FontColorUser
     public List<FontColorUserSettingsProvider.FCSetting> getFCSettings()
     {
         List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
+        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("MixConsoleSettingsId", "Mix channel panel")
+        {
+            @Override
+            public Color getColor()
+            {
+                return getMixChannelBackgroundColor();
+            }
 
-
-//        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SongPartNameId", "Song part name")
-//        {
-//            @Override
-//            public Font getFont()
-//            {
-//                return getNameFont();
-//            }
-//
-//            @Override
-//            public void setFont(Font f)
-//            {
-//                setNameFont(f);
-//            }
-//        };
-//        res.add(fcs);
-//
-//
-//        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SongPartRhythmId", "Song part rhythm")
-//        {
-//            @Override
-//            public Font getFont()
-//            {
-//                return getRhythmFont();
-//            }
-//
-//            @Override
-//            public void setFont(Font f)
-//            {
-//                setRhythmFont(f);
-//            }
-//        };
-//        res.add(fcs);
-
-
+            @Override
+            public void setColor(Color c)
+            {
+                setMixChannelBackgroundColor(c);
+            }
+        };
+        res.add(fcs);
         return res;
+    }
+
+    // =====================================================================================
+    // Upgrade Task
+    // =====================================================================================
+    @ServiceProvider(service = UpgradeTask.class)
+    static public class RestoreSettingsTask implements UpgradeTask
+    {
+
+        @Override
+        public void upgrade(String oldVersion)
+        {
+            UpgradeManager um = UpgradeManager.getInstance();
+            um.duplicateOldPreferences(prefs);
+        }
+
     }
 }
