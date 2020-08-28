@@ -60,7 +60,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     private final static int OPTION_LINE_THICKNESS = 1;   // Additional space for the option line
     private AttributedString attChordString;
     private boolean copyMode;
-    private IR_ChordSymbolSettings settings;
+    private final IR_ChordSymbolSettings settings;
     private int zoomFactor = 50;
     private String chordSymbolString;
     private String chordSymbolBase;
@@ -118,18 +118,18 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         } else
         {
             // Chord symbol alias used, need to guess where the extension starts
-            int baseStart = ecs.getRootNote().toRelativeNoteString().length();
-            String ctString = chordSymbolString.substring(baseStart);
+            int rootNoteLength = ecs.getRootNote().toRelativeNoteString().length();
+            String ctString = chordSymbolString.substring(rootNoteLength).replaceFirst("/.*", "");  // Remove root note possible bass note
             int extStart = ChordTypeDatabase.getInstance().guessExtension(ctString);
             if (extStart == -1)
             {
-                // No extension found
-                chordSymbolBase = chordSymbolString;
+                // No extension found, use major chord symbol by default
+                chordSymbolBase = ecs.getRootNote().toRelativeNoteString();
                 chordSymbolExtension = "";
             } else
             {
-                chordSymbolBase = chordSymbolString.substring(0, baseStart + extStart);
-                chordSymbolExtension = chordSymbolString.substring(baseStart + extStart);
+                chordSymbolBase = ecs.getRootNote().toRelativeNoteString() + ctString.substring(0, extStart);
+                chordSymbolExtension = ctString.substring(extStart);
             }
         }
         chordSymbolBass = "";
@@ -358,7 +358,6 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         }
     }
 
-
     public void flashOptionLine()
     {
         if (timer != null && timer.isRunning())
@@ -409,7 +408,6 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 
     }
 
-
     //-----------------------------------------------------------------------
     // Implementation of the PropertiesListener interface
     //-----------------------------------------------------------------------
@@ -451,6 +449,5 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
                 || extCs.getAlternateChordSymbol() != null
                 || cri.hasOneFeature(Feature.PEDAL_BASS));
     }
-
 
 }
