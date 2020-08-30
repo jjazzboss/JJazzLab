@@ -34,7 +34,6 @@ import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 
 //@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.showhiderps")

@@ -56,7 +56,7 @@ import org.jjazz.ui.sptviewer.api.SptViewerSettings;
 import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.ui.rpviewer.api.RpViewerFactory;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.utilities.GeneralUISettings;
+import org.jjazz.uisettings.GeneralUISettings;
 
 /**
  * An implementation of a SptViewer.

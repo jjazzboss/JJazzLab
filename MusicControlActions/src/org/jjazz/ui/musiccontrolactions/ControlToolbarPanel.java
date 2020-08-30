@@ -66,7 +66,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
 
         // The model for the PositionViewer
         posModel = new Position();
-
+        
         // Listen to playbackState and position changes
         MusicController.getInstance().addPropertyChangeListener(this);
         MusicController.getInstance().addPlaybackListener(this);
@@ -298,12 +298,10 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         add(filler3);
         add(filler10);
 
-        posViewer.setBackground(new java.awt.Color(204, 204, 204));
-        posViewer.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 102, 153)), javax.swing.BorderFactory.createEmptyBorder(1, 8, 1, 8)));
+        posViewer.setBorder(javax.swing.BorderFactory.createCompoundBorder(spn_Tempo.getBorder(), javax.swing.BorderFactory.createEmptyBorder(1, 8, 1, 8)));
         org.openide.awt.Mnemonics.setLocalizedText(posViewer, org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.posViewer.text")); // NOI18N
         posViewer.setToolTipText(org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.posViewer.toolTipText")); // NOI18N
         posViewer.setFont(new java.awt.Font("Courier New", 1, 16)); // NOI18N
-        posViewer.setOpaque(true);
         add(posViewer);
         add(filler4);
 

@@ -43,7 +43,7 @@ import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midimix.UserChannelRvKey;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.songeditormanager.StartupShutdownSongManager;
-import org.jjazz.ui.utilities.GeneralUISettings;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.ui.utilities.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;

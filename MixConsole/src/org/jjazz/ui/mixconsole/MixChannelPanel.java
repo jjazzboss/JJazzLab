@@ -234,6 +234,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
      */
     private void refreshUI()
     {
+        // Channel Id    
         String s = String.valueOf(model.getChannelId() + 1);
         String tt = "Midi Channel";
         if (model.isDrumsReroutingEnabled())
@@ -243,11 +244,17 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         }
         this.fbtn_channelId.setText(s);
         this.fbtn_channelId.setToolTipText(tt);
+
+
+        // Instrument name
         Instrument ins = model.getInstrument();
         tt = ins.getFullName() + (ins.isDrumKit() ? ", DrumKit type=" + ins.getDrumKit().getType().toString() + " keymap= " + ins.getDrumKit().getKeyMap().getName() : "");
         fbtn_Instrument.setToolTipText(tt);
         String patchName = Utilities.truncateWithDots(ins.getPatchName(), 15);
         this.fbtn_Instrument.setvLabel(patchName);
+
+
+        // Widget values and state
         this.fbtn_mute.setSelected(model.isMute());
         this.fbtn_solo.setSelected(model.isSolo());
         this.fslider_volume.setValue(model.getVolume());
@@ -259,7 +266,15 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         knob_chorus.setEnabled(model.isChorusEnabled());
         fslider_volume.setEnabled(model.isVolumeEnabled());
         fbtn_Instrument.setEnabled(model.isInstrumentEnabled());
-        roundedPanel.setBackground(settings.getMixChannelBackgroundColor());
+
+
+        // Colors
+        Color c = settings.getMixChannelBackgroundColor();
+        roundedPanel.setBackground(c);
+        this.knob_chorus.setColorKnobFill(c);
+        this.knob_panoramic.setColorKnobFill(c);
+        this.knob_reverb.setColorKnobFill(c);
+        this.fslider_volume.setColorKnobFill(c);
     }
 
     /**
@@ -311,7 +326,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         pnl_led_close.setLayout(flowLayout1);
 
         fled_midiActivity.setForeground(new java.awt.Color(153, 153, 153));
-        fled_midiActivity.setColorFill(new java.awt.Color(204, 51, 0));
         fled_midiActivity.setDiameter(8);
         fled_midiActivity.setLuminanceStepEventReceived(-35);
         pnl_led_close.add(fled_midiActivity);
@@ -600,183 +614,183 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     private org.jjazz.ui.flatcomponents.RoundedPanel roundedPanel;
     // End of variables declaration//GEN-END:variables
 
-}
-
-class BaseMixChannelPanelModel implements MixChannelPanelModel
-{
-
-    @Override
-    public void addPropertyChangeListener(PropertyChangeListener l)
+    private class BaseMixChannelPanelModel implements MixChannelPanelModel
     {
-        // Nothing
-    }
 
-    @Override
-    public void removePropertyChangeListener(PropertyChangeListener l)
-    {
-        // Nothing
-    }
+        @Override
+        public void addPropertyChangeListener(PropertyChangeListener l)
+        {
+            // Nothing
+        }
 
-    @Override
-    public void setPanoramicEnabled(boolean b)
-    {
-        // Nothing
-    }
+        @Override
+        public void removePropertyChangeListener(PropertyChangeListener l)
+        {
+            // Nothing
+        }
 
-    @Override
-    public boolean isPanoramicEnabled()
-    {
-        return true;
-    }
+        @Override
+        public void setPanoramicEnabled(boolean b)
+        {
+            // Nothing
+        }
 
-    @Override
-    public void setChorusEnabled(boolean b)
-    {
-        // Nothing
-    }
+        @Override
+        public boolean isPanoramicEnabled()
+        {
+            return true;
+        }
 
-    @Override
-    public boolean isChorusEnabled()
-    {
-        return true;
-    }
+        @Override
+        public void setChorusEnabled(boolean b)
+        {
+            // Nothing
+        }
 
-    @Override
-    public void setReverbEnabled(boolean b)
-    {
-        // Nothing
-    }
+        @Override
+        public boolean isChorusEnabled()
+        {
+            return true;
+        }
 
-    @Override
-    public boolean isReverbEnabled()
-    {
-        return true;
-    }
+        @Override
+        public void setReverbEnabled(boolean b)
+        {
+            // Nothing
+        }
 
-    @Override
-    public void setReverb(int value)
-    {
-        // Nothing
-    }
+        @Override
+        public boolean isReverbEnabled()
+        {
+            return true;
+        }
 
-    @Override
-    public int getReverb()
-    {
-        return 100;
-    }
+        @Override
+        public void setReverb(int value)
+        {
+            // Nothing
+        }
 
-    @Override
-    public void setChorus(int value)
-    {
-        // Nothing
-    }
+        @Override
+        public int getReverb()
+        {
+            return 100;
+        }
 
-    @Override
-    public int getChorus()
-    {
-        return 100;
-    }
+        @Override
+        public void setChorus(int value)
+        {
+            // Nothing
+        }
 
-    @Override
-    public void setPanoramic(int value)
-    {
-        // Nothing
-    }
+        @Override
+        public int getChorus()
+        {
+            return 100;
+        }
 
-    @Override
-    public int getPanoramic()
-    {
-        return 100;
-    }
+        @Override
+        public void setPanoramic(int value)
+        {
+            // Nothing
+        }
 
-    @Override
-    public void setVolume(int oldValue, int newValue, MouseEvent me)
-    {
-        // Nothing
-    }
+        @Override
+        public int getPanoramic()
+        {
+            return 100;
+        }
 
-    @Override
-    public int getVolume()
-    {
-        return 100;
-    }
+        @Override
+        public void setVolume(int oldValue, int newValue, MouseEvent me)
+        {
+            // Nothing
+        }
 
-    @Override
-    public void setMute(boolean b)
-    {
-        // Nothing
-    }
+        @Override
+        public int getVolume()
+        {
+            return 100;
+        }
 
-    @Override
-    public boolean isMute()
-    {
-        return false;
-    }
+        @Override
+        public void setMute(boolean b)
+        {
+            // Nothing
+        }
 
-    @Override
-    public void setSolo(boolean b)
-    {
-        // Nothing
-    }
+        @Override
+        public boolean isMute()
+        {
+            return false;
+        }
 
-    @Override
-    public boolean isSolo()
-    {
-        return false;
-    }
+        @Override
+        public void setSolo(boolean b)
+        {
+            // Nothing
+        }
 
-    @Override
-    public Instrument getInstrument()
-    {
-        return StdSynth.getInstance().getGM1Bank().getInstruments().get(0);
-    }
+        @Override
+        public boolean isSolo()
+        {
+            return false;
+        }
 
-    @Override
-    public int getChannelId()
-    {
-        return MidiConst.CHANNEL_MIN;
-    }
+        @Override
+        public Instrument getInstrument()
+        {
+            return StdSynth.getInstance().getGM1Bank().getInstruments().get(0);
+        }
 
-    @Override
-    public void cleanup()
-    {
-        // Nothing
-    }
+        @Override
+        public int getChannelId()
+        {
+            return MidiConst.CHANNEL_MIN;
+        }
 
-    @Override
-    public void setVolumeEnabled(boolean b)
-    {
-        // Nothing
-    }
+        @Override
+        public void cleanup()
+        {
+            // Nothing
+        }
 
-    @Override
-    public boolean isVolumeEnabled()
-    {
-        return true;
-    }
+        @Override
+        public void setVolumeEnabled(boolean b)
+        {
+            // Nothing
+        }
 
-    @Override
-    public void setInstrumentEnabled(boolean b)
-    {
-        // Nothing
-    }
+        @Override
+        public boolean isVolumeEnabled()
+        {
+            return true;
+        }
 
-    @Override
-    public boolean isInstrumentEnabled()
-    {
-        return true;
-    }
+        @Override
+        public void setInstrumentEnabled(boolean b)
+        {
+            // Nothing
+        }
 
-    @Override
-    public boolean isDrumsReroutingEnabled()
-    {
-        return false;
-    }
+        @Override
+        public boolean isInstrumentEnabled()
+        {
+            return true;
+        }
 
-    @Override
-    public boolean isUserChannel()
-    {
-        return false;
+        @Override
+        public boolean isDrumsReroutingEnabled()
+        {
+            return false;
+        }
+
+        @Override
+        public boolean isUserChannel()
+        {
+            return false;
+        }
+
     }
 
 }

@@ -493,9 +493,11 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         jScrollPane7.setViewportView(tbl_Instruments);
 
         btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/Speaker-20x20.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Hear, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_Hear.text")); // NOI18N
         btn_Hear.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_Hear.toolTipText")); // NOI18N
+        btn_Hear.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/SpeakerDisabled-20x20.png"))); // NOI18N
         btn_Hear.setEnabled(false);
+        btn_Hear.setIconTextGap(0);
+        btn_Hear.setMargin(new java.awt.Insets(2, 4, 2, 4));
         btn_Hear.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)

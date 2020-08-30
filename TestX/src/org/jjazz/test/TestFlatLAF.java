@@ -27,7 +27,7 @@ import org.openide.modules.OnStart;
 import org.openide.util.NbPreferences;
 
 
-// @OnStart
+@OnStart
 public final class TestFlatLAF implements Runnable
 {
 

@@ -57,7 +57,7 @@ public class MixConsoleSettingsImpl implements MixConsoleSettings, FontColorUser
     @Override
     public Color getMixChannelBackgroundColor()
     {
-        Color color = new Color(prefs.getInt(PROP_CHANNEL_PANEL_BACKGROUND_COLOR, new Color(202, 198, 198).getRGB()));
+        Color color = new Color(prefs.getInt(PROP_CHANNEL_PANEL_BACKGROUND_COLOR, new Color(212, 211, 209).getRGB()));
         return color;
     }
 

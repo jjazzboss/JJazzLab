@@ -202,12 +202,10 @@ public class FixMidiMixDialog extends javax.swing.JDialog
             }
         });
 
-        lbl_fixedInstruments.setForeground(new java.awt.Color(102, 0, 0));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_fixedInstruments, org.openide.util.NbBundle.getMessage(FixMidiMixDialog.class, "FixMidiMixDialog.lbl_fixedInstruments.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_reroutedChannelsTitle, org.openide.util.NbBundle.getMessage(FixMidiMixDialog.class, "FixMidiMixDialog.lbl_reroutedChannelsTitle.text")); // NOI18N
 
-        lbl_reroutedChannels.setForeground(new java.awt.Color(102, 0, 0));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_reroutedChannels, org.openide.util.NbBundle.getMessage(FixMidiMixDialog.class, "FixMidiMixDialog.lbl_reroutedChannels.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());

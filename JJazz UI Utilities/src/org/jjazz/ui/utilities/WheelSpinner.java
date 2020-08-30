@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.utilities;
 
+import org.jjazz.uisettings.GeneralUISettings;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;

@@ -20,28 +20,43 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.utilities;
+package org.jjazz.uisettings;
 
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeListener;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.openide.util.NbPreferences;
+import org.openide.util.*;
 
 /**
- * Store general UI settings
+ * Store general UI settings, manage current and available Themes.
  */
 public class GeneralUISettings
 {
 
+    /**
+     * The supported Look & Feels.
+     */
+    public enum LookAndFeel
+    {
+        LOOK_AND_FEEL_DEFAULT, LOOK_AND_FEEL_FLAT_DARK_LAF
+    }
+
     public static final String PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL = "ChangeWithMouseWheel";
+    public static final String PREF_THEME_UPON_RESTART = "ThemeUponRestart";
     private static GeneralUISettings INSTANCE;
+    private Theme theme;
     private HashMap<WeakReference<JComponent>, MouseWheelListener> mouseWheelInstalledComponents = new HashMap<>();
     private static Preferences prefs = NbPreferences.forModule(GeneralUISettings.class);
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private static final Logger LOGGER = Logger.getLogger(GeneralUISettings.class.getSimpleName());
 
     static public GeneralUISettings getInstance()
     {
@@ -58,6 +73,78 @@ public class GeneralUISettings
     private GeneralUISettings()
     {
 
+    }
+
+    public Theme getDefaultTheme()
+    {
+        Theme res = getTheme(DarkTheme.NAME);
+        assert res != null;
+        return res;
+    }
+
+    /**
+     * Set the theme to be used on next application restart.
+     *
+     * @param themeName
+     */
+    public void setThemeUponRestart(String themeName)
+    {
+        if (getTheme(themeName) == null)
+        {
+            throw new IllegalArgumentException("Can't find a Theme with name=" + themeName);
+        }
+        prefs.put(PREF_THEME_UPON_RESTART, themeName);
+    }
+
+    /**
+     * Get the theme name to be used on next application restart.
+     *
+     * @return
+     */
+    public String getThemeUponRestart()
+    {
+        return prefs.get(PREF_THEME_UPON_RESTART, getDefaultTheme().getName());
+    }
+
+    /**
+     * Get the available themes names found in the global Lookup.
+     *
+     * @return
+     */
+    public List<String> getAvailableThemeNames()
+    {
+        var res = new ArrayList<>(Lookup.getDefault().lookupAll(Theme.class));
+        return res.stream().map(t -> t.getName()).collect(Collectors.toList());
+    }
+
+    /**
+     * Get the Theme with specified name.
+     *
+     * @param themeName
+     * @return Null if not found.
+     */
+    public Theme getTheme(String themeName)
+    {
+        Theme res = null;
+        for (Theme t : Lookup.getDefault().lookupAll(Theme.class))
+        {
+            if (t.getName().equals(themeName))
+            {
+                res = t;
+                break;
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Get the currently used theme.
+     *
+     * @return
+     */
+    public Theme getCurrentTheme()
+    {
+        return theme;
     }
 
     /**
@@ -152,4 +239,5 @@ public class GeneralUISettings
             }
         }
     }
+
 }

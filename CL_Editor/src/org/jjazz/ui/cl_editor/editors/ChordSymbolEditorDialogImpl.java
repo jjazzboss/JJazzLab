@@ -35,6 +35,7 @@ import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -416,12 +417,12 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             updateScales(ecs);
             updateOptionalText();
             btn_Ok.setEnabled(true);
-            this.tf_ChordSymbolName.setForeground(Color.BLACK);
+            this.tf_ChordSymbolName.setForeground(UIManager.getDefaults().getColor("Label.foreground")); 
         } else
         {
             updateChordSymbolInfo(null);
             btn_Ok.setEnabled(false);
-            this.tf_ChordSymbolName.setForeground(Color.GRAY);
+            this.tf_ChordSymbolName.setForeground(UIManager.getDefaults().getColor("Label.disabledForeground")); 
         }
         return checkOk;
     }

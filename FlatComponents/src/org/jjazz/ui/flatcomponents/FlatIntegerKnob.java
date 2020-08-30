@@ -50,7 +50,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
-import org.jjazz.ui.utilities.GeneralUISettings;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.openide.windows.WindowManager;
 
 /**

@@ -40,7 +40,7 @@ import javax.swing.BorderFactory;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import static org.jjazz.ui.flatcomponents.Bundle.CTL_Tooltip;
-import org.jjazz.ui.utilities.GeneralUISettings;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 
