@@ -56,8 +56,8 @@ public class LightTheme implements Theme
     }
 
     @Override
-    public GeneralUISettings.LookAndFeel getLookAndFeel()
+    public GeneralUISettings.LookAndFeelId getLookAndFeel()
     {
-        return GeneralUISettings.LookAndFeel.LOOK_AND_FEEL_DEFAULT;
+        return GeneralUISettings.LookAndFeelId.LOOK_AND_FEEL_SYSTEM_DEFAULT;
     }
 }
