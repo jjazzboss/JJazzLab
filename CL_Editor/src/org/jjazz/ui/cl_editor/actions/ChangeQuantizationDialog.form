@@ -169,7 +169,7 @@
             <Component class="javax.swing.JLabel" name="lbl_halfBar1">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteHalf.gif"/>
+                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteHalf-20x30.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/cl_editor/actions/Bundle.properties" key="ChangeQuantizationDialog.lbl_halfBar1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -206,7 +206,7 @@
             <Component class="javax.swing.JLabel" name="lbl_beat1">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteQuarter.gif"/>
+                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteQuarter-20x30.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/cl_editor/actions/Bundle.properties" key="ChangeQuantizationDialog.lbl_beat1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -240,7 +240,7 @@
             <Component class="javax.swing.JLabel" name="lbl_half">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteEighth.gif"/>
+                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteEighth-20x30.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/cl_editor/actions/Bundle.properties" key="ChangeQuantizationDialog.lbl_half.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -267,7 +267,7 @@
             <Component class="javax.swing.JLabel" name="lbl_halfTriplet">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteEighthTriplet.gif"/>
+                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteEighthTriplet-20x30.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/cl_editor/actions/Bundle.properties" key="ChangeQuantizationDialog.lbl_halfTriplet.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -294,7 +294,7 @@
             <Component class="javax.swing.JLabel" name="lbl_sixteenth">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteSixteenth.gif"/>
+                  <Image iconType="3" name="/org/jjazz/ui/cl_editor/actions/resources/NoteSixteenth-20x30.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/cl_editor/actions/Bundle.properties" key="ChangeQuantizationDialog.lbl_sixteenth.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>

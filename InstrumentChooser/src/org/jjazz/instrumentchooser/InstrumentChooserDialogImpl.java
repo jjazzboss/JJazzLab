@@ -57,6 +57,7 @@ import org.jjazz.outputsynth.GMRemapTable;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.util.Utilities;
 import org.openide.*;
 import org.openide.windows.WindowManager;
@@ -496,9 +497,10 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             }
         });
 
-        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/instrumentchooser/resources/Speaker-20x20.png"))); // NOI18N
+        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/instrumentchooser/resources/SpeakerRed-20x20.png"))); // NOI18N
         btn_Hear.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.btn_Hear.toolTipText")); // NOI18N
-        btn_Hear.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/instrumentchooser/resources/SpeakerDisabled-20x20.png"))); // NOI18N
+        btn_Hear.setDisabledIcon(GeneralUISettings.getInstance().getIcon("speaker.icon.disabled"));
+        btn_Hear.setMargin(new java.awt.Insets(2, 4, 2, 4));
         btn_Hear.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -561,19 +563,20 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lbl_Title, javax.swing.GroupLayout.DEFAULT_SIZE, 654, Short.MAX_VALUE)
+                    .addComponent(lbl_Title, javax.swing.GroupLayout.DEFAULT_SIZE, 637, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
                                 .addComponent(lbl_Filtered))
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(spn_transposition, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btn_Hear, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lbl_transpose, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(spn_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lbl_transpose, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(btn_Hear)))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -623,7 +626,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 353, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 335, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(btn_Ok)
@@ -639,7 +642,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(spn_transposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(lbl_transpose))
-                        .addGap(27, 27, 27)
+                        .addGap(28, 28, 28)
                         .addComponent(btn_Hear)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())

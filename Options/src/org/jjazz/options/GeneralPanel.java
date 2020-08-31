@@ -22,7 +22,6 @@
  */
 package org.jjazz.options;
 
-import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -31,23 +30,17 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JComboBox;
-import javax.swing.JList;
-import org.jjazz.base.actions.ShowLogWindow;
+import java.util.stream.Collectors;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.midi.device.MidiFilter;
-import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midimix.UserChannelRvKey;
-import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.songeditormanager.StartupShutdownSongManager;
 import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.ui.utilities.Utilities;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
-import org.openide.modules.Places;
 import org.openide.util.NbBundle.Messages;
 
 @Messages(
@@ -57,40 +50,21 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
 {
 
     private final GeneralOptionsPanelController controller;
-    private static final Level[] ALL_LEVELS = new Level[]
-    {
-        Level.ALL, Level.FINEST, Level.FINER, Level.FINE, Level.CONFIG, Level.INFO, Level.WARNING, Level.SEVERE, Level.OFF
-    };
-    private static String[] loggerNames;
+
     private static final Logger LOGGER = Logger.getLogger(GeneralPanel.class.getSimpleName());
 
     GeneralPanel(GeneralOptionsPanelController controller)
     {
         this.controller = controller;
-        if (loggerNames == null)
-        {
-            List<String> names = new ArrayList<>();
-            Properties p = System.getProperties();
-            Enumeration<?> keys = p.keys();
-            while (keys.hasMoreElements())
-            {
-                String key = (String) keys.nextElement();
-                if (key.endsWith(".level"))
-                {
-                    String name = key.substring(0, key.length() - 6);
-                    names.add(name);
-                }
-            }
-            Collections.sort(names);
-            loggerNames = names.toArray(new String[0]);
-        }
 
-        // Initialize the logger names
+
         initComponents();
 
-        // Update the combos
-        cb_loggerNameActionPerformed(null);
-
+        // Make button Apply up to date
+        cb_disableMouseWheelChangeValue.addActionListener(al -> controller.changed());
+        cb_loadLastRecentFile.addActionListener(al -> controller.changed());
+        cb_useRhythmFileUserDir.addActionListener(al -> controller.changed());        
+        
         // Listen to directory changes
         FileDirectoryManager fdm = FileDirectoryManager.getInstance();
         fdm.addPropertyChangeListener(this); // RhythmDir changes      
@@ -135,27 +109,15 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
     {
 
         cb_loadLastRecentFile = new javax.swing.JCheckBox();
-        panel_Debug = new javax.swing.JPanel();
-        btn_showLog = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        btn_setLogger = new javax.swing.JButton();
-        cb_loggerLevel = new JComboBox<>(ALL_LEVELS);
-        cb_loggerName = new JComboBox<>(loggerNames);
-        cb_loggerName.setRenderer(new ToolTipRenderer());
-        jPanel3 = new javax.swing.JPanel();
-        cb_logMidiOut = new javax.swing.JCheckBox();
-        cb_debugBuiltSequence = new javax.swing.JCheckBox();
-        spn_preferredUserChannel = new org.jjazz.ui.utilities.WheelSpinner();
-        lbl_preferredUserChannel = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
         btn_changeDefaultRhythmMixDir = new javax.swing.JButton();
         cb_useRhythmFileUserDir = new javax.swing.JCheckBox();
         tf_defaultRhythmMixDir = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
-        btn_resetSettings = new javax.swing.JButton();
         cb_disableMouseWheelChangeValue = new javax.swing.JCheckBox();
+        cmb_themes = new javax.swing.JComboBox<>();
+        jLabel1 = new javax.swing.JLabel();
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_loadLastRecentFile, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_loadLastRecentFile.text")); // NOI18N
         cb_loadLastRecentFile.addChangeListener(new javax.swing.event.ChangeListener()
@@ -165,142 +127,6 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
                 cb_loadLastRecentFileStateChanged(evt);
             }
         });
-
-        panel_Debug.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.panel_Debug.border.title"))); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(btn_showLog, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.btn_showLog.text")); // NOI18N
-        btn_showLog.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                btn_showLogActionPerformed(evt);
-            }
-        });
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jLabel1.text")); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(btn_setLogger, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.btn_setLogger.text")); // NOI18N
-        btn_setLogger.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                btn_setLoggerActionPerformed(evt);
-            }
-        });
-
-        cb_loggerLevel.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cb_loggerLevelActionPerformed(evt);
-            }
-        });
-
-        cb_loggerName.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cb_loggerNameActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(112, 112, 112))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(cb_loggerName, javax.swing.GroupLayout.PREFERRED_SIZE, 222, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cb_loggerLevel, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
-                .addComponent(btn_setLogger)
-                .addContainerGap())
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cb_loggerLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_setLogger)
-                    .addComponent(cb_loggerName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        org.openide.awt.Mnemonics.setLocalizedText(cb_logMidiOut, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_logMidiOut.text")); // NOI18N
-        cb_logMidiOut.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_logMidiOut.toolTipText")); // NOI18N
-        cb_logMidiOut.addChangeListener(new javax.swing.event.ChangeListener()
-        {
-            public void stateChanged(javax.swing.event.ChangeEvent evt)
-            {
-                cb_logMidiOutStateChanged(evt);
-            }
-        });
-
-        org.openide.awt.Mnemonics.setLocalizedText(cb_debugBuiltSequence, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_debugBuiltSequence.text")); // NOI18N
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(cb_debugBuiltSequence)
-                    .addComponent(cb_logMidiOut))
-                .addContainerGap())
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addComponent(cb_logMidiOut)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(cb_debugBuiltSequence)
-                .addGap(0, 0, 0))
-        );
-
-        javax.swing.GroupLayout panel_DebugLayout = new javax.swing.GroupLayout(panel_Debug);
-        panel_Debug.setLayout(panel_DebugLayout);
-        panel_DebugLayout.setHorizontalGroup(
-            panel_DebugLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panel_DebugLayout.createSequentialGroup()
-                .addGroup(panel_DebugLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(panel_DebugLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(btn_showLog)
-                        .addGap(205, 205, 205)
-                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        panel_DebugLayout.setVerticalGroup(
-            panel_DebugLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panel_DebugLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(panel_DebugLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(panel_DebugLayout.createSequentialGroup()
-                        .addComponent(btn_showLog)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-
-        spn_preferredUserChannel.setModel(new javax.swing.SpinnerNumberModel(1, 1, 16, 1));
-        spn_preferredUserChannel.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.spn_preferredUserChannel.toolTipText")); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_preferredUserChannel, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.lbl_preferredUserChannel.text")); // NOI18N
-        lbl_preferredUserChannel.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.lbl_preferredUserChannel.toolTipText")); // NOI18N
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jPanel1.border.title"))); // NOI18N
 
@@ -346,7 +172,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
                             .addComponent(tf_defaultRhythmMixDir, javax.swing.GroupLayout.PREFERRED_SIZE, 297, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_changeDefaultRhythmMixDir)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 123, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -362,17 +188,20 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
                 .addComponent(jScrollPane1))
         );
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_resetSettings, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.btn_resetSettings.text")); // NOI18N
-        btn_resetSettings.addActionListener(new java.awt.event.ActionListener()
+        org.openide.awt.Mnemonics.setLocalizedText(cb_disableMouseWheelChangeValue, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_disableMouseWheelChangeValue.text")); // NOI18N
+        cb_disableMouseWheelChangeValue.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_disableMouseWheelChangeValue.toolTipText")); // NOI18N
+
+        cmb_themes.setMaximumRowCount(4);
+        cmb_themes.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cmb_themes.toolTipText")); // NOI18N
+        cmb_themes.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                btn_resetSettingsActionPerformed(evt);
+                cmb_themesActionPerformed(evt);
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_disableMouseWheelChangeValue, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_disableMouseWheelChangeValue.text")); // NOI18N
-        cb_disableMouseWheelChangeValue.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_disableMouseWheelChangeValue.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jLabel1.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -381,19 +210,15 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(panel_Debug, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(btn_resetSettings))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(cb_disableMouseWheelChangeValue)
+                            .addComponent(cb_loadLastRecentFile)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(spn_preferredUserChannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(lbl_preferredUserChannel))
-                            .addComponent(cb_loadLastRecentFile))
+                                .addComponent(cmb_themes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jLabel1)))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -406,15 +231,11 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
                 .addComponent(cb_disableMouseWheelChangeValue)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(spn_preferredUserChannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lbl_preferredUserChannel))
-                .addGap(21, 21, 21)
+                    .addComponent(cmb_themes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
+                .addGap(36, 36, 36)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 20, Short.MAX_VALUE)
-                .addComponent(btn_resetSettings)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panel_Debug, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addContainerGap(185, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -422,54 +243,6 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
     {//GEN-HEADEREND:event_cb_loadLastRecentFileStateChanged
         controller.changed();
     }//GEN-LAST:event_cb_loadLastRecentFileStateChanged
-
-    private void cb_logMidiOutStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_cb_logMidiOutStateChanged
-    {//GEN-HEADEREND:event_cb_logMidiOutStateChanged
-        controller.changed();
-    }//GEN-LAST:event_cb_logMidiOutStateChanged
-
-    private void cb_loggerNameActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_loggerNameActionPerformed
-    {//GEN-HEADEREND:event_cb_loggerNameActionPerformed
-        String name = (String) cb_loggerName.getSelectedItem();
-        if (name != null)
-        {
-            cb_loggerLevel.setEnabled(true);
-            Logger logger = Logger.getLogger(name);
-            cb_loggerLevel.setSelectedItem(logger.getLevel());
-        } else
-        {
-            this.cb_loggerLevel.setEnabled(false);
-        }
-        btn_setLogger.setEnabled(false);
-    }//GEN-LAST:event_cb_loggerNameActionPerformed
-
-    private void btn_setLoggerActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_setLoggerActionPerformed
-    {//GEN-HEADEREND:event_btn_setLoggerActionPerformed
-        Level level = (Level) this.cb_loggerLevel.getSelectedItem();
-        String name = (String) cb_loggerName.getSelectedItem();
-        Logger logger = Logger.getLogger(name);
-        logger.setLevel(level);
-        btn_setLogger.setEnabled(false);
-    }//GEN-LAST:event_btn_setLoggerActionPerformed
-
-    private void cb_loggerLevelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_loggerLevelActionPerformed
-    {//GEN-HEADEREND:event_cb_loggerLevelActionPerformed
-        Level level = (Level) cb_loggerLevel.getSelectedItem();
-        String name = (String) cb_loggerName.getSelectedItem();
-        if (level != null)
-        {
-            Logger logger = Logger.getLogger(name);
-            btn_setLogger.setEnabled(!logger.getLevel().equals(level));
-        } else
-        {
-            btn_setLogger.setEnabled(false);
-        }
-    }//GEN-LAST:event_cb_loggerLevelActionPerformed
-
-    private void btn_showLogActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_showLogActionPerformed
-    {//GEN-HEADEREND:event_btn_showLogActionPerformed
-        ShowLogWindow.actionPerformed();
-    }//GEN-LAST:event_btn_showLogActionPerformed
 
     private void btn_changeDefaultRhythmMixDirActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_changeDefaultRhythmMixDirActionPerformed
     {//GEN-HEADEREND:event_btn_changeDefaultRhythmMixDirActionPerformed
@@ -487,17 +260,12 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         fdm.setUseRhyhtmUserDirAsRhythmDefaultMixDir(cb_useRhythmFileUserDir.isSelected());
     }//GEN-LAST:event_cb_useRhythmFileUserDirActionPerformed
 
-    private void btn_resetSettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetSettingsActionPerformed
-    {//GEN-HEADEREND:event_btn_resetSettingsActionPerformed
-        File userDir = Places.getUserDirectory();
-        String msg = "To reset all JJazzLab user settings:\n"
-                + "  - Close JJazzLab\n"
-                + "  - Delete directory " + userDir.getAbsolutePath() + "\n"
-                + "  - Restart JJazzLab\n"
-                + "Note: on Windows the 'AppData' folder is hidden by default";
-        NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
-        DialogDisplayer.getDefault().notify(nd);
-    }//GEN-LAST:event_btn_resetSettingsActionPerformed
+    private void cmb_themesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cmb_themesActionPerformed
+    {//GEN-HEADEREND:event_cmb_themesActionPerformed
+       controller.applyChanges();
+       controller.changed();
+               
+    }//GEN-LAST:event_cmb_themesActionPerformed
 
     void load()
     {
@@ -511,9 +279,15 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
 
         cb_loadLastRecentFile.setSelected(StartupShutdownSongManager.getInstance().isOpenRecentFilesUponStartup());
         cb_disableMouseWheelChangeValue.setSelected(!GeneralUISettings.getInstance().isChangeValueWithMouseWheelEnabled());
-        cb_logMidiOut.setSelected(JJazzMidiSystem.getInstance().getMidiOutLogConfig().contains(MidiFilter.ConfigLog.LOG_PASSED_MESSAGES));
-        cb_debugBuiltSequence.setSelected(MusicController.getInstance().isDebugBuiltSequence());
-        spn_preferredUserChannel.setValue(UserChannelRvKey.getInstance().getPreferredUserChannel() + 1);
+        
+                
+        // Theme combo
+        var uis = GeneralUISettings.getInstance();
+        List<String> themeNames = uis.getAvailableThemes().stream().map(t -> t.getName()).collect(Collectors.toList());
+        var cmbModel = new DefaultComboBoxModel<String>(themeNames.toArray(new String[0]));
+        cmb_themes.setModel(cmbModel);
+        cmb_themes.setSelectedItem(uis.getThemeNameUponRestart());
+
         updateRhythmMixDirPanel();
     }
 
@@ -528,16 +302,10 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
         StartupShutdownSongManager.getInstance().setOpenRecentFilesUponStartup(cb_loadLastRecentFile.isSelected());
 
-        if (cb_logMidiOut.isSelected())
-        {
-            JJazzMidiSystem.getInstance().getMidiOutLogConfig().add(MidiFilter.ConfigLog.LOG_PASSED_MESSAGES);
-        } else
-        {
-            JJazzMidiSystem.getInstance().getMidiOutLogConfig().remove(MidiFilter.ConfigLog.LOG_PASSED_MESSAGES);
-        }
-        MusicController.getInstance().setDebugBuiltSequence(cb_debugBuiltSequence.isSelected());
-        UserChannelRvKey.getInstance().setPreferredUserChannel(((Integer) spn_preferredUserChannel.getValue()) - 1);
         GeneralUISettings.getInstance().setChangeValueWithMouseWheelEnabled(!cb_disableMouseWheelChangeValue.isSelected());
+        
+        var uis = GeneralUISettings.getInstance();
+        uis.setThemeUponRestart(uis.getTheme(cmb_themes.getSelectedItem().toString()));
     }
 
     boolean valid()
@@ -546,46 +314,17 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         return true;
     }
 
-    // ========================================================================================================
-    // Private classes
-    // ========================================================================================================
-    private class ToolTipRenderer extends DefaultListCellRenderer
-    {
-
-        @Override
-        public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
-        {
-            Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);      // actually c=this !
-            String loggerName = (String) value;
-            if (loggerName != null)
-            {
-                setToolTipText(loggerName);
-            }
-            return c;
-        }
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_changeDefaultRhythmMixDir;
-    private javax.swing.JButton btn_resetSettings;
-    private javax.swing.JButton btn_setLogger;
-    private javax.swing.JButton btn_showLog;
-    private javax.swing.JCheckBox cb_debugBuiltSequence;
     private javax.swing.JCheckBox cb_disableMouseWheelChangeValue;
     private javax.swing.JCheckBox cb_loadLastRecentFile;
-    private javax.swing.JCheckBox cb_logMidiOut;
-    private javax.swing.JComboBox<Level> cb_loggerLevel;
-    private javax.swing.JComboBox<String> cb_loggerName;
     private javax.swing.JCheckBox cb_useRhythmFileUserDir;
+    private javax.swing.JComboBox<String> cmb_themes;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JLabel lbl_preferredUserChannel;
-    private javax.swing.JPanel panel_Debug;
-    private org.jjazz.ui.utilities.WheelSpinner spn_preferredUserChannel;
     private javax.swing.JTextField tf_defaultRhythmMixDir;
     // End of variables declaration//GEN-END:variables
 }

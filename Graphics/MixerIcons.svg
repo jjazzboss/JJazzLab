@@ -17,7 +17,7 @@
    viewBox="0 0 75 75"
    inkscape:version="0.92.3 (2405546, 2018-03-11)"
    sodipodi:docname="MixerIcons.svg"
-   inkscape:export-filename="C:\Users\Administrateur.000\Documents\JJazzLab\src\JJazzLab-X\Graphics\SpeakerDisabled-20x20.png"
+   inkscape:export-filename="C:\Users\Administrateur.000\Documents\JJazzLab\src\JJazzLab-X\Graphics\SpeakerDisabledDarkTheme-20x20.png"
    inkscape:export-xdpi="3.5999999"
    inkscape:export-ydpi="3.5999999"><defs
    id="defs12"><linearGradient
@@ -282,8 +282,8 @@
    id="namedview10"
    showgrid="false"
    inkscape:zoom="0.236"
-   inkscape:cx="1543.1716"
-   inkscape:cy="-119.35786"
+   inkscape:cx="-1330.0828"
+   inkscape:cy="9.320424"
    inkscape:window-x="-8"
    inkscape:window-y="-8"
    inkscape:window-maximized="1"
@@ -573,27 +573,27 @@
        style="fill:#800000;fill-opacity:1"
        id="g3302">
 </g></g></g><g
-   id="g1388"><polygon
+   id="g1356"><polygon
      inkscape:export-ydpi="4.5"
      inkscape:export-xdpi="4.5"
      inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
      transform="matrix(1.0826595,0,0,1.0797366,1.2513735,-3.8101828)"
      id="polygon3122"
-     points="21.989,47.699 39.389,62.75 39.389,13.769 22.235,28.606 6,28.606 6,47.699 "
-     style="fill:#999999;fill-opacity:1;stroke:#999999;stroke-width:5.61106825;stroke-linejoin:round;stroke-opacity:1" /><path
+     points="6,28.606 6,47.699 21.989,47.699 39.389,62.75 39.389,13.769 22.235,28.606 "
+     style="fill:#3f4956;fill-opacity:1;stroke:#3f4956;stroke-width:5.61106825;stroke-linejoin:round;stroke-opacity:1" /><path
      inkscape:export-ydpi="4.5"
      inkscape:export-xdpi="4.5"
      inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
      id="path3124"
      d="m 53.357606,49.129305 c 2.088451,-3.342865 3.315108,-7.276346 3.315108,-11.502435 0,-4.295192 -1.260217,-8.285898 -3.407127,-11.661154"
-     style="fill:#999999;fill-opacity:1;stroke:#999999;stroke-width:6.06667042;stroke-linecap:round;stroke-opacity:1"
+     style="fill:none;fill-opacity:1;stroke:#3f4956;stroke-width:6.06667042;stroke-linecap:round;stroke-opacity:1"
      inkscape:connector-curvature="0" /><path
      inkscape:export-ydpi="4.5"
      inkscape:export-xdpi="4.5"
      inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
      id="path3126"
      d="m 60.886429,18.364368 c 4.000423,5.383567 6.370368,12.046622 6.370368,19.262502 0,7.148936 -2.328801,13.753685 -6.266434,19.110258"
-     style="fill:none;fill-opacity:1;stroke:#999999;stroke-width:6.06667042;stroke-linecap:round;stroke-opacity:1"
+     style="fill:none;fill-opacity:1;stroke:#3f4956;stroke-width:6.06667042;stroke-linecap:round;stroke-opacity:1"
      inkscape:connector-curvature="0" /></g><g
    id="g3184"
    transform="matrix(0.12288012,0,0,0.12288012,-120.00189,-102.12592)"><g
@@ -1521,6 +1521,211 @@
      style="fill:none;stroke:#666666;stroke-width:5;stroke-linecap:round;stroke-opacity:1"
      d="m -274.80422,19.415316 c 3.29705,4.437003 5.2503,9.928528 5.2503,15.875678 0,5.891977 -1.91934,11.335448 -5.16464,15.750203"
      id="path1364"
+     inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
+     inkscape:export-xdpi="4.5"
+     inkscape:export-ydpi="4.5" /></g><image
+   y="-56.346138"
+   x="-729.67297"
+   id="image1179"
+   xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEQAAAAuCAIAAAAeHijZAAAAA3NCSVQICAjb4U/gAAAB/ElEQVRo
+ge2ZT6uyQBSHnTGpaAZSSahWQRAt+/4fomUFSYtoI+afUUErnXdxIcTu2702h+4Q8+wc5DfnyTkz
+WSiKIu1TwH9dACRKRlY+SqbTuF6v1++cfrVaAaY1ZTRNo5QCTvCEJElgAz9qmSkZWYGRKYpit9vF
+cQyS9jIAMkmSbDabNE2zLBNPE0FUJgiC/X5flmV98Hw+b7fbqqoEw9siJON53uFweCwaY5xl2el0
+Egl/gW/Omf8Rx3G9K4qiYIwhhDjn90Hf98MwnM/nlFLf98fjcafTYgpBWszkeR5jrDFYN/m6ZIyF
+Yeg4juu6jDHLsgDK/B0tlhnnHCH0/B7bthFCQRBQShFCaZqKldcO4HMGY4wxzvNc13Vd1y+XC2z+
+D7ODJ94X3o+PERxgmaqqOOe9Xq8sy+v1ahgGbP5z2sk02v2RMAw556ZpfnXLYDB4vbT2tNjNJpNJ
+fWvO8zyKosbWrGkaIcQ0Tdd1EULD4RCs0l/QQoYQQgipj3iedzwe6z62bdu2zRhjjI1Go3ceMppg
+zziOM5vNHhv9drv1+/3pdCoS/gKin5xlWYZhuK5b/3pmWdY7z8o7ALsZpXS5XBJC3tzuj8Cs6W63
+u1gsQKJEUG+asqJkZOWbDQD8t7m3gdT/M5KiZGRFyciKkpEVJSMrSkZWlIys/ANl4MNSZVo89AAA
+AABJRU5ErkJggg==
+"
+   preserveAspectRatio="none"
+   height="28.515892"
+   width="39.019135" /><image
+   y="-58.311192"
+   x="-773.59607"
+   id="image1190"
+   xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFcAAABDCAIAAABm7Q62AAAAA3NCSVQICAjb4U/gAAADA0lEQVR4
+nO2Zv0vjYBjHv6+GporooRUEQ9tFcIhZLC4VKvgHiJud7HrL4XjbNf/CLbee20kHQUfp4iSlFMT+
+wB+BKN0kgyK0V2h7wwsl6Flfj7x5e3fPZwjk7dvkyydP3vdNwvr9PsSwbXtM//DpY06w/1/EmOoA
+IwFZAMgChywAZIFDFgBAs21bdQb1aF/0H+zhsD+zPXwLwP65ozqtLBg+NwS75qMH//uqiZfDv4qo
+BfZwKDWHWqgWAKoFDtUCQLXAoVoAAE2wH3s4zEcPXvu1WCwGlEeIzc3NYA8oaqE/sz187ZhKpYLI
+8zblcjnwY9K4ANC4wKFaAIAxfpHf3MqoBc/z9vf3b25uAj/ye2H5fF6892vPlMVi8b2j493dXaFQ
+aLfb6XR6Y2ND/I/lcjn4OWJvb0+899dv3wM5a7VaPT4+7vV6/saLi4tKpZLNZiORSCBnEUfBG7dS
+qXR0dPSyPRKJNJvN09PT8COJrhf+GMdxLi8vB7uPj4+O4wDwfxM7Pz+vVqvZbDaZTFYqlfX19Wg0
+KjuYH+kWzs7OXNcd3qfb7bqu22g0UqmU67rX19crKyuyg/kJ445gjA3vYFmWruv1ej2ZTDLGms1m
+CKn8jMSbeE3TYrGY53m6rk9MTDw9PYUcYCQsABgfHx+MFOKf0YNiJCx0u937+/vZ2dlOp9Nut6em
+pkIOIN0CY+zNa1ur1Vqt1vLy8u3tba/XW1xclJ3qGdLniHQ6vbCwMNj1PO/q6uplN8MwTNMsFAqa
+pi0tLclO9QzpFhKJRCKR8LeUSqWTkxN/jViWZVmW4ziO46yurk5OTspO9QwF48La2trW1tbL6bPV
+as3Pz2cymfAjSa+F32Ka5vT0NH+a8jeapqkkj7I5Ih6P53I5wzAMw1CVYYCaWuDMzc3t7u4qDDBg
+JNYLyiELAFngkAUgwNFRxseS0AjGQuCvQ0OG7giALHDIAkAWOGQBIAscsgCQBQ5ZAMgChywAZIFD
+FgCywCELAFngkAWALHDIAkAWOGQBIAucX1Ov/QxErKn1AAAAAElFTkSuQmCC
+"
+   preserveAspectRatio="none"
+   height="28.382299"
+   width="36.85463" /><image
+   y="6.4815636"
+   x="-781.76245"
+   id="image1201"
+   xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIcAAAA8CAIAAADDiD7rAAAAA3NCSVQICAjb4U/gAAACw0lEQVR4
+nO2aQVbbMBBAJdmSLBsSyItvQI/SRblHT9Uz9DLddt0N4VEgiS1LjtQF7xVqWPCohWbC/KUWmnH+
+G83YEf/85ZLNBL+47H58n2u3j4zInQDxAmQFImQFImQFImQFImQFIqX69HWuvXz8NddWHxyqFYiQ
+FYiUqQMIztZtW9dGcJ461oyEGLuuv95sQswQPbmVddtqre63u5Dl+d6KELypzbptr642GaKnDlCb
+at9ZXEoYYyHEfWdrU2WJntyKECKEkDpKCkIIQuTpu9TtIYLeSlkU6/NlpVTuROYEtxWtZLs6U1JK
+mXxseU8QWzFar5aLyWJtqvX5GUc1hT8Hq5XGVOfLUyHEREAMUcly0dS5EpsFHIVfaaWfdI6yKLSS
+Mf4zbdemMlrf3N0772tTbbse6ezHsFhpjNFKThYnVcIZ10pWWu26frVcaCV7O7xjjnOC4wR7TZvo
+rA0xGq2d84wxhbn/47DyGmKM4ziWZRFiDCEUosid0ds5HiuMMcYeawr1FHY8VjjnZVmMhwPnXAhx
+QNvqGRYr8RXfNo1WgvPeDkpKxpjzY/K0koGjJW73nfOPM5gsi0rrGONkDHPe28GtlqeRMTu4d09z
+Nkr389tce/GL2S7HTnDeO++frjTGL06apyudHTo7aKW0Uvve4n1ZYVhOsOfse3t7v4sxTt4lBed+
+HLe7fa7EZgHHCfYi/TCEuzD5FNYPQz9gfXn8C9ZaeWBwfnNz67z3mHv7cxDXygPj4XD9+y53FjOD
+u1aOleRWMv77/Z9kvHGQ/PfqetvUlRDIPoAIwZu66nqbJXryvnK92azbdnF6gvSWXpboya2EyLJc
+dEMNyhP/6CErECErECErECErECErECErECErECErECErECErECErECErECErECErECErECErECEr
+ECErECErECErECErECErEPkDVfreT3fphisAAAAASUVORK5CYII=
+"
+   preserveAspectRatio="none"
+   height="19.673307"
+   width="44.264942" /><image
+   y="7.1579604"
+   x="-733.92047"
+   id="image1212"
+   xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIMAAABCCAIAAAD7S/IgAAAAA3NCSVQICAjb4U/gAAADSklEQVR4
+nO3aXU/TUBjA8dP2sKGMsYWWvXTIhhjAaNR4oTGBKGEE+C5+G7+Gt2KAGK+M3pmJL4hs04CwrWxj
+FHGj7fECs0xQweV05yk+v7s1W/Mk/7XdWSul5+bJv5NG5r9lHrfxQfQnsugB0E9YAgosAQWWgAJL
+QIEloMASUEjtfWzm4SNcT/BF21jZLS08cWOU/xyenaCgHPclSSQcDvcGehRF4bhbt9m2vWfuVyoV
+xkSOwbNEOBTy+Xybm1uWbXPcrduooqiaGg6FypWqwDF4np0CgYBh7HgrAyHEsm3D2AkEAmLH4FmC
+UsWyLI477BjLsigVfEbFKzYUXioRDPbOzkzr8bjoQVzhmRIDA9rcTFpTVU1TRc/iCm+UGE4l01NT
+XV1dxzbOpqePbfQuD5QYHxu9d/cOIUSSfvlvxrIsTVNvXL8maC7OeK4nuNDjscFEovmyp+diPBYj
+hLRWuDycGk4ll589394uXBkZyay8bTQanR+VL3Alro6PRSORv79HkeVoJDJ0aXB1bS0ajST0eDaX
+78h0LoJ3dmLk1H8d1nN5x3GSQ0Nb2wXGiKZpHZnMXfBKnIFt247j9AWDh4eHjUb9Qne36Ik48GQJ
+QojjMEmWCCGMEanNmyyweLKELMuKotRqNUqp3+87OPgueiIOwJVghJ36HU8lhxRF/vxlIxqJSJJU
+MoyOjOYuCu0G3JuVd+Vypfmyry+Y0PWTbysZRi6fvz85Ydv2xubXDg7olnbunrqqUCwWisXWLeNj
+o7dv3Wxd2K1nc+vZnB6P6fHYx7VP9XpdwKC8gTs7nfT+w+qLl68YY+zXn7d+v7+6u/s6kxE1GF/g
+Vna/lc3lzf39B5MTPp+vdeM5WNA1eeCYOFIslhYWl0qGUSqdh+vzSd44Jo7UantPF5dFT+EWzxwT
+5x7PEpZlU+qlg6yJUmpZgh+E4FnCNE1V7aeeetiJHD1lo/abpil4DI77qlSr4XBY12OefPKsKvJh
+J8K3BGOkXK60rpDR2eEVGwosAQWWgAJLQIEloMASUGAJKLAEFFgCCiwBBZaAAktAgSWgwBJQYAko
+sAQUWAIKLAEFloACS0CBJaDAElBgCSiwBBRYAgosAQWWgAJLQPEDhH3tXbVA8jAAAAAASUVORK5C
+YII=
+"
+   preserveAspectRatio="none"
+   height="27.398989"
+   width="54.382843" /><rect
+   style="opacity:1;vector-effect:none;fill:#e1e1e1;fill-opacity:1;stroke:#b5b5b5;stroke-width:0.79724419;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+   id="rect1239"
+   width="34.339439"
+   height="21.277811"
+   x="-647.60388"
+   y="-52.456188" /><rect
+   y="-52.245518"
+   x="-609.68304"
+   height="21.277811"
+   width="34.339439"
+   id="rect1241"
+   style="opacity:1;vector-effect:none;fill:#cccccc;fill-opacity:1;stroke:#b5b5b5;stroke-width:0.79724419;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" /><rect
+   y="11.166572"
+   x="-646.55054"
+   height="21.277811"
+   width="34.339439"
+   id="rect1243"
+   style="opacity:1;vector-effect:none;fill:#4c5052;fill-opacity:1;stroke:#b5b5b5;stroke-width:0.79724419;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" /><rect
+   style="opacity:1;vector-effect:none;fill:#3c3f41;fill-opacity:1;stroke:#b5b5b5;stroke-width:0.79724419;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+   id="rect1245"
+   width="34.339439"
+   height="21.277811"
+   x="-607.15497"
+   y="10.745227" /><polygon
+   inkscape:export-ydpi="4.5"
+   inkscape:export-xdpi="4.5"
+   inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
+   transform="matrix(0.34176185,0,0,0.34083918,-637.39506,9.2046831)"
+   id="polygon1221"
+   points="39.389,13.769 22.235,28.606 6,28.606 6,47.699 21.989,47.699 39.389,62.75 "
+   style="fill:#b04746;fill-opacity:1;stroke:none;stroke-width:5.61106825;stroke-linejoin:round;stroke-opacity:1" /><use
+   x="0"
+   y="0"
+   xlink:href="#polygon1221"
+   id="use1288"
+   transform="translate(-0.21067139,-63.622759)"
+   width="100%"
+   height="100%" /><polygon
+   style="fill:#3f4956;fill-opacity:1;stroke:none;stroke-width:5.61106825;stroke-linejoin:round;stroke-opacity:1"
+   points="22.235,28.606 6,28.606 6,47.699 21.989,47.699 39.389,62.75 39.389,13.769 "
+   id="polygon1290"
+   transform="matrix(0.34176185,0,0,0.34083918,-597.57817,8.3619975)"
+   inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
+   inkscape:export-xdpi="4.5"
+   inkscape:export-ydpi="4.5" /><polygon
+   inkscape:export-ydpi="4.5"
+   inkscape:export-xdpi="4.5"
+   inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
+   transform="matrix(0.34176185,0,0,0.34083918,-600.3169,-54.839419)"
+   id="polygon1292"
+   points="22.235,28.606 6,28.606 6,47.699 21.989,47.699 39.389,62.75 39.389,13.769 "
+   style="fill:#adb3bd;fill-opacity:1;stroke:none;stroke-width:5.61106825;stroke-linejoin:round;stroke-opacity:1" /><g
+   id="g1340"><polygon
+     style="fill:#b04746;fill-opacity:1;stroke:#b04746;stroke-width:5.61106825;stroke-linejoin:round;stroke-opacity:1"
+     points="6,47.699 21.989,47.699 39.389,62.75 39.389,13.769 22.235,28.606 6,28.606 "
+     id="polygon1326"
+     transform="matrix(1.0826595,0,0,1.0797366,-478.42291,-85.44419)"
+     inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
+     inkscape:export-xdpi="4.5"
+     inkscape:export-ydpi="4.5" /><path
+     inkscape:connector-curvature="0"
+     style="fill:none;fill-opacity:1;stroke:#b04746;stroke-width:6.06667042;stroke-linecap:round;stroke-opacity:1"
+     d="m -426.31667,-32.504702 c 2.08845,-3.342865 3.3151,-7.276346 3.3151,-11.502435 0,-4.295192 -1.26021,-8.285898 -3.40712,-11.661154"
+     id="path1328"
+     inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
+     inkscape:export-xdpi="4.5"
+     inkscape:export-ydpi="4.5" /><path
+     inkscape:connector-curvature="0"
+     style="fill:none;fill-opacity:1;stroke:#b04746;stroke-width:6.06667042;stroke-linecap:round;stroke-opacity:1"
+     d="m -418.78785,-63.269639 c 4.00042,5.383567 6.37037,12.046622 6.37037,19.262502 0,7.148936 -2.3288,13.753685 -6.26644,19.110258"
+     id="path1330"
+     inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
+     inkscape:export-xdpi="4.5"
+     inkscape:export-ydpi="4.5" /></g><g
+   id="g1348"
+   transform="translate(-342.62448,-93.551381)"><polygon
+     style="fill:#adb3bd;fill-opacity:1;stroke:#adb3bd;stroke-width:5.61106825;stroke-linejoin:round;stroke-opacity:1"
+     points="22.235,28.606 6,28.606 6,47.699 21.989,47.699 39.389,62.75 39.389,13.769 "
+     id="polygon1342"
+     transform="matrix(1.0826595,0,0,1.0797366,1.2513735,-3.8101828)"
+     inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
+     inkscape:export-xdpi="4.5"
+     inkscape:export-ydpi="4.5" /><path
+     inkscape:connector-curvature="0"
+     style="fill:#b04746;fill-opacity:1;stroke:#adb3bd;stroke-width:6.06667042;stroke-linecap:round;stroke-opacity:1"
+     d="m 53.357606,49.129305 c 2.088451,-3.342865 3.315108,-7.276346 3.315108,-11.502435 0,-4.295192 -1.260217,-8.285898 -3.407127,-11.661154"
+     id="path1344"
+     inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
+     inkscape:export-xdpi="4.5"
+     inkscape:export-ydpi="4.5" /><path
+     inkscape:connector-curvature="0"
+     style="fill:none;fill-opacity:1;stroke:#adb3bd;stroke-width:6.06667042;stroke-linecap:round;stroke-opacity:1"
+     d="m 60.886429,18.364368 c 4.000423,5.383567 6.370368,12.046622 6.370368,19.262502 0,7.148936 -2.328801,13.753685 -6.266434,19.110258"
+     id="path1346"
+     inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
+     inkscape:export-xdpi="4.5"
+     inkscape:export-ydpi="4.5" /></g><g
+   id="g1365"
+   transform="translate(-391.48571,-31.581039)"><polygon
+     style="fill:#3f4956;fill-opacity:1;stroke:#3f4956;stroke-width:5.61106825;stroke-linejoin:round;stroke-opacity:1"
+     points="6,47.699 21.989,47.699 39.389,62.75 39.389,13.769 22.235,28.606 6,28.606 "
+     id="polygon1358"
+     transform="matrix(1.0826595,0,0,1.0797366,1.2513735,-3.8101828)"
+     inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
+     inkscape:export-xdpi="4.5"
+     inkscape:export-ydpi="4.5" /><path
+     inkscape:connector-curvature="0"
+     style="fill:none;fill-opacity:1;stroke:#3f4956;stroke-width:6.06667042;stroke-linecap:round;stroke-opacity:1"
+     d="m 53.357606,49.129305 c 2.088451,-3.342865 3.315108,-7.276346 3.315108,-11.502435 0,-4.295192 -1.260217,-8.285898 -3.407127,-11.661154"
+     id="path1360"
+     inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
+     inkscape:export-xdpi="4.5"
+     inkscape:export-ydpi="4.5" /><path
+     inkscape:connector-curvature="0"
+     style="fill:none;fill-opacity:1;stroke:#3f4956;stroke-width:6.06667042;stroke-linecap:round;stroke-opacity:1"
+     d="m 60.886429,18.364368 c 4.000423,5.383567 6.370368,12.046622 6.370368,19.262502 0,7.148936 -2.328801,13.753685 -6.266434,19.110258"
+     id="path1363"
      inkscape:export-filename="E:\data\src\Graphics\Speaker-20x20.png"
      inkscape:export-xdpi="4.5"
      inkscape:export-ydpi="4.5" /></g></svg>

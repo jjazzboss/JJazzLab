@@ -31,20 +31,20 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 
 @OptionsPanelController.TopLevelRegistration(
-        categoryName = "#OptionsCategory_Name_Editor",
-        iconBase = "org/jjazz/options/resources/RichTextEditor32x32.png",
-        keywords = "#OptionsCategory_Keywords_Editor",
-        keywordsCategory = "Editor",
-        position = 390
+        categoryName = "#OptionsCategory_Name_Advanced",
+        iconBase = "org/jjazz/options/resources/Advanced-32x32.png",
+        keywords = "#OptionsCategory_Keywords_Advanced",
+        keywordsCategory = "Advanced",
+        position = 500
 )
 @org.openide.util.NbBundle.Messages(
         {
-            "OptionsCategory_Name_Editor=Fonts & Colors", "OptionsCategory_Keywords_Editor=editor font color"
+            "OptionsCategory_Name_Advanced=Advanced", "OptionsCategory_Keywords_Advanced=advanced"
         })
-public final class EditorOptionsPanelController extends OptionsPanelController
+public final class AdvancedOptionsPanelController extends OptionsPanelController
 {
 
-    private EditorPanel panel;
+    private AdvancedPanel panel;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private boolean changed;
 
@@ -73,7 +73,6 @@ public final class EditorOptionsPanelController extends OptionsPanelController
     public void cancel()
     {
         // need not do anything special, if no changes have been persisted yet
-        getPanel().restoreOldValues();
     }
 
     @Override
@@ -112,11 +111,11 @@ public final class EditorOptionsPanelController extends OptionsPanelController
         pcs.removePropertyChangeListener(l);
     }
 
-    private EditorPanel getPanel()
+    private AdvancedPanel getPanel()
     {
         if (panel == null)
         {
-            panel = new EditorPanel(this);
+            panel = new AdvancedPanel(this);
         }
         return panel;
     }

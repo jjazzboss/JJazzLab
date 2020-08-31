@@ -35,9 +35,10 @@ import org.jjazz.midi.MidiConst;
 import static org.jjazz.options.Bundle.*;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.ui.MidiDeviceRenderer;
-import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.midimix.UserChannelRvKey;
 import org.jjazz.musiccontrol.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.openide.*;
 import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
@@ -49,7 +50,7 @@ import org.openide.windows.WindowManager;
         })
 final class MidiPanel extends javax.swing.JPanel
 {
-
+    
     private final MidiOptionsPanelController controller;
     private boolean loadInProgress;
     private MidiDevice saveOutDevice;      // For cancel operation
@@ -57,13 +58,16 @@ final class MidiPanel extends javax.swing.JPanel
     private boolean saveMidiThru;          // For cancel operation
     private boolean saveSendGmOnUponStartup;          // For cancel operation
     private static final Logger LOGGER = Logger.getLogger(MidiPanel.class.getSimpleName());
-
+    
     MidiPanel(MidiOptionsPanelController controller)
     {
         this.controller = controller;
         initComponents();
+        
+        spn_preferredUserChannel.addChangeListener(cl -> controller.changed());
+        
         list_InDevices.setCellRenderer(new MidiDeviceRenderer());
-        btn_test.setEnabled(false);
+        btn_test.setEnabled(false);        
     }
 
     /**
@@ -87,6 +91,8 @@ final class MidiPanel extends javax.swing.JPanel
         jScrollPane3 = new javax.swing.JScrollPane();
         list_OutDevices = new org.jjazz.midi.ui.MidiOutDeviceList();
         btn_refresh = new javax.swing.JButton();
+        spn_preferredUserChannel = new org.jjazz.ui.utilities.WheelSpinner();
+        lbl_preferredUserChannel = new javax.swing.JLabel();
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_OutDevices, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.lbl_OutDevices.text")); // NOI18N
 
@@ -114,8 +120,10 @@ final class MidiPanel extends javax.swing.JPanel
         org.openide.awt.Mnemonics.setLocalizedText(lbl_InDevices, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.lbl_InDevices.text")); // NOI18N
         lbl_InDevices.setEnabled(false);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_test, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_test.text")); // NOI18N
+        btn_test.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/options/resources/SpeakerRed-20x20.png"))); // NOI18N
         btn_test.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_test.toolTipText")); // NOI18N
+        btn_test.setDisabledIcon(GeneralUISettings.getInstance().getIcon("speaker.icon.disabled"));
+        btn_test.setMargin(new java.awt.Insets(2, 4, 2, 4));
         btn_test.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -190,6 +198,12 @@ final class MidiPanel extends javax.swing.JPanel
             }
         });
 
+        spn_preferredUserChannel.setModel(new javax.swing.SpinnerNumberModel(1, 1, 16, 1));
+        spn_preferredUserChannel.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.spn_preferredUserChannel.toolTipText")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_preferredUserChannel, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.lbl_preferredUserChannel.text")); // NOI18N
+        lbl_preferredUserChannel.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.lbl_preferredUserChannel.toolTipText")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -206,44 +220,52 @@ final class MidiPanel extends javax.swing.JPanel
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
                                 .addComponent(btn_refresh))
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE))
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 302, Short.MAX_VALUE))
                         .addGap(18, 18, 18)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 268, Short.MAX_VALUE))
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 281, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btn_test)
+                            .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(cb_midiThru)
-                            .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(spn_preferredUserChannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lbl_preferredUserChannel))
+                            .addComponent(btn_test))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(6, 6, 6)
-                .addComponent(cb_midiThru)
-                .addGap(23, 23, 23)
+                .addGap(16, 16, 16)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lbl_OutDevices)
                     .addComponent(lbl_InDevices))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 112, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 192, Short.MAX_VALUE)
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btn_test)
                     .addComponent(btn_refresh))
-                .addGap(21, 21, 21)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(105, Short.MAX_VALUE))
+                .addGap(21, 21, 21)
+                .addComponent(cb_midiThru)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(spn_preferredUserChannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lbl_preferredUserChannel))
+                .addGap(45, 45, 45))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void cb_midiThruActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_midiThruActionPerformed
     {//GEN-HEADEREND:event_cb_midiThruActionPerformed
-        controller.changed();
         controller.applyChanges();
+        controller.changed();        
     }//GEN-LAST:event_cb_midiThruActionPerformed
 
     private void list_InDevicesValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_list_InDevicesValueChanged
@@ -272,7 +294,7 @@ final class MidiPanel extends javax.swing.JPanel
        chooser.setMultiSelectionEnabled(false);
        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
        chooser.setFileFilter(filter);
-        chooser.setDialogTitle("Load sound bank file");               
+       chooser.setDialogTitle("Load sound bank file");
        File previousFile = jms.getDefaultJavaSynthPreferredSoundFontFile();
        if (previousFile == null)
        {
@@ -293,7 +315,7 @@ final class MidiPanel extends javax.swing.JPanel
        {
            return;
        }
-
+       
        boolean b = jms.loadSoundbankFileOnSynth(f, false);
        if (!b)
        {
@@ -334,7 +356,7 @@ final class MidiPanel extends javax.swing.JPanel
             list_OutDevices.setSelectedValue(save, true);
         }
     }//GEN-LAST:event_btn_refreshActionPerformed
-
+    
     void load()
     {
         LOGGER.log(Level.FINE, "load() --");
@@ -363,17 +385,19 @@ final class MidiPanel extends javax.swing.JPanel
         // Other stuff
         saveMidiThru = jms.isThruMode();
         cb_midiThru.setSelected(saveMidiThru);
-
+        
         btn_test.setEnabled(saveOutDevice != null);
 
         // Soundbank enabled only if Out device is a synth
         boolean b = (saveOutDevice instanceof Synthesizer);
         org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, pnl_soundbankFile);
         updateSoundbankText();
-
+        
+        spn_preferredUserChannel.setValue(UserChannelRvKey.getInstance().getPreferredUserChannel() + 1);
+        
         loadInProgress = false;
     }
-
+    
     public void cancel()
     {
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
@@ -381,7 +405,7 @@ final class MidiPanel extends javax.swing.JPanel
         openInDevice(saveInDevice);
         openOutDevice(saveOutDevice);
     }
-
+    
     void store()
     {
         LOGGER.log(Level.FINE, "store() --");
@@ -399,6 +423,7 @@ final class MidiPanel extends javax.swing.JPanel
         MidiDevice outDevice = list_OutDevices.getSelectedValue();
         LOGGER.log(Level.FINE, "store() outDevice=" + outDevice + " .info=" + ((outDevice == null) ? "null" : outDevice.getDeviceInfo()));
         openOutDevice(outDevice);
+        UserChannelRvKey.getInstance().setPreferredUserChannel(((Integer) spn_preferredUserChannel.getValue()) - 1);
     }
 
     /**
@@ -446,7 +471,7 @@ final class MidiPanel extends javax.swing.JPanel
         }
         return true;
     }
-
+    
     boolean valid()
     {
         // LOGGER.log(Level.INFO, "valid()");
@@ -464,9 +489,11 @@ final class MidiPanel extends javax.swing.JPanel
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JLabel lbl_InDevices;
     private javax.swing.JLabel lbl_OutDevices;
+    private javax.swing.JLabel lbl_preferredUserChannel;
     private javax.swing.JList<MidiDevice> list_InDevices;
     private org.jjazz.midi.ui.MidiOutDeviceList list_OutDevices;
     private javax.swing.JPanel pnl_soundbankFile;
+    private org.jjazz.ui.utilities.WheelSpinner spn_preferredUserChannel;
     private javax.swing.JTextField txtf_soundbankFile;
     // End of variables declaration//GEN-END:variables
 
@@ -498,7 +525,7 @@ final class MidiPanel extends javax.swing.JPanel
                 list_OutDevices.setEnabled(true);
             }
         };
-
+        
         TestPlayer tp = TestPlayer.getInstance();
         try
         {
@@ -509,5 +536,5 @@ final class MidiPanel extends javax.swing.JPanel
             DialogDisplayer.getDefault().notify(d);
         }
     }
-
+    
 }

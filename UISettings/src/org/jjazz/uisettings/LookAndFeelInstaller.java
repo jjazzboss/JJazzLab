@@ -50,7 +50,7 @@ public class LookAndFeelInstaller extends ModuleInstall
         switch (lafId)
         {
             case LOOK_AND_FEEL_SYSTEM_DEFAULT:
-                NbPreferences.root().node("laf").remove("laf");                
+                NbPreferences.root().node("laf").remove("laf");
                 break;
                 
             case LOOK_AND_FEEL_FLAT_DARK_LAF:

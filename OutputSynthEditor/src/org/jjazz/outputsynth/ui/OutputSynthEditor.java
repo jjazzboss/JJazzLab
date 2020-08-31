@@ -65,6 +65,7 @@ import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynth.SendModeOnUponStartup;
 import org.jjazz.outputsynth.ui.spi.RemapTableInstrumentChooser;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
@@ -300,6 +301,8 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         btn_HearRemap.setEnabled(mappingExist);
         btn_ResetInstrument.setEnabled(mappingExist);
     }
+    
+    test new buttons
 
     /**
      * Show a dialog to confirm removal of removedStd.
@@ -492,9 +495,9 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
         jScrollPane7.setViewportView(tbl_Instruments);
 
-        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/Speaker-20x20.png"))); // NOI18N
+        btn_Hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/SpeakerRed-20x20.png"))); // NOI18N
         btn_Hear.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_Hear.toolTipText")); // NOI18N
-        btn_Hear.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/SpeakerDisabled-20x20.png"))); // NOI18N
+        btn_Hear.setDisabledIcon(GeneralUISettings.getInstance().getIcon("speaker.icon.disabled"));
         btn_Hear.setEnabled(false);
         btn_Hear.setIconTextGap(0);
         btn_Hear.setMargin(new java.awt.Insets(2, 4, 2, 4));
@@ -576,8 +579,10 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             }
         });
 
-        btn_HearRemap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/Speaker-20x20.png"))); // NOI18N
+        btn_HearRemap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/SpeakerRed-20x20.png"))); // NOI18N
         btn_HearRemap.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_HearRemap.toolTipText")); // NOI18N
+        btn_HearRemap.setDisabledIcon(GeneralUISettings.getInstance().getIcon("speaker.icon.disabled"));
+        btn_HearRemap.setMargin(new java.awt.Insets(2, 4, 2, 4));
         btn_HearRemap.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -607,7 +612,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                     .addComponent(jScrollPane5)
                     .addGroup(pnl_defaultInstrumentsLayout.createSequentialGroup()
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 481, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 81, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 101, Short.MAX_VALUE)
                         .addComponent(btn_ResetInstrument)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_changeRemappedIns)

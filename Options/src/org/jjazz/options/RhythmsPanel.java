@@ -420,6 +420,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
             rdb.setDefaultRhythm(selectedTimeSignature, ri);
             updateDefaultRhythmField();        // Because previous line does not fire an event
         }
+        // controller.changed();
     }//GEN-LAST:event_btn_setDefaultRhythmActionPerformed
 
     private void btn_rhythmProviderSettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_rhythmProviderSettingsActionPerformed

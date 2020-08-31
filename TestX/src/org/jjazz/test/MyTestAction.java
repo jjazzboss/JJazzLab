@@ -86,30 +86,5 @@ public final class MyTestAction implements ActionListener
         }
         f = f.deriveFont(fSize);
         settings.setFont(f);
-    }
-
-    @OnStart
-    public static class TestClass implements Runnable
-    {
-
-        @Override
-        public void run()
-        {
-            LOGGER.severe("TestClass.run() --");
-            // Apply the LAF: works fine!
-
-// On Thu, 25 Jun 2020 at 00:40, Laszlo Kishalmi <laszlo.kishalmi@gmail.com> wrote:
-// > NbPreferences.root().node( "laf" ).put( "laf", "com.formdev.flatlaf.FlatDarkLaf" ); Somewhere really early, probably at an @OnStart marked runnable.
-// This probably needs to be done in ModuleInstall::validate - @OnStart
-// is too late to work consistently, unless behaviour has changed
-// recently.
-// You can see use of validate() in eg.
-// https://github.com/Revivius/nb-darcula/blob/master/src/main/java/com/revivius/nb/darcula/Installer.java#L29
-// and https://github.com/praxis-live/praxis-live/blob/v2.3.3/praxis.live.laf/src/net/neilcsmith/praxis/live/laf/Installer.java#L53
-
-
-            NbPreferences.root().node( "laf" ).put( "laf", "com.formdev.flatlaf.FlatDarkLaf" );            
-        }
-
-    }
+    }  
 }

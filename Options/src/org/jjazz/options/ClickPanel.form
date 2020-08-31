@@ -163,9 +163,6 @@
               <ResourceString bundle="org/jjazz/options/Bundle.properties" key="ClickPanel.spn_velocityHigh.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
           </Properties>
-          <Events>
-            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spn_velocityHighStateChanged"/>
-          </Events>
         </Component>
         <Component class="org.jjazz.ui.utilities.WheelSpinner" name="spn_velocityLow">
           <Properties>
@@ -176,9 +173,6 @@
               <ResourceString bundle="org/jjazz/options/Bundle.properties" key="ClickPanel.spn_velocityLow.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
           </Properties>
-          <Events>
-            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spn_velocityLowStateChanged"/>
-          </Events>
         </Component>
         <Component class="javax.swing.JLabel" name="lbl_soundHigh">
           <Properties>
@@ -207,9 +201,6 @@
               <ResourceString bundle="org/jjazz/options/Bundle.properties" key="ClickPanel.combo_soundHigh.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
           </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="combo_soundHighActionPerformed"/>
-          </Events>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new JComboBox&lt;&gt;(MidiConst.getGMPercussions());"/>
             <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
@@ -225,7 +216,7 @@
         <Component class="javax.swing.JButton" name="btn_Hear">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/org/jjazz/options/resources/Speaker-20x20.png"/>
+              <Image iconType="3" name="/org/jjazz/options/resources/SpeakerRed-20x20.png"/>
             </Property>
           </Properties>
           <Events>
@@ -239,9 +230,6 @@
               <ResourceString bundle="org/jjazz/options/Bundle.properties" key="ClickPanel.combo_soundLow.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
           </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="combo_soundLowActionPerformed"/>
-          </Events>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new JComboBox&lt;&gt;(MidiConst.getGMPercussions());"/>
             <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>

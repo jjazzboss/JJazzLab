@@ -22,17 +22,21 @@
  */
 package org.jjazz.uisettings;
 
+import javax.swing.ImageIcon;
 import javax.swing.UIDefaults;
+import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A JJazzLab theme using light colors.
  */
-@ServiceProvider(service=Theme.class)
+@ServiceProvider(service = Theme.class)
 public class LightTheme implements Theme
 {
 
     public static String NAME = "Light Theme";
+    @StaticResource(relative = true)
+    private static final String SPEAKER_ICON_DISABLED_PATH = "resources/SpeakerDisabled-20x20.png";
 
     private UIDefaults uiDefaults;
 
@@ -41,6 +45,9 @@ public class LightTheme implements Theme
     public LightTheme()
     {
         this.name = NAME;
+        uiDefaults = new UIDefaults();
+        UIDefaults.LazyValue value = tbl -> new ImageIcon(getClass().getResource(SPEAKER_ICON_DISABLED_PATH));
+        uiDefaults.put("speaker.icon.disabled", value);
     }
 
     @Override

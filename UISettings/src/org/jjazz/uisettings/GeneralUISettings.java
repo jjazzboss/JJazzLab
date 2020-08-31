@@ -22,6 +22,8 @@
  */
 package org.jjazz.uisettings;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeListener;
 import java.lang.ref.WeakReference;
@@ -30,13 +32,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.openide.modules.OnStart;
 import org.openide.util.*;
 
 /**
- * Store general UI settings, manage current and available Themes.
+ * Store general UI settings, manage the current and available Themes.
  */
 public class GeneralUISettings
 {
@@ -50,7 +54,7 @@ public class GeneralUISettings
     }
 
     public static final String DEFAULT_THEME_NAME = LightTheme.NAME;
-    public static final LookAndFeelId DEFAULT_LAF_ID = LookAndFeelId.LOOK_AND_FEEL_SYSTEM_DEFAULT;  // Must be the laf of DEFAULT_THEME_NAME
+    public static final LookAndFeelId DEFAULT_LAF_ID = LookAndFeelId.LOOK_AND_FEEL_FLAT_DARK_LAF;  // Must be the laf of DEFAULT_THEME_NAME
     public static final String PREF_THEME_UPON_RESTART = "ThemeUponRestart";
     public static final String PREF_LAF_ID_UPON_RESTART = "LafIdUponRestart";
     public static final String PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL = "ChangeWithMouseWheel";
@@ -162,7 +166,6 @@ public class GeneralUISettings
         return currentTheme;
     }
 
-
     /**
      * Users with trackpad or "touch motion" mouse like the Apple Magic mouse should set this to false.
      * <p>
@@ -226,9 +229,41 @@ public class GeneralUISettings
     }
 
     //=============================================================================
+    // Helper methods to get default from the UIDefaults of the current theme.
+    //=============================================================================  
+    public Icon getIcon(String key)
+    {
+        return currentTheme.getUIDefaults().getIcon(key);
+    }
+
+    public Color getColor(String key)
+    {
+        return currentTheme.getUIDefaults().getColor(key);
+    }
+
+    public Font getFont(String key)
+    {
+        return currentTheme.getUIDefaults().getFont(key);
+    }
+
+    public boolean getBoolean(String key)
+    {
+        return currentTheme.getUIDefaults().getBoolean(key);
+    }
+
+    public Border getBorder(String key)
+    {
+        return currentTheme.getUIDefaults().getBorder(key);
+    }
+
+    public int getInt(String key)
+    {
+        return currentTheme.getUIDefaults().getInt(key);
+    }
+
+    //=============================================================================
     // Inner classes
     //=============================================================================    
-
     /**
      * Set the current theme from the previous session "theme upon restart".
      * <p>

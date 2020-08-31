@@ -22,7 +22,9 @@
  */
 package org.jjazz.uisettings;
 
+import javax.swing.ImageIcon;
 import javax.swing.UIDefaults;
+import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -31,7 +33,10 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = Theme.class)
 public class DarkTheme implements Theme
 {
+
     public static String NAME = "Dark Theme";
+    @StaticResource(relative = true)
+    private static final String SPEAKER_ICON_DISABLED_PATH = "resources/SpeakerDisabledDarkTheme-20x20.png";
 
     private UIDefaults uiDefaults;
 
@@ -40,6 +45,9 @@ public class DarkTheme implements Theme
     public DarkTheme()
     {
         this.name = NAME;
+        uiDefaults = new UIDefaults();
+        UIDefaults.LazyValue value = tbl -> new ImageIcon(getClass().getResource(SPEAKER_ICON_DISABLED_PATH));
+        uiDefaults.put("speaker.icon.disabled", value);
     }
 
     @Override

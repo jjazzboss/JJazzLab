@@ -238,13 +238,13 @@
                 <Component class="javax.swing.JButton" name="btn_Hear">
                   <Properties>
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                      <Image iconType="3" name="/org/jjazz/outputsynth/ui/resources/Speaker-20x20.png"/>
+                      <Image iconType="3" name="/org/jjazz/outputsynth/ui/resources/SpeakerRed-20x20.png"/>
                     </Property>
                     <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                       <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="OutputSynthEditor.btn_Hear.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                     </Property>
-                    <Property name="disabledIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                      <Image iconType="3" name="/org/jjazz/outputsynth/ui/resources/SpeakerDisabled-20x20.png"/>
+                    <Property name="disabledIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="GeneralUISettings.getInstance().getIcon(&quot;speaker.icon.disabled&quot;)" type="code"/>
                     </Property>
                     <Property name="enabled" type="boolean" value="false"/>
                     <Property name="iconTextGap" type="int" value="0"/>
@@ -278,7 +278,7 @@
                               <Component id="jScrollPane5" max="32767" attributes="0"/>
                               <Group type="102" attributes="0">
                                   <Component id="jScrollPane3" min="-2" pref="481" max="-2" attributes="0"/>
-                                  <EmptySpace pref="81" max="32767" attributes="0"/>
+                                  <EmptySpace pref="101" max="32767" attributes="0"/>
                                   <Component id="btn_ResetInstrument" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="btn_changeRemappedIns" min="-2" max="-2" attributes="0"/>
@@ -366,10 +366,16 @@
                 <Component class="javax.swing.JButton" name="btn_HearRemap">
                   <Properties>
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                      <Image iconType="3" name="/org/jjazz/outputsynth/ui/resources/Speaker-20x20.png"/>
+                      <Image iconType="3" name="/org/jjazz/outputsynth/ui/resources/SpeakerRed-20x20.png"/>
                     </Property>
                     <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                       <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="OutputSynthEditor.btn_HearRemap.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                    </Property>
+                    <Property name="disabledIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="GeneralUISettings.getInstance().getIcon(&quot;speaker.icon.disabled&quot;)" type="code"/>
+                    </Property>
+                    <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+                      <Insets value="[2, 4, 2, 4]"/>
                     </Property>
                   </Properties>
                   <Events>

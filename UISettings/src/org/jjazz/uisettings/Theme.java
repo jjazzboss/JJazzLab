@@ -37,21 +37,21 @@ public interface Theme
      *
      * @return
      */
-    public String getName();
+    String getName();
 
     /**
      * The UI settings for this theme.
      *
      * @return
      */
-    public UIDefaults getUIDefaults();
+    UIDefaults getUIDefaults();
 
     /**
      * The look & feel required for this theme.
      *
      * @return
      */
-    public GeneralUISettings.LookAndFeelId getLookAndFeel();
-
+    GeneralUISettings.LookAndFeelId getLookAndFeel();
+    
 
 }
