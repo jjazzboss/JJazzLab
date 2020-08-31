@@ -39,21 +39,20 @@ public class LookAndFeelInstaller extends ModuleInstall
     public void validate()
     {
 
-
+        //
+        // IMPORTANT: global lookup ServiceProviders are not yet available at this early stage
+        //
         var uis = GeneralUISettings.getInstance();
-        String tn = uis.getThemeUponRestart();
-        Theme theme = uis.getTheme(tn);
-        if (theme == null)
-        {
-            LOGGER.warning("validate() no theme found with name=" + tn + ". Using default theme.");
-            theme = uis.getDefaultTheme();
-        }
+        GeneralUISettings.LookAndFeelId lafId = uis.getLafIdUponRestart();
 
-        switch (theme.getLookAndFeel())
+        LOGGER.info("validate() Installing Look & Feel: " + lafId.name());
+        
+        switch (lafId)
         {
-            case LOOK_AND_FEEL_DEFAULT:
-                NbPreferences.root().node("laf").remove("laf");
+            case LOOK_AND_FEEL_SYSTEM_DEFAULT:
+                NbPreferences.root().node("laf").remove("laf");                
                 break;
+                
             case LOOK_AND_FEEL_FLAT_DARK_LAF:
                 // On Thu, 25 Jun 2020 at 00:40, Laszlo Kishalmi <laszlo.kishalmi@gmail.com> wrote:
                 // > NbPreferences.root().node( "laf" ).put( "laf", "com.formdev.flatlaf.FlatDarkLaf" ); 
@@ -65,9 +64,10 @@ public class LookAndFeelInstaller extends ModuleInstall
                 // https://github.com/Revivius/nb-darcula/blob/master/src/main/java/com/revivius/nb/darcula/Installer.java#L29
                 // and https://github.com/praxis-live/praxis-live/blob/v2.3.3/praxis.live.laf/src/net/neilcsmith/praxis/live/laf/Installer.java#L53
                 NbPreferences.root().node("laf").put("laf", "com.formdev.flatlaf.FlatDarkLaf");
+
                 break;
             default:
-                throw new AssertionError(theme.getLookAndFeel().name());
+                throw new AssertionError(lafId.name());
 
         }
     }

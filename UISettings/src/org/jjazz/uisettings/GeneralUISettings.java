@@ -30,9 +30,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.openide.modules.OnStart;
 import org.openide.util.*;
 
 /**
@@ -44,18 +44,21 @@ public class GeneralUISettings
     /**
      * The supported Look & Feels.
      */
-    public enum LookAndFeel
+    public enum LookAndFeelId
     {
-        LOOK_AND_FEEL_DEFAULT, LOOK_AND_FEEL_FLAT_DARK_LAF
+        LOOK_AND_FEEL_SYSTEM_DEFAULT, LOOK_AND_FEEL_FLAT_DARK_LAF
     }
 
-    public static final String PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL = "ChangeWithMouseWheel";
+    public static final String DEFAULT_THEME_NAME = LightTheme.NAME;
+    public static final LookAndFeelId DEFAULT_LAF_ID = LookAndFeelId.LOOK_AND_FEEL_SYSTEM_DEFAULT;  // Must be the laf of DEFAULT_THEME_NAME
     public static final String PREF_THEME_UPON_RESTART = "ThemeUponRestart";
+    public static final String PREF_LAF_ID_UPON_RESTART = "LafIdUponRestart";
+    public static final String PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL = "ChangeWithMouseWheel";
     private static GeneralUISettings INSTANCE;
-    private Theme theme;
-    private HashMap<WeakReference<JComponent>, MouseWheelListener> mouseWheelInstalledComponents = new HashMap<>();
-    private static Preferences prefs = NbPreferences.forModule(GeneralUISettings.class);
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private Theme currentTheme;
+    private final HashMap<WeakReference<JComponent>, MouseWheelListener> mouseWheelInstalledComponents = new HashMap<>();
+    private static final Preferences prefs = NbPreferences.forModule(GeneralUISettings.class);
+    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(GeneralUISettings.class.getSimpleName());
 
     static public GeneralUISettings getInstance()
@@ -75,46 +78,58 @@ public class GeneralUISettings
 
     }
 
-    public Theme getDefaultTheme()
+    /**
+     * Set the theme to be used on next application start.
+     *
+     * @param theme
+     */
+    public void setThemeUponRestart(Theme theme)
     {
-        Theme res = getTheme(DarkTheme.NAME);
-        assert res != null;
+        if (theme == null)
+        {
+            throw new NullPointerException("theme");
+        }
+        prefs.put(PREF_THEME_UPON_RESTART, theme.getName());
+        prefs.put(PREF_LAF_ID_UPON_RESTART, theme.getLookAndFeel().name());
+    }
+
+    /**
+     * Get the theme name to be used on next application start.
+     *
+     * @return
+     */
+    public String getThemeNameUponRestart()
+    {
+        return prefs.get(PREF_THEME_UPON_RESTART, DEFAULT_THEME_NAME);
+    }
+
+    /**
+     * Get the LAF to be used on next application start.
+     *
+     * @return
+     */
+    public LookAndFeelId getLafIdUponRestart()
+    {
+        LookAndFeelId res = DEFAULT_LAF_ID;
+        String strLaf = prefs.get(PREF_LAF_ID_UPON_RESTART, DEFAULT_LAF_ID.name());
+        try
+        {
+            res = LookAndFeelId.valueOf(strLaf);
+        } catch (IllegalArgumentException | NullPointerException ex)
+        {
+            LOGGER.warning("getLafIdUponRestart() Invalid LAF name=" + strLaf + ". Using default LAF=" + res.name());
+        }
         return res;
     }
 
     /**
-     * Set the theme to be used on next application restart.
-     *
-     * @param themeName
-     */
-    public void setThemeUponRestart(String themeName)
-    {
-        if (getTheme(themeName) == null)
-        {
-            throw new IllegalArgumentException("Can't find a Theme with name=" + themeName);
-        }
-        prefs.put(PREF_THEME_UPON_RESTART, themeName);
-    }
-
-    /**
-     * Get the theme name to be used on next application restart.
+     * Get the available themes found in the global Lookup.
      *
      * @return
      */
-    public String getThemeUponRestart()
+    public List<Theme> getAvailableThemes()
     {
-        return prefs.get(PREF_THEME_UPON_RESTART, getDefaultTheme().getName());
-    }
-
-    /**
-     * Get the available themes names found in the global Lookup.
-     *
-     * @return
-     */
-    public List<String> getAvailableThemeNames()
-    {
-        var res = new ArrayList<>(Lookup.getDefault().lookupAll(Theme.class));
-        return res.stream().map(t -> t.getName()).collect(Collectors.toList());
+        return new ArrayList<>(Lookup.getDefault().lookupAll(Theme.class));
     }
 
     /**
@@ -126,7 +141,7 @@ public class GeneralUISettings
     public Theme getTheme(String themeName)
     {
         Theme res = null;
-        for (Theme t : Lookup.getDefault().lookupAll(Theme.class))
+        for (Theme t : getAvailableThemes())
         {
             if (t.getName().equals(themeName))
             {
@@ -138,14 +153,15 @@ public class GeneralUISettings
     }
 
     /**
-     * Get the currently used theme.
+     * Get the theme used for this session.
      *
      * @return
      */
     public Theme getCurrentTheme()
     {
-        return theme;
+        return currentTheme;
     }
+
 
     /**
      * Users with trackpad or "touch motion" mouse like the Apple Magic mouse should set this to false.
@@ -210,8 +226,51 @@ public class GeneralUISettings
     }
 
     //=============================================================================
+    // Inner classes
+    //=============================================================================    
+
+    /**
+     * Set the current theme from the previous session "theme upon restart".
+     * <p>
+     * At this stage Look & Feel has already been set up by LookAndFeelInstaller, and global Lookup ServiceProviders are
+     * available.
+     */
+    @OnStart
+    static public class ThemeSetup implements Runnable
+    {
+
+        @Override
+        public void run()
+        {
+            getInstance().setCurrentTheme(prefs.get(PREF_THEME_UPON_RESTART, DEFAULT_THEME_NAME));
+        }
+
+    }
+
+    //=============================================================================
     // Private methods
     //=============================================================================
+    /**
+     * Set the theme to be used for the current session.
+     * <p>
+     * Can be called only once.
+     *
+     * @param theme
+     */
+    private void setCurrentTheme(String themeName)
+    {
+        if (currentTheme != null)
+        {
+            throw new IllegalStateException("currentTheme is already set=" + currentTheme.getName() + ". themeName=" + themeName);
+        }
+        currentTheme = getTheme(themeName);
+        if (currentTheme == null)
+        {
+            currentTheme = getTheme(DEFAULT_THEME_NAME);
+            assert currentTheme != null : "DEFAULT_THEME_NAME=" + DEFAULT_THEME_NAME;
+        }
+    }
+
     /**
      * add/remove MouseWheelListener for all installed components depending on isEnabled.
      *

@@ -181,7 +181,7 @@ public class PrintCL_EditorSettings implements CL_EditorSettings
         @Override
         public Color getDefaultColor()
         {
-            //return defaultSettings.getDefaultColor();
+            // return defaultSettings.getDefaultColor();
             return Color.WHITE;
         }
 
