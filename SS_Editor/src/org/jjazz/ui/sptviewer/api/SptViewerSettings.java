@@ -26,6 +26,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
+import org.jjazz.leadsheet.chordleadsheet.api.Section;
+import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.openide.util.Lookup;
 
 /**
@@ -93,6 +95,28 @@ public interface SptViewerSettings
     void setDefaultBackgroundColor(Color color);
 
     Color getDefaultBackgroundColor();
+
+    /**
+     * Get a background color based on the parentSection color.
+     * <p>
+     * Return getDefaultBackgroundColor() if problem occured or if isSectionColorUsedAsBackground() is false.
+     *
+     * @param parentSection
+     * @return
+     */
+    public default Color getBackgroundColor(Section parentSection)
+    {
+        Color res;
+        if (!isSectionColorUsedAsBackground() || parentSection == null)
+        {
+            res = getDefaultBackgroundColor();
+        } else
+        {
+            Color c = ColorSetManager.getDefault().getColor(parentSection.getName());
+            res = (c == null) ? getDefaultBackgroundColor() : new Color(c.getRed(), c.getGreen(), c.getBlue(), 150);    // A bit transparent
+        }
+        return res;
+    }
 
     void setSelectedBackgroundColor(Color color);
 

@@ -156,7 +156,14 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     public void setFocusedBorderColor(Color color)
     {
         Color old = getFocusedBorderColor();
-        prefs.putInt(PROP_FOCUSED_BORDER_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_FOCUSED_BORDER_COLOR);
+            color = getFocusedBorderColor();
+        } else
+        {
+            prefs.putInt(PROP_FOCUSED_BORDER_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_FOCUSED_BORDER_COLOR, old, color);
     }
 
@@ -213,9 +220,16 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     @Override
     public void setParentSectionFont(Font font)
     {
-        Font old = getNameFont();
-        String strFont = Utilities.fontAsString(font);
-        prefs.put(PROP_PARENTSECTION_FONT, strFont);
+        Font old = getParentSectionFont();
+        if (font == null)
+        {
+            prefs.remove(PROP_PARENTSECTION_FONT);
+            font = getParentSectionFont();
+        } else
+        {
+            String strFont = Utilities.fontAsString(font);
+            prefs.put(PROP_PARENTSECTION_FONT, strFont);
+        }
         pcs.firePropertyChange(PROP_PARENTSECTION_FONT, old, font);
     }
 
@@ -235,8 +249,15 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     @Override
     public void setParentSectionFontColor(Color color)
     {
-        Color old = getNameFontColor();
-        prefs.putInt(PROP_PARENTSECTION_FONT_COLOR, color.getRGB());
+        Color old = getParentSectionFontColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_PARENTSECTION_FONT_COLOR);
+            color = getParentSectionFontColor();
+        } else
+        {
+            prefs.putInt(PROP_PARENTSECTION_FONT_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_PARENTSECTION_FONT_COLOR, old, color);
     }
 

@@ -369,12 +369,6 @@ public class PrintCL_EditorSettings implements CL_EditorSettings
         }
 
         @Override
-        public void setFocusedBorderColor(Color color)
-        {
-            // Nothing
-        }
-
-        @Override
         public Border getFocusedBorder()
         {
             return defaultSettings.getFocusedBorder();

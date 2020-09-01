@@ -30,18 +30,21 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import static org.jjazz.options.Bundle.ASK_ConfirmResetAll;
-import org.jjazz.ui.sptviewer.api.SptViewerSettings;
 import org.openide.awt.ColorComboBox;
 import org.openide.util.Lookup;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider.FCSetting;
 import org.jjazz.ui.utilities.JFontChooser;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.util.Utilities;
 import org.openide.DialogDisplayer;
+import org.openide.LifecycleManager;
 import org.openide.NotifyDescriptor;
 import org.openide.util.NbBundle.Messages;
 
@@ -94,8 +97,11 @@ final class EditorPanel extends javax.swing.JPanel
         cb_color = colorComboBox;
         lbl_color = new javax.swing.JLabel();
         lbl_font = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
-        cb_useTransparentBkgForSongParts = new javax.swing.JCheckBox();
+        jPanel1 = new javax.swing.JPanel();
+        btn_changeTheme = new javax.swing.JButton();
+        lbl_currentThemeName = new javax.swing.JLabel();
+        cmb_themes = new javax.swing.JComboBox<>();
+        jLabel2 = new javax.swing.JLabel();
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_category, org.openide.util.NbBundle.getMessage(EditorPanel.class, "EditorPanel.lbl_category.text")); // NOI18N
 
@@ -174,25 +180,60 @@ final class EditorPanel extends javax.swing.JPanel
         org.openide.awt.Mnemonics.setLocalizedText(lbl_font, org.openide.util.NbBundle.getMessage(EditorPanel.class, "EditorPanel.lbl_font.text")); // NOI18N
         lbl_font.setEnabled(false);
 
-        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(EditorPanel.class, "EditorPanel.jPanel2.border.title"))); // NOI18N
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(EditorPanel.class, "EditorPanel.jPanel1.border.title"))); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_useTransparentBkgForSongParts, org.openide.util.NbBundle.getMessage(EditorPanel.class, "EditorPanel.cb_useTransparentBkgForSongParts.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_changeTheme, org.openide.util.NbBundle.getMessage(EditorPanel.class, "EditorPanel.btn_changeTheme.text")); // NOI18N
+        btn_changeTheme.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_changeThemeActionPerformed(evt);
+            }
+        });
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_currentThemeName, org.openide.util.NbBundle.getMessage(EditorPanel.class, "EditorPanel.lbl_currentThemeName.text")); // NOI18N
+
+        cmb_themes.setMaximumRowCount(4);
+        cmb_themes.setToolTipText(org.openide.util.NbBundle.getMessage(EditorPanel.class, "EditorPanel.cmb_themes.toolTipText")); // NOI18N
+        cmb_themes.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cmb_themesActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(EditorPanel.class, "EditorPanel.jLabel2.text")); // NOI18N
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(cb_useTransparentBkgForSongParts)
-                .addContainerGap(157, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lbl_currentThemeName))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(cmb_themes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_changeTheme)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(cb_useTransparentBkgForSongParts)
-                .addContainerGap(42, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(lbl_currentThemeName))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cmb_themes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btn_changeTheme))
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -205,16 +246,16 @@ final class EditorPanel extends javax.swing.JPanel
                     .addComponent(lbl_category)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(lbl_color, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lbl_font, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
+                                .addGap(18, 18, 18)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(lbl_color, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(lbl_font, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(tf_font)
-                                    .addComponent(cb_color, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                    .addComponent(cb_color, 0, 192, Short.MAX_VALUE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btn_font)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -222,7 +263,9 @@ final class EditorPanel extends javax.swing.JPanel
                                     .addComponent(btn_resetFont)
                                     .addComponent(btn_resetColor)
                                     .addComponent(btn_resetAll)))
-                            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(43, 43, 43)
+                                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
                 .addContainerGap())
         );
 
@@ -252,9 +295,9 @@ final class EditorPanel extends javax.swing.JPanel
                             .addComponent(cb_color, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
                         .addComponent(btn_resetAll)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 191, Short.MAX_VALUE)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 378, Short.MAX_VALUE))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -279,6 +322,8 @@ final class EditorPanel extends javax.swing.JPanel
 
    private void cb_colorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_colorActionPerformed
    {//GEN-HEADEREND:event_cb_colorActionPerformed
+       Problem set a customization as soon as programmatically we change the value!
+       Should be here only when user changed value
        Color c = colorComboBox.getSelectedColor();
        if (c != null)
        {
@@ -339,12 +384,7 @@ final class EditorPanel extends javax.swing.JPanel
        {
            return;
        }
-       for (FCSetting fcs : listValues)
-       {
-           fcs.setColor(null);
-           fcs.setFont(null);
-       }
-       list_fcSettingsValueChanged(null);
+       resetAllSettings();
    }//GEN-LAST:event_btn_resetAllActionPerformed
 
    private void btn_resetFontActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetFontActionPerformed
@@ -367,6 +407,29 @@ final class EditorPanel extends javax.swing.JPanel
     {//GEN-HEADEREND:event_tf_fontActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_tf_fontActionPerformed
+
+    private void cmb_themesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cmb_themesActionPerformed
+    {//GEN-HEADEREND:event_cmb_themesActionPerformed
+        var uis = GeneralUISettings.getInstance();
+        btn_changeTheme.setEnabled(!uis.getCurrentTheme().getName().equals(cmb_themes.getSelectedItem().toString()));
+    }//GEN-LAST:event_cmb_themesActionPerformed
+
+    private void btn_changeThemeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_changeThemeActionPerformed
+    {//GEN-HEADEREND:event_btn_changeThemeActionPerformed
+        String msg = "Changing theme will reset all color/font customizations.\n\n"
+                + "OK to restart JJazzLab now?";
+        NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
+        Object result = DialogDisplayer.getDefault().notify(d);
+        if (NotifyDescriptor.OK_OPTION == result)
+        {
+            resetAllSettings();
+            var uis = GeneralUISettings.getInstance();
+            uis.setThemeUponRestart(uis.getTheme(cmb_themes.getSelectedItem().toString()));
+            LifecycleManager.getDefault().markForRestart();
+            LifecycleManager.getDefault().exit();
+        }
+
+    }//GEN-LAST:event_btn_changeThemeActionPerformed
 
     void load()
     {
@@ -410,7 +473,15 @@ final class EditorPanel extends javax.swing.JPanel
         }
         btn_resetAll.setEnabled(!listValues.isEmpty());
 
-        cb_useTransparentBkgForSongParts.setSelected(!SptViewerSettings.getDefault().isSectionColorUsedAsBackground());
+        // Theme combo
+        var uis = GeneralUISettings.getInstance();
+        lbl_currentThemeName.setText(uis.getCurrentTheme().getName());
+        List<String> themeNames = uis.getAvailableThemes().stream().map(t -> t.getName()).collect(Collectors.toList());
+        var cmbModel = new DefaultComboBoxModel<String>(themeNames.toArray(new String[0]));
+        cmb_themes.setModel(cmbModel);
+        cmb_themes.setSelectedItem(uis.getThemeNameUponRestart());
+        cmb_themesActionPerformed(null);
+
     }
 
     void store()
@@ -423,12 +494,11 @@ final class EditorPanel extends javax.swing.JPanel
         // or:
         // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
 
-        // Nothing: changes are done on the fly
-        SptViewerSettings.getDefault().setSectionColorUsedAsBackground(!cb_useTransparentBkgForSongParts.isSelected());
+        // Nothing: changes are done on the fly        
     }
 
     public void restoreOldValues()
-    {
+    {        
         for (FCSetting fcs : listValues)
         {
             FCvalues fcv = mapIdValues.get(fcs.getId());
@@ -464,17 +534,30 @@ final class EditorPanel extends javax.swing.JPanel
         }
     }
 
+    private void resetAllSettings()
+    {
+        for (FCSetting fcs : listValues)
+        {
+            fcs.setColor(null);
+            fcs.setFont(null);
+        }
+        list_fcSettingsValueChanged(null);
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btn_changeTheme;
     private javax.swing.JButton btn_font;
     private javax.swing.JButton btn_resetAll;
     private javax.swing.JButton btn_resetColor;
     private javax.swing.JButton btn_resetFont;
     private javax.swing.JComboBox cb_color;
-    private javax.swing.JCheckBox cb_useTransparentBkgForSongParts;
-    private javax.swing.JPanel jPanel2;
+    private javax.swing.JComboBox<String> cmb_themes;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbl_category;
     private javax.swing.JLabel lbl_color;
+    private javax.swing.JLabel lbl_currentThemeName;
     private javax.swing.JLabel lbl_font;
     private javax.swing.JList<FCSetting> list_fcSettings;
     private javax.swing.JTextField tf_font;

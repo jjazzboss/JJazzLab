@@ -22,6 +22,7 @@
  */
 package org.jjazz.uisettings;
 
+import java.awt.Color;
 import javax.swing.ImageIcon;
 import javax.swing.UIDefaults;
 import org.netbeans.api.annotations.common.StaticResource;
@@ -46,8 +47,13 @@ public class DarkTheme implements Theme
     {
         this.name = NAME;
         uiDefaults = new UIDefaults();
-        UIDefaults.LazyValue value = tbl -> new ImageIcon(getClass().getResource(SPEAKER_ICON_DISABLED_PATH));
+        UIDefaults.LazyValue value;
+
+        value = tbl -> new ImageIcon(getClass().getResource(SPEAKER_ICON_DISABLED_PATH));
         uiDefaults.put("speaker.icon.disabled", value);
+        uiDefaults.put("background.white", new Color(235, 232, 225));
+        uiDefaults.put("mixconsole.background", new Color(82, 82, 82));
+        uiDefaults.put("mixchannel.background", new Color(212, 211, 209));
     }
 
     @Override

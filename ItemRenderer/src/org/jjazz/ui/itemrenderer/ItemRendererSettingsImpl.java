@@ -90,12 +90,6 @@ public class ItemRendererSettingsImpl implements ItemRendererSettings, FontColor
         pcs.firePropertyChange(PROP_ITEM_SELECTED_COLOR, old, color);
     }
 
-    @Override
-    public void setFocusedBorderColor(Color color)
-    {
-        prefs.putInt(PROP_ITEM_FOCUSED_BORDER_COLOR, color.getRGB());
-        pcs.firePropertyChange(PROP_ITEM_FOCUSED_BORDER_COLOR, null, color);
-    }
 
     @Override
     public Border getFocusedBorder()
@@ -129,7 +123,7 @@ public class ItemRendererSettingsImpl implements ItemRendererSettings, FontColor
     public List<FontColorUserSettingsProvider.FCSetting> getFCSettings()
     {
         List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
-        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("Selected ", "Selected item background")
+        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SelectedId", "Selected item background")
         {
             @Override
             public Color getColor()

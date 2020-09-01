@@ -51,7 +51,14 @@ public class SS_EditorSettingsImpl extends SS_EditorSettings
     public void setBackgroundColor(Color color)
     {
         Color old = getBackgroundColor();
-        prefs.putInt(PROP_BACKGROUND_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_BACKGROUND_COLOR);
+            color = getBackgroundColor();
+        } else
+        {
+            prefs.putInt(PROP_BACKGROUND_COLOR, color.getRGB());
+        };
         pcs.firePropertyChange(PROP_BACKGROUND_COLOR, old, color);
     }
 
@@ -64,9 +71,16 @@ public class SS_EditorSettingsImpl extends SS_EditorSettings
     @Override
     public void setTopBackgroundColor(Color color)
     {
-        Color old = getBackgroundColor();
-        prefs.putInt(PROP_BACKGROUND_COLOR, color.getRGB());
-        pcs.firePropertyChange(PROP_BACKGROUND_COLOR, old, color);
+        Color old = getTopBackgroundColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_TOP_BACKGROUND_COLOR);
+            color = getTopBackgroundColor();
+        } else
+        {
+            prefs.putInt(PROP_TOP_BACKGROUND_COLOR, color.getRGB());
+        };
+        pcs.firePropertyChange(PROP_TOP_BACKGROUND_COLOR, old, color);
     }
 
     @Override

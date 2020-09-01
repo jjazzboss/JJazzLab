@@ -62,8 +62,6 @@ public interface ItemRendererSettings
 
     Color getSelectedBackgroundColor();
 
-    void setFocusedBorderColor(Color color);
-
     Border getFocusedBorder();
 
     Border getNonFocusedBorder();

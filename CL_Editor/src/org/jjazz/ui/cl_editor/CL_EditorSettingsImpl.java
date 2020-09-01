@@ -50,7 +50,14 @@ public class CL_EditorSettingsImpl implements CL_EditorSettings
     public void setBackgroundColor(Color color)
     {
         Color old = getBackgroundColor();
-        prefs.putInt(PROP_BACKGROUND_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_BACKGROUND_COLOR);
+            color = getBackgroundColor();
+        } else
+        {
+            prefs.putInt(PROP_BACKGROUND_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_BACKGROUND_COLOR, old, color);
     }
 

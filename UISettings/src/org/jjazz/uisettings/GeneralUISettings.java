@@ -53,7 +53,7 @@ public class GeneralUISettings
         LOOK_AND_FEEL_SYSTEM_DEFAULT, LOOK_AND_FEEL_FLAT_DARK_LAF
     }
 
-    public static final String DEFAULT_THEME_NAME = LightTheme.NAME;
+    public static final String DEFAULT_THEME_NAME = DarkTheme.NAME;
     public static final LookAndFeelId DEFAULT_LAF_ID = LookAndFeelId.LOOK_AND_FEEL_FLAT_DARK_LAF;  // Must be the laf of DEFAULT_THEME_NAME
     public static final String PREF_THEME_UPON_RESTART = "ThemeUponRestart";
     public static final String PREF_LAF_ID_UPON_RESTART = "LafIdUponRestart";

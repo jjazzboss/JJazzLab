@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.ui.rpviewer.api.RpViewerSettings;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
@@ -95,7 +94,14 @@ public class StringRpViewerSettingsImpl implements StringRpViewerSettings, FontC
     public void setFontColor(Color color)
     {
         Color old = getFontColor();
-        prefs.putInt(PROP_FONT_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_FONT_COLOR);
+            color = getFontColor();
+        } else
+        {
+            prefs.putInt(PROP_FONT_COLOR, color.getRGB());
+        };
         pcs.firePropertyChange(PROP_FONT_COLOR, old, color);
     }
 
@@ -134,13 +140,11 @@ public class StringRpViewerSettingsImpl implements StringRpViewerSettings, FontC
                 StringRpViewerSettingsImpl.this.setFont(f);
             }
 
-
         };
         res.add(fcs);
 
         return res;
     }
-
 
     // =====================================================================================
     // Upgrade Task
@@ -157,6 +161,5 @@ public class StringRpViewerSettingsImpl implements StringRpViewerSettings, FontC
         }
 
     }
-
 
 }

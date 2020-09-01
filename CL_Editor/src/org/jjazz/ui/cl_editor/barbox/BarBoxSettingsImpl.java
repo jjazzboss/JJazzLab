@@ -126,8 +126,14 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     public void setBorderFont(Font font)
     {
         Font old = getBorderFont();
-        String strFont = Utilities.fontAsString(font);
-        prefs.put(PROP_BORDER_FONT, strFont);
+        if (font == null)
+        {
+            prefs.remove(PROP_BORDER_FONT);
+            font = getBorderFont();
+        } else
+        {
+            prefs.put(PROP_BORDER_FONT, Utilities.fontAsString(font));
+        }
         pcs.firePropertyChange(PROP_BORDER_FONT, old, font);
     }
 
@@ -142,7 +148,14 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     public void setBorderColor(Color color)
     {
         Color old = getBorderColor();
-        prefs.putInt(PROP_BORDER_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_BORDER_COLOR);
+            color = getBorderColor();
+        } else
+        {
+            prefs.putInt(PROP_BORDER_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_BORDER_COLOR, old, color);
     }
 
@@ -156,7 +169,14 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     public void setFocusedBorderColor(Color color)
     {
         Color old = getFocusedBorderColor();
-        prefs.putInt(PROP_FOCUSED_BORDER_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_FOCUSED_BORDER_COLOR);
+            color = getFocusedBorderColor();
+        } else
+        {
+            prefs.putInt(PROP_FOCUSED_BORDER_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_FOCUSED_BORDER_COLOR, old, color);
     }
 
@@ -185,8 +205,15 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     @Override
     public void setDefaultColor(Color color)
     {
-        Color old = getSelectedColor();
-        prefs.putInt(PROP_BAR_DEFAULT_COLOR, color != null ? color.getRGB() : ColorSetManager.getDefault().getWhite().getRGB());
+        Color old = getDefaultColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_BAR_DEFAULT_COLOR);
+            color = getDefaultColor();
+        } else
+        {
+            prefs.putInt(PROP_BAR_DEFAULT_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_BAR_DEFAULT_COLOR, old, color);
     }
 
@@ -199,8 +226,15 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     @Override
     public void setPastEndColor(Color color)
     {
-        Color old = getSelectedColor();
-        prefs.putInt(PROP_BAR_PAST_END_COLOR, color.getRGB());
+        Color old = getPastEndColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_BAR_PAST_END_COLOR);
+            color = getPastEndColor();
+        } else
+        {
+            prefs.putInt(PROP_BAR_PAST_END_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_BAR_PAST_END_COLOR, old, color);
     }
 
@@ -213,8 +247,15 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     @Override
     public void setDisabledColor(Color color)
     {
-        Color old = getSelectedColor();
-        prefs.putInt(PROP_BAR_DISABLED_COLOR, color.getRGB());
+        Color old = getDisabledColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_BAR_DISABLED_COLOR);
+            color = getDisabledColor();
+        } else
+        {
+            prefs.putInt(PROP_BAR_DISABLED_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_BAR_DISABLED_COLOR, old, color);
     }
 
@@ -227,8 +268,15 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     @Override
     public void setDisabledPastEndColor(Color color)
     {
-        Color old = getSelectedColor();
-        prefs.putInt(PROP_BAR_DISABLED_PAST_END_COLOR, color.getRGB());
+        Color old = getDisabledPastEndColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_BAR_DISABLED_PAST_END_COLOR);
+            color = getDisabledPastEndColor();
+        } else
+        {
+            prefs.putInt(PROP_BAR_DISABLED_PAST_END_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_BAR_DISABLED_PAST_END_COLOR, old, color);
     }
 
@@ -248,7 +296,14 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     public void setSelectedColor(Color color)
     {
         Color old = getSelectedColor();
-        prefs.putInt(PROP_BAR_SELECTED_COLOR, color != null ? color.getRGB() : ColorSetManager.getDefault().getSelectedBackgroundColor().getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_BAR_SELECTED_COLOR);
+            color = getSelectedColor();
+        } else
+        {
+            prefs.putInt(PROP_BAR_SELECTED_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_BAR_SELECTED_COLOR, old, color);
     }
 
@@ -262,7 +317,14 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     public void setPastEndSelectedColor(Color color)
     {
         Color old = getPastEndSelectedColor();
-        prefs.putInt(PROP_BAR_PAST_END_SELECTED_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_BAR_PAST_END_SELECTED_COLOR);
+            color = getPastEndSelectedColor();
+        } else
+        {
+            prefs.putInt(PROP_BAR_PAST_END_SELECTED_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_BAR_PAST_END_SELECTED_COLOR, old, color);
     }
 
@@ -276,7 +338,14 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     public void setPlaybackColor(Color color)
     {
         Color old = getPlaybackColor();
-        prefs.putInt(PROP_BAR_PLAYBACK_COLOR, color != null ? color.getRGB() : new Color(244, 219, 215).getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_BAR_PLAYBACK_COLOR);
+            color = getPlaybackColor();
+        } else
+        {
+            prefs.putInt(PROP_BAR_PLAYBACK_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_BAR_PLAYBACK_COLOR, old, color);
     }
 
@@ -301,14 +370,12 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
         return fcSettings;
     }
 
-
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
-
 
         @Override
         public void upgrade(String oldVersion)
@@ -318,6 +385,5 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
         }
 
     }
-
 
 }

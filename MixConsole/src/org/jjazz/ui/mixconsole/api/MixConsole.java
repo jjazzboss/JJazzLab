@@ -212,6 +212,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         songLkpResult = context.lookupResult(Song.class);
         songLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, songLkpListener, songLkpResult));
         songPresenceChanged();
+
+        refreshUI();
     }
 
     public Lookup getLookup()
@@ -363,8 +365,6 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         scrollPane_mixChannelsPanel.setBackground(new java.awt.Color(220, 220, 220));
         scrollPane_mixChannelsPanel.setOpaque(false);
 
-        panel_mixChannels.setBackground(new java.awt.Color(204, 204, 204));
-        panel_mixChannels.setOpaque(false);
         panel_mixChannels.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 3, 5));
         scrollPane_mixChannelsPanel.setViewportView(panel_mixChannels);
 
@@ -424,7 +424,10 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         LOGGER.fine("propertyChange() -- e=" + e);
         if (e.getSource() == settings)
         {
-            // No relevant settings for now
+            if (e.getPropertyName() == MixConsoleSettings.PROP_BACKGROUND_COLOR)
+            {
+                refreshUI();
+            }
         } else if (e.getSource() == songMidiMix)
         {
             if (e.getPropertyName() == MidiMix.PROP_CHANNEL_INSTRUMENT_MIX)
@@ -839,6 +842,11 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         LOGGER.fine("updateActiveState() -- b=" + b);
         org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, menuBar);
         org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, panel_MasterControls);
+    }
+
+    private void refreshUI()
+    {
+        panel_mixChannels.setBackground(settings.getBackgroundColor());
     }
 
     /**

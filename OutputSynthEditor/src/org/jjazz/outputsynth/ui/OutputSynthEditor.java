@@ -302,7 +302,6 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         btn_ResetInstrument.setEnabled(mappingExist);
     }
     
-    test new buttons
 
     /**
      * Show a dialog to confirm removal of removedStd.
@@ -582,6 +581,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         btn_HearRemap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/SpeakerRed-20x20.png"))); // NOI18N
         btn_HearRemap.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.btn_HearRemap.toolTipText")); // NOI18N
         btn_HearRemap.setDisabledIcon(GeneralUISettings.getInstance().getIcon("speaker.icon.disabled"));
+        btn_HearRemap.setEnabled(false);
         btn_HearRemap.setMargin(new java.awt.Insets(2, 4, 2, 4));
         btn_HearRemap.addActionListener(new java.awt.event.ActionListener()
         {

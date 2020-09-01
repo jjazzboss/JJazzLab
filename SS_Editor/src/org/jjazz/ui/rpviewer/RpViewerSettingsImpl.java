@@ -69,7 +69,14 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
     public void setSelectedBackgroundColor(Color color)
     {
         Color old = getSelectedBackgroundColor();
-        prefs.putInt(PROP_SELECTED_BACKGROUND_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_SELECTED_BACKGROUND_COLOR);
+            color = getSelectedBackgroundColor();
+        } else
+        {
+            prefs.putInt(PROP_SELECTED_BACKGROUND_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_SELECTED_BACKGROUND_COLOR, old, color);
     }
 
@@ -82,8 +89,15 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
     @Override
     public void setDefaultBackgroundColor(Color color)
     {
-        Color old = getSelectedBackgroundColor();
-        prefs.putInt(PROP_BACKGROUND_COLOR, color.getRGB());
+        Color old = getDefaultBackgroundColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_BACKGROUND_COLOR);
+            color = getDefaultBackgroundColor();
+        } else
+        {
+            prefs.putInt(PROP_BACKGROUND_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_BACKGROUND_COLOR, old, color);
     }
 
@@ -97,7 +111,14 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
     public void setFocusedBorderColor(Color color)
     {
         Color old = getFocusedBorderColor();
-        prefs.putInt(PROP_FOCUS_BORDER_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_FOCUS_BORDER_COLOR);
+            color = getFocusedBorderColor();
+        } else
+        {
+            prefs.putInt(PROP_FOCUS_BORDER_COLOR, color.getRGB());
+        };
         pcs.firePropertyChange(PROP_FOCUS_BORDER_COLOR, old, color);
     }
 
@@ -117,7 +138,14 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
     public void setDefaultBorderColor(Color color)
     {
         Color old = getDefaultBorderColor();
-        prefs.putInt(PROP_DEFAULT_BORDER_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_DEFAULT_BORDER_COLOR);
+            color = getDefaultBorderColor();
+        } else
+        {
+            prefs.putInt(PROP_DEFAULT_BORDER_COLOR, color.getRGB());
+        };
         pcs.firePropertyChange(PROP_DEFAULT_BORDER_COLOR, old, color);
     }
 
@@ -160,7 +188,14 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
     public void setFontColor(Color color)
     {
         Color old = getFontColor();
-        prefs.putInt(PROP_FONT_COLOR, color.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_FONT_COLOR);
+            color = getFontColor();
+        } else
+        {
+            prefs.putInt(PROP_FONT_COLOR, color.getRGB());
+        };
         pcs.firePropertyChange(PROP_FONT_COLOR, old, color);
     }
 

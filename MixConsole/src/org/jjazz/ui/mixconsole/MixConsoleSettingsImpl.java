@@ -30,6 +30,7 @@ import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.mixconsole.api.MixConsoleSettings;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.NbPreferences;
@@ -57,7 +58,7 @@ public class MixConsoleSettingsImpl implements MixConsoleSettings, FontColorUser
     @Override
     public Color getMixChannelBackgroundColor()
     {
-        Color color = new Color(prefs.getInt(PROP_CHANNEL_PANEL_BACKGROUND_COLOR, new Color(212, 211, 209).getRGB()));
+        Color color = new Color(prefs.getInt(PROP_CHANNEL_PANEL_BACKGROUND_COLOR, GeneralUISettings.getInstance().getColor("mixchannel.background").getRGB()));
         return color;
     }
 
@@ -74,6 +75,29 @@ public class MixConsoleSettingsImpl implements MixConsoleSettings, FontColorUser
             prefs.putInt(PROP_CHANNEL_PANEL_BACKGROUND_COLOR, color.getRGB());
         }
         pcs.firePropertyChange(PROP_CHANNEL_PANEL_BACKGROUND_COLOR, old, color);
+    }
+
+    @Override
+    public Color getBackgroundColor()
+    {
+        Color color = new Color(prefs.getInt(PROP_BACKGROUND_COLOR, GeneralUISettings.getInstance().getColor("mixconsole.background").getRGB()));
+        return color;
+
+    }
+
+    @Override
+    public void setBackgroundColor(Color color)
+    {
+        Color old = getBackgroundColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_BACKGROUND_COLOR);
+            color = getBackgroundColor();
+        } else
+        {
+            prefs.putInt(PROP_BACKGROUND_COLOR, color.getRGB());
+        }
+        pcs.firePropertyChange(PROP_BACKGROUND_COLOR, old, color);
     }
 
 //    @Override
@@ -152,6 +176,21 @@ public class MixConsoleSettingsImpl implements MixConsoleSettings, FontColorUser
             public void setColor(Color c)
             {
                 setMixChannelBackgroundColor(c);
+            }
+        };
+        res.add(fcs);
+        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("MixConsoleBackgroundId", "Mix console background")
+        {
+            @Override
+            public Color getColor()
+            {
+                return getBackgroundColor();
+            }
+
+            @Override
+            public void setColor(Color c)
+            {
+                setBackgroundColor(c);
             }
         };
         res.add(fcs);

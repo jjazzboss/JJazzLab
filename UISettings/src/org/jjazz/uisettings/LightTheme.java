@@ -22,6 +22,7 @@
  */
 package org.jjazz.uisettings;
 
+import java.awt.Color;
 import javax.swing.ImageIcon;
 import javax.swing.UIDefaults;
 import org.netbeans.api.annotations.common.StaticResource;
@@ -46,8 +47,13 @@ public class LightTheme implements Theme
     {
         this.name = NAME;
         uiDefaults = new UIDefaults();
-        UIDefaults.LazyValue value = tbl -> new ImageIcon(getClass().getResource(SPEAKER_ICON_DISABLED_PATH));
-        uiDefaults.put("speaker.icon.disabled", value);
+        UIDefaults.LazyValue value;
+
+        value = tbl -> new ImageIcon(getClass().getResource(SPEAKER_ICON_DISABLED_PATH));
+        uiDefaults.put("speaker.icon.disabled", value);        
+        uiDefaults.put("background.white", new Color(255, 255, 240));  
+        uiDefaults.put("mixconsole.background", Color.LIGHT_GRAY);        
+        uiDefaults.put("mixchannel.background", new Color(237, 237, 237));                
     }
 
     @Override
@@ -68,3 +74,5 @@ public class LightTheme implements Theme
         return GeneralUISettings.LookAndFeelId.LOOK_AND_FEEL_SYSTEM_DEFAULT;
     }
 }
+
+

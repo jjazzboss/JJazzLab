@@ -25,19 +25,9 @@ package org.jjazz.options;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Properties;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.midimix.UserChannelRvKey;
 import org.jjazz.songeditormanager.StartupShutdownSongManager;
 import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.ui.utilities.Utilities;
@@ -116,8 +106,6 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         jScrollPane1 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
         cb_disableMouseWheelChangeValue = new javax.swing.JCheckBox();
-        cmb_themes = new javax.swing.JComboBox<>();
-        jLabel1 = new javax.swing.JLabel();
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_loadLastRecentFile, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_loadLastRecentFile.text")); // NOI18N
         cb_loadLastRecentFile.addChangeListener(new javax.swing.event.ChangeListener()
@@ -191,18 +179,6 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         org.openide.awt.Mnemonics.setLocalizedText(cb_disableMouseWheelChangeValue, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_disableMouseWheelChangeValue.text")); // NOI18N
         cb_disableMouseWheelChangeValue.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_disableMouseWheelChangeValue.toolTipText")); // NOI18N
 
-        cmb_themes.setMaximumRowCount(4);
-        cmb_themes.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cmb_themes.toolTipText")); // NOI18N
-        cmb_themes.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cmb_themesActionPerformed(evt);
-            }
-        });
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jLabel1.text")); // NOI18N
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -214,11 +190,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(cb_disableMouseWheelChangeValue)
-                            .addComponent(cb_loadLastRecentFile)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(cmb_themes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel1)))
+                            .addComponent(cb_loadLastRecentFile))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -229,13 +201,9 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
                 .addComponent(cb_loadLastRecentFile)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cb_disableMouseWheelChangeValue)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cmb_themes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
-                .addGap(36, 36, 36)
+                .addGap(18, 18, 18)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(185, Short.MAX_VALUE))
+                .addContainerGap(232, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -260,13 +228,6 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         fdm.setUseRhyhtmUserDirAsRhythmDefaultMixDir(cb_useRhythmFileUserDir.isSelected());
     }//GEN-LAST:event_cb_useRhythmFileUserDirActionPerformed
 
-    private void cmb_themesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cmb_themesActionPerformed
-    {//GEN-HEADEREND:event_cmb_themesActionPerformed
-       controller.applyChanges();
-       controller.changed();
-               
-    }//GEN-LAST:event_cmb_themesActionPerformed
-
     void load()
     {
         // TODO read settings and initialize GUI
@@ -281,12 +242,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         cb_disableMouseWheelChangeValue.setSelected(!GeneralUISettings.getInstance().isChangeValueWithMouseWheelEnabled());
         
                 
-        // Theme combo
-        var uis = GeneralUISettings.getInstance();
-        List<String> themeNames = uis.getAvailableThemes().stream().map(t -> t.getName()).collect(Collectors.toList());
-        var cmbModel = new DefaultComboBoxModel<String>(themeNames.toArray(new String[0]));
-        cmb_themes.setModel(cmbModel);
-        cmb_themes.setSelectedItem(uis.getThemeNameUponRestart());
+
 
         updateRhythmMixDirPanel();
     }
@@ -302,10 +258,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
         StartupShutdownSongManager.getInstance().setOpenRecentFilesUponStartup(cb_loadLastRecentFile.isSelected());
 
-        GeneralUISettings.getInstance().setChangeValueWithMouseWheelEnabled(!cb_disableMouseWheelChangeValue.isSelected());
-        
-        var uis = GeneralUISettings.getInstance();
-        uis.setThemeUponRestart(uis.getTheme(cmb_themes.getSelectedItem().toString()));
+        GeneralUISettings.getInstance().setChangeValueWithMouseWheelEnabled(!cb_disableMouseWheelChangeValue.isSelected());        
     }
 
     boolean valid()
@@ -320,9 +273,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
     private javax.swing.JCheckBox cb_disableMouseWheelChangeValue;
     private javax.swing.JCheckBox cb_loadLastRecentFile;
     private javax.swing.JCheckBox cb_useRhythmFileUserDir;
-    private javax.swing.JComboBox<String> cmb_themes;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextField tf_defaultRhythmMixDir;

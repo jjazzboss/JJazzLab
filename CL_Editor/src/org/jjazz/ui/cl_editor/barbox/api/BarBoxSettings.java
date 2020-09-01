@@ -52,7 +52,7 @@ public interface BarBoxSettings
         }
         return result;
     }
-    
+
     default BarRendererSettings getBarRendererSettings()
     {
         return BarRendererSettings.getDefault();
@@ -85,6 +85,7 @@ public interface BarBoxSettings
     TitledBorder getFocusedTitledBorder(String str);
 
     /**
+     * Set the default background color.
      *
      * @param color If null restore the default value.
      */

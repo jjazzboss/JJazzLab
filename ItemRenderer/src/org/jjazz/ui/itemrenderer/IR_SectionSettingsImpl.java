@@ -81,8 +81,14 @@ public class IR_SectionSettingsImpl implements IR_SectionSettings, FontColorUser
     public void setFont(Font font)
     {
         Font old = getFont();
-        String strFont = (font != null) ? Utilities.fontAsString(font) : "Arial-PLAIN-9";
-        prefs.put(PROP_FONT, strFont);
+        if (font == null)
+        {
+            prefs.remove(PROP_FONT);
+            font = getFont();
+        } else
+        {
+            prefs.put(PROP_FONT, Utilities.fontAsString(font));
+        }
         pcs.firePropertyChange(PROP_FONT, old, font);
     }
 
@@ -103,7 +109,14 @@ public class IR_SectionSettingsImpl implements IR_SectionSettings, FontColorUser
     public void setColor(Color color)
     {
         Color old = getColor();
-        prefs.putInt(PROP_FONT_COLOR, color != null ? color.getRGB() : Color.BLACK.getRGB());
+        if (color == null)
+        {
+            prefs.remove(PROP_FONT_COLOR);
+            color = getColor();
+        } else
+        {
+            prefs.putInt(PROP_FONT_COLOR, color.getRGB());
+        }
         pcs.firePropertyChange(PROP_FONT_COLOR, old, color);
     }
 
@@ -127,7 +140,6 @@ public class IR_SectionSettingsImpl implements IR_SectionSettings, FontColorUser
     {
         return Arrays.asList((FontColorUserSettingsProvider.FCSetting) this);
     }
-
 
     // =====================================================================================
     // Upgrade Task
