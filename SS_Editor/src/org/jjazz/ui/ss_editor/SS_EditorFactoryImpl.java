@@ -23,8 +23,10 @@
 package org.jjazz.ui.ss_editor;
 
 import org.jjazz.song.api.Song;
+import org.jjazz.ui.sptviewer.api.SptViewerFactory;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorFactory;
+import org.jjazz.ui.ss_editor.api.SS_EditorSettings;
 
 public class SS_EditorFactoryImpl extends SS_EditorFactory
 {
@@ -48,8 +50,8 @@ public class SS_EditorFactoryImpl extends SS_EditorFactory
     }
 
     @Override
-    public SS_Editor createEditor(Song song)
+    public SS_Editor createEditor(Song song, SS_EditorSettings settings, SptViewerFactory factory)
     {
-        return new SS_EditorImpl(song);
+        return new SS_EditorImpl(song, settings, factory);
     }
 }

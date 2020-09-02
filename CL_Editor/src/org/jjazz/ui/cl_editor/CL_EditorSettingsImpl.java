@@ -28,6 +28,7 @@ import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.cl_editor.api.CL_EditorSettings;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.NbPreferences;
@@ -64,7 +65,7 @@ public class CL_EditorSettingsImpl implements CL_EditorSettings
     @Override
     public Color getBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR, ColorSetManager.getDefault().getWhite().getRGB()));
+        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR, GeneralUISettings.getInstance().getColor("background.white").getRGB()));
     }
 
     @Override

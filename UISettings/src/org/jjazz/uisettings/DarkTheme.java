@@ -54,6 +54,10 @@ public class DarkTheme implements Theme
         uiDefaults.put("background.white", new Color(235, 232, 225));
         uiDefaults.put("mixconsole.background", new Color(82, 82, 82));
         uiDefaults.put("mixchannel.background", new Color(212, 211, 209));
+        uiDefaults.put("bar.selected.background", new Color(156, 229, 235));
+        uiDefaults.put("item.selected.background", new Color(131, 209, 229));
+        uiDefaults.put("default.focused.border.color", new Color(16, 65, 242));    
+        uiDefaults.put("songpart.focused.border.color", Color.WHITE);                
     }
 
     @Override

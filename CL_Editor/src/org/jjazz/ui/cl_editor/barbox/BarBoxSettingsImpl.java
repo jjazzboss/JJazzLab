@@ -43,6 +43,7 @@ import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 
@@ -183,7 +184,7 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     @Override
     public Color getFocusedBorderColor()
     {
-        return new Color(prefs.getInt(PROP_FOCUSED_BORDER_COLOR, ColorSetManager.getDefault().getFocusedBorderColor().getRGB()));
+        return new Color(prefs.getInt(PROP_FOCUSED_BORDER_COLOR, GeneralUISettings.getInstance().getColor("default.focused.border.color").getRGB()));
     }
 
     @Override
@@ -220,7 +221,7 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     @Override
     public Color getDefaultColor()
     {
-        return new Color(prefs.getInt(PROP_BAR_DEFAULT_COLOR, ColorSetManager.getDefault().getWhite().getRGB()));
+        return new Color(prefs.getInt(PROP_BAR_DEFAULT_COLOR, GeneralUISettings.getInstance().getColor("background.white").getRGB()));
     }
 
     @Override
@@ -289,7 +290,7 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     @Override
     public Color getSelectedColor()
     {
-        return new Color(prefs.getInt(PROP_BAR_SELECTED_COLOR, ColorSetManager.getDefault().getSelectedBackgroundColor().getRGB()));
+        return new Color(prefs.getInt(PROP_BAR_SELECTED_COLOR, GeneralUISettings.getInstance().getColor("bar.selected.background").getRGB()));
     }
 
     @Override
@@ -310,7 +311,7 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     @Override
     public Color getPastEndSelectedColor()
     {
-        return new Color(prefs.getInt(PROP_BAR_PAST_END_SELECTED_COLOR, Color.YELLOW.darker().getRGB()));
+        return new Color(prefs.getInt(PROP_BAR_PAST_END_SELECTED_COLOR, getSelectedColor().darker().getRGB()));
     }
 
     @Override
@@ -331,7 +332,7 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     @Override
     public Color getPlaybackColor()
     {
-        return new Color(prefs.getInt(PROP_BAR_PLAYBACK_COLOR, new Color(244, 219, 215).getRGB()));
+        return new Color(prefs.getInt(PROP_BAR_PLAYBACK_COLOR, new Color(241, 241, 63).getRGB()));
     }
 
     @Override

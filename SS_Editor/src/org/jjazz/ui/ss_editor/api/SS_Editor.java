@@ -36,6 +36,7 @@ import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.sptviewer.api.SptViewerFactory;
 
 /**
  * A SongStructure editor.
@@ -62,6 +63,11 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
      * @return The UndoManager used but this editor.
      */
     abstract public UndoRedo getUndoManager();
+
+
+    abstract public SS_EditorSettings getSettings();
+
+    abstract public SptViewerFactory getSptViewerRendererFactory();
 
     abstract public void setController(SS_EditorMouseListener controller);
 

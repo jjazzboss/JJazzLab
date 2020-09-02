@@ -32,9 +32,8 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import org.jjazz.rhythm.parameters.RP_Integer;
 import org.jjazz.rhythm.parameters.RhythmParameter;
-import static org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider.PROP_COLOR_BOTTOM;
-import static org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider.PROP_COLOR_TOP;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.rpviewer.api.RpViewerSettings;
 
 /**
  * Display the value as a vertical meter with max 10 leds of 3 colors.
@@ -53,9 +52,9 @@ public class MeterRpViewer extends RpViewer
      */
     private static final int EXTRA_HEIGHT_ZOOM_50 = 15;
 
-    public MeterRpViewer(SongPart spt, RhythmParameter<?> rp)
+    public MeterRpViewer(SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings)
     {
-        super(spt, rp);
+        super(spt, rp, settings);
     }
 
     @Override

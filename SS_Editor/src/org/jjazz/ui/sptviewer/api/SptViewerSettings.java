@@ -28,6 +28,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
+import org.jjazz.ui.rpviewer.api.RpViewerSettings;
 import org.openide.util.Lookup;
 
 /**
@@ -58,6 +59,11 @@ public interface SptViewerSettings
             throw new NullPointerException("result=" + result);
         }
         return result;
+    }
+
+    default RpViewerSettings getRpViewerSettings()
+    {
+        return RpViewerSettings.getDefault();
     }
 
     boolean isSectionColorUsedAsBackground();
@@ -97,23 +103,23 @@ public interface SptViewerSettings
     Color getDefaultBackgroundColor();
 
     /**
-     * Get a background color based on the parentSection color.
+     * Get the default background color based on the parentSection color.
      * <p>
      * Return getDefaultBackgroundColor() if problem occured or if isSectionColorUsedAsBackground() is false.
      *
      * @param parentSection
      * @return
      */
-    public default Color getBackgroundColor(Section parentSection)
+    public default Color getDefaultBackgroundColor(Section parentSection)
     {
         Color res;
         if (!isSectionColorUsedAsBackground() || parentSection == null)
         {
-            res = getDefaultBackgroundColor();
+            res = SptViewerSettings.this.getDefaultBackgroundColor();
         } else
         {
             Color c = ColorSetManager.getDefault().getColor(parentSection.getName());
-            res = (c == null) ? getDefaultBackgroundColor() : new Color(c.getRed(), c.getGreen(), c.getBlue(), 150);    // A bit transparent
+            res = (c == null) ? SptViewerSettings.this.getDefaultBackgroundColor() : new Color(c.getRed(), c.getGreen(), c.getBlue(), 150);    // A bit transparent
         }
         return res;
     }

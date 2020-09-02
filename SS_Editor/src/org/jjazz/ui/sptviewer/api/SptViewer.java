@@ -27,6 +27,7 @@ import javax.swing.JPanel;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.rpviewer.api.RpViewerFactory;
 
 /**
  * A SongPart viewer.
@@ -37,6 +38,10 @@ public abstract class SptViewer extends JPanel
 {
 
     public abstract SongPart getModel();
+
+    public abstract SptViewerSettings getSettings();
+
+    public abstract RpViewerFactory getRpViewerFactory();
 
     public abstract void setController(SptViewerMouseListener controller);
 
@@ -81,7 +86,7 @@ public abstract class SptViewer extends JPanel
     public abstract void setMultiSelectMode(boolean b, boolean first);
 
     public abstract void setNameVisible(boolean b);
-    
+
     public abstract void setTimeSignatureVisible(boolean b);
 
     public abstract void cleanup();

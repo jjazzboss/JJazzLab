@@ -43,6 +43,7 @@ import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.ui.sptviewer.api.SptViewerFactory;
 import org.jjazz.ui.ss_editor.SS_EditorImpl;
 import org.jjazz.ui.ss_editor.SS_EditorToolBar;
 import org.jjazz.ui.utilities.Zoomable;
@@ -106,7 +107,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.TRUE);
 
         // Create our editor
-        ssEditor = SS_EditorFactory.getDefault().createEditor(songModel);
+        ssEditor = SS_EditorFactory.getDefault().createEditor(songModel, SS_EditorSettings.getDefault(), SptViewerFactory.getDefault());
         ssEditorController = new SS_EditorController(ssEditor);
         ssEditor.setController(ssEditorController);
 

@@ -34,45 +34,47 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = Theme.class)
 public class LightTheme implements Theme
 {
-
+    
     public static String NAME = "Light Theme";
     @StaticResource(relative = true)
     private static final String SPEAKER_ICON_DISABLED_PATH = "resources/SpeakerDisabled-20x20.png";
-
+    
     private UIDefaults uiDefaults;
-
+    
     private String name;
-
+    
     public LightTheme()
     {
         this.name = NAME;
         uiDefaults = new UIDefaults();
         UIDefaults.LazyValue value;
-
+        
         value = tbl -> new ImageIcon(getClass().getResource(SPEAKER_ICON_DISABLED_PATH));
         uiDefaults.put("speaker.icon.disabled", value);        
-        uiDefaults.put("background.white", new Color(255, 255, 240));  
+        uiDefaults.put("background.white", new Color(255, 255, 240));        
         uiDefaults.put("mixconsole.background", Color.LIGHT_GRAY);        
-        uiDefaults.put("mixchannel.background", new Color(237, 237, 237));                
+        uiDefaults.put("mixchannel.background", new Color(237, 237, 237));        
+        uiDefaults.put("bar.selected.background", new Color(209, 238, 246));
+        uiDefaults.put("item.selected.background", new Color(128, 212, 235));        
+        uiDefaults.put("default.focused.border.color", new Color(16, 65, 242));        
+        uiDefaults.put("songpart.focused.border.color", uiDefaults.getColor("default.focused.border.color"));        
     }
-
+    
     @Override
     public UIDefaults getUIDefaults()
     {
         return uiDefaults;
     }
-
+    
     @Override
     public String getName()
     {
         return name;
     }
-
+    
     @Override
     public GeneralUISettings.LookAndFeelId getLookAndFeel()
     {
         return GeneralUISettings.LookAndFeelId.LOOK_AND_FEEL_SYSTEM_DEFAULT;
     }
 }
-
-

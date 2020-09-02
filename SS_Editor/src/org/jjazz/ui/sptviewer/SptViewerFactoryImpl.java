@@ -26,11 +26,13 @@ package org.jjazz.ui.sptviewer;
 import org.jjazz.ui.sptviewer.api.SptViewer;
 import org.jjazz.ui.sptviewer.api.SptViewerFactory;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.rpviewer.api.RpViewerFactory;
+import org.jjazz.ui.sptviewer.api.SptViewerSettings;
 
 /**
  *
  */
-public class SptViewerFactoryImpl extends SptViewerFactory
+public class SptViewerFactoryImpl implements SptViewerFactory
 {
 
     static private SptViewerFactoryImpl INSTANCE;
@@ -52,9 +54,9 @@ public class SptViewerFactoryImpl extends SptViewerFactory
     }
 
     @Override
-    public SptViewer createDefaultEditor(SongPart spt)
+    public SptViewer createDefaultEditor(SongPart spt, SptViewerSettings settings, RpViewerFactory factory)
     {
-        SptViewer sptv = new SptViewerImpl(spt);
+        SptViewer sptv = new SptViewerImpl(spt, settings, factory);
         return sptv;
     }
 

@@ -26,6 +26,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
+import org.jjazz.ui.rpviewer.StringRpViewerSettings;
 import org.openide.util.Lookup;
 
 public interface RpViewerSettings
@@ -48,35 +49,40 @@ public interface RpViewerSettings
         return result;
     }
 
-     void setFont(Font font);
+    default StringRpViewerSettings getStringRpViewerSettings()
+    {
+        return StringRpViewerSettings.getDefault();
+    }
 
-     Font getFont();
+    void setFont(Font font);
 
-     void setFontColor(Color color);
+    Font getFont();
 
-     Color getFontColor();
+    void setFontColor(Color color);
 
-     void setSelectedBackgroundColor(Color color);
+    Color getFontColor();
 
-     Color getSelectedBackgroundColor();
+    void setSelectedBackgroundColor(Color color);
 
-     void setDefaultBackgroundColor(Color color);
+    Color getSelectedBackgroundColor();
 
-     Color getDefaultBackgroundColor();
+    void setDefaultBackgroundColor(Color color);
 
-     void setFocusedBorderColor(Color color);
+    Color getDefaultBackgroundColor();
 
-     Color getFocusedBorderColor();
+    void setFocusedBorderColor(Color color);
 
-     Border getFocusedBorder();
+    Color getFocusedBorderColor();
 
-     void setDefaultBorderColor(Color color);
+    Border getFocusedBorder();
 
-     Color getDefaultBorderColor();
+    void setDefaultBorderColor(Color color);
 
-     Border getNonFocusedBorder();
+    Color getDefaultBorderColor();
 
-     void addPropertyChangeListener(PropertyChangeListener listener);
+    Border getNonFocusedBorder();
 
-     void removePropertyChangeListener(PropertyChangeListener listener);
+    void addPropertyChangeListener(PropertyChangeListener listener);
+
+    void removePropertyChangeListener(PropertyChangeListener listener);
 }

@@ -31,20 +31,20 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 
 @OptionsPanelController.TopLevelRegistration(
-        categoryName = "#OptionsCategory_Name_Editor",
-        iconBase = "org/jjazz/options/resources/RichTextEditor32x32.png",
-        keywords = "#OptionsCategory_Keywords_Editor",
-        keywordsCategory = "Editor",
+        categoryName = "#OptionsCategory_Name_Theme",
+        iconBase = "org/jjazz/options/resources/Theme32x32.png",
+        keywords = "#OptionsCategory_Keywords_Theme",
+        keywordsCategory = "Theme",
         position = 390
 )
 @org.openide.util.NbBundle.Messages(
         {
-            "OptionsCategory_Name_Editor=Fonts & Colors", "OptionsCategory_Keywords_Editor=editor font color"
+            "OptionsCategory_Name_Theme=Theme", "OptionsCategory_Keywords_Theme=theme font color"
         })
-public final class EditorOptionsPanelController extends OptionsPanelController
+public final class ThemeOptionsPanelController extends OptionsPanelController
 {
 
-    private EditorPanel panel;
+    private ThemePanel panel;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private boolean changed;
 
@@ -112,11 +112,11 @@ public final class EditorOptionsPanelController extends OptionsPanelController
         pcs.removePropertyChangeListener(l);
     }
 
-    private EditorPanel getPanel()
+    private ThemePanel getPanel()
     {
         if (panel == null)
         {
-            panel = new EditorPanel(this);
+            panel = new ThemePanel(this);
         }
         return panel;
     }

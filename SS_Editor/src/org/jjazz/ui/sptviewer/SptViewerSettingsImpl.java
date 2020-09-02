@@ -34,6 +34,7 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.sptviewer.api.SptViewerSettings;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
@@ -79,6 +80,12 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     }
 
     @Override
+    public Color getDefaultBackgroundColor()
+    {
+        return new Color(prefs.getInt(PROP_DEFAULT_BACKGROUND_COLOR, GeneralUISettings.getInstance().getColor("background.white").getRGB()));
+    }
+
+    @Override
     public boolean isSectionColorUsedAsBackground()
     {
         return prefs.getBoolean(PROP_USE_SECTION_COLOR, true);
@@ -92,11 +99,6 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
         pcs.firePropertyChange(PROP_USE_SECTION_COLOR, old, b);
     }
 
-    @Override
-    public Color getDefaultBackgroundColor()
-    {
-        return new Color(prefs.getInt(PROP_DEFAULT_BACKGROUND_COLOR, ColorSetManager.getDefault().getWhite().getRGB()));
-    }
 
     @Override
     public void setSelectedBackgroundColor(Color color)
@@ -116,13 +118,13 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     @Override
     public Color getSelectedBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_SELECTED_BACKGROUND_COLOR, ColorSetManager.getDefault().getSelectedBackgroundColor().getRGB()));
+        return new Color(prefs.getInt(PROP_SELECTED_BACKGROUND_COLOR, new Color(94, 203, 231).getRGB()));
     }
 
     @Override
     public Color getPlaybackColor()
     {
-        return new Color(prefs.getInt(PROP_PLAYBACK_COLOR, new Color(244, 219, 215).getRGB()));
+        return new Color(prefs.getInt(PROP_PLAYBACK_COLOR, new Color(241, 241, 63).getRGB()));
     }
 
     @Override
@@ -149,7 +151,7 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     @Override
     public Color getFocusedBorderColor()
     {
-        return new Color(prefs.getInt(PROP_FOCUSED_BORDER_COLOR, ColorSetManager.getDefault().getFocusedBorderColor().getRGB()));
+        return new Color(prefs.getInt(PROP_FOCUSED_BORDER_COLOR, GeneralUISettings.getInstance().getColor("songpart.focused.border.color").getRGB()));
     }
 
     @Override
@@ -396,23 +398,6 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
         };
         res.add(fcs);
 
-        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SongPartColorId", "Song part")
-        {
-
-            @Override
-            public Color getColor()
-            {
-                return getDefaultBackgroundColor();
-            }
-
-            @Override
-            public void setColor(Color c)
-            {
-                setDefaultBackgroundColor(c);
-            }
-        };
-        res.add(fcs);
-
         fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SelectedSongPartColorId", "Selected song part")
         {
 
@@ -446,6 +431,7 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
             }
         };
         res.add(fcs);
+
 
         return res;
     }

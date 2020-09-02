@@ -32,7 +32,7 @@ import org.openide.util.Lookup;
 
 @OptionsPanelController.TopLevelRegistration(
         categoryName = "#OptionsCategory_Name_Rhythms",
-        iconBase = "org/jjazz/options/resources/DatabaseIcon32x32.png",
+        iconBase = "org/jjazz/options/resources/Rhythms32x32.png",
         keywords = "#OptionsCategory_Keywords_Rhythms",
         keywordsCategory = "Rhythms",
         position = 350

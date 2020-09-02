@@ -34,6 +34,7 @@ import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.itemrenderer.api.ItemRendererSettings;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
 import org.jjazz.ui.utilities.HSLColor;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.NbPreferences;
@@ -62,16 +63,7 @@ public class ItemRendererSettingsImpl implements ItemRendererSettings, FontColor
     public Color getSelectedBackgroundColor()
     {
         Color c;
-        int rgb = prefs.getInt(PROP_ITEM_SELECTED_COLOR, Integer.MAX_VALUE);
-        if (rgb == Integer.MAX_VALUE)
-        {
-            // Use the default selected background color but a bit darker because smaller items selected, more difficult to see
-            HSLColor hsl = new HSLColor(ColorSetManager.getDefault().getSelectedBackgroundColor());
-            c = hsl.adjustShade(8);
-        } else
-        {
-            c = new Color(rgb);
-        }
+        c = new Color(prefs.getInt(PROP_ITEM_SELECTED_COLOR, GeneralUISettings.getInstance().getColor("item.selected.background").getRGB()));
         return c;
     }
 
@@ -94,7 +86,7 @@ public class ItemRendererSettingsImpl implements ItemRendererSettings, FontColor
     @Override
     public Border getFocusedBorder()
     {
-        Color color = new Color(prefs.getInt(PROP_ITEM_FOCUSED_BORDER_COLOR, ColorSetManager.getDefault().getFocusedBorderColor().getRGB()));
+        Color color = new Color(prefs.getInt(PROP_ITEM_FOCUSED_BORDER_COLOR, GeneralUISettings.getInstance().getColor("default.focused.border.color").getRGB()));
         return BorderFactory.createLineBorder(color);
     }
 

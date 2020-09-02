@@ -20,10 +20,9 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.ui.rpviewer;
+package org.jjazz.ui.rpviewer.api;
 
 import java.awt.Dimension;
-import org.jjazz.ui.rpviewer.api.RpViewer;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -35,6 +34,7 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.rpviewer.StringRpViewerSettings;
 
 /**
  * A simple editor: just display RP value as a string.
@@ -58,15 +58,15 @@ public class StringRpViewer extends RpViewer implements PropertyChangeListener
      * @param rp
      * @param formatter The string formatter of the rp value
      */
-    public StringRpViewer(SongPart spt, RhythmParameter<?> rp, Function<Object, String> formatter)
+    public StringRpViewer(SongPart spt, RhythmParameter<?> rp, Function<Object, String> formatter, RpViewerSettings settings)
     {
-        super(spt, rp);
+        super(spt, rp, settings);
         if (formatter == null)
         {
             throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " formatter=" + formatter);
         }
-        settings = StringRpViewerSettings.getDefault();
-        settings.addPropertyChangeListener(this);
+        this.settings = settings.getStringRpViewerSettings();
+        this.settings.addPropertyChangeListener(this);
         this.formatter = formatter;
     }
 

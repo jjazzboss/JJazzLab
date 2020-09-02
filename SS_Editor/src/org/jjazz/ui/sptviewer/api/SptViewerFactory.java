@@ -25,11 +25,12 @@ package org.jjazz.ui.sptviewer.api;
 import org.jjazz.ui.sptviewer.SptViewerFactoryImpl;
 import org.openide.util.Lookup;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.rpviewer.api.RpViewerFactory;
 
 /**
  * A factory for SongPartEditors.
  */
-public abstract class SptViewerFactory
+public interface SptViewerFactory
 {
 
     public static SptViewerFactory getDefault()
@@ -42,5 +43,10 @@ public abstract class SptViewerFactory
         return rpef;
     }
 
-    public abstract SptViewer createDefaultEditor(SongPart spt);
+    default RpViewerFactory getRpViewerFactory()
+    {
+        return RpViewerFactory.getDefault();
+    }
+
+    SptViewer createDefaultEditor(SongPart spt, SptViewerSettings settings, RpViewerFactory factory);
 }

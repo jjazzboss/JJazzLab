@@ -31,7 +31,6 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.util.SmallMap;
 import org.openide.util.NbPreferences;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
-import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.lookup.ServiceProvider;
@@ -55,9 +54,6 @@ public class ColorSetManagerImpl implements ColorSetManager
 //    private final Color c6 = new Color(0x984B3F);
     // private final Color WHITE = new Color(251, 248, 245);        // "our" white = "old paper"
     // private final Color WHITE = new Color(235, 232, 225);        // "our" white for FlatLAF
-    private final Color BLACK = new Color(5, 5, 5);    // "our" black = "gray2"
-    private final Color SELECTED_BACKGROUND = new Color(194, 194, 208);  // 
-    private final Color FOCUSED_BORDER_COLOR = new Color(16, 65, 242); // Blue
     // 
     // Application variables
     private static final int NB_COLORS = 6;
@@ -159,30 +155,6 @@ public class ColorSetManagerImpl implements ColorSetManager
                 throw new IllegalArgumentException("index=" + index + " NB_COLORS=" + NB_COLORS);
         }
         return c;
-    }
-
-    @Override
-    public Color getWhite()
-    {
-        return GeneralUISettings.getInstance().getColor("background.white");
-    }
-
-    @Override
-    public Color getBlack()
-    {
-        return BLACK;
-    }
-
-    @Override
-    public Color getSelectedBackgroundColor()
-    {
-        return SELECTED_BACKGROUND;
-    }
-
-    @Override
-    public Color getFocusedBorderColor()
-    {
-        return FOCUSED_BORDER_COLOR;
     }
 
     @Override

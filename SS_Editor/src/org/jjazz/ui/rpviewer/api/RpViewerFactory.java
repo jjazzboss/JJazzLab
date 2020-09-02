@@ -56,9 +56,10 @@ public interface RpViewerFactory
      *
      * @param spt
      * @param rp
+     * @param settings
      * @return
      */
-    RpViewer createRpViewer(SongPart spt, RhythmParameter<?> rp);
+    RpViewer createRpViewer(SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings);
 
     /**
      * Create a RpViewer of a specific type.
@@ -66,7 +67,8 @@ public interface RpViewerFactory
      * @param type
      * @param spt
      * @param rp
+     * @param settings
      * @return May be null if RpViewer requested type is not compatible with rp.
      */
-    RpViewer createRpViewer(Type type, SongPart spt, RhythmParameter<?> rp);
+    RpViewer createRpViewer(Type type, SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings);
 }

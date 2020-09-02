@@ -24,9 +24,10 @@ package org.jjazz.ui.ss_editor.api;
 
 import java.awt.Color;
 import java.beans.PropertyChangeListener;
+import org.jjazz.ui.sptviewer.api.SptViewerSettings;
 import org.openide.util.Lookup;
 
-public abstract class SS_EditorSettings
+public interface SS_EditorSettings
 {
 
     public static String PROP_BACKGROUND_COLOR = "BackgroundColor";
@@ -42,15 +43,20 @@ public abstract class SS_EditorSettings
         return result;
     }
 
-    abstract public Color getBackgroundColor();
+    default SptViewerSettings getSptViewerSettings()
+    {
+        return SptViewerSettings.getDefault();
+    }
 
-    abstract public void setBackgroundColor(Color color);
+    Color getBackgroundColor();
 
-    abstract public Color getTopBackgroundColor();
+    void setBackgroundColor(Color color);
 
-    abstract public void setTopBackgroundColor(Color color);
+    Color getTopBackgroundColor();
 
-    abstract public void addPropertyChangeListener(PropertyChangeListener listener);
+    void setTopBackgroundColor(Color color);
 
-    abstract public void removePropertyChangeListener(PropertyChangeListener listener);
+    void addPropertyChangeListener(PropertyChangeListener listener);
+
+    void removePropertyChangeListener(PropertyChangeListener listener);
 }

@@ -85,34 +85,6 @@ public interface ColorSetManager
      */
     void resetColor(String id);
 
-    /**
-     * A generic color for background of a selected object.
-     *
-     * @return
-     */
-    Color getSelectedBackgroundColor();
-
-    /**
-     * A generic color for border color of a selected object.
-     *
-     * @return
-     */
-    Color getFocusedBorderColor();
-
-    /**
-     * Our white reference color -which may not be 100% pure white
-     *
-     * @return
-     */
-    Color getWhite();
-
-    /**
-     * Our black reference color -which may not be 100% pure black
-     *
-     * @return
-     */
-    Color getBlack();
-
     void addPropertyChangeListener(PropertyChangeListener listener);
 
     void removePropertyChangeListener(PropertyChangeListener listener);

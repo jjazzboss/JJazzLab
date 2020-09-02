@@ -23,6 +23,7 @@
 package org.jjazz.ui.ss_editor.api;
 
 import org.jjazz.song.api.Song;
+import org.jjazz.ui.sptviewer.api.SptViewerFactory;
 import org.jjazz.ui.ss_editor.SS_EditorFactoryImpl;
 import org.openide.util.Lookup;
 
@@ -39,5 +40,5 @@ public abstract class SS_EditorFactory
         return rlef;
     }
 
-    abstract public SS_Editor createEditor(Song song);
+    abstract public SS_Editor createEditor(Song song, SS_EditorSettings settings, SptViewerFactory factory);
 }

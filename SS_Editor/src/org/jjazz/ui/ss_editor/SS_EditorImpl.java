@@ -40,11 +40,9 @@ import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.TooManyListenersException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -114,6 +112,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
      * Optional Song container of sgsModel.
      */
     private Song songModel;
+
     /**
      * Our controller.
      */
@@ -175,18 +174,24 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
      * Editor settings.
      */
     private SS_EditorSettings settings;
+    private SptViewerFactory sptViewerFactory;
     private static final Logger LOGGER = Logger.getLogger(SS_EditorImpl.class.getSimpleName());
 
     /**
      * Creates new form SS_EditorImpl
      */
-    public SS_EditorImpl(Song song)
+    public SS_EditorImpl(Song song, SS_EditorSettings settings, SptViewerFactory factory)
     {
-        if (song == null)
+        if (song == null || settings == null || factory == null)
         {
-            throw new IllegalArgumentException("song=" + song);
+            throw new IllegalArgumentException("song=" + song + " settings=" + settings + " factory=" + factory);
         }
+        this.settings = settings;
         songModel = song;
+        sptViewerFactory = factory;
+
+        // Listen to settings changes
+        this.settings.addPropertyChangeListener(this);
 
         // The lookup for selection
         selectionLookupContent = new InstanceContent();
@@ -232,9 +237,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
         mapRhythmVisibleRps = new SmallMap<>();
 
-        // Listen to settings changes
-        settings = SS_EditorSettings.getDefault();
-        settings.addPropertyChangeListener(this);
 
         // Graphical init
         initUIComponents();
@@ -267,43 +269,18 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         updateSptMultiSelectMode();
     }
 
-    private void initUIComponents()
+    @Override
+    public SS_EditorSettings getSettings()
     {
-        insertionMark = new InsertionSptMark();
-
-//        panel_Top = new JPanel();
-//        panel_Top.setPreferredSize(new Dimension(0, 25));
-//        panel_Top.setOpaque(true);
-//        panel_Top.setBackground(settings.getTopBackgroundColor());
-//        panel_Top.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        panel_SongParts = new JPanel()
-        {
-            // Leave a small space at the right of the last SongPart
-            @Override
-            public Dimension getPreferredSize()
-            {
-                final int EXTRA = 50;
-                Dimension pd = getLayout().preferredLayoutSize(this);
-                return new Dimension(pd.width + EXTRA, pd.height);
-            }
-        };
-        java.awt.FlowLayout flowLayout = new java.awt.FlowLayout(FlowLayout.LEFT, 1, 5);
-        flowLayout.setAlignOnBaseline(true); // Used to get the songparts aligned on the top line.
-        panel_SongParts.setOpaque(false);
-        panel_SongParts.setLayout(flowLayout);
-        panel_SongParts.setMinimumSize(new java.awt.Dimension(800, 50));
-
-        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
-        setLayout(boxLayout); // So that panel_SongParts uses all the available space        
-        // add(panel_Top);
-        add(panel_SongParts);
+        return settings;
     }
 
-    private void updateUIComponents()
+    @Override
+    public SptViewerFactory getSptViewerRendererFactory()
     {
-        // setBackground(settings.getBackgroundColor());
-        setOpaque(false);       // To reuse LAF default background
+        return sptViewerFactory;
     }
+
 
     @Override
     public UndoRedo getUndoManager()
@@ -966,6 +943,44 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     // Private functions
     //------------------------------------------------------------------------------      
 
+    private void initUIComponents()
+    {
+        insertionMark = new InsertionSptMark();
+
+//        panel_Top = new JPanel();
+//        panel_Top.setPreferredSize(new Dimension(0, 25));
+//        panel_Top.setOpaque(true);
+//        panel_Top.setBackground(settings.getTopBackgroundColor());
+//        panel_Top.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        panel_SongParts = new JPanel()
+        {
+            // Leave a small space at the right of the last SongPart
+            @Override
+            public Dimension getPreferredSize()
+            {
+                final int EXTRA = 50;
+                Dimension pd = getLayout().preferredLayoutSize(this);
+                return new Dimension(pd.width + EXTRA, pd.height);
+            }
+        };
+        java.awt.FlowLayout flowLayout = new java.awt.FlowLayout(FlowLayout.LEFT, 1, 5);
+        flowLayout.setAlignOnBaseline(true); // Used to get the songparts aligned on the top line.
+        panel_SongParts.setOpaque(false);
+        panel_SongParts.setLayout(flowLayout);
+        panel_SongParts.setMinimumSize(new java.awt.Dimension(800, 50));
+
+        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
+        setLayout(boxLayout); // So that panel_SongParts uses all the available space        
+        // add(panel_Top);
+        add(panel_SongParts);
+    }
+
+    private void updateUIComponents()
+    {
+        // setBackground(settings.getBackgroundColor());
+        setOpaque(false);       // To reuse LAF default background
+    }
+
     private void setSongModified()
     {
         SavableSong s = lookup.lookup(SavableSong.class
@@ -1005,8 +1020,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     private void addSptViewer(SongPart spt)
     {
         assert spt != null;
-        SptViewerFactory sptvf = SptViewerFactory.getDefault();
-        SptViewer sptv = sptvf.createDefaultEditor(spt);
+        SptViewer sptv = sptViewerFactory.createDefaultEditor(spt, settings.getSptViewerSettings(), sptViewerFactory.getRpViewerFactory());
         sptv.setZoomHFactor(zoomHFactor);
         sptv.setZoomVFactor(zoomVFactor);
         List<RhythmParameter<?>> rps = this.getVisibleRps(spt.getRhythm());
@@ -1099,7 +1113,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             Rhythm rhythm = sptv.getModel().getRhythm();
             TimeSignature ts = rhythm.getTimeSignature();
             sptv.setRhythmVisible(!rhythm.equals(lastRhythm));
-            sptv.setTimeSignatureVisible(lastRhythm==null ? true : !ts.equals(lastRhythm.getTimeSignature()));
+            sptv.setTimeSignatureVisible(lastRhythm == null ? true : !ts.equals(lastRhythm.getTimeSignature()));
             lastRhythm = rhythm;
         }
     }

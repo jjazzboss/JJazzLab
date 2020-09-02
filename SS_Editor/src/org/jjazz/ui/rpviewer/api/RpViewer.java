@@ -65,15 +65,19 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
 
     private static final Logger LOGGER = Logger.getLogger(RpViewer.class.getSimpleName());
 
-    public RpViewer(SongPart spt, RhythmParameter<?> rp)
+    public RpViewer(SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings)
     {
-        super();
-        if (rp == null || spt == null)
+        if (rp == null || spt == null || settings == null)
         {
-            throw new NullPointerException("spt=" + spt + " sptr=" + rp);
+            throw new NullPointerException("spt=" + spt + " rp=" + rp + " settings=" + settings);
         }
         this.rpModel = rp;
         this.sptModel = spt;
+        this.settings = settings;
+
+        // Register graphical settings changes
+        this.settings.addPropertyChangeListener(this);
+
 
         // Listen to rp changes
         sptModel.addPropertyChangeListener(this);
@@ -81,9 +85,6 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
         // Update graphics depending on focus state
         addFocusListener(this);
 
-        // Register graphical settings changes
-        settings = RpViewerSettings.getDefault();
-        settings.addPropertyChangeListener(this);
 
         // Standard zoom factor by default
         zoomVFactor = 50;
@@ -257,8 +258,6 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
         lbl_RpName.setToolTipText(rpModel.getDescription());
         lbl_RpName.setHorizontalAlignment(CENTER);
         lbl_RpName.setOpaque(true); // but we make it slightly transparent below
-        Color c = RpViewerSettings.getDefault().getDefaultBackgroundColor();
-        lbl_RpName.setBackground(new Color(c.getRed(), c.getGreen(), c.getBlue(), 110)); // a bit Transparent
 
         // Put the label on the right
         JPanel pnl_Top = new JPanel(new FlowLayout(FlowLayout.RIGHT, 3, 1));
@@ -274,6 +273,9 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
     {
         lbl_RpName.setFont(settings.getFont());
         lbl_RpName.setForeground(settings.getFontColor());
+        Color c = settings.getDefaultBackgroundColor();
+        lbl_RpName.setBackground(new Color(c.getRed(), c.getGreen(), c.getBlue(), 110)); // a bit Transparent
+        
 
         if (hasFocus())
         {

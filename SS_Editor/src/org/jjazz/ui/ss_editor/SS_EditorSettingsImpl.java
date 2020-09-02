@@ -24,19 +24,28 @@ package org.jjazz.ui.ss_editor;
 
 import java.awt.Color;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.ss_editor.api.SS_EditorSettings;
+import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
+import org.openide.util.lookup.ServiceProviders;
 
-@ServiceProvider(service = SS_EditorSettings.class)
-public class SS_EditorSettingsImpl extends SS_EditorSettings
+@ServiceProviders(value =
 {
-
+    @ServiceProvider(service = SS_EditorSettings.class),
+    @ServiceProvider(service = FontColorUserSettingsProvider.class)
+}
+)
+public class SS_EditorSettingsImpl implements SS_EditorSettings, FontColorUserSettingsProvider
+{
     /**
      * The Preferences of this object.
      */
@@ -65,7 +74,7 @@ public class SS_EditorSettingsImpl extends SS_EditorSettings
     @Override
     public Color getBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR, ColorSetManager.getDefault().getWhite().getRGB()));
+        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR, GeneralUISettings.getInstance().getColor("background.white").getRGB()));
     }
 
     @Override
@@ -99,6 +108,34 @@ public class SS_EditorSettingsImpl extends SS_EditorSettings
     public void removePropertyChangeListener(PropertyChangeListener listener)
     {
         pcs.removePropertyChangeListener(listener);
+    }
+
+    // =====================================================================================
+    // FontColorUserSettingsProvider implementation
+    // =====================================================================================
+    @Override
+    public List<FontColorUserSettingsProvider.FCSetting> getFCSettings()
+    {
+        List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
+
+        var fcs = new FontColorUserSettingsProvider.FCSettingAdapter("rpBackgroundId", "Song structure background")
+        {
+            @Override
+            public Color getColor()
+            {
+                return getBackgroundColor();
+            }
+
+            @Override
+            public void setColor(Color c)
+            {
+                setBackgroundColor(c);
+            }
+
+        };
+        res.add(fcs);
+
+        return res;
     }
 
 

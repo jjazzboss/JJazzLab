@@ -33,7 +33,9 @@ import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.rpviewer.api.RpViewerSettings;
+import org.jjazz.ui.sptviewer.api.SptViewerSettings;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
@@ -62,7 +64,7 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
     @Override
     public Color getSelectedBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_SELECTED_BACKGROUND_COLOR, ColorSetManager.getDefault().getSelectedBackgroundColor().getRGB()));
+        return new Color(prefs.getInt(PROP_SELECTED_BACKGROUND_COLOR, SptViewerSettings.getDefault().getSelectedBackgroundColor().getRGB()));
     }
 
     @Override
@@ -83,7 +85,7 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
     @Override
     public Color getDefaultBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR, ColorSetManager.getDefault().getWhite().getRGB()));
+        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR, GeneralUISettings.getInstance().getColor("background.white").getRGB()));
     }
 
     @Override
@@ -104,7 +106,7 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
     @Override
     public Color getFocusedBorderColor()
     {
-        return new Color(prefs.getInt(PROP_FOCUS_BORDER_COLOR, ColorSetManager.getDefault().getFocusedBorderColor().getRGB()));
+        return new Color(prefs.getInt(PROP_FOCUS_BORDER_COLOR, GeneralUISettings.getInstance().getColor("default.focused.border.color").getRGB()));
     }
 
     @Override
@@ -220,7 +222,7 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
         List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
 
 
-        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("rpNameId", "Rhythm parameter")
+        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("rpNameId", "Rhythm parameter name")
         {
             @Override
             public Font getFont()
@@ -232,6 +234,41 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
             public void setFont(Font f)
             {
                 RpViewerSettingsImpl.this.setFont(f);
+            }
+
+        };
+        res.add(fcs);
+
+        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("rpBackgroundId", "Rhythm parameter background")
+        {
+            @Override
+            public Color getColor()
+            {
+                return getDefaultBackgroundColor();
+            }
+
+            @Override
+            public void setColor(Color c)
+            {
+                RpViewerSettingsImpl.this.setDefaultBackgroundColor(c);
+            }
+
+        };
+        res.add(fcs);
+
+
+        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("rpSelectedBackgroundId", "Selected rhythm parameter background")
+        {
+            @Override
+            public Color getColor()
+            {
+                return getSelectedBackgroundColor();
+            }
+
+            @Override
+            public void setColor(Color c)
+            {
+                setSelectedBackgroundColor(c);
             }
 
         };
