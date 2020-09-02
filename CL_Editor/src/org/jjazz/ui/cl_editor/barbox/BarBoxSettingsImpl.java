@@ -36,7 +36,6 @@ import static org.jjazz.ui.cl_editor.barbox.Bundle.CTL_Bar;
 import static org.jjazz.ui.cl_editor.barbox.Bundle.CTL_PlayedBar;
 import static org.jjazz.ui.cl_editor.barbox.Bundle.CTL_SelectedBar;
 import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
-import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.util.Utilities;
 import org.openide.util.NbBundle;
 import org.openide.util.NbPreferences;
@@ -332,7 +331,7 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     @Override
     public Color getPlaybackColor()
     {
-        return new Color(prefs.getInt(PROP_BAR_PLAYBACK_COLOR, new Color(241, 241, 63).getRGB()));
+        return new Color(prefs.getInt(PROP_BAR_PLAYBACK_COLOR, new Color(244, 244, 139).getRGB()));
     }
 
     @Override

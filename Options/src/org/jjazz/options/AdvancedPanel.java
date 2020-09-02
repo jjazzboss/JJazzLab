@@ -23,7 +23,6 @@
 package org.jjazz.options;
 
 import java.awt.Component;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -31,6 +30,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JList;
@@ -41,9 +42,11 @@ import org.jjazz.musiccontrol.MusicController;
 import org.openide.DialogDisplayer;
 import org.openide.LifecycleManager;
 import org.openide.NotifyDescriptor;
-import org.openide.modules.Places;
+import org.openide.modules.OnStop;
+import org.openide.util.Exceptions;
+import org.openide.util.NbPreferences;
 
-final class AdvancedPanel extends javax.swing.JPanel
+public final class AdvancedPanel extends javax.swing.JPanel
 {
 
     private static final Level[] ALL_LEVELS = new Level[]
@@ -331,19 +334,29 @@ final class AdvancedPanel extends javax.swing.JPanel
 
     private void btn_resetSettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetSettingsActionPerformed
     {//GEN-HEADEREND:event_btn_resetSettingsActionPerformed
-        File userDir = Places.getUserDirectory();
-        String msg = "To reset all JJazzLab user settings:\n"
-                + "  1. Close JJazzLab\n"
-                + "  2. Delete directory: <html><b>" + userDir.getAbsolutePath() + "</b></html>\n"
-                + "  3. Restart JJazzLab\n"
-                + "Note: on Windows the 'AppData' folder is hidden by default\n\n"
-                + "OK to close JJazzLab now?";
+//        File userDir = Places.getUserDirectory();
+//        String msg = "To reset all JJazzLab user settings:\n"
+//                + "  1. Close JJazzLab\n"
+//                + "  2. Delete directory: <html><b>" + userDir.getAbsolutePath() + "</b></html>\n"
+//                + "  3. Restart JJazzLab\n"
+//                + "Note: on Windows the 'AppData' folder is hidden by default\n\n"
+//                + "OK to close JJazzLab now?";
+//        NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
+//        Object result = DialogDisplayer.getDefault().notify(d);
+//        if (NotifyDescriptor.OK_OPTION == result)
+//        {
+//            LifecycleManager.getDefault().exit();
+//        }
+        String msg = "This will reset all user settings and restart JJazzLab. OK to proceed?\n";
         NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
         Object result = DialogDisplayer.getDefault().notify(d);
         if (NotifyDescriptor.OK_OPTION == result)
         {
+            DeleteUserSettingsTask.doIt = true;
+            LifecycleManager.getDefault().markForRestart();
             LifecycleManager.getDefault().exit();
         }
+
     }//GEN-LAST:event_btn_resetSettingsActionPerformed
 
     private void btn_restartActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_restartActionPerformed
@@ -410,6 +423,38 @@ final class AdvancedPanel extends javax.swing.JPanel
             }
             return c;
         }
+    }
+
+    /**
+     * The shutdown class to remove the user preferences IF doIt was previously set to true.
+     */
+    @OnStop
+    static public class DeleteUserSettingsTask implements Runnable
+    {
+
+        static boolean doIt = false;          // Set to true 
+
+        @Override
+        public void run()
+        {
+            if (doIt)
+            {
+                Preferences rootPrefs = NbPreferences.root();
+                try
+                {
+                    if (rootPrefs.nodeExists("org"))
+                    {
+                        rootPrefs.node("org").removeNode();
+                        rootPrefs.flush();
+                    }
+
+                } catch (BackingStoreException ex)
+                {
+                    Exceptions.printStackTrace(ex);
+                }
+            }
+        }
+
     }
 
 

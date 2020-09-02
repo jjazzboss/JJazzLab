@@ -124,7 +124,7 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     @Override
     public Color getPlaybackColor()
     {
-        return new Color(prefs.getInt(PROP_PLAYBACK_COLOR, new Color(241, 241, 63).getRGB()));
+        return new Color(prefs.getInt(PROP_PLAYBACK_COLOR, new Color(244, 244, 139).getRGB()));
     }
 
     @Override
