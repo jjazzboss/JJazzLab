@@ -33,6 +33,7 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import static org.jjazz.ui.itemrenderer.Bundle.CTL_TimeSignature;
 import org.jjazz.ui.itemrenderer.api.IR_TimeSignatureSettings;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
@@ -83,8 +84,9 @@ public class IR_TimeSignatureSettingsImpl implements IR_TimeSignatureSettings, F
     @Override
     public Font getFont()
     {
-        String strFont = prefs.get(PROP_FONT, "Arial-BOLDITALIC-12");
-        return Font.decode(strFont);
+        Font defFont = GeneralUISettings.getInstance().getStdFont().deriveFont(Font.ITALIC, 12f);
+        String strFont = prefs.get(PROP_FONT, null);
+        return strFont != null ? Font.decode(strFont) : defFont;
     }
 
     @Override

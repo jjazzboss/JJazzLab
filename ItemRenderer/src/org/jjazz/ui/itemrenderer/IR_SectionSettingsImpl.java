@@ -33,6 +33,7 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import static org.jjazz.ui.itemrenderer.Bundle.CTL_Section;
 import org.jjazz.ui.itemrenderer.api.IR_SectionSettings;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
@@ -95,8 +96,9 @@ public class IR_SectionSettingsImpl implements IR_SectionSettings, FontColorUser
     @Override
     public Font getFont()
     {
-        String strFont = prefs.get(PROP_FONT, "Arial-PLAIN-9");
-        return Font.decode(strFont);
+        Font defFont = GeneralUISettings.getInstance().getStdFont().deriveFont(10f);
+        String strFont = prefs.get(PROP_FONT, null);
+        return strFont != null ? Font.decode(strFont) : defFont;
     }
 
     @Override

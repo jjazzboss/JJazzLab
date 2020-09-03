@@ -168,12 +168,12 @@ public class IR_TimeSignature extends ItemRenderer implements IR_Copiable
         zFontSize = Math.max(zFontSize, 9);
 
         // Create the AttributedStrings
-        attrStrLower = new AttributedString(lowerString);
-        attrStrLower.addAttribute(TextAttribute.SIZE, zFontSize);
-        attrStrLower.addAttribute(TextAttribute.FAMILY, font.getFontName());
-        attrStrUpper = new AttributedString(upperString);
-        attrStrUpper.addAttribute(TextAttribute.SIZE, zFontSize);
-        attrStrUpper.addAttribute(TextAttribute.FAMILY, font.getFontName());
+        attrStrLower = new AttributedString(lowerString, font.getAttributes());
+        attrStrLower.addAttribute(TextAttribute.SIZE, zFontSize);   // Override size attribute
+        // attrStrLower.addAttribute(TextAttribute.FAMILY, font.getFontName());
+        attrStrUpper = new AttributedString(upperString, font.getAttributes());
+        attrStrUpper.addAttribute(TextAttribute.SIZE, zFontSize);   // Override size attribute
+        // attrStrUpper.addAttribute(TextAttribute.FAMILY, font.getFontName());
 
         // Create the TextLayout to get its dimension       
         TextLayout textLayoutUpper = new TextLayout(attrStrUpper.getIterator(), frc);

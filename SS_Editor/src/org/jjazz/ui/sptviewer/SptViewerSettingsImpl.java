@@ -31,7 +31,6 @@ import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
 import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.sptviewer.api.SptViewerSettings;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.GeneralUISettings;
@@ -99,7 +98,6 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
         pcs.firePropertyChange(PROP_USE_SECTION_COLOR, old, b);
     }
 
-
     @Override
     public void setSelectedBackgroundColor(Color color)
     {
@@ -118,7 +116,7 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     @Override
     public Color getSelectedBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_SELECTED_BACKGROUND_COLOR, new Color(94, 203, 231).getRGB()));
+        return new Color(prefs.getInt(PROP_SELECTED_BACKGROUND_COLOR, GeneralUISettings.getInstance().getColor("songpart.selected.background").getRGB()));
     }
 
     @Override
@@ -194,8 +192,9 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     @Override
     public Font getNameFont()
     {
-        String strFont = prefs.get(PROP_NAME_FONT, "Helvetica-BOLD-10");
-        return Font.decode(strFont);
+        Font defFont = GeneralUISettings.getInstance().getStdFont().deriveFont(11f);
+        String strFont = prefs.get(PROP_NAME_FONT, null);
+        return strFont != null ? Font.decode(strFont) : defFont;
     }
 
     @Override
@@ -238,8 +237,9 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     @Override
     public Font getParentSectionFont()
     {
-        String strFont = prefs.get(PROP_PARENTSECTION_FONT, "Helvetica-PLAIN-9");
-        return Font.decode(strFont);
+        Font defFont = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(9f);
+        String strFont = prefs.get(PROP_PARENTSECTION_FONT, null);
+        return strFont != null ? Font.decode(strFont) : defFont;
     }
 
     @Override
@@ -282,8 +282,9 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     @Override
     public Font getRhythmFont()
     {
-        String strFont = prefs.get(PROP_RHYTHM_FONT, "Arial Narrow-BOLD-11");
-        return Font.decode(strFont);
+        Font defFont = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(11f);
+        String strFont = prefs.get(PROP_RHYTHM_FONT, null);
+        return strFont != null ? Font.decode(strFont) : defFont;
     }
 
     @Override

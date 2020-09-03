@@ -56,7 +56,7 @@
               <Component id="pnl_pan" alignment="0" max="32767" attributes="0"/>
               <Component id="pnl_rev" alignment="1" max="32767" attributes="0"/>
               <Component id="pnl_cho" alignment="1" max="32767" attributes="0"/>
-              <Component id="pnl_inst_volume" alignment="1" max="32767" attributes="0"/>
+              <Component id="pnl_inst_volume" alignment="1" pref="0" max="32767" attributes="0"/>
               <Component id="pnl_name" alignment="1" max="32767" attributes="0"/>
               <Component id="pnl_icon" alignment="0" max="32767" attributes="0"/>
               <Component id="pnl_channelId" alignment="1" max="32767" attributes="0"/>
@@ -324,13 +324,16 @@
           <SubComponents>
             <Container class="org.jjazz.ui.mixconsole.PanoramicKnob" name="knob_panoramic">
               <Properties>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.knob_panoramic.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="FONT" type="code"/>
                 </Property>
                 <Property name="inheritsPopupMenu" type="boolean" value="true"/>
                 <Property name="knobDiameter" type="int" value="20"/>
                 <Property name="label" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.knob_panoramic.label" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                </Property>
+                <Property name="tooltipLabel" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.knob_panoramic.tooltipLabel" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
               </Properties>
 
@@ -352,10 +355,16 @@
           <SubComponents>
             <Container class="org.jjazz.ui.flatcomponents.FlatIntegerKnob" name="knob_reverb">
               <Properties>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection component="knob_panoramic" name="getFont" type="method"/>
+                </Property>
                 <Property name="inheritsPopupMenu" type="boolean" value="true"/>
                 <Property name="knobDiameter" type="int" value="20"/>
                 <Property name="label" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.knob_reverb.label" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                </Property>
+                <Property name="tooltipLabel" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.knob_reverb.tooltipLabel" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
               </Properties>
 
@@ -377,10 +386,16 @@
           <SubComponents>
             <Container class="org.jjazz.ui.flatcomponents.FlatIntegerKnob" name="knob_chorus">
               <Properties>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection component="knob_panoramic" name="getFont" type="method"/>
+                </Property>
                 <Property name="inheritsPopupMenu" type="boolean" value="true"/>
                 <Property name="knobDiameter" type="int" value="20"/>
                 <Property name="label" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.knob_chorus.label" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                </Property>
+                <Property name="tooltipLabel" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.knob_chorus.tooltipLabel" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
               </Properties>
 
@@ -427,8 +442,8 @@
                 </Property>
                 <Property name="verticalAlignment" type="int" value="3"/>
                 <Property name="alignmentX" type="float" value="0.5"/>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Arial" size="10" style="2"/>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="FONT.deriveFont(Font.ITALIC, 11f)&#xd;&#xa;" type="code"/>
                 </Property>
                 <Property name="vLabel" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.fbtn_Instrument.vLabel" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -489,8 +504,8 @@
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="99" green="ff" red="99" type="rgb"/>
                 </Property>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Arial Narrow" size="12" style="0"/>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="FONT" type="code"/>
                 </Property>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="66" green="66" red="0" type="rgb"/>
@@ -532,8 +547,8 @@
                   <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.fbtn_channelId.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
                 <Property name="alignmentX" type="float" value="0.5"/>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Arial" size="9" style="0"/>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="FONT" type="code"/>
                 </Property>
                 <Property name="horizontalTextPosition" type="int" value="0"/>
                 <Property name="name" type="java.lang.String" value="" noResource="true"/>

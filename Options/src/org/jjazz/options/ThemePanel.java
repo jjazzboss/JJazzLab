@@ -81,7 +81,6 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
         // TODO listen to changes in form fields and call controller.changed()
     }
 
-
     void load()
     {
         // TODO read settings and initialize GUI
@@ -174,7 +173,6 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
     // ===================================================================================
     // ActionListener implementation
     // ===================================================================================    
-
     @Override
     public void actionPerformed(ActionEvent ae)
     {
@@ -193,7 +191,6 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
     // =========================================================================================
     // Private classes
     // =========================================================================================
-
     /**
      * Store a FCSetting value pair.
      */
@@ -294,7 +291,6 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
         }
         list_fcSettingsValueChanged(null);
     }
-
 
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
@@ -602,6 +598,14 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
 
     private void btn_changeThemeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_changeThemeActionPerformed
     {//GEN-HEADEREND:event_btn_changeThemeActionPerformed
+        if (org.openide.util.Utilities.isMac())
+        {
+            String msg = "Changing theme on MacOS is not supported yet.";
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            return;
+        }
+
         String msg = "Changing theme will reset all color/font customizations.\n\n"
                 + "OK to restart JJazzLab now?";
         NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
@@ -627,7 +631,6 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
     }//GEN-LAST:event_tf_fontMouseClicked
 
 
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_changeTheme;
     private javax.swing.JButton btn_font;
@@ -646,6 +649,5 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
     private javax.swing.JList<FCSetting> list_fcSettings;
     private javax.swing.JTextField tf_font;
     // End of variables declaration//GEN-END:variables
-
 
 }

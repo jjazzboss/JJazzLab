@@ -106,7 +106,6 @@ public final class AdvancedPanel extends javax.swing.JPanel
         cb_logMidiOut = new javax.swing.JCheckBox();
         cb_debugBuiltSequence = new javax.swing.JCheckBox();
         btn_resetSettings = new javax.swing.JButton();
-        btn_restart = new javax.swing.JButton();
 
         panel_Debug.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(AdvancedPanel.class, "AdvancedPanel.panel_Debug.border.title"))); // NOI18N
 
@@ -247,15 +246,6 @@ public final class AdvancedPanel extends javax.swing.JPanel
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_restart, org.openide.util.NbBundle.getMessage(AdvancedPanel.class, "AdvancedPanel.btn_restart.text")); // NOI18N
-        btn_restart.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                btn_restartActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -265,9 +255,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(panel_Debug, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btn_restart)
-                            .addComponent(btn_resetSettings))
+                        .addComponent(btn_resetSettings)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -275,10 +263,8 @@ public final class AdvancedPanel extends javax.swing.JPanel
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(btn_restart)
-                .addGap(18, 18, 18)
                 .addComponent(btn_resetSettings)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 54, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 95, Short.MAX_VALUE)
                 .addComponent(panel_Debug, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -347,7 +333,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
 //        {
 //            LifecycleManager.getDefault().exit();
 //        }
-        String msg = "This will reset all user settings and restart JJazzLab. OK to proceed?\n";
+        String msg = "JJazzLab will perform a clean restart. All user settings/customizations will be lost.\nOK to proceed?";
         NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
         Object result = DialogDisplayer.getDefault().notify(d);
         if (NotifyDescriptor.OK_OPTION == result)
@@ -358,13 +344,6 @@ public final class AdvancedPanel extends javax.swing.JPanel
         }
 
     }//GEN-LAST:event_btn_resetSettingsActionPerformed
-
-    private void btn_restartActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_restartActionPerformed
-    {//GEN-HEADEREND:event_btn_restartActionPerformed
-
-        LifecycleManager.getDefault().markForRestart();
-        LifecycleManager.getDefault().exit();
-    }//GEN-LAST:event_btn_restartActionPerformed
 
     void load()
     {
@@ -460,7 +439,6 @@ public final class AdvancedPanel extends javax.swing.JPanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_resetSettings;
-    private javax.swing.JButton btn_restart;
     private javax.swing.JButton btn_setLogger;
     private javax.swing.JButton btn_showLog;
     private javax.swing.JCheckBox cb_debugBuiltSequence;

@@ -35,7 +35,7 @@ import org.openide.util.NbBundle.Messages;
 @ActionRegistration(displayName = "#CTL_PrintAction", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/File", position = 800),
+            @ActionReference(path = "Menu/File", position = 1600),
             @ActionReference(path = "Shortcuts", name = "D-P")
         })
 @Messages(

@@ -195,9 +195,8 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         // Create the AttributedString from the strings
         String strChord = chordSymbolBase + chordSymbolExtension + chordSymbolBass;
         String strChord2 = strChord.replace('#', settings.getSharpCharInMusicFont()).replace('b', settings.getFlatCharInMusicFont());
-        attChordString = new AttributedString(strChord2);
-        attChordString.addAttribute(TextAttribute.SIZE, zFontSize);                 // Default attribute
-        attChordString.addAttribute(TextAttribute.FAMILY, font.getFontName());      // Default attribute
+        attChordString = new AttributedString(strChord2, font.getAttributes());
+        attChordString.addAttribute(TextAttribute.SIZE, zFontSize);                 // Override
 //        if (needOptionDots())
 //        {
 //            attChordString.addAttribute(TextAttribute.POSTURE, TextAttribute.POSTURE_OBLIQUE);      // Default attribute

@@ -58,6 +58,7 @@ public class LightTheme implements Theme
         uiDefaults.put("item.selected.background", new Color(128, 212, 235));        
         uiDefaults.put("default.focused.border.color", new Color(16, 65, 242));        
         uiDefaults.put("songpart.focused.border.color", uiDefaults.getColor("default.focused.border.color"));        
+        uiDefaults.put("songpart.selected.background", new Color(94, 203, 231));        
     }
     
     @Override

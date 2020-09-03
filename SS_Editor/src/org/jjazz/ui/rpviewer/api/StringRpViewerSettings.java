@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.rpviewer;
+package org.jjazz.ui.rpviewer.api;
 
 import java.awt.Color;
 import java.awt.Font;

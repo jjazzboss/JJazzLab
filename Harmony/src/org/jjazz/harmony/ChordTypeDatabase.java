@@ -440,7 +440,7 @@ public class ChordTypeDatabase
                 {
                     String msg = "Alias '" + alias + "' can not be used for chord type '" + ct + "', it's already used for chord type '" + curCt + "'";
                     mapAliasCt = mapSave;
-                    LOGGER.severe("buildAliasMap() " + msg);
+                    // LOGGER.severe("buildAliasMap() " + msg);
                     b = false;
                 } else
                 {

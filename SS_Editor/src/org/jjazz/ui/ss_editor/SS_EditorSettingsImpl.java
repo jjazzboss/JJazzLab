@@ -118,7 +118,7 @@ public class SS_EditorSettingsImpl implements SS_EditorSettings, FontColorUserSe
     {
         List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
 
-        var fcs = new FontColorUserSettingsProvider.FCSettingAdapter("rpBackgroundId", "Song structure background")
+        var fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SongStructureBackgroundId", "Song structure background")
         {
             @Override
             public Color getColor()

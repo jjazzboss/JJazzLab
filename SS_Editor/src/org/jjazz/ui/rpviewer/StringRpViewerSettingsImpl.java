@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.rpviewer;
 
+import org.jjazz.ui.rpviewer.api.StringRpViewerSettings;
 import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
@@ -31,6 +32,7 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
@@ -80,8 +82,9 @@ public class StringRpViewerSettingsImpl implements StringRpViewerSettings, FontC
     @Override
     public Font getFont()
     {
-        String strFont = prefs.get(PROP_FONT, "Helvetica-PLAIN-10");
-        return Font.decode(strFont);
+        Font defFont = GeneralUISettings.getInstance().getStdFont();
+        String strFont = prefs.get(PROP_FONT, null);
+        return strFont != null ? Font.decode(strFont) : defFont;
     }
 
     @Override

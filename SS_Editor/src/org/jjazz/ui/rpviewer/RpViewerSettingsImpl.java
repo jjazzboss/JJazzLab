@@ -31,7 +31,6 @@ import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
 import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.ui.rpviewer.api.RpViewerSettings;
 import org.jjazz.ui.sptviewer.api.SptViewerSettings;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
@@ -158,47 +157,48 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
     }
 
     @Override
-    public void setFont(Font font)
+    public void setNameFont(Font font)
     {
-        Font old = getFont();
+        Font old = getNameFont();
         if (font == null)
         {
-            prefs.remove(PROP_FONT);
-            font = getFont();
+            prefs.remove(PROP_NAME_FONT);
+            font = getNameFont();
         } else
         {
             String strFont = Utilities.fontAsString(font);
-            prefs.put(PROP_FONT, strFont);
+            prefs.put(PROP_NAME_FONT, strFont);
         }
-        pcs.firePropertyChange(PROP_FONT, old, font);
+        pcs.firePropertyChange(PROP_NAME_FONT, old, font);
     }
 
     @Override
-    public Font getFont()
+    public Font getNameFont()
     {
-        String strFont = prefs.get(PROP_FONT, "Helvetica-PLAIN-9");
-        return Font.decode(strFont);
+        Font defFont = GeneralUISettings.getInstance().getStdFont().deriveFont(9f);
+        String strFont = prefs.get(PROP_NAME_FONT, null);
+        return strFont != null ? Font.decode(strFont) : defFont;
     }
 
     @Override
-    public Color getFontColor()
+    public Color getNameFontColor()
     {
-        return new Color(prefs.getInt(PROP_FONT_COLOR, Color.DARK_GRAY.getRGB()));
+        return new Color(prefs.getInt(PROP_NAME_FONT_COLOR, Color.DARK_GRAY.getRGB()));
     }
 
     @Override
-    public void setFontColor(Color color)
+    public void setNameFontColor(Color color)
     {
-        Color old = getFontColor();
+        Color old = getNameFontColor();
         if (color == null)
         {
-            prefs.remove(PROP_FONT_COLOR);
-            color = getFontColor();
+            prefs.remove(PROP_NAME_FONT_COLOR);
+            color = getNameFontColor();
         } else
         {
-            prefs.putInt(PROP_FONT_COLOR, color.getRGB());
+            prefs.putInt(PROP_NAME_FONT_COLOR, color.getRGB());
         };
-        pcs.firePropertyChange(PROP_FONT_COLOR, old, color);
+        pcs.firePropertyChange(PROP_NAME_FONT_COLOR, old, color);
     }
 
     @Override
@@ -227,13 +227,13 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
             @Override
             public Font getFont()
             {
-                return RpViewerSettingsImpl.this.getFont();
+                return RpViewerSettingsImpl.this.getNameFont();
             }
 
             @Override
             public void setFont(Font f)
             {
-                RpViewerSettingsImpl.this.setFont(f);
+                RpViewerSettingsImpl.this.setNameFont(f);
             }
 
         };

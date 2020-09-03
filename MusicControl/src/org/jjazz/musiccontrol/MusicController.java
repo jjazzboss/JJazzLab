@@ -1023,7 +1023,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         if (JJazzMidiSystem.getInstance().getDefaultOutDevice() == null)
         {
-            throw new MusicGenerationException("No MIDI Out device set. Go to menu Tools/Options/Midi and select a Midi device.");
+            throw new MusicGenerationException("No MIDI output device set. Please select a Midi device in the Midi panel of the Options/Preferences");
         }
     }
 

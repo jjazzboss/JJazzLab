@@ -66,6 +66,7 @@ public class VInstrumentButton extends FlatButton
         }
         this.vLabel = vl;
         this.verticalIcon.setLabel(vl);
+        revalidate();
         repaint();
     }
 

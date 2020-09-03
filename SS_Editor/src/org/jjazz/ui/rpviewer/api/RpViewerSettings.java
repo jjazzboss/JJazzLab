@@ -26,14 +26,13 @@ import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
-import org.jjazz.ui.rpviewer.StringRpViewerSettings;
 import org.openide.util.Lookup;
 
 public interface RpViewerSettings
 {
 
-    public static String PROP_FONT = "SptrViewerNameFont";
-    public static String PROP_FONT_COLOR = "SptrViewerFontColor";
+    public static String PROP_NAME_FONT = "SptrViewerNameFont";
+    public static String PROP_NAME_FONT_COLOR = "SptrViewerFontColor";
     public static String PROP_SELECTED_BACKGROUND_COLOR = "SptrViewerSelectedBackgroundColor";
     public static String PROP_BACKGROUND_COLOR = "SptrViewerDefaultBackgroundColor";
     public static String PROP_FOCUS_BORDER_COLOR = "SptrViewerFocusedBorderColor";
@@ -54,13 +53,13 @@ public interface RpViewerSettings
         return StringRpViewerSettings.getDefault();
     }
 
-    void setFont(Font font);
+    void setNameFont(Font font);
 
-    Font getFont();
+    Font getNameFont();
 
-    void setFontColor(Color color);
+    void setNameFontColor(Color color);
 
-    Color getFontColor();
+    Color getNameFontColor();
 
     void setSelectedBackgroundColor(Color color);
 

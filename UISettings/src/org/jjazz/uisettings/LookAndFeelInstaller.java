@@ -22,7 +22,9 @@
  */
 package org.jjazz.uisettings;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import java.util.logging.Logger;
+import javax.swing.UIManager;
 import org.openide.modules.ModuleInstall;
 import org.openide.util.NbPreferences;
 
@@ -64,7 +66,7 @@ public class LookAndFeelInstaller extends ModuleInstall
                 // https://github.com/Revivius/nb-darcula/blob/master/src/main/java/com/revivius/nb/darcula/Installer.java#L29
                 // and https://github.com/praxis-live/praxis-live/blob/v2.3.3/praxis.live.laf/src/net/neilcsmith/praxis/live/laf/Installer.java#L53
                 NbPreferences.root().node("laf").put("laf", "com.formdev.flatlaf.FlatDarkLaf");
-
+                UIManager.installLookAndFeel(new UIManager.LookAndFeelInfo("FlatLaf Dark", FlatDarkLaf.class.getName()));           
                 break;
             default:
                 throw new AssertionError(lafId.name());

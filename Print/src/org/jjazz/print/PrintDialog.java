@@ -785,12 +785,18 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
     private void spn_nbColumnsStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_nbColumnsStateChanged
     {//GEN-HEADEREND:event_spn_nbColumnsStateChanged
-        leadsheetPrinter.setNbColumns((int) spn_nbColumns.getValue());
+        if (leadsheetPrinter != null)
+        {
+            leadsheetPrinter.setNbColumns((int) spn_nbColumns.getValue());
+        }
     }//GEN-LAST:event_spn_nbColumnsStateChanged
 
     private void spn_zoomVFactorStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_zoomVFactorStateChanged
     {//GEN-HEADEREND:event_spn_zoomVFactorStateChanged
-        setZoomVFactor((int) spn_zoomVFactor.getValue());
+        if (leadsheetPrinter != null)
+        {
+            setZoomVFactor((int) spn_zoomVFactor.getValue());
+        }
     }//GEN-LAST:event_spn_zoomVFactorStateChanged
 
     private void formWindowClosed(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosed

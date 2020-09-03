@@ -42,8 +42,10 @@ import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
+import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
+import org.netbeans.api.annotations.common.StaticResource;
 
 @ServiceProviders(value =
 {
@@ -54,8 +56,10 @@ import org.jjazz.upgrade.spi.UpgradeTask;
 public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontColorUserSettingsProvider, FontColorUserSettingsProvider.FCSetting
 {
 
+    @StaticResource(relative = true)
     private static final String MUSIC_FONT_PATH = "resources/ScaleDegrees-Times.ttf";
     private static Font MUSIC_FONT;
+
     /**
      * The Preferences of this object.
      */
@@ -70,9 +74,9 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
     {
         if (MUSIC_FONT == null)
         {
-            try
+            try (InputStream is = IR_ChordSymbol.class.getResourceAsStream(MUSIC_FONT_PATH))
             {
-                InputStream is = IR_ChordSymbol.class.getResourceAsStream(MUSIC_FONT_PATH);
+
                 MUSIC_FONT = Font.createFont(Font.TRUETYPE_FONT, is);
                 GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(MUSIC_FONT); // So it is available in getAvailableFontFamilyNames() etc.
             } catch (IOException | FontFormatException e)
@@ -112,8 +116,9 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
     @Override
     public Font getFont()
     {
-        String strFont = prefs.get(PROP_FONT, "Arial-BOLD-18");
-        return Font.decode(strFont);
+        Font defFont = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(Font.BOLD, 22f);
+        String strFont = prefs.get(PROP_FONT, null);
+        return strFont != null ? Font.decode(strFont) : defFont;
     }
 
     @Override
@@ -157,7 +162,6 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
     {
         return new Color(prefs.getInt(getAccentColorKey(accentFeature), getDefaultAccentColor(accentFeature).getRGB()));
     }
-
 
     private Color getDefaultAccentColor(Feature accentFeature)
     {
@@ -244,7 +248,6 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
-
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {

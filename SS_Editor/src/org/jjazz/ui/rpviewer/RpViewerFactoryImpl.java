@@ -22,7 +22,6 @@
  */
 package org.jjazz.ui.rpviewer;
 
-import org.jjazz.ui.rpviewer.api.StringRpViewer;
 import org.jjazz.rhythm.parameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.ui.rpviewer.api.RpViewerFactory;

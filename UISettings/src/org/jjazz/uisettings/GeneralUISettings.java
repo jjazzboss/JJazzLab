@@ -24,18 +24,24 @@ package org.jjazz.uisettings;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.modules.OnStart;
 import org.openide.util.*;
 
@@ -52,9 +58,15 @@ public class GeneralUISettings
     {
         LOOK_AND_FEEL_SYSTEM_DEFAULT, LOOK_AND_FEEL_FLAT_DARK_LAF
     }
+    @StaticResource(relative = true)
+    private static final String CONDENSED_FONT_PATH = "resources/RobotoCondensed-Regular.ttf";
+    private static Font CONDENSED_FONT_10;
+    @StaticResource(relative = true)
+    private static final String FONT_PATH = "resources/Roboto-Regular.ttf";
+    private static Font FONT_10;
 
-    public static final String DEFAULT_THEME_NAME = DarkTheme.NAME;
-    public static final LookAndFeelId DEFAULT_LAF_ID = LookAndFeelId.LOOK_AND_FEEL_FLAT_DARK_LAF;  // Must be the laf of DEFAULT_THEME_NAME
+    public static final String DEFAULT_THEME_NAME = LightTheme.NAME;
+    public static final LookAndFeelId DEFAULT_LAF_ID = LookAndFeelId.LOOK_AND_FEEL_SYSTEM_DEFAULT;  // Must be the laf of DEFAULT_THEME_NAME
     public static final String PREF_THEME_UPON_RESTART = "ThemeUponRestart";
     public static final String PREF_LAF_ID_UPON_RESTART = "LafIdUponRestart";
     public static final String PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL = "ChangeWithMouseWheel";
@@ -79,7 +91,6 @@ public class GeneralUISettings
 
     private GeneralUISettings()
     {
-
     }
 
     /**
@@ -215,7 +226,54 @@ public class GeneralUISettings
 
         // Use a WeakReference because comp might be garbage collected in the future       
         mouseWheelInstalledComponents.put(new WeakReference(comp), compListener);
+    }
 
+    /**
+     * Get the JJazzLab standard font with size=10pt and style=PLAIN.
+     *
+     * @return
+     */
+    public Font getStdFont()
+    {
+        if (FONT_10 == null)
+        {
+            try (InputStream is = getClass().getResourceAsStream(FONT_PATH))
+            {
+
+                FONT_10 = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(10f);
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(FONT_10); // So it is available in getAvailableFontFamilyNames() etc.
+            } catch (IOException | FontFormatException e)
+            {
+                FONT_10 = Font.getFont("Arial-PLAIN-10");
+                LOGGER.log(Level.SEVERE, "Can't get font from " + FONT_PATH + ". Using default font instead=" + FONT_10);
+            }
+        }
+        assert FONT_10 != null;
+        return FONT_10;
+    }
+
+    /**
+     * Get the JJazzLab standard condensed font with size=10pt and style=PLAIN.
+     *
+     * @return
+     */
+    public Font getStdCondensedFont()
+    {
+        if (CONDENSED_FONT_10 == null)
+        {
+            try (InputStream is = getClass().getResourceAsStream(CONDENSED_FONT_PATH))
+            {
+
+                CONDENSED_FONT_10 = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(10f);
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(CONDENSED_FONT_10); // So it is available in getAvailableFontFamilyNames() etc.
+            } catch (IOException | FontFormatException e)
+            {
+                CONDENSED_FONT_10 = Font.getFont("Arial-PLAIN-10");
+                LOGGER.log(Level.SEVERE, "Can't get font from " + CONDENSED_FONT_PATH + ". Using default font instead=" + CONDENSED_FONT_10);
+            }
+        }
+        assert CONDENSED_FONT_10 != null;
+        return CONDENSED_FONT_10;
     }
 
     public synchronized void addPropertyChangeListener(PropertyChangeListener listener)

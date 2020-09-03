@@ -20,7 +20,7 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.ui.rpviewer.api;
+package org.jjazz.ui.rpviewer;
 
 import java.awt.Dimension;
 import java.awt.FontMetrics;
@@ -34,7 +34,9 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.rpviewer.StringRpViewerSettings;
+import org.jjazz.ui.rpviewer.api.RpViewer;
+import org.jjazz.ui.rpviewer.api.RpViewerSettings;
+import org.jjazz.ui.rpviewer.api.StringRpViewerSettings;
 
 /**
  * A simple editor: just display RP value as a string.

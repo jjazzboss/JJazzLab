@@ -556,7 +556,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         fbtn_sptName = new org.jjazz.ui.flatcomponents.FlatButton();
         multiSelectBar = new org.jjazz.ui.sptviewer.MultiSelectBar();
         lbl_Parent = new javax.swing.JLabel();
-        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 4), new java.awt.Dimension(0, 4), new java.awt.Dimension(32767, 4));
+        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
         fbtn_rhythm = new org.jjazz.ui.flatcomponents.FlatButton();
         pnl_RpEditors = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -588,8 +588,8 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         multiSelectBar.setOn(true);
         pnl_labels.add(multiSelectBar);
 
-        lbl_Parent.setFont(new java.awt.Font("Tahoma", 0, 9)); // NOI18N
         org.openide.awt.Mnemonics.setLocalizedText(lbl_Parent, org.openide.util.NbBundle.getMessage(SptViewerImpl.class, "SptViewerImpl.lbl_Parent.text_1")); // NOI18N
+        lbl_Parent.setToolTipText(org.openide.util.NbBundle.getMessage(SptViewerImpl.class, "SptViewerImpl.lbl_Parent.toolTipText")); // NOI18N
         lbl_Parent.setMinimumSize(new java.awt.Dimension(25, 10));
         pnl_labels.add(lbl_Parent);
         pnl_labels.add(filler2);
@@ -671,7 +671,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         String strName = showName ? sptModel.getName() : "   ";
         fbtn_sptName.setText(strName);
         Section section = sptModel.getParentSection().getData();
-        String strTooltip = sptModel.getName() + " " + section.getTimeSignature() + " (parent:" + section.getName() + ")";
+        String strTooltip = "Song part=" + sptModel.getName() + " (parent section=" + section.getName() + "-" + section.getTimeSignature() + ")";
         fbtn_sptName.setToolTipText(strTooltip);
 
         // Optional parent name

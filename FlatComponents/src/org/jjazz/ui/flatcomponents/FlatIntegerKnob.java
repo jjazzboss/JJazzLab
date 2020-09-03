@@ -88,6 +88,7 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
     private int xKnobCenter;
     private int yKnobCenter;
     private String label;
+    private String tooltipLabel;
     private boolean hideValue = true;
     private Color saveForeground;
     private Color saveColorLine;
@@ -229,12 +230,23 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
     }
 
     /**
-     * @param label the label to set
+     * @param label the label to set. Can be null.
      */
     public void setLabel(String label)
     {
         this.label = label;
         repaint();
+    }
+
+    public String getTooltipLabel()
+    {
+        return tooltipLabel;
+    }
+
+    public void setTooltipLabel(String tooltipLabel)
+    {
+        this.tooltipLabel = tooltipLabel;
+        updateToolTipText();
     }
 
     /**
@@ -567,7 +579,9 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
     }
 
     /**
-     * Get the String reprensentation of the specified value. By default return String.valueOf(getValue()).
+     * Get the String reprensentation of the specified value.
+     * <p>
+     * By default return String.valueOf(getValue()).
      *
      * @param v
      * @return The text used to represent the value in the knob.
@@ -580,7 +594,7 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
     private void updateToolTipText()
     {
         String valueAstring = isEnabled() ? valueToString(value) : "OFF";
-        setToolTipText(label == null ? valueAstring : label + "=" + valueAstring);
+        setToolTipText(tooltipLabel == null ? valueAstring : tooltipLabel + "=" + valueAstring);
     }
 
 }

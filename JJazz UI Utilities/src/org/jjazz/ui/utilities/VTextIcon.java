@@ -32,10 +32,13 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 
 /**
- * VTextIcon is an Icon implementation which draws a short string vertically. It's useful for JTabbedPanes with LEFT or RIGHT tabs
- * but can be used in any component which supports Icons, such as JLabel or JButton * You can provide a hint to indicate whether
- * to rotate the string to the left or right, or not at all, and it checks to make sure that the rotation is legal for the given
- * string (for example, Chinese/Japanese/Korean scripts have special rules when drawn vertically and should never be rotated)
+ * VTextIcon is an Icon implementation which draws a short string vertically.
+ * <p>
+ * It's useful for JTabbedPanes with LEFT or RIGHT tabs but can be used in any component which supports Icons, such as JLabel or
+ * JButton.<p>
+ * You can provide a hint to indicate whether to rotate the string to the left or right, or not at all, and it checks to make sure
+ * that the rotation is legal for the given string (for example, Chinese/Japanese/Korean scripts have special rules when drawn
+ * vertically and should never be rotated)
  */
 public class VTextIcon implements Icon, PropertyChangeListener
 {
@@ -59,9 +62,12 @@ public class VTextIcon implements Icon, PropertyChangeListener
     public static final int ROTATE_RIGHT = 0x04;
 
     /**
-     * Creates a <code>VTextIcon</code> for the specified <code>component</code> with the specified <code>label</code>. It sets
-     * the orientation to the default for the string
+     * Creates a <code>VTextIcon</code> for the specified <code>component</code> with the specified <code>label</code>.
+     * <p>
+     * It sets the orientation to the default for the string
      *
+     * @param component
+     * @param label
      * @see #verifyRotation
      */
     public VTextIcon(Component component, String label)
@@ -70,8 +76,9 @@ public class VTextIcon implements Icon, PropertyChangeListener
     }
 
     /**
-     * Creates a <code>VTextIcon</code> for the specified <code>component</code> with the specified <code>label</code>. It sets
-     * the orientation to the provided value if it's legal for the string
+     * Creates a <code>VTextIcon</code> for the specified <code>component</code> with the specified <code>label</code>.
+     * <p>
+     * It sets the orientation to the provided value if it's legal for the string
      *
      * @see #verifyRotation
      */

@@ -41,7 +41,7 @@ import org.openide.util.NbBundle.Messages;
 )
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/File", position = 1600, separatorAfter = 1605),
+            @ActionReference(path = "Menu/File", position = 1700, separatorAfter = 1705),
             @ActionReference(path = "Shortcuts", name = "D-W")
         })
 @Messages("CTL_CloseSong=Close Song")
