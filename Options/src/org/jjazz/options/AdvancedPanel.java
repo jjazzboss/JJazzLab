@@ -238,6 +238,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
         );
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_resetSettings, org.openide.util.NbBundle.getMessage(AdvancedPanel.class, "AdvancedPanel.btn_resetSettings.text")); // NOI18N
+        btn_resetSettings.setToolTipText(org.openide.util.NbBundle.getMessage(AdvancedPanel.class, "AdvancedPanel.btn_resetSettings.toolTipText")); // NOI18N
         btn_resetSettings.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -320,20 +321,8 @@ public final class AdvancedPanel extends javax.swing.JPanel
 
     private void btn_resetSettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetSettingsActionPerformed
     {//GEN-HEADEREND:event_btn_resetSettingsActionPerformed
-//        File userDir = Places.getUserDirectory();
-//        String msg = "To reset all JJazzLab user settings:\n"
-//                + "  1. Close JJazzLab\n"
-//                + "  2. Delete directory: <html><b>" + userDir.getAbsolutePath() + "</b></html>\n"
-//                + "  3. Restart JJazzLab\n"
-//                + "Note: on Windows the 'AppData' folder is hidden by default\n\n"
-//                + "OK to close JJazzLab now?";
-//        NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
-//        Object result = DialogDisplayer.getDefault().notify(d);
-//        if (NotifyDescriptor.OK_OPTION == result)
-//        {
-//            LifecycleManager.getDefault().exit();
-//        }
-        String msg = "JJazzLab will perform a clean restart. All user settings/customizations will be lost.\nOK to proceed?";
+
+        String msg = "JJazzLab will perform a fresh restart. All user settings/customizations will be lost.\n\nOK to proceed?";
         NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
         Object result = DialogDisplayer.getDefault().notify(d);
         if (NotifyDescriptor.OK_OPTION == result)

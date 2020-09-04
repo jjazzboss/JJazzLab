@@ -301,7 +301,6 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         btn_HearRemap.setEnabled(mappingExist);
         btn_ResetInstrument.setEnabled(mappingExist);
     }
-    
 
     /**
      * Show a dialog to confirm removal of removedStd.
@@ -948,7 +947,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         Instrument ins = this.tbl_Instruments.getSelectedInstrument();
         if (ins == null || !ins.getMidiAddress().isFullyDefined())
         {
-            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + ins.getMidiAddress());
+            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + (ins != null ? ins.getMidiAddress() : null));
             return;
         }
         list_MidiSynths.setEnabled(false);
@@ -1095,8 +1094,8 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     private void combo_sendMessageUponPlayActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_combo_sendMessageUponPlayActionPerformed
     {//GEN-HEADEREND:event_combo_sendMessageUponPlayActionPerformed
         @SuppressWarnings("unchecked")
-        JComboBox<SendModeOnUponStartup> cb =  (JComboBox<SendModeOnUponStartup>) evt.getSource();
-        SendModeOnUponStartup mode = (SendModeOnUponStartup)cb.getSelectedItem();
+        JComboBox<SendModeOnUponStartup> cb = (JComboBox<SendModeOnUponStartup>) evt.getSource();
+        SendModeOnUponStartup mode = (SendModeOnUponStartup) cb.getSelectedItem();
         outputSynth.setSendModeOnUponPlay(mode);
     }//GEN-LAST:event_combo_sendMessageUponPlayActionPerformed
 

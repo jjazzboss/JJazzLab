@@ -23,9 +23,7 @@
 package org.jjazz.uisettings;
 
 import java.awt.Color;
-import javax.swing.ImageIcon;
 import javax.swing.UIDefaults;
-import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -36,8 +34,8 @@ public class DarkTheme implements Theme
 {
 
     public static String NAME = "Dark Theme";
-    @StaticResource(relative = true)
-    private static final String SPEAKER_ICON_DISABLED_PATH = "resources/SpeakerDisabledDarkTheme-20x20.png";
+//    @StaticResource(relative = true)
+//    private static final String SPEAKER_ICON_DISABLED_PATH = "resources/SpeakerDisabledDarkTheme-20x20.png";
 
     private UIDefaults uiDefaults;
 
@@ -47,10 +45,9 @@ public class DarkTheme implements Theme
     {
         this.name = NAME;
         uiDefaults = new UIDefaults();
-        UIDefaults.LazyValue value;
-
-        value = tbl -> new ImageIcon(getClass().getResource(SPEAKER_ICON_DISABLED_PATH));
-        uiDefaults.put("speaker.icon.disabled", value);
+//        UIDefaults.LazyValue value;
+//        value = tbl -> new ImageIcon(getClass().getResource(SPEAKER_ICON_DISABLED_PATH));
+//        uiDefaults.put("speaker.icon.disabled", value);   // Better to return null: let the L&F create the disabled icon
         uiDefaults.put("background.white", new Color(235, 232, 225));
         uiDefaults.put("mixconsole.background", new Color(82, 82, 82));
         uiDefaults.put("mixchannel.background", new Color(212, 211, 209));

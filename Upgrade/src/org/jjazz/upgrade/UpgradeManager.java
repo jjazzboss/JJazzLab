@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import org.jjazz.upgrade.spi.UpgradeTask;
+import org.openide.*;
 import org.openide.modules.OnStart;
 import org.openide.modules.Places;
 import org.openide.util.Lookup;
@@ -107,7 +108,7 @@ public class UpgradeManager
         }
 
         Properties prop = new Properties();
-        try ( FileReader reader = new FileReader(f))
+        try (FileReader reader = new FileReader(f))
         {
             prop.load(reader);
         } catch (IOException ex)
@@ -244,8 +245,33 @@ public class UpgradeManager
             {
                 return;
             }
+
+
             String importVersion = um.getImportSourceVersion();     // May be null
-            LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion);
+
+
+            // If not null ask user confirmation before importing
+            if (importVersion != null)
+            {
+                String msg = "User settings from a previous version has been found: JJazzLab " + importVersion
+                        + "\n\nDo you want to import them?";
+                NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
+                Object result = DialogDisplayer.getDefault().notify(d);
+                if (NotifyDescriptor.YES_OPTION != result)
+                {
+                    LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion + ", import dismissed by user");
+                    importVersion = null;
+                } else
+                {
+                    LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion + ", import authorized by user");
+                }
+            } else
+            {
+                LOGGER.info("FreshStartUpgrader() -- importVersion=" + importVersion);
+            }
+
+
+            // Call the upgrade tasks
             for (var task : Lookup.getDefault().lookupAll(UpgradeTask.class))
             {
                 task.upgrade(importVersion);

@@ -255,7 +255,7 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1)
-                        .addGap(0, 180, Short.MAX_VALUE)))
+                        .addGap(0, 184, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
