@@ -105,8 +105,8 @@ public class ExampleSongs implements StartupTask
         }
         if (!isEmpty)
         {
-            String msg = "<html><b>EXAMPLE SONG FILES</b><br/>JJazzLab will copy example song files to: <i>" + dir.getAbsolutePath() + "</i><br/>"
-                    + "OK to proceed?";
+            String msg = "<html><b>EXAMPLE SONG FILES</b><br/><br/>JJazzLab will copy example song files to: <i>" + dir.getAbsolutePath() + "</i><br/><br/>"
+                    + "Existing example song files will be overwritten. OK to proceed?";
             //NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
             String[] options = new String[]
             {

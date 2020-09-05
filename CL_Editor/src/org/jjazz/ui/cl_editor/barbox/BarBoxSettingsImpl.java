@@ -331,7 +331,7 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     @Override
     public Color getPlaybackColor()
     {
-        return new Color(prefs.getInt(PROP_BAR_PLAYBACK_COLOR, new Color(244, 244, 139).getRGB()));
+        return new Color(prefs.getInt(PROP_BAR_PLAYBACK_COLOR, new Color(244, 196, 155).getRGB()));
     }
 
     @Override

@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
@@ -350,11 +351,14 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         {
             // Show the playbackpoint but BarIndex does not belong in this SptViewer ! 
             isPlaybackOn = false;
-            LOGGER.warning(
-                    "showPlaybackPoint() show=" + show + " pos.getBar()=" + pos.getBar() + " is outside SptViewer startBarIndex=" + getModel().
-                    getStartBarIndex() + " size=" + getModel().getNbBars());
+            LOGGER.log(Level.WARNING, "showPlaybackPoint() show={0} pos.getBar()={1} is outside SptViewer startBarIndex={2} size={3}",
+                    new Object[]
+                    {
+                        show, pos.getBar(), getModel().getStartBarIndex(), getModel().getNbBars()
+                    });
         }
-        refreshBackground();
+
+        updateUIComponents();
     }
 
     @Override
@@ -573,6 +577,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         pnl_labels.setOpaque(false);
         pnl_labels.setLayout(new javax.swing.BoxLayout(pnl_labels, javax.swing.BoxLayout.Y_AXIS));
 
+        fbtn_sptName.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         org.openide.awt.Mnemonics.setLocalizedText(fbtn_sptName, org.openide.util.NbBundle.getMessage(SptViewerImpl.class, "SptViewerImpl.fbtn_sptName.text_1")); // NOI18N
         fbtn_sptName.setMinimumSize(new java.awt.Dimension(25, 10));
         fbtn_sptName.addActionListener(new java.awt.event.ActionListener()
@@ -667,11 +672,20 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
 
         // Name button
         fbtn_sptName.setFont(settings.getNameFont());
-        fbtn_sptName.setForeground(settings.getNameFontColor());
+        if (isPlaybackOn)
+        {
+            fbtn_sptName.setBackground(settings.getNameFontColor());
+            fbtn_sptName.setForeground(settings.getDefaultBackgroundColor(sptModel.getParentSection().getData()));
+            fbtn_sptName.setOpaque(true);
+        } else
+        {
+            fbtn_sptName.setForeground(settings.getNameFontColor());
+            fbtn_sptName.setOpaque(false);
+        }
         String strName = showName ? sptModel.getName() : "   ";
         fbtn_sptName.setText(strName);
         Section section = sptModel.getParentSection().getData();
-        String strTooltip = "Song part=" + sptModel.getName() + " (parent section=" + section.getName() + "-" + section.getTimeSignature() + ")";
+        String strTooltip = (isPlaybackOn ? "[Playing] " : "") + "Song part=" + sptModel.getName() + " (parent section=" + section.getName() + " " + section.getTimeSignature() + ")";
         fbtn_sptName.setToolTipText(strTooltip);
 
         // Optional parent name
@@ -730,10 +744,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
 
     private void refreshBackground()
     {
-        if (isPlaybackOn)
-        {
-            setBackground(settings.getPlaybackColor());
-        } else if (isSelected)
+        if (isSelected)
         {
             setBackground(settings.getSelectedBackgroundColor());
         } else

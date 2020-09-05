@@ -146,7 +146,7 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
     public void setBorderDefault(Border borderDefault)
     {
         this.borderDefault = borderDefault;
-        repaint();
+        setBorder(borderDefault);
     }
 
     /**

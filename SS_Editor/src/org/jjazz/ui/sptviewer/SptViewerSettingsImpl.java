@@ -120,27 +120,6 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     }
 
     @Override
-    public Color getPlaybackColor()
-    {
-        return new Color(prefs.getInt(PROP_PLAYBACK_COLOR, new Color(244, 244, 139).getRGB()));
-    }
-
-    @Override
-    public void setPlaybackColor(Color color)
-    {
-        Color old = getPlaybackColor();
-        if (color == null)
-        {
-            prefs.remove(PROP_PLAYBACK_COLOR);
-            color = getPlaybackColor();
-        } else
-        {
-            prefs.putInt(PROP_PLAYBACK_COLOR, color.getRGB());
-        }
-        pcs.firePropertyChange(PROP_PLAYBACK_COLOR, old, color);
-    }
-
-    @Override
     public Border getDefaultBorder()
     {
         return BorderFactory.createEmptyBorder(1, 1, 1, 1); // Need to be the same thickness than the focused border
@@ -415,25 +394,7 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
             }
         };
         res.add(fcs);
-
-        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("PlayedSongPartColorId", "Played song part")
-        {
-
-            @Override
-            public Color getColor()
-            {
-                return getPlaybackColor();
-            }
-
-            @Override
-            public void setColor(Color c)
-            {
-                setPlaybackColor(c);
-            }
-        };
-        res.add(fcs);
-
-
+      
         return res;
     }
 

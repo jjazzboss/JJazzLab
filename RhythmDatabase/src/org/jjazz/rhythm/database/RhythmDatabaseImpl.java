@@ -975,8 +975,8 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             }
             if (!isEmpty)
             {
-                String msg = "<html><b>RHYTHM FILES</b><br/>JJazzLab will copy default rhythm files (.sty, ...) to: <i>" + dir.getAbsolutePath() + "</i><br/>"
-                        + "OK to proceed?";
+                String msg = "<html><b>RHYTHM FILES</b><br/><br/>JJazzLab will copy default rhythm files (.sty, ...) to: <i>" + dir.getAbsolutePath() + "</i><br/><br/>"
+                        + "Existing default files will be overwritten. OK to proceed?";
                 String[] options = new String[]
                 {
                     "OK", "Skip"

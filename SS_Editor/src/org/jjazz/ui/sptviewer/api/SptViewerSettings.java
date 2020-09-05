@@ -48,7 +48,6 @@ public interface SptViewerSettings
     public static String PROP_FOCUSED_BORDER_COLOR = "FocusedBorderColor";
     public static String PROP_DEFAULT_BACKGROUND_COLOR = "DefaultBackgroundColor";
     public static String PROP_SELECTED_BACKGROUND_COLOR = "SelectedBackgroundColor";
-    public static String PROP_PLAYBACK_COLOR = "PlaybackColor";
     public static String PROP_USE_SECTION_COLOR = "UseSectionColorAsBackground";
 
     public static SptViewerSettings getDefault()
@@ -127,10 +126,6 @@ public interface SptViewerSettings
     void setSelectedBackgroundColor(Color color);
 
     Color getSelectedBackgroundColor();
-
-    void setPlaybackColor(Color color);
-
-    Color getPlaybackColor();
 
     Border getFocusedBorder();
 

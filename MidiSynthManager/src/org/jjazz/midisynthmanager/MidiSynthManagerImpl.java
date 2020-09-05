@@ -424,8 +424,8 @@ public class MidiSynthManagerImpl implements MidiSynthManager
             }
             if (!isEmpty)
             {
-                String msg = "<html><b>MIDI SYNTH DEFINITION FILES</b><br/>JJazzLab will copy default Midi synth definition files (.ins) to: <i>" + dir.getAbsolutePath() + "</i><br/>"
-                        + "OK to proceed?";
+                String msg = "<html><b>MIDI SYNTH DEFINITION FILES</b><br/><br/>JJazzLab will copy default Midi synth definition files (.ins) to: <i>" + dir.getAbsolutePath() + "</i><br/><br/>"
+                        + "Existing default files will be overwritten. OK to proceed?";
                 String[] options = new String[]
                 {
                     "OK", "Skip"
