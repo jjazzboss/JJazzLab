@@ -1789,6 +1789,10 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                 this.rvName = rv.getName();
             }
 
+            /**
+             *
+             * @return Can be null
+             */
             public RhythmVoice rebuildRhythmVoice()
             {
                 if (rhythmId.equals(SP_USER_CHANNEL_RHYTHM_ID))

@@ -303,32 +303,48 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             {
                 String rpId = strs[0];
                 String rIdOriginal = strs[1];
-                TimeSignature newTs;
+                TimeSignature newTs = null;
+
+                // Parse time signature and try to get a cached instance of the AdaptedRhythm
                 try
                 {
-                    newTs = TimeSignature.parse(strs[2]);
+                    newTs = TimeSignature.parse(strs[2]);   // Possible ParseException
+                    r = mapAdaptedRhythms.get(getAdaptedRhythmKey(r, newTs));       // Can be null if first time request                   
                 } catch (ParseException ex)
                 {
-                    LOGGER.warning("getRhythm() Invalid time signature in AdaptedRhythm rId=" + rId);
-                    return null;
+                    LOGGER.warning("getRhythmInstance() Invalid time signature in AdaptedRhythm rId=" + rId);
                 }
-                RhythmProvider rp = getRhythmProviders().stream().filter(rhp -> rhp.getInfo().getUniqueId().equals(rpId)).findAny().orElse(null);
-                if (rp == null)
+
+
+                // Create the AdaptedRhythm if possible
+                if (r == null && newTs != null)
                 {
-                    LOGGER.warning("getRhythm() Unknown rhythm provider id in AdaptedRhythm rId=" + rId);
-                    return null;
+                    Rhythm rOriginal = getRhythmInstance(rIdOriginal);      // Possible exception here                    
+                    RhythmProvider rp = getRhythmProviders().stream().filter(rhp -> rhp.getInfo().getUniqueId().equals(rpId)).findAny().orElse(null);
+                    if (rp == null)
+                    {
+                        LOGGER.warning("getRhythmInstance() Unknown rhythm provider id in AdaptedRhythm rId=" + rId);
+                    } else
+                    {
+                        r = rp.getAdaptedRhythm(rOriginal, newTs);        // Can be null!
+                    }
                 }
-                Rhythm rOriginal = getRhythmInstance(rIdOriginal);  // Possible exception here
-                r = getAdaptedRhythmInstance(rOriginal, newTs);     // Can be null
             }
         } else
         {
-            RhythmInfo ri = getRhythm(rId);
+            RhythmInfo ri = getRhythm(rId);     // Can be null
             if (ri != null)
             {
-                r = getRhythmInstance(ri);
+                r = getRhythmInstance(ri);      // Possible UnavailableRhythmException here
             }
         }
+
+
+        if (r == null)
+        {
+            throw new UnavailableRhythmException("No rhythm found for id=" + rId);
+        }
+
         return r;
     }
 
