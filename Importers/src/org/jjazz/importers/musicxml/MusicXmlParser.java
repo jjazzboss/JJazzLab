@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -44,11 +45,10 @@ import static org.jjazz.importers.musicxml.MusicXmlParser.XMLtoJJazzChordMap;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 
 /**
- * Parses a MusicXML file, and fires events for <code>MusicXmlParserListener</code> interfaces when tokens are
- * interpreted.
+ * Parses a MusicXML file, and fires events for <code>MusicXmlParserListener</code> interfaces when tokens are interpreted.
  * <p>
- * The <code>ParserListener</code> does intelligent things with the resulting events, such as create music, draw sheet
- * music, or transform the data.
+ * The <code>ParserListener</code> does intelligent things with the resulting events, such as create music, draw sheet music, or
+ * transform the data.
  * <p>
  * MusicXmlParser.parse can be called with a file name, File, InputStream, or Reader
  *
@@ -122,8 +122,8 @@ public final class MusicXmlParser
     /**
      * Parses a MusicXML file and fires events to subscribed <code>ParserListener</code> interfaces.
      * <p>
-     * As the file is parsed, events are sent to <code>ParserListener</code> interfaces, which are responsible for doing
-     * something interesting with the music data.
+     * As the file is parsed, events are sent to <code>ParserListener</code> interfaces, which are responsible for doing something
+     * interesting with the music data.
      * <p>
      * the input is a XOM Document, which has been built previously
      *
@@ -158,6 +158,7 @@ public final class MusicXmlParser
         for (Element elMeasure : part.getChildElements("measure"))
         {
             int barId = Integer.parseInt(elMeasure.getAttribute("number").getValue());
+            LOGGER.log(Level.FINE, "parseHarmonyPartWise() processing measure numer={0}", barId);
             curDivisionInBar = 0;
             fireBarLineParsed(barId, curBarIndex);
             parseMeasure(elMeasure);
@@ -213,6 +214,7 @@ public final class MusicXmlParser
 
         for (Element el : musicDataRoot.getChildElements())
         {
+            LOGGER.log(Level.FINE, "parseMeasure() el={0}", el.getLocalName());
             switch (el.getLocalName())
             {
                 case "harmony":
@@ -220,10 +222,15 @@ public final class MusicXmlParser
                     break;
                 case "note":
                 {
-                    int duration = Integer.parseInt(el.getFirstChildElement("duration").getValue());
-                    int attack = getIntAttributeOrDefault(el, "attack", 0);
-                    int release = getIntAttributeOrDefault(el, "release", 0);
-                    curDivisionInBar += duration + attack + release;
+                    // Grace notes don't have a duration
+                    Element dur = el.getFirstChildElement("duration");
+                    if (dur != null)
+                    {
+                        int duration = Integer.parseInt(dur.getValue());
+                        int attack = getIntAttributeOrDefault(el, "attack", 0);
+                        int release = getIntAttributeOrDefault(el, "release", 0);
+                        curDivisionInBar += duration + attack + release;
+                    }
                     break;
                 }
                 case "backup":
