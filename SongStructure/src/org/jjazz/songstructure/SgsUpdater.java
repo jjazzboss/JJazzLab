@@ -45,8 +45,6 @@ import org.jjazz.util.SmallMap;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
-import org.jjazz.rhythm.api.AdaptedRhythm;
-import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.songstructure.api.SongPart;
 import org.openide.util.Exceptions;
 

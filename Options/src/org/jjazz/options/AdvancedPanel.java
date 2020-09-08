@@ -22,23 +22,17 @@
  */
 package org.jjazz.options;
 
-import java.awt.Component;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Properties;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
-import javax.swing.JList;
 import org.jjazz.base.actions.ShowLogWindow;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.device.MidiFilter;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.ui.utilities.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.LifecycleManager;
 import org.openide.NotifyDescriptor;
@@ -53,37 +47,19 @@ public final class AdvancedPanel extends javax.swing.JPanel
     {
         Level.ALL, Level.FINEST, Level.FINER, Level.FINE, Level.CONFIG, Level.INFO, Level.WARNING, Level.SEVERE, Level.OFF
     };
-    private static String[] loggerNames;
     private final AdvancedOptionsPanelController controller;
+    private static final Logger LOGGER = Logger.getLogger(AdvancedPanel.class.getSimpleName());
 
     AdvancedPanel(AdvancedOptionsPanelController controller)
     {
         this.controller = controller;
 
-        // Initialize the logger names
-        if (loggerNames == null)
-        {
-            List<String> names = new ArrayList<>();
-            Properties p = System.getProperties();
-            Enumeration<?> keys = p.keys();
-            while (keys.hasMoreElements())
-            {
-                String key = (String) keys.nextElement();
-                if (key.endsWith(".level"))
-                {
-                    String name = key.substring(0, key.length() - 6);
-                    names.add(name);
-                }
-            }
-            Collections.sort(names);
-            loggerNames = names.toArray(new String[0]);
-        }
-
         initComponents();
+        
+        Utilities.installSelectAllWhenFocused(tf_loggerName);
+        
         // TODO listen to changes in form fields and call controller.changed()
 
-        // Update the combos
-        cb_loggerNameActionPerformed(null);
     }
 
     /**
@@ -100,8 +76,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
         jLabel1 = new javax.swing.JLabel();
         btn_setLogger = new javax.swing.JButton();
         cb_loggerLevel = new JComboBox<>(ALL_LEVELS);
-        cb_loggerName = new JComboBox<>(loggerNames);
-        cb_loggerName.setRenderer(new ToolTipRenderer());
+        tf_loggerName = new javax.swing.JTextField();
         jPanel3 = new javax.swing.JPanel();
         cb_logMidiOut = new javax.swing.JCheckBox();
         cb_debugBuiltSequence = new javax.swing.JCheckBox();
@@ -129,19 +104,12 @@ public final class AdvancedPanel extends javax.swing.JPanel
             }
         });
 
-        cb_loggerLevel.addActionListener(new java.awt.event.ActionListener()
+        tf_loggerName.setText(org.openide.util.NbBundle.getMessage(AdvancedPanel.class, "AdvancedPanel.tf_loggerName.text")); // NOI18N
+        tf_loggerName.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                cb_loggerLevelActionPerformed(evt);
-            }
-        });
-
-        cb_loggerName.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cb_loggerNameActionPerformed(evt);
+                tf_loggerNameActionPerformed(evt);
             }
         });
 
@@ -156,8 +124,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
                         .addComponent(jLabel1)
                         .addGap(112, 112, 112))
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(cb_loggerName, javax.swing.GroupLayout.PREFERRED_SIZE, 222, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(tf_loggerName, javax.swing.GroupLayout.DEFAULT_SIZE, 222, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(cb_loggerLevel, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
@@ -173,7 +140,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cb_loggerLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btn_setLogger)
-                    .addComponent(cb_loggerName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(tf_loggerName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -278,41 +245,26 @@ public final class AdvancedPanel extends javax.swing.JPanel
 
     private void btn_setLoggerActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_setLoggerActionPerformed
     {//GEN-HEADEREND:event_btn_setLoggerActionPerformed
-        Level level = (Level) this.cb_loggerLevel.getSelectedItem();
-        String name = (String) cb_loggerName.getSelectedItem();
-        Logger logger = Logger.getLogger(name);
-        logger.setLevel(level);
-        btn_setLogger.setEnabled(false);
-    }//GEN-LAST:event_btn_setLoggerActionPerformed
-
-    private void cb_loggerLevelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_loggerLevelActionPerformed
-    {//GEN-HEADEREND:event_cb_loggerLevelActionPerformed
         Level level = (Level) cb_loggerLevel.getSelectedItem();
-        String name = (String) cb_loggerName.getSelectedItem();
-        if (level != null)
+        String name = tf_loggerName.getText().trim();
+        if (name.isBlank())
         {
-            Logger logger = Logger.getLogger(name);
-            btn_setLogger.setEnabled(!logger.getLevel().equals(level));
+            return;
+        }
+        Logger logger = LogManager.getLogManager().getLogger(name);
+        if (logger != null)
+        {
+            logger.setLevel(level);
+            String msg = "Success: " + name + ".level=" + level.toString();
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
         } else
         {
-            btn_setLogger.setEnabled(false);
+            String msg = "No logger found with name '" + name + "'";
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
         }
-    }//GEN-LAST:event_cb_loggerLevelActionPerformed
-
-    private void cb_loggerNameActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_loggerNameActionPerformed
-    {//GEN-HEADEREND:event_cb_loggerNameActionPerformed
-        String name = (String) cb_loggerName.getSelectedItem();
-        if (name != null)
-        {
-            cb_loggerLevel.setEnabled(true);
-            Logger logger = Logger.getLogger(name);
-            cb_loggerLevel.setSelectedItem(logger.getLevel());
-        } else
-        {
-            this.cb_loggerLevel.setEnabled(false);
-        }
-        btn_setLogger.setEnabled(false);
-    }//GEN-LAST:event_cb_loggerNameActionPerformed
+    }//GEN-LAST:event_btn_setLoggerActionPerformed
 
     private void cb_logMidiOutStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_cb_logMidiOutStateChanged
     {//GEN-HEADEREND:event_cb_logMidiOutStateChanged
@@ -333,6 +285,31 @@ public final class AdvancedPanel extends javax.swing.JPanel
         }
 
     }//GEN-LAST:event_btn_resetSettingsActionPerformed
+
+    private void tf_loggerNameActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tf_loggerNameActionPerformed
+    {//GEN-HEADEREND:event_tf_loggerNameActionPerformed
+
+        String name = tf_loggerName.getText().trim();
+        if (name.isBlank())
+        {
+            return;
+        }
+        Logger logger = LogManager.getLogManager().getLogger(name);
+        if (logger != null)
+        {
+            cb_loggerLevel.setSelectedItem(logger.getLevel());
+        } else
+        {
+            String msg = "No logger found with name '" + name + "'";
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+        }
+
+//        for (var it = LogManager.getLogManager().getLoggerNames().asIterator(); it.hasNext();)
+//        {
+//            LOGGER.severe("Logger=" + it.next());
+//        }
+    }//GEN-LAST:event_tf_loggerNameActionPerformed
 
     void load()
     {
@@ -377,22 +354,6 @@ public final class AdvancedPanel extends javax.swing.JPanel
     // ========================================================================================================
     // Private classes
     // ========================================================================================================
-    private class ToolTipRenderer extends DefaultListCellRenderer
-    {
-
-        @Override
-        public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
-        {
-            Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);      // actually c=this !
-            String loggerName = (String) value;
-            if (loggerName != null)
-            {
-                setToolTipText(loggerName);
-            }
-            return c;
-        }
-    }
-
     /**
      * The shutdown class to remove the user preferences IF doIt was previously set to true.
      */
@@ -433,10 +394,10 @@ public final class AdvancedPanel extends javax.swing.JPanel
     private javax.swing.JCheckBox cb_debugBuiltSequence;
     private javax.swing.JCheckBox cb_logMidiOut;
     private javax.swing.JComboBox<Level> cb_loggerLevel;
-    private javax.swing.JComboBox<String> cb_loggerName;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel panel_Debug;
+    private javax.swing.JTextField tf_loggerName;
     // End of variables declaration//GEN-END:variables
 }
