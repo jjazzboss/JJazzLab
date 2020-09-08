@@ -55,7 +55,7 @@ public interface MusicXmlParserListener
      * @param id This is the id of the measure, which is an optional numeric value following the bar character.
      * @param barIndex This is incremented by 1 each time this method is called. Starts at 0.
      */
-    public void onBarLineParsed(int id, int barIndex);
+    public void onBarLineParsed(String id, int barIndex);
 
     public void onLyricParsed(String lyric, Position pos);
 

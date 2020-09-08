@@ -226,7 +226,7 @@ public final class ImportSongAction implements ActionListener
                 NotifyDescriptor nd = new NotifyDescriptor.Message("An unexpected problem occured during the import operation.", NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
             } else
-            {
+            {                                                   
                 // Ok we got the new song show it !
                 song.setFile(null);     // Make sure song is not associated with the import file
                 SongFactory.getInstance().registerSong(song);

@@ -46,7 +46,7 @@ public final class TempoRange implements Cloneable, Serializable
     public static final TempoRange MEDIUM_FAST = new TempoRange(125, 180, "Medium Fast");
     public static final TempoRange FAST = new TempoRange(160, TempoRange.TEMPO_MAX, "Fast");
     // Const
-    public static final int TEMPO_MIN = 10;
+    public static final int TEMPO_MIN = 20;
     public static final int TEMPO_STD = 120;
     public static final int TEMPO_MAX = 400;
     // Variables

@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import nu.xom.ParsingException;
 import org.jjazz.harmony.Note;
@@ -40,6 +41,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.openide.DialogDisplayer;
@@ -53,15 +55,21 @@ public class MusicXMLFileReader
 {
 
     private File file;
+    private boolean noUserPrompt;
     private static final Logger LOGGER = Logger.getLogger(MusicXMLFileReader.class.getSimpleName());
 
-    public MusicXMLFileReader(File f)
+    /**
+     *
+     * @param f
+     * @param noUserPrompt If true assume a Yes answer to possible user prompt
+     */
+    public MusicXMLFileReader(File f, boolean noUserPrompt)
     {
         if (f == null)
         {
             throw new NullPointerException("f");
         }
-
+        this.noUserPrompt = noUserPrompt;
         this.file = f;
     }
 
@@ -88,19 +96,26 @@ public class MusicXMLFileReader
             throw new IOException(ex);
         }
 
-        
+
         // Result
         Song song = myListener.song;
 
-        
+
         // Propose to remove useless bars (BIAB seems to systematically insert 2 bars at the beginning)                            
         Position firstPos = myListener.firstChordPos;
         if (firstPos != null && firstPos.isFirstBarBeat() && firstPos.getBar() > 0)
         {
-            String msg = file.getName() + " import: first chord symbol is at bar " + (firstPos.getBar() + 1) + ". Do you want to make the song start on bar 1 ?";
-            NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
-            Object result = DialogDisplayer.getDefault().notify(d);
-            if (NotifyDescriptor.YES_OPTION == result)
+            boolean doIt = true;
+
+            if (!noUserPrompt)
+            {
+                String msg = file.getName() + " import: first chord symbol is at bar " + (firstPos.getBar() + 1) + ". Do you want to make the song start on bar 1 ?";
+                NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
+                doIt = NotifyDescriptor.YES_OPTION == DialogDisplayer.getDefault().notify(d);
+            }
+
+
+            if (doIt)
             {
                 try
                 {
@@ -177,10 +192,29 @@ public class MusicXMLFileReader
         {
             if (barIndex == 0)
             {
+                if (tempoBPM < TempoRange.TEMPO_MIN)
+                {
+                    LOGGER.log(Level.WARNING, "onTempoChanged() Invalid tempo={0}, using {1} instead", new Object[]
+                    {
+                        tempoBPM, TempoRange.TEMPO_MIN
+                    });
+                    tempoBPM = TempoRange.TEMPO_MIN;
+                }
+                if (tempoBPM > TempoRange.TEMPO_MAX)
+                {
+                    LOGGER.log(Level.WARNING, "onTempoChanged() Invalid tempo={0}, using {1} instead", new Object[]
+                    {
+                        tempoBPM, TempoRange.TEMPO_MAX
+                    });
+                    tempoBPM = TempoRange.TEMPO_MAX;
+                }
                 song.setTempo(tempoBPM);
             } else
             {
-                LOGGER.warning("onTempoChanged() Tempo changed to " + tempoBPM + " at barIndex=" + barIndex + ": ignored");
+                LOGGER.log(Level.WARNING, "onTempoChanged() Tempo changed to {0} at barIndex={1}: ignored", new Object[]
+                {
+                    tempoBPM, barIndex
+                });
             }
         }
 
@@ -216,7 +250,7 @@ public class MusicXMLFileReader
         }
 
         @Override
-        public void onBarLineParsed(int id, int barIndex)
+        public void onBarLineParsed(String id, int barIndex)
         {
             songSizeInBars = barIndex + 1;
         }
