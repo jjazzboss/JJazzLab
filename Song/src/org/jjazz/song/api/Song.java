@@ -145,7 +145,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      * <p>
      * Client properties are serialized. This can be used by other components to store information specific to this object, eg UI
      * settings or others like Section Quantization.<br>
-     * A PropertyChangeEvent(property name=key) is fired to listeners. If newValue=null then property is removed.
+     * A PropertyChangeEvent(property name=key) is fired to listeners. If newValue=null then property is removed.<p>
+     * This will fire a song modified event.
      *
      * @param key
      * @param value If value==null then property is removed.
@@ -169,6 +170,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             clientProperties.setProperty(key, value);
         }
         pcs.firePropertyChange(key, oldValue, oldValue);
+        fireIsModified();
     }
 
     public ChordLeadSheet getChordLeadSheet()

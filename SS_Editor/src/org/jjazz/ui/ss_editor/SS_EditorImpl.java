@@ -101,6 +101,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 {
 
     public static final String PROP_ZOOM_FACTOR_X = "PropSsEditorZoomFactorX";
+    public static final String PROP_ZOOM_FACTOR_Y = "PropSsEditorZoomFactorY";
     // UI variables
     private javax.swing.JPanel panel_SongParts;
     private InsertionSptMark insertionMark;
@@ -694,6 +695,10 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             sptv.setZoomVFactor(zoomVFactor);
         }
         zoomable.fireYPropertyChange(oldFactor, zoomVFactor);
+        
+        // Save the zoom factor with the song as a client property
+        songModel.putClientProperty(PROP_ZOOM_FACTOR_Y, Integer.toString(factor));
+                
         revalidate();
         repaint();
     }

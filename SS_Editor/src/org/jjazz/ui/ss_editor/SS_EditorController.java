@@ -68,7 +68,6 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_EditorMouseListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
-import org.jjazz.ui.utilities.Zoomable;
 
 /**
  * Controller implementation of a SS_Editor.
@@ -396,7 +395,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         {
             factor = Math.max(0, factor - STEP);
         }
-        LOGGER.log(Level.FINE, "editorWheelMoved() factor=" + factor);
+        LOGGER.log(Level.FINE, "editorWheelMoved() factor={0}", factor);
         editor.setZoomHFactor(factor);
     }
 

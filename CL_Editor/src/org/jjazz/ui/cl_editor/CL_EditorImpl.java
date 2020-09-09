@@ -95,6 +95,9 @@ import org.jjazz.songstructure.api.SongPart;
 public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, ClsChangeListener, Scrollable, MouseListener, MouseWheelListener, MouseMotionListener
 {
 
+    protected static final String PROP_ZOOM_FACTOR_X = "PropClEditorZoomFactorX";
+    protected static final String PROP_ZOOM_FACTOR_Y = "PropClEditorZoomFactorY";
+    
     private static final int NB_EXTRA_LINES = 4;
 
     /**
@@ -460,8 +463,15 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         revalidate();
         int oldFactor = computeNbColsToXFactor(oldValue);
         int newFactor = computeNbColsToXFactor(nbColumns);
-        LOGGER.log(Level.FINER, "oldFactor=" + oldFactor + " newFactor=" + newFactor);
+        LOGGER.log(Level.FINER, "oldFactor={0} newFactor={1}", new Object[]
+        {
+            oldFactor, newFactor
+        });
         pcs.firePropertyChange(Zoomable.PROPERTY_ZOOM_X, oldFactor, newFactor);
+
+        // Save the zoom factor with the song as a client property
+        songModel.putClientProperty(PROP_ZOOM_FACTOR_X, Integer.toString(newFactor));
+
     }
 
     @Override
@@ -488,6 +498,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             bb.setZoomVFactor(zoomVFactor);
         }
+
+        // Save the zoom factor with the song as a client property
+        songModel.putClientProperty(PROP_ZOOM_FACTOR_Y, Integer.toString(zoomVFactor));
+
     }
 
     @Override

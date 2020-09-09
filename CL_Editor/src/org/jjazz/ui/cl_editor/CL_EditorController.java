@@ -47,6 +47,8 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import static org.jjazz.ui.cl_editor.CL_EditorImpl.PROP_ZOOM_FACTOR_X;
+import static org.jjazz.ui.cl_editor.CL_EditorImpl.PROP_ZOOM_FACTOR_Y;
 import org.jjazz.ui.cl_editor.barbox.api.BarBox;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorMouseListener;
@@ -66,7 +68,6 @@ import org.openide.util.Utilities;
 public class CL_EditorController implements CL_EditorMouseListener
 {
 
-    public static final String PROP_ZOOM_FACTOR_X = "PropClEditorZoomFactorX";
     /**
      * Actions reused several times
      */
@@ -170,7 +171,7 @@ public class CL_EditorController implements CL_EditorMouseListener
         editor.getActionMap().put("JumpToEnd", new JumpToEnd());
 
 
-        // Try to restore zoom factor X
+        // Try to restore zoom factors
         String str = editor.getSongModel().getClientProperty(PROP_ZOOM_FACTOR_X, null);
         if (str != null)
         {
@@ -194,6 +195,32 @@ public class CL_EditorController implements CL_EditorMouseListener
                 }
             }
         }
+
+        str = editor.getSongModel().getClientProperty(PROP_ZOOM_FACTOR_Y, null);
+        if (str != null)
+        {
+            int zfy = -1;
+            try
+            {
+                zfy = Integer.valueOf(str);
+            } catch (NumberFormatException e)
+            {
+                // Nothing
+            }
+            if (zfy < 0 || zfy > 100)
+            {
+                LOGGER.warning("CL_EditorController() Invalid zoom factor Y client property=" + str + " in song=" + editor.getSongModel().getName());
+            } else
+            {
+                Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
+                if (zoomable != null)
+                {
+                    zoomable.setZoomYFactor(zfy);
+                }
+            }
+        }
+
+
     }
 
     public CL_Editor getEditor()
@@ -505,11 +532,9 @@ public class CL_EditorController implements CL_EditorMouseListener
         {
             factor = Math.max(0, factor - STEP);
         }
-        LOGGER.log(Level.FINE, "editorWheelMoved() factor=" + factor);
+        LOGGER.log(Level.FINE, "editorWheelMoved() factor={0}", factor);
         zoomable.setZoomXFactor(factor);
 
-        // Save the zoom factor with the song as a client property
-        editor.getSongModel().putClientProperty(PROP_ZOOM_FACTOR_X, Integer.toString(factor));
 
     }
 
