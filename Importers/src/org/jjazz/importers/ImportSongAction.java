@@ -38,7 +38,7 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import org.jjazz.song.spi.SongImportException;
+import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.SongEditorManager;
 import org.jjazz.upgrade.UpgradeManager;
@@ -212,7 +212,7 @@ public final class ImportSongAction implements ActionListener
             {
                 LOGGER.info("importFiles() -- importerId=" + importer.getId() + " Importing file " + f.getAbsolutePath());
                 song = importer.importFromFile(f);
-            } catch (SongImportException | IOException ex)
+            } catch (SongCreationException | IOException ex)
             {
                 LOGGER.warning("importFiles() ex=" + ex.getLocalizedMessage());
                 NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);

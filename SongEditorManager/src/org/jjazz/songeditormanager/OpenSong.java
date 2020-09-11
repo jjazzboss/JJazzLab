@@ -25,16 +25,13 @@ package org.jjazz.songeditormanager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.MidiMixManager;
-import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongCreationException;
 import static org.jjazz.songeditormanager.Bundle.CTL_JJazzOpenSongs;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -42,7 +39,8 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle.Messages;
 import org.jjazz.ui.utilities.Utilities;
-import org.openide.util.Exceptions;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.windows.WindowManager;
 
 @ActionID(category = "File", id = "org.jjazz.songeditormanager.OpenSong")
@@ -78,10 +76,28 @@ public final class OpenSong implements ActionListener
         chooser.showOpenDialog(WindowManager.getDefault().getMainWindow());
 
         var songFiles = chooser.getSelectedFiles();
+        List<String> errFilenames = new ArrayList<>();
+
         for (File songFile : songFiles)
         {
             boolean last = (songFile == songFiles[songFiles.length - 1]);
-            SongEditorManager.getInstance().showSong(songFile, last);
+            try
+            {
+                SongEditorManager.getInstance().showSong(songFile, last, true);
+            } catch (SongCreationException ex)
+            {
+                LOGGER.warning("actionPerformed() Can't open file " + songFile.getAbsolutePath() + ": " + ex.getLocalizedMessage());
+                errFilenames.add(songFile.getName());
+            }
         }
+
+        if (!errFilenames.isEmpty())
+        {
+            String msg = org.jjazz.util.Utilities.truncateWithDots("Can't open the following file(s) (see log for details) :\n\n" + errFilenames.toString(), 80);
+            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(nd);
+        }
+
+
     }
 }

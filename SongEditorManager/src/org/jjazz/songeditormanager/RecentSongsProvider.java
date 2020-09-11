@@ -27,13 +27,9 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
-import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.base.actions.RecentFilesProvider;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.MidiMixManager;
-import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongCreationException;
 import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -55,8 +51,15 @@ public class RecentSongsProvider implements RecentFilesProvider, PropertyChangeL
     @Override
     public boolean open(File f)
     {
-        Song song = SongEditorManager.getInstance().showSong(f, true);
-      
+        Song song = null;
+        try
+        {
+            SongEditorManager.getInstance().showSong(f, true, true);
+        } catch (SongCreationException ex)
+        {
+            LOGGER.warning("open() Can't open file " + f.getAbsolutePath() + ": " + ex.getLocalizedMessage());
+        }
+
         return song != null;
     }
 

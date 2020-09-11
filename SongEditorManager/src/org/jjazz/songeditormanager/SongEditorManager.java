@@ -37,6 +37,7 @@ import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
@@ -212,10 +213,14 @@ public class SongEditorManager implements PropertyChangeListener
      *
      * @param f
      * @param makeActive
-     * @return The opened song, or null if a problem occured.
+     * @param updateLastSongDirectory If true and the file is not already shown, update the LastSongDirectory in
+     * FileDirectoryManager.
+     * @throws org.jjazz.song.api.SongCreationException
      */
-    public Song showSong(File f, boolean makeActive)
+    public void showSong(File f, boolean makeActive, boolean updateLastSongDirectory) throws SongCreationException
     {
+
+        // Check if file is already opened, if yes just activate it
         for (Song s : getOpenedSongs())
         {
             if (s.getFile() == f)
@@ -238,19 +243,23 @@ public class SongEditorManager implements PropertyChangeListener
                         }
                     }
                 }
-                return s;
+                return;
             }
         }
 
+        // File is NOT opened yet
 
+        // Read song from file
         SongFactory sf = SongFactory.getInstance();
-        Song song = sf.createFromFile(f);
-        if (song != null)
+        Song song = sf.createFromFile(f);       // Possible SongCreationException here
+        if (updateLastSongDirectory)
         {
-            showSong(song, makeActive);
             FileDirectoryManager.getInstance().setLastSongDirectory(f.getAbsoluteFile().getParentFile());
         }
-        return song;
+
+
+        // Show the song
+        showSong(song, makeActive);
 
 
     }

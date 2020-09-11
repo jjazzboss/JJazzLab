@@ -22,6 +22,7 @@
  */
 package org.jjazz.song.spi;
 
+import org.jjazz.song.api.SongCreationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -55,8 +56,8 @@ public interface SongImporter
      * @param f
      * @return
      * @throws java.io.IOException
-     * @throws org.jjazz.song.spi.SongImportException
+     * @throws org.jjazz.song.api.SongCreationException
      */
-    public Song importFromFile(File f) throws IOException, SongImportException;
+    public Song importFromFile(File f) throws IOException, SongCreationException;
 
 }

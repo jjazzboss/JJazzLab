@@ -35,6 +35,7 @@ import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
 import org.jjazz.base.actions.Savable;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongCreationException;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
@@ -45,6 +46,7 @@ import org.netbeans.spi.sendopts.OptionProcessor;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.modules.OnStop;
+import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -154,13 +156,16 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                 {
                     if (isUIready)
                     {
-                        // Directly open the file and activate it
-                        boolean last = fileName == fileNames[fileNames.length - 1];
-                        Song song = SongEditorManager.getInstance().showSong(file, last);
-                        if (song == null)
+                        try
                         {
-                            LOGGER.warning("process() Problem opening song file: " + file.getAbsolutePath());
+                            // Directly open the file and activate it
+                            boolean last = fileName == fileNames[fileNames.length - 1];
+                            SongEditorManager.getInstance().showSong(file, last, true);
+                        } catch (SongCreationException ex)
+                        {
+                            LOGGER.warning("process() Problem opening song file: " + file.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());
                         }
+
                     } else
                     {
                         // Just save file, this will be handled later by run()
@@ -261,10 +266,12 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                 for (File f : instance.cmdLineFilesToOpen)
                 {
                     boolean last = f == instance.cmdLineFilesToOpen.get(instance.cmdLineFilesToOpen.size() - 1);
-                    Song song = sem.showSong(f, last);
-                    if (song == null)
+                    try
                     {
-                        LOGGER.warning("OpenFilesAtStartupTask.run() Problem opening song file: " + f.getAbsolutePath());
+                        sem.showSong(f, last, true);
+                    } catch (SongCreationException ex)
+                    {
+                        LOGGER.warning("OpenFilesAtStartupTask.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());
                     }
                 }
 
@@ -302,7 +309,13 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                     {
                         File f = new File(strFiles.get(i).trim());
                         boolean last = (i == max - 1);
-                        SongEditorManager.getInstance().showSong(f, last);
+                        try
+                        {
+                            SongEditorManager.getInstance().showSong(f, last, true);
+                        } catch (SongCreationException ex)
+                        {
+                            LOGGER.warning("openRecentFilesUponStartup.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());
+                        }
                     }
                 };
                 SwingUtilities.invokeLater(run);

@@ -35,7 +35,10 @@ import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.musiccontrol.MusicController.State;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.api.SongFactory;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -61,7 +64,7 @@ public final class NewSong implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
         Song song = createSongFromTemplate();
-        SongEditorManager.getInstance().showSong(song, true);    
+        SongEditorManager.getInstance().showSong(song, true);
     }
 
     /**
@@ -79,36 +82,44 @@ public final class NewSong implements ActionListener
         SongFactory sf = SongFactory.getInstance();
         Song song = null;
         String name = sf.getNewSongName();
+
+
         File songTemplateFile = FileDirectoryManager.getInstance().getNewSongTemplateSongFile();
         if (songTemplateFile.exists())
         {
-            song = sf.createFromFile(songTemplateFile);
-            if (song != null)
+            try
             {
+                song = sf.createFromFile(songTemplateFile);    // Possible SongCreationException here
+
+
+                // SongEditorManager will create the MidiMix, using the associated template file or
+                // creating a new one if no template file.
+                // Need to do this because we'll reset the song's file after, so SongEditorManager will not be able anymore
+                // to retrieve a MidiMix from the template file.
                 MidiMixManager mmm = MidiMixManager.getInstance();
-                try
-                {
-                    // SongEditorManager will create the MidiMix, using the associated template file or
-                    // creating a new one if no template file.
-                    // Need to do this because we'll reset the song's file after, so SongEditorManager will not be able anymore
-                    // to retrieve a MidiMix from the template file.
-                    MidiMix mm = mmm.findMix(song);
-                    mm.setFile(null);  // Do like it was created from scratch
-                } catch (MidiUnavailableException ex)
-                {
-                    // Netbeans will show a user Dialog (because we used the Throwable argument
-                    LOGGER.log(Level.SEVERE, "createSongFromTemplate() Unexpected problem building mix", ex);
-                }
+                MidiMix mm = mmm.findMix(song);       // Possible MidiUnavailableException here
+                mm.setFile(null);  // Do like it was created from scratch
+
 
                 song.setFile(null);    // Do like it was created from scratch. Must be done AFTER mmm.findMix(song)
                 song.setName(name);
                 song.resetNeedSave();
+
+            } catch (SongCreationException | MidiUnavailableException ex)
+            {
+                song = null; // Because non null if it's a MidiUnavailableException
+                String msg = "Can't create song from template file " + songTemplateFile.getAbsolutePath() + ": " + ex.getLocalizedMessage();
+                LOGGER.warning("createSongFromTemplate() " + msg);
+                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(nd);
             }
         }
+
         if (song == null)
         {
             song = sf.createEmptySong(name);
         }
+
         return song;
     }
 

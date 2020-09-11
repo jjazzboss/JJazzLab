@@ -20,17 +20,24 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.song.spi;
+package org.jjazz.song.api;
 
-/**
- * An exception while parsing an imported file.
- */
-public class SongImportException extends Exception
+public class SongCreationException extends Exception
 {
 
-    public SongImportException(String msg)
+    public SongCreationException(String msg)
     {
         super(msg);
+    }
+
+    public SongCreationException(String msg, Throwable cause)
+    {
+        super(msg, cause);
+    }
+
+    public SongCreationException(Throwable cause)
+    {
+        super(cause);
     }
 
 }
