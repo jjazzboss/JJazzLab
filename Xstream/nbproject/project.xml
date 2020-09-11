@@ -33,8 +33,8 @@
                 <package>org.xmlpull.v1</package>
             </public-packages>
             <class-path-extension>
-                <runtime-relative-path>ext/xstream-1.4.9.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/xstream-1.4.9.jar</binary-origin>
+                <runtime-relative-path>ext/xstream-1.4.13.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/xstream-1.4.13.jar</binary-origin>
             </class-path-extension>
             <class-path-extension>
                 <runtime-relative-path>ext/xpp3_min-1.1.4c.jar</runtime-relative-path>
