@@ -199,6 +199,7 @@ public class OutputSynthManager implements PropertyChangeListener
         }
         OutputSynth synth = null;
         XStream xstream = new XStream();
+        XStream.setupDefaultSecurity(xstream);
         try
         {
             synth = (OutputSynth) xstream.fromXML(f);

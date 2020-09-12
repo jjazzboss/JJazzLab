@@ -500,6 +500,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         try (FileOutputStream fos = new FileOutputStream(songFile))
         {
             XStream xstream = new XStream();
+            XStream.setupDefaultSecurity(xstream);
             xstream.alias("Song", Song.class
             );
             xstream.toXML(this, fos);

@@ -20,10 +20,9 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.base.actions;
+package org.jjazz.songeditormanager;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -37,7 +36,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import static org.jjazz.base.actions.Bundle.*;
+import org.jjazz.song.api.Song;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -47,12 +46,11 @@ import org.openide.util.NbPreferences;
 import org.openide.util.actions.Presenter;
 
 /**
- * Work in conjunction with a RecentFilesProvider to get the opened and closed files, and the open action associated to each file
- * (used in the menu item).
+ * Keep track of the recently closed songs (saved as preferences) and provide the action to reopen them.
  * <p>
- * If no RecentFilesProvider implementation is found in the global lookup, the class does nothing.
+ * Implements Presenter.Menu to show a submenu with available recent files.
  */
-@ActionID(category = "File", id = "org.jjazz.base.actions.OpenRecentFile")
+@ActionID(category = "File", id = "org.jjazz.songeditormanager.OpenRecentFile")
 @ActionRegistration(displayName = "#CTL_OpenRecentFile", lazy = false)
 @ActionReferences(
         {
@@ -64,10 +62,10 @@ import org.openide.util.actions.Presenter;
         })
 public final class OpenRecentFile extends AbstractAction implements Presenter.Menu, Presenter.Popup, PropertyChangeListener
 {
+
     private static final String PREF_RECENT_FILES = "RecentFiles";
     private static final String PREF_MAX_NB_FILES = "NbMaxRecentFiles";
 
-    private RecentFilesProvider rfProvider;
     private JMenu subMenu;
     /**
      * Reference to the first menu item.
@@ -79,15 +77,7 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
 
     public OpenRecentFile()
     {
-        rfProvider = RecentFilesProvider.getDefault();
-        if (rfProvider == null)
-        {
-            LOGGER.log(Level.WARNING, "No RecentFilesProvider found. Recent files list will be disabled.");
-            putValue(Action.NAME, "Disabled");
-            setEnabled(false);
-            return;
-        }
-        rfProvider.addPropertyChangeListener(this);
+        SongEditorManager.getInstance().addPropertyChangeListener(this);
 
         // Initialize the file list
         recentFiles = new ArrayList<>();
@@ -104,7 +94,7 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
 
         // Build the menu
         subMenu = new JMenu();
-        subMenu.setText(CTL_OpenRecentFile());
+        subMenu.setText("Open Recent Song");
         updateMenuItems();
 
     }
@@ -161,7 +151,7 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
     private void updatePreferences()
     {
         LOGGER.log(Level.FINE, "updatePreferences() recentFiles=" + recentFiles);
-        if (recentFiles.size() == 0)
+        if (recentFiles.isEmpty())
         {
             prefs.put(PREF_RECENT_FILES, "");
             return;
@@ -180,7 +170,7 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
         mi.setToolTipText(f.getAbsolutePath());
         mi.addActionListener((ActionEvent e) ->
         {
-            if (!rfProvider.open(f))
+            if (!OpenSong.openSong(f, true, true))
             {
                 // There was a problem opening this file, remove it from the recent list
                 fileOpened(f);
@@ -215,27 +205,28 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getPropertyName().equals(RecentFilesProvider.PROP_FILE_OPENED))
+        LOGGER.log(Level.FINE, "propertyChange() evt={0}", evt);
+        
+        
+        if (evt.getSource() == SongEditorManager.getInstance())
         {
-            LOGGER.log(Level.FINE, "propertyChange() FILE_OPENED");
-            File f = (File) evt.getNewValue();
-            if (f == null)
+            if (evt.getPropertyName().equals(SongEditorManager.PROP_SONG_OPENED)
+                    || evt.getPropertyName().equals(SongEditorManager.PROP_SONG_SAVED))
             {
-                LOGGER.log(Level.WARNING, "propertyChange() FILE_OPENED but newValue is null. Recent Files will not be updated.");
-            } else
+                Song song = (Song) evt.getNewValue();
+                File f = song.getFile();
+                if (f != null)
+                {
+                    fileOpened(f);
+                }
+            } else if (evt.getPropertyName().equals(SongEditorManager.PROP_SONG_CLOSED))
             {
-                fileOpened(f);
-            }
-        } else if (evt.getPropertyName() == RecentFilesProvider.PROP_FILE_CLOSED)
-        {
-            LOGGER.log(Level.FINE, "propertyChange() FILE_CLOSED");
-            File f = (File) evt.getNewValue();
-            if (f == null)
-            {
-                LOGGER.log(Level.WARNING, "propertyChange() FILE_CLOSED but newValue is null. Recent Files will not be updated.");
-            } else
-            {
-                fileClosed(f);
+                Song song = (Song) evt.getNewValue();
+                File f = song.getFile();
+                if (f != null)
+                {
+                    fileClosed(f);
+                }
             }
         }
     }

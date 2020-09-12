@@ -75,29 +75,40 @@ public final class OpenSong implements ActionListener
         chooser.setDialogTitle("Open song from file");
         chooser.showOpenDialog(WindowManager.getDefault().getMainWindow());
 
+
         var songFiles = chooser.getSelectedFiles();
-        List<String> errFilenames = new ArrayList<>();
+
 
         for (File songFile : songFiles)
         {
             boolean last = (songFile == songFiles[songFiles.length - 1]);
-            try
-            {
-                SongEditorManager.getInstance().showSong(songFile, last, true);
-            } catch (SongCreationException ex)
-            {
-                LOGGER.warning("actionPerformed() Can't open file " + songFile.getAbsolutePath() + ": " + ex.getLocalizedMessage());
-                errFilenames.add(songFile.getName());
-            }
+            openSong(songFile, last, true);
         }
 
-        if (!errFilenames.isEmpty())
+    }
+
+    /**
+     * Call SongEditorManager.showSong() and notify user if problem.
+     *
+     * @param songFile
+     * @param makeActive
+     * @param updateLastSongDir
+     * @return False if file could not be read.
+     */
+    static protected boolean openSong(File songFile, boolean makeActive, boolean updateLastSongDir)
+    {
+        boolean b = true;
+        try
         {
-            String msg = org.jjazz.util.Utilities.truncateWithDots("Can't open the following file(s) (see log for details) :\n\n" + errFilenames.toString(), 80);
+            SongEditorManager.getInstance().showSong(songFile, makeActive, updateLastSongDir);
+        } catch (SongCreationException ex)
+        {
+            String msg = "Can't open file " + songFile.getAbsolutePath() + ": " + ex.getLocalizedMessage();
+            LOGGER.warning("openSong() " + msg);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
+            b = false;
         }
-
-
+        return b;
     }
 }

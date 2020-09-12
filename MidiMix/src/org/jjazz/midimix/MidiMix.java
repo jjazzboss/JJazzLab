@@ -910,6 +910,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         try (FileOutputStream fos = new FileOutputStream(f))
         {
             XStream xstream = new XStream();
+            XStream.setupDefaultSecurity(xstream);
             xstream.alias("MidiMix", MidiMix.class);
             xstream.toXML(this, fos);
             if (!isCopy)
@@ -1036,6 +1037,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         try
         {
             XStream xstream = new XStream();
+            XStream.setupDefaultSecurity(xstream);
             mm = (MidiMix) xstream.fromXML(f);
             mm.setFile(f);
         } catch (XStreamException e)

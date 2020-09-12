@@ -37,7 +37,7 @@ public interface SptViewerMouseListener
      *
      * @param e
      * @param spt
-     * @param multiSelect True if used clicked on the multiSelect bar.
+     * @param multiSelect True if user clicked on the multiSelect bar.
      */
     void songPartClicked(MouseEvent e, SongPart spt, boolean multiSelect);
 

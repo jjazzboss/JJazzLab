@@ -142,6 +142,7 @@ public class SongFactory implements PropertyChangeListener
 
 
         XStream xstream = new XStream();
+        XStream.setupDefaultSecurity(xstream);
 
 
         if (!f.exists())
