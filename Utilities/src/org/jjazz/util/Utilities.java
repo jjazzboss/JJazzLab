@@ -22,6 +22,10 @@
  */
 package org.jjazz.util;
 
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.security.NoTypePermission;
+import com.thoughtworks.xstream.security.NullPermission;
+import com.thoughtworks.xstream.security.PrimitiveTypePermission;
 import java.awt.Font;
 import java.io.*;
 import java.net.MalformedURLException;
@@ -133,6 +137,22 @@ public class Utilities
             index = filename.length();
         }
         return filename.substring(0, index) + ext;
+    }
+
+    /**
+     * Get a secured XStream instance for unmarshalling which only accepts org.jjazz.** objects.
+     *
+     * @return
+     */
+    public static XStream getSecuredXStreamInstance()
+    {
+        XStream xstream = new XStream();
+        XStream.setupDefaultSecurity(xstream);
+        xstream.allowTypesByWildcard(new String[]
+        {
+            "org.jjazz.**"
+        });
+        return xstream;
     }
 
     /**
@@ -736,7 +756,6 @@ public class Utilities
         return -1;
     }
 
-
     /**
      * Get all the files matching fnFilter in dirTree (and its subdirectories).
      * <p>
@@ -794,7 +813,6 @@ public class Utilities
         }
         return pathSet;
     }
-
 
     // ========================================================================
     // Private methods

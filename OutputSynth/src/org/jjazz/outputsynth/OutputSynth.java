@@ -775,7 +775,6 @@ public class OutputSynth implements Serializable
         try (FileOutputStream fos = new FileOutputStream(f))
         {
             XStream xstream = new XStream();
-            XStream.setupDefaultSecurity(xstream);
             xstream.alias("OutputSynth", OutputSynth.class
             );
             xstream.toXML(this, fos);

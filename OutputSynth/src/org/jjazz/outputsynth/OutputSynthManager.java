@@ -198,8 +198,8 @@ public class OutputSynthManager implements PropertyChangeListener
             throw new NullPointerException("f");
         }
         OutputSynth synth = null;
-        XStream xstream = new XStream();
-        XStream.setupDefaultSecurity(xstream);
+        XStream xstream = Utilities.getSecuredXStreamInstance();
+        
         try
         {
             synth = (OutputSynth) xstream.fromXML(f);

@@ -44,6 +44,7 @@ import org.openide.NotifyDescriptor;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructureFactory;
+import org.jjazz.util.Utilities;
 import org.openide.util.Exceptions;
 
 /**
@@ -141,8 +142,7 @@ public class SongFactory implements PropertyChangeListener
         Song song = null;
 
 
-        XStream xstream = new XStream();
-        XStream.setupDefaultSecurity(xstream);
+        XStream xstream = Utilities.getSecuredXStreamInstance();
 
 
         if (!f.exists())
