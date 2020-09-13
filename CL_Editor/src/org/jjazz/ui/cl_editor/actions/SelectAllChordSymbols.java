@@ -24,11 +24,9 @@ package org.jjazz.ui.cl_editor.actions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import static org.jjazz.ui.cl_editor.actions.Bundle.CTL_SelectAllChordSymbols;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
@@ -52,7 +50,7 @@ import org.openide.util.NbBundle.Messages;
             @ActionReference(path = "Actions/ChordSymbol", position = 1310),
             @ActionReference(path = "Menu/Edit", position = 1310),
         })
-@Messages("CTL_SelectAllChordSymbols=Select all chord symbols")
+@Messages("CTL_SelectAllChordSymbols=Select All Chord Symbols")
 public class SelectAllChordSymbols implements ActionListener
 {
 
