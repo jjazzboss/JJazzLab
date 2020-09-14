@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
@@ -310,7 +309,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                 try
                 {
                     newTs = TimeSignature.parse(strs[2]);   // Possible ParseException
-                    r = mapAdaptedRhythms.get(getAdaptedRhythmKey(r, newTs));       // Can be null if first time request                   
+                    r = mapAdaptedRhythms.get(getAdaptedRhythmKey(rIdOriginal, newTs));       // Can be null if first time request                   
                 } catch (ParseException ex)
                 {
                     LOGGER.warning("getRhythmInstance() Invalid time signature in AdaptedRhythm rId=" + rId);
@@ -460,7 +459,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             throw new IllegalArgumentException("r=" + r + " ts=" + ts);
         }
 
-        AdaptedRhythm ar = mapAdaptedRhythms.get(getAdaptedRhythmKey(r, ts));
+        AdaptedRhythm ar = mapAdaptedRhythms.get(getAdaptedRhythmKey(r.getUniqueId(), ts));
         if (ar == null)
         {
             for (RhythmProvider rp : getRhythmProviders())
@@ -469,7 +468,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                 if (ar != null)
                 {
                     addRhythm(rp, ar);
-                    mapAdaptedRhythms.put(getAdaptedRhythmKey(r, ts), ar);
+                    mapAdaptedRhythms.put(getAdaptedRhythmKey(r.getUniqueId(), ts), ar);
                     break;
                 }
             }
@@ -882,9 +881,9 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         return res;
     }
 
-    private String getAdaptedRhythmKey(Rhythm r, TimeSignature ts)
+    private String getAdaptedRhythmKey(String rId, TimeSignature ts)
     {
-        return r.getUniqueId() + "-" + ts.name();
+        return rId + "-" + ts.name();
 
     }
 
