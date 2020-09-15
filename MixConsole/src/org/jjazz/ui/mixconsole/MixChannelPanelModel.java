@@ -44,6 +44,7 @@ public interface MixChannelPanelModel
     public static final String PROP_VOLUME_ENABLED = "PropVolumeEnabled";
     public static final String PROP_INSTRUMENT_ENABLED = "PropInstrumentEnabled";
     public static final String PROP_DRUMS_CHANNEL_REROUTED = "PropDrumsChannelRerouted";
+    public static final String PROP_USER_CHANNEL_RECORDING_ENABLED = "PropUserChannelRecordingEnabled";
     public static final String PROP_MUTE = "PropMute";
     public static final String PROP_SOLO = "PropSolo";
     public static final String PROP_VOLUME = "PropVolume";
@@ -87,8 +88,12 @@ public interface MixChannelPanelModel
     public int getPanoramic();
 
     public boolean isDrumsReroutingEnabled();
-    
-    public boolean isUserChannel();            
+
+    public boolean isUserChannel();
+
+    public boolean isUserChannelRecordingEnabled();
+
+    public void setUserChannelRecordingEnabled(boolean b);
 
     /**
      * @param oldValue

@@ -42,7 +42,7 @@ public class UserChannelRvKey extends RhythmVoice
 {
 
     private static final String PREF_USER_CHANNEL = "PrefUserChannel";
-    private static UserChannelRvKey INSTANCE;
+    private static UserChannelRvKey INSTANCE;   
     private static Preferences prefs = NbPreferences.forModule(UserChannelRvKey.class);
 
     static public UserChannelRvKey getInstance()
@@ -86,7 +86,7 @@ public class UserChannelRvKey extends RhythmVoice
         }
         prefs.putInt(PREF_USER_CHANNEL, c);
     }
-
+    
 
     // =====================================================================================
     // Upgrade Task

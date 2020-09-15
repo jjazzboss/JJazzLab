@@ -29,6 +29,7 @@ import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.beans.VetoableChangeSupport;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -840,6 +841,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                     // KeyMap has changed, need to regenerate the sequence
                     playbackContext.setDirty();
                     break;
+                case MidiMix.PROP_USER_CHANNEL_RECORDING_ENABLED:
+                    updateRecordingState();
+                    break;
                 default:
                     // eg MidiMix.PROP_USER_CHANNEL: do nothing
                     break;
@@ -970,16 +974,52 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Start the sequencer with the bug fix (tempo reset at 120 upon each start).
+     * Start the sequencer for playback, or playback+recording.
+     * <p>
+     * Apply workaround to JDK setTempo bug (tempo reset at 120 upon each start).
      */
     private void seqStart()
     {
         assert !state.equals(State.DISABLED);
-
+       
         sequencer.start();
 
         // JDK -11 BUG: start() resets tempo at 120 !
         sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
+
+        // Enable/disable recording on specific channels
+        updateRecordingState();
+    }
+
+    private void updateRecordingState()
+    {
+
+        MidiMix mm = mgContext.getMidiMix();
+        int channel = mm.getUserChannel();
+        if (channel == -1)
+        {
+            // No user channel
+            return;
+        }
+        assert playbackContext.userTrack != null;
+        
+
+        // There is a user channel, enable/disable recording
+        boolean record = mm.isUserChannelRecordingEnabled();
+        if (record)
+        {
+            sequencer.recordEnable(playbackContext.userTrack, channel);
+        } else
+        {
+            sequencer.recordDisable(playbackContext.userTrack);
+        }
+
+
+        // Start recording only if it's already running
+//        if (sequencer.isRunning() && !sequencer.isRecording() && record)
+//        {
+            sequencer.startRecording();
+//        }
 
     }
 
@@ -1042,6 +1082,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
          * The generated sequence.
          */
         Sequence sequence;
+
+        /**
+         * The user channel track (null if no user channel).
+         */
+        Track userTrack;
         /**
          * The position of each natural beat.
          */
@@ -1090,7 +1135,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
          * @param song
          * @throws MusicGenerationException If problem occurs when creating the sequence.
          */
-        final void buildSequence() throws MusicGenerationException
+        private void buildSequence() throws MusicGenerationException
         {
 
             // Prepare our work MusicGenerationContext
@@ -1113,6 +1158,18 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 mapRvTrackId = seqBuilder.getRvTrackIdMap();                 // Used to identify a RhythmVoice's track
 
 
+                // Add a user channel track if available
+                MidiMix mm = originalContext.getMidiMix();
+                int userChannel = mm.getUserChannel();
+                if (userChannel != -1)
+                {
+                    RhythmVoice rv = mm.getRhythmVoice(userChannel);
+                    userTrack = sequence.createTrack();
+                    int trackId = Arrays.asList(sequence.getTracks()).indexOf(userTrack);
+                    mapRvTrackId.put(rv, trackId);
+                }
+
+
                 // Add the control track
                 ControlTrackBuilder ctm = new ControlTrackBuilder(workMgContext);
                 controlTrackId = ctm.addControlTrack(sequence);
@@ -1127,7 +1184,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 songTickStart = preparePrecountClickTrack(sequence, workMgContext);
                 precountTrackId = sequence.getTracks().length - 1;
 
-                
+
                 // Update the sequence if rerouting needed
                 rerouteDrumsChannels(sequence, workMgContext.getMidiMix());
 
@@ -1167,20 +1224,16 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         private void updateAllTracksMuteState(MidiMix mm)
         {
-
             for (RhythmVoice rv : mm.getRhythmVoices())
             {
-                if (!(rv instanceof UserChannelRvKey))
+                InstrumentMix insMix = mm.getInstrumentMixFromKey(rv);
+                Integer trackId = mapRvTrackId.get(rv);
+                if (trackId != null)
                 {
-                    InstrumentMix insMix = mm.getInstrumentMixFromKey(rv);
-                    Integer trackId = mapRvTrackId.get(rv);
-                    if (trackId != null)
-                    {
-                        sequencer.setTrackMute(trackId, insMix.isMute());
-                    } else
-                    {
-                        // It can be null, e.g. if multi-rhythm song and context is only on one of the rhythms.
-                    }
+                    sequencer.setTrackMute(trackId, insMix.isMute());
+                } else
+                {
+                    // It can be null, e.g. if multi-rhythm song and context is only on one of the rhythms.
                 }
             }
         }
@@ -1281,7 +1334,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         /**
          * Make sure resources are released.
          */
-        void close()
+        private void close()
         {
             if (sequence == null)
             {

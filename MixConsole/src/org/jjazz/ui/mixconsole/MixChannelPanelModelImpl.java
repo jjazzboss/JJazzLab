@@ -42,9 +42,9 @@ import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 /**
  * Model based on a channel/InstrumentMix data belonging to a MidiMix.
  * <p>
- * Listen to InstrumentMix model changes and notify listeners. UI updates are propagated on the InstrumentMix model and possibly to the
- * enclosing MidiMix.
- *
+ * Listen to InstrumentMix model changes and notify listeners. UI updates are propagated on the InstrumentMix model and possibly
+ * to the enclosing MidiMix.
+ * <p>
  */
 public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyChangeListener
 {
@@ -56,7 +56,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
 
     /**
-     * @param mMix    The MidiMix containing all data of our model.
+     * @param mMix The MidiMix containing all data of our model.
      * @param channel Used to retrieve the InstrumentMix from mMix.
      */
     public MixChannelPanelModelImpl(MidiMix mMix, int channel)
@@ -99,6 +99,18 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     public boolean isUserChannel()
     {
         return midiMix.getRhythmVoice(channelId) instanceof UserChannelRvKey;
+    }
+
+    @Override
+    public boolean isUserChannelRecordingEnabled()
+    {
+        return midiMix.isUserChannelRecordingEnabled();
+    }
+
+    @Override
+    public void setUserChannelRecordingEnabled(boolean b)
+    {
+        midiMix.setUserChannelRecordingEnabled(b);
     }
 
     @Override
@@ -146,8 +158,8 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     /**
      * Set volume of the channel.
      * <p>
-     * If volume was changed using mouse with SHIFT pressed, then we apply the volume delta change to other channels as well, unless one
-     * channel reaches min or max volume.
+     * If volume was changed using mouse with SHIFT pressed, then we apply the volume delta change to other channels as well,
+     * unless one channel reaches min or max volume.
      *
      * @param oldValue
      * @param newValue
@@ -389,14 +401,21 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
             }
         } else if (e.getSource() == midiMix)
         {
-            if (e.getPropertyName() == MidiMix.PROP_CHANNEL_DRUMS_REROUTED)
+            if (e.getPropertyName().equals(MidiMix.PROP_CHANNEL_DRUMS_REROUTED))
             {
                 int channel = (int) e.getOldValue();
                 if (channel == this.channelId)
                 {
                     this.firePropertyChange(PROP_DRUMS_CHANNEL_REROUTED, e.getOldValue(), e.getNewValue());
                 }
+            } else if (e.getPropertyName().equals(MidiMix.PROP_USER_CHANNEL_RECORDING_ENABLED))
+            {
+                if (midiMix.getUserChannel() == this.channelId)
+                {
+                    this.firePropertyChange(PROP_USER_CHANNEL_RECORDING_ENABLED, e.getOldValue(), e.getNewValue());
+                }
             }
+
         }
     }
     //-----------------------------------------------------------------------

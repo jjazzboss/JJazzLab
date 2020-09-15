@@ -126,6 +126,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * This property changes when the MidiMix is modified (false-&gt;true) or saved (true-&gt;false).
      */
     public static final String PROP_MODIFIED_OR_SAVED = "PROP_MODIFIED_OR_SAVED";
+    public static final String PROP_USER_CHANNEL_RECORDING_ENABLED = "UserChannelRecordingEnabled";
     public static final int NB_AVAILABLE_CHANNELS = MidiConst.CHANNEL_MAX - MidiConst.CHANNEL_MIN + 1;
 
     /**
@@ -148,6 +149,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * The channels which should be rerouted to the GM DRUMS channel, and the related saved config.
      */
     private transient HashMap<Integer, InstrumentMix> drumsReroutedChannels = new HashMap<>();
+    private transient boolean userChannelRecordingEnabled;
     /**
      * Saved Mute configuration on first soloed channel
      */
@@ -286,6 +288,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
 
         // Perform the change
         changeInstrumentMix(channel, insMix, UserChannelRvKey.getInstance());
+        
     }
 
     /**
@@ -296,6 +299,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         int channel = getUserChannel();
         if (channel != -1)
         {
+            setUserChannelRecordingEnabled(false);
             changeInstrumentMix(channel, null, null);
         }
     }
@@ -309,6 +313,33 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     {
         int channel = getChannel(UserChannelRvKey.getInstance());
         return channel;
+    }
+
+    /**
+     * Return true if there is a user channel and it's enabled for recording.
+     *
+     * @return
+     */
+    public boolean isUserChannelRecordingEnabled()
+    {
+        return getUserChannel() != -1 ? userChannelRecordingEnabled : false;
+    }
+
+    /**
+     * Set the user channel enabled for recording.
+     * <p>
+     * Fire a PROP_USER_CHANNEL_RECORDING_ENABLED change event. Do nothing if there is no user channel.
+     *
+     * @param b
+     */
+    public void setUserChannelRecordingEnabled(boolean b)
+    {
+        if (getUserChannel() != -1)
+        {
+            boolean old = userChannelRecordingEnabled;
+            userChannelRecordingEnabled = b;
+            pcs.firePropertyChange(PROP_USER_CHANNEL_RECORDING_ENABLED, old, userChannelRecordingEnabled);
+        }
     }
 
     /**

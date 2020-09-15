@@ -26,15 +26,16 @@ import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Receiver;
+import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Synthesizer;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midi.MidiConst;
 import static org.jjazz.options.Bundle.*;
 import org.jjazz.midi.JJazzMidiSystem;
-import org.jjazz.midi.ui.MidiDeviceRenderer;
 import org.jjazz.midimix.UserChannelRvKey;
 import org.jjazz.musiccontrol.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -50,24 +51,25 @@ import org.openide.windows.WindowManager;
         })
 final class MidiPanel extends javax.swing.JPanel
 {
-    
+
     private final MidiOptionsPanelController controller;
     private boolean loadInProgress;
     private MidiDevice saveOutDevice;      // For cancel operation
     private MidiDevice saveInDevice;       // For cancel operation
     private boolean saveMidiThru;          // For cancel operation
-    private boolean saveSendGmOnUponStartup;          // For cancel operation
     private static final Logger LOGGER = Logger.getLogger(MidiPanel.class.getSimpleName());
-    
+
     MidiPanel(MidiOptionsPanelController controller)
     {
         this.controller = controller;
         initComponents();
-        
+
+        led_MidiIn.setEnabled(false);
+        btn_test.setEnabled(false);
         spn_preferredUserChannel.addChangeListener(cl -> controller.changed());
-        
-        list_InDevices.setCellRenderer(new MidiDeviceRenderer());
-        btn_test.setEnabled(false);        
+
+        JJazzMidiSystem.getInstance().getJJazzMidiInDevice().getTransmitter().setReceiver(new LedReceiver());
+
     }
 
     /**
@@ -80,8 +82,6 @@ final class MidiPanel extends javax.swing.JPanel
 
         lbl_OutDevices = new javax.swing.JLabel();
         cb_midiThru = new javax.swing.JCheckBox();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        list_InDevices = new javax.swing.JList<>();
         lbl_InDevices = new javax.swing.JLabel();
         btn_test = new javax.swing.JButton();
         pnl_soundbankFile = new javax.swing.JPanel();
@@ -93,6 +93,9 @@ final class MidiPanel extends javax.swing.JPanel
         btn_refresh = new javax.swing.JButton();
         spn_preferredUserChannel = new org.jjazz.ui.utilities.WheelSpinner();
         lbl_preferredUserChannel = new javax.swing.JLabel();
+        led_MidiIn = new org.jjazz.ui.flatcomponents.FlatLedIndicator();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        list_InDevices = new org.jjazz.midi.ui.MidiInDeviceList();
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_OutDevices, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.lbl_OutDevices.text")); // NOI18N
 
@@ -106,19 +109,7 @@ final class MidiPanel extends javax.swing.JPanel
             }
         });
 
-        list_InDevices.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        list_InDevices.setEnabled(false);
-        list_InDevices.addListSelectionListener(new javax.swing.event.ListSelectionListener()
-        {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt)
-            {
-                list_InDevicesValueChanged(evt);
-            }
-        });
-        jScrollPane2.setViewportView(list_InDevices);
-
         org.openide.awt.Mnemonics.setLocalizedText(lbl_InDevices, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.lbl_InDevices.text")); // NOI18N
-        lbl_InDevices.setEnabled(false);
 
         btn_test.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/options/resources/SpeakerRed-20x20.png"))); // NOI18N
         btn_test.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_test.toolTipText")); // NOI18N
@@ -161,7 +152,7 @@ final class MidiPanel extends javax.swing.JPanel
             pnl_soundbankFileLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_soundbankFileLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(txtf_soundbankFile, javax.swing.GroupLayout.DEFAULT_SIZE, 251, Short.MAX_VALUE)
+                .addComponent(txtf_soundbankFile, javax.swing.GroupLayout.DEFAULT_SIZE, 237, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btn_changeSoundbankFile)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -204,6 +195,19 @@ final class MidiPanel extends javax.swing.JPanel
         org.openide.awt.Mnemonics.setLocalizedText(lbl_preferredUserChannel, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.lbl_preferredUserChannel.text")); // NOI18N
         lbl_preferredUserChannel.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.lbl_preferredUserChannel.toolTipText")); // NOI18N
 
+        led_MidiIn.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.led_MidiIn.toolTipText")); // NOI18N
+        led_MidiIn.setDiameter(10);
+        led_MidiIn.setLuminanceStepOnePeriod(10);
+
+        list_InDevices.addListSelectionListener(new javax.swing.event.ListSelectionListener()
+        {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt)
+            {
+                list_InDevicesValueChanged(evt);
+            }
+        });
+        jScrollPane1.setViewportView(list_InDevices);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -212,44 +216,47 @@ final class MidiPanel extends javax.swing.JPanel
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(lbl_OutDevices, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(lbl_InDevices, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(btn_refresh))
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 302, Short.MAX_VALUE))
-                        .addGap(18, 18, 18)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 281, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(cb_midiThru)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(spn_preferredUserChannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(lbl_preferredUserChannel))
-                            .addComponent(btn_test))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                            .addComponent(btn_test)
+                            .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lbl_OutDevices)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(btn_refresh)
+                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 282, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(39, 39, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane1)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lbl_InDevices)
+                                .addGap(201, 201, 201)
+                                .addComponent(led_MidiIn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(16, 16, 16)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lbl_OutDevices)
-                    .addComponent(lbl_InDevices))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(lbl_OutDevices)
+                        .addComponent(lbl_InDevices))
+                    .addComponent(led_MidiIn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 192, Short.MAX_VALUE)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 187, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btn_test)
-                    .addComponent(btn_refresh))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btn_refresh)
+                    .addComponent(btn_test))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(21, 21, 21)
@@ -265,18 +272,8 @@ final class MidiPanel extends javax.swing.JPanel
     private void cb_midiThruActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_midiThruActionPerformed
     {//GEN-HEADEREND:event_cb_midiThruActionPerformed
         controller.applyChanges();
-        controller.changed();        
-    }//GEN-LAST:event_cb_midiThruActionPerformed
-
-    private void list_InDevicesValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_list_InDevicesValueChanged
-    {//GEN-HEADEREND:event_list_InDevicesValueChanged
-        if (loadInProgress || evt.getValueIsAdjusting())
-        {
-            return;
-        }
-        controller.applyChanges();
         controller.changed();
-    }//GEN-LAST:event_list_InDevicesValueChanged
+    }//GEN-LAST:event_cb_midiThruActionPerformed
 
     private void btn_testActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_testActionPerformed
     {//GEN-HEADEREND:event_btn_testActionPerformed
@@ -287,7 +284,6 @@ final class MidiPanel extends javax.swing.JPanel
    private void btn_changeSoundbankFileActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_changeSoundbankFileActionPerformed
    {//GEN-HEADEREND:event_btn_changeSoundbankFileActionPerformed
        JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-       FileDirectoryManager fdm = FileDirectoryManager.getInstance();
        JFileChooser chooser = org.jjazz.ui.utilities.Utilities.getFileChooserInstance();
        FileNameExtensionFilter filter = new FileNameExtensionFilter(".sf2, .dls files ", "sf2", "dls", "SF2", "DLS");
        chooser.resetChoosableFileFilters();
@@ -315,7 +311,7 @@ final class MidiPanel extends javax.swing.JPanel
        {
            return;
        }
-       
+
        boolean b = jms.loadSoundbankFileOnSynth(f, false);
        if (!b)
        {
@@ -356,7 +352,19 @@ final class MidiPanel extends javax.swing.JPanel
             list_OutDevices.setSelectedValue(save, true);
         }
     }//GEN-LAST:event_btn_refreshActionPerformed
-    
+
+    private void list_InDevicesValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_list_InDevicesValueChanged
+    {//GEN-HEADEREND:event_list_InDevicesValueChanged
+        if (loadInProgress || evt.getValueIsAdjusting())
+        {
+            return;
+        }
+        MidiDevice md = list_InDevices.getSelectedValue();
+        led_MidiIn.setEnabled(md != null);
+        controller.applyChanges();
+        controller.changed();
+    }//GEN-LAST:event_list_InDevicesValueChanged
+
     void load()
     {
         LOGGER.log(Level.FINE, "load() --");
@@ -379,33 +387,31 @@ final class MidiPanel extends javax.swing.JPanel
         saveOutDevice = jms.getDefaultOutDevice();
         saveInDevice = jms.getDefaultInDevice();
         LOGGER.log(Level.FINE, "load() saveOutDevice=" + saveOutDevice + " .info=" + ((saveOutDevice == null) ? "null" : saveOutDevice.getDeviceInfo()));
+        LOGGER.log(Level.FINE, "load() saveInDevice=" + saveInDevice + " .info=" + ((saveInDevice == null) ? "null" : saveInDevice.getDeviceInfo()));
         list_OutDevices.setSelectedValue(saveOutDevice, true);
         list_InDevices.setSelectedValue(saveInDevice, true);
+        if (saveInDevice != null)
+        {
+
+        }
+
 
         // Other stuff
         saveMidiThru = jms.isThruMode();
         cb_midiThru.setSelected(saveMidiThru);
-        
+
         btn_test.setEnabled(saveOutDevice != null);
 
         // Soundbank enabled only if Out device is a synth
         boolean b = (saveOutDevice instanceof Synthesizer);
         org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, pnl_soundbankFile);
         updateSoundbankText();
-        
+
         spn_preferredUserChannel.setValue(UserChannelRvKey.getInstance().getPreferredUserChannel() + 1);
-        
+
         loadInProgress = false;
     }
-    
-    public void cancel()
-    {
-        JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-        jms.setThruMode(saveMidiThru);
-        openInDevice(saveInDevice);
-        openOutDevice(saveOutDevice);
-    }
-    
+
     void store()
     {
         LOGGER.log(Level.FINE, "store() --");
@@ -424,6 +430,14 @@ final class MidiPanel extends javax.swing.JPanel
         LOGGER.log(Level.FINE, "store() outDevice=" + outDevice + " .info=" + ((outDevice == null) ? "null" : outDevice.getDeviceInfo()));
         openOutDevice(outDevice);
         UserChannelRvKey.getInstance().setPreferredUserChannel(((Integer) spn_preferredUserChannel.getValue()) - 1);
+    }
+
+    public void cancel()
+    {
+        JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
+        jms.setThruMode(saveMidiThru);
+        openInDevice(saveInDevice);
+        openOutDevice(saveOutDevice);
     }
 
     /**
@@ -471,7 +485,7 @@ final class MidiPanel extends javax.swing.JPanel
         }
         return true;
     }
-    
+
     boolean valid()
     {
         // LOGGER.log(Level.INFO, "valid()");
@@ -485,12 +499,13 @@ final class MidiPanel extends javax.swing.JPanel
     private javax.swing.JButton btn_resetSoundbank;
     private javax.swing.JButton btn_test;
     private javax.swing.JCheckBox cb_midiThru;
-    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JLabel lbl_InDevices;
     private javax.swing.JLabel lbl_OutDevices;
     private javax.swing.JLabel lbl_preferredUserChannel;
-    private javax.swing.JList<MidiDevice> list_InDevices;
+    private org.jjazz.ui.flatcomponents.FlatLedIndicator led_MidiIn;
+    private org.jjazz.midi.ui.MidiInDeviceList list_InDevices;
     private org.jjazz.midi.ui.MidiOutDeviceList list_OutDevices;
     private javax.swing.JPanel pnl_soundbankFile;
     private org.jjazz.ui.utilities.WheelSpinner spn_preferredUserChannel;
@@ -525,7 +540,7 @@ final class MidiPanel extends javax.swing.JPanel
                 list_OutDevices.setEnabled(true);
             }
         };
-        
+
         TestPlayer tp = TestPlayer.getInstance();
         try
         {
@@ -536,5 +551,29 @@ final class MidiPanel extends javax.swing.JPanel
             DialogDisplayer.getDefault().notify(d);
         }
     }
-    
+
+    class LedReceiver implements Receiver
+    {
+
+        @Override
+        public void send(MidiMessage msg, long timeStamp)
+        {
+            if (msg instanceof ShortMessage)
+            {
+                ShortMessage sm = (ShortMessage) msg;
+                if (sm.getCommand() == ShortMessage.NOTE_ON)
+                {
+                    led_MidiIn.showActivity();
+                }
+            }
+        }
+
+        @Override
+        public void close()
+        {
+            // Nothing
+        }
+
+    }
+
 }

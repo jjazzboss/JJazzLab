@@ -118,10 +118,13 @@ public class FlatLedIndicator extends JComponent implements ActionListener, Mous
      */
     public synchronized void showActivity()
     {
-        luminance += getLuminanceStepEventReceived();
-        luminance = Math.max(luminance, getLuminanceMaxEvents());
-        timer.start();
-        repaint();
+        if (isEnabled())
+        {
+            luminance += getLuminanceStepEventReceived();
+            luminance = Math.max(luminance, getLuminanceMaxEvents());
+            timer.start();
+            repaint();
+        }
     }
 
     @Override

@@ -49,7 +49,7 @@ import org.jjazz.util.Utilities;
  */
 public class MixChannelPanel extends javax.swing.JPanel implements PropertyChangeListener, PlaybackListener
 {
-
+    
     private static FlatTextEditDialog TEXT_EDIT_DIALOG;
     private MixChannelPanelModel model;
     private MixChannelPanelController controller;
@@ -67,7 +67,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     {
         model = new BaseMixChannelPanelModel();
     }
-
+    
     public MixChannelPanel(final MixChannelPanelModel model, final MixChannelPanelController controller, MixConsoleSettings settings)
     {
         if (model == null || controller == null || settings == null)
@@ -77,16 +77,18 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         this.model = model;
         this.controller = controller;
         this.settings = settings;
-
+        
         this.settings.addPropertyChangeListener(this);
         this.model.addPropertyChangeListener(this);
-
+        
         MusicController.getInstance().addPlaybackListener(this);
-
+        
         initComponents();
-
+        
         this.fbtn_mute.setEnabled(!model.isUserChannel());
         this.fbtn_solo.setEnabled(!model.isUserChannel());
+        this.fbtn_rec.setText(model.isUserChannel() ? "REC" : "");
+        this.fbtn_rec.setEnabled(model.isUserChannel());        
         this.lbl_Icon.setText(null);
 
         // Listen to UI changes
@@ -94,15 +96,15 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         this.knob_chorus.addPropertyChangeListener(this);
         this.knob_panoramic.addPropertyChangeListener(this);
         this.knob_reverb.addPropertyChangeListener(this);
-
+        
         refreshUI();
     }
-
+    
     public MixChannelPanelModel getModel()
     {
         return model;
     }
-
+    
     public void cleanup()
     {
         MusicController.getInstance().removePlaybackListener(this);
@@ -111,29 +113,29 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         model.cleanup();
         model = null;
     }
-
+    
     public void setChannelColor(Color c)
     {
         channelColor = c;
         lbl_name.setForeground(c);
         fbtn_channelId.setForeground(c);
     }
-
+    
     public Color getChannelColor()
     {
         return channelColor;
     }
-
+    
     public void setIcon(Icon icon)
     {
         this.lbl_Icon.setIcon(icon);
     }
-
+    
     public void setIconToolTipText(String text)
     {
         this.lbl_Icon.setToolTipText(text);
     }
-
+    
     public void setNameToolTipText(String text)
     {
         this.lbl_name.setToolTipText(text);
@@ -155,13 +157,13 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         String s = (lowerName != null) ? "<html><div style='text-align: center;'><b>" + upperName + "</b><br>" + lowerName + "</div></html>" : upperName;
         lbl_name.setText(s);
     }
-
+    
     public void setSelected(boolean b)
     {
         roundedPanel.setShowBorder(b);
         selected = b;
     }
-
+    
     public boolean isSelected()
     {
         return selected;
@@ -175,13 +177,13 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     {
         // Nothing
     }
-
+    
     @Override
     public void barChanged(int oldBar, int newBar)
     {
         // Nothing
     }
-
+    
     @Override
     public void midiActivity(int channel, long tick)
     {
@@ -263,7 +265,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         knob_chorus.setEnabled(model.isChorusEnabled());
         fslider_volume.setEnabled(model.isVolumeEnabled());
         fbtn_Instrument.setEnabled(model.isInstrumentEnabled());
-
+        fbtn_rec.setSelected(model.isUserChannelRecordingEnabled());
 
         // Colors
         Color c = settings.getMixChannelBackgroundColor();
@@ -307,6 +309,8 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         lbl_name = new javax.swing.JLabel();
         pnl_channelId = new javax.swing.JPanel();
         fbtn_channelId = new org.jjazz.ui.flatcomponents.FlatButton();
+        jPanel1 = new javax.swing.JPanel();
+        fbtn_rec = new org.jjazz.ui.flatcomponents.FlatToggleButton();
 
         setMinimumSize(new java.awt.Dimension(10, 53));
         setOpaque(false);
@@ -475,6 +479,22 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         });
         pnl_channelId.add(fbtn_channelId);
 
+        jPanel1.setOpaque(false);
+        jPanel1.setPreferredSize(new java.awt.Dimension(14, 16));
+        jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
+
+        fbtn_rec.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        org.openide.awt.Mnemonics.setLocalizedText(fbtn_rec, org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_rec.text")); // NOI18N
+        fbtn_rec.setFont(FONT);
+        fbtn_rec.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                fbtn_recActionPerformed(evt);
+            }
+        });
+        jPanel1.add(fbtn_rec);
+
         javax.swing.GroupLayout roundedPanelLayout = new javax.swing.GroupLayout(roundedPanel);
         roundedPanel.setLayout(roundedPanelLayout);
         roundedPanelLayout.setHorizontalGroup(
@@ -492,6 +512,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
             .addComponent(pnl_name, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(pnl_icon, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(pnl_channelId, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         roundedPanelLayout.setVerticalGroup(
             roundedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -517,7 +538,9 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
                 .addComponent(pnl_name, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(pnl_channelId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(3, 3, 3))
+                .addGap(2, 2, 2)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(2, 2, 2))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -590,15 +613,22 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         }
     }//GEN-LAST:event_fbtn_channelIdActionPerformed
 
+    private void fbtn_recActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_fbtn_recActionPerformed
+    {//GEN-HEADEREND:event_fbtn_recActionPerformed
+        model.setUserChannelRecordingEnabled(fbtn_rec.isSelected());
+    }//GEN-LAST:event_fbtn_recActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.jjazz.ui.mixconsole.VInstrumentButton fbtn_Instrument;
     private org.jjazz.ui.flatcomponents.FlatButton fbtn_Settings;
     private org.jjazz.ui.flatcomponents.FlatButton fbtn_channelId;
     private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_mute;
+    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_rec;
     private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_solo;
     private javax.swing.Box.Filler filler1;
     private org.jjazz.ui.flatcomponents.FlatLedIndicator fled_midiActivity;
     private org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider fslider_volume;
+    private javax.swing.JPanel jPanel1;
     private org.jjazz.ui.flatcomponents.FlatIntegerKnob knob_chorus;
     private org.jjazz.ui.mixconsole.PanoramicKnob knob_panoramic;
     private org.jjazz.ui.flatcomponents.FlatIntegerKnob knob_reverb;
@@ -619,181 +649,193 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
     private class BaseMixChannelPanelModel implements MixChannelPanelModel
     {
-
+        
         @Override
         public void addPropertyChangeListener(PropertyChangeListener l)
         {
             // Nothing
         }
-
+        
         @Override
         public void removePropertyChangeListener(PropertyChangeListener l)
         {
             // Nothing
         }
-
+        
         @Override
         public void setPanoramicEnabled(boolean b)
         {
             // Nothing
         }
-
+        
         @Override
         public boolean isPanoramicEnabled()
         {
             return true;
         }
-
+        
         @Override
         public void setChorusEnabled(boolean b)
         {
             // Nothing
         }
-
+        
         @Override
         public boolean isChorusEnabled()
         {
             return true;
         }
-
+        
         @Override
         public void setReverbEnabled(boolean b)
         {
             // Nothing
         }
-
+        
         @Override
         public boolean isReverbEnabled()
         {
             return true;
         }
-
+        
         @Override
         public void setReverb(int value)
         {
             // Nothing
         }
-
+        
         @Override
         public int getReverb()
         {
             return 100;
         }
-
+        
         @Override
         public void setChorus(int value)
         {
             // Nothing
         }
-
+        
         @Override
         public int getChorus()
         {
             return 100;
         }
-
+        
         @Override
         public void setPanoramic(int value)
         {
             // Nothing
         }
-
+        
         @Override
         public int getPanoramic()
         {
             return 100;
         }
-
+        
         @Override
         public void setVolume(int oldValue, int newValue, MouseEvent me)
         {
             // Nothing
         }
-
+        
         @Override
         public int getVolume()
         {
             return 100;
         }
-
+        
         @Override
         public void setMute(boolean b)
         {
             // Nothing
         }
-
+        
         @Override
         public boolean isMute()
         {
             return false;
         }
-
+        
         @Override
         public void setSolo(boolean b)
         {
             // Nothing
         }
-
+        
         @Override
         public boolean isSolo()
         {
             return false;
         }
-
+        
         @Override
         public Instrument getInstrument()
         {
             return StdSynth.getInstance().getGM1Bank().getInstruments().get(0);
         }
-
+        
         @Override
         public int getChannelId()
         {
             return MidiConst.CHANNEL_MIN;
         }
-
+        
         @Override
         public void cleanup()
         {
             // Nothing
         }
-
+        
         @Override
         public void setVolumeEnabled(boolean b)
         {
             // Nothing
         }
-
+        
         @Override
         public boolean isVolumeEnabled()
         {
             return true;
         }
-
+        
         @Override
         public void setInstrumentEnabled(boolean b)
         {
             // Nothing
         }
-
+        
         @Override
         public boolean isInstrumentEnabled()
         {
             return true;
         }
-
+        
         @Override
         public boolean isDrumsReroutingEnabled()
         {
             return false;
         }
-
+        
         @Override
         public boolean isUserChannel()
         {
             return false;
         }
-
+        
+        @Override
+        public boolean isUserChannelRecordingEnabled()
+        {
+            return false;
+        }
+        
+        @Override
+        public void setUserChannelRecordingEnabled(boolean b)
+        {
+            // Nothing
+        }
+        
     }
-
+    
 }
