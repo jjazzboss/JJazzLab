@@ -26,7 +26,13 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
@@ -145,18 +151,12 @@ public class SongFactory implements PropertyChangeListener
         XStream xstream = Utilities.getSecuredXStreamInstance();
 
 
-        if (!f.exists())
-        {
-            // Because XStream throws an empty exception if no file
-            throw new SongCreationException("No such file");
-        }
-
-
         // Read file
-        try
+        try (var fis = new FileInputStream(f))
         {
-            song = (Song) xstream.fromXML(f);
-        } catch (XStreamException e)
+            Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8"));        // Needed to support special/accented chars
+            song = (Song) xstream.fromXML(r);
+        } catch (XStreamException | IOException e)
         {
             throw new SongCreationException(e);
         }

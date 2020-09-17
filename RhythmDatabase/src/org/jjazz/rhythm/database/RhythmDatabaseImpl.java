@@ -40,6 +40,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
@@ -50,6 +51,7 @@ import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
+import org.jjazz.rhythm.spi.RhythmProvider.UserErrorReport;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.UpgradeManager;
@@ -669,7 +671,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     /**
      *
      * @param excludeBuiltinRhythms
-     * @param excludeBuiltinRhythms
+     * @param excludeFileRhythms
      * @param forceFileRescan
      * @return The number of new rhythms added
      */
@@ -684,12 +686,14 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
 
         int n = 0;
-        for (RhythmProvider rp : rps)
+        for (final RhythmProvider rp : rps)
         {
+
             // First get builtin rhythms         
+            final RhythmProvider.UserErrorReport builtinErrRpt = new RhythmProvider.UserErrorReport();
             if (!excludeBuiltinRhythms)
             {
-                for (Rhythm r : rp.getBuiltinRhythms())
+                for (Rhythm r : rp.getBuiltinRhythms(builtinErrRpt))
                 {
                     if (addRhythm(rp, r))
                     {
@@ -698,10 +702,26 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                 }
             }
 
+
+            // Notify user of possible errors
+            if (builtinErrRpt.summaryErrorMessage != null)
+            {
+                SwingUtilities.invokeLater(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        new RhythmErrorsDialog(WindowManager.getDefault().getMainWindow(), rp, builtinErrRpt).setVisible(true);
+                    }
+                });
+            }
+
+
             // Add file rhythms
+            final RhythmProvider.UserErrorReport fileErrRpt = new RhythmProvider.UserErrorReport();
             if (!excludeFileRhythms)
             {
-                List<Rhythm> rhythmsNotBuiltin = rp.getFileRhythms(forceFileRescan);
+                List<Rhythm> rhythmsNotBuiltin = rp.getFileRhythms(forceFileRescan, fileErrRpt);
                 for (Rhythm r : rhythmsNotBuiltin)
                 {
                     if (addRhythm(rp, r))
@@ -710,6 +730,21 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                     }
                 }
             }
+
+
+            // Notify user of possible errors            
+            if (fileErrRpt.summaryErrorMessage != null)
+            {
+                SwingUtilities.invokeLater(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        new RhythmErrorsDialog(WindowManager.getDefault().getMainWindow(), rp, fileErrRpt).setVisible(true);
+                    }
+                });
+            }
+
         }
 
         LOGGER.info("addNewRhythmsFromRhythmProviders() excludeBuiltinRhythms=" + excludeBuiltinRhythms

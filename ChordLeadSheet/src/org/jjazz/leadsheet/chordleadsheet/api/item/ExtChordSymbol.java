@@ -354,13 +354,14 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         private final ChordRenderingInfo spRenderingInfo;
         private final AltExtChordSymbol spAltChordSymbol;
         private final AltDataFilter spAltFilter;
-        // XStream can't deserialize the ° char : little hack to avoid the issue
-        private static final String DOT_REPLACEMENT = "_UpperDot_";
+               
+        // Kept for legacy purpose: before JJazzLab 2.2, we did not use UFT-8 encoding with Xstream hence this workaround for "°" char
+        private static final String DOT_REPLACEMENT = "_UpperDot_";     
 
         private SerializationProxy(ExtChordSymbol cs)
         {
-            spName = cs.getName().replace("°", DOT_REPLACEMENT);
-            spOriginalName = cs.getOriginalName().replace("°", DOT_REPLACEMENT);
+            spName = cs.getName();
+            spOriginalName = cs.getOriginalName();
             spRenderingInfo = cs.getRenderingInfo();
             spAltChordSymbol = cs.getAlternateChordSymbol();
             spAltFilter = cs.getAlternateFilter();
