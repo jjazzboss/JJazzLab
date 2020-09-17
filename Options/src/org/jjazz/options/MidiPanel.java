@@ -64,7 +64,6 @@ final class MidiPanel extends javax.swing.JPanel
         this.controller = controller;
         initComponents();
 
-        led_MidiIn.setEnabled(false);
         btn_test.setEnabled(false);
         spn_preferredUserChannel.addChangeListener(cl -> controller.changed());
 
@@ -526,7 +525,6 @@ final class MidiPanel extends javax.swing.JPanel
     {
         this.btn_test.setEnabled(false);
         this.btn_refresh.setEnabled(false);
-        this.list_InDevices.setEnabled(false);
         this.list_OutDevices.setEnabled(false);
         Runnable endAction = new Runnable()
         {
@@ -536,7 +534,6 @@ final class MidiPanel extends javax.swing.JPanel
                 // Called when sequence is stopped
                 btn_test.setEnabled(true);
                 btn_refresh.setEnabled(true);
-                // list_InDevices.setEnabled(true);
                 list_OutDevices.setEnabled(true);
             }
         };

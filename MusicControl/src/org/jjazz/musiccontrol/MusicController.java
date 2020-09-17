@@ -39,6 +39,11 @@ import javax.sound.midi.ControllerEventListener;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaEventListener;
 import javax.sound.midi.MetaMessage;
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiEvent;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Receiver;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
@@ -63,6 +68,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
+import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
 
@@ -96,6 +102,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     public static final String PROPVETO_PRE_PLAYBACK = "PropVetoPrePlayback";
     public static final String PROP_CLICK = "PropClick";
     public static final String PROP_LOOPCOUNT = "PropLoopCount";
+    public static final String USER_TRACK_NAME = "User Track";
 
     /**
      * The playback states.
@@ -109,6 +116,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         PAUSED,
         PLAYING
     }
+    private MyReceiver myReceiver;
     private static MusicController INSTANCE;
     private Sequencer sequencer;
     /**
@@ -842,7 +850,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                     playbackContext.setDirty();
                     break;
                 case MidiMix.PROP_USER_CHANNEL_RECORDING_ENABLED:
-                    updateRecordingState();
+                    enableOrDisableUserChannelRecording();
                     break;
                 default:
                     // eg MidiMix.PROP_USER_CHANNEL: do nothing
@@ -981,45 +989,93 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private void seqStart()
     {
         assert !state.equals(State.DISABLED);
-       
-        sequencer.start();
+
+
+        // Enable/disable recording on specific channels
+        enableOrDisableUserChannelRecording();
+
+
+        // By default playback + recording mode (but it will record nothing if no track enabled for recording)
+        sequencer.startRecording();
+
 
         // JDK -11 BUG: start() resets tempo at 120 !
         sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
 
-        // Enable/disable recording on specific channels
-        updateRecordingState();
     }
 
-    private void updateRecordingState()
+    private class MyReceiver implements Receiver
     {
+
+        @Override
+        public void send(MidiMessage msg, long timeStamp)
+        {
+            if (msg instanceof ShortMessage)
+            {
+                ShortMessage sm = (ShortMessage) msg;
+                // all real-time messages have 0xF in the high nibble of the status byte
+                if ((sm.getStatus() & 0xF0) != 0xF0)
+                {
+                    LOGGER.log(Level.SEVERE, "send() timestamp={0} - {1}", new Object[]
+                    {
+                        timeStamp, MidiUtilities.toString(msg, sequencer.getTickPosition())
+                    });
+                }
+            }
+        }
+
+        @Override
+        public void close()
+        {
+            LOGGER.severe("close() --");
+        }
+
+    }
+
+    private void enableOrDisableUserChannelRecording()
+    {
+
+        if (myReceiver == null)
+        {
+            // initialize everything
+            myReceiver = new MyReceiver();
+            MidiDevice midiIn = JJazzMidiSystem.getInstance().getJJazzMidiInDevice();
+            try
+            {
+                midiIn.getTransmitter().setReceiver(myReceiver);
+            } catch (MidiUnavailableException ex)
+            {
+                Exceptions.printStackTrace(ex);
+            }
+            LOGGER.log(Level.SEVERE, "midiIn.usPos={0}", midiIn.getMicrosecondPosition());
+        }
+
 
         MidiMix mm = mgContext.getMidiMix();
         int channel = mm.getUserChannel();
         if (channel == -1)
         {
-            // No user channel
+            // No user channel 
+            if (playbackContext.userTrack != null)
+            {
+                sequencer.recordDisable(playbackContext.userTrack);
+            }
             return;
         }
+
+
         assert playbackContext.userTrack != null;
-        
+
 
         // There is a user channel, enable/disable recording
-        boolean record = mm.isUserChannelRecordingEnabled();
-        if (record)
+        if (mm.isUserChannelRecordingEnabled())
         {
             sequencer.recordEnable(playbackContext.userTrack, channel);
+            LOGGER.fine("enableOrDisableUserChannelRecording()");
         } else
         {
             sequencer.recordDisable(playbackContext.userTrack);
         }
-
-
-        // Start recording only if it's already running
-//        if (sequencer.isRunning() && !sequencer.isRecording() && record)
-//        {
-            sequencer.startRecording();
-//        }
 
     }
 
@@ -1158,15 +1214,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 mapRvTrackId = seqBuilder.getRvTrackIdMap();                 // Used to identify a RhythmVoice's track
 
 
-                // Add a user channel track if available
+                // Add a user channel track if required
                 MidiMix mm = originalContext.getMidiMix();
                 int userChannel = mm.getUserChannel();
                 if (userChannel != -1)
                 {
-                    RhythmVoice rv = mm.getRhythmVoice(userChannel);
-                    userTrack = sequence.createTrack();
-                    int trackId = Arrays.asList(sequence.getTracks()).indexOf(userTrack);
-                    mapRvTrackId.put(rv, trackId);
+                    addUserTrack(mm.getRhythmVoice(userChannel));
                 }
 
 
@@ -1220,6 +1273,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             {
                 throw new MusicGenerationException(ex.getLocalizedMessage());
             }
+        }
+
+        private void addUserTrack(RhythmVoice rvUser)
+        {
+            userTrack = sequence.createTrack();
+            MidiEvent me = new MidiEvent(MidiUtilities.getTrackNameMetaMessage(USER_TRACK_NAME), 0);
+            userTrack.add(me);
+            int trackId = Arrays.asList(sequence.getTracks()).indexOf(userTrack);
+            mapRvTrackId.put(rvUser, trackId);
         }
 
         private void updateAllTracksMuteState(MidiMix mm)
