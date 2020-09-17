@@ -24,22 +24,41 @@ package org.jjazz.rhythm.spi;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.AdaptedRhythm;
-import org.jjazz.util.Utilities;
 
 /**
  * An object that can provide Rhythms instances.
  */
 public interface RhythmProvider
 {
+
+    /**
+     * Helper class to be able to report to end-user errors which occured while creating rhythms.
+     * <p>
+     */
+    static class UserErrorReport
+    {
+
+        /**
+         * If non-null this one-line message will be used by the framework to notify user.
+         * <p>
+         * Example: "2 files could not be read: aa.sty, bb.sty"
+         */
+        public String summaryErrorMessage;
+        /**
+         * If non-null it might be used by the framework to provide the individual error details to the user.
+         * <p>
+         * Example:<br/>
+         * [0] = "aa.sty: CASM data is corrupted"<br/>
+         * [1] = "bb.sty: invalid low key parameter value=182 at byte 0x1029. Authorized value range is 0-127."
+         */
+        public List<String> individualErrorMessages = new ArrayList<>();
+    }
 
     /**
      * See getFileRhythms().
@@ -49,7 +68,6 @@ public interface RhythmProvider
      * See getFileRhythms().
      */
     public static final int SUBDIR_MAX_DEPTH = 2;
-
 
     /**
      * Descriptive information about this provider.
@@ -62,21 +80,23 @@ public interface RhythmProvider
      * Get the built-in rhythms.
      * <p>
      *
+     * @param errRpt Can't be null. RhythmProvider should update this object so that the framework can notify user about problems.
      * @return All non file-based rhythms provided by this RhythmProvider. List can be empty but not null.
      */
-    public List<Rhythm> getBuiltinRhythms();
+    public List<Rhythm> getBuiltinRhythms(UserErrorReport errRpt);
 
     /**
      * Get the file-based rhythms.
      * <p>
      * User-provided rhythm files should be scanned in the User directory for rhythm files, see
-     * FileDirectoryManager.getUserRhythmDirectory(). SUBDIR_MAX_DEPTH levels of subdirectories should be scanned. Subdirectories starting
-     * with PREFIX_IGNORED_SUBDIR must be ignored.
+     * FileDirectoryManager.getUserRhythmDirectory(). SUBDIR_MAX_DEPTH levels of subdirectories should be scanned. Subdirectories
+     * starting with PREFIX_IGNORED_SUBDIR must be ignored.
      *
      * @param forceRescan If true RhythmProvider should not rely on its cached data.
+     * @param errRpt Can't be null. RhythmProvider should update this object so that the framework can notify user about problems.
      * @return All non builtin rhythms provided by this RhythmProvider. List can be empty but not null.
      */
-    public List<Rhythm> getFileRhythms(boolean forceRescan);
+    public List<Rhythm> getFileRhythms(boolean forceRescan, UserErrorReport errRpt);
 
     /**
      * Get the file extensions accepted by readFast().
@@ -90,8 +110,8 @@ public interface RhythmProvider
     /**
      * A fast method to read specified rhythm file and extract only information needed for description/catalog purposes.
      * <p>
-     * Caller must use loadResources() on the returned rhythm before using it to generate music (possibly lenghty operation, eg if new file
-     * reading required).
+     * Caller must use loadResources() on the returned rhythm before using it to generate music (possibly lenghty operation, eg if
+     * new file reading required).
      *
      * @param f
      * @return
@@ -113,7 +133,8 @@ public interface RhythmProvider
     /**
      * Show a modal dialog to modify the user settings of this RhythmProvider.
      * <p>
-     * The RhythmProvider is responsible for the persistence of its settings. The method does nothing if hasUserSettings() returns false.
+     * The RhythmProvider is responsible for the persistence of its settings. The method does nothing if hasUserSettings() returns
+     * false.
      *
      * @see hasUserSettings()
      */
@@ -141,7 +162,7 @@ public interface RhythmProvider
 
         /**
          * @param uniqueId
-         * @param name        Must be a non empty string (spaces are trimmed).
+         * @param name Must be a non empty string (spaces are trimmed).
          * @param description
          * @param author
          * @param version

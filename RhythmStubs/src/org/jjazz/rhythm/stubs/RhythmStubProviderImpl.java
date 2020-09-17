@@ -105,15 +105,15 @@ public class RhythmStubProviderImpl implements StubRhythmProvider
     }
 
     @Override
-    public List<Rhythm> getBuiltinRhythms()
+    public List<Rhythm> getBuiltinRhythms(RhythmProvider.UserErrorReport errRpt)
     {
         return new ArrayList<>(rhythms);
     }
 
     @Override
-    public List<Rhythm> getFileRhythms(boolean forceRescan)
+    public List<Rhythm> getFileRhythms(boolean forceRescan, RhythmProvider.UserErrorReport errRpt)
     {
-        return new ArrayList<Rhythm>();
+        return new ArrayList<>();
     }
 
 

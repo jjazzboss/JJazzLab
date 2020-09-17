@@ -87,7 +87,7 @@ public class FavoriteRhythmProvider implements RhythmProvider
      * @return
      */
     @Override
-    public List<Rhythm> getBuiltinRhythms()
+    public List<Rhythm> getBuiltinRhythms(RhythmProvider.UserErrorReport errRpt)
     {
         return Collections.emptyList();
     }
@@ -102,7 +102,7 @@ public class FavoriteRhythmProvider implements RhythmProvider
      */
     @SuppressWarnings("unchecked")
     @Override
-    public List<Rhythm> getFileRhythms(boolean forceRescan)
+    public List<Rhythm> getFileRhythms(boolean forceRescan, RhythmProvider.UserErrorReport errRpt)
     {
         return (List<Rhythm>) Collections.EMPTY_LIST;
     }
