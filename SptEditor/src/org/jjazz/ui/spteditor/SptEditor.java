@@ -113,6 +113,8 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         // UI initialization
         initComponents();
 
+        org.jjazz.ui.utilities.Utilities.installSelectAllWhenFocused(tf_name);
+
         setEditorEnabled(false);
 
         sptpLkpListener = new LookupListener()

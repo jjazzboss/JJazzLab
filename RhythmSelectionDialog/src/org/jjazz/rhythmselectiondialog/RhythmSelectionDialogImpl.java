@@ -104,6 +104,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
 
         // Update UI
+        
+        Utilities.installSelectAllWhenFocused(tf_filter);        
         fbtn_preview.addActionListener(e -> toggleRhythmPreview());
         rhythmTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "PreviewRhythm");
         rhythmTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0), "ToggleFavorite");
