@@ -26,13 +26,16 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
+import java.io.OutputStreamWriter;
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -492,6 +495,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         {
             throw new IllegalArgumentException("songFile=" + songFile + " isCopy=" + isCopy);
         }
+        
         if (!isCopy)
         {
             file = songFile;
@@ -500,9 +504,9 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         try (FileOutputStream fos = new FileOutputStream(songFile))
         {
             XStream xstream = new XStream();
-            xstream.alias("Song", Song.class
-            );
-            xstream.toXML(this, fos);
+            xstream.alias("Song", Song.class);
+            Writer w = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));        // Needed to support special/accented chars
+            xstream.toXML(this, w);
             if (!isCopy)
             {
                 setName(Song.removeSongExtension(songFile.getName()));
@@ -596,7 +600,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     // ============================================================================================= 
     // ClsChangeListener implementation
     // =============================================================================================      
-
     @Override
     public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
     {
@@ -609,7 +612,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         fireIsModified();
     }
 
-
     //------------------------------------------------------------------------------
     // SgsChangeListener interface
     //------------------------------------------------------------------------------
@@ -619,13 +621,11 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         // Nothing
     }
 
-
     @Override
     public void songStructureChanged(SgsChangeEvent e)
     {
         fireIsModified();
     }
-
 
     // ----------------------------------------------------------------------------
     // Private functions 

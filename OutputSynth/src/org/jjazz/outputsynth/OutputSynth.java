@@ -27,13 +27,16 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
+import java.io.OutputStreamWriter;
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -222,9 +225,9 @@ public class OutputSynth implements Serializable
     /**
      * Remove a standard bank compatible with this OutputSynth.
      * <p>
-     * If the only remaining bank is the GM bank, then don't remove it. If removal makes the output synth empty (no instruments) then
-     * automatically add the GM standard bank. Update the UserInstrument if required, so that it's always an instrument from this
-     * OutputSynth.
+     * If the only remaining bank is the GM bank, then don't remove it. If removal makes the output synth empty (no instruments)
+     * then automatically add the GM standard bank. Update the UserInstrument if required, so that it's always an instrument from
+     * this OutputSynth.
      *
      * @param stdBank
      * @return True if stdBank could be successfully removed.
@@ -313,8 +316,8 @@ public class OutputSynth implements Serializable
     /**
      * Remove a custom MidiSynth compatible with this OutputSynth.
      * <p>
-     * If removal makes the output synth empty (no instruments) then automatically add the GM standard bank. Update the User Instrument if
-     * required.
+     * If removal makes the output synth empty (no instruments) then automatically add the GM standard bank. Update the User
+     * Instrument if required.
      *
      * @param synth
      */
@@ -775,13 +778,13 @@ public class OutputSynth implements Serializable
         try (FileOutputStream fos = new FileOutputStream(f))
         {
             XStream xstream = new XStream();
-            xstream.alias("OutputSynth", OutputSynth.class
-            );
-            xstream.toXML(this, fos);
+            xstream.alias("OutputSynth", OutputSynth.class);
+            Writer w = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));        // Needed to support special/accented chars
+            xstream.toXML(this, w);
         } catch (IOException e)
         {
             setFile(prevFile);
-            throw new IOException(e);
+            throw e;
         } catch (XStreamException e)
         {
             setFile(prevFile);

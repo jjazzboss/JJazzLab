@@ -26,13 +26,20 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -65,6 +72,7 @@ import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongCreationException;
 import org.openide.util.NbBundle.Messages;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
@@ -914,7 +922,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         {
             XStream xstream = new XStream();
             xstream.alias("MidiMix", MidiMix.class);
-            xstream.toXML(this, fos);
+            Writer w = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));        // Needed to support special/accented chars
+            xstream.toXML(this, w);
             if (!isCopy)
             {
                 pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED, true, false);
@@ -1036,12 +1045,15 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             throw new IllegalArgumentException("f=" + f);
         }
         MidiMix mm = null;
-        try
+                     
+        try (var fis = new FileInputStream(f))
         {
             XStream xstream = Utilities.getSecuredXStreamInstance();
-            mm = (MidiMix) xstream.fromXML(f);
+            Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8"));        // Needed to support special/accented chars
+            mm = (MidiMix) xstream.fromXML(r);
             mm.setFile(f);
-        } catch (XStreamException e)
+        } 
+        catch (XStreamException  e)
         {
             LOGGER.warning("loadFromFile() XStreamException e=" + e);   // Important in order to get the details of the XStream error
             throw new IOException("XStream loading error", e);         // Translate into an IOException to be handled by the Netbeans framework 

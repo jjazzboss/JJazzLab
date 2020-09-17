@@ -28,8 +28,12 @@ import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Properties;
@@ -40,6 +44,7 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
+import org.jjazz.midimix.MidiMix;
 import org.jjazz.ui.utilities.SingleRootFileSystemView;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
@@ -199,11 +204,12 @@ public class OutputSynthManager implements PropertyChangeListener
         }
         OutputSynth synth = null;
         XStream xstream = Utilities.getSecuredXStreamInstance();
-        
-        try
+
+        try (var fis = new FileInputStream(f))
         {
-            synth = (OutputSynth) xstream.fromXML(f);
-        } catch (XStreamException ex)
+            Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8"));        // Needed to support special/accented chars
+            synth = (OutputSynth) xstream.fromXML(r);
+        } catch (XStreamException | IOException ex)
         {
             String msg = "Problem reading file " + f.getAbsolutePath() + ": " + ex.getLocalizedMessage();
             LOGGER.log(Level.WARNING, "loadOutputSynth() - {0}", msg);
