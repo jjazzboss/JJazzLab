@@ -99,11 +99,18 @@ public class SptEditor extends JPanel implements PropertyChangeListener
     private Song songModel;
     private SS_Editor rlEditor;
     private SptEditorSettings settings;
+    private SptEditorTopComponent tcContainer;
 
     private static final Logger LOGGER = Logger.getLogger(SptEditor.class.getSimpleName());
 
-    public SptEditor()
+    /**
+     *
+     * @param tc The TopComponent containing this SptEditor. Can be null.
+     */
+    public SptEditor(SptEditorTopComponent tc)
     {
+        tcContainer = tc;
+
         songParts = new ArrayList<>();
 
         // Listen to settings change
@@ -390,7 +397,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         {
             // No good, just disable the editor
             setEditorEnabled(false);
-            updateTabName(songParts);
+            updateContainerTabName(songParts);
         } else
         {
             // Ok, register the songparts and update the editor
@@ -486,7 +493,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
 
         // SongParts can have different rhythms
         // Reference is SongPart(0), initialize UI with its values
-        updateTabName(songParts);
+        updateContainerTabName(songParts);
         SongPart spt0 = songParts.get(0);
         Rhythm rhythm0 = spt0.getRhythm();
         btn_Rhythm.setText(rhythm0.getName().toLowerCase());
@@ -654,30 +661,30 @@ public class SptEditor extends JPanel implements PropertyChangeListener
      * <p>
      * @param spts The song parts
      */
-    private void updateTabName(List<SongPart> spts)
+    private void updateContainerTabName(List<SongPart> spts)
     {
-        SptEditorTopComponent tc = SptEditorTopComponent.getInstance();
-        if (tc != null)
+        if (tcContainer == null)
         {
-            String tabName = "Song Part";
-            if (!spts.isEmpty())
-            {
-                SongPart spt0 = spts.get(0);
-                int spt0Index = songModel.getSongStructure().getSongParts().indexOf(spts.get(0));
-                if (spts.size() > 1)
-                {
-                    String spt0Name = org.jjazz.util.Utilities.truncate(spt0.getName(), 4) + "(" + (spt0Index + 1) + ")";
-                    SongPart lastSpt = spts.get(spts.size() - 1);
-                    int lastSptIndex = songModel.getSongStructure().getSongParts().indexOf(lastSpt);
-                    String lastSptName = org.jjazz.util.Utilities.truncate(lastSpt.getName(), 4) + "(" + (lastSptIndex + 1) + ")";
-                    tabName += "s: " + spt0Name + "..." + lastSptName;
-                } else
-                {
-                    tabName += ": " + org.jjazz.util.Utilities.truncateWithDots(spt0.getName(), 10) + "(" + (spt0Index + 1) + ")";
-                }
-            }
-            tc.setDisplayName(tabName);
+            return;
         }
+        String tabName = "Song Part";
+        if (!spts.isEmpty())
+        {
+            SongPart spt0 = spts.get(0);
+            int spt0Index = songModel.getSongStructure().getSongParts().indexOf(spts.get(0));
+            if (spts.size() > 1)
+            {
+                String spt0Name = org.jjazz.util.Utilities.truncate(spt0.getName(), 4) + "(" + (spt0Index + 1) + ")";
+                SongPart lastSpt = spts.get(spts.size() - 1);
+                int lastSptIndex = songModel.getSongStructure().getSongParts().indexOf(lastSpt);
+                String lastSptName = org.jjazz.util.Utilities.truncate(lastSpt.getName(), 4) + "(" + (lastSptIndex + 1) + ")";
+                tabName += "s: " + spt0Name + "..." + lastSptName;
+            } else
+            {
+                tabName += ": " + org.jjazz.util.Utilities.truncateWithDots(spt0.getName(), 10) + "(" + (spt0Index + 1) + ")";
+            }
+        }
+        tcContainer.setDisplayName(tabName);
     }
 
     private List<RpEditor> getRpEditors()

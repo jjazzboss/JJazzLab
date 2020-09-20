@@ -155,17 +155,17 @@ public final class JJazzMidiSystem
         receiverJJazzOut = jjazzMidiOut.getReceiver();
         receiverPhysicalIn2JJazzIn = jjazzMidiIn.getReceiver();
 
-        
+
         // Connect MidiIn to MidiOut to manage MidiThru
         thruFilter = new MidiFilter("[Midi Thru filter]");
         jjazzMidiIn.getTransmitter().setReceiver(thruFilter.getReceiver());
         thruFilter.getTransmitter().setReceiver(jjazzMidiOut.getReceiver());
 
-        
+
         // Restore thru mode
         thruFilter.setFilterConfig(isThruMode() ? EnumSet.noneOf(MidiFilter.Config.class) : EnumSet.of(MidiFilter.Config.FILTER_EVERYTHING));
-        
-        
+
+
         // Get the sequencer
         try
         {
@@ -175,17 +175,17 @@ public final class JJazzMidiSystem
 
             // Connect the sequencer to the JJazzMidiOut device
             defaultSequencer.getTransmitter().setReceiver(jjazzMidiOut.getReceiver());
-            
-            // Connect MidiIn to sequencer input
+
+            // Connect the JJazzMidiIn device to sequencer input
             jjazzMidiIn.getTransmitter().setReceiver(defaultSequencer.getReceiver());
-            
+
         } catch (MidiUnavailableException ex)
         {
             LOGGER.log(Level.SEVERE, "JJazzMidiSystem() No sequencer found on this system. Music can not be played ! " + ex.getLocalizedMessage());
             defaultSequencer = null;
         }
 
-        
+
         // Get the default synth         
         try
         {
@@ -197,7 +197,7 @@ public final class JJazzMidiSystem
             defaultSynth = null;
         }
 
-        
+
         // Try to restore default Midi OUT
         List<MidiDevice> outDevices = getOutDeviceList();
         LOGGER.info("JJazzMidiSystem() Midi out devices=" + getDeviceListAsString(outDevices));
@@ -224,7 +224,7 @@ public final class JJazzMidiSystem
             });
         }
 
-        
+
         // Try to restore default Midi IN
         List<MidiDevice> inDevices = getInDeviceList();
         defaultInDevice = null;
@@ -244,7 +244,7 @@ public final class JJazzMidiSystem
             }
         }
 
-        
+
         // Load Java synth soundfont file if any
         lastLoadedSoundbank = null;
         lastLoadedSoundbankFile = null;
@@ -326,7 +326,12 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * @return The Midi IN device to be used by the application.
+     * The Midi IN virtual device to be used by the application.
+     * <p>
+     * This device never changes, it acts as a bridge between the actual default In device (see setDefaultInDevice()) and the
+     * application.
+     *
+     * @return
      */
     public JJazzMidiDevice getJJazzMidiInDevice()
     {
@@ -334,7 +339,12 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * @return The Midi OUT device to be used by the application.
+     * The Midi OUT virtual device to be used by the application.
+     * <p>
+     * This device never changes, it acts as a bridge between the application and the actual Out device (see
+     * setDefaultOutDevice()).
+     *
+     * @return
      */
     public JJazzMidiDevice getJJazzMidiOutDevice()
     {
@@ -342,7 +352,11 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * @return The default MIDI in device. Null if not set.
+     * Get the default MIDI in device.
+     * <p>
+     * Note: you should normally use the application-level getJJazzMidiInDevice().
+     *
+     * @return Null if not set.
      */
     public MidiDevice getDefaultInDevice()
     {
@@ -350,7 +364,11 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * @return The default MIDI out device. Null if not set.
+     * Get the default MIDI out device.
+     * <p>
+     * Note: you should normally use the application-level getJJazzMidiOutDevice().
+     *
+     * @return Null if not set.
      */
     public MidiDevice getDefaultOutDevice()
     {
@@ -664,9 +682,9 @@ public final class JJazzMidiSystem
         }
         prefs.put(PROP_MIDI_IN, defaultInDevice == null ? NOT_SET : defaultInDevice.getDeviceInfo().getName());
         pcs.firePropertyChange(PROP_MIDI_IN, oldDevice, defaultInDevice);
-        LOGGER.log(Level.INFO, "setDefaultInDevice() oldDevice={0} newDevice={1}", new Object[]
+        LOGGER.log(Level.INFO, "setDefaultInDevice() oldDevice={0} newDevice={1} timeStampSupport={2}", new Object[]
         {
-            oldDevice, defaultInDevice
+            oldDevice, defaultInDevice, ((defaultInDevice != null) ? defaultInDevice.getMicrosecondPosition() != -1 : false)
         });
     }
 

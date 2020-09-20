@@ -76,6 +76,7 @@ public class MidiFilter extends JJazzMidiDevice
         return rcv;
     }
 
+
     public synchronized EnumSet<Config> getFilterConfig()
     {
         return EnumSet.copyOf(configFilter);
@@ -175,8 +176,7 @@ public class MidiFilter extends JJazzMidiDevice
                 {
                     ShortMessage sm = (ShortMessage) msg;
 
-                    if ((sm.getCommand() == ShortMessage.NOTE_ON)
-                            || (sm.getCommand() == ShortMessage.NOTE_OFF))
+                    if ((sm.getCommand() == ShortMessage.NOTE_ON) || (sm.getCommand() == ShortMessage.NOTE_OFF))
                     {
                         passed(msg, timestamp);
                         return;

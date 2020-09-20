@@ -39,11 +39,8 @@ import javax.sound.midi.ControllerEventListener;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaEventListener;
 import javax.sound.midi.MetaMessage;
-import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiEvent;
-import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Receiver;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
@@ -68,7 +65,6 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
 
@@ -116,7 +112,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         PAUSED,
         PLAYING
     }
-    private MyReceiver myReceiver;
+    private MidiRecorder recorder;
     private static MusicController INSTANCE;
     private Sequencer sequencer;
     /**
@@ -491,7 +487,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 // Nothing
                 break;
             case PLAYING:
-                sequencer.stop();
+                seqStop();
                 break;
             default:
                 throw new AssertionError(state.name());
@@ -531,7 +527,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             return;
         }
 
-        sequencer.stop();
+        seqStop();
 
         State old = getState();
         state = State.PAUSED;
@@ -982,7 +978,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Start the sequencer for playback, or playback+recording.
+     * Start the sequencer for playback, or playback+recording, whatever the current position.
      * <p>
      * Apply workaround to JDK setTempo bug (tempo reset at 120 upon each start).
      */
@@ -990,6 +986,20 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         assert !state.equals(State.DISABLED);
 
+
+        // Prepare for (optional) recording
+        if (recorder != null)
+        {
+            recorder.cleanup();
+        }
+        try
+        {
+            recorder = new MidiRecorder(playbackContext.sequence, sequencer.getTickPosition());
+        } catch (MidiUnavailableException ex)
+        {
+            LOGGER.severe("seqStart() Problem creating MidiRecorder, recording will be disabled. Ex=" + ex.getLocalizedMessage());
+
+        }
 
         // Enable/disable recording on specific channels
         enableOrDisableUserChannelRecording();
@@ -1004,79 +1014,27 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
     }
 
-    private class MyReceiver implements Receiver
+    private void enableOrDisableUserChannelRecording()
     {
+        boolean b = mgContext.getMidiMix().isUserChannelRecordingEnabled();
 
-        @Override
-        public void send(MidiMessage msg, long timeStamp)
+        if (recorder != null)
         {
-            if (msg instanceof ShortMessage)
-            {
-                ShortMessage sm = (ShortMessage) msg;
-                // all real-time messages have 0xF in the high nibble of the status byte
-                if ((sm.getStatus() & 0xF0) != 0xF0)
-                {
-                    LOGGER.log(Level.SEVERE, "send() timestamp={0} - {1}", new Object[]
-                    {
-                        timeStamp, MidiUtilities.toString(msg, sequencer.getTickPosition())
-                    });
-                }
-            }
-        }
-
-        @Override
-        public void close()
-        {
-            LOGGER.severe("close() --");
+            recorder.setRecordingEnabled(b);
         }
 
     }
 
-    private void enableOrDisableUserChannelRecording()
+    private void seqStop()
     {
+        sequencer.stop();
 
-        if (myReceiver == null)
+        if (recorder != null && recorder.isRecordingOccured())
         {
-            // initialize everything
-            myReceiver = new MyReceiver();
-            MidiDevice midiIn = JJazzMidiSystem.getInstance().getJJazzMidiInDevice();
-            try
-            {
-                midiIn.getTransmitter().setReceiver(myReceiver);
-            } catch (MidiUnavailableException ex)
-            {
-                Exceptions.printStackTrace(ex);
-            }
-            LOGGER.log(Level.SEVERE, "midiIn.usPos={0}", midiIn.getMicrosecondPosition());
+            recorder.dump();
+            recorder.updateRecordedTrack(playbackContext.userTrack, songTempoFactor);
+            LOGGER.severe(MidiUtilities.toString(playbackContext.sequence));
         }
-
-
-        MidiMix mm = mgContext.getMidiMix();
-        int channel = mm.getUserChannel();
-        if (channel == -1)
-        {
-            // No user channel 
-            if (playbackContext.userTrack != null)
-            {
-                sequencer.recordDisable(playbackContext.userTrack);
-            }
-            return;
-        }
-
-
-        assert playbackContext.userTrack != null;
-
-
-        // There is a user channel, enable/disable recording
-        if (mm.isUserChannelRecordingEnabled())
-        {
-            sequencer.recordEnable(playbackContext.userTrack, channel);
-            LOGGER.fine("enableOrDisableUserChannelRecording()");
-        } else
-        {
-            sequencer.recordDisable(playbackContext.userTrack);
-        }
-
     }
 
     private void setCurrentBeatPosition(int bar, float beat)

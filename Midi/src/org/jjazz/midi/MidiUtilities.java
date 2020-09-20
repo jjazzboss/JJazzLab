@@ -22,7 +22,9 @@
  */
 package org.jjazz.midi;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.*;
@@ -53,6 +55,74 @@ public class MidiUtilities
         x = Math.min(x, 127);
         x = Math.max(x, 0);
         return x;
+    }
+
+    /**
+     * Get track MidiEvents whose tick position is within range [tickMin;tickMax] and which satisfy the specified tester.
+     *
+     * @param track
+     * @param tester
+     * @param tickMin
+     * @param tickMax
+     * @return
+     */
+    static public List<MidiEvent> getMidiEvents(Track track, Predicate<MidiEvent> tester, long tickMin, long tickMax)
+    {
+        var res = new ArrayList<MidiEvent>();
+        for (int i = 0; i < track.size(); i++)
+        {
+            MidiEvent me = track.get(i);
+            if (me.getTick() < tickMin)
+            {
+                continue;
+            } else if (me.getTick() > tickMax)
+            {
+                break;
+            }
+            if (tester.test(me))
+            {
+                res.add(me);
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Get track MidiEvents whose MidiMessage is instance of msgClass, whose tick position is within range [tickMin;tickMax] and
+     * which satisfy the specified tester.
+     *
+     * @param <T>
+     * @param track
+     * @param msgClass
+     * @param tester
+     * @param tickMin
+     * @param tickMax
+     * @return
+     */
+    static public <T> List<MidiEvent> getMidiEvents(Track track, Class<T> msgClass, Predicate<T> tester, long tickMin, long tickMax)
+    {
+        var res = new ArrayList<MidiEvent>();
+        for (int i = 0; i < track.size(); i++)
+        {
+            MidiEvent me = track.get(i);
+            if (me.getTick() < tickMin)
+            {
+                continue;
+            } else if (me.getTick() > tickMax)
+            {
+                break;
+            }
+            MidiMessage mm = me.getMessage();
+            if (msgClass.isInstance(mm))
+            {
+                T typedMsg = msgClass.cast(mm);
+                if (tester.test(typedMsg))
+                {
+                    res.add(me);
+                }
+            }
+        }
+        return res;
     }
 
     static public SysexMessage getGmModeOnSysExMessage()
@@ -187,7 +257,7 @@ public class MidiUtilities
     {
         return buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_PAN_MSB, data);
     }
-    
+
     static public MetaMessage getTimeSignatureMessage(int channel, TimeSignature ts)
     {
         if (!MidiConst.checkMidiChannel(channel) || ts == null)
@@ -426,6 +496,43 @@ public class MidiUtilities
     }
 
     /**
+     * Convert a tempo in BPM (beat per minute) into a tempo in microseconds per quarter.
+     *
+     * @param tempoBPM
+     * @return
+     */
+    static public double toTempoMPQ(double tempoBPM)
+    {
+        return ((double) 60000000l) / tempoBPM;
+    }
+
+    /**
+     * Convert PPQ tick to microsecond tick.
+     *
+     * @param tickInPPQ
+     * @param tempoMPQ Tempo in microseconds per quarter
+     * @param resolution
+     * @return
+     */
+    static public long toTickInUs(long tickInPPQ, double tempoMPQ, int resolution)
+    {
+        return (long) (((double) tickInPPQ) * tempoMPQ / resolution);
+    }
+
+    /**
+     * Convert micro-second tick to PPQ tick
+     *
+     * @param tickInUs
+     * @param tempoMPQ Tempo in microseconds per quarter
+     * @param resolution
+     * @return
+     */
+    public static long toTickInPPQ(long tickInUs, double tempoMPQ, int resolution)
+    {
+        return (long) ((((double) tickInUs) * resolution) / tempoMPQ);      // Do not round
+    }
+
+    /**
      * Search for the first TrackName MetaEvent in the specified track and return its name.
      *
      * @param track
@@ -484,8 +591,8 @@ public class MidiUtilities
         }
         return mm;
     }
-    
-        static public MetaMessage getMarkerMetaMessage(String txt)
+
+    static public MetaMessage getMarkerMetaMessage(String txt)
     {
         if (txt == null || txt.isEmpty())
         {
@@ -604,7 +711,7 @@ public class MidiUtilities
      * Provide an explicit string for a MidiMessage.
      *
      * @param msg A MidiMessage.
-     * @param tick The timestamp of the MidiMessage.
+     * @param tick The tick of the MidiMessage. Ignore if &lt; 0.
      * @return A string representing the MidiMessage.
      */
     public static String toString(MidiMessage msg, long tick)
@@ -653,6 +760,9 @@ public class MidiUtilities
                 case 1:  // Text
                     sb.append(" text=").append(Utilities.toString(mm.getData()));
                     break;
+                case 6:  // Marker
+                    sb.append(" marker=").append(Utilities.toString(mm.getData()));
+                    break;
                 case 88:  // TimeSignature        
                     int upper = mm.getData()[0];
                     int lower = (int) Math.pow(2, mm.getData()[1]);
@@ -669,12 +779,15 @@ public class MidiUtilities
         }
 
         // append time
-        float timeInBeats = (float) tick / MidiConst.PPQ_RESOLUTION;
-        String timeStr = String.format("%.2f", timeInBeats);
-        int bar44 = (int) (timeInBeats / 4);
-        float bar44beat = timeInBeats - bar44 * 4;
-        sb.append(" t=").append(tick).append(" beat=").append(timeStr).append(" (pos4/4=[")
-                .append(bar44).append(",").append(bar44beat).append("])");
+        if (tick >= 0)
+        {
+            float timeInBeats = (float) tick / MidiConst.PPQ_RESOLUTION;
+            String timeStr = String.format("%.2f", timeInBeats);
+            int bar44 = (int) (timeInBeats / 4);
+            float bar44beat = timeInBeats - bar44 * 4;
+            sb.append(" t=").append(tick).append(" beat=").append(timeStr).append(" (pos4/4=[")
+                    .append(bar44).append(",").append(bar44beat).append("])");
+        }
 
         return sb.toString();
     }
