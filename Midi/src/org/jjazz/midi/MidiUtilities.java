@@ -125,6 +125,41 @@ public class MidiUtilities
         return res;
     }
 
+    /**
+     * Get the last MidiEvent before beforeTick which satisfies predicate.
+     *
+     * @param <T>
+     * @param track
+     * @param msgClass
+     * @param tester
+     * @param beforeTick
+     * @return
+     */
+    static public <T> MidiEvent getLastMidiEvent(Track track, Class<T> msgClass, Predicate<T> tester, long beforeTick)
+    {
+        MidiEvent res = null;
+        int last = track.size() - 1;
+        for (int i = last; i >= 0; i--)
+        {
+            MidiEvent me = track.get(i);
+            if (me.getTick() >= beforeTick)
+            {
+                continue;
+            }
+            MidiMessage mm = me.getMessage();
+            if (msgClass.isInstance(mm))
+            {
+                T typedMsg = msgClass.cast(mm);
+                if (tester.test(typedMsg))
+                {
+                    res = me;
+                    break;
+                }
+            }
+        }
+        return res;
+    }
+
     static public SysexMessage getGmModeOnSysExMessage()
     {
         SysexMessage sm = new SysexMessage();

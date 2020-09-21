@@ -56,7 +56,7 @@ public class MidiRecorder implements MetaEventListener
     private final MyReceiver myReceiver;
     private final boolean useTimeStamp;
     private long usOffset = -1;
-    private final long[] midiMessageMicroSeconds = new long[MSG_BUFFER_SIZE]; // In micro-second, 0 is start of sequence
+    private final long[] midiMessagesUsPositions = new long[MSG_BUFFER_SIZE]; // In micro-seconds, 0 is start of sequence
     private final ShortMessage[] midiMessages = new ShortMessage[MSG_BUFFER_SIZE];
     private int nbMessages;
     private boolean recording;
@@ -103,17 +103,17 @@ public class MidiRecorder implements MetaEventListener
         midiInTransmitter.setReceiver(myReceiver);
 
 
-        // To be notified at tick=0 (ASSUMPTION: there always is a Meta event at tick 0)
+        // To be notified as soon as sequencer starts
         jms.getDefaultSequencer().addMetaEventListener(this);
 
     }
 
     /**
-     * Convert the acquired Midi input into a track.
+     * Use the recorded Midi data to fill the specified track.
      *
-     * @param track The track for which Midi events must be added, must be part of the current sequence.
+     * @param track The track for which Midi events must be added. Track must be part of the current sequence.
      */
-    public void updateRecordedTrack(Track track)
+    public void fillTrack(Track track)
     {
         assert Arrays.asList(sequence.getTracks()).contains(track);
 
@@ -122,36 +122,34 @@ public class MidiRecorder implements MetaEventListener
             return;
         }
 
-        // Contain the JJazz tempo factor changes
-        Track track0 = sequence.getTracks()[0];
-        List<MidiEvent> tempoFactorChangeEvents = MidiUtilities.getMidiEvents(track0, ShortMessage.class,
-                sm -> sm.getCommand() == ShortMessage.CONTROL_CHANGE && sm.getData1() == MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR,
-                -1, Long.MAX_VALUE);
 
-        List<TempoFactorChange> tempoChanges = tempoFactorChangeEvents.stream()
-                .map(me -> new TempoFactorChange(me))
+        // Collect all tempo changes (tempo is required for tick<>us conversion)
+        Track track0 = sequence.getTracks()[0];
+        var tempoFactorChangeEvents = MidiUtilities.getMidiEvents(track0, ShortMessage.class,
+                sm -> sm.getCommand() == ShortMessage.CONTROL_CHANGE && sm.getData1() == MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR,
+                seqStartInPPQ, Long.MAX_VALUE);
+        var tempoChanges = tempoFactorChangeEvents.stream()
+                .map(me -> new TempoChange(me))
                 .collect(Collectors.toList());
-        
-        // Add a leading tempo change if not already present
-        if (tempoChanges.isEmpty() || tempoChanges.get(0).tick>0)
+
+
+        // Add an initial tempo change if not already present
+        if (tempoChanges.stream().anyMatch(tc -> tc.tickPPQ == seqStartInPPQ))
         {
-            TempoFactorChange tfc = new TempoFactorChange(0, songTempoFactor);
-            tempoChanges.add();
+            double startTempoBPM = getTempoBPM(seqStartInPPQ, tempoChanges, MidiConst.SEQUENCER_REF_TEMPO * songTempoFactor);
+            TempoChange tfc = new TempoChange(seqStartInPPQ, startTempoBPM);
+            tempoChanges.add(0, tfc);
         }
 
 
-        long tick = seqStartInPPQ;
-
+        // Add MidiEvents
         for (int i = 0; i < nbMessages; i++)
         {
             ShortMessage sm = midiMessages[i];
-            long usTick = midiMessageMicroSeconds[i];
-            long ppqTick = toTickPPQ(usTick,tempoChanges);
-
-
-            float songPartTempoFactor = getCurrentSongPartTempoFactor(tick, tempoFactorChangeEvents);
-            float tempoBPM = MidiConst.SEQUENCER_REF_TEMPO * songTempoFactor * songPartTempoFactor;
-
+            long usTick = midiMessagesUsPositions[i];
+            long ppqTick = toPPQTick(usTick, tempoChanges) + seqStartInPPQ;
+            MidiEvent me = new MidiEvent(sm, ppqTick);
+            track.add(me);
         }
     }
 
@@ -194,7 +192,7 @@ public class MidiRecorder implements MetaEventListener
         LOGGER.info("dump() MidiRecorder:");
         for (int i = 0; i < nbMessages; i++)
         {
-            LOGGER.info(String.format(" 0x%04x: %s - pos=%dus", i, MidiUtilities.toString(midiMessages[i], -1), midiMessageMicroSeconds[i]));
+            LOGGER.info(String.format(" 0x%04x: %s - pos=%dus", i, MidiUtilities.toString(midiMessages[i], -1), midiMessagesUsPositions[i]));
         }
     }
 
@@ -222,6 +220,13 @@ public class MidiRecorder implements MetaEventListener
     // ==========================================================================================
     // Private methods
     // ==========================================================================================    
+
+    /**
+     * Add a MetaEvent marker to be notified as soon as playback starts.
+     *
+     * @param sequence
+     * @param seqStartInPPQ
+     */
     private void addStartMarkerEvent(Sequence sequence, long seqStartInPPQ)
     {
         Track track = sequence.getTracks()[0];
@@ -242,121 +247,94 @@ public class MidiRecorder implements MetaEventListener
     }
 
     /**
-     * Get the current tempo song part factor at specified tick location.
+     * Convert a tick in micro-seconds into a tick in PPQ.
      *
-     * @param tick
-     * @param tempoFactorChangeEvents All the JJazz tempo factor MidiEvents.
+     * @param usTick Position in micro-second relative to seqStartInPPQ
+     * @param tempoChanges Must contain at least one change at tick 0
      * @return
      */
-    private float getCurrentSongPartTempoFactor(long tick, List<MidiEvent> tempoFactorChangeEvents)
-    {
-        assert !tempoFactorChangeEvents.isEmpty() && tempoFactorChangeEvents.get(0).getTick() == 0 :
-                "tempoFactorChangeEvents=" + tempoFactorChangeEvents;
-
-
-        MidiEvent me = null;
-
-        if (tick == 0)
-        {
-            me = tempoFactorChangeEvents.get(0);
-        } else if (tick >= tempoFactorChangeEvents.get(tempoFactorChangeEvents.size() - 1).getTick())
-        {
-            me = tempoFactorChangeEvents.get(tempoFactorChangeEvents.size() - 1);
-        } else
-        {
-            for (int i = 0; i < tempoFactorChangeEvents.size(); i++)
-            {
-                if (tempoFactorChangeEvents.get(i).getTick() == tick)
-                {
-                    me = tempoFactorChangeEvents.get(i);
-                    break;
-                } else if (tempoFactorChangeEvents.get(i).getTick() > tick)
-                {
-                    me = tempoFactorChangeEvents.get(i - 1);
-                    break;
-                }
-            }
-        }
-
-        assert me != null;
-
-        return MidiUtilities.getTempoFactor((ShortMessage) me.getMessage());
-
-    }
-
-    /**
-     * Convert a tick in micro-seconds into a PPQ tick.
-     *
-     * @param usTick
-     * @param tempoChanges 
-     * @return
-     */
-    private long toTickInPPQ(long usTick, List<TempoFactorChange> tempoChanges)
+    private long toPPQTick(long usTick, List<TempoChange> tempoChanges)
     {
         int nbTempoChanges = tempoChanges.size();
-        assert nbTempoChanges > 0 && tempoChanges.get(0).getTick() == 0 :
-                "tempoFactorChangeEvents=" + tempoChanges;
+        assert nbTempoChanges > 0 && tempoChanges.get(0).tickPPQ == 0 :
+                "tempoChanges=" + tempoChanges;
 
-        MidiEvent me = null;
-        long res = 0;
-        long us = 0;
-        int resolution = sequence.getResolution();
-        int i;
 
-        long curTempoTick = 0;
-        long prevTempoTick = 0;
-        double prevTempoMPQ = 120;
+        // PPQ depends on tempo, so we must take into account all tempo changes from start
+        long prevTempoPPQTick = tempoChanges.get(0).tickPPQ;
+        double prevTempoMPQ = tempoChanges.get(0).tempoMPQ;
+        long lastTempoTickinUs = 0;
 
-        if (nbTempoChanges == 1)
+
+        for (int i = 1; i < nbTempoChanges; i++)
         {
-            prevTempoTick = tempoChanges.get(0).getTick();
-            double songPartTempoFactor = MidiUtilities.getTempoFactor((ShortMessage) tempoChanges.get(0).getMessage());
-            prevTempoMPQ = MidiUtilities.toTempoMPQ(songPartTempoFactor * songTempoFactor * MidiConst.SEQUENCER_REF_TEMPO);
+            long curTempoPPQTick = tempoChanges.get(i).tickPPQ;
+            prevTempoPPQTick = tempoChanges.get(i - 1).tickPPQ;
+            prevTempoMPQ = tempoChanges.get(i - 1).tempoMPQ;
 
-        } else
-        {
-            for (i = 1; i < nbTempoChanges; i++)
+            long curTempoUsTick = lastTempoTickinUs + MidiUtilities.toTickInUs(curTempoPPQTick - prevTempoPPQTick, prevTempoMPQ, sequence.getResolution());
+            if (curTempoUsTick > usTick)
             {
-                curTempoTick = tempoChanges.get(i).getTick();
-                prevTempoTick = tempoChanges.get(i - 1).getTick();
-                double prevSongPartTempoFactor = MidiUtilities.getTempoFactor((ShortMessage) tempoChanges.get(i - 1).getMessage());
-                prevTempoMPQ = MidiUtilities.toTempoMPQ(prevSongPartTempoFactor * songTempoFactor * MidiConst.SEQUENCER_REF_TEMPO);
-
-                long nextTime = us + MidiUtilities.toTickInUs(curTempoTick - prevTempoTick, prevTempoMPQ, resolution);
-                if (nextTime > usTick)
-                {
-                    break;
-                }
-                us = nextTime;
+                break;
             }
+            lastTempoTickinUs = curTempoUsTick;
         }
 
-        res = prevTempoTick + MidiUtilities.toTickInPPQ(usTick - us, prevTempoMPQ, resolution);
+        long res = prevTempoPPQTick + MidiUtilities.toTickInPPQ(usTick - lastTempoTickinUs, prevTempoMPQ, sequence.getResolution());
 
         return res;
 
     }
 
+    /**
+     * Get the tempo at tick position.
+     *
+     * @param tickPPQ
+     * @param tempoChanges
+     * @param defaultTempo
+     * @return Return defaultTempo if no relevant TempoChange found.
+     */
+    private double getTempoBPM(long tickPPQ, List<TempoChange> tempoChanges, double defaultTempo)
+    {
+        double res = defaultTempo;
+        for (int i = tempoChanges.size() - 1; i >= 0; i--)
+        {
+            var tc = tempoChanges.get(i);
+            if (tickPPQ >= tc.tickPPQ)
+            {
+                res = tc.tempoBPM;
+                break;
+            }
+        }
+        return res;
+    }
+
     // ==========================================================================================
     // Inner classes
     // ==========================================================================================    
-    private class TempoFactorChange
+    private class TempoChange
     {
 
-        public long tick;
+        public long tickPPQ;
         public double tempoBPM;
         public double tempoMPQ;
 
-        public TempoFactorChange(long tick, double songPartTempoChange)
+        public TempoChange(long tickPPQ, double songPartTempoFactor)
         {
-            this.tick = tick;
-            this.tempoBPM = MidiConst.SEQUENCER_REF_TEMPO * songTempoFactor * songPartTempoChange;
+            this.tickPPQ = tickPPQ;
+            this.tempoBPM = MidiConst.SEQUENCER_REF_TEMPO * songTempoFactor * songPartTempoFactor;
             this.tempoMPQ = MidiUtilities.toTempoMPQ(tempoBPM);
         }
 
-        public TempoFactorChange(MidiEvent me)
+        public TempoChange(MidiEvent me)
         {
             this(me.getTick(), MidiUtilities.getTempoFactor((ShortMessage) me.getMessage()));
+        }
+
+        @Override
+        public String toString()
+        {
+            return "tickPPQ=" + tickPPQ + ",tempoBPM=" + tempoBPM;
         }
     }
 
@@ -400,7 +378,7 @@ public class MidiRecorder implements MetaEventListener
             if (usOffset >= 0)
             {
                 midiMessages[nbMessages] = sm;
-                midiMessageMicroSeconds[nbMessages] = (useTimeStamp ? timeStamp : System.nanoTime() / 1000) - usOffset;
+                midiMessagesUsPositions[nbMessages] = (useTimeStamp ? timeStamp : System.nanoTime() / 1000) - usOffset;
                 nbMessages++;
             } else
             {
