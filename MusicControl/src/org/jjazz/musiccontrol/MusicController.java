@@ -994,11 +994,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
         try
         {
-            recorder = new MidiRecorder(playbackContext.sequence, sequencer.getTickPosition());
+            recorder = new MidiRecorder(playbackContext.sequence, sequencer.getTickPosition(), songTempoFactor);
+            if (mgContext.getMidiMix().isUserChannelRecordingEnabled())
+            {
+                MidiUtilities.clearTrack(playbackContext.userTrack);
+            }
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.severe("seqStart() Problem creating MidiRecorder, recording will be disabled. Ex=" + ex.getLocalizedMessage());
-
+            recorder=null;
+            LOGGER.severe("seqStart() Problem creating MidiRecorder, recording will be disabled. Ex=" + ex.getLocalizedMessage());            
         }
 
         // Enable/disable recording on specific channels
@@ -1032,8 +1036,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         if (recorder != null && recorder.isRecordingOccured())
         {
             recorder.dump();
-            recorder.updateRecordedTrack(playbackContext.userTrack, songTempoFactor);
-            LOGGER.severe(MidiUtilities.toString(playbackContext.sequence));
+            recorder.fillTrack(playbackContext.userTrack);
+            LOGGER.severe(MidiUtilities.toString(playbackContext.sequence));            
         }
     }
 

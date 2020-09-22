@@ -126,6 +126,21 @@ public class MidiUtilities
     }
 
     /**
+     * Remove all MidiEvents from a track.
+     *
+     * @param track
+     */
+    static public void clearTrack(Track track)
+    {
+        int last = track.size() - 1;
+        for (int i = last; i >= 0; i--)
+        {
+            MidiEvent me = track.get(i);
+            track.remove(me);
+        }
+    }
+
+    /**
      * Get the last MidiEvent before beforeTick which satisfies predicate.
      *
      * @param <T>
