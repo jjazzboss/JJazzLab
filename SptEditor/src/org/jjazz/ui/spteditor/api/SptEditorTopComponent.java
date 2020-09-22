@@ -79,7 +79,7 @@ public final class SptEditorTopComponent extends TopComponent
 
         initComponents();
 
-        sptEditor = new SptEditor();
+        sptEditor = new SptEditor(this);
         sptEditor.setPreferredSize(new Dimension(80, 100));
         add(sptEditor);
 

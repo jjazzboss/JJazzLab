@@ -22,7 +22,6 @@
  */
 package org.jjazz.ui.spteditor;
 
-import java.awt.Color;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -99,11 +98,13 @@ public class SptEditor extends JPanel implements PropertyChangeListener
     private Song songModel;
     private SS_Editor rlEditor;
     private SptEditorSettings settings;
+    private SptEditorTopComponent tcContainer;
 
     private static final Logger LOGGER = Logger.getLogger(SptEditor.class.getSimpleName());
 
-    public SptEditor()
+    public SptEditor(SptEditorTopComponent tc)
     {
+        tcContainer = tc;
         songParts = new ArrayList<>();
 
         // Listen to settings change
@@ -656,8 +657,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
      */
     private void updateTabName(List<SongPart> spts)
     {
-        SptEditorTopComponent tc = SptEditorTopComponent.getInstance();
-        if (tc != null)
+        if (tcContainer != null)
         {
             String tabName = "Song Part";
             if (!spts.isEmpty())
@@ -676,7 +676,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
                     tabName += ": " + org.jjazz.util.Utilities.truncateWithDots(spt0.getName(), 10) + "(" + (spt0Index + 1) + ")";
                 }
             }
-            tc.setDisplayName(tabName);
+            tcContainer.setDisplayName(tabName);
         }
     }
 
