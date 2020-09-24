@@ -251,6 +251,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
         Song song;
         if (le != null)
         {
+            @SuppressWarnings("unchecked")
             Lookup.Result<Song> leRes = (Lookup.Result<Song>) le.getSource();
             var songs = leRes.allInstances();
             song = songs.isEmpty() ? null : songs.iterator().next();

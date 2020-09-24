@@ -225,7 +225,7 @@ public class GeneralUISettings
         }
 
         // Use a WeakReference because comp might be garbage collected in the future       
-        mouseWheelInstalledComponents.put(new WeakReference(comp), compListener);
+        mouseWheelInstalledComponents.put(new WeakReference<>(comp), compListener);
     }
 
     /**

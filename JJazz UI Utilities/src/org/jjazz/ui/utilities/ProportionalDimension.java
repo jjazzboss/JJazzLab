@@ -31,10 +31,10 @@ public class ProportionalDimension extends Dimension
         if (w / h < widthOverHeightRatio)
         {
             width = (int) (h * widthOverHeightRatio);
-            height = (int) h;
+            height = h;
         } else
         {
-            width = (int) w;
+            width = w;
             height = (int) (w / widthOverHeightRatio);
         }
     }
