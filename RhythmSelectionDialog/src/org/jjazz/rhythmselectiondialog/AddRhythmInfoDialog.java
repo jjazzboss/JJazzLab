@@ -149,7 +149,7 @@ public class AddRhythmInfoDialog extends javax.swing.JDialog
 
     private void btn_OkActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_OkActionPerformed
     {//GEN-HEADEREND:event_btn_OkActionPerformed
-        setVisible(false);
+        dispose();
     }//GEN-LAST:event_btn_OkActionPerformed
 
 

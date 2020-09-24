@@ -20,7 +20,7 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.rhythm.database;
+package org.jjazz.util;
 
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
@@ -28,47 +28,51 @@ import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
-import org.jjazz.rhythm.spi.RhythmProvider;
-import org.openide.windows.WindowManager;
 
 /**
- * Notify the user of rhythm creation errors.
+ * Notify the user of an MultipleErrorsReport.
  */
-public class RhythmErrorsDialog extends javax.swing.JDialog
+public class MultipleErrorsReportDialog extends javax.swing.JDialog
 {
 
-    /**
-     * Creates new form RhythmErrorsDialog
-     */
-    public RhythmErrorsDialog(Frame f, RhythmProvider rp, RhythmProvider.UserErrorReport errRpt)
-    {
-        super(f, true);
+    MultipleErrorsReport errorRpt;
+    String strErrors;
 
-        assert errRpt.summaryErrorMessage != null;
-        
+    /**
+     * Creates new form MultipleErrorsReportDialog
+     *
+     * @param f
+     * @param dialogTitle
+     * @param errRpt
+     */
+    public MultipleErrorsReportDialog(Frame f, String dialogTitle, MultipleErrorsReport errRpt)
+    {
+        super(f, dialogTitle, true);
+
+        assert errRpt.primaryErrorMessage != null;
+
+        errorRpt = errRpt;
+
+        // Prepare the individual error messages string
+        StringBuilder sb = new StringBuilder();
+        if (errorRpt.individualErrorMessages != null)
+        {
+            int i = 1;
+            for (String s : errorRpt.individualErrorMessages)
+            {
+                sb.append(String.format("%2d: %s\n", i, s));
+                i++;
+            }
+        }
+        strErrors = sb.toString();
+
+
         initComponents();
 
-        
-        // Update UI 
-        lbl_errMsg.setText(errRpt.summaryErrorMessage);
-        lbl_rhythmProvider.setText(rp.getInfo().getName());
-
-        
-        // Individual error messages
-        StringBuilder sb = new StringBuilder();
-        int i = 1;
-        for (String s : errRpt.individualErrorMessages)
-        {
-            sb.append(String.format("%2d: %s\n", i, s));
-            i++;
-        }
-        ta_errors.setText(sb.toString());
-        
-        pack();
-        setLocationRelativeTo(f);        
+        setLocationRelativeTo(f);
     }
-    
-      /**
+
+    /**
      * Overridden to add global key bindings
      *
      * @return
@@ -85,10 +89,10 @@ public class RhythmErrorsDialog extends javax.swing.JDialog
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                dispose();
+                btn_OKActionPerformed(null);
             }
         });
-      
+
         return contentPane;
     }
 
@@ -101,20 +105,16 @@ public class RhythmErrorsDialog extends javax.swing.JDialog
     private void initComponents()
     {
 
-        jLabel1 = new javax.swing.JLabel();
         btn_OK = new javax.swing.JButton();
-        jLabel2 = new javax.swing.JLabel();
+        lbl_secondaryMsg = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         ta_errors = new javax.swing.JTextArea();
-        lbl_errMsg = new javax.swing.JLabel();
-        lbl_rhythmProvider = new javax.swing.JLabel();
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(RhythmErrorsDialog.class, "RhythmErrorsDialog.jLabel1.text")); // NOI18N
+        lbl_primaryMsg = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle(org.openide.util.NbBundle.getMessage(RhythmErrorsDialog.class, "RhythmErrorsDialog.title")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_OK, org.openide.util.NbBundle.getMessage(RhythmErrorsDialog.class, "RhythmErrorsDialog.btn_OK.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_OK, "OK"); // NOI18N
         btn_OK.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -123,17 +123,18 @@ public class RhythmErrorsDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(RhythmErrorsDialog.class, "RhythmErrorsDialog.jLabel2.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_secondaryMsg, errorRpt.secondaryErrorMessage);
 
         ta_errors.setEditable(false);
         ta_errors.setColumns(20);
         ta_errors.setRows(5);
+        ta_errors.setText(strErrors);
         jScrollPane1.setViewportView(ta_errors);
 
-        lbl_errMsg.setFont(lbl_errMsg.getFont().deriveFont(lbl_errMsg.getFont().getStyle() | java.awt.Font.BOLD));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_errMsg, org.openide.util.NbBundle.getMessage(RhythmErrorsDialog.class, "RhythmErrorsDialog.lbl_errMsg.text")); // NOI18N
+        lbl_primaryMsg.setFont(lbl_primaryMsg.getFont().deriveFont(lbl_primaryMsg.getFont().getStyle() | java.awt.Font.BOLD));
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_primaryMsg, errorRpt.primaryErrorMessage);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_rhythmProvider, org.openide.util.NbBundle.getMessage(RhythmErrorsDialog.class, "RhythmErrorsDialog.lbl_rhythmProvider.text")); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/util/resources/Warning-48x48.png"))); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -142,28 +143,34 @@ public class RhythmErrorsDialog extends javax.swing.JDialog
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lbl_errMsg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 375, Short.MAX_VALUE)
-                        .addComponent(btn_OK, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrollPane1)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lbl_rhythmProvider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btn_OK, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lbl_secondaryMsg)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel1)
+                                .addGap(18, 18, 18)
+                                .addComponent(lbl_primaryMsg, javax.swing.GroupLayout.PREFERRED_SIZE, 406, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(26, 26, 26)
-                .addComponent(lbl_errMsg)
-                .addGap(32, 32, 32)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(lbl_rhythmProvider))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel1))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(25, 25, 25)
+                        .addComponent(lbl_primaryMsg)))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
+                .addComponent(lbl_secondaryMsg)
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 160, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btn_OK)
                 .addContainerGap())
@@ -181,10 +188,9 @@ public class RhythmErrorsDialog extends javax.swing.JDialog
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_OK;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JLabel lbl_errMsg;
-    private javax.swing.JLabel lbl_rhythmProvider;
+    private javax.swing.JLabel lbl_primaryMsg;
+    private javax.swing.JLabel lbl_secondaryMsg;
     private javax.swing.JTextArea ta_errors;
     // End of variables declaration//GEN-END:variables
 }

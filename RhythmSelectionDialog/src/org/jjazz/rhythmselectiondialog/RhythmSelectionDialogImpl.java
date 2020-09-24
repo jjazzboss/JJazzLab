@@ -66,6 +66,8 @@ import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.rhythmselectiondialog.ui.RhythmTable;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
 import org.jjazz.ui.utilities.Utilities;
+import org.jjazz.util.MultipleErrorsReport;
+import org.jjazz.util.MultipleErrorsReportDialog;
 import org.openide.*;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.NbBundle.Messages;
@@ -104,8 +106,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
 
         // Update UI
-        
-        Utilities.installSelectAllWhenFocused(tf_filter);        
+        Utilities.installSelectAllWhenFocused(tf_filter);
         fbtn_preview.addActionListener(e -> toggleRhythmPreview());
         rhythmTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "PreviewRhythm");
         rhythmTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0), "ToggleFavorite");
@@ -455,7 +456,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
 
         // Process files
-        List<String> errors = new ArrayList<>();
+        MultipleErrorsReport errRpt = new MultipleErrorsReport();
         final List<RhythmDatabase.RpRhythmPair> pairs = new ArrayList<>();
         HashSet<TimeSignature> timeSigs = new HashSet<>();
         for (File f : chooser.getSelectedFiles())
@@ -473,7 +474,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                     } catch (IOException ex)
                     {
                         LOGGER.warning("btn_addRhythmsActionPerformed() ex=" + ex);
-                        errors.add(f.getName());
+                        errRpt.individualErrorMessages.add(ex.getLocalizedMessage());
                         continue;
                     }
                     pairs.add(new RhythmDatabase.RpRhythmPair(rp, r));
@@ -483,32 +484,30 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         }
 
 
-        if (!errors.isEmpty())
+        // Notify end-user of errors
+        if (!errRpt.individualErrorMessages.isEmpty())
         {
-            String msg = "The files below could not be read. See the log for more details."
-                    + "\n" + errors.toString();
-            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
+            errRpt.primaryErrorMessage = errRpt.individualErrorMessages.size() + " rhythm file(s) could not be read.";
+            errRpt.secondaryErrorMessage = "";
+            MultipleErrorsReportDialog dlg = new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), "Rhythm creation errors", errRpt);
+            dlg.setVisible(true);
         }
 
 
         if (!pairs.isEmpty())
         {
-            // Warning if one new rhythm uses a different time signature than the current one
-            for (TimeSignature ts : timeSigs)
-            {
-                if (!ts.equals(timeSignature))
-                {
-                    String msg = "Note that added rhythm file(s) have different time signatures: " + timeSigs.toString();
-                    NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
-                    DialogDisplayer.getDefault().notify(d);
-                    break;
-                }
-            }
-
             // Add to the rhythmdatabase
-            int n = rdb.addExtraRhythms(pairs);  // This will update the rhythmTable on a task put on the EDT
-            StatusDisplayer.getDefault().setStatusText("Added " + n + " rhythms " + timeSigs.toString());
+            int nbActuallyAdded = rdb.addExtraRhythms(pairs);  // This will update the rhythmTable on a task put on the EDT
+            int nbAlreadyAdded = pairs.size() - nbActuallyAdded;
+
+
+            // Notify user 
+            String msg = "Processed files: " + pairs.size() + "         time signatures=" + timeSigs + "\n";
+            msg += " - New rhythms added to database: " + nbActuallyAdded + "\n";
+            msg += " - Pre-existing rhythms (skipped): " + nbAlreadyAdded;
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+
 
             // rhythmTable will be updated later on the EDT, so we also need a task on the EDT
             Runnable r = new Runnable()
@@ -639,7 +638,6 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         }
         return rp;
     }
-
 
     private void rhythmPreviewComplete(Rhythm r)
     {

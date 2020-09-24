@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythm.database;
 
+import org.jjazz.util.MultipleErrorsReportDialog;
 import org.jjazz.ui.utilities.PleaseWaitDialog;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -51,7 +52,7 @@ import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
-import org.jjazz.rhythm.spi.RhythmProvider.UserErrorReport;
+import org.jjazz.util.MultipleErrorsReport;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.UpgradeManager;
@@ -690,7 +691,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         {
 
             // First get builtin rhythms         
-            final RhythmProvider.UserErrorReport builtinErrRpt = new RhythmProvider.UserErrorReport();
+            final MultipleErrorsReport builtinErrRpt = new MultipleErrorsReport();
             if (!excludeBuiltinRhythms)
             {
                 for (Rhythm r : rp.getBuiltinRhythms(builtinErrRpt))
@@ -704,21 +705,21 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
 
             // Notify user of possible errors
-            if (builtinErrRpt.summaryErrorMessage != null)
+            if (builtinErrRpt.primaryErrorMessage != null)
             {
                 SwingUtilities.invokeLater(new Runnable()
                 {
                     @Override
                     public void run()
                     {
-                        new RhythmErrorsDialog(WindowManager.getDefault().getMainWindow(), rp, builtinErrRpt).setVisible(true);
+                        new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), "Builtin rhythm creation errors", builtinErrRpt).setVisible(true);
                     }
                 });
             }
 
 
             // Add file rhythms
-            final RhythmProvider.UserErrorReport fileErrRpt = new RhythmProvider.UserErrorReport();
+            final MultipleErrorsReport fileErrRpt = new MultipleErrorsReport();
             if (!excludeFileRhythms)
             {
                 List<Rhythm> rhythmsNotBuiltin = rp.getFileRhythms(forceFileRescan, fileErrRpt);
@@ -733,14 +734,14 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
 
 
             // Notify user of possible errors            
-            if (fileErrRpt.summaryErrorMessage != null)
+            if (fileErrRpt.primaryErrorMessage != null)
             {
                 SwingUtilities.invokeLater(new Runnable()
                 {
                     @Override
                     public void run()
                     {
-                        new RhythmErrorsDialog(WindowManager.getDefault().getMainWindow(), rp, fileErrRpt).setVisible(true);
+                        new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), "File-based rhythm creation errors", fileErrRpt).setVisible(true);
                     }
                 });
             }
