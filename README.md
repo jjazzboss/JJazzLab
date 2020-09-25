@@ -11,6 +11,10 @@ The ultimate objective is to develop a jam buddy able to quickly generate intell
 
 To see the JJazzLab-X capabilities download and try the JJazzLab application at [www.jjazzlab.com](https://www.jjazzlab.com), it's built upon JJazzLab-X. You can also check out the demo videos: [JJazzLab YouTube channel](https://www.youtube.com/channel/UC0L3SwjY6bhTj6jsbOYzzAw).
 
+## Architecture
+
+![JJazzLab-X architecture](https://github.com/jjazzboss/JJazzLab-X/blob/master/Graphics/JJazzLab-X-architecture.jpg)
+
 ## Develop your own music generation engine without hassle
 
 Thanks to JJazzLab-X developers can save a huge amount of work by only focusing on their music generation engine. Out of the box, the JJazzLab-X framework provides all the infrastructure, all the “plumbing” that, before, every developer had to write themselves. 
@@ -22,10 +26,6 @@ JJazzLab-X can host any number of music generation engines as plugins. What happ
 3. When user press Play, the framework sends the song data to the music generation engine
 4. The music engine uses the song data to generate the Midi data for the backing tracks
 5. The framework retrieves the Midi data and plays it
-
-## Architecture
-
-![JJazzLab-X architecture](https://github.com/jjazzboss/JJazzLab-X/blob/master/Graphics/JJazzLab-X-architecture.jpg)
 
 ## Easily add new features
 
