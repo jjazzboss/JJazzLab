@@ -9,7 +9,7 @@ The ultimate objective is to develop a jam buddy able to quickly generate intell
 
 ## Example
 
-To see the JJazzLab-X capabilities download and try the JJazzLab application at [www.jjazzlab.com](https://www.jjazzlab.com), it's built upon JJazzLab-X. You can also check out the demo videos: [JJazzLab YouTube channel](https://www.youtube.com/channel/UC0L3SwjY6bhTj6jsbOYzzAw).
+To see the JJazzLab-X capabilities download and try the JJazzLab application at [www.jjazzlab.com](https://www.jjazzlab.com), it's a JJazzLab-X distribution which bundles the YamJJazz music generation engine based on Yamaha style files. You can also check out the demo videos: [JJazzLab YouTube channel](https://www.youtube.com/channel/UC0L3SwjY6bhTj6jsbOYzzAw).
 
 ## Architecture
 
