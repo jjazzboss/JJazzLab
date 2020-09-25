@@ -27,11 +27,13 @@ JJazzLab-X can host any number of music generation engines as plugins. What happ
 
 ![JJazzLab-X architecture](https://github.com/jjazzboss/JJazzLab-X/blob/master/Graphics/JJazzLab-X-architecture.jpg)
 
-## Based on the Apache Netbeans Platform 
+## Easily add new features thanks to the Netbeans Platform infrastructure
 
 JJazzLab-X is based on the [Netbeans Platform](https://netbeans.org/features/platform/features.html) (now hosted by the Apache foundation). It provides a reliable and extensible application architecture.
 
-The Netbeans Platform turns JJazzLab-X into a pluggable application where plugins can be installed or deactivated at runtime. Plugins can easily add/alter functionalities and insert UI elements such as menu items.
+The Netbeans Platform turns JJazzLab-X into a pluggable application where plugins can be installed or deactivated at runtime. Plugins can easily add/alter features and insert UI elements such as menu items.
+
+For example suppose that you work on reharmonization algorithms (e.g. replace | A7 | D7M | by | Em7 A7 | D7M). It's easy to add a feature which propose possible reharmonizations when user selects multiple chord symbols. You'll just create a new action class which implements the algorithm on the current chord symbols selection, and "connect" (via annotations, no code required) this action to a new menu item in the Chord Symbol popup menu.
 
 ## Installation
 
