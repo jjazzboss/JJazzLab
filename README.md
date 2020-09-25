@@ -27,7 +27,7 @@ JJazzLab-X can host any number of music generation engines as plugins. What happ
 
 ![JJazzLab-X architecture](https://github.com/jjazzboss/JJazzLab-X/blob/master/Graphics/JJazzLab-X-architecture.jpg)
 
-## Easily add new features thanks to the Netbeans Platform infrastructure
+## Easily add new features
 
 JJazzLab-X is based on the [Netbeans Platform](https://netbeans.org/features/platform/features.html) (now hosted by the Apache foundation). It provides a reliable and extensible application architecture.
 
