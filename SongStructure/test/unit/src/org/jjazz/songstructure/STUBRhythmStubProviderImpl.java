@@ -30,6 +30,7 @@ import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
+import org.jjazz.util.MultipleErrorsReport;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -84,13 +85,13 @@ public class STUBRhythmStubProviderImpl implements RhythmProvider
     }
 
     @Override
-    public List<Rhythm> getBuiltinRhythms(RhythmProvider.UserErrorReport errRpt)
+    public List<Rhythm> getBuiltinRhythms(MultipleErrorsReport errRpt)
     {
         return new ArrayList<>(rhythms);
     }
 
     @Override
-    public List<Rhythm> getFileRhythms( boolean forceRescan, RhythmProvider.UserErrorReport errRpt)
+    public List<Rhythm> getFileRhythms( boolean forceRescan, MultipleErrorsReport errRpt)
     {
         return new ArrayList<>();
     }

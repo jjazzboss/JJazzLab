@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythm.spi;
 
+import org.jjazz.util.MultipleErrorsReport;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,28 +38,6 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 public interface RhythmProvider
 {
 
-    /**
-     * Helper class to be able to report to end-user errors which occured while creating rhythms.
-     * <p>
-     */
-    static class UserErrorReport
-    {
-
-        /**
-         * If non-null this one-line message will be used by the framework to notify user.
-         * <p>
-         * Example: "2 files could not be read: aa.sty, bb.sty"
-         */
-        public String summaryErrorMessage;
-        /**
-         * If non-null it might be used by the framework to provide the individual error details to the user.
-         * <p>
-         * Example:<br/>
-         * [0] = "aa.sty: CASM data is corrupted"<br/>
-         * [1] = "bb.sty: invalid low key parameter value=182 at byte 0x1029. Authorized value range is 0-127."
-         */
-        public List<String> individualErrorMessages = new ArrayList<>();
-    }
 
     /**
      * See getFileRhythms().
@@ -83,7 +62,7 @@ public interface RhythmProvider
      * @param errRpt Can't be null. RhythmProvider should update this object so that the framework can notify user about problems.
      * @return All non file-based rhythms provided by this RhythmProvider. List can be empty but not null.
      */
-    public List<Rhythm> getBuiltinRhythms(UserErrorReport errRpt);
+    public List<Rhythm> getBuiltinRhythms(MultipleErrorsReport errRpt);
 
     /**
      * Get the file-based rhythms.
@@ -96,7 +75,7 @@ public interface RhythmProvider
      * @param errRpt Can't be null. RhythmProvider should update this object so that the framework can notify user about problems.
      * @return All non builtin rhythms provided by this RhythmProvider. List can be empty but not null.
      */
-    public List<Rhythm> getFileRhythms(boolean forceRescan, UserErrorReport errRpt);
+    public List<Rhythm> getFileRhythms(boolean forceRescan, MultipleErrorsReport errRpt);
 
     /**
      * Get the file extensions accepted by readFast().

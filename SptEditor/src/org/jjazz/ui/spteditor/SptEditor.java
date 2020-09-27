@@ -22,7 +22,6 @@
  */
 package org.jjazz.ui.spteditor;
 
-import java.awt.Color;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import java.awt.Component;
 import java.awt.Dimension;

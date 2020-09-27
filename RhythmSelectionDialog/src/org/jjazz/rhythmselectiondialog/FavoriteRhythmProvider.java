@@ -32,6 +32,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.FavoriteRhythms;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.spi.RhythmProvider;
+import org.jjazz.util.MultipleErrorsReport;
 
 /**
  * A "fake" RhythmProvider instance which provides the favorite rhythms from FavoriteRhythms for UI purposes.
@@ -87,7 +88,7 @@ public class FavoriteRhythmProvider implements RhythmProvider
      * @return
      */
     @Override
-    public List<Rhythm> getBuiltinRhythms(RhythmProvider.UserErrorReport errRpt)
+    public List<Rhythm> getBuiltinRhythms(MultipleErrorsReport errRpt)
     {
         return Collections.emptyList();
     }
@@ -102,7 +103,7 @@ public class FavoriteRhythmProvider implements RhythmProvider
      */
     @SuppressWarnings("unchecked")
     @Override
-    public List<Rhythm> getFileRhythms(boolean forceRescan, RhythmProvider.UserErrorReport errRpt)
+    public List<Rhythm> getFileRhythms(boolean forceRescan, MultipleErrorsReport errRpt)
     {
         return (List<Rhythm>) Collections.EMPTY_LIST;
     }

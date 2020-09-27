@@ -54,7 +54,7 @@ public class MidiRecorder implements MetaEventListener
 
     private final Transmitter midiInTransmitter;
     private final MyReceiver myReceiver;
-    private final boolean useTimeStamp;
+    private final boolean useMidiEventTimeStamps;
     private long usOffset = -1;
     private final long[] midiMessagesUsPositions = new long[MSG_BUFFER_SIZE]; // In micro-seconds, 0 is start of sequence
     private final ShortMessage[] midiMessages = new ShortMessage[MSG_BUFFER_SIZE];
@@ -93,11 +93,10 @@ public class MidiRecorder implements MetaEventListener
         var jms = JJazzMidiSystem.getInstance();
         var midiIn = jms.getDefaultInDevice();      // Don't use getJJazzMidiInDevice() here, we need getMicrosecondPosition() support
         assert midiIn != null;
-        // useTimeStamp = midiIn.getMicrosecondPosition() != -1;
-        useTimeStamp=false;
+        useMidiEventTimeStamps = midiIn.getMicrosecondPosition() != -1;
 
 
-        LOGGER.severe("MidiRecorder() ppqOffset=" + seqStartInPPQ + " useTimeStamp=" + useTimeStamp + " songTempoFactor=" + songTempoFactor);
+        LOGGER.severe("MidiRecorder() ppqOffset=" + seqStartInPPQ + " useMidiEventTimeStamps=" + useMidiEventTimeStamps + " songTempoFactor=" + songTempoFactor);
 
 
         // Connect Midi IN to our receiver
@@ -224,9 +223,9 @@ public class MidiRecorder implements MetaEventListener
         {
             if (meta.getType() == 6 && START_MARKER.equals(Utilities.toString(meta.getData())))
             {
-                usOffset = useTimeStamp ? JJazzMidiSystem.getInstance().getDefaultInDevice().getMicrosecondPosition() : System.nanoTime() / 1000;
+                usOffset = useMidiEventTimeStamps ? JJazzMidiSystem.getInstance().getDefaultInDevice().getMicrosecondPosition() : System.nanoTime() / 1000;
                 assert usOffset != -1;
-                LOGGER.log(Level.SEVERE, "meta() useTimeStamp="+useTimeStamp+" usOffset="+ usOffset);
+                LOGGER.log(Level.SEVERE, "meta() useTimeStamp="+useMidiEventTimeStamps+" usOffset="+ usOffset);
             }
         }
     }
@@ -364,7 +363,7 @@ public class MidiRecorder implements MetaEventListener
             if (usOffset >= 0)
             {
                 midiMessages[nbMessages] = sm;
-                midiMessagesUsPositions[nbMessages] = (useTimeStamp ? timeStamp : System.nanoTime() / 1000) - usOffset;
+                midiMessagesUsPositions[nbMessages] = (useMidiEventTimeStamps ? timeStamp : System.nanoTime() / 1000) - usOffset;
                 nbMessages++;
             } else
             {

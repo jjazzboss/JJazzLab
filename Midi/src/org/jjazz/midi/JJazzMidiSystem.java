@@ -75,6 +75,7 @@ public final class JJazzMidiSystem
     public final static String PROP_MIDI_IN = "MidiInProp";
     public final static String PROP_MIDI_OUT = "MidiOutProp";
     public final static String PROP_MIDI_THRU = "MidiThruProp";
+    public final static String PROP_OUT_LATENCY = "OutLatency";
     public final static String PROP_MASTER_VOL_FACTOR = "MasterVolumeFactor";
     public final static String PROP_MIDI_OUT_FILTERING = "MidiOutFiltering";
     public final static String PREF_JAVA_SYNTH_SOUNDFONT_FILE = "JavaSynthSoundFontFile";
@@ -112,6 +113,7 @@ public final class JJazzMidiSystem
      * The default system synth
      */
     private Synthesizer defaultSynth;
+
     private EnumSet<MidiFilter.Config> saveFilterConfig;
 
     /**
@@ -737,6 +739,37 @@ public final class JJazzMidiSystem
     public boolean isThruMode()
     {
         return prefs.getBoolean(PROP_MIDI_THRU, false);
+    }
+
+    /**
+     * Set the audio latency (in PPQ) for the current Midi out device.
+     * <p>
+     * Fire the PROP_OUT_LATENCY property change event.
+     *
+     * @param latencyPPQ
+     */
+    public void setOutLatency(long latencyPPQ)
+    {
+        if (latencyPPQ < 0)
+        {
+            throw new IllegalArgumentException("latencyPPQ=" + latencyPPQ);
+        }
+        long old = getOutLatency();
+        if (latencyPPQ == old)
+        {
+            return;
+        }
+        prefs.putLong(PROP_OUT_LATENCY, latencyPPQ);
+        LOGGER.info("setOutLatency() latencyPPQ=" + latencyPPQ);
+        pcs.firePropertyChange(PROP_OUT_LATENCY, old, latencyPPQ);
+    }
+
+    /**
+     * @return True if thru mode is enabled.
+     */
+    public long getOutLatency()
+    {
+        return prefs.getLong(PROP_OUT_LATENCY, 0);
     }
 
     /**

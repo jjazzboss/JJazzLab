@@ -1,5 +1,4 @@
 Manifest-Version: 1.0
 OpenIDE-Module: org.jjazz.rhythm.database
-OpenIDE-Module-Localizing-Bundle: org/jjazz/rhythm/database/Bundle.properties
 OpenIDE-Module-Specification-Version: 1.0
 
