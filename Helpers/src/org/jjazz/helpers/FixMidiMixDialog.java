@@ -47,7 +47,7 @@ public class FixMidiMixDialog extends javax.swing.JDialog
 
     protected FixMidiMixDialog()
     {
-        super(WindowManager.getDefault().getMainWindow(), "Midi Configuration Problems", true);
+        super(WindowManager.getDefault().getMainWindow(), java.util.ResourceBundle.getBundle("org/jjazz/helpers/Bundle").getString("MIDI CONFIGURATION PROBLEMS"), true);
         choice = FixChoice.CANCEL;
         initComponents();
         setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
@@ -89,7 +89,7 @@ public class FixMidiMixDialog extends javax.swing.JDialog
         String fixInstrumentsText = null;
         if (!mapChannelNewIns.isEmpty())
         {
-            fixInstrumentsTitle = "The following instruments should be replaced to fit the output synth configuration:";
+            fixInstrumentsTitle = java.util.ResourceBundle.getBundle("org/jjazz/helpers/Bundle").getString("THE FOLLOWING INSTRUMENTS SHOULD BE REPLACED TO FIT THE OUTPUT SYNTH CONFIGURATION:");
             StringBuilder sb = new StringBuilder();
             sb.append("<HTML>");
             List<Integer> channels = new ArrayList<>(mapChannelNewIns.keySet());
@@ -99,7 +99,7 @@ public class FixMidiMixDialog extends javax.swing.JDialog
                 RhythmVoice rv = midiMix.getRhythmVoice(ch);
                 Instrument ins = midiMix.getInstrumentMixFromChannel(ch).getInstrument();
                 Instrument newIns = mapChannelNewIns.get(ch);
-                sb.append("Channel ").append(ch + 1).append(" : ");
+                sb.append(java.util.ResourceBundle.getBundle("org/jjazz/helpers/Bundle").getString("CHANNEL ")).append(ch + 1).append(" : ");
                 sb.append(ins.getFullName()).append(" >> ").append(newIns.getFullName());
                 if (ch != channels.get(channels.size() - 1))
                 {
@@ -117,13 +117,13 @@ public class FixMidiMixDialog extends javax.swing.JDialog
         String reroutedChannelsText = null;
         if (!reroutedChannels.isEmpty())
         {
-            reroutedChannelsTitle = "The following drums channels should be rerouted to Midi channel 10:";
+            reroutedChannelsTitle = java.util.ResourceBundle.getBundle("org/jjazz/helpers/Bundle").getString("THE FOLLOWING DRUMS CHANNELS SHOULD BE REROUTED TO MIDI CHANNEL 10:");
             StringBuilder sb = new StringBuilder();
             sb.append("<HTML>");
             for (int ch : reroutedChannels)
             {
                 RhythmVoice rv = midiMix.getRhythmVoice(ch);
-                sb.append("Channel ").append(ch + 1).append(" : ").append(rv.getName());
+                sb.append(java.util.ResourceBundle.getBundle("org/jjazz/helpers/Bundle").getString("CHANNEL ")).append(ch + 1).append(" : ").append(rv.getName());
                 if (ch != reroutedChannels.get(reroutedChannels.size() - 1))
                 {
                     sb.append("<br/>");

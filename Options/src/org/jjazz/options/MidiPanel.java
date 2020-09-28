@@ -95,12 +95,13 @@ final class MidiPanel extends javax.swing.JPanel
         led_MidiIn = new org.jjazz.ui.flatcomponents.FlatLedIndicator();
         jScrollPane2 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
-        jButton1 = new javax.swing.JButton();
+        btn_autoAdjustLatency = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         list_InDevices = new org.jjazz.midi.ui.MidiInDeviceList();
         jLabel1 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
-        jCheckBox1 = new javax.swing.JCheckBox();
+        spn_latency = new org.jjazz.ui.utilities.WheelSpinner();
+        cn_enableMidiInput = new javax.swing.JCheckBox();
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_midiThru, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.cb_midiThru.text")); // NOI18N
         cb_midiThru.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.cb_midiThru.toolTipText")); // NOI18N
@@ -247,16 +248,21 @@ final class MidiPanel extends javax.swing.JPanel
         led_MidiIn.setDiameter(10);
         led_MidiIn.setLuminanceStepOnePeriod(10);
 
-        jScrollPane2.setBackground(null);
         jScrollPane2.setBorder(null);
 
-        helpTextArea1.setBackground(null);
         helpTextArea1.setColumns(20);
         helpTextArea1.setRows(3);
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.helpTextArea1.text")); // NOI18N
         jScrollPane2.setViewportView(helpTextArea1);
 
-        org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.jButton1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_autoAdjustLatency, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_autoAdjustLatency.text")); // NOI18N
+        btn_autoAdjustLatency.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_autoAdjustLatencyActionPerformed(evt);
+            }
+        });
 
         list_InDevices.addListSelectionListener(new javax.swing.event.ListSelectionListener()
         {
@@ -270,6 +276,9 @@ final class MidiPanel extends javax.swing.JPanel
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.jLabel1.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jButton2, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.jButton2.text")); // NOI18N
+
+        spn_latency.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1500, 1));
+        spn_latency.setColumns(4);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -287,10 +296,12 @@ final class MidiPanel extends javax.swing.JPanel
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jLabel1)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton1)
-                        .addGap(0, 189, Short.MAX_VALUE))
-                    .addComponent(jScrollPane2))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spn_latency, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(43, 43, 43)
+                        .addComponent(btn_autoAdjustLatency)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 375, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -308,14 +319,15 @@ final class MidiPanel extends javax.swing.JPanel
                             .addComponent(jButton2, javax.swing.GroupLayout.Alignment.TRAILING)))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton1)
-                            .addComponent(jLabel1))
+                            .addComponent(btn_autoAdjustLatency)
+                            .addComponent(jLabel1)
+                            .addComponent(spn_latency, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane2)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox1, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.jCheckBox1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(cn_enableMidiInput, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.cn_enableMidiInput.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -336,7 +348,7 @@ final class MidiPanel extends javax.swing.JPanel
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jCheckBox1)
+                                .addComponent(cn_enableMidiInput)
                                 .addGap(0, 0, Short.MAX_VALUE)))
                         .addContainerGap())
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
@@ -353,7 +365,7 @@ final class MidiPanel extends javax.swing.JPanel
                 .addGap(24, 24, 24)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(21, 21, 21)
-                .addComponent(jCheckBox1)
+                .addComponent(cn_enableMidiInput)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -460,6 +472,12 @@ final class MidiPanel extends javax.swing.JPanel
     {//GEN-HEADEREND:event_txtf_soundbankFileActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtf_soundbankFileActionPerformed
+
+    private void btn_autoAdjustLatencyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_autoAdjustLatencyActionPerformed
+    {//GEN-HEADEREND:event_btn_autoAdjustLatencyActionPerformed
+                var jms = JJazzMidiSystem.getInstance();
+
+    }//GEN-LAST:event_btn_autoAdjustLatencyActionPerformed
 
     void load()
     {
@@ -590,15 +608,15 @@ final class MidiPanel extends javax.swing.JPanel
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btn_autoAdjustLatency;
     private javax.swing.JButton btn_changeSoundbankFile;
     private javax.swing.JButton btn_refresh;
     private javax.swing.JButton btn_resetSoundbank;
     private javax.swing.JButton btn_test;
     private javax.swing.JCheckBox cb_midiThru;
+    private javax.swing.JCheckBox cn_enableMidiInput;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
-    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
-    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
@@ -610,6 +628,7 @@ final class MidiPanel extends javax.swing.JPanel
     private org.jjazz.midi.ui.MidiInDeviceList list_InDevices;
     private org.jjazz.midi.ui.MidiOutDeviceList list_OutDevices;
     private javax.swing.JPanel pnl_soundbankFile;
+    private org.jjazz.ui.utilities.WheelSpinner spn_latency;
     private org.jjazz.ui.utilities.WheelSpinner spn_preferredUserChannel;
     private javax.swing.JTextField txtf_soundbankFile;
     // End of variables declaration//GEN-END:variables

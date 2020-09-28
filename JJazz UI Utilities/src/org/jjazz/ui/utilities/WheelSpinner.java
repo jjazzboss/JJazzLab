@@ -50,7 +50,7 @@ import org.openide.util.Exceptions;
  * Supports only SpinnerListModel and SpinnerNumberModel. Mouse-wheel support is enabled according to GeneralUISettings. If model
  * is a SpinnerNumberModel prevent insertion of anything except digit.
  */
-public class WheelSpinner extends JSpinner implements MouseWheelListener
+public class  WheelSpinner extends JSpinner implements MouseWheelListener
 {
 
     private int wheelStep;
@@ -164,7 +164,8 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
                         }
                     }
                 };
-                doc.setDocumentFilter(new DigitOnlyFilter((Integer) snm.getMinimum() < 0));
+                int min = (int) (Number) snm.getMinimum();
+                doc.setDocumentFilter(new DigitOnlyFilter(min < 0));
                 tf.setDocument(doc);
                 try
                 {

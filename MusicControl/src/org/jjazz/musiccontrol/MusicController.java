@@ -22,6 +22,7 @@
  */
 package org.jjazz.musiccontrol;
 
+import org.jjazz.midi.recorder.MidiRecorder;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -994,7 +995,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
         try
         {
-            recorder = new MidiRecorder(playbackContext.sequence, sequencer.getTickPosition(), songTempoFactor);
+            recorder = new MidiRecorder(playbackContext.sequence, sequencer.getTickPosition());
             if (mgContext.getMidiMix().isUserChannelRecordingEnabled())
             {
                 MidiUtilities.clearTrack(playbackContext.userTrack);
@@ -1036,7 +1037,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         if (recorder != null && recorder.isRecordingOccured())
         {
             recorder.dump();
-            recorder.fillTrack(playbackContext.userTrack);
+            recorder.fillTrack(playbackContext.userTrack, songTempoFactor);
             LOGGER.severe(MidiUtilities.toString(playbackContext.sequence));            
         }
     }

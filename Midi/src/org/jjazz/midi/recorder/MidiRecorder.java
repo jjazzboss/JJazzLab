@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.musiccontrol;
+package org.jjazz.midi.recorder;
 
 import java.util.Arrays;
 import java.util.List;
@@ -52,6 +52,7 @@ public class MidiRecorder implements MetaEventListener
     private static final String START_MARKER = "Recording Start";
     private static final Logger LOGGER = Logger.getLogger(MidiRecorder.class.getSimpleName());
 
+
     private final Transmitter midiInTransmitter;
     private final MyReceiver myReceiver;
     private final boolean useMidiEventTimeStamps;
@@ -63,25 +64,26 @@ public class MidiRecorder implements MetaEventListener
     private boolean recordingOccured;
     private final long seqStartInPPQ;
     private final Sequence sequence;
-    private final double songTempoFactor;
 
     /**
-     * Create an object to record Midi input for the specified sequence.
+     * Create an object ready to record Midi input in sync with the specified playback sequence.
+     * <p>
+     * Once created it will capture Midi input if isRecordingEnabled() is true, and as soon as JJazzMidiSystem default sequencer
+     * is started (no need to call Sequencer.enableRecording()). Input data is stored internally. Use fillTrack() to actually add
+     * MidiEvents to a sequence's track.
      * <p>
      * If not already present a special marker MetaEvent will be inserted on track 0 at position seqStartInPPQ.
      *
-     * @param seq The playback and record sequence.
+     * @param seq Must contain at least one playback track.
      * @param seqStartInPPQ The position in ticks where playback will start.
-     * @param songTempoFactor
      * @throws MidiUnavailableException
      */
-    public MidiRecorder(Sequence seq, long seqStartInPPQ, double songTempoFactor) throws MidiUnavailableException
+    public MidiRecorder(Sequence seq, long seqStartInPPQ) throws MidiUnavailableException
     {
-        if (seq == null || seqStartInPPQ < 0 || seq.getTracks().length == 0 || songTempoFactor <= 0)
+        if (seq == null || seqStartInPPQ < 0 || seq.getTracks().length == 0)
         {
-            throw new IllegalArgumentException("seq=" + seq + " seqStartInPPQ=" + seqStartInPPQ + " songTempoFactor=" + songTempoFactor);
+            throw new IllegalArgumentException("seq=" + seq + " seqStartInPPQ=" + seqStartInPPQ);
         }
-        this.songTempoFactor = songTempoFactor;
         this.sequence = seq;
         this.seqStartInPPQ = seqStartInPPQ;
 
@@ -96,7 +98,7 @@ public class MidiRecorder implements MetaEventListener
         useMidiEventTimeStamps = midiIn.getMicrosecondPosition() != -1;
 
 
-        LOGGER.severe("MidiRecorder() ppqOffset=" + seqStartInPPQ + " useMidiEventTimeStamps=" + useMidiEventTimeStamps + " songTempoFactor=" + songTempoFactor);
+        LOGGER.fine("MidiRecorder() ppqOffset=" + seqStartInPPQ + " useMidiEventTimeStamps=" + useMidiEventTimeStamps);
 
 
         // Connect Midi IN to our receiver
@@ -108,15 +110,17 @@ public class MidiRecorder implements MetaEventListener
         // To be notified as soon as sequencer starts
         jms.getDefaultSequencer().addMetaEventListener(this);
 
-
     }
 
     /**
      * Use the recorded Midi data to fill the specified track.
+     * <p>
+     * Do nothing is no recording done yet. Take into account possible SongPart tempo factor controller events.
      *
-     * @param track The track for which Midi events must be added. Track must be part of the current sequence.
+     * @param track Track must be part of the current sequence.
+     * @param songTempoFactor A value in the range [0.5;2]. Sequence actual tempo=songTempoFactor * MidiConstSEQUENCER_REF_TEMPO.
      */
-    public void fillTrack(Track track)
+    public void fillTrack(Track track, double songTempoFactor)
     {
         assert Arrays.asList(sequence.getTracks()).contains(track);
 
@@ -126,7 +130,7 @@ public class MidiRecorder implements MetaEventListener
         }
 
 
-        // Collect all tempo changes (tempo is required for tick~us conversion)
+        // Collect all tempo changes (tempo is required for tick-us conversion)
         // TempoChanges positions are relative to seqStartInPPQ
         Track track0 = sequence.getTracks()[0];
         var tempoFactorChangeEvents = MidiUtilities.getMidiEvents(track0, ShortMessage.class,
@@ -143,16 +147,22 @@ public class MidiRecorder implements MetaEventListener
             MidiEvent lastTempoEvent = MidiUtilities.getLastMidiEvent(track0, ShortMessage.class,
                     sm -> sm.getCommand() == ShortMessage.CONTROL_CHANGE && sm.getData1() == MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR,
                     seqStartInPPQ);
-            double songPartTempoFactor = 1d;
+
+
+            double tempo = MidiConst.SEQUENCER_REF_TEMPO * songTempoFactor;
             if (lastTempoEvent != null)
             {
-                songPartTempoFactor = MidiUtilities.getTempoFactor((ShortMessage) lastTempoEvent.getMessage());
+                // There is a SongPart tempo factor
+                tempo *= MidiUtilities.getTempoFactor((ShortMessage) lastTempoEvent.getMessage());
             }
-            TempoChange tfc = new TempoChange(0, songPartTempoFactor);
+
+            TempoChange tfc = new TempoChange(0, tempo);
             tempoChanges.add(0, tfc);
         }
 
-        LOGGER.severe("fillTrack() tempoChanges=" + tempoChanges);
+
+        LOGGER.fine("fillTrack() tempoChanges=" + tempoChanges);
+
 
         // Add MidiEvents
         for (int i = 0; i < nbMessages; i++)
@@ -160,7 +170,7 @@ public class MidiRecorder implements MetaEventListener
             ShortMessage sm = midiMessages[i];
             long usTick = midiMessagesUsPositions[i];
             long ppqTick = toPPQTick(usTick, tempoChanges) + seqStartInPPQ;
-            LOGGER.severe("fillTrack() usTick=" + usTick + " ppqTick=" + ppqTick);
+            // LOGGER.severe("fillTrack() usTick=" + usTick + " ppqTick=" + ppqTick);
             MidiEvent me = new MidiEvent(sm, ppqTick);
             track.add(me);
         }
@@ -225,7 +235,10 @@ public class MidiRecorder implements MetaEventListener
             {
                 usOffset = useMidiEventTimeStamps ? JJazzMidiSystem.getInstance().getDefaultInDevice().getMicrosecondPosition() : System.nanoTime() / 1000;
                 assert usOffset != -1;
-                LOGGER.log(Level.SEVERE, "meta() useTimeStamp="+useMidiEventTimeStamps+" usOffset="+ usOffset);
+                LOGGER.log(Level.FINE, "meta() useTimeStamp={0} usOffset={1}", new Object[]
+                {
+                    useMidiEventTimeStamps, usOffset
+                });
             }
         }
     }
@@ -308,12 +321,12 @@ public class MidiRecorder implements MetaEventListener
         public double tempoBPM;
         public double tempoMPQ;
 
-        public TempoChange(long tickPPQ, double songPartTempoFactor)
+        public TempoChange(long tickPPQ, double tempoBPM)
         {
             this.tickPPQ = tickPPQ;
-            this.tempoBPM = MidiConst.SEQUENCER_REF_TEMPO * songTempoFactor * songPartTempoFactor;
+            this.tempoBPM = tempoBPM;
             this.tempoMPQ = MidiUtilities.toTempoMPQ(tempoBPM);
-            LOGGER.severe("TempoChange() tickPPQ=" + tickPPQ + " songPartTempoFactor=" + songPartTempoFactor + " => tempoBPM=" + tempoBPM + " tempoMPQ=" + tempoMPQ);
+            // LOGGER.severe("TempoChange() tickPPQ=" + tickPPQ + " tempoBPM=" + tempoBPM + " tempoMPQ=" + tempoMPQ);
         }
 
         @Override
@@ -348,7 +361,7 @@ public class MidiRecorder implements MetaEventListener
                 return;
             }
 
-            LOGGER.severe("send() " + MidiUtilities.toString(msg, timeStamp));
+            // LOGGER.severe("send() " + MidiUtilities.toString(msg, timeStamp));
 
             if (nbMessages >= MSG_BUFFER_SIZE)
             {
