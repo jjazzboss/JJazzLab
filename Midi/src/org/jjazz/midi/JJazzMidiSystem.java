@@ -76,6 +76,7 @@ public final class JJazzMidiSystem
     public final static String PROP_MIDI_OUT = "MidiOutProp";
     public final static String PROP_MIDI_THRU = "MidiThruProp";
     public final static String PROP_OUT_LATENCY = "OutLatency";
+    public final static String PROP_RECORDING_ENABLED = "RecordingEnabled";
     public final static String PROP_MASTER_VOL_FACTOR = "MasterVolumeFactor";
     public final static String PROP_MIDI_OUT_FILTERING = "MidiOutFiltering";
     public final static String PREF_JAVA_SYNTH_SOUNDFONT_FILE = "JavaSynthSoundFontFile";
@@ -742,13 +743,39 @@ public final class JJazzMidiSystem
     }
 
     /**
+     * Enable/Disable recording.
+     * <p>
+     * For recording to work a default Midi IN device must also be defined. Fire the setRecordingEnabled property change event.
+     *
+     * @param b Enable if true, disable if false.
+     */
+    public void setRecordingEnabled(boolean b)
+    {
+        if (b == isRecordingEnabled())
+        {
+            return;
+        }
+        prefs.putBoolean(PROP_RECORDING_ENABLED, b);
+        LOGGER.info("setRecordingEnabled() b=" + b);
+        pcs.firePropertyChange(PROP_RECORDING_ENABLED, !b, b);
+    }
+
+    /**
+     * @return True if recording is enabled.
+     */
+    public boolean isRecordingEnabled()
+    {
+        return prefs.getBoolean(PROP_RECORDING_ENABLED, false);
+    }
+
+    /**
      * Set the audio latency (in PPQ) for the current Midi out device.
      * <p>
      * Fire the PROP_OUT_LATENCY property change event.
      *
      * @param latencyPPQ
      */
-    public void setOutLatency(long latencyPPQ)
+    public void setOutLatency(int latencyPPQ)
     {
         if (latencyPPQ < 0)
         {
@@ -759,17 +786,17 @@ public final class JJazzMidiSystem
         {
             return;
         }
-        prefs.putLong(PROP_OUT_LATENCY, latencyPPQ);
+        prefs.putInt(PROP_OUT_LATENCY, latencyPPQ);
         LOGGER.info("setOutLatency() latencyPPQ=" + latencyPPQ);
         pcs.firePropertyChange(PROP_OUT_LATENCY, old, latencyPPQ);
     }
 
     /**
-     * @return True if thru mode is enabled.
+     * @return The output latency in PPQ.
      */
-    public long getOutLatency()
+    public int getOutLatency()
     {
-        return prefs.getLong(PROP_OUT_LATENCY, 0);
+        return prefs.getInt(PROP_OUT_LATENCY, 0);
     }
 
     /**

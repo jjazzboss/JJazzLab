@@ -24,21 +24,27 @@ package org.jjazz.options;
 
 import java.awt.event.ActionEvent;
 import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MetaEventListener;
+import javax.sound.midi.MetaMessage;
 import javax.sound.midi.Sequence;
+import javax.sound.midi.Sequencer;
 import javax.sound.midi.Track;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.MidiConst;
+import org.jjazz.rhythmmusicgeneration.NoteEvent;
+import org.jjazz.rhythmmusicgeneration.Phrase;
 import org.openide.util.Exceptions;
 import org.openide.windows.WindowManager;
 
 /**
  * The dialog to adjust output latency.
  */
-public class LatencyDialog extends javax.swing.JDialog
+public class LatencyDialog extends javax.swing.JDialog implements MetaEventListener
 {
 
     private boolean exitOk;
@@ -51,13 +57,13 @@ public class LatencyDialog extends javax.swing.JDialog
     private State state = State.INIT;
 
     private Sequence sequence;
+    private Sequencer sequencer;
     private Track recordingTrack;
-
 
     /**
      * Creates new form LatencyDialog
      */
-    public LatencyDialog(long latency)
+    public LatencyDialog(int latency)
     {
         super(WindowManager.getDefault().getMainWindow(), true);
         if (latency < 0)
@@ -69,6 +75,10 @@ public class LatencyDialog extends javax.swing.JDialog
 
         initSequence();
 
+        var jms = JJazzMidiSystem.getInstance();
+        sequencer = jms.getDefaultSequencer();
+        sequencer.addMetaEventListener(this);
+
         changeState(State.INIT);
         spn_latency.setValue(latency);
     }
@@ -78,11 +88,10 @@ public class LatencyDialog extends javax.swing.JDialog
      *
      * @return -1 if used cancelled the dialog.
      */
-    public long getLatency()
+    public int getLatency()
     {
-        return exitOk ? (Long) spn_latency.getValue() : -1;
+        return exitOk ? (Integer) spn_latency.getValue() : -1;
     }
-
 
     /**
      * Overridden to add global key bindings
@@ -117,6 +126,32 @@ public class LatencyDialog extends javax.swing.JDialog
         return contentPane;
     }
 
+    public void cleanup()
+    {
+        JJazzMidiSystem.getInstance().getDefaultSequencer().removeMetaEventListener(this);
+    }
+
+    // ======================================================================================================
+    // MetaEventListener implementation
+    // ======================================================================================================
+    @Override
+    public void meta(MetaMessage meta)
+    {
+        if (meta.getType() == 47) // Meta Event for end of sequence
+        {
+            // This method  is called from the Sequencer thread, NOT from the EDT !
+            // So if this method impacts the UI, it must use SwingUtilities.InvokeLater() (or InvokeAndWait())
+            Runnable doRun = new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    recordingEnded();
+                }
+            };
+            SwingUtilities.invokeLater(doRun);
+        }
+    }
 
     // ======================================================================================================
     // Private methods
@@ -153,12 +188,26 @@ public class LatencyDialog extends javax.swing.JDialog
     private void startRecording()
     {
         changeState(State.RECORDING);
+
+        try
+        {
+            sequencer.setSequence(sequence);
+        } catch (InvalidMidiDataException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
+        sequencer.setTempoInBPM(100);
+        sequencer.setTempoFactor(1f);
+        sequencer.setTickPosition(0);
+
+        sequencer.start();
+
     }
 
     private void recordingEnded()
     {
-
-        changeState(State.RECORDING);
+        JJazzMidiSystem.getInstance().getDefaultSequencer().stop();
+        changeState(State.RECORDED);
     }
 
     /**
@@ -170,18 +219,47 @@ public class LatencyDialog extends javax.swing.JDialog
         {
             sequence = new Sequence(Sequence.PPQ, MidiConst.PPQ_RESOLUTION);
             recordingTrack = sequence.createTrack();
-            Track playbackTrack = sequence.createTrack();
 
-            // Add a basic drum beat
-            for (double beat = 0; beat <= 16; beat += 0.5f)
-            {
-                
-            }
+            // Create playback track
+            Track playbackTrack = sequence.createTrack();
+            Phrase p = getDrumsPhrase();
+            p.fillTrack(playbackTrack);
 
         } catch (InvalidMidiDataException ex)
         {
             Exceptions.printStackTrace(ex);
         }
+    }
+
+    private Phrase getDrumsPhrase()
+    {
+        final int NB_BARS = 8;
+        final float DUR = 0.25f;
+
+        Phrase p = new Phrase(MidiConst.CHANNEL_DRUMS);
+
+        for (int bar = 0; bar < NB_BARS; bar++)
+        {
+            for (float beat = 0; beat < 4f; beat += 0.5f)
+            {
+                int pitch = MidiConst.CLOSED_HI_HAT;
+                int velocity = 40;
+                if (beat == 0 || beat == 2)
+                {
+                    pitch = MidiConst.ACOUSTIC_BASS_DRUM;
+                    velocity = 90;
+                } else if (beat == 1 || beat == 3)
+                {
+                    pitch = MidiConst.ACOUSTIC_SNARE;
+                    velocity = 90;
+                }
+
+                NoteEvent ne = new NoteEvent(pitch, DUR, velocity, bar * 4 + beat);
+                p.addOrdered(ne);
+            }
+
+        }
+        return p;
     }
 
     /**
@@ -207,7 +285,8 @@ public class LatencyDialog extends javax.swing.JDialog
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
-        btn_stop = new javax.swing.JButton();
+        flatLedIndicator1 = new org.jjazz.ui.flatcomponents.FlatLedIndicator();
+        lbl_countdown = new javax.swing.JLabel();
 
         org.openide.awt.Mnemonics.setLocalizedText(jButton3, org.openide.util.NbBundle.getMessage(LatencyDialog.class, "LatencyDialog.jButton3.text")); // NOI18N
 
@@ -286,8 +365,14 @@ public class LatencyDialog extends javax.swing.JDialog
                 .addContainerGap())
         );
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_stop, org.openide.util.NbBundle.getMessage(LatencyDialog.class, "LatencyDialog.btn_stop.text")); // NOI18N
-        btn_stop.setToolTipText(org.openide.util.NbBundle.getMessage(LatencyDialog.class, "LatencyDialog.btn_stop.toolTipText")); // NOI18N
+        flatLedIndicator1.setToolTipText(org.openide.util.NbBundle.getMessage(LatencyDialog.class, "LatencyDialog.flatLedIndicator1.toolTipText")); // NOI18N
+        flatLedIndicator1.setDiameter(10);
+
+        lbl_countdown.setFont(new java.awt.Font("Courier New", 1, 18)); // NOI18N
+        lbl_countdown.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_countdown, org.openide.util.NbBundle.getMessage(LatencyDialog.class, "LatencyDialog.lbl_countdown.text")); // NOI18N
+        lbl_countdown.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        lbl_countdown.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -298,20 +383,20 @@ public class LatencyDialog extends javax.swing.JDialog
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(btn_test)
-                        .addGap(0, 583, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(btn_record)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btn_stop)
-                                .addGap(41, 41, 41)
+                                .addGap(18, 18, 18)
+                                .addComponent(lbl_countdown)
+                                .addGap(70, 70, 70)
                                 .addComponent(lbl_latency)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(spn_latency, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 309, Short.MAX_VALUE))
+                                .addGap(0, 0, Short.MAX_VALUE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
                                 .addComponent(btn_OK)
@@ -319,6 +404,10 @@ public class LatencyDialog extends javax.swing.JDialog
                                 .addComponent(btn_Cancel))
                             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addContainerGap())))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(696, Short.MAX_VALUE)
+                .addComponent(flatLedIndicator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btn_Cancel, btn_OK});
@@ -326,21 +415,23 @@ public class LatencyDialog extends javax.swing.JDialog
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap()
+                .addComponent(flatLedIndicator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btn_record)
                     .addComponent(lbl_latency)
                     .addComponent(spn_latency, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_stop))
+                    .addComponent(lbl_countdown))
                 .addGap(33, 33, 33)
                 .addComponent(jLabel4)
                 .addGap(18, 18, 18)
                 .addComponent(btn_test)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 35, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 17, Short.MAX_VALUE)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btn_Cancel)
                     .addComponent(btn_OK))
@@ -372,8 +463,8 @@ public class LatencyDialog extends javax.swing.JDialog
     private javax.swing.JButton btn_Cancel;
     private javax.swing.JButton btn_OK;
     private javax.swing.JButton btn_record;
-    private javax.swing.JButton btn_stop;
     private javax.swing.JButton btn_test;
+    private org.jjazz.ui.flatcomponents.FlatLedIndicator flatLedIndicator1;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton5;
@@ -382,6 +473,7 @@ public class LatencyDialog extends javax.swing.JDialog
     private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lbl_countdown;
     private javax.swing.JLabel lbl_latency;
     private org.jjazz.ui.utilities.WheelSpinner spn_latency;
     // End of variables declaration//GEN-END:variables
