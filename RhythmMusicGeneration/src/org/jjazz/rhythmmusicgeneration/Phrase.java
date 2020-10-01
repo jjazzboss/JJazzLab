@@ -23,6 +23,7 @@
 package org.jjazz.rhythmmusicgeneration;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +35,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.Chord;
 import org.jjazz.midi.MidiConst;
@@ -59,8 +62,9 @@ public class Phrase extends LinkedList<NoteEvent>
     private static final Logger LOGGER = Logger.getLogger(Phrase.class.getSimpleName());
 
     /**
+     * Create an empty phrase for the specific Midi channel.
      *
-     * @param channel
+     * @param channel [0-15]
      */
     public Phrase(int channel)
     {
@@ -124,6 +128,87 @@ public class Phrase extends LinkedList<NoteEvent>
                 it.next();
             }
             it.add(mne);
+        }
+    }
+
+    /**
+     * Use the specified Midi track content to add notes to this phrase.
+     * <p>
+     *
+     * @param track
+     * @param ppqResolution The resolution used by the track
+     * @param srcChannels Add notes from these Midi channel(s) only. If null, all notes are added, whatever the channel.
+     */
+    public void add(Track track, int ppqResolution, Integer... srcChannels)
+    {
+        List<Integer> channels = null;
+        if (srcChannels != null)
+        {
+            channels = Arrays.asList(srcChannels);
+        }
+
+        // Buffer for Note ONs waiting for their Note OFF
+        var onNotes = new HashMap<Integer, NoteEvent>();
+        float maxEndPosInBeats = 0;
+
+
+        for (int i = 0; i < track.size(); i++)
+        {
+            MidiEvent me = track.get(i);
+            MidiMessage mm = me.getMessage();
+            long tick = me.getTick();
+
+            if (mm instanceof ShortMessage)
+            {
+                ShortMessage sm = (ShortMessage) mm;
+                if (channels != null && !channels.contains(sm.getChannel()))
+                {
+                    continue;
+                }
+                if (sm.getCommand() == ShortMessage.NOTE_OFF || (sm.getCommand() == ShortMessage.NOTE_ON && sm.getData2() == 0))
+                {
+                    // Note OFF
+                    int pitch = sm.getData1();
+                    NoteEvent ne = onNotes.get(pitch);
+                    if (ne == null)
+                    {
+                        // Note OFF without Note ON : do nothing
+                    } else
+                    {
+                        // Corresponding Note ON found, set duration and add note
+                        float beat = Float.valueOf(tick) / ppqResolution;
+                        maxEndPosInBeats = Math.max(maxEndPosInBeats, beat);
+                        float duration = beat - ne.getPositionInBeats();
+                        ne = new NoteEvent(ne, duration, ne.getPositionInBeats());
+                        addOrdered(ne);
+                        onNotes.remove(pitch);
+                    }
+                } else if (sm.getCommand() == ShortMessage.NOTE_ON)
+                {
+                    // Note ON
+                    float beat = Float.valueOf(tick) / ppqResolution;
+                    int pitch = sm.getData1();
+                    int velocity = sm.getData2();
+                    NoteEvent ne = new NoteEvent(sm.getData1(), 1, velocity, beat);    // fake duration=1
+                    onNotes.put(pitch, ne);
+                }
+            }
+        }
+
+
+        if (!onNotes.isEmpty())
+        {
+            // Some Note OFF were missing
+            // Create notes if possible using end of note = maxEndPosInBeats
+            for (NoteEvent ne : onNotes.values())
+            {
+                if (ne.getPositionInBeats() < maxEndPosInBeats)
+                {
+                    float duration = maxEndPosInBeats - ne.getPositionInBeats();
+                    ne = new NoteEvent(ne, duration, ne.getPositionInBeats());
+                    addOrdered(ne);
+                }
+            }
         }
     }
 

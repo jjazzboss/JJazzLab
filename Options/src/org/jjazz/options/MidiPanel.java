@@ -267,12 +267,13 @@ final class MidiPanel extends javax.swing.JPanel
 
         @Override
         public void send(MidiMessage msg, long timeStamp)
-        {
-            if (msg instanceof ShortMessage)
+        {            
+            if (msg instanceof ShortMessage && MidiPanel.this.isShowing())
             {
                 ShortMessage sm = (ShortMessage) msg;
                 if (sm.getCommand() == ShortMessage.NOTE_ON)
                 {
+                    // LOGGER.severe("LedReceiver.send() test NOTE_ON received");
                     led_MidiIn.showActivity();
                 }
             }
