@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.helpers.midiwizard;
+package org.jjazz.ui.utilities;
 
 import java.awt.Font;
 import javax.swing.JTextArea;

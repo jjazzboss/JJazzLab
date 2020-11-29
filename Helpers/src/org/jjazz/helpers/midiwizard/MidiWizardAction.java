@@ -181,29 +181,7 @@ public final class MidiWizardAction implements ActionListener
         }
     }
 
-    public static void openInBrowser(URL url)
-    {
-        String errMsg = null;
-        if (Desktop.isDesktopSupported())
-        {
-            try
-            {
-                Desktop.getDesktop().browse(url.toURI());
-            } catch (URISyntaxException | IOException ex)
-            {
-                errMsg = ex.getLocalizedMessage();
-            }
-        } else
-        {
-            errMsg = "Open hyperlink in browser not supported";
-        }
-        if (errMsg != null)
-        {
-            NotifyDescriptor d = new NotifyDescriptor.Message(errMsg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-        }
-    }
-
+ 
     public static boolean getBooleanProp(WizardDescriptor wiz, String prop)
     {
         Boolean b = (Boolean) wiz.getProperty(prop);

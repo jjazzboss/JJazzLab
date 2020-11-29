@@ -54,7 +54,7 @@ public final class MidiWizardVisualPanel_SfWin_2 extends JPanel
     private void initComponents()
     {
 
-        ta_notUserOnlyToGetFont = new org.jjazz.helpers.midiwizard.WizardTextArea();
+        ta_notUserOnlyToGetFont = new org.jjazz.ui.utilities.WizardTextArea();
         jScrollPane2 = new javax.swing.JScrollPane();
         editorPane = new javax.swing.JEditorPane();
         editorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE); // To make setFont work
@@ -119,7 +119,7 @@ public final class MidiWizardVisualPanel_SfWin_2 extends JPanel
     {//GEN-HEADEREND:event_editorPaneHyperlinkUpdate
         if (evt.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
         {
-            MidiWizardAction.openInBrowser(evt.getURL());
+            org.jjazz.util.Utilities.openInBrowser(evt.getURL(), false);
         }
     }//GEN-LAST:event_editorPaneHyperlinkUpdate
 
@@ -128,6 +128,6 @@ public final class MidiWizardVisualPanel_SfWin_2 extends JPanel
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
-    private org.jjazz.helpers.midiwizard.WizardTextArea ta_notUserOnlyToGetFont;
+    private org.jjazz.ui.utilities.WizardTextArea ta_notUserOnlyToGetFont;
     // End of variables declaration//GEN-END:variables
 }

@@ -56,7 +56,7 @@ public final class MidiWizardVisualFinal extends JPanel
 
         buttonGroup1 = new javax.swing.ButtonGroup();
         jScrollPane1 = new javax.swing.JScrollPane();
-        ta_changes = new org.jjazz.helpers.midiwizard.WizardTextArea();
+        ta_changes = new org.jjazz.ui.utilities.WizardTextArea();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
@@ -113,6 +113,6 @@ public final class MidiWizardVisualFinal extends JPanel
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
-    private org.jjazz.helpers.midiwizard.WizardTextArea ta_changes;
+    private org.jjazz.ui.utilities.WizardTextArea ta_changes;
     // End of variables declaration//GEN-END:variables
 }

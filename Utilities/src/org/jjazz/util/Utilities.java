@@ -23,9 +23,7 @@
 package org.jjazz.util;
 
 import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.security.NoTypePermission;
-import com.thoughtworks.xstream.security.NullPermission;
-import com.thoughtworks.xstream.security.PrimitiveTypePermission;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.io.*;
 import java.net.MalformedURLException;
@@ -45,6 +43,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import org.openide.*;
 import org.openide.filesystems.FileObject;
 
 /**
@@ -812,6 +811,40 @@ public class Utilities
             LOGGER.warning("listFile() IOException ex=" + ex.getLocalizedMessage() + ". Some files may have not been listed.");
         }
         return pathSet;
+    }
+
+    /**
+     * Open an URL in the system's external browser.
+     * <p>
+     * Unless silentError is true, user is notified if an error occured.
+     *
+     * @param url
+     * @param silentError Do not notify user if error occured
+     * @return False if an error occured
+     */
+    public static boolean openInBrowser(URL url, boolean silentError)
+    {
+        String errMsg = null;
+        if (Desktop.isDesktopSupported())
+        {
+            try
+            {
+                Desktop.getDesktop().browse(url.toURI());
+            } catch (URISyntaxException | IOException ex)
+            {
+                errMsg = ex.getLocalizedMessage();
+            }
+        } else
+        {
+            errMsg = "Open hyperlink in browser not supported";
+        }
+        if (!silentError && errMsg != null)
+        {
+            NotifyDescriptor d = new NotifyDescriptor.Message(errMsg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+        }
+
+        return errMsg == null;
     }
 
     // ========================================================================

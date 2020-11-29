@@ -84,7 +84,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="org.jjazz.helpers.midiwizard.WizardTextArea" name="wizardTextArea1">
+        <Component class="org.jjazz.ui.utilities.WizardTextArea" name="wizardTextArea1">
           <Properties>
             <Property name="editable" type="boolean" value="false"/>
             <Property name="columns" type="int" value="20"/>

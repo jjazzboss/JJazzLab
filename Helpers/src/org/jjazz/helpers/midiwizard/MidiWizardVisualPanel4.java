@@ -116,7 +116,7 @@ public final class MidiWizardVisualPanel4 extends JPanel
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        wizardTextArea1 = new org.jjazz.helpers.midiwizard.WizardTextArea();
+        wizardTextArea1 = new org.jjazz.ui.utilities.WizardTextArea();
         btn_test1 = new javax.swing.JButton();
         btn_test2 = new javax.swing.JButton();
         btn_test3 = new javax.swing.JButton();
@@ -224,6 +224,6 @@ public final class MidiWizardVisualPanel4 extends JPanel
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lbl_outDevice;
-    private org.jjazz.helpers.midiwizard.WizardTextArea wizardTextArea1;
+    private org.jjazz.ui.utilities.WizardTextArea wizardTextArea1;
     // End of variables declaration//GEN-END:variables
 }

@@ -25,14 +25,12 @@ package org.jjazz.helpers.midiwizard;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JPanel;
-import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midi.synths.Family;
 import org.jjazz.midi.synths.GSSynth;
-import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.musiccontrol.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.DialogDisplayer;
@@ -220,7 +218,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
         buttonGroupXG = new javax.swing.ButtonGroup();
         buttonGroupGS = new javax.swing.ButtonGroup();
         jScrollPane1 = new javax.swing.JScrollPane();
-        wizardTextArea1 = new org.jjazz.helpers.midiwizard.WizardTextArea();
+        wizardTextArea1 = new org.jjazz.ui.utilities.WizardTextArea();
         btn_test1 = new javax.swing.JButton();
         btn_test2 = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -527,6 +525,6 @@ public final class MidiWizardVisualPanel5 extends JPanel
     private javax.swing.JRadioButton rbtn_yesGM2;
     private javax.swing.JRadioButton rbtn_yesGS;
     private javax.swing.JRadioButton rbtn_yesXG;
-    private org.jjazz.helpers.midiwizard.WizardTextArea wizardTextArea1;
+    private org.jjazz.ui.utilities.WizardTextArea wizardTextArea1;
     // End of variables declaration//GEN-END:variables
 }
