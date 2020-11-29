@@ -44,9 +44,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.midi.Instrument;
 import org.jjazz.midi.synths.GM1Instrument;
-import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.FavoriteRhythms;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.RhythmVoiceInfo;
@@ -114,7 +112,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
     }
 
     /**
-     * @return The Rhythm corresponding to the selected row, or null if no selection.
+     * @return The Rhythm corresponding to the selected row, or null if no selection or no data.
      */
     public RhythmInfo getSelectedRhythm()
     {
@@ -125,7 +123,10 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             if (rowIndex != -1)
             {
                 int modelIndex = convertRowIndexToModel(rowIndex);
-                ri = model.getRhythms().get(modelIndex);
+                if (modelIndex < model.getRowCount())
+                {
+                    ri = model.getRhythms().get(modelIndex);
+                }
             }
         }
         return ri;
@@ -159,7 +160,6 @@ public class RhythmTable extends JTable implements PropertyChangeListener
 
     public class Model extends AbstractTableModel
     {
-
         public static final int COL_ID = 0;
         public static final int COL_NAME = 1;
         public static final int COL_FEEL = 3;
@@ -277,6 +277,10 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         @Override
         public Object getValueAt(int row, int col)
         {
+            if (row < 0 || row >= getRowCount() || col < 0 || col >= getColumnCount())
+            {
+                return null;
+            }
             RhythmInfo ri = rhythms.get(row);
             switch (col)
             {
@@ -321,9 +325,9 @@ public class RhythmTable extends JTable implements PropertyChangeListener
 
     }
 
-    // =================================================================================
-    // PropertyChangeListener methods
-    // =================================================================================    
+// =================================================================================
+// PropertyChangeListener methods
+// =================================================================================    
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
@@ -366,6 +370,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                 colModel.getColumn(colIndex).setPreferredWidth(0);
                 continue;
             }
+
             // Handle header
             TableCellRenderer renderer = getTableHeader().getDefaultRenderer();
             Component comp = renderer.getTableCellRendererComponent(this, model.getColumnName(colIndex), true, true, 0, colIndex);
@@ -435,6 +440,8 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             }
         }
         return list.toString();
+
+
     }
 
     private class MyCellRenderer extends DefaultTableCellRenderer
