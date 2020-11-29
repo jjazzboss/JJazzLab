@@ -52,10 +52,13 @@ import javax.sound.midi.Transmitter;
  * A Real Time Sequencer
  *
  * @author Florian Bomers
+ * 
+ * TODO:
+ * - rename PlayThread to PlayEngine (because isn't a thread)
  */
 
-/* TODO:
- * - rename PlayThread to PlayEngine (because isn't a thread)
+/**
+ * Adaptation for JJazzLab - author Jerome Lelasseux: add slave sync mode.
  */
 final class RealTimeSequencer extends AbstractMidiDevice implements Sequencer, AutoConnectSequencer
 {
@@ -502,13 +505,13 @@ final class RealTimeSequencer extends AbstractMidiDevice implements Sequencer, A
         {
             if (tick != 0)
             {
-                // throw new InvalidStateException("cannot set position in closed state");
+                throw new IllegalStateException("cannot set position in closed state");
             }
         } else if (sequence == null)
         {
             if (tick != 0)
             {
-                // throw new InvalidStateException("cannot set position if sequence is not set");
+                throw new IllegalStateException("cannot set position if sequence is not set");
             }
         } else
         {
@@ -1095,8 +1098,9 @@ final class RealTimeSequencer extends AbstractMidiDevice implements Sequencer, A
     }
 
     /**
-     * return the data pump instance, owned by play thread if playthread is null, return null. This method is guaranteed to return
-     * non-null if needCaching returns false
+     * return the data pump instance, owned by play thread if playthread is null, return null.
+     * <p>
+     * This method is guaranteed to return non-null if needCaching returns false
      */
     private DataPump getDataPump()
     {
@@ -2272,9 +2276,7 @@ final class RealTimeSequencer extends AbstractMidiDevice implements Sequencer, A
                 {
                     // calculate current tick based on current time in milliseconds
                     targetTick = checkPointTick + millis2tick(currMillis - checkPointMillis);
-                    if ((loopEnd != -1)
-                            && ((loopCount > 0 && currLoopCounter > 0)
-                            || (loopCount == LOOP_CONTINUOUSLY)))
+                    if ((loopEnd != -1) && ((loopCount > 0 && currLoopCounter > 0) || (loopCount == LOOP_CONTINUOUSLY)))
                     {
                         if (lastTick <= loopEnd && targetTick >= loopEnd)
                         {
@@ -2301,7 +2303,6 @@ final class RealTimeSequencer extends AbstractMidiDevice implements Sequencer, A
                         while (!changesPending && (readPos < size)
                                 && (currEvent = thisTrack.get(readPos)).getTick() <= targetTick)
                         {
-
                             if ((readPos == size - 1) && MidiUtils.isMetaEndOfTrack(currEvent.getMessage()))
                             {
                                 // do not send out this message. Finished with this track
@@ -2344,6 +2345,8 @@ final class RealTimeSequencer extends AbstractMidiDevice implements Sequencer, A
                         break;
                     }
                 }
+                
+                
                 EOM = (finishedTracks == tracks.length);
                 if (doLoop
                         || (((loopCount > 0 && currLoopCounter > 0)
