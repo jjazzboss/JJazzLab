@@ -308,11 +308,11 @@ public class MidiUtilities
         return buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_PAN_MSB, data);
     }
 
-    static public MetaMessage getTimeSignatureMessage(int channel, TimeSignature ts)
+    static public MetaMessage getTimeSignatureMessage(TimeSignature ts)
     {
-        if (!MidiConst.checkMidiChannel(channel) || ts == null)
+        if (ts == null)
         {
-            throw new IllegalArgumentException("channel=" + channel + " ts=" + ts);
+            throw new IllegalArgumentException("ts=" + ts);
         }
         byte powerOf2;
         switch (ts.getLower())
@@ -327,7 +327,7 @@ public class MidiUtilities
                 powerOf2 = 3;
                 break;
             default:
-                throw new IllegalArgumentException("channel=" + channel + " ts=" + ts);
+                throw new IllegalArgumentException("ts=" + ts);
         }
         byte[] data = new byte[]
         {

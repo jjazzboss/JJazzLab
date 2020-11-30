@@ -153,7 +153,6 @@ public class MidiSequenceBuilder
         return "MidiSequenceBuilder context=" + context.toString();
     }
 
-
     // =========================================================================
     // Private methods
     // =========================================================================
@@ -392,7 +391,6 @@ public class MidiSequenceBuilder
         }
     }
 
-
     /**
      * Add time signature controller messages in the specified track.
      * <p>
@@ -411,13 +409,12 @@ public class MidiSequenceBuilder
             {
                 float beatPos = context.getSptBeatRange(spt).from - beatOffset;
                 long tickPos = Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
-                MidiEvent me = new MidiEvent(MidiUtilities.getTimeSignatureMessage(0, ts), tickPos);
+                MidiEvent me = new MidiEvent(MidiUtilities.getTimeSignatureMessage(ts), tickPos);
                 track.add(me);
                 prevTs = ts;
             }
         }
     }
-
 
     /**
      * Adjust the EndOfTrack Midi marker for all tracks.
