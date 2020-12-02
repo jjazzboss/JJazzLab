@@ -43,6 +43,8 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.JTextComponent;
 import org.openide.*;
 import org.openide.filesystems.FileObject;
 
@@ -114,19 +116,21 @@ public class Utilities
     }
 
     /**
-     * Replace the path extension (the trailing ".something") of filename by ext. If filename has no path extension just add ext.
+     * Replace the path extension (the trailing ".something") of filename by ext.
+     * <p>
+     * If filename has no path extension just add ext.
      *
      * @param filename
-     * @param ext A string without spaces in it. If ext does not start with "." it will be added.
+     * @param ext A string without spaces in it. If ext does not start with "." it will be added. If "" extension is removed.
      * @return The new filename with extension replaced.
      */
     public static String replaceExtension(String filename, String ext)
     {
-        if (filename == null || ext == null || ext.isEmpty() || ext.contains(" "))
+        if (filename == null || ext == null || ext.contains(" ") || ext.equals("."))
         {
             throw new IllegalArgumentException("filename=" + filename + " ext=" + ext);
         }
-        if (!ext.startsWith("."))
+        if (!ext.isEmpty() && !ext.startsWith("."))
         {
             ext = "." + ext;
         }

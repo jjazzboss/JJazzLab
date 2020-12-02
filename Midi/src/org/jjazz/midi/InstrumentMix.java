@@ -166,7 +166,7 @@ public class InstrumentMix implements Serializable
     }
 
     /**
-     * Get the Midi messages to be sent to initialize the instrument (patch/bank changes).
+     * Get only the Midi messages to be sent to initialize the instrument (patch/bank changes).
      * <p>
      * If instrument is not enabled return an empty array.
      *

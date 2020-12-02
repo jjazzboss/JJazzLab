@@ -28,6 +28,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiMessage;
@@ -38,6 +39,7 @@ import javax.swing.event.SwingPropertyChangeSupport;
  */
 public class InstrumentSettings implements Serializable
 {
+
     public final static String PROPERTY_TRANSPOSITION = "Transposition";
     public final static String PROPERTY_VELOCITY_SHIFT = "VelocityShift";
     public final static String PROPERTY_VOLUME = "Volume";
@@ -121,6 +123,22 @@ public class InstrumentSettings implements Serializable
     public InstrumentMix getContainer()
     {
         return container;
+    }
+
+    /**
+     * Get all the MidiMessages for enabled parameters.
+     *
+     * @param channel
+     * @return
+     */
+    public MidiMessage[] getAllMidiMessages(int channel)
+    {
+        ArrayList<MidiMessage> res = new ArrayList<>();
+        res.addAll(Arrays.asList(getVolumeMidiMessages(channel)));
+        res.addAll(Arrays.asList(getPanoramicMidiMessages(channel)));
+        res.addAll(Arrays.asList(getReverbMidiMessages(channel)));
+        res.addAll(Arrays.asList(getChorusMidiMessages(channel)));
+        return res.toArray(new MidiMessage[0]);
     }
 
     /**
