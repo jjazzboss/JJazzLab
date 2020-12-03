@@ -44,7 +44,9 @@ public class ExtensionFileFilter implements FilenameFilter
 
     public ExtensionFileFilter(String extension, String... extensions)
     {
-        fileExtensions = extensions;
+        fileExtensions = new String[extensions.length + 1];
+        fileExtensions[0] = extension;
+        System.arraycopy(extensions, 0, fileExtensions, 1, extensions.length);
     }
 
     /**
