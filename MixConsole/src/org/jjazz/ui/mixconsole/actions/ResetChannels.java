@@ -138,6 +138,7 @@ public class ResetChannels extends AbstractAction
             ins = outSynth.getUserInstrument();
         }
         insMix.setInstrument(ins);
+        insMix.setInstrumentEnabled(true);
         insMix.getSettings().setTransposition(0);
     }
 

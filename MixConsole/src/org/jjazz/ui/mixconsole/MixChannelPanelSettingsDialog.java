@@ -280,6 +280,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
         pnl_enabledMidiMessages.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.pnl_enabledMidiMessages.border.title"))); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_panoramic, org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_panoramic.text")); // NOI18N
+        cb_panoramic.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_panoramic.toolTipText")); // NOI18N
         cb_panoramic.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -289,6 +290,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_volume, org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_volume.text")); // NOI18N
+        cb_volume.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_volume.toolTipText")); // NOI18N
         cb_volume.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -298,6 +300,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_chorus, org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_chorus.text")); // NOI18N
+        cb_chorus.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_chorus.toolTipText")); // NOI18N
         cb_chorus.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -307,6 +310,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_instrument, org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_instrument.text")); // NOI18N
+        cb_instrument.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_instrument.toolTipText_1")); // NOI18N
         cb_instrument.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -316,6 +320,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_reverb, org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_reverb.text")); // NOI18N
+        cb_reverb.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_reverb.toolTipText")); // NOI18N
         cb_reverb.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
