@@ -262,4 +262,10 @@ public class RP_Integer implements RhythmParameter<Integer>
         }
         return value;
     }
+
+    @Override
+    public String getValueDescription(Integer value)
+    {
+        return null;
+    }
 }

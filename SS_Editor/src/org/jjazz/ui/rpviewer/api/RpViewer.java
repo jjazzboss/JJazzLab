@@ -37,6 +37,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import static javax.swing.SwingConstants.CENTER;
 import javax.swing.border.Border;
+import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.ui.utilities.RedispatchingMouseAdapter;
 import org.jjazz.songstructure.api.SongPart;
@@ -81,6 +82,11 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
 
         // Listen to rp changes
         sptModel.addPropertyChangeListener(this);
+
+
+        // Listen to rhythm resource load event, as it might impact our tooltip
+        sptModel.getRhythm().addPropertyChangeListener(this);
+
 
         // Update graphics depending on focus state
         addFocusListener(this);
@@ -133,6 +139,7 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
     {
         settings.removePropertyChangeListener(this);
         sptModel.removePropertyChangeListener(this);
+        sptModel.getRhythm().removePropertyChangeListener(this);
         removeFocusListener(this);
     }
 
@@ -206,13 +213,19 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
             updateUIComponents();
         } else if (evt.getSource() == sptModel)
         {
-            if (evt.getPropertyName() == SongPart.PROPERTY_RP_VALUE)
+            if (evt.getPropertyName().equals(SongPart.PROPERTY_RP_VALUE))
             {
                 if (evt.getOldValue() == rpModel)
                 {
                     updateToolTip();
                     valueChanged();
                 }
+            }
+        } else if (evt.getSource() == sptModel.getRhythm())
+        {
+            if (evt.getPropertyName().equals(Rhythm.PROP_RESOURCES_LOADED))
+            {
+                updateToolTip();
             }
         }
     }
@@ -245,7 +258,17 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
     // ---------------------------------------------------------------    
     private void updateToolTip()
     {
-        setToolTipText(rpModel.getDisplayName() + "=" + sptModel.getRPValue(rpModel));
+        Object value = sptModel.getRPValue(rpModel);
+        String tt = rpModel.getDisplayName() + "=" + value.toString();
+        @SuppressWarnings("rawtypes")
+        RhythmParameter rp = getRpModel();      // Needed to get rid of the unbounded wildcard <?>
+        @SuppressWarnings("unchecked")
+        String valueDesc = rp.getValueDescription(value);
+        if (valueDesc != null)
+        {
+            tt += ", " + valueDesc;
+        }
+        setToolTipText(tt);
     }
 
     private void initUIComponents()
@@ -275,7 +298,7 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
         lbl_RpName.setForeground(settings.getNameFontColor());
         Color c = settings.getDefaultBackgroundColor();
         lbl_RpName.setBackground(new Color(c.getRed(), c.getGreen(), c.getBlue(), 110)); // a bit Transparent
-        
+
 
         if (hasFocus())
         {

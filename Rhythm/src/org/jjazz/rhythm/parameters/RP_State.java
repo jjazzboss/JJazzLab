@@ -207,6 +207,12 @@ public class RP_State implements RhythmParameter<String>
     {
         return valueToString(s);
     }
+    
+    @Override
+    public String getValueDescription(String value)
+    {
+        return null;
+    }
 
     @Override
     public String toString()

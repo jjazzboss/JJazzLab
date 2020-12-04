@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythm.api;
 
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import java.util.List;
@@ -40,6 +41,8 @@ import org.openide.util.Lookup;
 public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
 {
 
+    public static final String PROP_RESOURCES_LOADED = "ResourcesLoaded";
+
     /**
      * The general features of this rhythm.
      *
@@ -50,6 +53,7 @@ public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
     /**
      * Tell the rhythm it may load any memory-heavy resources.
      * <p>
+     * This will fire a PROP_RESOURCES_LOADED change event with newValue=true.
      *
      * @throws MusicGenerationException
      * @see releaseResources()
@@ -58,6 +62,8 @@ public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
 
     /**
      * Ask the rhythm to release any memory-heavy resources.
+     * <p>
+     * This will fire a PROP_RESOURCES_LOADED change event with newValue=false.
      *
      * @see loadResources()
      */
@@ -105,12 +111,10 @@ public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
      *
      * @return Default to "1"
      */
-
     default String getVersion()
     {
         return "1";
     }
-
 
     /**
      * Can be any keyword strings used to describe the rhythm.
@@ -133,5 +137,9 @@ public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
     {
         return getName().compareTo(o.getName());
     }
+
+    public void addPropertyChangeListener(PropertyChangeListener l);
+
+    public void removePropertyChangeListener(PropertyChangeListener l);
 
 }

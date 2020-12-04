@@ -335,6 +335,12 @@ public class RP_StringSet implements RhythmParameter<Set<String>>
         }
         return res;
     }
+    
+        @Override
+    public String getValueDescription(Set<String> value)
+    {
+        return null;
+    }
 
     @Override
     public String toString()

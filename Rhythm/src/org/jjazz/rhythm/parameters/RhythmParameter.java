@@ -38,11 +38,24 @@ public interface RhythmParameter<E>
     String getId();
 
     /**
-     * @return The localized display name of the rhythmparameter.
+     * @return The localized display name of the rhythm parameter.
      */
     String getDisplayName();
 
+    /**
+     * The description of this rhythm parameter.
+     *
+     * @return
+     */
     String getDescription();
+
+    /**
+     * Provide an optional description or help text associated to the specified value.
+     *
+     * @param value
+     * @return Can be null.
+     */
+    String getValueDescription(E value);
 
     E getMaxValue();
 
@@ -60,8 +73,10 @@ public interface RhythmParameter<E>
     double calculatePercentage(E value);
 
     /**
-     * Calculate the RhythmParameter value corresponding to a percentage of the value range. For example if RhythmParameter is an
-     * integer between 0 and 4: percentage=0 -&gt; value=0 percentage=0.5 -&gt; value=2 percentage=1 -&gt; value=4.
+     * Calculate the RhythmParameter value corresponding to a percentage of the value range.
+     * <p>
+     * For example if RhythmParameter is an integer between 0 and 4: percentage=0 -&gt; value=0 percentage=0.5 -&gt; value=2
+     * percentage=1 -&gt; value=4.
      *
      * @param percentage A float between 0 and 1.
      * @return A RhythmParameter value.

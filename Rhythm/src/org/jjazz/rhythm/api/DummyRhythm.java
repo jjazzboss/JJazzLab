@@ -23,6 +23,7 @@
  */
 package org.jjazz.rhythm.api;
 
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -218,6 +219,18 @@ public class DummyRhythm implements Rhythm
     public String toString()
     {
         return getName();
+    }
+
+    @Override
+    public void addPropertyChangeListener(PropertyChangeListener l)
+    {
+        // Nothing
+    }
+
+    @Override
+    public void removePropertyChangeListener(PropertyChangeListener l)
+    {
+        // Nothing
     }
 
 }

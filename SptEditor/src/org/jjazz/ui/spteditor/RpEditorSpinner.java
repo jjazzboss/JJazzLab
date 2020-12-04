@@ -135,10 +135,13 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
     public void stateChanged(ChangeEvent e)
     {
         Object newValue = spinner_rpValue.getValue();
-        spinner_rpValue.setToolTipText(newValue.toString());
+        @SuppressWarnings("rawtypes")
+        RhythmParameter rp = getRpModel();      // Needed to get rid of the unbounded wildcard <?>
+        @SuppressWarnings("unchecked")         
+        String valueDesc = rp.getValueDescription(newValue);
+        spinner_rpValue.setToolTipText(valueDesc == null ? newValue.toString() : valueDesc);
         firePropertyChange(PROP_RPVALUE, null, newValue);
     }
-
 
     // -----------------------------------------------------------------------------
     // Private methods
