@@ -49,6 +49,7 @@ import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
+import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -110,6 +111,10 @@ public class ExportToMidiFile extends AbstractAction
             return;
         }
 
+        // Playback must be stopped, otherwise there are side effects on the generated Midi file (missing tracks?)
+        MusicController.getInstance().stop();        
+        
+        
         // Get the target midi file
         File midiFile = getMidiFile(song);
         if (midiFile == null)
