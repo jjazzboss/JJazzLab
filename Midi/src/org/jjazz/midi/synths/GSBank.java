@@ -332,7 +332,7 @@ public class GSBank extends InstrumentBank<Instrument>
                 && (kit.getKeyMap().equals(KeyMapGM.getInstance()) || kit.getKeyMap().equals(KeyMapXG.getInstance())))
         {
             // GM is fully compatible, XG is somewhat compatible...
-            res.add(instruments.get(256 + kit.getType().ordinal()));
+            res.add(instruments.get(222 + kit.getType().ordinal()));
         }
         return res;
     }
