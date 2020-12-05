@@ -31,6 +31,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -160,6 +161,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
 
     public class Model extends AbstractTableModel
     {
+
         public static final int COL_ID = 0;
         public static final int COL_NAME = 1;
         public static final int COL_FEEL = 3;
@@ -176,7 +178,9 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                 throw new NullPointerException("rhythms");
             }
             LOGGER.fine("setRhythms() rhythms.size()=" + rhythms.size());
-            this.rhythms = rhythms;
+            this.rhythms = new ArrayList<>(rhythms);
+            this.rhythms.sort(new RhythmComparator());
+
             fireTableDataChanged();
             adjustWidths();
         }
@@ -321,6 +325,30 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                 default:
                     throw new IllegalStateException("col=" + col);
             }
+        }
+
+        /**
+         * Sort first by directory then by alphabetical order.
+         */
+        private class RhythmComparator implements Comparator<RhythmInfo>
+        {
+
+            @Override
+            public int compare(RhythmInfo ri1, RhythmInfo ri2)
+            {
+                File pf1 = ri1.getFile().getParentFile();
+                File pf2 = ri2.getFile().getParentFile();
+                if (pf1.equals(pf2))
+                {
+                    // Sort by name if same directory
+                    return ri1.getName().compareTo(ri2.getName());
+                } else
+                {
+                    // Sort by directory
+                    return pf1.getPath().compareTo(pf2.getPath());
+                }
+            }
+
         }
 
     }

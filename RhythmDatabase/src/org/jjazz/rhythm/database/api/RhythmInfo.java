@@ -60,7 +60,6 @@ public interface RhythmInfo extends Serializable
      */
     boolean isAdaptedRhythm();
 
-
     /**
      * The unique Id of the target rhythm.
      *
@@ -85,6 +84,11 @@ public interface RhythmInfo extends Serializable
 
     RhythmFeatures getFeatures();
 
+    /**
+     * Optional file from which this rhythm is loaded.
+     *
+     * @return Can't be null, but can be an empty path ("") if no file associated.
+     */
     File getFile();
 
     String getName();
