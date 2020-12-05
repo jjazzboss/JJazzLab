@@ -97,7 +97,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     protected static final String PROP_ZOOM_FACTOR_X = "PropClEditorZoomFactorX";
     protected static final String PROP_ZOOM_FACTOR_Y = "PropClEditorZoomFactorY";
-    
+
     private static final int NB_EXTRA_LINES = 4;
 
     /**
@@ -550,8 +550,26 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             throw new IllegalArgumentException("barIndex=" + barIndex + " getNbBars()=" + getNbBarBoxes());
         }
 
-        BarBox bb = getBarBox(barIndex);
-        scrollRectToVisible(bb.getBounds());
+
+        // Check how many rows are visible
+        float nbVisibleRows = (float) getVisibleRect().height / getBarBox(0).getHeight();
+        int row = getRowIndex(barIndex);
+
+
+        if (nbVisibleRows < 1.8f || row == getNbRows() - 1)
+        {
+            // Can't see clearly 2 rows, or it's the last row
+            // Make sure row is visible
+            scrollRectToVisible(getBarBox(barIndex).getBounds());
+        } else
+        {
+            // Make sure row+1 is visible, because it's better to always have next row also visible
+            int compIndex = getComponentIndex(barIndex);
+            assert compIndex + getNbColumns() < getComponentCount() : "compIndex=" + compIndex + " getNbColumns()=" + getNbColumns() + " getComponentCount()=" + getComponentCount();
+            Component c = getComponent(compIndex + getNbColumns());
+            scrollRectToVisible(c.getBounds());
+        }
+
     }
 
     @Override
@@ -782,7 +800,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
         if (playbackPointLastPos != null)
         {
-            // Playback point is already show, switch it off at old location
+            // Playback point is already shown, switch it off at old location
             int lastBarIndex = playbackPointLastPos.getBar();
             if (lastBarIndex >= getNbBarBoxes())
             {
@@ -1580,6 +1598,29 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         String qString = songModel.getClientProperty(getSectionQuantizeValuePropertyName(sectionData), null);
         return Quantization.isValidStringValue(qString) ? Quantization.valueOf(qString) : null;
+    }
+
+    /**
+     * The total number of rows taking into account BarBoxes (within chord leadhseet and after) and the PaddingBoxes.
+     *
+     * @return
+     */
+    private int getNbRows()
+    {
+        return gridLayout.getRows();
+    }
+
+    /**
+     * Get the row of the specified BarBox.
+     *
+     * @param bbIndex
+     * @return
+     */
+    private int getRowIndex(int bbIndex)
+    {
+        int compIndex = getComponentIndex(bbIndex);
+        return compIndex / getNbColumns();
+
     }
 
     private void removePaddingBox(PaddingBox pd)
