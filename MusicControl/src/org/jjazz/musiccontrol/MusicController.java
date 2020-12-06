@@ -71,7 +71,6 @@ import org.openide.util.NbPreferences;
  * Property changes are fired for:<br>
  * - start/pause/stop/disabled state changes<br>
  * - pre-playing : vetoable change, ie listeners can fire a PropertyVetoException to prevent playback to start<br>
- * - click and loop ON/OFF changes<br>
  * <p>
  * Use PlaybackListener to get notified of other events (bar/beat changes etc.) during playback. Note that PlaybackListeners will
  * be notified out of the Swing EDT.
@@ -93,7 +92,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * NewValue=MusicGenerationContext object.
      */
     public static final String PROPVETO_PRE_PLAYBACK = "PropVetoPrePlayback";
-    public static final String PROP_CLICK = "PropClick";
     public static final String PROP_LOOPCOUNT = "PropLoopCount";
 
     /**
@@ -130,7 +128,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     Position currentBeatPosition = new Position();
     // private final Sequencer sequencer;
     private int loopCount;
-    private boolean isClickEnabled;
+
     /**
      * Sequencer lock by an external entity.
      */
@@ -181,7 +179,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private MusicController()
     {
         loopCount = 0;
-        isClickEnabled = false;
 
         state = State.STOPPED;
         sequencer = JJazzMidiSystem.getInstance().getDefaultSequencer();
@@ -596,36 +593,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
     }
 
-    /**
-     * Enable the click or not.
-     * <p>
-     * Do nothing if state == DISABLED.
-     *
-     * @param b
-     */
-    public void setClickEnabled(boolean b)
-    {
-        if (isClickEnabled == b || state.equals(State.DISABLED))
-        {
-            return;
-        }
-
-        isClickEnabled = b;
-
-        if (state.equals(State.PLAYING))
-        {
-            assert sequencer.isRunning();
-            sequencer.setTrackMute(playbackContext.clickTrackId, !isClickEnabled);
-        }
-
-        pcs.firePropertyChange(PROP_CLICK, !b, b);
-    }
-
-    public boolean isClickEnabled()
-    {
-        return isClickEnabled;
-    }
-
     public int getLoopCount()
     {
         return loopCount;
@@ -805,16 +772,16 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         if (e.getSource() == mgContext.getSong())
         {
-            if (e.getPropertyName() == Song.PROP_MODIFIED_OR_SAVED)
+            if (e.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED))
             {
                 if ((Boolean) e.getNewValue() == true)
                 {
                     playbackContext.setDirty();
                 }
-            } else if (e.getPropertyName() == Song.PROP_TEMPO)
+            } else if (e.getPropertyName() == null ? Song.PROP_TEMPO == null : e.getPropertyName().equals(Song.PROP_TEMPO))
             {
                 songTempoChanged((Integer) e.getNewValue());
-            } else if (e.getPropertyName() == Song.PROP_CLOSED)
+            } else if (e.getPropertyName() == null ? Song.PROP_CLOSED == null : e.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 stop();
             }
@@ -846,8 +813,17 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             }
         } else if (e.getSource() == ClickManager.getInstance())
         {
-            // Make sure click track is recalculated if click features have changed           
-            playbackContext.setDirty();
+            if (e.getPropertyName().equals(ClickManager.PROP_PLAYBACK_CLICK_ENABLED))
+            {
+                // Click track is always there, just unmute/mute it when needed
+                    boolean isClickEnabled = (Boolean) e.getNewValue();
+                    sequencer.setTrackMute(playbackContext.playbackClickTrack, !isClickEnabled);
+            } else
+            {
+                // Make sure click track is recalculated (click channel, instrument, etc. might have changed)      
+                playbackContext.setDirty();
+            }
+
         }
 
         if (playbackContext.isDirty() && state == State.PAUSED)
@@ -1046,7 +1022,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
          * The position of each natural beat.
          */
         List<Position> naturalBeatPositions;
-        int clickTrackId;
+        int playbackClickTrack;
         int precountTrackId;
         long songTickStart;
         long songTickEnd;
@@ -1119,15 +1095,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 naturalBeatPositions = ctm.getNaturalBeatPositions();
 
 
-                // Add the click track
-                clickTrackId = prepareClickTrack(sequence, workMgContext);
+                // Add the playback click track
+                playbackClickTrack = preparePlaybackClickTrack(sequence, workMgContext);
 
 
-                // Add the click precount track - this must be done last because it will shift all song events
+                // Add the click precount track - this must be done last because it might shift all song events
                 songTickStart = preparePrecountClickTrack(sequence, workMgContext);
                 precountTrackId = sequence.getTracks().length - 1;
 
-                
+
                 // Update the sequence if rerouting needed
                 rerouteDrumsChannels(sequence, workMgContext.getMidiMix());
 
@@ -1147,7 +1123,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 updateAllTracksMuteState(workMgContext.getMidiMix());
                 sequencer.setTrackMute(controlTrackId, false);
                 sequencer.setTrackMute(precountTrackId, false);
-                sequencer.setTrackMute(clickTrackId, !isClickEnabled);
+                sequencer.setTrackMute(playbackClickTrack, !ClickManager.getInstance().isPlaybackClickEnabled());
 
 
                 // Set position and loop points
@@ -1231,7 +1207,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
          * @param sg
          * @return The track id
          */
-        private int prepareClickTrack(Sequence sequence, MusicGenerationContext context)
+        private int preparePlaybackClickTrack(Sequence sequence, MusicGenerationContext context)
         {
             // Add the click track
             ClickManager cm = ClickManager.getInstance();

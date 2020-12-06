@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.activesong.ActiveSongManager;
+import org.jjazz.musiccontrol.ClickManager;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.FlatToggleButton;
@@ -77,7 +78,7 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
         putValue("hideActionText", true);
 
         // Listen to clickbackState and position changes
-        MusicController.getInstance().addPropertyChangeListener(this);
+        ClickManager.getInstance().addPropertyChangeListener(this);
 
         // Listen to the Midi active song changes
         ActiveSongManager.getInstance().addPropertyListener(this);
@@ -129,8 +130,8 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
         {
             return;
         }
-        MusicController mc = MusicController.getInstance();
-        mc.setClickEnabled(b);
+        ClickManager cm = ClickManager.getInstance();
+        cm.setPlaybackClickEnabled(b);
         setBooleanState(b);  // Notify action listeners
     }
 
@@ -158,25 +159,22 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        MusicController mc = MusicController.getInstance();
-        if (evt.getSource() == mc)
+
+        if (evt.getSource() == ClickManager.getInstance())
         {
-            if (evt.getPropertyName() == MusicController.PROP_STATE)
-            {
-                playbackStateChanged();
-            } else if (evt.getPropertyName() == MusicController.PROP_CLICK)
+            if (evt.getPropertyName().equals(ClickManager.PROP_PLAYBACK_CLICK_ENABLED))
             {
                 setBooleanState((boolean) evt.getNewValue());
             }
         } else if (evt.getSource() == ActiveSongManager.getInstance())
         {
-            if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
+            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
                 activeSongChanged();
             }
         } else if (evt.getSource() == currentSong)
         {
-            if (evt.getPropertyName() == Song.PROP_CLOSED)
+            if (evt.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 currentSongClosed();
             }
@@ -204,10 +202,4 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
         currentSong = null;
         currentSongChanged();
     }
-
-    private void playbackStateChanged()
-    {
-        // Nothing
-    }
-
 }

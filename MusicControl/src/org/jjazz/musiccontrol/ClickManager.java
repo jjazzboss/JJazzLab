@@ -49,7 +49,9 @@ import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Click related methods.
+ * Click settings and helper methods.
+ * <p>
+ * Property change events are fired when settings are modified.
  */
 public class ClickManager
 {
@@ -78,9 +80,10 @@ public class ClickManager
             return mode;
         }
     }
+    private static ClickManager INSTANCE = null;
     public static String CLICK_TRACK_NAME = "JJazzClickTrack";
     public static String PRECOUNT_CLICK_TRACK_NAME = "JJazzPreCountClickTrack";
-    private static ClickManager INSTANCE = null;
+
     public static String PROP_CLICK_PITCH_HIGH = "ClickPitchHigh";
     public static String PROP_CLICK_PITCH_LOW = "ClickPitchLow";
     public static String PROP_CLICK_VELOCITY_HIGH = "ClickVelocityHigh";
@@ -88,6 +91,7 @@ public class ClickManager
     public static String PROP_CLICK_PREFERRED_CHANNEL = "ClickChannel";
     public static String PROP_CLICK_PRECOUNT_ENABLED = "ClickPrecountEnabled";
     public static String PROP_CLICK_PRECOUNT_MODE = "ClickPrecountMode";
+    public static String PROP_PLAYBACK_CLICK_ENABLED = "PlaybackClickEnabled";
 
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static Preferences prefs = NbPreferences.forModule(ClickManager.class);
@@ -111,17 +115,33 @@ public class ClickManager
     }
 
     /**
+     * Enable the click during playback.
+     * <p>
+     *
+     * @param b
+     */
+    public void setPlaybackClickEnabled(boolean b)
+    {
+        boolean old = isPlaybackClickEnabled();
+        prefs.putBoolean(PROP_PLAYBACK_CLICK_ENABLED, b);
+        pcs.firePropertyChange(PROP_PLAYBACK_CLICK_ENABLED, old, b);
+
+    }
+
+    public boolean isPlaybackClickEnabled()
+    {
+        return prefs.getBoolean(PROP_PLAYBACK_CLICK_ENABLED, false);
+    }
+
+    /**
      *
      * @param b If true a click precount is used before playing the song.
      */
     public void setClickPrecountEnabled(boolean b)
     {
         boolean old = isClickPrecountEnabled();
-        if (old != b)
-        {
-            prefs.putBoolean(PROP_CLICK_PRECOUNT_ENABLED, b);
-            pcs.firePropertyChange(PROP_CLICK_PRECOUNT_ENABLED, old, b);
-        }
+        prefs.putBoolean(PROP_CLICK_PRECOUNT_ENABLED, b);
+        pcs.firePropertyChange(PROP_CLICK_PRECOUNT_ENABLED, old, b);
     }
 
     public boolean isClickPrecountEnabled()
@@ -472,7 +492,6 @@ public class ClickManager
         return nextTick;
     }
 
-
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
@@ -488,6 +507,5 @@ public class ClickManager
         }
 
     }
-
 
 }
