@@ -66,9 +66,11 @@ abstract public class RhythmSelectionDialog extends JDialog
         void previewRhythm(Rhythm r, boolean useRhythmTempo, boolean loop, ActionListener endActionListener) throws MusicGenerationException;
 
         /**
-         * @return True if a rhythm preview is being played.
+         * The rhythm currently being previewed.
+         *
+         * @return Null if no preview being currently played.
          */
-        boolean isPreviewRunning();
+        Rhythm getPreviewedRhythm();
 
         /**
          * Stop the current preview.

@@ -180,6 +180,8 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             LOGGER.fine("setRhythms() rhythms.size()=" + rhythms.size());
             this.rhythms = new ArrayList<>(rhythms);
             this.rhythms.sort(new RhythmComparator());
+                        
+            highlightedRhythms.clear();
 
             fireTableDataChanged();
             adjustWidths();
@@ -199,10 +201,19 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         public void setHighlighted(RhythmInfo ri, boolean b)
         {
             int mIndex = model.getRhythms().indexOf(ri);
+            LOGGER.severe("setHighlighted() ri=" + ri + " b=" + b + " mIndex=" + mIndex);
+            
             if (mIndex == -1)
             {
                 return;
             }
+            
+            if ((b && highlightedRhythms.contains(ri)) || (!b && !highlightedRhythms.contains(ri)))
+            {
+                return;
+            }
+            
+            
             if (b)
             {
                 highlightedRhythms.add(ri);
@@ -210,6 +221,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             {
                 highlightedRhythms.remove(ri);
             }
+                        
             fireTableRowsUpdated(mIndex, mIndex);
         }
 

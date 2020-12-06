@@ -237,9 +237,9 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
     }
 
     @Override
-    public boolean isPreviewRunning()
+    public Rhythm getPreviewedRhythm()
     {
-        return isPreviewRunning;
+        return isPreviewRunning ? rhythm : null;
     }
 
     @Override
