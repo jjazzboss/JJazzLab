@@ -804,11 +804,20 @@ public class MidiUtilities
             MetaMessage mm = (MetaMessage) msg;
             switch (mm.getType())
             {
+                case 1:  // Text
+                    sb.append(" text=").append(Utilities.toString(mm.getData()));
+                    break;
+                case 2:  // Copyright
+                    sb.append(" copyright=").append(Utilities.toString(mm.getData()));
+                    break;
                 case 3:  // TrackName
                     sb.append(" trackname=").append(Utilities.toString(mm.getData()));
                     break;
-                case 1:  // Text
-                    sb.append(" text=").append(Utilities.toString(mm.getData()));
+                case 4:  // Instrument Name
+                    sb.append(" instrumentName=").append(Utilities.toString(mm.getData()));
+                    break;
+                case 5:  // Lyrics
+                    sb.append(" lyrics=").append(Utilities.toString(mm.getData()));
                     break;
                 case 6:  // Marker
                     sb.append(" marker=").append(Utilities.toString(mm.getData()));

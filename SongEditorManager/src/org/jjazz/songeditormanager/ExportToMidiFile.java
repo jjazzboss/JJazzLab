@@ -29,12 +29,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequence;
+import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
 import javax.sound.midi.Track;
 import javax.swing.AbstractAction;
@@ -49,6 +49,7 @@ import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
+import org.jjazz.musiccontrol.ClickManager;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
@@ -112,9 +113,9 @@ public class ExportToMidiFile extends AbstractAction
         }
 
         // Playback must be stopped, otherwise there are side effects on the generated Midi file (missing tracks?)
-        MusicController.getInstance().stop();        
-        
-        
+        MusicController.getInstance().stop();
+
+
         // Get the target midi file
         File midiFile = getMidiFile(song);
         if (midiFile == null)
@@ -129,7 +130,7 @@ public class ExportToMidiFile extends AbstractAction
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setSelectedFile(midiFile);
-        chooser.setDialogTitle("Export to Midi file");                
+        chooser.setDialogTitle("Export to Midi file");
         int res = chooser.showSaveDialog(WindowManager.getDefault().getMainWindow());
         if (res != JFileChooser.APPROVE_OPTION)
         {
@@ -185,8 +186,10 @@ public class ExportToMidiFile extends AbstractAction
         SongFactory sf = SongFactory.getInstance();
         Song songCopy = sf.getCopy(song);
 
+
         // Build the sequence
-        MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(new MusicGenerationContext(songCopy, midiMix));
+        MusicGenerationContext mgContext = new MusicGenerationContext(songCopy, midiMix);
+        MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(mgContext);
         HashMap<RhythmVoice, Integer> mapRvTrackId = seqBuilder.getRvTrackIdMap();
         Sequence sequence = null;
         try
@@ -195,12 +198,19 @@ public class ExportToMidiFile extends AbstractAction
             mapRvTrackId = seqBuilder.getRvTrackIdMap();
         } catch (MusicGenerationException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            LOGGER.warning("actionPerformed() ex=" + ex.getLocalizedMessage());
+            if (ex.getLocalizedMessage() != null)
+            {
+                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+            }
             return;
         } finally
         {
             songCopy.close(false);
         }
+        assert sequence != null;
+
 
         // Check Midi export capabilities
         int[] fileTypes = MidiSystem.getMidiFileTypes(sequence);
@@ -222,6 +232,7 @@ public class ExportToMidiFile extends AbstractAction
             return;
         }
 
+
         // Remove elements from muted tracks (don't remove track because impact on mapRvTrack + drumsrerouting)
         for (RhythmVoice rv : midiMix.getRhythmVoices())
         {
@@ -232,16 +243,32 @@ public class ExportToMidiFile extends AbstractAction
             }
         }
 
+
+        // Add click & precount tracks if required
+        ClickManager cm = ClickManager.getInstance();
+        long songStartTick = cm.isClickPrecountEnabled() ? cm.addPreCountClickTrack(sequence, mgContext) : 0;
+        if (cm.isPlaybackClickEnabled())
+        {
+            cm.addClickTrack(sequence, mgContext);
+        }
+
+
         // Apply Drums channel rerouting        
         List<Integer> toBeRerouted = midiMix.getDrumsReroutedChannels();
         MidiUtilities.rerouteShortMessages(sequence, toBeRerouted, MidiConst.CHANNEL_DRUMS);
 
-        // Add chord symbols as markers
-        addChordSymbolMarkers(sequence);
+
+        // Prepare sequence to make Midi file as portable as possible
+        prepareForMidiFile(sequence, songStartTick, mapRvTrackId, midiMix);
 
 
-        // Modify sequence to make Midi file as portable as possible
-        prepareForMidiFile(sequence, mapRvTrackId, midiMix);
+        // Dump sequence in debug mode
+        if (MusicController.getInstance().isDebugBuiltSequence())
+        {
+            LOGGER.info("actionPerformed() song=" + song.getName() + " - sequence :");
+            LOGGER.info(MidiUtilities.toString(sequence));
+        }
+
 
         // Finally write to file
         LOGGER.info("actionPerformed() writing sequence to Midi file: " + midiFile.getAbsolutePath());
@@ -295,14 +322,18 @@ public class ExportToMidiFile extends AbstractAction
     /**
      * Prepare the sequence for Midi file export.
      * <p>
-     * Shift all events 1 bar to leave time to apply config changes.<br>
-     * Add prog/bank changes messages, tempo, reset controllers, time signature changes, etc...
+     * Add various Midi messages on track 0:<br>
+     * - prog/bank changes messages<br>
+     * - reset controllers<br>
+     * - tempo factor changes<br>
+     * - markers for chord symbols<br>
      *
      * @param sequence
+     * @param tickOffset The tick start of the song. Will be &gt; 0 if precount click is used.
      * @throws ArrayIndexOutOfBoundsException
      * @todo Should we convert tempo Midi message depending on TimeSignature (eg 4/4 or 6/8 don't have the same natural beat...) ?
      */
-    private void prepareForMidiFile(Sequence sequence, HashMap<RhythmVoice, Integer> mapRvTrackId, MidiMix midiMix) throws ArrayIndexOutOfBoundsException
+    private void prepareForMidiFile(Sequence sequence, long tickOffset, HashMap<RhythmVoice, Integer> mapRvTrackId, MidiMix midiMix) throws ArrayIndexOutOfBoundsException
     {
         Track[] tracks = sequence.getTracks();
         if (tracks.length == 0)
@@ -313,38 +344,15 @@ public class ExportToMidiFile extends AbstractAction
 
         List<SongPart> spts = song.getSongStructure().getSongParts();
         SongPart spt0 = spts.get(0);
-        TimeSignature ts0 = spt0.getRhythm().getTimeSignature();
-        long initBarInTicks = (long) (ts0.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION);
 
 
-        // Shift one bar except track names and initial time signature  
-        for (Track track : tracks)
-        {
-            for (int i = track.size() - 1; i >= 0; i--)
-            {
-                MidiEvent me = track.get(i);
-                long tick = me.getTick();
-                MidiMessage mm = me.getMessage();
-                if (mm instanceof MetaMessage)
-                {
-                    int type = ((MetaMessage) mm).getType();
-                    // Track name=3 or initial time signature         
-                    if (type == 3 || (type == 88 && tick == 0))
-                    {
-                        continue;
-                    }
-                }
-                me.setTick(tick + initBarInTicks);
-            }
-        }
-
-
-        // Add initialization messages on first track
         // Copyright
-        Track firstTrack = tracks[0];
+        Track track0 = tracks[0];
         MidiMessage mmCopyright = MidiUtilities.getCopyrightMetaMessage("JJazzLab Midi Export file");
         MidiEvent me = new MidiEvent(mmCopyright, 0);
-        firstTrack.add(me);
+        track0.add(me);
+
+
         // Initial tempo
         int tempo = song.getTempo();
         RP_SYS_TempoFactor rp = RP_SYS_TempoFactor.getTempoFactorRp(spt0.getRhythm());
@@ -355,33 +363,33 @@ public class ExportToMidiFile extends AbstractAction
             tempo = Math.round(tempoFactor / 100f * tempo);
         }
         me = new MidiEvent(MidiUtilities.getTempoMessage(0, tempo), 0);
-        firstTrack.add(me);
+        track0.add(me);
 
 
         // Add XX mode ON initialization message
         OutputSynth os = OutputSynthManager.getInstance().getOutputSynth();
-        SysexMessage sm = null;
+        SysexMessage sxm = null;
         switch (os.getSendModeOnUponPlay())
         {
             case GM:
-                sm = MidiUtilities.getGmModeOnSysExMessage();
+                sxm = MidiUtilities.getGmModeOnSysExMessage();
                 break;
             case GM2:
-                sm = MidiUtilities.getGm2ModeOnSysExMessage();
+                sxm = MidiUtilities.getGm2ModeOnSysExMessage();
                 break;
             case GS:
-                sm = MidiUtilities.getGsModeOnSysExMessage();
+                sxm = MidiUtilities.getGsModeOnSysExMessage();
                 break;
             case XG:
-                sm = MidiUtilities.getXgModeOnSysExMessage();
+                sxm = MidiUtilities.getXgModeOnSysExMessage();
                 break;
             default:
             // Nothing
         }
-        if (sm != null)
+        if (sxm != null)
         {
-            me = new MidiEvent(sm, 0);
-            firstTrack.add(me);
+            me = new MidiEvent(sxm, 0);
+            track0.add(me);
         }
 
 
@@ -419,18 +427,35 @@ public class ExportToMidiFile extends AbstractAction
                 {
                     tempo = Math.round(tempoFactor / 100f * song.getTempo());
                     float beatPos = song.getSongStructure().getPositionInNaturalBeats(spt.getStartBarIndex());
-                    long tickPos = initBarInTicks + Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
+                    long tickPos = tickOffset + Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
                     me = new MidiEvent(MidiUtilities.getTempoMessage(0, tempo), tickPos);
-                    firstTrack.add(me);
+                    track0.add(me);
                     lastTempoFactor = tempoFactor;
                 }
             }
         }
-    }
 
-    private void addChordSymbolMarkers(Sequence seq)
-    {
-        Track firstTrack = seq.getTracks()[0];
+
+        // Remove JJazzLab custom controller change events
+        int i = 0;
+        while (i < track0.size())
+        {
+            me = track0.get(i);
+            MidiMessage mm = me.getMessage();
+            if (mm instanceof ShortMessage)
+            {
+                ShortMessage sm = (ShortMessage) mm;
+                if (sm.getCommand() == ShortMessage.CONTROL_CHANGE && sm.getData1() == MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR)
+                {
+                    track0.remove(me);
+                    i--;
+                }
+            }
+            i++;
+        }
+
+
+        // Add markers at each chord symbol position
         SongStructure ss = song.getSongStructure();
         for (SongPart spt : ss.getSongParts())
         {
@@ -439,11 +464,12 @@ public class ExportToMidiFile extends AbstractAction
             {
                 Position absPos = ss.getSptItemPosition(spt, cliCs);
                 float posInBeats = ss.getPositionInNaturalBeats(absPos.getBar()) + absPos.getBeat();
-                long tickPos = Math.round(posInBeats * MidiConst.PPQ_RESOLUTION);
-                MidiEvent me = new MidiEvent(MidiUtilities.getMarkerMetaMessage(cliCs.getData().getName()), tickPos);
-                firstTrack.add(me);
+                long tickPos = tickOffset + Math.round(posInBeats * MidiConst.PPQ_RESOLUTION);
+                me = new MidiEvent(MidiUtilities.getMarkerMetaMessage(cliCs.getData().getName()), tickPos);
+                track0.add(me);
             }
         }
+
     }
 
     /**

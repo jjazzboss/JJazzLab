@@ -96,7 +96,8 @@ public class MidiSequenceBuilder
      * If context range start bar is &gt; 0, the Midi events are shifted to start at sequence tick 0.
      *
      * @param silent If true do not show a progress dialog
-     * @return A Sequence containing accompaniment tracks for the context.
+     * @return A Sequence containing accompaniment tracks for the context, including time signature change Midi meta events and JJazz
+     * custom Midi controller messages (MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR) for tempo factor changes.
      * @throws MusicGenerationException
      */
     public Sequence buildSequence(boolean silent) throws MusicGenerationException
@@ -126,7 +127,7 @@ public class MidiSequenceBuilder
     }
 
     /**
-     * A map giving the track id (i7ndex in the sequence) for each rhythm voice.
+     * A map giving the track id (i7ndex in the sequence) for each rhythm voice, in the current context.
      * <p>
      * Must be called AFTER call to buildSequence(). The returned map contains data only for the generated tracks in the given
      * context. In a song with 2 rhythms R1 and R2, if context only uses R2, then only the id and tracks for R2 are returned.
