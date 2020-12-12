@@ -27,9 +27,9 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.util.EnumSet;
+import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
-import static org.jjazz.activesong.Bundle.ERR_OtherSongPlaying;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.JJazzMidiSystem;
@@ -37,7 +37,6 @@ import org.jjazz.midimix.MidiMix;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.song.api.Song;
-import org.openide.util.NbBundle;
 
 /**
  * Manage the active song and MidiMix, and the related Midi messages (sent to JJazz Midi out device).
@@ -45,10 +44,6 @@ import org.openide.util.NbBundle;
  * Midi messages are sent upon MidiMix changes depending on getSendMessagePolicy(). If song is closed, active song is reset to
  * null.
  */
-@NbBundle.Messages(
-        {
-            "ERR_OtherSongPlaying=Can't activate this song while another song is playing."
-        })
 public class ActiveSongManager implements PropertyChangeListener, VetoableChangeListener
 {
 
@@ -62,7 +57,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
      */
     public enum SendMidiMessagePolicy
     {
-        MIX_CHANGE, // Each time a MidiMix parameter is modified
+        MIX_CHANGE, // Each time a MidiMix parameter is modified               
         PLAY, // Before playing music
         ACTIVATION, // Upong MidiMix activation
     }
@@ -75,6 +70,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     private Song activeSong;
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(ActiveSongManager.class.getSimpleName());
+    private static final ResourceBundle bundle = ResourceBundle.getBundle("org/jjazz/activesong/Bundle");
 
     public static ActiveSongManager getInstance()
     {
@@ -117,7 +113,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
         MusicController mc = MusicController.getInstance();
         if (mc.getState() == MusicController.State.PLAYING && sg != mc.getContext().getSong())
         {
-            err = ERR_OtherSongPlaying();
+            err = bundle.getString("CAN'T ACTIVATE THIS SONG WHILE ANOTHER SONG IS PLAYING.");
         }
         return err;
     }
