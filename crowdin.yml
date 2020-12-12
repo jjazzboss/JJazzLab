@@ -1,0 +1,3 @@
+files:
+  - source: /**/Bundle.properties
+    translation: /**/Bundle_%locale_with_underscore%.properties
