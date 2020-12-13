@@ -51,7 +51,7 @@ public class SendGm2On extends AbstractAction
 {
 
     private MidiMix songMidiMix;
-    private String undoText = CTL_SendGm2On();
+    private final String undoText = ResUtil.getString(getClass(), CTL_SendGm2On);
     private static final Logger LOGGER = Logger.getLogger(SendGm2On.class.getSimpleName());
 
     public SendGm2On(MidiMix context)

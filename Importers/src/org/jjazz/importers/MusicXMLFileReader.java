@@ -44,6 +44,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
@@ -109,7 +110,7 @@ public class MusicXMLFileReader
 
             if (!noUserPrompt)
             {
-                String msg = file.getName() + " import: first chord symbol is at bar " + (firstPos.getBar() + 1) + ". Do you want to make the song start on bar 1 ?";
+                String msg = ResUtil.getString(getClass(), "MusicXMLFileReader.UserPrompt", file.getName(), (firstPos.getBar() + 1));
                 NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
                 doIt = NotifyDescriptor.YES_OPTION == DialogDisplayer.getDefault().notify(d);
             }

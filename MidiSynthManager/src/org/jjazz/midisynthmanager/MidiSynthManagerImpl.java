@@ -43,7 +43,7 @@ import org.jjazz.midi.synths.GSSynth;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.UpgradeManager;
-import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.util.ResUtil;
 import org.jjazz.util.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.*;
@@ -171,7 +171,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
         if (reader == null)
         {
             // Extension not managed by any MidiSynthFileReader
-            String msg = "File extension not supported: " + synthFile.getAbsolutePath();
+            String msg = ResUtil.getString(getClass(), "FileExtensionNotSupported", synthFile.getAbsolutePath());
             LOGGER.log(Level.WARNING, msg);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
@@ -192,7 +192,8 @@ public class MidiSynthManagerImpl implements MidiSynthManager
                 }
             } catch (IOException ex)
             {
-                String msg = "Problem reading file : " + ex.getLocalizedMessage();
+
+                String msg = ResUtil.getString(getClass(), "ProblemReadingFile") + ": " + ex.getLocalizedMessage();
                 LOGGER.log(Level.WARNING, msg);
                 NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
@@ -237,7 +238,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
         chooser.setAcceptAllFileFilterUsed(false);
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setDialogTitle("Load Midi synth definition file");
+        chooser.setDialogTitle(ResUtil.getString(getClass(), "DialogTitle"));
         chooser.setCurrentDirectory(getMidiSynthFilesDir());
 
         // Show dialog
@@ -424,13 +425,12 @@ public class MidiSynthManagerImpl implements MidiSynthManager
             }
             if (!isEmpty)
             {
-                String msg = "<html><b>MIDI SYNTH DEFINITION FILES</b><br/><br/>JJazzLab will copy default Midi synth definition files (.ins) to: <i>" + dir.getAbsolutePath() + "</i><br/><br/>"
-                        + "Existing default files will be overwritten. OK to proceed?";
+                String msg = ResUtil.getString(getClass(), "MidiSynthFilesOverwriteConfirmation", dir.getAbsolutePath());
                 String[] options = new String[]
                 {
-                    "OK", "Skip"
+                    "OK", ResUtil.getString(getClass(), "Skip")
                 };
-                NotifyDescriptor d = new NotifyDescriptor(msg, "JJazzLab first time initialization", 0, NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
+                NotifyDescriptor d = new NotifyDescriptor(msg, ResUtil.getString(getClass(), "FirstTimeInit"), 0, NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
                 Object result = DialogDisplayer.getDefault().notify(d);
 
                 if (!result.equals("OK"))

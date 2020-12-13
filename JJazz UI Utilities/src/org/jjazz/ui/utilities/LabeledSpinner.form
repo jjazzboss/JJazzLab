@@ -42,9 +42,7 @@
     <Component class="javax.swing.JLabel" name="lbl_label">
       <Properties>
         <Property name="horizontalAlignment" type="int" value="11"/>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/ui/utilities/Bundle.properties" key="LabeledSpinner.lbl_label.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="label" noResource="true"/>
       </Properties>
     </Component>
     <Component class="org.jjazz.ui.utilities.WheelSpinner" name="wheelSpinner1">

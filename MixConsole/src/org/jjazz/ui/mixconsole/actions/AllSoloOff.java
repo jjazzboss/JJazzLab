@@ -29,12 +29,11 @@ import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.midi.InstrumentMix;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.allsolooff")
 // Need lazy=false for tooltip to work
@@ -44,21 +43,16 @@ import org.openide.util.NbBundle;
             // @ActionReference(path = "Actions/MixConsole/Midi", position = 200)
             // ,@ActionReference(path = "Actions/MixConsole/Master", position = 100)
         })
-@NbBundle.Messages(
-        {
-            "CTL_AllSoloOff= S ",
-            "CTL_AllSoloOffToolTip=Switch OFF all SOLO buttons"
-        })
 public class AllSoloOff extends AbstractAction
 {
 
-    private String undoText = CTL_AllSoloOff();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_AllSoloOff");
     private static final Logger LOGGER = Logger.getLogger(AllSoloOff.class.getSimpleName());
 
     public AllSoloOff()
     {
         putValue(NAME, undoText);
-        putValue(SHORT_DESCRIPTION, Bundle.CTL_AllSoloOffToolTip());
+        putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_AllSoloOffToolTip"));
         // putValue("hideActionText", true);
     }
 

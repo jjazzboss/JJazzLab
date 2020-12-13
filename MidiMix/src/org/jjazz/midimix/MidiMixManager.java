@@ -37,6 +37,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.song.api.Song;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.StatusDisplayer;
 
 /**
@@ -97,7 +98,7 @@ public class MidiMixManager implements PropertyChangeListener
                 {
                     // Try to get it from the song mix file
                     mm = MidiMix.loadFromFile(mixFile);
-                    StatusDisplayer.getDefault().setStatusText("Loaded song mix file: " + mixFile.getAbsolutePath());
+                    StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "LoadedSongMix", mixFile.getAbsolutePath()));
                 } catch (IOException ex)
                 {
                     LOGGER.warning("findMix(Song) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage());
@@ -138,7 +139,7 @@ public class MidiMixManager implements PropertyChangeListener
             try
             {
                 mm = MidiMix.loadFromFile(mixFile);
-                StatusDisplayer.getDefault().setStatusText("Loaded rhythm mix file: " + mixFile.getAbsolutePath());
+                StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "LoadedRhythmMix", mixFile.getAbsolutePath()));
             } catch (IOException ex)
             {
                 LOGGER.severe("findMix(rhythm) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage() + ". Creating a new mix instead.");

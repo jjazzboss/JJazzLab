@@ -304,7 +304,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         filler7 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         cb_viewRhythms = new javax.swing.JComboBox<>();
         filler6 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
-        jLabel1 = new javax.swing.JLabel();
+        lbl_Master = new javax.swing.JLabel();
         masterHorizontalSlider1 = new org.jjazz.ui.mixconsole.MasterVolumeSlider();
         filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         fbtn_switchAllMute = new org.jjazz.ui.flatcomponents.FlatButton();
@@ -331,9 +331,9 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         panel_MasterControls.add(cb_viewRhythms);
         panel_MasterControls.add(filler6);
 
-        jLabel1.setFont(new java.awt.Font("Arial Narrow", 1, 10)); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.jLabel1.text")); // NOI18N
-        panel_MasterControls.add(jLabel1);
+        lbl_Master.setFont(new java.awt.Font("Arial Narrow", 1, 10)); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_Master, org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.lbl_Master.text")); // NOI18N
+        panel_MasterControls.add(lbl_Master);
 
         masterHorizontalSlider1.setColorLine(new java.awt.Color(153, 153, 153));
         masterHorizontalSlider1.setFaderHeight(4);
@@ -342,19 +342,19 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         panel_MasterControls.add(filler3);
 
         fbtn_switchAllMute.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_switchAllMute, org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.fbtn_switchAllMute.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(fbtn_switchAllMute, " M "); // NOI18N
         fbtn_switchAllMute.setToolTipText(org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.fbtn_switchAllMute.toolTipText")); // NOI18N
         panel_MasterControls.add(fbtn_switchAllMute);
         panel_MasterControls.add(filler4);
 
         fbtn_allSoloOff.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_allSoloOff, org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.fbtn_allSoloOff.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(fbtn_allSoloOff, " S "); // NOI18N
         fbtn_allSoloOff.setToolTipText(org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.fbtn_allSoloOff.toolTipText")); // NOI18N
         panel_MasterControls.add(fbtn_allSoloOff);
         panel_MasterControls.add(filler5);
 
         fbtn_panic.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_panic, org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.fbtn_panic.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(fbtn_panic, " PANIC "); // NOI18N
         fbtn_panic.setToolTipText(org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.fbtn_panic.toolTipText")); // NOI18N
         fbtn_panic.setFont(new java.awt.Font("Arial Narrow", 0, 11)); // NOI18N
         panel_MasterControls.add(fbtn_panic);
@@ -384,7 +384,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private javax.swing.Box.Filler filler5;
     private javax.swing.Box.Filler filler6;
     private javax.swing.Box.Filler filler7;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel lbl_Master;
     private org.jjazz.ui.mixconsole.MasterVolumeSlider masterHorizontalSlider1;
     private javax.swing.JPanel panel_Main;
     private javax.swing.JPanel panel_MasterControls;

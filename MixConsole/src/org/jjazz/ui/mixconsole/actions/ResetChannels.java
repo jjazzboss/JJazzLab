@@ -64,7 +64,7 @@ public class ResetChannels extends AbstractAction
 {
 
     private MidiMix songMidiMix;
-    private String undoText = CTL_ResetChannels();
+    private final String undoText = ResUtil.getString(getClass(), CTL_ResetChannels);
     private static final Logger LOGGER = Logger.getLogger(ResetChannels.class.getSimpleName());
 
     public ResetChannels(MidiMix context)

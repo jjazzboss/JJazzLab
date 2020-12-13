@@ -142,7 +142,7 @@ public class ChooseImporterDialog extends javax.swing.JDialog
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(ChooseImporterDialog.class, "ChooseImporterDialog.jLabel1.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_fileExtension, org.openide.util.NbBundle.getMessage(ChooseImporterDialog.class, "ChooseImporterDialog.lbl_fileExtension.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_fileExtension, "jLabel2"); // NOI18N
 
         list_importers.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         list_importers.addListSelectionListener(new javax.swing.event.ListSelectionListener()

@@ -112,7 +112,7 @@ public class LabeledSpinner extends javax.swing.JPanel
         wheelSpinner1 = new org.jjazz.ui.utilities.WheelSpinner();
 
         lbl_label.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_label, org.openide.util.NbBundle.getMessage(LabeledSpinner.class, "LabeledSpinner.lbl_label.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_label, "label"); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

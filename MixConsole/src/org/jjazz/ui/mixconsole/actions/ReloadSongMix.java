@@ -58,7 +58,7 @@ import org.openide.util.NbBundle;
 public class ReloadSongMix extends AbstractAction
 {
 
-    private String undoText = CTL_ReloadSongMix();
+    private final String undoText = ResUtil.getString(getClass(), CTL_ReloadSongMix);
     private static final Logger LOGGER = Logger.getLogger(ReloadSongMix.class.getSimpleName());
 
     public ReloadSongMix()

@@ -54,7 +54,7 @@ import org.openide.util.NbBundle;
 public class SwitchAllMute extends AbstractAction
 {
 
-    private String undoText = CTL_SwitchAllMute();
+    private final String undoText = ResUtil.getString(getClass(), CTL_SwitchAllMute);
     private static final Logger LOGGER = Logger.getLogger(SwitchAllMute.class.getSimpleName());
 
     public SwitchAllMute()

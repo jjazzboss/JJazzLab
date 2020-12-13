@@ -48,6 +48,7 @@ import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 import org.jjazz.ui.itemrenderer.api.ItemRendererSettings;
 import org.jjazz.ui.utilities.TextLayoutUtils;
+import org.jjazz.util.ResUtil;
 
 /**
  * An ItemRenderer for ChordSymbols.
@@ -268,10 +269,10 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
             AltExtChordSymbol altSymbol = ecs.getAlternateChordSymbol();
             if (altSymbol != null)
             {
-                sb.append("   /ALTERNATE: ");
+                sb.append("   ").append(ResUtil.getString(getClass(), "IR_ChordSymbol.ALTERNATE")).append(": ");
                 if (altSymbol == VoidAltExtChordSymbol.getInstance())
                 {
-                    sb.append("Void");
+                    sb.append(ResUtil.getString(getClass(), "IR_ChordSymbol.void"));
                 } else
                 {
                     sb.append(altSymbol);
@@ -282,10 +283,10 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
                         sb.append(" - ").append(criStr);
                     }
                 }
-                sb.append(" - condition=");
+                sb.append(" - ").append(ResUtil.getString(getClass(), "IR_ChordSymbol.condition")).append("=");
                 AltDataFilter altFilter = ecs.getAlternateFilter();
                 assert altFilter != null;
-                sb.append(altFilter.isRandom() ? "random" : altFilter.getValues());
+                sb.append(altFilter.isRandom() ? ResUtil.getString(getClass(), "IR_ChordSymbol.random") : altFilter.getValues());
             }
             setToolTipText(sb.toString());
         } else

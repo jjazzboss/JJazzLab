@@ -342,7 +342,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         pnl_mute.setOpaque(false);
         pnl_mute.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_mute, org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_mute.text")); // NOI18N
         fbtn_mute.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_mute.toolTipText_1")); // NOI18N
         fbtn_mute.setAlignmentX(0.5F);
         fbtn_mute.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/MuteDisabled_Icon-21x21.png"))); // NOI18N
@@ -361,7 +360,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         pnl_solo.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
         fbtn_solo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_solo, org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_solo.text")); // NOI18N
         fbtn_solo.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_solo.toolTipText")); // NOI18N
         fbtn_solo.setAlignmentX(0.5F);
         fbtn_solo.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/SoloDisabled_Icon-21x21.png"))); // NOI18N
@@ -416,13 +414,12 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         pnl_inst_volume.add(fslider_volume);
 
         fbtn_Instrument.setForeground(new java.awt.Color(0, 102, 102));
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_Instrument, org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_Instrument.text")); // NOI18N
         fbtn_Instrument.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_Instrument.toolTipText")); // NOI18N
         fbtn_Instrument.setVerticalAlignment(javax.swing.SwingConstants.BOTTOM);
         fbtn_Instrument.setAlignmentX(0.5F);
         fbtn_Instrument.setFont(FONT.deriveFont(Font.ITALIC, 11f)
         );
-        fbtn_Instrument.setvLabel(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_Instrument.vLabel")); // NOI18N
+        fbtn_Instrument.setvLabel("Rock piano"); // NOI18N
         fbtn_Instrument.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -435,10 +432,8 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         pnl_icon.setOpaque(false);
         pnl_icon.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        lbl_Icon.setFont(new java.awt.Font("Arial Black", 1, 12)); // NOI18N
         lbl_Icon.setForeground(new java.awt.Color(0, 102, 102));
         lbl_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/api/resources/Drums-48x48.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_Icon, org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.lbl_Icon.text")); // NOI18N
         lbl_Icon.setAlignmentX(0.5F);
         lbl_Icon.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 0, 2, 0));
         pnl_icon.add(lbl_Icon);
@@ -450,7 +445,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         lbl_name.setFont(FONT);
         lbl_name.setForeground(new java.awt.Color(0, 102, 102));
         lbl_name.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_name, org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.lbl_name.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_name, "swing latin"); // NOI18N
         lbl_name.setAlignmentX(0.5F);
         lbl_name.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 0, 4, 0));
         pnl_name.add(lbl_name);
@@ -460,7 +455,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
         fbtn_channelId.setForeground(new java.awt.Color(0, 70, 70));
         fbtn_channelId.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_channelId, org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(fbtn_channelId, "12"); // NOI18N
         fbtn_channelId.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_channelId.toolTipText")); // NOI18N
         fbtn_channelId.setAlignmentX(0.5F);
         fbtn_channelId.setFont(FONT);

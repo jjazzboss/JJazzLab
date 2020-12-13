@@ -27,17 +27,14 @@ import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
-import org.jjazz.midi.InstrumentMix;
-import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.song.api.Song;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.EnableAllMidiParameters")
 @ActionRegistration(displayName = "#CTL_EnableAllMidiParameters", lazy = true)
@@ -45,23 +42,18 @@ import org.openide.util.NbBundle;
         {
             @ActionReference(path = "Actions/MixConsole/MenuBar/Edit", position = 410)
         })
-@NbBundle.Messages(
-        {
-            "CTL_EnableAllMidiParameters=Enable all Midi parameters",
-            "CTL_EnableAllMidiParametersDescription=This lets you control the mix from JJazzLab"
-        })
 public class EnableAllMidiParameters extends AbstractAction
 {
 
     private MidiMix songMidiMix;
-    private String undoText = CTL_EnableAllMidiParameters();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_EnableAllMidiParameters");
     private static final Logger LOGGER = Logger.getLogger(EnableAllMidiParameters.class.getSimpleName());
 
     public EnableAllMidiParameters(MidiMix context)
     {
         songMidiMix = context;
         putValue(NAME, undoText);
-        putValue(SHORT_DESCRIPTION, Bundle.CTL_EnableAllMidiParametersDescription());
+        putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_EnableAllMidiParametersDescription"));
     }
 
     @Override

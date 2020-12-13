@@ -51,6 +51,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
+import org.jjazz.util.ResUtil;
 import org.openide.util.Exceptions;
 
 /**
@@ -85,7 +86,7 @@ public class ImprovisorFileReader
      */
     public Song readSong() throws IOException
     {
-        String title = "No Title";
+        String title = ResUtil.getString(getClass(), "ImprovisorFileReader.NoTitle");
         String composer = null;
         int tempo = 120;
         TimeSignature ts = TimeSignature.FOUR_FOUR;
@@ -159,7 +160,8 @@ public class ImprovisorFileReader
                     ts = TimeSignature.get(upper, lower);
                     if (ts == null)
                     {
-                        throw new IOException("Time signature not supported : " + upper + "/" + lower);
+                        String msg = ResUtil.getString(getClass(), "ImprovisorFileReader.TimeSigNotSupported");
+                        throw new IOException(msg + " : " + upper + "/" + lower);
                     }
                 } else if (mSection.find())
                 {

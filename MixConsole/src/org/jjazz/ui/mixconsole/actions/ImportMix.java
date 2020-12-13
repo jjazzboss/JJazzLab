@@ -53,6 +53,7 @@ import org.openide.windows.WindowManager;
         })
 @NbBundle.Messages(
         {
+            qsdqsd
             "CTL_ImportMix=Import Mix...",
             "ERR_CouldNotImportFile=Could not import file : ",
             "ERR_FileDoesNotExist=File does not exist : ",
@@ -63,7 +64,7 @@ public class ImportMix extends AbstractAction
 {
 
     private MidiMix songMidiMix;
-    private String undoText = CTL_ImportMix();
+    private final String undoText = ResUtil.getString(getClass(), CTL_ImportMix);
     private static final Logger LOGGER = Logger.getLogger(ImportMix.class.getSimpleName());
 
     public ImportMix(MidiMix context)

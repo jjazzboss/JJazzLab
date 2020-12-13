@@ -25,8 +25,6 @@ package org.jjazz.ui.mixconsole.actions;
 import org.jjazz.midimix.MidiMix;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
@@ -35,14 +33,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.utilities.Utilities;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionReferences;
-import org.openide.awt.ActionRegistration;
-import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 
 //@ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.exportmix")
@@ -51,18 +44,12 @@ import org.openide.windows.WindowManager;
 //        {
 //            // @ActionReference(path = "Actions/MixConsole/File", position = 300, separatorBefore = 290)
 //        })
-@NbBundle.Messages(
-        {
-            "CTL_ExportMix=Export Mix...",
-            "CTL_MixFiles=Mix Files",
-            "CTL_ConfirmFileReplace=File already exits. Confirm overwrite ?",
-            "CTL_FileSaved=Mix exported to :"
-        })
+
 public class ExportMix extends AbstractAction
 {
 
     private MidiMix songMidiMix;
-    private String undoText = CTL_ExportMix();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_ExportMix");
     private static final Logger LOGGER = Logger.getLogger(ExportMix.class.getSimpleName());
 
     public ExportMix(MidiMix context)
@@ -74,7 +61,6 @@ public class ExportMix extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        File oldFile = songMidiMix.getFile();
         File copyFile = showSaveMixFileChooser(null);
         if (copyFile == null)
         {
@@ -85,7 +71,7 @@ public class ExportMix extends AbstractAction
     }
 
     /**
-     * Prepare the JFileChooser to save specified file. 
+     * Prepare the JFileChooser to save specified file.
      * <p>
      * Ask for confirmation if file overwrite. Add extension to selected file if required.
      *
@@ -95,11 +81,11 @@ public class ExportMix extends AbstractAction
     static protected File showSaveMixFileChooser(File presetFile)
     {
         JFileChooser chooser = Utilities.getFileChooserInstance();
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(CTL_MixFiles() + " (" + "." + FileDirectoryManager.MIX_FILE_EXTENSION + ")", FileDirectoryManager.MIX_FILE_EXTENSION);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(ResUtil.getString(ExportMix.class, "CTL_MixFiles") + " (" + "." + FileDirectoryManager.MIX_FILE_EXTENSION + ")", FileDirectoryManager.MIX_FILE_EXTENSION);
         chooser.resetChoosableFileFilters();
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setDialogTitle("Save mix file");        
+        chooser.setDialogTitle(ResUtil.getString(ExportMix.class, "CTL_SaveMixFile"));
         chooser.setFileFilter(filter);
 
         if (presetFile != null)
@@ -125,7 +111,7 @@ public class ExportMix extends AbstractAction
             if (mixFile.exists())
             {
                 // Confirm overwrite
-                NotifyDescriptor nd = new NotifyDescriptor.Confirmation(mixFile.getName() + " - " + CTL_ConfirmFileReplace(), NotifyDescriptor.OK_CANCEL_OPTION);
+                NotifyDescriptor nd = new NotifyDescriptor.Confirmation(mixFile.getName() + " - " + ResUtil.getString(ExportMix.class, "CTL_ConfirmFileReplace"), NotifyDescriptor.OK_CANCEL_OPTION);
                 Object result = DialogDisplayer.getDefault().notify(nd);
                 if (result != NotifyDescriptor.OK_OPTION)
                 {

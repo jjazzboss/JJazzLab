@@ -65,7 +65,7 @@ import org.openide.util.actions.Presenter;
 )
 public class ToggleUserChannel extends AbstractAction implements Presenter.Menu
 {
-    private String undoText = CTL_ToggleUserChannel();
+    private final String undoText = ResUtil.getString(getClass(), CTL_ToggleUserChannel);
     private JCheckBoxMenuItem checkbox;
     private MidiMix songMidiMix;
     private final LookupListener lookupListener;

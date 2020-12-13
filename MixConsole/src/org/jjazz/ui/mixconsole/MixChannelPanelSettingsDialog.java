@@ -275,7 +275,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
         });
 
         lbl_title.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_title, org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.lbl_title.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_title, "Title"); // NOI18N
 
         pnl_enabledMidiMessages.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.pnl_enabledMidiMessages.border.title"))); // NOI18N
 

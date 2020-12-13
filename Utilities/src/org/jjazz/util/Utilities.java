@@ -43,8 +43,6 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.JTextComponent;
 import org.openide.*;
 import org.openide.filesystems.FileObject;
 
@@ -343,6 +341,11 @@ public class Utilities
      * Return a new string which is a copy of s with as many as required es strings appended to reach length l (or more).
      * <p>
      * If s length is more than l nothing is done.
+     *
+     * @param s
+     * @param l
+     * @param es
+     * @return
      */
     public static String expand(String s, int l, String es)
     {
@@ -840,7 +843,7 @@ public class Utilities
             }
         } else
         {
-            errMsg = "Open hyperlink in browser not supported";
+            errMsg = java.util.ResourceBundle.getBundle("org/jjazz/util/Bundle").getString("OPEN HYPERLINK IN BROWSER NOT SUPPORTED");
         }
         if (!silentError && errMsg != null)
         {

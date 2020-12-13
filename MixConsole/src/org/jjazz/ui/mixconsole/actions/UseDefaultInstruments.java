@@ -59,7 +59,7 @@ import org.openide.util.actions.Presenter;
 public class UseDefaultInstruments extends AbstractAction implements Presenter.Menu // Presenter.Menu just to get the tooltip...
 {
 
-    private String undoText = CTL_UseDefaultInstruments();
+    private final String undoText = ResUtil.getString(getClass(), CTL_UseDefaultInstruments);
 
     private static final Logger LOGGER = Logger.getLogger(UseDefaultInstruments.class.getSimpleName());
 

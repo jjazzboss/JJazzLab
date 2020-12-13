@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -43,12 +44,12 @@ import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.SongEditorManager;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.util.ResUtil;
 import org.netbeans.api.progress.*;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Lookup;
@@ -66,15 +67,12 @@ import org.openide.windows.WindowManager;
         {
             @ActionReference(path = "Menu/File", position = 10),
         })
-@Messages(
-        {
-            "CTL_ImportSong=Import Songs..."
-        })
 public final class ImportSongAction implements ActionListener
 {
 
     public static final String PREF_LAST_IMPORT_DIRECTORY = "LastImportDirectory";
     private static Preferences prefs = NbPreferences.forModule(ImportSongAction.class);
+    private final ResourceBundle bundle = ResUtil.getBundle(getClass());
     private static final Logger LOGGER = Logger.getLogger(ImportSongAction.class.getSimpleName());
 
     @Override
@@ -83,7 +81,7 @@ public final class ImportSongAction implements ActionListener
         final List<SongImporter> importers = getAllImporters();
         if (importers.isEmpty())
         {
-            NotifyDescriptor d = new NotifyDescriptor.Message("Can't import song : no importer found on the system.", NotifyDescriptor.ERROR_MESSAGE);
+            NotifyDescriptor d = new NotifyDescriptor.Message(bundle.getString("CAN'T IMPORT SONG : NO IMPORTER FOUND ON THE SYSTEM."), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
         }
@@ -101,7 +99,7 @@ public final class ImportSongAction implements ActionListener
         }
         if (allExtensions.size() > 1)
         {
-            allExtensionsFilter = new FileNameExtensionFilter("All importable files", allExtensions.toArray(new String[0]));
+            allExtensionsFilter = new FileNameExtensionFilter(bundle.getString("ALL IMPORTABLE FILES"), allExtensions.toArray(new String[0]));
         }
 
 
@@ -125,7 +123,7 @@ public final class ImportSongAction implements ActionListener
         chooser.setSelectedFile(new File(""));
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setCurrentDirectory(getLastImportDirectory());
-        chooser.setDialogTitle("Import song from file");
+        chooser.setDialogTitle(bundle.getString("IMPORT SONG FROM FILE"));
         if (chooser.showOpenDialog(WindowManager.getDefault().getMainWindow()) != JFileChooser.APPROVE_OPTION)
         {
             // User cancelled
@@ -159,7 +157,7 @@ public final class ImportSongAction implements ActionListener
                 if (fImporters.isEmpty())
                 {
                     // Extension not managed by any SongImporter
-                    String msg = "File type is not supported : " + f.getAbsolutePath();
+                    String msg = ResUtil.getString(getClass(), "FILE TYPE IS NOT SUPPORTED", f.getAbsolutePath());
                     LOGGER.log(Level.WARNING, "actionPerformed() " + msg);
                     NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(nd);
@@ -198,7 +196,7 @@ public final class ImportSongAction implements ActionListener
             }
         };
         // new Thread(r).start();
-        BaseProgressUtils.showProgressDialogAndRun(r, "Importing...");
+        BaseProgressUtils.showProgressDialogAndRun(r, bundle.getString("IMPORTING..."));
     }
 
     private void importFiles(HashMap<File, SongImporter> mapFileImporter)
@@ -223,10 +221,10 @@ public final class ImportSongAction implements ActionListener
             if (song == null)
             {
                 LOGGER.log(Level.WARNING, "importFiles() song=null, importer=" + importer.getId() + " f=" + f.getAbsolutePath());
-                NotifyDescriptor nd = new NotifyDescriptor.Message("An unexpected problem occured during the import operation.", NotifyDescriptor.ERROR_MESSAGE);
+                NotifyDescriptor nd = new NotifyDescriptor.Message(bundle.getString("AN UNEXPECTED PROBLEM OCCURED DURING THE IMPORT OPERATION."), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
             } else
-            {                                                   
+            {
                 // Ok we got the new song show it !
                 song.setFile(null);     // Make sure song is not associated with the import file
                 SongFactory.getInstance().registerSong(song);
@@ -298,7 +296,6 @@ public final class ImportSongAction implements ActionListener
         return f;
     }
 
-
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
@@ -314,6 +311,5 @@ public final class ImportSongAction implements ActionListener
         }
 
     }
-
 
 }

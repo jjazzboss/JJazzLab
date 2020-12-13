@@ -48,7 +48,7 @@ public class ReinitializeInstruments extends AbstractAction
 {
 
     private MidiMix songMidiMix;
-    private String undoText = CTL_ReinitializeInstruments();
+    private final String undoText = ResUtil.getString(getClass(), CTL_ReinitializeInstruments);
     private static final Logger LOGGER = Logger.getLogger(ReinitializeInstruments.class.getSimpleName());
 
     public ReinitializeInstruments(MidiMix context)

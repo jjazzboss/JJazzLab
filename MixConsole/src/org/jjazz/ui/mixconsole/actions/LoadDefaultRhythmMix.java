@@ -62,7 +62,7 @@ import org.openide.util.NbBundle;
 public class LoadDefaultRhythmMix extends AbstractAction
 {
 
-    private String undoText = CTL_LoadDefaultRhythmMix();
+    private final String undoText = ResUtil.getString(getClass(), CTL_LoadDefaultRhythmMix);
     private static final Logger LOGGER = Logger.getLogger(LoadDefaultRhythmMix.class.getSimpleName());
 
     public LoadDefaultRhythmMix()

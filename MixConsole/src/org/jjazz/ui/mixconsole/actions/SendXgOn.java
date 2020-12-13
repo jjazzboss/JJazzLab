@@ -51,7 +51,7 @@ public class SendXgOn extends AbstractAction
 {
 
     private MidiMix sonxGidiMix;
-    private String undoText = CTL_SendXgOn();
+    private final String undoText = ResUtil.getString(getClass(), CTL_SendXgOn);
     private static final Logger LOGGER = Logger.getLogger(SendXgOn.class.getSimpleName());
 
     public SendXgOn(MidiMix context)

@@ -61,7 +61,6 @@ import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.synths.Family;
 import org.jjazz.midi.synths.StdSynth;
-import static org.jjazz.midimix.Bundle.ERR_NotEnoughChannels;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
@@ -72,14 +71,13 @@ import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongCreationException;
-import org.openide.util.NbBundle.Messages;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.jjazz.undomanager.SimpleEdit;
+import org.jjazz.util.ResUtil;
 import org.jjazz.util.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -94,10 +92,10 @@ import org.openide.util.Exceptions;
  * PROP_MODIFIED_OR_SAVED change event is also fired.
  * <p>
  */
-@Messages(
-        {
-            "ERR_NotEnoughChannels=Not enough available Midi channels"
-        })
+//@Messages(
+//        {
+//            "ERR_NotEnoughChannels=Not enough available Midi channels"
+//        })
 public class MidiMix implements SgsChangeListener, PropertyChangeListener, Serializable
 {
 
@@ -282,7 +280,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             channel = getUsedChannels().contains(prefUserChannel) ? findFreeChannel(false) : prefUserChannel;
             if (channel == -1)
             {
-                throw new MidiUnavailableException("No Midi channels available");
+                throw new MidiUnavailableException(ResUtil.getString(getClass(), "ERR_NotEnoughChannels"));
             }
         }
 
@@ -722,7 +720,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         List<Integer> fromUsedChannels = (r == null) ? fromMm.getUsedChannels() : fromMm.getUsedChannels(r);
         if (getUnusedChannels().size() < fromUsedChannels.size())
         {
-            throw new MidiUnavailableException(ERR_NotEnoughChannels());
+            throw new MidiUnavailableException(ResUtil.getString(getClass(), "ERR_NotEnoughChannels"));
         }
         List<Integer> usedChannels = getUsedChannels();
         for (Integer fromChannel : fromUsedChannels)
@@ -868,7 +866,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         boolean b = true;
         if (f.exists() && !f.canWrite())
         {
-            String msg = "Can not overwrite " + f.getAbsolutePath();
+            String msg = ResUtil.getString(getClass(), "ERR_CantOverwrite", f.getAbsolutePath());
             LOGGER.log(Level.WARNING, "saveToFileNotify() " + msg);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
@@ -881,7 +879,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                 saveToFile(f, isCopy);
             } catch (IOException ex)
             {
-                String msg = "Problem saving song mix file " + f.getAbsolutePath() + " : " + ex.getLocalizedMessage();
+                String msg = ResUtil.getString(getClass(), "ERR_ProblemSavingMixFile", f.getAbsolutePath()) + " : " + ex.getLocalizedMessage();
                 if (ex.getCause() != null)
                 {
                     msg += "\n" + ex.getCause().getLocalizedMessage();
@@ -1045,15 +1043,14 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             throw new IllegalArgumentException("f=" + f);
         }
         MidiMix mm = null;
-                     
+
         try (var fis = new FileInputStream(f))
         {
             XStream xstream = Utilities.getSecuredXStreamInstance();
             Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8"));        // Needed to support special/accented chars
             mm = (MidiMix) xstream.fromXML(r);
             mm.setFile(f);
-        } 
-        catch (XStreamException  e)
+        } catch (XStreamException e)
         {
             LOGGER.warning("loadFromFile() XStreamException e=" + e);   // Important in order to get the details of the XStream error
             throw new IOException("XStream loading error", e);         // Translate into an IOException to be handled by the Netbeans framework 
@@ -1110,7 +1107,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
 
         if (nbVoices > NB_AVAILABLE_CHANNELS)
         {
-            throw new UnsupportedEditException(ERR_NotEnoughChannels());
+            throw new UnsupportedEditException(ResUtil.getString(getClass(), "ERR_NotEnoughChannels"));
         }
 
     }

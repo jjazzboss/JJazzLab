@@ -37,6 +37,7 @@ import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.UserChannelRvKey;
 import org.jjazz.musiccontrol.ClickManager;
 import org.jjazz.outputsynth.OutputSynthManager;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
@@ -90,7 +91,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         // Check if we use drums channel for a non drums instrument
         if (newChannelId == MidiConst.CHANNEL_DRUMS && !rvKeySrc.isDrums() && !Family.couldBeDrums(insMixSrc.getInstrument().getPatchName()))
         {
-            String msg = "Channel 10 is reserved for Drums instruments.";
+            String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.Channel10reserved");
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -101,7 +102,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         int clickChannel = ClickManager.getInstance().getClickChannel(midiMix);
         if (newChannelId == clickChannel && !rvKeySrc.isDrums())
         {
-            String msg = "Channel " + (clickChannel + 1) + " is reserved for the click channel. See Click Options/Preferences to change this setting.";
+            String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.Channel10ClickReserved", clickChannel + 1);
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -220,8 +221,8 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
                 } else if (ConverterManager.getInstance().getKeyMapConverter(srcKeyMap, destKeyMap) == null)
                 {
                     // No conversion possible
-                    String msg = "Selected instrument (" + ins.getPatchName() + ", drum keymap=" + destKeyMap.getName() + ") can't match the recommended original drum keymap " + srcKeyMap.getName() + "."
-                            + "\n This may result in incorrect sounds. Do you want to continue ?";
+
+                    String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DrumKeyMapMismatch", ins.getPatchName(), destKeyMap.getName(), srcKeyMap.getName());
                     NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
                     Object result = DialogDisplayer.getDefault().notify(d);
                     if (NotifyDescriptor.YES_OPTION != result)
@@ -232,7 +233,9 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
                 {
                     // Managed via conversion
                     LOGGER.info("editInstrument() channel=" + channelId + " ins=" + ins.getPatchName() + ": drum keymap conversion will be used " + srcKeyMap + ">" + destKeyMap);
-                    StatusDisplayer.getDefault().setStatusText("Using drum keymap conversion " + srcKeyMap + ">" + destKeyMap + " for " + ins.getPatchName() + " (channel " + channelId + ")");
+                    String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DrumKeyMapConversion",
+                            srcKeyMap.getName(), destKeyMap.getName(), ins.getPatchName(), (channelId + 1));
+                    StatusDisplayer.getDefault().setStatusText(msg);
                 }
             }
             insMix.setInstrument(ins);
@@ -260,11 +263,11 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
 
     private String buildTitle()
     {
-        StringBuilder title = new StringBuilder("Channel " + (channelId + 1));
+        StringBuilder title = new StringBuilder(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DialogTitle", channelId + 1));
         RhythmVoice rv = midiMix.getRhythmVoice(channelId);
         if (rv instanceof UserChannelRvKey)
         {
-            title.append(" - User");
+            title.append(" - ").append(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.User"));
         } else
         {
             title.append(" - " + rv.getContainer().getName() + " - " + rv.getName());

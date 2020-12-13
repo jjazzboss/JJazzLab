@@ -46,8 +46,8 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midi.device.JJazzMidiDevice;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.util.ResUtil;
 import org.netbeans.api.progress.BaseProgressUtils;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -67,9 +67,7 @@ import org.openide.util.lookup.ServiceProvider;
  * Manage a Midi master volume: a factor between 0 and 2 (default=1) which is
  * used on all volume Midi messages.
  */
-@Messages(
-        "ERR_ProblemSynthFile=Problem reading sound file for the Java internal synth"
-)
+
 public final class JJazzMidiSystem
 {
 
@@ -517,7 +515,8 @@ public final class JJazzMidiSystem
             new Thread(run).start();
         } else
         {
-            BaseProgressUtils.showProgressDialogAndRun(run, "Loading Java Synth sound file " + f.getName() + "...");     // Call is sectioning
+            String msg = ResUtil.getString(getClass(), "LoadingJavaSynthSoundFile", f.getName());
+            BaseProgressUtils.showProgressDialogAndRun(run, msg);     // Call is sectioning
         }
         return silentRun || resultOk.get();
     }

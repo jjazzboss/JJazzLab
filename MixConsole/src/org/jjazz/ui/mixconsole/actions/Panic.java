@@ -52,7 +52,7 @@ import org.openide.util.NbBundle;
 public class Panic extends AbstractAction
 {
 
-    private String undoText = CTL_Panic();
+    private final String undoText = ResUtil.getString(getClass(), CTL_Panic);
     private static final Logger LOGGER = Logger.getLogger(Panic.class.getSimpleName());
 
     public Panic()
