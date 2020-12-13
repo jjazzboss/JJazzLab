@@ -139,9 +139,7 @@
     </Container>
     <Component class="javax.swing.JLabel" name="lbl_outDevice">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/helpers/midiwizard/Bundle.properties" key="MidiWizardVisualPanel4.lbl_outDevice.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="Midi Out device: Java Internal Synth" noResource="true"/>
       </Properties>
     </Component>
   </SubComponents>

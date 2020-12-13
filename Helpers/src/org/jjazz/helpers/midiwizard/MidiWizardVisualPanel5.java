@@ -33,6 +33,7 @@ import org.jjazz.midi.synths.Family;
 import org.jjazz.midi.synths.GSSynth;
 import org.jjazz.musiccontrol.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
@@ -52,14 +53,14 @@ public final class MidiWizardVisualPanel5 extends JPanel
     public void setMidiDeviceOut(MidiDevice md)
     {
         midiDeviceOut = md;
-        lbl_outDevice.setText("Midi Out: " + JJazzMidiSystem.getInstance().getDeviceFriendlyName(md));
+        lbl_outDevice.setText(ResUtil.getString(getClass(), "MidiWizardVisualPanel4.MidiOut") + ": " + JJazzMidiSystem.getInstance().getDeviceFriendlyName(md));
         lbl_outDevice.setToolTipText(md.getDeviceInfo().getDescription());
     }
 
     @Override
     public String getName()
     {
-        return "GM compatibility";
+        return ResUtil.getString(getClass(), "MidiWizardVisualPanel5.Name");
     }
 
     public void setGM2Support(boolean b)
@@ -228,7 +229,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
         rbtn_yesGM2 = new javax.swing.JRadioButton();
         btn_testDrumsOtherChannelGM2 = new javax.swing.JButton();
         rbtn_noGM2 = new javax.swing.JRadioButton();
-        jLabel1 = new javax.swing.JLabel();
+        lbl_doYouHearDrums = new javax.swing.JLabel();
         btn_testDrums = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         rbtn_yesXG = new javax.swing.JRadioButton();
@@ -293,7 +294,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
         buttonGroupGM2.add(rbtn_noGM2);
         org.openide.awt.Mnemonics.setLocalizedText(rbtn_noGM2, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.rbtn_noGM2.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.jLabel1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_doYouHearDrums, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.lbl_doYouHearDrums.text")); // NOI18N
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -303,7 +304,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
                 .addContainerGap()
                 .addComponent(btn_testDrumsOtherChannelGM2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel1)
+                .addComponent(lbl_doYouHearDrums)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(rbtn_yesGM2)
                 .addGap(18, 18, 18)
@@ -318,7 +319,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
                     .addComponent(btn_testDrumsOtherChannelGM2)
                     .addComponent(rbtn_yesGM2)
                     .addComponent(rbtn_noGM2)
-                    .addComponent(jLabel1))
+                    .addComponent(lbl_doYouHearDrums))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -348,7 +349,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
         buttonGroupXG.add(rbtn_noXG);
         org.openide.awt.Mnemonics.setLocalizedText(rbtn_noXG, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.rbtn_noXG.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.jLabel2.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, lbl_doYouHearDrums.getText());
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -394,7 +395,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
         buttonGroupGS.add(rbtn_noGS);
         org.openide.awt.Mnemonics.setLocalizedText(rbtn_noGS, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.rbtn_noGS.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.jLabel3.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel3, lbl_doYouHearDrums.getText());
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -510,7 +511,6 @@ public final class MidiWizardVisualPanel5 extends JPanel
     private javax.swing.ButtonGroup buttonGroupGS;
     private javax.swing.ButtonGroup buttonGroupXG;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
@@ -518,6 +518,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JLabel lbl_doYouHearDrums;
     private javax.swing.JLabel lbl_outDevice;
     private javax.swing.JRadioButton rbtn_noGM2;
     private javax.swing.JRadioButton rbtn_noGS;

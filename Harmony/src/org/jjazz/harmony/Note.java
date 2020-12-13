@@ -24,20 +24,13 @@ package org.jjazz.harmony;
 
 import java.text.ParseException;
 import java.util.logging.Logger;
-import static org.jjazz.harmony.Bundle.ERR_EmptyString;
-import static org.jjazz.harmony.Bundle.ERR_InvalidNote;
-import org.openide.util.NbBundle.Messages;
+import org.jjazz.util.ResUtil;
 
 /**
  * A note has a pitch, a duration (symbolic and in beats), and a velocity.
  * <p>
  * This is an immutable class.
  */
-@Messages(
-        {
-            "ERR_InvalidNote=Invalid note",
-            "ERR_EmptyString=Empty string"
-        })
 public class Note implements Comparable<Note>, Cloneable
 {
 
@@ -191,10 +184,10 @@ public class Note implements Comparable<Note>, Cloneable
 
         if (str.length() == 0)
         {
-            throw new ParseException(ERR_EmptyString(), 0);
-        }   
+            throw new ParseException(ResUtil.getString(getClass(), "ERR_EmptyString"), 0);
+        }
 
-        
+
         // Get the degree string, eg "A", "G", "Eb", "F#" etc.
         String degreeStr = str.substring(0, 1);
         if (str.length() > 1 && (str.charAt(1) == 'b' || str.charAt(1) == '#'))
@@ -208,7 +201,7 @@ public class Note implements Comparable<Note>, Cloneable
         if (octaveIndex == str.length() - 1)
         {
             // "!" on last position, missing octave number !
-            throw new ParseException(ERR_InvalidNote() + "\"" + str + "\"", str.length() - 1);
+            throw new ParseException(ResUtil.getString(getClass(), "ERR_InvalidNote", str), str.length() - 1);
         }
         if (octaveIndex != -1)
         {
@@ -260,7 +253,7 @@ public class Note implements Comparable<Note>, Cloneable
 
         if (relPitch == -1)
         {
-            throw new ParseException(ERR_InvalidNote() + "\"" + str + "\"", 0);
+            throw new ParseException(ResUtil.getString(getClass(), "ERR_InvalidNote", str), 0);
         }
 
         // Get the octave
@@ -273,12 +266,12 @@ public class Note implements Comparable<Note>, Cloneable
                 o = Integer.parseInt(octaveStr);
             } catch (NumberFormatException e)
             {
-                throw new ParseException(ERR_InvalidNote() + "\"" + str + "\" : " + e.getLocalizedMessage(), 0);
+                throw new ParseException(ResUtil.getString(getClass(), "ERR_InvalidNote", str) + " : " + e.getLocalizedMessage(), 0);
             }
         }
         if (!checkOctave(o))
         {
-            throw new ParseException(ERR_InvalidNote() + "\"" + str + "\"", 0);
+            throw new ParseException(ResUtil.getString(getClass(), "ERR_InvalidNote", str), 0);
         }
 
         // Build the note

@@ -356,12 +356,12 @@ public class FlatSpinner<E> extends javax.swing.JPanel implements PropertyChange
 
         lbl_text.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
         lbl_text.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_text, org.openide.util.NbBundle.getMessage(FlatSpinner.class, "FlatSpinner.lbl_text.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_text, "label"); // NOI18N
         add(lbl_text);
         add(filler1);
 
         lbl_value.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_value, org.openide.util.NbBundle.getMessage(FlatSpinner.class, "FlatSpinner.lbl_value.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_value, "1"); // NOI18N
         lbl_value.setMaximumSize(new java.awt.Dimension(300, 13));
         add(lbl_value);
     }// </editor-fold>//GEN-END:initComponents

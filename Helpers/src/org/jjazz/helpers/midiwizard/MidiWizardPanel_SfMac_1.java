@@ -30,19 +30,20 @@ import javax.sound.midi.MidiDevice;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.midi.JJazzMidiSystem;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
-import org.openide.util.Utilities;
 
 public class MidiWizardPanel_SfMac_1 implements WizardDescriptor.Panel<WizardDescriptor>
 {
-    
-    private Set<ChangeListener> listeners = new HashSet<ChangeListener>(2);
+
+    private Set<ChangeListener> listeners = new HashSet<>(2);
     private static final Logger LOGGER = Logger.getLogger(MidiWizardPanel_SfMac_1.class.getSimpleName());
     /**
-     * The visual component that displays this panel. If you need to access the component from this class, just use getComponent().
+     * The visual component that displays this panel. If you need to access the component from this class, just use
+     * getComponent().
      */
     private MidiWizardVisualPanel_SfMac_1 component;
 
@@ -59,7 +60,7 @@ public class MidiWizardPanel_SfMac_1 implements WizardDescriptor.Panel<WizardDes
         }
         return component;
     }
-    
+
     @Override
     public HelpCtx getHelp()
     {
@@ -68,7 +69,7 @@ public class MidiWizardPanel_SfMac_1 implements WizardDescriptor.Panel<WizardDes
         // If you have context help:
         // return new HelpCtx("help.key.here");
     }
-    
+
     @Override
     public boolean isValid()
     {
@@ -79,7 +80,7 @@ public class MidiWizardPanel_SfMac_1 implements WizardDescriptor.Panel<WizardDes
         // use ChangeSupport to implement add/removeChangeListener below.
         // WizardDescriptor.ERROR/WARNING/INFORMATION_MESSAGE will also be useful.
     }
-    
+
     @Override
     public final void addChangeListener(ChangeListener l)
     {
@@ -88,7 +89,7 @@ public class MidiWizardPanel_SfMac_1 implements WizardDescriptor.Panel<WizardDes
             listeners.add(l);
         }
     }
-    
+
     @Override
     public final void removeChangeListener(ChangeListener l)
     {
@@ -97,7 +98,7 @@ public class MidiWizardPanel_SfMac_1 implements WizardDescriptor.Panel<WizardDes
             listeners.remove(l);
         }
     }
-    
+
     protected final void fireChangeEvent()
     {
         ChangeEvent ev = new ChangeEvent(this);
@@ -106,14 +107,14 @@ public class MidiWizardPanel_SfMac_1 implements WizardDescriptor.Panel<WizardDes
             cl.stateChanged(ev);
         }
     }
-    
+
     @Override
     public void readSettings(WizardDescriptor wiz)
     {
         File f = (File) wiz.getProperty(MidiWizardAction.PROP_JJAZZLAB_SOUNDFONT_FILE);
         getComponent().setSoundFile(f);
     }
-    
+
     @Override
     public void storeSettings(WizardDescriptor wiz)
     {
@@ -121,12 +122,13 @@ public class MidiWizardPanel_SfMac_1 implements WizardDescriptor.Panel<WizardDes
         MidiDevice md = JJazzMidiSystem.getInstance().getDefaultJavaSynth();
         if (md == null)
         {
-            NotifyDescriptor nd = new NotifyDescriptor.Message("No Java Internal Synth found !", NotifyDescriptor.ERROR_MESSAGE);
+            String msg = ResUtil.getString(getClass(), "MidiWizardPanel_SfMac_1.NoJavaSynth");
+            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
         } else
         {
             wiz.putProperty(MidiWizardAction.PROP_MIDI_OUT_DEVICE, md);
         }
     }
-    
+
 }

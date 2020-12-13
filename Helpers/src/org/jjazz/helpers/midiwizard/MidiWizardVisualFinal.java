@@ -23,6 +23,7 @@
 package org.jjazz.helpers.midiwizard;
 
 import javax.swing.JPanel;
+import org.jjazz.util.ResUtil;
 
 public final class MidiWizardVisualFinal extends JPanel
 {
@@ -38,7 +39,7 @@ public final class MidiWizardVisualFinal extends JPanel
     @Override
     public String getName()
     {
-        return "Confirm changes";
+        return ResUtil.getString(getClass(), "MidiWizardVisualFinal.Name");
     }
 
     public void setChangesDescription(String s)
@@ -57,7 +58,7 @@ public final class MidiWizardVisualFinal extends JPanel
         buttonGroup1 = new javax.swing.ButtonGroup();
         jScrollPane1 = new javax.swing.JScrollPane();
         ta_changes = new org.jjazz.ui.utilities.WizardTextArea();
-        jLabel1 = new javax.swing.JLabel();
+        lbl_headerLine = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
 
@@ -66,10 +67,10 @@ public final class MidiWizardVisualFinal extends JPanel
         ta_changes.setEditable(false);
         ta_changes.setColumns(20);
         ta_changes.setRows(5);
-        ta_changes.setText(org.openide.util.NbBundle.getMessage(MidiWizardVisualFinal.class, "MidiWizardVisualFinal.ta_changes.text")); // NOI18N
+        ta_changes.setText("- Change 1 Change2"); // NOI18N
         jScrollPane1.setViewportView(ta_changes);
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(MidiWizardVisualFinal.class, "MidiWizardVisualFinal.jLabel1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_headerLine, org.openide.util.NbBundle.getMessage(MidiWizardVisualFinal.class, "MidiWizardVisualFinal.lbl_headerLine.text")); // NOI18N
 
         jScrollPane3.setBorder(null);
 
@@ -89,7 +90,7 @@ public final class MidiWizardVisualFinal extends JPanel
                         .addGap(10, 10, 10)
                         .addComponent(jScrollPane1))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
+                        .addComponent(lbl_headerLine)
                         .addGap(0, 182, Short.MAX_VALUE))
                     .addComponent(jScrollPane3))
                 .addContainerGap())
@@ -98,7 +99,7 @@ public final class MidiWizardVisualFinal extends JPanel
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1)
+                .addComponent(lbl_headerLine)
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -110,9 +111,9 @@ public final class MidiWizardVisualFinal extends JPanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JLabel lbl_headerLine;
     private org.jjazz.ui.utilities.WizardTextArea ta_changes;
     // End of variables declaration//GEN-END:variables
 }

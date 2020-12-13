@@ -26,12 +26,12 @@ import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JPanel;
 import org.jjazz.midi.JJazzMidiSystem;
-import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.jjazz.midi.ui.MidiOutDeviceList;
 import org.jjazz.musiccontrol.TestPlayer;
+import org.jjazz.util.ResUtil;
 
 public final class MidiWizardVisualPanelSelectMidiOut extends JPanel
 {
@@ -72,7 +72,7 @@ public final class MidiWizardVisualPanelSelectMidiOut extends JPanel
     @Override
     public String getName()
     {
-        return "Midi Out device";
+        return ResUtil.getString(getClass(), "MidiWizardVisualPanelSelectMidiOut.Name");
     }
 
     /**
@@ -85,7 +85,7 @@ public final class MidiWizardVisualPanelSelectMidiOut extends JPanel
         MidiDevice selectedDeviceOut = getSelectedOutDevice();
         if (selectedDeviceOut == null)
         {
-            String msg = "No Midi Out device selected";
+            String msg = ResUtil.getString(getClass(), "MidiWizardVisualPanelSelectMidiOut.NoMidiOutSelected");
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;

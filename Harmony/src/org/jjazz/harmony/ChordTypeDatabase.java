@@ -28,6 +28,7 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.util.ResUtil;
 import org.openide.util.*;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -234,7 +235,8 @@ public class ChordTypeDatabase
             return;
         } else if (oldCt != null)
         {
-            throw new InvalidAliasException("Alias '" + alias + "' can not be added for chord type '" + ct + "', it is already used by chord type '" + oldCt.getName() + "'");
+            String msg = ResUtil.getString(getClass(), "ChordTypeDatabase.ERR_RedondantAlias", alias, ct, oldCt.getName());
+            throw new InvalidAliasException(msg);
         }
 
         // Update the aliases string
@@ -438,8 +440,8 @@ public class ChordTypeDatabase
                 ChordType curCt = mapAliasCt.get(alias);
                 if (curCt != null)
                 {
-                    String msg = "Alias '" + alias + "' can not be used for chord type '" + ct + "', it's already used for chord type '" + curCt + "'";
                     mapAliasCt = mapSave;
+//                    String msg = "Alias '" + alias + "' can not be used for chord type '" + ct + "', it's already used for chord type '" + curCt + "'";                    
                     // LOGGER.severe("buildAliasMap() " + msg);
                     b = false;
                 } else

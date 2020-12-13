@@ -259,7 +259,7 @@ public class FlatTextEditDialog extends javax.swing.JDialog
 
         setUndecorated(true);
 
-        textField.setText(org.openide.util.NbBundle.getMessage(FlatTextEditDialog.class, "FlatTextEditDialog.textField.text")); // NOI18N
+        textField.setText("tt"); // NOI18N
         textField.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(51, 51, 51), 2), javax.swing.BorderFactory.createEmptyBorder(2, 4, 2, 4)));
         getContentPane().add(textField, java.awt.BorderLayout.CENTER);
 

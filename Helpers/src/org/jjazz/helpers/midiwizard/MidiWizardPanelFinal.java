@@ -26,6 +26,7 @@ import java.io.File;
 import javax.sound.midi.MidiDevice;
 import javax.swing.event.ChangeListener;
 import org.jjazz.midi.JJazzMidiSystem;
+import org.jjazz.util.ResUtil;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 import org.openide.util.Utilities;
@@ -34,7 +35,8 @@ public class MidiWizardPanelFinal implements WizardDescriptor.Panel<WizardDescri
 {
 
     /**
-     * The visual component that displays this panel. If you need to access the component from this class, just use getComponent().
+     * The visual component that displays this panel. If you need to access the component from this class, just use
+     * getComponent().
      */
     private MidiWizardVisualFinal component;
 
@@ -105,14 +107,17 @@ public class MidiWizardPanelFinal implements WizardDescriptor.Panel<WizardDescri
             {
                 presetName = "JJazzLab SoundFont/FluidSynth (Linux)";
             }
-            sb.append("- Set Output synth config. : " + presetName + "\n\n");
+            sb.append("- ").append(ResUtil.getString(getClass(), "MidiWizardPanelFinal.SetOutputSynthConfig"))
+                    .append(" : ").append(presetName).append("\n\n");
             if (md != null)
             {
-                sb.append("- Set Midi Out device : " + mdName + "\n\n");
+                sb.append("- ").append(ResUtil.getString(getClass(), "MidiWizardPanelFinal.SetMidiOutDevice"))
+                        .append(" : ").append(mdName).append("\n\n");
             }
             if (Utilities.isMac() && soundFontFile != null)
             {
-                sb.append("- Load sound file : " + soundFontFile.getAbsolutePath());
+                sb.append("- ").append(ResUtil.getString(getClass(), "MidiWizardPanelFinal.LoadSoundFile"))
+                        .append(" : ").append(soundFontFile.getAbsolutePath());
             }
         } else
         {
@@ -129,8 +134,10 @@ public class MidiWizardPanelFinal implements WizardDescriptor.Panel<WizardDescri
             {
                 stdSupport += ", GS ";
             }
-            sb.append("- Set Output synth config. : ").append(stdSupport).append("\n\n");
-            sb.append("- Set Midi Out device : ").append(mdName).append("\n\n");
+            sb.append("- ").append(ResUtil.getString(getClass(), "MidiWizardPanelFinal.SetMidiOutDevice"))
+                    .append(" : ").append(stdSupport).append("\n\n");
+            sb.append("- ").append(ResUtil.getString(getClass(), "MidiWizardPanelFinal.SetMidiOutDevice"))
+                    .append(" : ").append(mdName).append("\n\n");
         }
         component.setChangesDescription(sb.toString());
     }

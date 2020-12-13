@@ -22,13 +22,10 @@
  */
 package org.jjazz.helpers.midiwizard;
 
-import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.text.MessageFormat;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiDevice;
@@ -44,6 +41,7 @@ import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.WizardDescriptor;
@@ -62,7 +60,7 @@ import org.openide.util.lookup.ServiceProvider;
  * <p>
  */
 @ActionID(category = "JJazz", id = "org.jjazz.helpers.midiwizard.MidiWizardAction")
-@ActionRegistration(displayName = "Midi configuration wizard...")
+@ActionRegistration(displayName = "#MidiWizardAction.CTL_MidiConfigWizardAction")
 @ActionReference(path = "Menu/Tools", position = 1650, separatorAfter = 1651)
 public final class MidiWizardAction implements ActionListener
 {
@@ -88,7 +86,7 @@ public final class MidiWizardAction implements ActionListener
         // {0} will be replaced by WizardDescriptor.Panel.getComponent().getName()
         // {1} will be replaced by WizardDescriptor.Iterator.name()
         wiz.setTitleFormat(new MessageFormat("{0} ({1})"));
-        wiz.setTitle("Midi Configuration Wizard");
+        wiz.setTitle(ResUtil.getString(getClass(), "MidiWizardAction.CTL_MidiConfigWizard"));
         if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION)
         {
             // Retrieve configuration then apply it
@@ -169,10 +167,10 @@ public final class MidiWizardAction implements ActionListener
                 try
                 {
                     os.saveToFile(f);
-                    StatusDisplayer.getDefault().setStatusText("Saved " + f.getAbsolutePath());
+                    StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "MidiWizardAction.CTL_Saved", f.getAbsolutePath()));
                 } catch (IOException ex)
                 {
-                    String msg = "Problem saving output synth file " + f.getName() + " : " + ex.getLocalizedMessage();
+                    String msg = ResUtil.getString(getClass(), "MidiWizardAction.CTL_ErrSavingOutputFile", f.getName()) + " : " + ex.getLocalizedMessage();
                     LOGGER.warning("actionPerformed() " + msg);
                     NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(nd);
@@ -181,7 +179,6 @@ public final class MidiWizardAction implements ActionListener
         }
     }
 
- 
     public static boolean getBooleanProp(WizardDescriptor wiz, String prop)
     {
         Boolean b = (Boolean) wiz.getProperty(prop);
@@ -226,7 +223,7 @@ public final class MidiWizardAction implements ActionListener
         @Override
         public String getName()
         {
-            return "Midi configuration wizard";
+            return ResUtil.getString(getClass(), "MidiWizardAction.CTL_MidiConfigWizard");
         }
 
     }

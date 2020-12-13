@@ -24,6 +24,7 @@ package org.jjazz.helpers.midiwizard;
 
 import javax.swing.AbstractButton;
 import javax.swing.JPanel;
+import org.jjazz.util.ResUtil;
 
 public final class MidiWizardVisualPanelStart extends JPanel
 {    
@@ -39,7 +40,7 @@ public final class MidiWizardVisualPanelStart extends JPanel
     @Override
     public String getName()
     {
-        return "Use JJazzLab SoundFont?";
+        return ResUtil.getString(getClass(), "MidiWizardVisualPanelStart.Name");
     }
 
     public boolean useSoundFont()
@@ -71,7 +72,7 @@ public final class MidiWizardVisualPanelStart extends JPanel
         jPanel2 = new javax.swing.JPanel();
         rbtn_yes = new javax.swing.JRadioButton();
         rbtn_no = new javax.swing.JRadioButton();
-        jLabel1 = new javax.swing.JLabel();
+        lbl_useJJazzLabSoundFont = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
         lbl_image = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -111,8 +112,8 @@ public final class MidiWizardVisualPanelStart extends JPanel
 
         jPanel3.add(jPanel2);
 
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanelStart.class, "MidiWizardVisualPanelStart.jLabel1.text")); // NOI18N
+        lbl_useJJazzLabSoundFont.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_useJJazzLabSoundFont, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanelStart.class, "MidiWizardVisualPanelStart.lbl_useJJazzLabSoundFont.text")); // NOI18N
 
         jPanel4.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
@@ -141,7 +142,7 @@ public final class MidiWizardVisualPanelStart extends JPanel
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jPanel3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addComponent(lbl_useJJazzLabSoundFont, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jScrollPane1)))
@@ -153,7 +154,7 @@ public final class MidiWizardVisualPanelStart extends JPanel
                 .addContainerGap()
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(19, 19, 19)
-                .addComponent(jLabel1)
+                .addComponent(lbl_useJJazzLabSoundFont)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -167,13 +168,13 @@ public final class MidiWizardVisualPanelStart extends JPanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbl_image;
+    private javax.swing.JLabel lbl_useJJazzLabSoundFont;
     private javax.swing.JRadioButton rbtn_no;
     private javax.swing.JRadioButton rbtn_yes;
     // End of variables declaration//GEN-END:variables

@@ -33,7 +33,7 @@ import org.openide.util.HelpCtx;
 public class MidiWizardPanel_SfWin_2 implements WizardDescriptor.Panel<WizardDescriptor>
 {
 
-    private Set<ChangeListener> listeners = new HashSet<ChangeListener>(2);
+    private Set<ChangeListener> listeners = new HashSet<>(2);
     private static final Logger LOGGER = Logger.getLogger(MidiWizardPanel_SfWin_2.class.getSimpleName());
     /**
      * The visual component that displays this panel. If you need to access the component from this class, just use

@@ -24,6 +24,7 @@ package org.jjazz.harmony;
 
 import java.text.ParseException;
 import java.util.logging.Logger;
+import org.jjazz.util.ResUtil;
 
 /**
  * The time signature of a bar, e.g. C or 4/4, 6/8 etc...
@@ -84,19 +85,18 @@ public enum TimeSignature
     {
         String[] strs = s.trim().split("\\s*/\\s*");
 
-        if (strs.length != 2)
-        {
-            throw new ParseException("Syntax error in TimeSignature format \"" + s + "\"", 0);
-        }
-
         int up, low;
         try
         {
+            if (strs.length != 2)
+            {
+                throw new NumberFormatException();
+            }
             up = Integer.parseInt(strs[0]);
             low = Integer.parseInt(strs[1]);
         } catch (NumberFormatException e)
         {
-            throw new ParseException("Syntax error in TimeSignature format \"" + s + "\"", 0);
+            throw new ParseException(ResUtil.getString(TimeSignature.class, "TimeSignature.ERR_Syntax", s), 0);
         }
         return get(up, low);
     }
