@@ -32,9 +32,6 @@ import javax.swing.BorderFactory;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.SwingPropertyChangeSupport;
-import static org.jjazz.ui.cl_editor.barbox.Bundle.CTL_Bar;
-import static org.jjazz.ui.cl_editor.barbox.Bundle.CTL_PlayedBar;
-import static org.jjazz.ui.cl_editor.barbox.Bundle.CTL_SelectedBar;
 import org.jjazz.ui.cl_editor.barbox.api.BarBoxSettings;
 import org.jjazz.util.Utilities;
 import org.openide.util.NbBundle;
@@ -45,19 +42,13 @@ import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.util.ResUtil;
 
 @ServiceProviders(value =
 {
     @ServiceProvider(service = BarBoxSettings.class),
     @ServiceProvider(service = FontColorUserSettingsProvider.class)
 }
-)
-@NbBundle.Messages(
-        {
-            "CTL_Bar=Bar",
-            "CTL_SelectedBar=Selected bar",
-            "CTL_PlayedBar=Played bar",
-        }
 )
 public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettingsProvider
 {
@@ -75,7 +66,7 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     public BarBoxSettingsImpl()
     {
         // The settings we want to expose for user modifications
-        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("BarId", CTL_Bar())
+        FontColorUserSettingsProvider.FCSetting fcs = new FontColorUserSettingsProvider.FCSettingAdapter("BarId", ResUtil.getString(getClass(), "CTL_Bar"))
         {
             @Override
             public void setColor(Color c)
@@ -90,7 +81,7 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
             }
         };
         fcSettings.add(fcs);
-        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SelectedBarId", CTL_SelectedBar())
+        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("SelectedBarId", ResUtil.getString(getClass(), "CTL_SelectedBar"))
         {
             @Override
             public void setColor(Color c)
@@ -105,7 +96,7 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
             }
         };
         fcSettings.add(fcs);
-        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("PlaybackBarId", CTL_PlayedBar())
+        fcs = new FontColorUserSettingsProvider.FCSettingAdapter("PlaybackBarId", ResUtil.getString(getClass(), "CTL_PlayedBar"))
         {
             @Override
             public void setColor(Color c)

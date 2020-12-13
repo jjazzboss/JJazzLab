@@ -33,17 +33,16 @@ import static javax.swing.Action.NAME;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.quantizer.Quantization;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.openide.windows.WindowManager;
 
@@ -53,13 +52,12 @@ import org.openide.windows.WindowManager;
         {
             @ActionReference(path = "Actions/Bar", position = 1400, separatorBefore = 1390),
         })
-@Messages("CTL_ChangeQuantization=Quantization...")
 public class ChangeQuantization extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
     private Lookup context;
     private CL_ContextActionSupport cap;
-    private String undoText = CTL_ChangeQuantization();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_ChangeQuantization");
     private static final Logger LOGGER = Logger.getLogger(ChangeQuantization.class.getSimpleName());
 
     public ChangeQuantization()

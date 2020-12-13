@@ -31,21 +31,20 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.Exceptions;
-import org.openide.util.NbBundle.Messages;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.moveitemright")
 @ActionRegistration(displayName = "#CTL_MoveItemRight")
-@Messages("CTL_MoveItemRight=Move item right")
+
 public final class MoveItemRight implements ActionListener
 {
 
     private final List<ChordLeadSheetItem<?>> context;
-    private String undoText = CTL_MoveItemRight();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_MoveItemRight");
 
     public MoveItemRight(List<ChordLeadSheetItem<?>> context)
     {

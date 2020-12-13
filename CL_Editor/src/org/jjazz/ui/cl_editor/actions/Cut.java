@@ -38,11 +38,11 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ui.cl_editor.api.CopyBuffer;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.actions.CutAction;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -50,7 +50,6 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.util.actions.SystemAction;
 
@@ -62,13 +61,12 @@ import org.openide.util.actions.SystemAction;
             @ActionReference(path = "Actions/ChordSymbol", position = 1000, separatorBefore = 950),
             @ActionReference(path = "Actions/Bar", position = 1000),
         })
-@NbBundle.Messages("CTL_Cut=Cut")
 public class Cut extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
     private Lookup context;
     private CL_ContextActionSupport cap;
-    private String undoText = CTL_Cut();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_Cut");
 
     public Cut()
     {
@@ -80,7 +78,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, CL_Contex
         this.context = context;
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        putValue(NAME, CTL_Cut());
+        putValue(NAME, undoText);
         Icon icon = SystemAction.get(CutAction.class).getIcon();
         putValue(SMALL_ICON, icon);
         putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_X));

@@ -35,11 +35,11 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -58,17 +58,12 @@ import org.openide.util.actions.Presenter;
         })
 @Messages(
         {
-            "CTL_SetChordType=Set chord type",
-            "CTL_Major=Major",
-            "CTL_Minor=Minor",
-            "CTL_Seventh=Seventh",
-            "CTL_Diminished=Diminished",
-            "CTL_Sus4=Sus4"
+
         })
 public final class SetChordType extends AbstractAction implements Presenter.Menu, Presenter.Popup
 {
 
-    private String undoText = CTL_SetChordType();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_SetChordType");
 
     @Override
     public void actionPerformed(ActionEvent e)
@@ -94,13 +89,12 @@ public final class SetChordType extends AbstractAction implements Presenter.Menu
     {
         // Prepare the ChordType subMenu
         JMenu menu = new JMenu();
-        menu.setText(CTL_SetChordType());
-
-        JMenu menuMajor = new JMenu(CTL_Major());
-        JMenu menuMinor = new JMenu(CTL_Minor());
-        JMenu menuSeventh = new JMenu(CTL_Seventh());
-        JMenu menuDiminished = new JMenu(CTL_Diminished());
-        JMenu menuSus4 = new JMenu(CTL_Sus4());
+        menu.setText(ResUtil.getString(getClass(), "CTL_SetChordType"));
+        JMenu menuMajor = new JMenu(ResUtil.getString(getClass(), "CTL_Major"));
+        JMenu menuMinor = new JMenu(ResUtil.getString(getClass(), "CTL_Minor"));
+        JMenu menuSeventh = new JMenu(ResUtil.getString(getClass(), "CTL_Seventh"));
+        JMenu menuDiminished = new JMenu(ResUtil.getString(getClass(), "CTL_Diminished"));
+        JMenu menuSus4 = new JMenu(ResUtil.getString(getClass(), "CTL_Sus4"));
 
         menu.add(menuMajor);
         menu.add(menuSeventh);
@@ -160,7 +154,7 @@ public final class SetChordType extends AbstractAction implements Presenter.Menu
                 CLI_ChordSymbol cliCs = (CLI_ChordSymbol) item;
                 ExtChordSymbol oldCs = cliCs.getData();
                 ChordRenderingInfo cri = oldCs.getRenderingInfo();
-                ChordRenderingInfo newCri = new ChordRenderingInfo(cri, (StandardScaleInstance)null); // Discard scale             
+                ChordRenderingInfo newCri = new ChordRenderingInfo(cri, (StandardScaleInstance) null); // Discard scale             
                 ExtChordSymbol newCs = new ExtChordSymbol(oldCs.getRootNote(), oldCs.getBassNote(), ct, newCri, oldCs.getAlternateChordSymbol(), oldCs.getAlternateFilter());
                 editor.getModel().changeItem(cliCs, newCs);
             }

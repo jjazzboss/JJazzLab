@@ -91,24 +91,26 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         String text = section.getData().getName() + " (" + section.getData().getTimeSignature() + ")";
         this.lbl_section.setText(text);
 
-        if (q.equals(Quantization.HALF_BAR))
+        switch (q)
         {
-            this.rbtn_halfBar.setSelected(true);
-        } else if (q.equals(Quantization.BEAT))
-        {
-            this.rbtn_beat.setSelected(true);
-        } else if (q.equals(Quantization.HALF_BEAT))
-        {
-            this.rbtn_eighth.setSelected(true);
-        } else if (q.equals(Quantization.ONE_THIRD_BEAT))
-        {
-            this.rbtn_eighth_triplet.setSelected(true);
-        } else if (q.equals(Quantization.ONE_QUARTER_BEAT))
-        {
-            this.rbtn_sixteenth.setSelected(true);
-        } else
-        {
-            this.rbtn_off.setSelected(true);
+            case HALF_BAR:
+                this.rbtn_halfBar.setSelected(true);
+                break;
+            case BEAT:
+                this.rbtn_beat.setSelected(true);
+                break;
+            case HALF_BEAT:
+                this.rbtn_eighth.setSelected(true);
+                break;
+            case ONE_THIRD_BEAT:
+                this.rbtn_eighth_triplet.setSelected(true);
+                break;
+            case ONE_QUARTER_BEAT:
+                this.rbtn_sixteenth.setSelected(true);
+                break;
+            default:
+                this.rbtn_off.setSelected(true);
+                break;
         }
         cbx_allSections.setSelected(false);
     }
@@ -186,7 +188,6 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
     {
 
         noteBtnGroup = new javax.swing.ButtonGroup();
-        jLabel1 = new javax.swing.JLabel();
         btn_Cancel = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
@@ -214,8 +215,6 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         cbx_allSections = new javax.swing.JCheckBox();
         lbl_section = new javax.swing.JLabel();
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(ChangeQuantizationDialog.class, "ChangeQuantizationDialog.jLabel1.text")); // NOI18N
-
         setTitle(org.openide.util.NbBundle.getMessage(ChangeQuantizationDialog.class, "ChangeQuantizationDialog.title")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(ChangeQuantizationDialog.class, "ChangeQuantizationDialog.btn_Cancel.text")); // NOI18N
@@ -234,7 +233,7 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(ChangeQuantizationDialog.class, "ChangeQuantizationDialog.helpTextArea1.text")); // NOI18N
         jScrollPane1.setViewportView(helpTextArea1);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(ChangeQuantizationDialog.class, "ChangeQuantizationDialog.btn_Ok.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, "OK"); // NOI18N
         btn_Ok.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -257,7 +256,6 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         pnl_halfBar.add(rbtn_halfBar);
 
         lbl_halfBar1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/cl_editor/actions/resources/NoteHalf-20x30.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_halfBar1, org.openide.util.NbBundle.getMessage(ChangeQuantizationDialog.class, "ChangeQuantizationDialog.lbl_halfBar1.text")); // NOI18N
         lbl_halfBar1.setAlignmentY(0.7F);
         pnl_halfBar.add(lbl_halfBar1);
 
@@ -274,7 +272,6 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         pnl_beat.add(rbtn_beat);
 
         lbl_beat1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/cl_editor/actions/resources/NoteQuarter-20x30.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_beat1, org.openide.util.NbBundle.getMessage(ChangeQuantizationDialog.class, "ChangeQuantizationDialog.lbl_beat1.text")); // NOI18N
         lbl_beat1.setAlignmentY(0.7F);
         pnl_beat.add(lbl_beat1);
 
@@ -290,7 +287,6 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         pnl_half.add(rbtn_eighth);
 
         lbl_half.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/cl_editor/actions/resources/NoteEighth-20x30.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_half, org.openide.util.NbBundle.getMessage(ChangeQuantizationDialog.class, "ChangeQuantizationDialog.lbl_half.text")); // NOI18N
         lbl_half.setAlignmentY(0.7F);
         pnl_half.add(lbl_half);
 
@@ -303,7 +299,6 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         pnl_halfTriplet.add(rbtn_eighth_triplet);
 
         lbl_halfTriplet.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/cl_editor/actions/resources/NoteEighthTriplet-20x30.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_halfTriplet, org.openide.util.NbBundle.getMessage(ChangeQuantizationDialog.class, "ChangeQuantizationDialog.lbl_halfTriplet.text")); // NOI18N
         lbl_halfTriplet.setAlignmentY(0.7F);
         pnl_halfTriplet.add(lbl_halfTriplet);
 
@@ -316,7 +311,6 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         pnl_sixteenth.add(rbtn_sixteenth);
 
         lbl_sixteenth.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/cl_editor/actions/resources/NoteSixteenth-20x30.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_sixteenth, org.openide.util.NbBundle.getMessage(ChangeQuantizationDialog.class, "ChangeQuantizationDialog.lbl_sixteenth.text")); // NOI18N
         lbl_sixteenth.setAlignmentY(0.7F);
         pnl_sixteenth.add(lbl_sixteenth);
 
@@ -326,7 +320,7 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
         org.openide.awt.Mnemonics.setLocalizedText(cbx_allSections, org.openide.util.NbBundle.getMessage(ChangeQuantizationDialog.class, "ChangeQuantizationDialog.cbx_allSections.text")); // NOI18N
 
         lbl_section.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_section, org.openide.util.NbBundle.getMessage(ChangeQuantizationDialog.class, "ChangeQuantizationDialog.lbl_section.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_section, "SectionName"); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -396,7 +390,6 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
     private javax.swing.JCheckBox cbx_allSections;
     private javax.swing.Box.Filler filler6;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbl_beat1;
     private javax.swing.JLabel lbl_beat2;

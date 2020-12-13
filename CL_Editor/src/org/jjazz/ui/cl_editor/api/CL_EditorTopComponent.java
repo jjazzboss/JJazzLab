@@ -41,9 +41,8 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.windows.TopComponent;
-import static org.jjazz.ui.cl_editor.api.Bundle.*;
+import org.jjazz.util.ResUtil;
 import org.openide.util.Utilities;
 
 /**
@@ -53,10 +52,6 @@ import org.openide.util.Utilities;
  * Accept a paired TopComponent which must be always be shown/closed in the same time.<br>
  * TopComponent's lookup is the CL_Editor's lookup.
  */
-@Messages(
-        {
-            "CTL_CL_ConfirmClose=OK to close this song without saving changes ?"
-        })
 public final class CL_EditorTopComponent extends TopComponent implements PropertyChangeListener
 {
 
@@ -101,7 +96,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
 
         // Create our editor
         clEditor = CL_EditorFactory.getDefault().createEditor(songModel);
-        
+
         // Our controller
         clEditorController = new CL_EditorController(clEditor);
         clEditor.setEditorMouseListener(clEditorController);
@@ -149,7 +144,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         SavableSong ss = getLookup().lookup(SavableSong.class);
         if (ss != null)
         {
-            String msg = songModel.getName() + " : " + CTL_CL_ConfirmClose();
+            String msg = songModel.getName() + " : " + ResUtil.getString(getClass(), "CTL_CL_ConfirmClose");
             NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
             Object result = DialogDisplayer.getDefault().notify(nd);
             if (result != NotifyDescriptor.OK_OPTION)
@@ -302,16 +297,16 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
                 ActiveSongManager asm = ActiveSongManager.getInstance();
                 if (evt.getSource() == songModel)
                 {
-                    if (evt.getPropertyName() == Song.PROP_NAME)
+                    if (evt.getPropertyName().equals(Song.PROP_NAME))
                     {
                         updateTabName();
-                    } else if (evt.getPropertyName() == Song.PROP_MODIFIED_OR_SAVED)
+                    } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED))
                     {
                         updateTabName();
                     }
                 } else if (evt.getSource() == asm)
                 {
-                    if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
+                    if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
                     {
                         updateTabName();
                     }
@@ -335,7 +330,8 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         {
             setHtmlDisplayName("<html>" + name + "</html>");
         }
-        String tt = songModel.getFile() == null ? "not saved to file yet" : songModel.getFile().getAbsolutePath();
-        setToolTipText("Chord leadsheet editor : "+tt);
+
+        String tt = songModel.getFile() == null ? ResUtil.getString(getClass(), "CTL_NotSavedToFileYet") : songModel.getFile().getAbsolutePath();
+        setToolTipText(ResUtil.getString(getClass(), "CTL_ChordLeadSheetEditor") + ": " + tt);
     }
 }

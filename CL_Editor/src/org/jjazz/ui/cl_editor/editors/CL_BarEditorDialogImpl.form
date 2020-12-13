@@ -31,11 +31,11 @@
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
-                      <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                      <Component id="lbl_section" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jtfSectionName" min="-2" pref="69" max="-2" attributes="0"/>
                       <EmptySpace pref="15" max="32767" attributes="0"/>
-                      <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+                      <Component id="lbl_timeSig" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jtfTimeSignature" min="-2" pref="37" max="-2" attributes="0"/>
                   </Group>
@@ -54,8 +54,8 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jtfSectionName" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jtfTimeSignature" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="lbl_section" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="lbl_timeSig" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -88,11 +88,6 @@
       </AuxValues>
     </Component>
     <Component class="javax.swing.JTextField" name="jtfSectionName">
-      <Properties>
-        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.jtfSectionName.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
-      </Properties>
       <Events>
         <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="jtfSectionNameFocusGained"/>
         <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="jtfSectionNameKeyPressed"/>
@@ -101,17 +96,17 @@
         <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="jtfSectionName.getDocument().addUndoableEditListener(undoManager);"/>
       </AuxValues>
     </Component>
-    <Component class="javax.swing.JLabel" name="jLabel1">
+    <Component class="javax.swing.JLabel" name="lbl_section">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.jLabel1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.lbl_section.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
-    <Component class="javax.swing.JLabel" name="jLabel2">
+    <Component class="javax.swing.JLabel" name="lbl_timeSig">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.jLabel2.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="CL_BarEditorDialogImpl.lbl_timeSig.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>

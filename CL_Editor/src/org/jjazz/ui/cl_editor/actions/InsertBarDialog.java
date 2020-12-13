@@ -23,7 +23,6 @@
 package org.jjazz.ui.cl_editor.actions;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 import javax.swing.*;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -69,7 +68,7 @@ public final class InsertBarDialog extends javax.swing.JDialog
             throw new IllegalArgumentException("cls=" + cls + " fromBar=" + fromBar + " nbBars=" + nbBars);
         }
         lblFromBar.setText(String.valueOf(fromBar + 1));
-        spnNbBars.setValue(Integer.valueOf(Math.min(nbBars, 200)));
+        spnNbBars.setValue(Math.min(nbBars, 200));
     }
 
     /**
@@ -103,10 +102,10 @@ public final class InsertBarDialog extends javax.swing.JDialog
     private void initComponents()
     {
 
-        jLabel2 = new javax.swing.JLabel();
+        lbl_spinner = new javax.swing.JLabel();
         lblFromBar = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        btn_Cancel = new javax.swing.JButton();
         spnNbBars = new org.jjazz.ui.utilities.WheelSpinner();
 
         setTitle(org.openide.util.NbBundle.getMessage(InsertBarDialog.class, "InsertBarDialog.title")); // NOI18N
@@ -121,11 +120,11 @@ public final class InsertBarDialog extends javax.swing.JDialog
             }
         });
 
-        jLabel2.setText(org.openide.util.NbBundle.getMessage(InsertBarDialog.class, "InsertBarDialog.jLabel2.text")); // NOI18N
+        lbl_spinner.setText(org.openide.util.NbBundle.getMessage(InsertBarDialog.class, "InsertBarDialog.lbl_spinner.text")); // NOI18N
 
         lblFromBar.setText(org.openide.util.NbBundle.getMessage(InsertBarDialog.class, "InsertBarDialog.lblFromBar.text")); // NOI18N
 
-        jButton1.setText(org.openide.util.NbBundle.getMessage(InsertBarDialog.class, "InsertBarDialog.jButton1.text")); // NOI18N
+        jButton1.setText("OK"); // NOI18N
         jButton1.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -134,12 +133,12 @@ public final class InsertBarDialog extends javax.swing.JDialog
             }
         });
 
-        jButton2.setText(org.openide.util.NbBundle.getMessage(InsertBarDialog.class, "InsertBarDialog.jButton2.text")); // NOI18N
-        jButton2.addActionListener(new java.awt.event.ActionListener()
+        btn_Cancel.setText(org.openide.util.NbBundle.getMessage(InsertBarDialog.class, "InsertBarDialog.btn_Cancel.text")); // NOI18N
+        btn_Cancel.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                jButton2ActionPerformed(evt);
+                btn_CancelActionPerformed(evt);
             }
         });
 
@@ -155,31 +154,31 @@ public final class InsertBarDialog extends javax.swing.JDialog
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(spnNbBars, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel2)
+                        .addComponent(lbl_spinner)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(lblFromBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jButton1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton2)))
+                        .addComponent(btn_Cancel)))
                 .addContainerGap())
         );
 
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jButton1, jButton2});
+        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btn_Cancel, jButton1});
 
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
+                    .addComponent(lbl_spinner)
                     .addComponent(lblFromBar)
                     .addComponent(spnNbBars, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 30, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
-                    .addComponent(jButton2))
+                    .addComponent(btn_Cancel))
                 .addContainerGap())
         );
 
@@ -191,10 +190,10 @@ public final class InsertBarDialog extends javax.swing.JDialog
         actionOK();
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jButton2ActionPerformed
-    {//GEN-HEADEREND:event_jButton2ActionPerformed
+    private void btn_CancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_CancelActionPerformed
+    {//GEN-HEADEREND:event_btn_CancelActionPerformed
         actionCancel();
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_btn_CancelActionPerformed
 
     private void formWindowGainedFocus(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowGainedFocus
     {//GEN-HEADEREND:event_formWindowGainedFocus
@@ -202,10 +201,10 @@ public final class InsertBarDialog extends javax.swing.JDialog
     }//GEN-LAST:event_formWindowGainedFocus
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btn_Cancel;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel lblFromBar;
+    private javax.swing.JLabel lbl_spinner;
     private org.jjazz.ui.utilities.WheelSpinner spnNbBars;
     // End of variables declaration//GEN-END:variables
 

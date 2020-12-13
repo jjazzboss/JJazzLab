@@ -36,14 +36,12 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.util.ContextAwareAction;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 
@@ -53,13 +51,12 @@ import org.openide.util.Utilities;
         {
             @ActionReference(path = "Actions/Bar", position = 200),
         })
-@Messages("CTL_SetEndBar=Set end bar")
 public final class SetEndBar extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
     private Lookup context;
     private CL_ContextActionSupport cap;
-    private String undoText = CTL_SetEndBar();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_SetEndBar");
     private int endBar = -1;
 
     public SetEndBar()

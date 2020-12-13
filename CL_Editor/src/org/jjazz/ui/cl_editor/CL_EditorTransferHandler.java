@@ -27,6 +27,8 @@ import java.awt.Point;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -37,7 +39,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import static org.jjazz.ui.cl_editor.Bundle.ERR_CopySection;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.ui.cl_editor.barbox.api.BarBox;
@@ -45,16 +46,12 @@ import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.openide.util.NbBundle;
+import org.jjazz.util.ResUtil;
 
 /**
  * Drag n Drop Transfer handler for ItemRenderers within a single ChordLeadSheet. Drag n Drop between different songs is not
  * supported.
  */
-@NbBundle.Messages(
-        {
-            "ERR_CopySection=Impossible to copy section"
-        })
 public class CL_EditorTransferHandler extends TransferHandler
 {
 
@@ -186,7 +183,7 @@ public class CL_EditorTransferHandler extends TransferHandler
     {
         LOGGER.fine("importData() -- info.getComponent()=" + info.getComponent());
 
-        
+
         if (!info.isDrop())
         {
             LOGGER.fine("importData() not a drop");
@@ -237,15 +234,16 @@ public class CL_EditorTransferHandler extends TransferHandler
             CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
             selection.unselectAll(editor);
 
-
             CLI_Section curSection = cls.getSection(newBarIndex);
             if (info.getDropAction() == COPY)
             {
-                
-                um.startCEdit("Copy section");
-                
-                
+                String editName = ResUtil.getString(getClass(), "COPY SECTION");
+                um.startCEdit(editName);
+
+
                 CLI_Section sectionCopy = (CLI_Section) section.getCopy(null, newPos);
+                String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE TO COPY SECTION", section.getData());
+
                 if (curSection.getPosition().getBar() == newBarIndex)
                 {
                     // There is already a section there, just update the content
@@ -255,8 +253,8 @@ public class CL_EditorTransferHandler extends TransferHandler
                         cls.setSectionTimeSignature(curSection, sectionCopy.getData().getTimeSignature());
                     } catch (UnsupportedEditException ex)
                     {
-                        String msg = ERR_CopySection() + ": " + sectionCopy.getData() + ".\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException("Copy section", msg);
+                        errMsg += "\n" + ex.getLocalizedMessage();
+                        um.handleUnsupportedEditException(editName, errMsg);
                         return false;
                     }
                     editor.selectItem(curSection, true);
@@ -269,18 +267,22 @@ public class CL_EditorTransferHandler extends TransferHandler
                         cls.addSection(sectionCopy);
                     } catch (UnsupportedEditException ex)
                     {
-                        String msg = ERR_CopySection() + ": " + sectionCopy.getData() + ".\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException("Copy section", msg);
+                        errMsg += "\n" + ex.getLocalizedMessage();
+                        um.handleUnsupportedEditException(editName, errMsg);
                         return false;
                     }
                     editor.selectItem(sectionCopy, true);
                     editor.setFocusOnItem(sectionCopy, IR_Type.Section);
                 }
-                um.endCEdit("Copy section");
+                um.endCEdit(editName);
             } else
             {
                 // Move mode
-                um.startCEdit("Move section");
+                String editName = ResUtil.getString(getClass(), "MOVE SECTION");
+                String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE TO MOVE SECTION", section.getData());
+
+                um.startCEdit(editName);
+
                 if (curSection.getPosition().getBar() == newBarIndex)
                 {
                     // There is already a section there, just update the content                          
@@ -292,8 +294,8 @@ public class CL_EditorTransferHandler extends TransferHandler
                     } catch (UnsupportedEditException ex)
                     {
                         // Section is just moved, it was OK before and it should be OK after the move.
-                        String msg = "Impossible to move section.\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException("Move section", msg);
+                        errMsg += "\n" + ex.getLocalizedMessage();
+                        um.handleUnsupportedEditException(editName, errMsg);
                         return false;
                     }
                     editor.selectItem(curSection, true);
@@ -306,37 +308,39 @@ public class CL_EditorTransferHandler extends TransferHandler
                         cls.moveSection(section, newBarIndex);
                     } catch (UnsupportedEditException ex)
                     {
-                        String msg = "Impossible to move section.\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException("Move section", msg);
+                        errMsg += "\n" + ex.getLocalizedMessage();
+                        um.handleUnsupportedEditException(editName, errMsg);
                         return false;
                     }
                     editor.selectItem(section, true);
                     editor.setFocusOnItem(section, IR_Type.Section);
                 }
-                um.endCEdit("Move section");
+                um.endCEdit(editName);
             }
         } else // ChordSymbols
         {
             if (info.getDropAction() == COPY)
             {
+                String editName = ResUtil.getString(getClass(), "COPY ITEM");
                 CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
                 selection.unselectAll(editor);
-                um.startCEdit("Copy item");
+                um.startCEdit(editName);
                 ChordLeadSheetItem<?> itemCopy = sourceItem.getCopy(null, newPos);
                 cls.addItem(itemCopy);
                 editor.setFocusOnItem(itemCopy, IR_Type.ChordSymbol);
                 editor.selectItem(itemCopy, true);
-                um.endCEdit("Copy item");
+                um.endCEdit(editName);
             } else
             {
-                um.startCEdit("Move item");
+                String editName = ResUtil.getString(getClass(), "MOVE ITEM");
+                um.startCEdit(editName);
                 cls.moveItem(sourceItem, newPos);  // The editor will take care about the selection
-                um.endCEdit("Move item");
+                um.endCEdit(editName);
             }
         }
-        
+
         LOGGER.fine("importData() EXIT with success");
-        
+
         return true;
     }
 

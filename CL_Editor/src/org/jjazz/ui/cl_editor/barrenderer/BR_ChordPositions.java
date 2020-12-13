@@ -27,7 +27,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import javax.swing.JDialog;

@@ -22,7 +22,6 @@
  */
 package org.jjazz.ui.cl_editor.editors;
 
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -55,6 +54,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.VoidAltExtChordSymbol;
 import org.jjazz.rhythm.parameters.RP_SYS_Marker;
 import org.jjazz.ui.cl_editor.spi.ChordSymbolEditorDialog;
 import org.jjazz.ui.utilities.Utilities;
+import org.jjazz.util.ResUtil;
 
 /**
  * Default chord symbol edit dialog.
@@ -247,7 +247,6 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         pack();
     }
 
-
     @Override
     public void cleanup()
     {
@@ -300,7 +299,6 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     // =======================================================================================
     // Private methods
     // =======================================================================================    
-
     private EnumSet<Feature> getFeatures()
     {
         EnumSet<Feature> res = EnumSet.noneOf(Feature.class);
@@ -339,7 +337,6 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         return res;
     }
 
-
     private StandardScaleInstance getScaleInstance()
     {
         return list_scales.getSelectedValue();
@@ -354,7 +351,6 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         }
         return altFi;
     }
-
 
     private void updateOptionalText()
     {
@@ -384,7 +380,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             {
                 int pitch = 12 + ssi.getStartNote().getRelativePitch() - ScaleManager.MAJOR.getNotes().get(index).getRelativePitch();
                 Note n = new Note(pitch);
-                scaleTip = "Same as " + n.toRelativeNoteString() + " major scale starting on " + ssi.getStartNote().toRelativeNoteString();
+                scaleTip = ResUtil.getString(getClass(), "ChordSymbolEditorDialogImpl.ScaleTip", n.toRelativeNoteString(), ssi.getStartNote().toRelativeNoteString());
             }
         }
         this.lbl_scaleNotes.setText(scaleNotes);
@@ -417,12 +413,12 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             updateScales(ecs);
             updateOptionalText();
             btn_Ok.setEnabled(true);
-            this.tf_ChordSymbolName.setForeground(UIManager.getDefaults().getColor("Label.foreground")); 
+            this.tf_ChordSymbolName.setForeground(UIManager.getDefaults().getColor("Label.foreground"));
         } else
         {
             updateChordSymbolInfo(null);
             btn_Ok.setEnabled(false);
-            this.tf_ChordSymbolName.setForeground(UIManager.getDefaults().getColor("Label.disabledForeground")); 
+            this.tf_ChordSymbolName.setForeground(UIManager.getDefaults().getColor("Label.disabledForeground"));
         }
         return checkOk;
     }
@@ -450,7 +446,9 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         }
         var strs = new ArrayList<String>();
 
-        strs.add(altSymbol == VoidAltExtChordSymbol.getInstance() ? "void" : altSymbol.toString());
+        strs.add(altSymbol == VoidAltExtChordSymbol.getInstance()
+                ? ResUtil.getString(getClass(), "ChordSymbolEditorDialogImpl.void")
+                : altSymbol.toString());
 
         ChordRenderingInfo cri = altSymbol.getRenderingInfo();
         if (altSymbol != VoidAltExtChordSymbol.getInstance() && !cri.equals(new ChordRenderingInfo()))
@@ -458,7 +456,9 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             strs.add(getOptionalText(cri));
         }
 
-        strs.add("condition=" + (altFilter.isRandom() ? "random" : altFilter.getValues()));
+        strs.add(ResUtil.getString(getClass(), "ChordSymbolEditorDialogImpl.condition") + "=" + (altFilter.isRandom()
+                ? ResUtil.getString(getClass(), "ChordSymbolEditorDialogImpl.random")
+                : altFilter.getValues()));
         return toNiceString(strs);
     }
 
@@ -534,7 +534,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         lbl_chordNotes = new javax.swing.JLabel();
         lbl_optionalText = new javax.swing.JLabel();
         lbl_optionalAltText = new javax.swing.JLabel();
-        jLabel1 = new javax.swing.JLabel();
+        lbl_alternate = new javax.swing.JLabel();
         tabbedPane = new javax.swing.JTabbedPane();
         pnl_Interpretation = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
@@ -547,7 +547,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         cb_noCrash = new javax.swing.JCheckBox();
         cb_crash = new javax.swing.JCheckBox();
         cb_pedalBass = new javax.swing.JCheckBox();
-        jLabel2 = new javax.swing.JLabel();
+        lbl_tooltip = new javax.swing.JLabel();
         pnl_Harmony = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         list_scales = new JList<>(stdScales);
@@ -586,16 +586,16 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         });
 
         lbl_chordNotes.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_chordNotes, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.lbl_chordNotes.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_chordNotes, "[C E G Bb D F#]   bar3 beat2"); // NOI18N
         lbl_chordNotes.setAlignmentX(0.5F);
         lbl_chordNotes.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_optionalText, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.lbl_optionalText.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_optionalText, "optional info"); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_optionalAltText, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.lbl_optionalAltText.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_optionalAltText, "alt optional info"); // NOI18N
 
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.jLabel1.text")); // NOI18N
+        lbl_alternate.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_alternate, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.lbl_alternate.text")); // NOI18N
 
         javax.swing.GroupLayout pnl_ChordDescriptionLayout = new javax.swing.GroupLayout(pnl_ChordDescription);
         pnl_ChordDescription.setLayout(pnl_ChordDescriptionLayout);
@@ -605,7 +605,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 .addContainerGap()
                 .addGroup(pnl_ChordDescriptionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(tf_ChordSymbolName)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(lbl_alternate, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_ChordDescriptionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lbl_chordNotes)
@@ -625,7 +625,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(pnl_ChordDescriptionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lbl_optionalAltText)
-                    .addComponent(jLabel1))
+                    .addComponent(lbl_alternate))
                 .addContainerGap())
         );
 
@@ -769,8 +769,8 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             }
         });
 
-        jLabel2.setFont(helpTextArea2.getFont());
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.jLabel2.text")); // NOI18N
+        lbl_tooltip.setFont(helpTextArea2.getFont());
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_tooltip, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.lbl_tooltip.text")); // NOI18N
 
         javax.swing.GroupLayout pnl_InterpretationLayout = new javax.swing.GroupLayout(pnl_Interpretation);
         pnl_Interpretation.setLayout(pnl_InterpretationLayout);
@@ -782,7 +782,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                     .addGroup(pnl_InterpretationLayout.createSequentialGroup()
                         .addComponent(cb_pedalBass)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel2))
+                        .addComponent(lbl_tooltip))
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -794,7 +794,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
                 .addGap(18, 18, 18)
                 .addGroup(pnl_InterpretationLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cb_pedalBass)
-                    .addComponent(jLabel2))
+                    .addComponent(lbl_tooltip))
                 .addContainerGap())
         );
 
@@ -920,7 +920,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         pnl_altChordSymbol.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.pnl_altChordSymbol.toolTipText")); // NOI18N
 
         lbl_altChordSymbol.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_altChordSymbol, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.lbl_altChordSymbol.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_altChordSymbol, "C7M"); // NOI18N
         lbl_altChordSymbol.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.lbl_altChordSymbol.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_setAltChordSymbol, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.btn_setAltChordSymbol.text")); // NOI18N
@@ -1152,7 +1152,8 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         CLI_Factory clif = CLI_Factory.getDefault();
         Position position = model.getPosition();
         CLI_ChordSymbol altCli = clif.createChordSymbol(null, altChordSymbol, position);
-        ALT_INSTANCE.preset("Alternate Chord Symbol for " + model.getData().getName(), altCli, (char) 0, false);
+        String msg = ResUtil.getString(getClass(), "ChordSymbolEditorDialogImpl.AltChordSymbolFor", model.getData().getName());
+        ALT_INSTANCE.preset(msg, altCli, (char) 0, false);
         ALT_INSTANCE.setLocation(getLocation().x + 40, getLocation().y + 40);
         ALT_INSTANCE.setVisible(true);
         if (ALT_INSTANCE.exitedOk())
@@ -1288,18 +1289,18 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     private javax.swing.JCheckBox cb_stronger;
     private javax.swing.JCheckBox cb_useVoidAlt;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea2;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JLabel lbl_altChordSymbol;
+    private javax.swing.JLabel lbl_alternate;
     private javax.swing.JLabel lbl_chordNotes;
     private javax.swing.JLabel lbl_optionalAltText;
     private javax.swing.JLabel lbl_optionalText;
     private javax.swing.JLabel lbl_scaleNotes;
     private javax.swing.JLabel lbl_scaleTip;
+    private javax.swing.JLabel lbl_tooltip;
     private javax.swing.JList<String> list_markerValues;
     private javax.swing.JList<StandardScaleInstance> list_scales;
     private javax.swing.JPanel pnl_Alternate;

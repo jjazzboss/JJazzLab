@@ -28,13 +28,12 @@ import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongUtils;
-import static org.jjazz.ui.cl_editor.actions.Bundle.CTL_DoubleLeadsheet;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 
 /**
  * Double the distance by 2 between chords, so chordleadsheet size is also multiplied by 2.
@@ -44,15 +43,14 @@ import org.openide.util.NbBundle.Messages;
 @ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.doubleleadsheet")
 @ActionRegistration(displayName = "#CTL_DoubleLeadsheet", lazy = true)
 @ActionReferences(
-        {
+        { 
             @ActionReference(path = "Menu/Tools", position = 150)
         })
-@Messages("CTL_DoubleLeadsheet=Double leadsheet")
 public class DoubleLeadsheet implements ActionListener
 {
 
     private final Song song;
-    private static final String undoText = CTL_DoubleLeadsheet();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_DoubleLeadsheet");
     private static final Logger LOGGER = Logger.getLogger(DoubleLeadsheet.class.getSimpleName());
 
     public DoubleLeadsheet(Song context)

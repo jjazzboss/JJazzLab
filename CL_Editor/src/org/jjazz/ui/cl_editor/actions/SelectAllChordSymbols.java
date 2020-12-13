@@ -27,15 +27,14 @@ import java.awt.event.ActionListener;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import static org.jjazz.ui.cl_editor.actions.Bundle.CTL_SelectAllChordSymbols;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 
 /**
  * Select all chord symbols
@@ -50,12 +49,11 @@ import org.openide.util.NbBundle.Messages;
             @ActionReference(path = "Actions/ChordSymbol", position = 1310),
             @ActionReference(path = "Menu/Edit", position = 1310),
         })
-@Messages("CTL_SelectAllChordSymbols=Select All Chord Symbols")
 public class SelectAllChordSymbols implements ActionListener
 {
 
     private final ChordLeadSheet cls;
-    private static final String undoText = CTL_SelectAllChordSymbols();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_SelectAllChordSymbols");
     private static final Logger LOGGER = Logger.getLogger(SelectAllChordSymbols.class.getSimpleName());
 
     public SelectAllChordSymbols(ChordLeadSheet context)

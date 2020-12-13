@@ -25,6 +25,7 @@ package org.jjazz.chordsymboltextinput;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.TimeSignature;
@@ -51,6 +52,7 @@ public class ChordSymbolTextInput
         BEAT, // C7(2.4)
         BAR_BEAT // C7(3:2.4)
     }
+    private static final ResourceBundle bundle = ResourceBundle.getBundle("org/jjazz/chordsymboltextinput/Bundle");
 
     /**
      * Return a new CLI_ChordSymbol built from specified string.
@@ -94,7 +96,7 @@ public class ChordSymbolTextInput
             // Position is provided
             if (closeIndex == -1)
             {
-                throw new ParseException(str + " : " + "Missing closing parenthesis", 0);
+                throw new ParseException(str + " : "+bundle.getString("MISSING CLOSING PARENTHESIS"), 0);
             }
             newPos = new Position();
             newPos.valueOf(s.substring(openIndex, closeIndex + 1), defaultPos.getBar());

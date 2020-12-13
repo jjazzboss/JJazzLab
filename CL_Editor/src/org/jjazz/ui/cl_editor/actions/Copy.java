@@ -34,14 +34,13 @@ import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import static javax.swing.Action.SMALL_ICON;
 import javax.swing.Icon;
-import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.ui.cl_editor.api.CopyBuffer;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.actions.CopyAction;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -49,7 +48,6 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.util.actions.SystemAction;
 
@@ -61,11 +59,10 @@ import org.openide.util.actions.SystemAction;
             @ActionReference(path = "Actions/ChordSymbol", position = 1100),
             @ActionReference(path = "Actions/Bar", position = 1100),
         })
-@NbBundle.Messages("CTL_Copy=Copy")
 public class Copy extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
-    private String undoText = CTL_Copy();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_Copy");
     private Lookup context;
     private CL_ContextActionSupport cap;
 

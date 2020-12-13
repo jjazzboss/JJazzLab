@@ -29,7 +29,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
@@ -468,13 +467,13 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         {
             if (e.getSource() == csSettings)
             {
-                if (e.getPropertyName() == IR_ChordSymbolSettings.PROP_FONT)
+                if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT))
                 {
                     forceRevalidate();
                 }
             } else if (e.getSource() == tsSettings)
             {
-                if (e.getPropertyName() == IR_TimeSignatureSettings.PROP_FONT)
+                if (e.getPropertyName().equals(IR_TimeSignatureSettings.PROP_FONT))
                 {
                     forceRevalidate();
                 }

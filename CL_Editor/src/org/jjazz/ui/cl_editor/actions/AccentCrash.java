@@ -41,11 +41,11 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -53,7 +53,6 @@ import org.openide.awt.ActionRegistration;
 import org.openide.awt.DynamicMenuContent;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
@@ -63,7 +62,6 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/ChordSymbolAccent", position = 200)
         })
-@Messages("CTL_AccentCrash=Auto/Crash/No Crash")
 public final class AccentCrash extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
 
@@ -71,7 +69,7 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
     private final Lookup context;
     private MyMenuItem menuItem;
     private ChordLeadSheet currentCls;
-    private String undoText = CTL_AccentCrash();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_AccentCrash");
 
     public AccentCrash()
     {
@@ -157,7 +155,6 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
     // ============================================================================================= 
     // ClsChangeListener implementation
     // =============================================================================================   
-
     @Override
     public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
     {
@@ -177,7 +174,6 @@ public final class AccentCrash extends AbstractAction implements ContextAwareAct
     // ============================================================================================= 
     // Presenter.Popup
     // =============================================================================================   
-
     @Override
     public JMenuItem getPopupPresenter()
     {

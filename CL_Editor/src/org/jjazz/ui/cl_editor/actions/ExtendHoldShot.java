@@ -41,18 +41,17 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
@@ -62,14 +61,13 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/ChordSymbolAccent", position = 400)
         })
-@Messages("CTL_ExtendHoldShot=Extended hold/shot")
 public final class ExtendHoldShot extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
 
     private CL_ContextActionSupport cap;
     private final Lookup context;
     private JCheckBoxMenuItem checkBox;
-    private String undoText = CTL_ExtendHoldShot();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_ExtendHoldShot");
     private ChordLeadSheet currentCls;
     private static final Logger LOGGER = Logger.getLogger(ExtendHoldShot.class.getSimpleName());
 
@@ -161,7 +159,6 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
     // ============================================================================================= 
     // ClsChangeListener implementation
     // =============================================================================================      
-
     @Override
     public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
     {
@@ -181,13 +178,12 @@ public final class ExtendHoldShot extends AbstractAction implements ContextAware
     // ============================================================================================= 
     // Presenter.Popup
     // =============================================================================================   
-
     @Override
     public JMenuItem getPopupPresenter()
     {
         if (checkBox == null)
         {
-            checkBox = new JCheckBoxMenuItem(CTL_ExtendHoldShot());
+            checkBox = new JCheckBoxMenuItem(ResUtil.getString(getClass(), "CTL_ExtendHoldShot"));
             checkBox.setAccelerator(KeyStroke.getKeyStroke('X'));
             checkBox.addItemListener(evt -> setExtended(evt.getStateChange() == ItemEvent.SELECTED));
             checkBox.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);

@@ -30,6 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.UIManager;
 import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -41,7 +42,7 @@ import org.openide.util.NbPreferences;
  * For debug purposes...
  */
 //@ActionID(category = "JJazz", id = "org.jjazz.test.mytestaction")
-//@ActionRegistration(displayName = "MyTestAction" )
+//@ActionRegistration(displayName = "MyTestAction")
 //@ActionReferences(
 //        {
 //            @ActionReference(path = "Menu/Edit", position = 870012),
@@ -51,6 +52,10 @@ public final class MyTestAction implements ActionListener
 {
 
     private static final Logger LOGGER = Logger.getLogger(MyTestAction.class.getSimpleName());
+
+    public MyTestAction()
+    {
+    }
 
     @Override
     public void actionPerformed(ActionEvent ae)
@@ -86,5 +91,5 @@ public final class MyTestAction implements ActionListener
         }
         f = f.deriveFont(fSize);
         settings.setFont(f);
-    }  
+    }
 }

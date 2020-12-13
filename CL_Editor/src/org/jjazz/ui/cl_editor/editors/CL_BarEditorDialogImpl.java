@@ -48,25 +48,14 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import static org.jjazz.ui.cl_editor.editors.Bundle.CTL_Bar;
-import static org.jjazz.ui.cl_editor.editors.Bundle.ERR_DuplicateSectionName;
-import static org.jjazz.ui.cl_editor.editors.Bundle.ERR_IncompleteSection;
-import static org.jjazz.ui.cl_editor.editors.Bundle.ERR_InvalidTimeSignature;
 import org.jjazz.ui.cl_editor.spi.CL_BarEditorDialog;
 import org.jjazz.ui.cl_editor.spi.Preset;
+import org.jjazz.util.ResUtil;
 import org.jjazz.util.diff.api.DiffProvider;
 import org.jjazz.util.diff.api.Difference;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.NbBundle.Messages;
 
-@Messages(
-        {
-            "CTL_Bar=Bar",
-            "ERR_IncompleteSection=Both section name and time signature must be specified",
-            "ERR_DuplicateSectionName=Section name is already used",
-            "ERR_InvalidTimeSignature=Invalid time signature value"
-        })
 public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
 {
 
@@ -128,11 +117,11 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     private CL_BarEditorDialogImpl()
     {
         initComponents();
-        
+
         // Mac OSX automatically does a select all upon focus gain: this generates problem see Issue #97
         // This is hack to make sure the default behavior is used, even on Mac OSX
         jtfChordSymbols.setCaret(new DefaultCaret());
-        
+
         saveSectionFieldsForeground = jtfSectionName.getForeground();
         resultSection = null;
         resultAddedItems = new ArrayList<>();
@@ -193,7 +182,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         jtfChordSymbols.setText(ChordSymbolTextInput.toStringNoPosition(modelCsList));
         saveCsText = jtfChordSymbols.getText();
 
-        setTitle(CTL_Bar() + " " + (barIndx + 1) + " - " + modelSection.getData().getName() + " " + modelSection.getData().getTimeSignature());
+        setTitle(ResUtil.getString(getClass(), "CL_BarEditorDialogImpl.CTL_Bar") + " " + (barIndx + 1) + " - " + modelSection.getData().getName() + " " + modelSection.getData().getTimeSignature());
         undoManager.discardAllEdits();
 
         // Specific actions depending on presets
@@ -206,14 +195,14 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                 {
                     // Append char at the end, with a leading space if required
                     String text = jtfChordSymbols.getText().trim();
-                    String space = text.isEmpty() ? "" : " ";        
+                    String space = text.isEmpty() ? "" : " ";
                     text = text + space + Character.toUpperCase(preset.getKey());
                     jtfChordSymbols.setText(text);
-                    
-                    
+
+
                     // Only on MacOSX, the inserted char ends up being selected! 
                     // This make sure there is no selection
-                    jtfChordSymbols.setCaretPosition(text.length());    
+                    jtfChordSymbols.setCaretPosition(text.length());
                     jtfChordSymbols.moveCaretPosition(text.length());
                 } else
                 {
@@ -300,7 +289,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
             // Both fields must be filled
             if (strSection.length() == 0 || strSignature.length() == 0)
             {
-                notifyError(ERR_IncompleteSection());
+                notifyError(ResUtil.getString(getClass(), "CL_BarEditorDialogImpl.ERR_IncompleteSection"));
                 if (strSection.length() == 0)
                 {
                     jtfSectionName.requestFocusInWindow();
@@ -319,7 +308,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
 
             } catch (ParseException e)
             {
-                notifyError(ERR_InvalidTimeSignature());
+                notifyError(ResUtil.getString(getClass(), "CL_BarEditorDialogImpl.ERR_InvalidTimeSignature"));
                 jtfTimeSignature.selectAll();
                 jtfTimeSignature.requestFocusInWindow();
                 return;
@@ -328,7 +317,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
             // Check section name is valid
             if (model.getSection(strSection) != null && !(isSectionInBar && modelSection.getData().getName().equals(strSection)))
             {
-                notifyError(ERR_DuplicateSectionName());
+                notifyError(ResUtil.getString(getClass(), "CL_BarEditorDialogImpl.ERR_DuplicateSectionName"));
                 jtfSectionName.selectAll();
                 jtfSectionName.requestFocusInWindow();
                 return;
@@ -538,8 +527,8 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         jtfChordSymbols.getDocument().addUndoableEditListener(undoManager);
         jtfSectionName = new javax.swing.JTextField();
         jtfSectionName.getDocument().addUndoableEditListener(undoManager);
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
+        lbl_section = new javax.swing.JLabel();
+        lbl_timeSig = new javax.swing.JLabel();
 
         setModal(true);
         setResizable(false);
@@ -569,7 +558,6 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
 
         jtfChordSymbols.setToolTipText(org.openide.util.NbBundle.getMessage(CL_BarEditorDialogImpl.class, "CL_BarEditorDialogImpl.jtfChordSymbols.toolTipText")); // NOI18N
 
-        jtfSectionName.setToolTipText(org.openide.util.NbBundle.getMessage(CL_BarEditorDialogImpl.class, "CL_BarEditorDialogImpl.jtfSectionName.toolTipText")); // NOI18N
         jtfSectionName.addFocusListener(new java.awt.event.FocusAdapter()
         {
             public void focusGained(java.awt.event.FocusEvent evt)
@@ -585,9 +573,9 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
             }
         });
 
-        jLabel1.setText(org.openide.util.NbBundle.getMessage(CL_BarEditorDialogImpl.class, "CL_BarEditorDialogImpl.jLabel1.text")); // NOI18N
+        lbl_section.setText(org.openide.util.NbBundle.getMessage(CL_BarEditorDialogImpl.class, "CL_BarEditorDialogImpl.lbl_section.text")); // NOI18N
 
-        jLabel2.setText(org.openide.util.NbBundle.getMessage(CL_BarEditorDialogImpl.class, "CL_BarEditorDialogImpl.jLabel2.text")); // NOI18N
+        lbl_timeSig.setText(org.openide.util.NbBundle.getMessage(CL_BarEditorDialogImpl.class, "CL_BarEditorDialogImpl.lbl_timeSig.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -597,11 +585,11 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
+                        .addComponent(lbl_section)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jtfSectionName, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
-                        .addComponent(jLabel2)
+                        .addComponent(lbl_timeSig)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jtfTimeSignature, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jtfChordSymbols))
@@ -616,8 +604,8 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jtfSectionName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jtfTimeSignature, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2))
+                    .addComponent(lbl_section)
+                    .addComponent(lbl_timeSig))
                 .addContainerGap())
         );
 
@@ -650,11 +638,11 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     }//GEN-LAST:event_jtfTimeSignatureKeyPressed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JTextField jtfChordSymbols;
     private javax.swing.JTextField jtfSectionName;
     private javax.swing.JTextField jtfTimeSignature;
+    private javax.swing.JLabel lbl_section;
+    private javax.swing.JLabel lbl_timeSig;
     // End of variables declaration//GEN-END:variables
 
 }

@@ -28,15 +28,13 @@ import java.util.logging.Logger;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongUtils;
-import static org.jjazz.ui.cl_editor.actions.Bundle.CTL_HalfLeadsheet;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.Exceptions;
-import org.openide.util.NbBundle.Messages;
 
 /**
  * Half the distance by 2 between chords, so chordleadsheet size is also divided by 2.
@@ -49,12 +47,11 @@ import org.openide.util.NbBundle.Messages;
         {
             @ActionReference(path = "Menu/Tools", position = 110)
         })
-@Messages("CTL_HalfLeadsheet=Half leadsheet")
 public class HalfLeadsheet implements ActionListener
 {
 
     private final Song song;
-    private static final String undoText = CTL_HalfLeadsheet();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_HalfLeadsheet");
     private static final Logger LOGGER = Logger.getLogger(HalfLeadsheet.class.getSimpleName());
 
     public HalfLeadsheet(Song context)

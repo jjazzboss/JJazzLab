@@ -25,13 +25,12 @@ package org.jjazz.base.actions;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import static org.jjazz.base.actions.Bundle.CTL_FileSaved;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbBundle.Messages;
 
 @ActionID(
         category = "File", id = "org.jjazz.base.actions.Save"
@@ -40,11 +39,6 @@ import org.openide.util.NbBundle.Messages;
 @ActionReferences(
         {
             @ActionReference(path = "Menu/File", position = 1500)
-        })
-@Messages(
-        {
-            "CTL_Save=Save",
-            "CTL_FileSaved=Saved"
         })
 public final class Save extends AbstractAction
 {
@@ -64,7 +58,7 @@ public final class Save extends AbstractAction
     {
         if (context.save() != 0)
         {
-            StatusDisplayer.getDefault().setStatusText(CTL_FileSaved() + " " + context.toString());
+            StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_Saved", context.toString()));
         }
     }
 }

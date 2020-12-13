@@ -30,17 +30,16 @@ import static javax.swing.Action.NAME;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import static org.jjazz.ui.cl_editor.actions.Bundle.CTL_SectionAtNewLine;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
@@ -53,7 +52,6 @@ import org.openide.util.actions.Presenter;
             @ActionReference(path = "Actions/Bar", position = 1420),
             @ActionReference(path = "Actions/Section", position = 2100)
         })
-@Messages("CTL_SectionAtNewLine=Force section at new line")
 public final class SectionAtNewLine extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup
 {
 
@@ -74,7 +72,7 @@ public final class SectionAtNewLine extends AbstractAction implements ContextAwa
         this.context = context;
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        putValue(NAME, CTL_SectionAtNewLine());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_SectionAtNewLine"));
         selectionChange(cap.getSelection());
     }
 
@@ -125,7 +123,7 @@ public final class SectionAtNewLine extends AbstractAction implements ContextAwa
                 s = editor.isSectionStartOnNewLine(cliSection);
             }
         }
-        
+
         setEnabled(e);
         getPopupPresenter().setSelected(s);  // Only update UI, actionPerformed() is not called
     }

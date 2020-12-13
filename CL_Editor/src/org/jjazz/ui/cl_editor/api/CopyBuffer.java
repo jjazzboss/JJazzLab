@@ -180,12 +180,14 @@ public class CopyBuffer
     }
 
     /**
-     * Return a copy of the items in the buffer adjusted to targetBarIndex and with the specified container. In ItemMode, the
-     * items are shitfed so the first item start at targetBarIndex. In BarMode, the items are shifted so that getBarMinIndex()
-     * match targetBarIndex.
+     * Return a copy of the items in the buffer adjusted to targetBarIndex and with the specified container.
+     * <p>
+     * In ItemMode, the items are shitfed so the first item start at targetBarIndex. In BarMode, the items are shifted so that
+     * getBarMinIndex() match targetBarIndex.
      *
      * @param targetCls The container of the new items. If null container is not changed.
      * @param targetBarIndex The barIndex where items are copied to. If barIndex&lt;0, positions are not changed. @return
+     * @return
      */
     public List<ChordLeadSheetItem<?>> getItemsCopy(ChordLeadSheet targetCls, int targetBarIndex)
     {

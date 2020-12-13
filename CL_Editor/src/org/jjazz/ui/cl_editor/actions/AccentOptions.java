@@ -36,17 +36,16 @@ import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ItemChangedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
-import static org.jjazz.ui.cl_editor.actions.Bundle.CTL_AccentOptions;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
@@ -59,24 +58,20 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 470)
         })
-@Messages(
-        {
-            "CTL_AccentOptions=Accent options"
-        })
 public final class AccentOptions extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
-    
+
     private CL_ContextActionSupport cap;
     private final Lookup context;
     JMenu subMenu;
     private ChordLeadSheet currentCls;
     private static final Logger LOGGER = Logger.getLogger(AccentOptions.class.getSimpleName());
-    
+
     public AccentOptions()
     {
         this(Utilities.actionsGlobalContext());
     }
-    
+
     public AccentOptions(Lookup context)
     {
         this.context = context;
@@ -84,13 +79,13 @@ public final class AccentOptions extends AbstractAction implements ContextAwareA
         cap.addListener(this);
         selectionChange(cap.getSelection());
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent ev)
     {
         // Unused
     }
-    
+
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
@@ -123,13 +118,13 @@ public final class AccentOptions extends AbstractAction implements ContextAwareA
             subMenu.setEnabled(b);
         }
     }
-    
+
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
         return new AccentOptions(context);
     }
-    
+
     @Override
     public void sizeChanged(int oldSize, int newSize)
     {
@@ -139,15 +134,14 @@ public final class AccentOptions extends AbstractAction implements ContextAwareA
     // ============================================================================================= 
     // ClsChangeListener implementation
     // =============================================================================================      
-       
     @Override
     public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
     {
         // Nothing
     }
-    
+
     @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event) 
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
         var selection = cap.getSelection();
         if (event instanceof ItemChangedEvent && selection.getSelectedItems().contains(event.getItem()))
@@ -164,7 +158,7 @@ public final class AccentOptions extends AbstractAction implements ContextAwareA
     {
         if (subMenu == null)
         {
-            subMenu = new JMenu(CTL_AccentOptions());
+            subMenu = new JMenu(ResUtil.getString(getClass(), "CTL_AccentOptions()"));
             var actions = Utilities.actionsForPath("Actions/ChordSymbolAccent");
             for (Action action : actions)
             {
@@ -181,5 +175,4 @@ public final class AccentOptions extends AbstractAction implements ContextAwareA
     // ============================================================================================= 
     // Private methods
     // =============================================================================================     
-
 }

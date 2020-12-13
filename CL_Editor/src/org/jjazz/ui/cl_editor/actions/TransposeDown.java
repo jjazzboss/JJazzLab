@@ -32,17 +32,16 @@ import org.jjazz.harmony.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.transposedown")
@@ -51,11 +50,10 @@ import org.openide.util.Utilities;
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 410),
         })
-@Messages("CTL_TransposeDown=Transpose down")
 public final class TransposeDown extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
-    private String undoText = CTL_TransposeDown();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_TransposeDown");
     private Lookup context;
     private CL_ContextActionSupport cap;
 

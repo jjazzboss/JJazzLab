@@ -32,18 +32,16 @@ import javax.swing.Action;
 import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.removebar")
@@ -52,13 +50,12 @@ import org.openide.util.Utilities;
         {
             @ActionReference(path = "Actions/Bar", position = 400, separatorAfter = 450),
         })
-@Messages("CTL_RemoveBar=Remove bars")
 public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
     private Lookup context;
     private CL_ContextActionSupport cap;
-    private String undoText = CTL_RemoveBar();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_RemoveBar");
     private static final Logger LOGGER = Logger.getLogger(RemoveBar.class.getSimpleName());
 
     public RemoveBar()

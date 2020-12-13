@@ -36,19 +36,18 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.actions.Presenter;
 
 /**
@@ -60,16 +59,11 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/Section", position = 200, separatorAfter = 250)
         })
-@Messages(
-        {
-            "CTL_SetTimeSignature=Set time signature",
-            "ERR_SetTimeSignature=Impossible to set time signature"
-        })
 public final class SetTimeSignature extends AbstractAction implements Presenter.Popup
 {
 
     private MyDynamicMenu menu;
-    private final String undoText = CTL_SetTimeSignature();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_SetTimeSignature");
     private static final Logger LOGGER = Logger.getLogger(SetTimeSignature.class.getSimpleName());
 
     @Override
@@ -111,7 +105,7 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
                 return;
             }
 
-            String msg = "Set time signature " + ts.toString() + " for the whole song ?";
+            String msg = ResUtil.getString(SetTimeSignature.class, "CTL_SetTimeSignatureForWholeSong", ts);
             NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
             Object result = DialogDisplayer.getDefault().notify(d);
 
@@ -159,45 +153,45 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
     {
         // Prepare the TimeSignature subMenu      
 
-        
+
         menu.removeAll();
-        
-        
+
+
         for (final TimeSignature ts : TimeSignature.values())
         {
             JMenuItem mi = new JMenuItem(ts.toString());
-            
-            
+
+
             mi.addActionListener((ActionEvent e) ->
             {
                 CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
                 CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
                 ChordLeadSheet cls = editor.getModel();
-                
-                
-                JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);                                
+
+
+                JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
                 um.startCEdit(undoText);
-                
+
                 try
                 {
                     changeTimeSignaturePossiblyForWholeSong(cls, ts, selection.getSelectedSections());
                 } catch (UnsupportedEditException ex)
                 {
-                    String msg = ERR_SetTimeSignature() + ": " + ts + ".\n" + ex.getLocalizedMessage();
+                    String msg = ResUtil.getString(getClass(), "ERR_SetTimeSignature", ts);
+                    msg += "\n" + ex.getLocalizedMessage();
                     um.handleUnsupportedEditException(undoText, msg);
                     return;
                 }
-                
+
                 um.endCEdit(undoText);
-                
+
             });
-            
-            
+
+
             mi.setEnabled(true);
             menu.add(mi);
         }
     }
-
 
     // ============================================================================================= 
     // Private class
@@ -207,7 +201,7 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
 
         public MyDynamicMenu()
         {
-            super(CTL_SetTimeSignature());
+            super(undoText);
             RhythmDatabase rdb = RhythmDatabase.getDefault();
             rdb.addChangeListener(this);
         }

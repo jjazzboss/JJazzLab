@@ -31,14 +31,13 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.*;
 import org.openide.windows.WindowManager;
 
@@ -48,7 +47,6 @@ import org.openide.windows.WindowManager;
         {
             @ActionReference(path = "Actions/Bar", position = 300)
         })
-@Messages("CTL_InsertBar=Insert bars...")
 public class InsertBar extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
@@ -56,7 +54,7 @@ public class InsertBar extends AbstractAction implements ContextAwareAction, CL_
     private CL_ContextActionSupport cap;
     private int insertModelBarIndex;
     private int insertNbBars;
-    private String undoText = CTL_InsertBar();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_InsertBar");
     private static final Logger LOGGER = Logger.getLogger(InsertBar.class.getSimpleName());
 
     public InsertBar()
@@ -70,7 +68,7 @@ public class InsertBar extends AbstractAction implements ContextAwareAction, CL_
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         LOGGER.log(Level.FINE, "InsertBar(context) context=" + context);
-        putValue(NAME, CTL_InsertBar());
+        putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("I"));
         selectionChange(cap.getSelection());
     }

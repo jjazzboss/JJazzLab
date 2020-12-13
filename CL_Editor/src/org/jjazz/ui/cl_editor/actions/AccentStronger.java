@@ -41,18 +41,17 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
@@ -62,13 +61,12 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/ChordSymbolAccent", position = 100)
         })
-@Messages("CTL_AccentStronger=Stronger accent")
 public final class AccentStronger extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
 
     private CL_ContextActionSupport cap;
     private final Lookup context;
-    private String undoText = CTL_AccentStronger();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_AccentStronger");
     private ChordLeadSheet currentCls;
     private JCheckBoxMenuItem checkBox;
     private static final Logger LOGGER = Logger.getLogger(AccentStronger.class.getSimpleName());
@@ -153,18 +151,16 @@ public final class AccentStronger extends AbstractAction implements ContextAware
     {
         // Nothing
     }
-    
-    
+
     // ============================================================================================= 
     // Presenter.Popup
     // =============================================================================================   
-
     @Override
     public JMenuItem getPopupPresenter()
     {
         if (checkBox == null)
         {
-            checkBox = new JCheckBoxMenuItem(CTL_AccentStronger());
+            checkBox = new JCheckBoxMenuItem(ResUtil.getString(getClass(), "CTL_AccentStronger()"));
             checkBox.setAccelerator(KeyStroke.getKeyStroke('S'));
             checkBox.addItemListener(evt -> setAccent(evt.getStateChange() == ItemEvent.SELECTED));
             checkBox.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
@@ -180,19 +176,17 @@ public final class AccentStronger extends AbstractAction implements ContextAware
         return checkBox;
     }
 
-
     // ============================================================================================= 
     // ClsChangeListener implementation
     // =============================================================================================      
-       
     @Override
     public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
     {
         // Nothing
     }
-  
+
     @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event) 
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
         var selection = cap.getSelection();
         if (event instanceof ItemChangedEvent && selection.getSelectedItems().contains(event.getItem()))
@@ -256,6 +250,5 @@ public final class AccentStronger extends AbstractAction implements ContextAware
 
         return newCri;
     }
-
 
 }

@@ -33,18 +33,17 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.nextplaystyle")
@@ -53,13 +52,12 @@ import org.openide.util.Utilities;
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 450)
         })
-@Messages("CTL_NextPlayStyle=Accent/Hold/Shot")
 public final class NextPlayStyle extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
     private CL_ContextActionSupport cap;
     private final Lookup context;
-    private String undoText = CTL_NextPlayStyle();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_NextPlayStyle");
 
     public NextPlayStyle()
     {

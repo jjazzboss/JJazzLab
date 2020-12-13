@@ -27,7 +27,6 @@ import java.beans.PropertyChangeListener;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.cl_editor.api.CL_EditorSettings;
-import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
 import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;

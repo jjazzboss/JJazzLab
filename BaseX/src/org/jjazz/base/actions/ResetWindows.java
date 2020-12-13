@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
@@ -51,7 +50,6 @@ import org.openide.windows.WindowManager;
         displayName = "#CTL_ResetWindows"
 )
 @ActionReference(path = "Menu/Window", position = 10155)
-@Messages("CTL_ResetWindows=Reset Windows")
 public final class ResetWindows implements ActionListener
 {
 

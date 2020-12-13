@@ -23,44 +23,40 @@
 package org.jjazz.base.actions;
 
 import java.awt.event.ActionEvent;
+import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import static org.jjazz.base.actions.Bundle.CTL_FilesSaved;
-import static org.jjazz.base.actions.Bundle.CTL_SaveAll;
+import org.jjazz.base.actions.Savable;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbBundle;
 
 @ActionID(category = "File", id = "org.jjazz.base.actions.SaveAll")
 
 // Can't use lazy=true because otherwise then we can't listen to the Savable.ToBeSavedList
 // So iconBase in registration is ignored
 // @ActionRegistration(displayName = "#CTL_SaveAll", lazy = false, iconBase = "org/jjazz/base/actions/resources/saveAll.gif")
-@ActionRegistration(displayName = "#CTL_SaveAll", lazy = false)
+@ActionRegistration(displayName = "blabla", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Menu/File", position = 1540),
             @ActionReference(path = "Toolbars/File", position = 20),
             @ActionReference(path = "Shortcuts", name = "D-S")
         })
-@NbBundle.Messages(
-        {
-            "CTL_SaveAll=Save All",
-            "CTL_FilesSaved=Files saved: "
-        })
 public class SaveAll extends AbstractAction implements ChangeListener
 {
 
     private static final Logger LOGGER = Logger.getLogger(SaveAll.class.getSimpleName());
-
+     
     public SaveAll()
     {
-        putValue(NAME, CTL_SaveAll());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_SaveAll"));
+
 
         // Need this for auto icon size changing to work... (switch to saveAll24.gif) since can't be done using actionRegistration's iconBase=xx
         putValue("iconBase", "org/jjazz/base/actions/resources/saveAll.gif");
@@ -94,16 +90,16 @@ public class SaveAll extends AbstractAction implements ChangeListener
         switch (count)
         {
             case 1:
-                msg = CTL_FilesSaved() + name1;
+                msg = name1;
                 break;
             case 2:
-                msg = CTL_FilesSaved() + name1 + ", " + name2;
+                msg = name1 + ", " + name2;
                 break;
             default:
-                msg = CTL_FilesSaved() + count;
+                msg = String.valueOf(count);
                 break;
         }
-        StatusDisplayer.getDefault().setStatusText(msg);
+        StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_FilesSaved", msg));
     }
 
     @Override

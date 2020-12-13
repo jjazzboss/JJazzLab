@@ -25,27 +25,25 @@ package org.jjazz.ui.cl_editor.actions;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet; 
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.Exceptions;
-import org.openide.util.NbBundle.Messages;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.moveitemleft")
 @ActionRegistration(displayName = "#CTL_MoveItemLeft")
-@Messages("CTL_MoveItemLeft=Move item left")
 public final class MoveItemLeft implements ActionListener
 {
 
     private final List<ChordLeadSheetItem<?>> context;
-    private String undoText = CTL_MoveItemLeft();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_MoveItemLeft");
 
     public MoveItemLeft(List<ChordLeadSheetItem<?>> context)
     {

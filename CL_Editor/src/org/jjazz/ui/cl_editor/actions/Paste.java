@@ -37,11 +37,11 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ui.cl_editor.api.CopyBuffer;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.actions.PasteAction;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -49,7 +49,6 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.util.actions.SystemAction;
 
@@ -64,17 +63,12 @@ import org.openide.util.actions.SystemAction;
             @ActionReference(path = "Actions/ChordSymbol", position = 1200),
             @ActionReference(path = "Actions/Bar", position = 1200),
         })
-@NbBundle.Messages(
-        {
-            "CTL_Paste=Paste",
-            "ERR_Paste=Impossible to paste"
-        })
 public class Paste extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
     private Lookup context;
     private CL_ContextActionSupport cap;
-    private String undoText = CTL_Paste();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_Paste");
 
     public Paste()
     {
@@ -133,6 +127,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
                     {
                         // Should never happen when resizing bigger
                         String msg = "Impossible to resize.\n" + ex.getLocalizedMessage();
+                        msg += "\n" + ex.getLocalizedMessage();
                         um.handleUnsupportedEditException(undoText, msg);
                         return;
                     }
@@ -170,7 +165,8 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
                             }
                         } catch (UnsupportedEditException ex)
                         {
-                            String msg = ERR_Paste() + ": " + newSection + ".\n" + ex.getLocalizedMessage();
+                            String msg = ResUtil.getString(getClass(), "Err_Paste", newSection);
+                            msg += "\n" + ex.getLocalizedMessage();
                             um.handleUnsupportedEditException(undoText, msg);
                             return;
                         }

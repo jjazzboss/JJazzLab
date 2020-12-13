@@ -29,13 +29,11 @@ import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import static javax.swing.Action.ACCELERATOR_KEY;
+import static javax.swing.Action.ACCELERATOR_KEY; 
 import org.jjazz.harmony.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
@@ -45,8 +43,8 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
+import org.jjazz.util.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.cl_editor.actions.transposeup")
 @ActionRegistration(displayName = "#CTL_TransposeUp", lazy = false)
@@ -54,13 +52,12 @@ import org.openide.util.Utilities;
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 400),
         })
-@Messages("CTL_TransposeUp=Transpose up")
 public final class TransposeUp extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
     private Lookup context;
     private CL_ContextActionSupport cap;
-    private String undoText = CTL_TransposeUp();
+    private final String undoText = ResUtil.getString(getClass(), "CTL_TransposeUp");
     private static final Logger LOGGER = Logger.getLogger(TransposeUp.class.getSimpleName());
 
     public TransposeUp()

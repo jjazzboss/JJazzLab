@@ -30,20 +30,18 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
-import static org.jjazz.ui.cl_editor.actions.Bundle.*;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.*;
 
 /**
@@ -57,7 +55,6 @@ import org.openide.util.*;
             @ActionReference(path = "Actions/Section", position = 1300),
             @ActionReference(path = "Actions/ChordSymbol", position = 1300)
         })
-@Messages("CTL_SelectAll=Select all")
 public class SelectAll extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
@@ -75,7 +72,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, CL_
         this.context = context;
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        putValue(NAME, CTL_SelectAll());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_SelectAll"));
         putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_A));
         selectionChange(cap.getSelection());
     }
