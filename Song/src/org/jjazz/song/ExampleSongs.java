@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.util.ResUtil;
 import org.jjazz.util.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.DialogDisplayer;
@@ -105,14 +106,13 @@ public class ExampleSongs implements StartupTask
         }
         if (!isEmpty)
         {
-            String msg = "<html><b>EXAMPLE SONG FILES</b><br/><br/>JJazzLab will copy example song files to: <i>" + dir.getAbsolutePath() + "</i><br/><br/>"
-                    + "Existing example song files will be overwritten. OK to proceed?";
+            String msg = ResUtil.getString(getClass(),"CTL_CopyExampleSongsConfirmOverwrite", dir.getAbsolutePath());
             //NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
             String[] options = new String[]
             {
-                "OK", "Skip"
+                "OK", ResUtil.getString(getClass(),"SKIP")
             };
-            NotifyDescriptor d = new NotifyDescriptor(msg, "JJazzLab first time initialization", 0, NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
+            NotifyDescriptor d = new NotifyDescriptor(msg, ResUtil.getString(getClass(),"CTL_FirstTimeInit"), 0, NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
             //NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
             Object result = DialogDisplayer.getDefault().notify(d);
 

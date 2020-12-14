@@ -57,6 +57,7 @@ import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.util.ResUtil;
 import org.jjazz.util.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.Lookup;
@@ -614,8 +615,8 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         boolean cacheFilePresent = RhythmDbCache.getFile().isFile();
         LOGGER.info("initDatabase() needRescan=" + needRescan + " cacheFilePresent=" + cacheFilePresent);   //NOI18N
 
-        String msg1 = "Scanning all rhythms in " + rDir.getAbsolutePath() + "...";
-        String msg2 = "Saving rhythm database cache file...";
+        String msg1 = ResUtil.getString(getClass(),"CTL_ScanningAllRhythmsInDir", rDir.getAbsolutePath());
+        String msg2 = ResUtil.getString(getClass(),"CTL_SavingRhythmDbCacheFile");
 
         // Perform a scan or use the cache file
         if (needRescan || !cacheFilePresent)
@@ -635,21 +636,20 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             // Reuse cache file to avoid a full scan
 
             // Scan only for builtin Rhythms
-            ph.progress("Scanning all built-in rhythms...");
+            ph.progress(ResUtil.getString(getClass(),"CTL_ScanningAllBuiltinRhythms"));
             addNewRhythmsFromRhythmProviders(false, true, false);
 
             // Read cache
             try
             {
-                ph.progress("Reading rhythm database cache file...");
+                ph.progress(ResUtil.getString(getClass(),"CTL_ReadingRhythmDbCacheFile"));
                 readCache();
 
             } catch (IOException ex)
             {
                 // Notify
                 LOGGER.warning("RhythmDatabaseImpl() Can't load cache file. ex=" + ex.getLocalizedMessage());   //NOI18N
-                String msg = "Error loading rhythm database cache file " + RhythmDbCache.getFile().getAbsolutePath() + " (see log file for details)\n\n"
-                        + "JJazzLab needs to relaunch a full scan of the rhythm files, this may take some time...";
+                String msg = ResUtil.getString(getClass(),"ERR_LoadingCacheFile", RhythmDbCache.getFile().getAbsolutePath());
                 NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
 
@@ -712,7 +712,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                     @Override
                     public void run()
                     {
-                        new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), "Builtin rhythm creation errors", builtinErrRpt).setVisible(true);
+                        new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), ResUtil.getString(getClass(),"CTL_BuiltinRhythmErrors"), builtinErrRpt).setVisible(true);
                     }
                 });
             }
@@ -741,7 +741,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                     @Override
                     public void run()
                     {
-                        new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), "File-based rhythm creation errors", fileErrRpt).setVisible(true);
+                        new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), ResUtil.getString(getClass(),"CTL_FileBasedRhythmErrors"), fileErrRpt).setVisible(true);
                     }
                 });
             }
@@ -1027,13 +1027,12 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             }
             if (!isEmpty)
             {
-                String msg = "<html><b>RHYTHM FILES</b><br/><br/>JJazzLab will copy default rhythm files (.sty, ...) to: <i>" + dir.getAbsolutePath() + "</i><br/><br/>"
-                        + "Existing default files will be overwritten. OK to proceed?";
+                String msg = ResUtil.getString(getClass(),"CTL_CopyDefaultRhythmConfirmOverwrite", dir.getAbsolutePath());
                 String[] options = new String[]
                 {
-                    "OK", "Skip"
+                    "OK", ResUtil.getString(getClass(),"CTL_Skip")
                 };
-                NotifyDescriptor d = new NotifyDescriptor(msg, "JJazzLab first time initialization", 0, NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
+                NotifyDescriptor d = new NotifyDescriptor(msg, ResUtil.getString(getClass(),"CTL_FirstTimeInit"), 0, NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
                 Object result = DialogDisplayer.getDefault().notify(d);
 
                 if (!result.equals("OK"))

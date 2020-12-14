@@ -323,9 +323,7 @@
         <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
           <Font name="Tahoma" size="11" style="1"/>
         </Property>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/rhythmselectiondialog/Bundle.properties" key="RhythmSelectionDialogImpl.lbl_Title.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="Select a 3/4 rhythm for rhythm part &quot;X&quot;" noResource="true"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JCheckBox" name="cb_applyRhythmToNextSpts">
@@ -354,9 +352,6 @@
     <Component class="javax.swing.JTextField" name="tf_userRhythmDir">
       <Properties>
         <Property name="editable" type="boolean" value="false"/>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/rhythmselectiondialog/Bundle.properties" key="RhythmSelectionDialogImpl.tf_userRhythmDir.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/rhythmselectiondialog/Bundle.properties" key="RhythmSelectionDialogImpl.tf_userRhythmDir.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>

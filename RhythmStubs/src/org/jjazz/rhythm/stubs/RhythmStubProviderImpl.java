@@ -32,6 +32,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.util.MultipleErrorsReport;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
+import org.jjazz.util.ResUtil;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
 
@@ -49,7 +50,7 @@ public class RhythmStubProviderImpl implements StubRhythmProvider
 
     public RhythmStubProviderImpl()
     {
-        info = new Info("StubRhythmProviderID", "Dummy rhythms", "Provides a dummy rhythm for each time signature", "JL", "1.0");
+        info = new Info("StubRhythmProviderID", ResUtil.getString(getClass(),"DUMMY_RHYTHMS"), ResUtil.getString(getClass(),"DUMMY_RHYTHMS_DESC"), "JL", "1.0");
         for (TimeSignature ts : TimeSignature.values())
         {
             rhythms.add(new RhythmStub("RhythmStubID-" + ts.toString(), ts));

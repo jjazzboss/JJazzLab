@@ -33,6 +33,7 @@ import org.jjazz.rhythm.database.api.FavoriteRhythms;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.util.MultipleErrorsReport;
+import org.jjazz.util.ResUtil;
 
 /**
  * A "fake" RhythmProvider instance which provides the favorite rhythms from FavoriteRhythms for UI purposes.
@@ -77,7 +78,7 @@ public class FavoriteRhythmProvider implements RhythmProvider
     @Override
     public Info getInfo()
     {
-        return new RhythmProvider.Info("FavoriteRhythmProviderId", "Favorite Rhythms", "Favorite rhythms from all Rhythm Providers", "JL", "1");
+        return new RhythmProvider.Info("FavoriteRhythmProviderId", ResUtil.getString(getClass(),"FAVORITE RHYTHMS"), ResUtil.getString(getClass(),"FAVORITE RHYTHMS FROM ALL RHYTHM PROVIDERS"), "JL", "1");
     }
 
     /**

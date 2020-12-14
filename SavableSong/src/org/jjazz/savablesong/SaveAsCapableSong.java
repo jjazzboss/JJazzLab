@@ -30,6 +30,7 @@ import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
 import static org.jjazz.savablesong.SavableSong.SAVE_CODE_CANCEL;
 import org.jjazz.song.api.Song;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.Exceptions;
 
@@ -76,7 +77,8 @@ public class SaveAsCapableSong implements SaveAsCapable
                 // We should never be there since searched MidiMix already exist 
                 Exceptions.printStackTrace(ex);
             }
-            StatusDisplayer.getDefault().setStatusText("Saved as " + songFile.getAbsolutePath() + mixString);
+            String files=songFile.getAbsolutePath() + mixString;
+            StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(),"SAVED AS {0}", files));
         }
         return res;
     }

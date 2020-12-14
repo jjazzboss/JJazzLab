@@ -55,6 +55,7 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.undomanager.SimpleEdit;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
@@ -82,7 +83,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     private SongStructure songStructure;
     private ChordLeadSheet chordLeadSheet;
     private String name;
-    private String comments = "Edit me...";
+    private String comments = ResUtil.getString(getClass(), "EDIT_ME");
     private int tempo = 120;
     private ArrayList<String> tags = new ArrayList<>();
     private final Properties clientProperties = new Properties();
@@ -453,7 +454,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         boolean b = true;
         if (f.exists() && !f.canWrite())
         {
-            String msg = "Can not overwrite " + f.getName();
+            String msg = ResUtil.getString(getClass(), "CAN NOT OVERWRITE", f.getName());
             LOGGER.warning("saveToFileNotify() " + msg);   //NOI18N
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
@@ -466,7 +467,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
                 saveToFile(f, isCopy);
             } catch (IOException ex)
             {
-                String msg = "Problem saving song file " + f.getName() + " : " + ex.getLocalizedMessage();
+                String msg = ResUtil.getString(getClass(), "ERR_ProblemSavingSongFile", f.getName());
+                msg += " : " + ex.getLocalizedMessage();
                 LOGGER.warning("saveToFileNotify() " + msg);   //NOI18N
                 NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
@@ -495,7 +497,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         {
             throw new IllegalArgumentException("songFile=" + songFile + " isCopy=" + isCopy);   //NOI18N
         }
-        
+
         if (!isCopy)
         {
             file = songFile;

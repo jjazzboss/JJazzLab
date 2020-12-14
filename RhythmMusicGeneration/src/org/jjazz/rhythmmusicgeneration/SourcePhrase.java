@@ -250,7 +250,7 @@ public class SourcePhrase extends Phrase
     //==================================================================================================
     /**
      * In chord mode, identify the destination chord degrees which should be used to play the degrees (as returned by
-     * getUsedDegrees()) of the source phrase .
+     * getUsedDegrees()) of the source phrase.
      * <p>
      * Based on the use of the most important degrees of the destination chord symbol. Sizes may differ between the nb of source
      * degrees and the nb of destination degrees. If a direct map sourceDegree=>destDegree is not possible, try to find the

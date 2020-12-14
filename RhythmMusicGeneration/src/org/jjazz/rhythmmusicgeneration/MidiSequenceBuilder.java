@@ -52,6 +52,7 @@ import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.FloatRange;
+import org.jjazz.util.ResUtil;
 
 /**
  * Ask all the rhythms of a song to produce music and integrate the results to make a Midi sequence.
@@ -96,8 +97,8 @@ public class MidiSequenceBuilder
      * If context range start bar is &gt; 0, the Midi events are shifted to start at sequence tick 0.
      *
      * @param silent If true do not show a progress dialog
-     * @return A Sequence containing accompaniment tracks for the context, including time signature change Midi meta events and JJazz
-     * custom Midi controller messages (MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR) for tempo factor changes.
+     * @return A Sequence containing accompaniment tracks for the context, including time signature change Midi meta events and
+     * JJazz custom Midi controller messages (MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR) for tempo factor changes.
      * @throws MusicGenerationException
      */
     public Sequence buildSequence(boolean silent) throws MusicGenerationException
@@ -115,7 +116,9 @@ public class MidiSequenceBuilder
             task.run();
         } else
         {
-            BaseProgressUtils.showProgressDialogAndRun(task, "Preparing Music...");
+            BaseProgressUtils.showProgressDialogAndRun(task, ResUtil.getString(getClass(), "PREPARING MUSIC", new Object[]
+            {
+            }));
         }
 
         if (task.musicException != null)
@@ -190,7 +193,7 @@ public class MidiSequenceBuilder
             List<? extends CLI_ChordSymbol> clis = cls.getItems(section, CLI_ChordSymbol.class);
             if (clis.isEmpty() || !clis.get(0).getPosition().equals(pos))
             {
-                throw new MusicGenerationException("Starting chord symbol missing for section " + section.getData().getName() + " at bar " + (pos.getBar() + 1) + ".");
+                throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_MissingChordSymbolAtSection", section.getData().getName(), (pos.getBar() + 1)));
             }
         }
     }
@@ -210,7 +213,7 @@ public class MidiSequenceBuilder
             if (existingCliCs != null)
             {
                 StringBuilder sb = new StringBuilder();
-                sb.append("Two chord symbols can not have the same position: ");
+                sb.append(ResUtil.getString(getClass(),"ERR_ChordSymbolPositionConflict"));
                 sb.append(cliCs.getData().toString()).append(cliCs.getPosition().toUserString());
                 sb.append(" - ");
                 sb.append(existingCliCs.getData().toString()).append(existingCliCs.getPosition().toUserString());
@@ -341,7 +344,7 @@ public class MidiSequenceBuilder
                 if (!inRange)
                 {
                     // context.getPosition(0)
-                    String msg = "Invalid note position " + ne.toString() + " for rhythm " + r.getName();
+                    String msg = ResUtil.getString(getClass(),"ERR_InvalidNotePosition", ne.toString(), r.getName());
                     LOGGER.log(Level.INFO, "checkRhythmPhrasesScope() " + msg);   //NOI18N
                     LOGGER.fine("DEBUG!  rv=" + rv.getName() + " ne=" + ne + " p=" + p);   //NOI18N
                     throw new MusicGenerationException(msg);

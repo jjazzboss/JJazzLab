@@ -849,7 +849,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         );
 
         lbl_Title.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_Title, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.lbl_Title.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_Title, "Select a 3/4 rhythm for rhythm part \"X\""); // NOI18N
 
         cb_applyRhythmToNextSpts.setSelected(true);
         org.openide.awt.Mnemonics.setLocalizedText(cb_applyRhythmToNextSpts, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_applyRhythmToNextSpts.text")); // NOI18N
@@ -861,7 +861,6 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         cb_useRhythmTempo.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_useRhythmTempo.toolTipText")); // NOI18N
 
         tf_userRhythmDir.setEditable(false);
-        tf_userRhythmDir.setText(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.tf_userRhythmDir.text")); // NOI18N
         tf_userRhythmDir.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.tf_userRhythmDir.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.jLabel1.text")); // NOI18N
