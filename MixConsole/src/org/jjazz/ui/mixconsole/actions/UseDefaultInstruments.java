@@ -34,15 +34,10 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.mixconsole.api.MixConsole;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionReferences;
-import org.openide.awt.ActionRegistration;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbBundle;
 import org.openide.util.actions.Presenter;
 
 //@ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.usedefaultinstruments")
@@ -51,22 +46,17 @@ import org.openide.util.actions.Presenter;
 //        {
 //            @ActionReference(path = "Actions/MixConsole/MenuBar/Edit", position = 300)
 //        })
-@NbBundle.Messages(
-        {
-            "CTL_UseDefaultInstruments=Use default instruments",
-            "CTL_TooltipUseDefaultInstruments=Change all channels to use the default instrument"
-        })
 public class UseDefaultInstruments extends AbstractAction implements Presenter.Menu // Presenter.Menu just to get the tooltip...
 {
 
-    private final String undoText = ResUtil.getString(getClass(), CTL_UseDefaultInstruments);
+    private final String undoText = ResUtil.getString(getClass(), "CTL_UseDefaultInstruments");
 
     private static final Logger LOGGER = Logger.getLogger(UseDefaultInstruments.class.getSimpleName());
 
     public UseDefaultInstruments()
     {
         putValue(NAME, undoText);
-        putValue(SHORT_DESCRIPTION, Bundle.CTL_TooltipUseDefaultInstruments());
+        putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_TooltipUseDefaultInstruments"));
     }
 
     @Override

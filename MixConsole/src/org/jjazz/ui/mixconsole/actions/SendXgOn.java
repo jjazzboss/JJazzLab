@@ -28,13 +28,12 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import org.jjazz.midi.MidiUtilities;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbBundle;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.sendxgon")
 @ActionRegistration(displayName = "#CTL_SendXgOn", lazy = true)
@@ -42,16 +41,11 @@ import org.openide.util.NbBundle;
         {
             @ActionReference(path = "Actions/MixConsole/MenuBar/Midi", position = 400)
         })
-@NbBundle.Messages(
-        {
-            "CTL_SendXgOn=Send Yamaha XG Midi On message",
-            "CTL_XGMidiMessageSent=XG Midi ON message sent"
-        })
 public class SendXgOn extends AbstractAction
 {
 
     private MidiMix sonxGidiMix;
-    private final String undoText = ResUtil.getString(getClass(), CTL_SendXgOn);
+    private final String undoText = ResUtil.getString(getClass(), "CTL_SendXgOn");
     private static final Logger LOGGER = Logger.getLogger(SendXgOn.class.getSimpleName());
 
     public SendXgOn(MidiMix context)
@@ -64,6 +58,6 @@ public class SendXgOn extends AbstractAction
     public void actionPerformed(ActionEvent e)
     {
         MidiUtilities.sendSysExMessage(MidiUtilities.getXgModeOnSysExMessage());
-        StatusDisplayer.getDefault().setStatusText(CTL_XGMidiMessageSent());
+        StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_XGMidiMessageSent"));
     }
 }

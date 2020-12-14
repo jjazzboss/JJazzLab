@@ -31,12 +31,11 @@ import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.ui.mixconsole.api.MixConsole;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.switchallmute")
 // Need lazy=false to get the tooltip working...
@@ -46,21 +45,16 @@ import org.openide.util.NbBundle;
             // @ActionReference(path = "Actions/MixConsole/Midi", position = 200)
             // ,@ActionReference(path = "Actions/MixConsole/Master", position = 100)
         })
-@NbBundle.Messages(
-        {
-            "CTL_SwitchAllMute= M ",
-            "CTL_SwitchAllMuteToolTip=Toggle all the MUTE buttons"
-        })
 public class SwitchAllMute extends AbstractAction
 {
 
-    private final String undoText = ResUtil.getString(getClass(), CTL_SwitchAllMute);
+    private final String undoText = ResUtil.getString(getClass(), "CTL_SwitchAllMute");    
     private static final Logger LOGGER = Logger.getLogger(SwitchAllMute.class.getSimpleName());
 
     public SwitchAllMute()
     {
         putValue(NAME, undoText);
-        putValue(SHORT_DESCRIPTION, Bundle.CTL_SwitchAllMuteToolTip());
+        putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_SwitchAllMuteToolTip"));   
     }
 
     @Override

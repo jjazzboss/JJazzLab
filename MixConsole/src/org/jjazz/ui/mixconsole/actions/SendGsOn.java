@@ -28,13 +28,12 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import org.jjazz.midi.MidiUtilities;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbBundle;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.sendgson")
 @ActionRegistration(displayName = "#CTL_SendGsOn", lazy = true)
@@ -42,16 +41,11 @@ import org.openide.util.NbBundle;
         {
             @ActionReference(path = "Actions/MixConsole/MenuBar/Midi", position = 430)
         })
-@NbBundle.Messages(
-        {
-            "CTL_SendGsOn=Send Roland GS Midi On message",
-            "CTL_GSMidiMessageSent=GS Midi ON message sent"
-        })
 public class SendGsOn extends AbstractAction
 {
 
     private MidiMix sonxGidiMix;
-    private final String undoText = ResUtil.getString(getClass(), CTL_SendGsOn);
+    private final String undoText = ResUtil.getString(getClass(), "CTL_SendGsOn");
     private static final Logger LOGGER = Logger.getLogger(SendGsOn.class.getSimpleName());
 
     public SendGsOn(MidiMix context)
@@ -64,6 +58,6 @@ public class SendGsOn extends AbstractAction
     public void actionPerformed(ActionEvent e)
     {
         MidiUtilities.sendSysExMessage(MidiUtilities.getGsModeOnSysExMessage());
-        StatusDisplayer.getDefault().setStatusText(CTL_GSMidiMessageSent());
+        StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_GSMidiMessageSent"));
     }
 }

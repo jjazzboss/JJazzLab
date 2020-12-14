@@ -33,8 +33,8 @@ import static javax.swing.Action.NAME;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.utilities.Utilities;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
@@ -42,7 +42,6 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.importmix")
@@ -51,20 +50,11 @@ import org.openide.windows.WindowManager;
         {
             @ActionReference(path = "Actions/MixConsole/MenuBar/File", position = 200)
         })
-@NbBundle.Messages(
-        {
-            qsdqsd
-            "CTL_ImportMix=Import Mix...",
-            "ERR_CouldNotImportFile=Could not import file : ",
-            "ERR_FileDoesNotExist=File does not exist : ",
-            "ERR_CantReadFile=Can not read file : ",
-            "CTL_FileImported=Mix imported from : "
-        })
 public class ImportMix extends AbstractAction
 {
 
     private MidiMix songMidiMix;
-    private final String undoText = ResUtil.getString(getClass(), CTL_ImportMix);
+    private final String undoText = ResUtil.getString(getClass(), "CTL_ImportMix");
     private static final Logger LOGGER = Logger.getLogger(ImportMix.class.getSimpleName());
 
     public ImportMix(MidiMix context)
@@ -90,7 +80,7 @@ public class ImportMix extends AbstractAction
         if (mm != null)
         {
             songMidiMix.importInstrumentMixes(mm);
-            StatusDisplayer.getDefault().setStatusText(CTL_FileImported() + mixFile.getAbsolutePath());
+            StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_FileImported", mixFile.getAbsolutePath()));
         }
     }
 
@@ -104,7 +94,7 @@ public class ImportMix extends AbstractAction
     {
         if (!file.exists())
         {
-            String msg = ERR_FileDoesNotExist() + file.getAbsolutePath();
+            String msg = ResUtil.getString(ImportMix.class, "ERR_FileDoesNotExist", file.getAbsolutePath());
             LOGGER.log(Level.WARNING, msg);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
@@ -112,7 +102,7 @@ public class ImportMix extends AbstractAction
         }
         if (!file.canRead())
         {
-            String msg = ERR_CantReadFile() + file.getAbsolutePath();
+            String msg = ResUtil.getString(ImportMix.class, "ERR_CantReadFile", file.getAbsolutePath());
             LOGGER.log(Level.WARNING, msg);
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
@@ -124,7 +114,7 @@ public class ImportMix extends AbstractAction
             mm = MidiMix.loadFromFile(file);
         } catch (IOException ex)
         {
-            String msg = "Problem loading mix file " + file.getAbsolutePath() + " : " + ex.getLocalizedMessage();
+            String msg = ResUtil.getString(ImportMix.class, "ERR_InvalidMixFile", file.getAbsolutePath()) + " - " + ex.getLocalizedMessage();
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return null;
@@ -135,12 +125,12 @@ public class ImportMix extends AbstractAction
     static protected File showLoadDialog()
     {
         JFileChooser chooser = Utilities.getFileChooserInstance();
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(CTL_MixFiles() + " (" + "." + FileDirectoryManager.MIX_FILE_EXTENSION + ")", FileDirectoryManager.MIX_FILE_EXTENSION);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(ResUtil.getString(ImportMix.class, "CTL_MixFiles") + " (" + "." + FileDirectoryManager.MIX_FILE_EXTENSION + ")", FileDirectoryManager.MIX_FILE_EXTENSION);
         chooser.resetChoosableFileFilters();
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setFileFilter(filter);
-        chooser.setDialogTitle("Load mix from file");        
+        chooser.setDialogTitle(ResUtil.getString(ImportMix.class, "CTL_LoadMixDialogTitle"));
         chooser.setSelectedFile(new File(""));
 
         int returnCode = chooser.showOpenDialog(WindowManager.getDefault().getMainWindow());

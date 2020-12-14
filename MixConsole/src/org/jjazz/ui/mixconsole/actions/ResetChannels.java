@@ -38,16 +38,15 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.mixconsole.api.MixConsole;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.Exceptions;
-import org.openide.util.NbBundle;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.resetchannels")
 @ActionRegistration(displayName = "#CTL_ResetChannels", lazy = true)
@@ -55,23 +54,18 @@ import org.openide.util.NbBundle;
         {
             @ActionReference(path = "Actions/MixConsole/MenuBar/Edit", position = 350)
         })
-@NbBundle.Messages(
-        {
-            "CTL_ResetChannels=Reset channels",
-            "CTL_ResetChannelsDescription=Restore the default instrument and settings for all current channels"
-        })
 public class ResetChannels extends AbstractAction
 {
 
     private MidiMix songMidiMix;
-    private final String undoText = ResUtil.getString(getClass(), CTL_ResetChannels);
+    private final String undoText = ResUtil.getString(getClass(), "CTL_ResetChannels");
     private static final Logger LOGGER = Logger.getLogger(ResetChannels.class.getSimpleName());
 
     public ResetChannels(MidiMix context)
     {
         songMidiMix = context;
         putValue(NAME, undoText);
-        putValue(SHORT_DESCRIPTION, Bundle.CTL_ResetChannelsDescription());
+        putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_ResetChannelsDescription"));
     }
 
     @Override
@@ -110,7 +104,8 @@ public class ResetChannels extends AbstractAction
             }
         }
         JJazzUndoManagerFinder.getDefault().get(song).endCEdit(undoText);
-        String s = (visibleRhythm == null) ? "All channels reset" : visibleRhythm.getName() + " channels reset";
+        String s = (visibleRhythm == null) ? ResUtil.getString(getClass(), "CTL_ALL_CHANNELS_RESET") : 
+                ResUtil.getString(getClass(), "CTL_RHYTHM_CHANNELS_RESET", visibleRhythm.getName());
         StatusDisplayer.getDefault().setStatusText(s);
     }
 

@@ -36,16 +36,14 @@ import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.mixconsole.api.MixConsole;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbBundle;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.saverhythmdefaultmix")
 // Need lazy=false for the tooltip to work!
@@ -54,21 +52,16 @@ import org.openide.util.NbBundle;
         {
             @ActionReference(path = "Actions/MixConsole/MenuBar/File", position = 100)
         })
-@NbBundle.Messages(
-        {
-            "CTL_SaveRhythmDefaultMix=Save as default rhythm mix",
-            "CTL_SaveRhythmDefaultMixTooltip=Saved mix will be used by default for current rhythm"
-        })
 public class SaveRhythmDefaultMix extends AbstractAction
 {
 
-    private final String undoText = ResUtil.getString(getClass(), CTL_SaveRhythmDefaultMix);
+    private final String undoText = ResUtil.getString(getClass(), "CTL_SaveRhythmDefaultMix");
     private static final Logger LOGGER = Logger.getLogger(SaveRhythmDefaultMix.class.getSimpleName());
 
     public SaveRhythmDefaultMix()
     {
         putValue(NAME, undoText);
-        putValue(SHORT_DESCRIPTION, Bundle.CTL_SaveRhythmDefaultMixTooltip());
+        putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_SaveRhythmDefaultMixTooltip"));
     }
 
     @Override
@@ -122,7 +115,7 @@ public class SaveRhythmDefaultMix extends AbstractAction
         }
         if (!savedFiles.isEmpty())
         {
-            StatusDisplayer.getDefault().setStatusText("Saved rhythm default mix: " + savedFiles);
+            StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "SAVED RHYTHM DEFAULT MIX", savedFiles));
         }
     }
 

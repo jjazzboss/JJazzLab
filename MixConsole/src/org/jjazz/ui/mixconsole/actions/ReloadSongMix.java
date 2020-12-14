@@ -32,16 +32,11 @@ import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.mixconsole.api.MixConsole;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionReferences;
-import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbBundle;
 
 //@ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.reloadsongmix")
 //// Need lazy=false for the tooltip to work!
@@ -50,21 +45,16 @@ import org.openide.util.NbBundle;
 //        {
 //            @ActionReference(path = "Actions/MixConsole/MenuBar/File", position = 50)
 //        })
-@NbBundle.Messages(
-        {
-            "CTL_ReloadSongMix=Reload song mix",
-            "CTL_ReloadSongMixTooltip=Reload the saved song mix"
-        })
 public class ReloadSongMix extends AbstractAction
 {
 
-    private final String undoText = ResUtil.getString(getClass(), CTL_ReloadSongMix);
+    private final String undoText = ResUtil.getString(getClass(), "CTL_ReloadSongMix");
     private static final Logger LOGGER = Logger.getLogger(ReloadSongMix.class.getSimpleName());
 
     public ReloadSongMix()
     {
         putValue(NAME, undoText);
-        putValue(SHORT_DESCRIPTION, Bundle.CTL_ReloadSongMixTooltip());
+        putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_ReloadSongMixTooltip"));
     }
 
     @Override

@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import org.jjazz.midi.MidiUtilities;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -44,14 +44,13 @@ import org.openide.util.NbBundle;
         })
 @NbBundle.Messages(
         {
-            "CTL_SendGmOn=Send General Midi On message",
-            "CTL_GMMidiMessageSent=GM Midi ON message sent"
+
         })
 public class SendGmOn extends AbstractAction
 {
 
     private MidiMix songMidiMix;
-    private final String undoText = ResUtil.getString(getClass(), CTL_SendGmOn);
+    private final String undoText = ResUtil.getString(getClass(), "CTL_SendGmOn");
     private static final Logger LOGGER = Logger.getLogger(SendGmOn.class.getSimpleName());
 
     public SendGmOn(MidiMix context)
@@ -64,6 +63,6 @@ public class SendGmOn extends AbstractAction
     public void actionPerformed(ActionEvent e)
     {
         MidiUtilities.sendSysExMessage(MidiUtilities.getGmModeOnSysExMessage());
-        StatusDisplayer.getDefault().setStatusText(CTL_GMMidiMessageSent());
+        StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_GMMidiMessageSent"));
     }
 }

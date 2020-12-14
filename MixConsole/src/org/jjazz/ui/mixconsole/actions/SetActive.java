@@ -36,6 +36,7 @@ import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.FlatToggleButton;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
@@ -46,7 +47,6 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.util.actions.BooleanStateAction;
 import static org.openide.util.actions.BooleanStateAction.PROP_BOOLEAN_STATE;
@@ -62,11 +62,6 @@ import static org.openide.util.actions.BooleanStateAction.PROP_BOOLEAN_STATE;
             @ActionReference(path = "Actions/RL_EditorTopComponent", position = 100),
             @ActionReference(path = "Shortcuts", name = "O")
         })
-@NbBundle.Messages(
-        {
-            "CTL_SetActive=Toggle Active (ON/OFF)",
-            "CTL_SetActiveToolTip=Set the unique active song for which Midi messages are enabled [O]"
-        })
 public class SetActive extends BooleanStateAction implements PropertyChangeListener, LookupListener
 {
 
@@ -81,7 +76,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
 
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/Off-24x18.png")));
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/On-24x18.png")));
-        putValue(Action.SHORT_DESCRIPTION, Bundle.CTL_SetActiveToolTip());
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_SetActiveToolTip"));
         putValue("hideActionText", true);
 
         // Listen to setactivebackState and position changes
@@ -173,7 +168,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
     @Override
     public String getName()
     {
-        return Bundle.CTL_SetActive();
+        return ResUtil.getString(getClass(), "CTL_SetActive");
     }
 
     @Override

@@ -54,7 +54,6 @@ import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.UserChannelRvKey;
-import static org.jjazz.musiccontrol.Bundle.*;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
@@ -62,7 +61,6 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
 
 /**
@@ -76,10 +74,6 @@ import org.openide.util.NbPreferences;
  * be notified out of the Swing EDT.
  * <p>
  */
-@Messages(
-        {
-            "ERR_SequencerLimited=This sequencer implementation is limited, music playback may not work"
-        })
 public class MusicController implements PropertyChangeListener, MetaEventListener, ControllerEventListener
 {
 
@@ -159,7 +153,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private final VetoableChangeSupport vcs = new VetoableChangeSupport(this);
     private final List<PlaybackListener> playbackListeners = new ArrayList<>();
     private static Preferences prefs = NbPreferences.forModule(MusicController.class);
-    private static final Logger LOGGER = Logger.getLogger(MusicController.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(MusicController.class.getSimpleName());  //NOI18N
 
     public static MusicController getInstance()
     {
@@ -208,7 +202,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             throw new NullPointerException("lockHolder");
         }
 
-        LOGGER.fine("acquireSequencer() -- lockHolder=" + lockHolder);
+        LOGGER.fine("acquireSequencer() -- lockHolder=" + lockHolder);  //NOI18N
 
         if (sequencerLockHolder == lockHolder)
         {
@@ -226,12 +220,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             state = State.DISABLED;
             pcs.firePropertyChange(PROP_STATE, old, state);
 
-            LOGGER.fine("acquireSequencer() external lock acquired.  MusicController released the sequencer, oldState=" + old + " newState=DISABLED");
+            LOGGER.fine("acquireSequencer() external lock acquired.  MusicController released the sequencer, oldState=" + old + " newState=DISABLED");  //NOI18N
 
             return sequencer;
         } else
         {
-            LOGGER.fine("acquireSequencer() can't give lock to " + lockHolder + ", current lock=" + sequencerLockHolder);
+            LOGGER.fine("acquireSequencer() can't give lock to " + lockHolder + ", current lock=" + sequencerLockHolder);  //NOI18N
             return null;
         }
     }
@@ -250,7 +244,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             throw new IllegalArgumentException("lockHolder=" + lockHolder + " sequencerLockHolder=" + sequencerLockHolder);
         }
 
-        LOGGER.fine("releaseSequencer() -- lockHolder=" + lockHolder);
+        LOGGER.fine("releaseSequencer() -- lockHolder=" + lockHolder);  //NOI18N
 
         sequencerLockHolder = null;
 
@@ -724,7 +718,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 updateTempoFactor();
                 break;
             default:
-                LOGGER.log(Level.WARNING, "controlChange() controller event not managed data1={0}", data1);
+                LOGGER.log(Level.WARNING, "controlChange() controller event not managed data1={0}", data1);  //NOI18N
                 break;
         }
     }
@@ -739,7 +733,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             // This method  is called from the Sequencer thread, NOT from the EDT !
             // So if this method impacts the UI, it must use SwingUtilities.InvokeLater() (or InvokeAndWait())
-            LOGGER.fine("Sequence end reached");
+            LOGGER.fine("Sequence end reached");  //NOI18N
             Runnable doRun = new Runnable()
             {
                 @Override
@@ -762,7 +756,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
-        LOGGER.log(Level.FINE, "propertyChange() e={0}", e);
+        LOGGER.log(Level.FINE, "propertyChange() e={0}", e);  //NOI18N
 
         // Below property changes are meaningless if no context or if state is DISABLED
         if (mgContext == null || state.equals(State.DISABLED))
@@ -844,7 +838,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         int[] res = sequencer.addControllerEventListener(this, listenedControllers);
         if (res.length != listenedControllers.length)
         {
-            LOGGER.severe(ERR_SequencerLimited());
+            LOGGER.severe("This sequencer implementation is limited, music playback may not work");  //NOI18N
         }
         sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
     }
@@ -909,7 +903,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             sequencer.setTrackMute(trackIndex, b);
             if (sequencer.getTrackMute(trackIndex) != b)
             {
-                LOGGER.log(Level.SEVERE, "updateTrackMuteState() can''t mute on/off track number: {0} mute={1} insMix={2}", new Object[]
+                LOGGER.log(Level.SEVERE, "updateTrackMuteState() can''t mute on/off track number: {0} mute={1} insMix={2}", new Object[]  //NOI18N
                 {
                     trackIndex, b, insMix
                 });
@@ -1110,8 +1104,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
                 if (debugBuiltSequence)
                 {
-                    LOGGER.info("buildSequence() song=" + workMgContext.getSong().getName() + " sequence :");
-                    LOGGER.info(MidiUtilities.toString(sequence));
+                    LOGGER.info("buildSequence() song=" + workMgContext.getSong().getName() + " sequence :");  //NOI18N
+                    LOGGER.info(MidiUtilities.toString(sequence));  //NOI18N
                 }
 
 

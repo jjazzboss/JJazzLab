@@ -27,13 +27,12 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import org.jjazz.midi.JJazzMidiSystem;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbBundle;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.panic")
 // Need lazy=false for the tooltip to work!
@@ -44,27 +43,22 @@ import org.openide.util.NbBundle;
             @ActionReference(path = "Actions/MixConsole/Master", position = 100)
 
         })
-@NbBundle.Messages(
-        {
-            "CTL_Panic= Panic ",
-            "CTL_PanicTooltip=Send NOTE_OFF Midi messages on all channels"
-        })
 public class Panic extends AbstractAction
 {
 
-    private final String undoText = ResUtil.getString(getClass(), CTL_Panic);
+    private final String undoText = ResUtil.getString(getClass(), "CTL_Panic");
     private static final Logger LOGGER = Logger.getLogger(Panic.class.getSimpleName());
 
     public Panic()
     {
         putValue(NAME, undoText);
-        putValue(SHORT_DESCRIPTION, Bundle.CTL_PanicTooltip());
+        putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_PanicTooltip"));
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
         JJazzMidiSystem.getInstance().panic();
-        StatusDisplayer.getDefault().setStatusText("Sending reset Midi messages on all channels...");
+        StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_SendingPanic"));
     }
 }

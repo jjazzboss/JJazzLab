@@ -25,7 +25,6 @@ package org.jjazz.ui.mixconsole.actions;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
@@ -34,10 +33,9 @@ import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.mixconsole.api.MixConsole;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
@@ -45,7 +43,6 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbBundle;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.loadrhythmdefaultmix")
 // Need lazy=false for the tooltip to work!
@@ -54,21 +51,16 @@ import org.openide.util.NbBundle;
         {
             @ActionReference(path = "Actions/MixConsole/MenuBar/File", position = 150)
         })
-@NbBundle.Messages(
-        {
-            "CTL_LoadDefaultRhythmMix=Load default rhythm mix",
-            "CTL_LoadDefaultRhythmMixTooltip=Load the default mix for the current rhythm"
-        })
 public class LoadDefaultRhythmMix extends AbstractAction
 {
 
-    private final String undoText = ResUtil.getString(getClass(), CTL_LoadDefaultRhythmMix);
+    private final String undoText = ResUtil.getString(getClass(), "CTL_LoadDefaultRhythmMix");
     private static final Logger LOGGER = Logger.getLogger(LoadDefaultRhythmMix.class.getSimpleName());
 
     public LoadDefaultRhythmMix()
     {
         putValue(NAME, undoText);
-        putValue(SHORT_DESCRIPTION, Bundle.CTL_LoadDefaultRhythmMixTooltip());
+        putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_LoadDefaultRhythmMixTooltip"));
     }
 
     @Override
@@ -101,8 +93,8 @@ public class LoadDefaultRhythmMix extends AbstractAction
         {
             File f = FileDirectoryManager.getInstance().getRhythmMixFile(r);
             if (!f.exists())
-            {
-                String msg = "No default mix file found for rhythm " + r.getName() + ".\n\nUse '" + CTL_SaveRhythmDefaultMix() + "' to create one.";
+            {                
+                String msg = ResUtil.getString(getClass(), "CTL_NoDefaultRhythmMix", r.getName());
                 NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
                 continue;
@@ -116,7 +108,7 @@ public class LoadDefaultRhythmMix extends AbstractAction
         }
         if (!loadedFiles.isEmpty())
         {
-            StatusDisplayer.getDefault().setStatusText("Restored rhythm default mix: " + loadedFiles);
+            StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_RestoredDefaultMix", loadedFiles));
         }
     }
 

@@ -31,12 +31,12 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.ui.flatcomponents.FlatToggleButton;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.HelpCtx;
-import org.openide.util.NbBundle;
 import org.openide.util.actions.BooleanStateAction;
 
 /**
@@ -50,11 +50,6 @@ import org.openide.util.actions.BooleanStateAction;
         {
             @ActionReference(path = "Actions/MixConsole/Master", position = 50)
         })
-@NbBundle.Messages(
-        {
-            "CTL_MasterMuteAll=Master Mute",
-            "CTL_MasterMuteAllTooltip=Mute all channels"
-        })
 public class MasterMuteAll extends BooleanStateAction implements PropertyChangeListener
 {
 
@@ -63,10 +58,10 @@ public class MasterMuteAll extends BooleanStateAction implements PropertyChangeL
     public MasterMuteAll()
     {
         setBooleanState(false);
-
+        // putValue(NAME, ResUtil.getString(getClass(), "CTL_MasterMuteAll"));
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/MuteOff_Icon-21x21.png")));
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/MuteOn_Icon-21x21.png")));
-        putValue(Action.SHORT_DESCRIPTION, Bundle.CTL_MasterMuteAllTooltip());
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_MasterMuteAllTooltip"));
         putValue("hideActionText", true);
 
         // Listen to the Midi Out filtering changes
@@ -94,7 +89,7 @@ public class MasterMuteAll extends BooleanStateAction implements PropertyChangeL
     @Override
     public String getName()
     {
-        return Bundle.CTL_MasterMuteAll();
+        return ResUtil.getString(getClass(), "CTL_MasterMuteAll");
     }
 
     @Override
@@ -117,7 +112,7 @@ public class MasterMuteAll extends BooleanStateAction implements PropertyChangeL
     {
         if (evt.getSource() == JJazzMidiSystem.getInstance())
         {
-            if (evt.getPropertyName() == JJazzMidiSystem.PROP_MIDI_OUT_FILTERING)
+            if (evt.getPropertyName().equals(JJazzMidiSystem.PROP_MIDI_OUT_FILTERING))
             {
                 boolean b = (boolean) evt.getNewValue();
                 setSelected(b);

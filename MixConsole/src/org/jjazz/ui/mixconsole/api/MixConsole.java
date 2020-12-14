@@ -79,14 +79,13 @@ import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.Actions;
-import org.openide.util.NbBundle;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.jjazz.ui.flatcomponents.FlatButton;
 import org.jjazz.ui.mixconsole.MixChannelPanel;
 import org.jjazz.ui.mixconsole.MixChannelPanelControllerImpl;
 import org.jjazz.ui.mixconsole.MixChannelPanelModelImpl;
-import static org.jjazz.ui.mixconsole.api.Bundle.CTL_AllRhythms;
+import org.jjazz.util.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.options.OptionsDisplayer;
 import org.openide.awt.MenuBar;
@@ -104,11 +103,6 @@ import org.openide.loaders.DataFolder;
  * .
  * The MixConsole Netbeans MenuBar is built from subfolders and actions available in the Actions/MixConsole/MenuBar layer folder.
  */
-@NbBundle.Messages(
-        {
-            "CTL_OnOffButtonTooltip=Set the active song. Song must be active to be played and to enable Midi messages.",
-            "CTL_AllRhythms=All"
-        })
 public class MixConsole extends JPanel implements PropertyChangeListener, ActionListener
 {
 
@@ -163,7 +157,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         SongEditorManager.getInstance().addPropertyChangeListener(this);
 
         // A dummy rhythm used by the visible rhythms combobox when all song rhythms are visible
-        RHYTHM_ALL = new DummyRhythm(CTL_AllRhythms(), TimeSignature.FOUR_FOUR);
+        RHYTHM_ALL = new DummyRhythm(ResUtil.getString(getClass(), "MixConsole.CTL_DummyRhythmAll"), TimeSignature.FOUR_FOUR);
 
         mapVisibleRhythm = new WeakHashMap<>();
 
@@ -529,7 +523,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             songMidiMix = MidiMixManager.getInstance().findMix(song);
         } catch (MidiUnavailableException ex)
         {
-            String msg = "Could not retrieve MidiMix for song " + song.getName() + ".\n" + ex.getLocalizedMessage();
+            String msg = ResUtil.getString(getClass(), "CTL_NoMidiMixFound", song.getName());
+            msg += ".\n" + ex.getLocalizedMessage();
             LOGGER.severe(msg);
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
@@ -651,9 +646,11 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         }
         mcp.setNameToolTipText(r.getName() + " - " + rv.getName());
+        
+        
 
         mcp.setIcon(icon);
-        String txt = "Recommended: " + prefIns.getFullName();
+        String txt = ResUtil.getString(getClass(), "CTL_RECOMMENDED");    
         if (!(prefIns instanceof GM1Instrument))
         {
             DrumKit kit = prefIns.getDrumKit();
@@ -673,7 +670,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         MixChannelPanelControllerImpl mcpController = new MixChannelPanelControllerImpl(mm, channel);
         MixChannelPanel mcp = new MixChannelPanel(mcpModel, mcpController, settings);
         mcp.setChannelColor(CHANNEL_COLOR_USER);
-        mcp.setChannelName("User", "Channel");
+        mcp.setChannelName(ResUtil.getString(getClass(), "USER"), ResUtil.getString(getClass(), "CHANNEL"));
         Icon icon = new ImageIcon(getClass().getResource(USER_ICON_PATH));
         mcp.setIcon(icon);
         mcp.setIconToolTipText(null);
@@ -904,7 +901,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                 }
             });
             updateText();
-            setToolTipText("Current Midi Out device");
+            setToolTipText(ResUtil.getString(getClass(), "CURRENT MIDI OUT DEVICE"));
             addActionListener(e -> showMidiOptionPanel());
         }
 

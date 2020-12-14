@@ -36,7 +36,7 @@ import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midi.InstrumentSettings;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.outputsynth.OutputSynthManager;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
@@ -46,7 +46,6 @@ import org.openide.awt.ActionRegistration;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.util.WeakListeners;
 import org.openide.util.actions.Presenter;
@@ -57,15 +56,9 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/MixConsole/MenuBar/Edit", position = 150)
         })
-@NbBundle.Messages(
-        {
-            "CTL_ToggleUserChannel=Add/Remove User Channel",
-            "CTL_ToggleUserChannelTooltip=Add/remove a specific Midi channel to define the instrument played by user"
-        }
-)
 public class ToggleUserChannel extends AbstractAction implements Presenter.Menu
 {
-    private final String undoText = ResUtil.getString(getClass(), CTL_ToggleUserChannel);
+    private final String undoText = ResUtil.getString(getClass(), "CTL_ToggleUserChannel");
     private JCheckBoxMenuItem checkbox;
     private MidiMix songMidiMix;
     private final LookupListener lookupListener;
@@ -75,7 +68,7 @@ public class ToggleUserChannel extends AbstractAction implements Presenter.Menu
     public ToggleUserChannel()
     {
         putValue(NAME, undoText);
-        putValue(Action.SHORT_DESCRIPTION, CTL_ToggleUserChannelTooltip());
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_ToggleUserChannelTooltip"));
         result = Utilities.actionsGlobalContext().lookupResult(MidiMix.class);
         lookupListener = new LookupListener()
         {

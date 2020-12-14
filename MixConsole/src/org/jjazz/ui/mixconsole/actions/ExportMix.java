@@ -31,7 +31,6 @@ import static javax.swing.Action.NAME;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import static org.jjazz.ui.mixconsole.actions.Bundle.*;
 import org.jjazz.ui.utilities.Utilities;
 import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
