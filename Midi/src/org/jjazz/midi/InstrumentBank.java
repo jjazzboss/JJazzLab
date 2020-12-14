@@ -72,7 +72,7 @@ public class InstrumentBank<T extends Instrument>
     {
         if (name == null || name.trim().isEmpty() || msb < 0 || msb > 127 || lsb < 0 || lsb > 127 || m == null)
         {
-            throw new IllegalArgumentException("name=" + name + " msb=" + msb + " lsb=" + lsb + " m=" + m);
+            throw new IllegalArgumentException("name=" + name + " msb=" + msb + " lsb=" + lsb + " m=" + m);   //NOI18N
         }
         this.defaultLsb = lsb;
         this.defaultMsb = msb;
@@ -93,11 +93,11 @@ public class InstrumentBank<T extends Instrument>
     {        
         if (this.synth != null)
         {
-            throw new IllegalStateException("synth already set! this.synth=" + this.synth + " synth=" + synth);
+            throw new IllegalStateException("synth already set! this.synth=" + this.synth + " synth=" + synth);   //NOI18N
         }
         if (synth == null)
         {
-            throw new IllegalArgumentException("synth=" + synth);
+            throw new IllegalArgumentException("synth=" + synth);   //NOI18N
         }
         this.synth = synth;
     }
@@ -160,7 +160,7 @@ public class InstrumentBank<T extends Instrument>
     {
         if (instrument == null)
         {
-            throw new IllegalArgumentException("instrument=" + instrument);
+            throw new IllegalArgumentException("instrument=" + instrument);   //NOI18N
         }
         if (!instruments.contains(instrument))
         {
@@ -169,7 +169,7 @@ public class InstrumentBank<T extends Instrument>
             Instrument ins = mapAddressInstrument.get(instrument.getMidiAddress());
             if (ins != null)
             {
-                throw new IllegalArgumentException("Instrument " + instrument + " conflicts with instrument already in the bank:" + ins);
+                throw new IllegalArgumentException("Instrument " + instrument + " conflicts with instrument already in the bank:" + ins);   //NOI18N
             } else
             {
                 mapAddressInstrument.put(instrument.getMidiAddress(), instrument);
@@ -186,7 +186,7 @@ public class InstrumentBank<T extends Instrument>
     {
         if (instrument == null)
         {
-            throw new IllegalArgumentException("instrument=" + instrument);
+            throw new IllegalArgumentException("instrument=" + instrument);   //NOI18N
         }
         instruments.remove(instrument);
         mapAddressInstrument.remove(instrument.getMidiAddress());
@@ -292,7 +292,7 @@ public class InstrumentBank<T extends Instrument>
         int index = instruments.indexOf(ins);
         if (index == -1)
         {
-            throw new IllegalArgumentException("ins=" + ins);
+            throw new IllegalArgumentException("ins=" + ins);   //NOI18N
         }
         return instruments.get((index == instruments.size() - 1) ? 0 : index + 1);
     }
@@ -310,7 +310,7 @@ public class InstrumentBank<T extends Instrument>
         int index = instruments.indexOf(ins);
         if (index == -1)
         {
-            throw new IllegalArgumentException("ins=" + ins);
+            throw new IllegalArgumentException("ins=" + ins);   //NOI18N
         }
         return instruments.get((index == 0) ? instruments.size() - 1 : index - 1);
     }
@@ -325,7 +325,7 @@ public class InstrumentBank<T extends Instrument>
     {
         if (patchName == null)
         {
-            throw new IllegalArgumentException("patchName=" + patchName);
+            throw new IllegalArgumentException("patchName=" + patchName);   //NOI18N
         }
         for (T i : instruments)
         {
@@ -358,7 +358,7 @@ public class InstrumentBank<T extends Instrument>
     {
         if (index < 0 || index > instruments.size() - 1)
         {
-            throw new IllegalArgumentException("index=" + index);
+            throw new IllegalArgumentException("index=" + index);   //NOI18N
         }
         return instruments.get(index);
     }
@@ -411,7 +411,7 @@ public class InstrumentBank<T extends Instrument>
     {
         if (kit == null)
         {
-            throw new NullPointerException("kit=" + kit + " tryHarder=" + tryHarder);
+            throw new NullPointerException("kit=" + kit + " tryHarder=" + tryHarder);   //NOI18N
         }
         ArrayList<T> res = new ArrayList<>();
         List<T> drumsInstruments = getDrumsInstruments();
@@ -465,7 +465,7 @@ public class InstrumentBank<T extends Instrument>
     {
         if (f == null)
         {
-            throw new IllegalArgumentException("f=" + f);
+            throw new IllegalArgumentException("f=" + f);   //NOI18N
         }
         ArrayList<T> res = new ArrayList<>();
         for (T ins : instruments)
@@ -488,7 +488,7 @@ public class InstrumentBank<T extends Instrument>
     {
         if (text == null || text.isEmpty())
         {
-            throw new IllegalArgumentException("text=" + text);
+            throw new IllegalArgumentException("text=" + text);   //NOI18N
         }
         ArrayList<T> res = new ArrayList<>();
         for (T i : instruments)

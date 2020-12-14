@@ -158,7 +158,7 @@ public class ClickManager
     {
         if (mode == null)
         {
-            throw new NullPointerException("mode");
+            throw new NullPointerException("mode");   //NOI18N
         }
         PrecountMode old = getClickPrecountMode();
         if (old != mode)
@@ -201,7 +201,7 @@ public class ClickManager
             case AUTO:
                 if (ts == null || tempo < 0)
                 {
-                    throw new IllegalArgumentException("ts=" + ts + " tempo=" + tempo);
+                    throw new IllegalArgumentException("ts=" + ts + " tempo=" + tempo);   //NOI18N
                 }
                 float nBeats = ts.getNbNaturalBeats();
                 int res;
@@ -217,7 +217,7 @@ public class ClickManager
                 }
                 return res;
             default:
-                throw new IllegalStateException("getClickPrecountMode()=" + getClickPrecountMode());
+                throw new IllegalStateException("getClickPrecountMode()=" + getClickPrecountMode());   //NOI18N
         }
     }
 
@@ -229,7 +229,7 @@ public class ClickManager
     {
         if (channel < MidiConst.CHANNEL_MIN || channel > MidiConst.CHANNEL_MAX)
         {
-            throw new IllegalArgumentException("channel=" + channel);
+            throw new IllegalArgumentException("channel=" + channel);   //NOI18N
         }
         int old = getPreferredClickChannel();
         if (old != channel)
@@ -266,7 +266,7 @@ public class ClickManager
         {
             return prefChannel;
         }
-        LOGGER.warning("getClickChannel() Can't use preferred click channel " + (prefChannel + 1) + ", using channel " + (MidiConst.CHANNEL_DRUMS + 1) + " instead");
+        LOGGER.warning("getClickChannel() Can't use preferred click channel " + (prefChannel + 1) + ", using channel " + (MidiConst.CHANNEL_DRUMS + 1) + " instead");   //NOI18N
         return MidiConst.CHANNEL_DRUMS;
     }
 
@@ -278,7 +278,7 @@ public class ClickManager
     {
         if (pitch < 35 || pitch > 81)
         {
-            throw new IllegalArgumentException("pitch=" + pitch);
+            throw new IllegalArgumentException("pitch=" + pitch);   //NOI18N
         }
         int old = getClickPitchHigh();
         if (old != pitch)
@@ -301,7 +301,7 @@ public class ClickManager
     {
         if (pitch < 35 || pitch > 81)
         {
-            throw new IllegalArgumentException("pitch=" + pitch);
+            throw new IllegalArgumentException("pitch=" + pitch);   //NOI18N
         }
         int old = getClickPitchLow();
         if (old != pitch)
@@ -320,7 +320,7 @@ public class ClickManager
     {
         if (v < 0 || v > 127)
         {
-            throw new IllegalArgumentException("v=" + v);
+            throw new IllegalArgumentException("v=" + v);   //NOI18N
         }
         int old = getClickVelocityHigh();
         if (old != v)
@@ -339,7 +339,7 @@ public class ClickManager
     {
         if (v < 0 || v > 127)
         {
-            throw new IllegalArgumentException("v=" + v);
+            throw new IllegalArgumentException("v=" + v);   //NOI18N
         }
         int old = getClickVelocityLow();
         if (old != v)
@@ -366,7 +366,7 @@ public class ClickManager
     {
         if (sequence == null || context == null)
         {
-            throw new IllegalArgumentException("seq=" + sequence + " context=" + context);
+            throw new IllegalArgumentException("seq=" + sequence + " context=" + context);   //NOI18N
         }
         MidiMix midiMix = context.getMidiMix();
         Track track = sequence.createTrack();
@@ -407,7 +407,7 @@ public class ClickManager
     {
         if (sequence == null || context == null)
         {
-            throw new IllegalArgumentException("seq=" + sequence + " context=" + context);
+            throw new IllegalArgumentException("seq=" + sequence + " context=" + context);   //NOI18N
         }
 
         TimeSignature ts = context.getSongParts().get(0).getRhythm().getTimeSignature();
@@ -467,7 +467,7 @@ public class ClickManager
     {
         if (track == null || !MidiConst.checkMidiChannel(channel) || tickOffset < 0)
         {
-            throw new IllegalArgumentException("track=" + track + " channel=" + channel + " tickOffset=" + tickOffset);
+            throw new IllegalArgumentException("track=" + track + " channel=" + channel + " tickOffset=" + tickOffset);   //NOI18N
         }
         float nbNaturalBeatsPerBar = ts.getNbNaturalBeats();
         float nbNaturalBeats = nbBars * nbNaturalBeatsPerBar;
@@ -485,7 +485,7 @@ public class ClickManager
             }
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);   //NOI18N
         }
         // Next section tick
         long nextTick = tickOffset + (long) (nbNaturalBeats * MidiConst.PPQ_RESOLUTION);

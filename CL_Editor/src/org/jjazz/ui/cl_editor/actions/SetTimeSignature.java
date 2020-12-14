@@ -85,7 +85,7 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
     {
         if (cls == null || ts == null || cliSections == null)
         {
-            throw new IllegalArgumentException("cls=" + cls + " ts=" + ts + " cliSections=" + cliSections);
+            throw new IllegalArgumentException("cls=" + cls + " ts=" + ts + " cliSections=" + cliSections);   //NOI18N
         }
         if (cliSections.isEmpty())
         {

@@ -84,7 +84,7 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
     {
         if (section == null || q == null)
         {
-            throw new NullPointerException("section=" + section + " q=" + q);
+            throw new NullPointerException("section=" + section + " q=" + q);   //NOI18N
         }
         exitStatus = ExitStatus.CANCEL;
         this.section = section;
@@ -154,7 +154,7 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -165,7 +165,7 @@ public class ChangeQuantizationDialog extends javax.swing.JDialog
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 

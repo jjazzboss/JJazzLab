@@ -63,12 +63,12 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.util.actions.BooleanStateAction;
 import org.openide.util.actions.Presenter;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.util.ResUtil;
 
 /**
  * Show/hide the playback point in editors during song playback.
@@ -78,11 +78,6 @@ import org.jjazz.songstructure.api.SongPart;
 @ActionReferences(
         {
             // 
-        })
-@NbBundle.Messages(
-        {
-            "CTL_ShowPlaybackPoint=Show playback point",
-            "CTL_ShowPlaybackTooltip=Highlight the bar being played"
         })
 public class ShowPlaybackPoint extends BooleanStateAction implements PropertyChangeListener, LookupListener, Presenter.Toolbar, ClsChangeListener, SgsChangeListener, PlaybackListener
 {
@@ -102,7 +97,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointON-24x24.png")));
 //      putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointOff-20x20.png")));
 //      putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointOn-20x20.png")));
-        putValue(Action.SHORT_DESCRIPTION, Bundle.CTL_ShowPlaybackTooltip());
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_ShowPlaybackTooltip"));
         putValue("hideActionText", true);
         // Listen to playbackState and position changes
         MusicController.getInstance().addPropertyChangeListener(this);
@@ -125,7 +120,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
         if (newSong != null)
         {
             // Current song has changed
@@ -166,7 +161,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
     @Override
     public String getName()
     {
-        return Bundle.CTL_ShowPlaybackPoint();
+        return ResUtil.getString(getClass(), "CTL_ShowPlaybackPoint");
     }
 
     @Override
@@ -239,7 +234,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         {
             return;
         }
-        LOGGER.fine("songStructureChanged() e=" + e);
+        LOGGER.fine("songStructureChanged() e=" + e);   //NOI18N
         if (e instanceof SptRemovedEvent)
         {
             songWasModifiedDuringPlayback = true;
@@ -368,7 +363,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
     private void currentSongClosed()
     {
         Song activeSong = ActiveSongManager.getInstance().getActiveSong();
-        LOGGER.fine("currentSongClosed() currentSong=" + currentSong.getName() + " activeSong=" + (activeSong != null ? activeSong.getName() : "null"));
+        LOGGER.fine("currentSongClosed() currentSong=" + currentSong.getName() + " activeSong=" + (activeSong != null ? activeSong.getName() : "null"));   //NOI18N
         if (currentSong == activeSong)
         {
             hidePlaybackPoint();
@@ -406,7 +401,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                 setEnabled(false);
                 break;
             default:
-                throw new IllegalStateException("state=" + state);
+                throw new IllegalStateException("state=" + state);   //NOI18N
         }
     }
 
@@ -434,7 +429,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                     songWasModifiedDuringPlayback = false;
                     break;                                    
                 default:
-                    throw new IllegalStateException("state=" + state + " currentCL_Editor=" + currentCL_Editor + " songWasModified=" + songWasModifiedDuringPlayback + " isEnabled()=" + isEnabled() + " getBooleanState()=" + getBooleanState());
+                    throw new IllegalStateException("state=" + state + " currentCL_Editor=" + currentCL_Editor + " songWasModified=" + songWasModifiedDuringPlayback + " isEnabled()=" + isEnabled() + " getBooleanState()=" + getBooleanState());   //NOI18N
             }
         } else
         {
@@ -458,7 +453,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                     }
                     break;
                 default:
-                    throw new IllegalStateException("state=" + state + " currentCL_Editor=" + currentCL_Editor + " songWasModified=" + songWasModifiedDuringPlayback + " isEnabled()=" + isEnabled() + " getBooleanState()=" + getBooleanState());
+                    throw new IllegalStateException("state=" + state + " currentCL_Editor=" + currentCL_Editor + " songWasModified=" + songWasModifiedDuringPlayback + " isEnabled()=" + isEnabled() + " getBooleanState()=" + getBooleanState());   //NOI18N
             }
         }
     }
@@ -479,7 +474,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
             currentRL_Editor.showPlaybackPoint(true, newSgsPos);
         } else
         {
-            throw new IllegalStateException("currentCL_Editor is not null. currentSong=" + currentSong.getName());
+            throw new IllegalStateException("currentCL_Editor is not null. currentSong=" + currentSong.getName());   //NOI18N
         }
     }
 

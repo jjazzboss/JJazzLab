@@ -49,7 +49,7 @@ public class MoveSelectionDown extends AbstractAction
             SongPart spt = rpv.getSptModel();
             List<RhythmParameter<?>> rps = rpv.getSptModel().getRhythm().getRhythmParameters();
             int rpIndex = rps.indexOf(rpv.getRpModel());
-            assert rpIndex >= 0;
+            assert rpIndex >= 0;   //NOI18N
             if (rpIndex < rps.size() - 1)
             {
                 // Go to RhythmParameter below

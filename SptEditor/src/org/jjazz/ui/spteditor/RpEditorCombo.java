@@ -54,7 +54,7 @@ public class RpEditorCombo extends RpEditor implements ActionListener, PropertyC
 
         if (!(rp instanceof RP_State))
         {
-            throw new IllegalArgumentException("RhythmParameter type not supported for this editor. rp=" + rp);
+            throw new IllegalArgumentException("RhythmParameter type not supported for this editor. rp=" + rp);   //NOI18N
         }
 
         // Listen to rhythm resource load event, as it might impact our tooltip

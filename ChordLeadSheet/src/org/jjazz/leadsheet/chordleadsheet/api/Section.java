@@ -42,7 +42,7 @@ public final class Section implements Cloneable
     {
         if (n == null || ts == null)
         {
-            throw new NullPointerException("n=" + n + " ts=" + ts);
+            throw new NullPointerException("n=" + n + " ts=" + ts);   //NOI18N
         }
         name = n;
         timeSignature = ts;

@@ -27,6 +27,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
+import org.jjazz.util.ResUtil;
 
 /**
  * A custom user confirmation dialog before applying an Output Synth preset.
@@ -43,7 +44,7 @@ public class PresetConfirmDialog extends javax.swing.JDialog
     {
         super(parent, modal);
         initComponents();
-        lbl_title.setText("Apply preset:    '" + presetName + "'");
+        lbl_title.setText(ResUtil.getString(getClass(),"CTL_ApplyPreset", presetName));
         if (helpText == null || helpText.isBlank())
         {
             getContentPane().remove(scrollPane_helpArea);
@@ -69,7 +70,7 @@ public class PresetConfirmDialog extends javax.swing.JDialog
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -80,7 +81,7 @@ public class PresetConfirmDialog extends javax.swing.JDialog
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 
@@ -119,7 +120,6 @@ public class PresetConfirmDialog extends javax.swing.JDialog
 
         scrollPane_helpArea.setBorder(null);
 
-        hlp_area.setBackground(null);
         hlp_area.setColumns(20);
         hlp_area.setRows(5);
         scrollPane_helpArea.setViewportView(hlp_area);
@@ -144,7 +144,7 @@ public class PresetConfirmDialog extends javax.swing.JDialog
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(PresetConfirmDialog.class, "PresetConfirmDialog.jLabel1.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_title, org.openide.util.NbBundle.getMessage(PresetConfirmDialog.class, "PresetConfirmDialog.lbl_title.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_title, "Apply preset: ''xxx''"); // NOI18N
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);

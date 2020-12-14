@@ -39,7 +39,7 @@ public class FlatIntegerSpinner extends FlatSpinner<Integer>
     {
         if (min == max || max < min)
         {
-            throw new IllegalArgumentException("min=" + min + " max=" + max);
+            throw new IllegalArgumentException("min=" + min + " max=" + max);   //NOI18N
         }
         ArrayList<Integer> values = new ArrayList<>();
         for (int i = min; i <= max; i++)

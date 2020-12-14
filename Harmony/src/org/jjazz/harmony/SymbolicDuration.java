@@ -46,7 +46,7 @@ public enum SymbolicDuration
         index = ind;
         if (d < 0)
         {
-            throw new IllegalArgumentException("ind=" + ind + " d=" + d);
+            throw new IllegalArgumentException("ind=" + ind + " d=" + d);   //NOI18N
         }
         beatDuration = d;
     }

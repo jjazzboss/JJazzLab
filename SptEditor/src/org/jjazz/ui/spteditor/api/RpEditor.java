@@ -47,7 +47,7 @@ public abstract class RpEditor extends JPanel
     /**
      * This property change event must be fired each time value is modified by the editor.
      */
-    public static final String PROP_RPVALUE = "rpValue";
+    public static final String PROP_RPVALUE = "rpValue";   //NOI18N 
     private SongPart sptModel;
     private RhythmParameter<?> rpModel;
     private boolean isMultiValueMode = false;

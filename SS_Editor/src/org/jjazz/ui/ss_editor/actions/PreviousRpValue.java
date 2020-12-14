@@ -29,9 +29,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
-import javax.swing.KeyStroke;
 import org.jjazz.rhythm.parameters.RhythmParameter;
-import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
@@ -41,12 +39,12 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
+import org.jjazz.util.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.previousrpvalue")
 @ActionRegistration(displayName = "#CTL_PreviousRpValue", lazy = false)
@@ -54,13 +52,12 @@ import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
         {
             @ActionReference(path = "Actions/RhythmParameter", position = 450),
         })
-@Messages("CTL_PreviousRpValue=Previous value")
 public final class PreviousRpValue extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = CTL_PreviousRpValue();
+    private String undoText = ResUtil.getString(getClass(), "CTL_PreviousRpValue");
 
     public PreviousRpValue()
     {
@@ -72,7 +69,7 @@ public final class PreviousRpValue extends AbstractAction implements ContextAwar
         this.context = context;
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        putValue(NAME, CTL_PreviousRpValue());                          // For popupmenu 
+        putValue(NAME, undoText);                          // For popupmenu 
         putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_DOWN));    // For popupmenu
     }
 

@@ -52,13 +52,13 @@ public final class DumpRdbAction implements ActionListener
     public void actionPerformed(ActionEvent ae)
     {
         RhythmDatabase rdb = RhythmDatabase.getDefault();
-        LOGGER.severe("Dumping rhythm database ----------");
+        LOGGER.severe("Dumping rhythm database ----------");   //NOI18N
         for (RhythmProvider rp : rdb.getRhythmProviders())
         {
-            LOGGER.severe("\n===== RhythmProvider = " + rp.getInfo().getName() + '@' + Integer.toHexString(rp.hashCode()));
+            LOGGER.severe("\n===== RhythmProvider = " + rp.getInfo().getName() + '@' + Integer.toHexString(rp.hashCode()));   //NOI18N
             for (RhythmInfo ri : rdb.getRhythms(rp))
             {
-                LOGGER.severe("  " + ri);
+                LOGGER.severe("  " + ri);   //NOI18N
             }
 
         }

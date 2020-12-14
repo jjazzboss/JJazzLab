@@ -42,10 +42,10 @@ public interface SongPart extends Transferable
     /**
      * oldValue=rhythm parameter, newValue=value.
      */
-    public static final String PROPERTY_RP_VALUE = "SptRpValue";
-    public static final String PROPERTY_START_BAR_INDEX = "SptStartBarIndex";
-    public static final String PROPERTY_NB_BARS = "SptNbBars";
-    public static final String PROPERTY_NAME = "SptName";
+    public static final String PROPERTY_RP_VALUE = "SptRpValue";   //NOI18N 
+    public static final String PROPERTY_START_BAR_INDEX = "SptStartBarIndex";   //NOI18N 
+    public static final String PROPERTY_NB_BARS = "SptNbBars";   //NOI18N 
+    public static final String PROPERTY_NAME = "SptName";   //NOI18N 
     public static final DataFlavor DATA_FLAVOR = new DataFlavor(SongPart.class, "Song Part");
 
     public int getStartBarIndex();

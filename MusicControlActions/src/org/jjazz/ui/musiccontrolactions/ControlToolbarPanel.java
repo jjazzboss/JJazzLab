@@ -55,14 +55,14 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         initComponents();
 
         // Initialize actions
-        fbtn_Active.setAction((BooleanStateAction) Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.setactive"));
-        fbtn_Play.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.play"));
-        fbtn_Pause.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.pause"));
-        fbtn_Stop.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.stop"));
-        fbtn_Click.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.click"));
-        fbtn_Precount.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.precount"));
-        fbtn_Loop.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.loop"));
-        fbtn_PlaybackPoint.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.showplaybackpoint"));
+        fbtn_Active.setAction((BooleanStateAction) Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.setactive"));   //NOI18N
+        fbtn_Play.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.play"));   //NOI18N
+        fbtn_Pause.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.pause"));   //NOI18N
+        fbtn_Stop.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.stop"));   //NOI18N
+        fbtn_Click.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.click"));   //NOI18N
+        fbtn_Precount.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.precount"));   //NOI18N
+        fbtn_Loop.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.loop"));   //NOI18N
+        fbtn_PlaybackPoint.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.showplaybackpoint"));   //NOI18N
 
         // The model for the PositionViewer
         posModel = new Position();
@@ -92,7 +92,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
         if (newSong != null)
         {
             // Current song has changed
@@ -107,7 +107,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         {
             // Do nothing : player is still using the last valid song
         }
-        LOGGER.log(Level.FINE, "resultChanged() newSong={0} => currentSong={1}", new Object[]
+        LOGGER.log(Level.FINE, "resultChanged() newSong={0} => currentSong={1}", new Object[]   //NOI18N
         {
             newSong, currentSong
         });
@@ -186,7 +186,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         boolean b = (currentSong != null) && (currentSong == activeSong);
 
 
-        LOGGER.log(Level.FINE, "activeSongChanged() b={0} currentSong={1} activeSong={2}", new Object[]
+        LOGGER.log(Level.FINE, "activeSongChanged() b={0} currentSong={1} activeSong={2}", new Object[]   //NOI18N
         {
             b, currentSong, activeSong
         });
@@ -269,7 +269,6 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         add(filler2);
 
         fbtn_Active.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Off-24x18.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_Active, org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Active.text")); // NOI18N
         fbtn_Active.setToolTipText(org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Active.toolTipText")); // NOI18N
         fbtn_Active.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/On-24x18.png"))); // NOI18N
         add(fbtn_Active);
@@ -279,17 +278,13 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         panel_PlayButtons.setLayout(new javax.swing.BoxLayout(panel_PlayButtons, javax.swing.BoxLayout.LINE_AXIS));
 
         fbtn_Stop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButtonBorderOff-24x24.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_Stop, org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Stop.text")); // NOI18N
         panel_PlayButtons.add(fbtn_Stop);
 
         fbtn_Play.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonBorder-24x24.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_Play, org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Play.text")); // NOI18N
-        fbtn_Play.setToolTipText(org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Play.toolTipText")); // NOI18N
         fbtn_Play.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonBorderOn-24x24.png"))); // NOI18N
         panel_PlayButtons.add(fbtn_Play);
 
         fbtn_Pause.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorder-24x24.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_Pause, org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Pause.text")); // NOI18N
         fbtn_Pause.setToolTipText(org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Pause.toolTipText")); // NOI18N
         fbtn_Pause.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorderOn-24x24.png"))); // NOI18N
         panel_PlayButtons.add(fbtn_Pause);
@@ -299,19 +294,17 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         add(filler10);
 
         posViewer.setBorder(javax.swing.BorderFactory.createCompoundBorder(spn_Tempo.getBorder(), javax.swing.BorderFactory.createEmptyBorder(1, 8, 1, 8)));
-        org.openide.awt.Mnemonics.setLocalizedText(posViewer, org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.posViewer.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(posViewer, "001:1"); // NOI18N
         posViewer.setToolTipText(org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.posViewer.toolTipText")); // NOI18N
         posViewer.setFont(new java.awt.Font("Courier New", 1, 16)); // NOI18N
         add(posViewer);
         add(filler4);
 
         fbtn_Loop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Loop-OFF-24x24.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_Loop, org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Loop.text")); // NOI18N
         fbtn_Loop.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Loop-ON-24x24.png"))); // NOI18N
         add(fbtn_Loop);
 
         fbtn_PlaybackPoint.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointOFF-24x24.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_PlaybackPoint, org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_PlaybackPoint.text")); // NOI18N
         fbtn_PlaybackPoint.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointON-24x24.png"))); // NOI18N
         add(fbtn_PlaybackPoint);
         add(filler5);
@@ -336,7 +329,6 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         add(filler8);
 
         fbtn_Click.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Click-OFF-24x24.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_Click, org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Click.text")); // NOI18N
         fbtn_Click.setToolTipText(org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Click.toolTipText")); // NOI18N
         fbtn_Click.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Click-ON-24x24.png"))); // NOI18N
         add(fbtn_Click);
@@ -350,7 +342,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
 
     private void spn_TempoStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_TempoStateChanged
     {//GEN-HEADEREND:event_spn_TempoStateChanged
-        assert currentSong != null; // Otherwise button should be disabled
+        assert currentSong != null; // Otherwise button should be disabled   //NOI18N
         currentSong.setTempo((int) spn_Tempo.getValue());
     }//GEN-LAST:event_spn_TempoStateChanged
 

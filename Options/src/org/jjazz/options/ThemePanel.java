@@ -38,23 +38,17 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
-import static org.jjazz.options.Bundle.ASK_ConfirmResetAll;
 import org.openide.awt.ColorComboBox;
 import org.openide.util.Lookup;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
 import org.jjazz.ui.utilities.FontColorUserSettingsProvider.FCSetting;
 import org.jjazz.ui.utilities.JFontChooser;
 import org.jjazz.uisettings.GeneralUISettings;
+import org.jjazz.util.ResUtil;
 import org.jjazz.util.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.LifecycleManager;
 import org.openide.NotifyDescriptor;
-import org.openide.util.NbBundle.Messages;
-
-@Messages(
-        {
-            "ASK_ConfirmResetAll=This will reset all categories values. Are you sure ?"
-        })
 
 final class ThemePanel extends javax.swing.JPanel implements ActionListener
 {
@@ -107,7 +101,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
                 String id = fcs.getId();
                 if (mapIdValues.get(id) != null)
                 {
-                    LOGGER.severe("Duplicate FCSetting Id=" + id);
+                    LOGGER.severe("Duplicate FCSetting Id=" + id);   //NOI18N
                 }
                 mapIdValues.put(id, new FCvalues(fcs));
             }
@@ -152,7 +146,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
         for (FCSetting fcs : listValues)
         {
             FCvalues fcv = mapIdValues.get(fcs.getId());
-            assert fcv != null : "fcs=" + fcs + " mapIdValues=" + mapIdValues;
+            assert fcv != null : "fcs=" + fcs + " mapIdValues=" + mapIdValues;   //NOI18N
             if (fcv.color != null)
             {
                 fcs.setColor(fcv.color);
@@ -182,7 +176,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
             if (c != null)
             {
                 FCSetting fcs = list_fcSettings.getSelectedValue();
-                assert fcs != null;
+                assert fcs != null;   //NOI18N
                 fcs.setColor(c);
             }
         }
@@ -328,7 +322,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_currentThemeName, org.openide.util.NbBundle.getMessage(ThemePanel.class, "ThemePanel.lbl_currentThemeName.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_currentThemeName, "ThemeName"); // NOI18N
 
         cmb_themes.setMaximumRowCount(4);
         cmb_themes.setToolTipText(org.openide.util.NbBundle.getMessage(ThemePanel.class, "ThemePanel.cmb_themes.toolTipText")); // NOI18N
@@ -530,7 +524,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
    private void btn_fontActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_fontActionPerformed
    {//GEN-HEADEREND:event_btn_fontActionPerformed
        FCSetting fcs = list_fcSettings.getSelectedValue();
-       assert fcs != null;
+       assert fcs != null;   //NOI18N
 
        JFontChooser jfc = new JFontChooser();
        jfc.setSelectedFont(fcs.getFont());
@@ -560,7 +554,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
    private void btn_resetAllActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetAllActionPerformed
    {//GEN-HEADEREND:event_btn_resetAllActionPerformed
 
-       NotifyDescriptor nd = new NotifyDescriptor.Confirmation(ASK_ConfirmResetAll(), NotifyDescriptor.OK_CANCEL_OPTION);
+       NotifyDescriptor nd = new NotifyDescriptor.Confirmation(ResUtil.getString(getClass(), "CTL_ConfirmResetAllThemeCategories"), NotifyDescriptor.OK_CANCEL_OPTION);
        Object result = DialogDisplayer.getDefault().notify(nd);
        if (result != NotifyDescriptor.OK_OPTION)
        {
@@ -572,7 +566,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
    private void btn_resetFontActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetFontActionPerformed
    {//GEN-HEADEREND:event_btn_resetFontActionPerformed
        FCSetting fcs = list_fcSettings.getSelectedValue();
-       assert fcs != null;
+       assert fcs != null;   //NOI18N
        fcs.setFont(null);
        list_fcSettingsValueChanged(null);
    }//GEN-LAST:event_btn_resetFontActionPerformed
@@ -580,7 +574,7 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
    private void btn_resetColorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetColorActionPerformed
    {//GEN-HEADEREND:event_btn_resetColorActionPerformed
        FCSetting fcs = list_fcSettings.getSelectedValue();
-       assert fcs != null;
+       assert fcs != null;   //NOI18N
        fcs.setColor(null);
        list_fcSettingsValueChanged(null);
    }//GEN-LAST:event_btn_resetColorActionPerformed
@@ -600,14 +594,13 @@ final class ThemePanel extends javax.swing.JPanel implements ActionListener
     {//GEN-HEADEREND:event_btn_changeThemeActionPerformed
         if (org.openide.util.Utilities.isMac())
         {
-            String msg = "Changing theme on MacOS is not supported yet.";
+            String msg = ResUtil.getString(getClass(), "ERR_NoThemeSupportOnMacOS");
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
         }
 
-        String msg = "Changing theme will reset all color/font customizations.\n\n"
-                + "OK to restart JJazzLab now?";
+        String msg = ResUtil.getString(getClass(), "CTL_ConfirmResetColorsFontsRestart");
         NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
         Object result = DialogDisplayer.getDefault().notify(d);
         if (NotifyDescriptor.OK_OPTION == result)

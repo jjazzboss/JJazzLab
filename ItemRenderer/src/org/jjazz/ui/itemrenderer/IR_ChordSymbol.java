@@ -80,7 +80,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     public IR_ChordSymbol(CLI_ChordSymbol item, ItemRendererSettings irSettings)
     {
         super(item, IR_Type.ChordSymbol);
-        LOGGER.fine("IR_ChordSymbol() item=" + item);
+        LOGGER.fine("IR_ChordSymbol() item=" + item);   //NOI18N
 
 
         // Apply settings and listen to their changes
@@ -176,7 +176,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 
         // Prepare the graphics context
         Graphics2D g2 = (Graphics2D) getGraphics();
-        assert g2 != null;
+        assert g2 != null;   //NOI18N
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -230,7 +230,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         Dimension d = new Dimension(wFinal, hFinal);
 
 
-        LOGGER.fine("getPreferredSize()    result d=" + d + "   (insets=" + in + ")");
+        LOGGER.fine("getPreferredSize()    result d=" + d + "   (insets=" + in + ")");   //NOI18N
 
 
         return d;
@@ -285,7 +285,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
                 }
                 sb.append(" - ").append(ResUtil.getString(getClass(), "IR_ChordSymbol.condition")).append("=");
                 AltDataFilter altFilter = ecs.getAlternateFilter();
-                assert altFilter != null;
+                assert altFilter != null;   //NOI18N
                 sb.append(altFilter.isRandom() ? ResUtil.getString(getClass(), "IR_ChordSymbol.random") : altFilter.getValues());
             }
             setToolTipText(sb.toString());

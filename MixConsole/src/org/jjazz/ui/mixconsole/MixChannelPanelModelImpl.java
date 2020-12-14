@@ -63,7 +63,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     {
         if (mMix == null || !MidiConst.checkMidiChannel(channel) || mMix.getInstrumentMixFromChannel(channel) == null)
         {
-            throw new IllegalArgumentException("mMix=" + mMix + " channel=" + channel);
+            throw new IllegalArgumentException("mMix=" + mMix + " channel=" + channel);   //NOI18N
         }
         channelId = channel;
         midiMix = mMix;

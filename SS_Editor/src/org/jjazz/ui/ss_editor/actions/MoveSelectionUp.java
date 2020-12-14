@@ -48,7 +48,7 @@ public class MoveSelectionUp extends AbstractAction
             SongPart spt = rpv.getSptModel();
             List<RhythmParameter<?>> rps = rpv.getSptModel().getRhythm().getRhythmParameters();
             int rpIndex = rps.indexOf(rpv.getRpModel());
-            assert rpIndex >= 0;
+            assert rpIndex >= 0;   //NOI18N
             SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
             selection.unselectAll(editor);
             if (rpIndex > 0)

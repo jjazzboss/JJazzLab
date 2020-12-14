@@ -95,7 +95,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     {
         if (settings == null || irf == null)
         {
-            throw new IllegalArgumentException("barIndex=" + barIndex + " settings=" + settings + " irf=" + irf);
+            throw new IllegalArgumentException("barIndex=" + barIndex + " settings=" + settings + " irf=" + irf);   //NOI18N
         }
         this.editor = editor;
         this.barIndex = barIndex;
@@ -135,7 +135,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     {
         if (aModel == null)
         {
-            throw new IllegalArgumentException("modelBarIndex=" + modelBarIndex + " aModel=" + aModel);
+            throw new IllegalArgumentException("modelBarIndex=" + modelBarIndex + " aModel=" + aModel);   //NOI18N
         }
 
         model = aModel;
@@ -186,7 +186,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     {
         if (!isRegisteredItemClass(item))
         {
-            throw new IllegalArgumentException("item=" + item);
+            throw new IllegalArgumentException("item=" + item);   //NOI18N
         }
 
         ItemRenderer ir = createItemRenderer(item);
@@ -227,7 +227,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
         ItemRenderer ir = getItemRenderer(item);
         if (ir == null)
         {
-            throw new IllegalArgumentException("item=" + item + " b=" + b);
+            throw new IllegalArgumentException("item=" + item + " b=" + b);   //NOI18N
         }
         ir.setSelected(b);
     }
@@ -299,7 +299,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     {
         if (bar >= model.getSize())
         {
-            throw new IllegalArgumentException("this=" + this + " bar=" + bar);
+            throw new IllegalArgumentException("this=" + this + " bar=" + bar);   //NOI18N
         }
 
         if (bar == modelBarIndex)
@@ -315,7 +315,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
             removeItemRenderer(ir);
         }
 
-        LOGGER.log(Level.FINE, "this=" + this + " modelBarIndex=" + modelBarIndex);
+        LOGGER.log(Level.FINE, "this=" + this + " modelBarIndex=" + modelBarIndex);   //NOI18N
 
         if (modelBarIndex >= 0)
         {
@@ -324,7 +324,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
             // Add the required item renderers            
             for (ChordLeadSheetItem<?> item : getRegisteredModelItems())
             {
-                LOGGER.log(Level.FINE, "   item=" + item);
+                LOGGER.log(Level.FINE, "   item=" + item);   //NOI18N
                 addItemRenderer(item);
             }
         }

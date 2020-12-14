@@ -77,7 +77,7 @@ public class MasterVolumeSlider extends FlatIntegerHorizontalSlider implements P
     {
         if (f < 0 || f > 2)
         {
-            throw new IllegalArgumentException("f=" + f);
+            throw new IllegalArgumentException("f=" + f);   //NOI18N
         }
         int v = Math.round(f * 100);
         setValue(v);
@@ -105,7 +105,7 @@ public class MasterVolumeSlider extends FlatIntegerHorizontalSlider implements P
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.log(Level.FINE, "propertyChange() -- evt={0}", evt);
+        LOGGER.log(Level.FINE, "propertyChange() -- evt={0}", evt);   //NOI18N
         if (evt.getSource() == this)
         {
             if (evt.getPropertyName() == PROP_VALUE)
@@ -121,7 +121,7 @@ public class MasterVolumeSlider extends FlatIntegerHorizontalSlider implements P
             }
         } else
         {
-            throw new IllegalStateException("evt=" + evt);
+            throw new IllegalStateException("evt=" + evt);   //NOI18N
         }
     }
 }

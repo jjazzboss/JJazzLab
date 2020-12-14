@@ -37,12 +37,12 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
-import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.synths.Family;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.outputsynth.GMRemapTable;
+import org.jjazz.util.ResUtil;
 
 /**
  * A JTable to edit a GM1RemapTable.
@@ -139,7 +139,7 @@ public class RemapTableUI extends JTable
     {
         if (ins != GMRemapTable.DRUMS_INSTRUMENT && ins != GMRemapTable.PERCUSSION_INSTRUMENT && !(ins instanceof GM1Instrument))
         {
-            throw new IllegalArgumentException("ins=" + ins);
+            throw new IllegalArgumentException("ins=" + ins);   //NOI18N
         }
         int index;
         if (ins == GMRemapTable.DRUMS_INSTRUMENT)
@@ -152,7 +152,7 @@ public class RemapTableUI extends JTable
         {
             index = ins.getMidiAddress().getProgramChange() + Model.ROW_GMVOICE_START;
         }
-        assert index >= 0;
+        assert index >= 0;   //NOI18N
         int vIndex = convertRowIndexToView(index);      // Take into account sorting/filtering 
         if (vIndex != -1)
         {
@@ -215,7 +215,7 @@ public class RemapTableUI extends JTable
                     // Nothing
                     break;
                 default:
-                    throw new IllegalStateException("col=" + colIndex);
+                    throw new IllegalStateException("col=" + colIndex);   //NOI18N
 
             }
         }
@@ -241,7 +241,7 @@ public class RemapTableUI extends JTable
         {
             if (model == null)
             {
-                throw new NullPointerException("model");
+                throw new NullPointerException("model");   //NOI18N
             }
             if (remapTable != null)
             {
@@ -250,7 +250,7 @@ public class RemapTableUI extends JTable
             this.remapTable = model;
             this.remapTable.addPropertyChangeListener(this);
             this.fireTableDataChanged();
-            
+
         }
 
         @Override
@@ -273,19 +273,19 @@ public class RemapTableUI extends JTable
             switch (col)
             {
                 case COL_FAM:
-                    res = "GM Family";
+                    res = ResUtil.getString(getClass(), "GM FAMILY");
                     break;
                 case COL_INS:
-                    res = "GM Instrument";
+                    res = ResUtil.getString(getClass(), "GM INSTRUMENT");
                     break;
                 case COL_INS_MAP:
-                    res = "Default Instrument";
+                    res = ResUtil.getString(getClass(), "DEFAULT INSTRUMENT");
                     break;
                 case COL_ID:
                     res = "#";
                     break;
                 default:
-                    throw new IllegalArgumentException("col=" + col);
+                    throw new IllegalArgumentException("col=" + col);   //NOI18N
             }
             return res;
         }
@@ -309,7 +309,7 @@ public class RemapTableUI extends JTable
                     res = Integer.class;
                     break;
                 default:
-                    throw new IllegalArgumentException("col=" + col);
+                    throw new IllegalArgumentException("col=" + col);   //NOI18N
             }
             return res;
         }
@@ -342,7 +342,7 @@ public class RemapTableUI extends JTable
                             res = remapTable.getInstrument(GMRemapTable.DRUMS_INSTRUMENT);
                             break;
                         default:
-                            throw new IllegalArgumentException("row=" + row + " col=" + col);
+                            throw new IllegalArgumentException("row=" + row + " col=" + col);   //NOI18N
                     }
                     break;
                 case ROW_PERC:
@@ -358,7 +358,7 @@ public class RemapTableUI extends JTable
                             res = remapTable.getInstrument(GMRemapTable.PERCUSSION_INSTRUMENT);
                             break;
                         default:
-                            throw new IllegalArgumentException("row=" + row + " col=" + col);
+                            throw new IllegalArgumentException("row=" + row + " col=" + col);   //NOI18N
                     }
                     break;
                 default:
@@ -376,7 +376,7 @@ public class RemapTableUI extends JTable
                             res = remapTable.getInstrument(insGM1);
                             break;
                         default:
-                            throw new IllegalArgumentException("row=" + row + " col=" + col);
+                            throw new IllegalArgumentException("row=" + row + " col=" + col);   //NOI18N
                     }
             }
             // LOGGER.fine("getValueAt() row=" + row + " col" + col + " res=" + res);
@@ -410,12 +410,12 @@ public class RemapTableUI extends JTable
                         row = ins.getMidiAddress().getProgramChange() + ROW_GMVOICE_START;
                     } else
                     {
-                        throw new IllegalStateException("ins=" + ins);
+                        throw new IllegalStateException("ins=" + ins);   //NOI18N
                     }
                     fireTableCellUpdated(row, COL_INS_MAP);
                     break;
                 default:
-                    throw new IllegalArgumentException("e=" + e);
+                    throw new IllegalArgumentException("e=" + e);   //NOI18N
             }
         }
     }
@@ -441,7 +441,7 @@ public class RemapTableUI extends JTable
                 if (pc >= 0 && ins == tblModel.remapTable.getInstrument(StdSynth.getInstance().getGM1Bank().getInstrument(pc).getFamily()))
                 {
                     // Special display if Instrument is also the default instrument for the family                
-                    text += "   (family's default instrument)";
+                    text += "   " + ResUtil.getString(getClass(), "FAMILY_DEFAULT_INSTRUMENT");
                     c.setFont(c.getFont().deriveFont(Font.BOLD));
                 }
                 String tt = buildToolTipText(ins);

@@ -27,23 +27,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
-import org.openide.util.NbBundle;
-import static org.jjazz.rhythm.parameters.Bundle.*;
+import org.jjazz.util.ResUtil;
 
 /**
  * System RhythmParameter: mute one or more instruments.
  * <p>
  */
-@NbBundle.Messages(
-        {
-            "CTL_RpMuteName=Mute",
-            "CTL_RpMuteDesc=Instrument mute",
-        })
 public class RP_SYS_Mute extends RP_StringSet
 {
 
@@ -57,9 +49,8 @@ public class RP_SYS_Mute extends RP_StringSet
      */
     private RP_SYS_Mute(Set<String> defaultVal, String... possibleValues)
     {
-        super(ID, CTL_RpMuteName(), CTL_RpMuteDesc(), defaultVal, possibleValues);
+        super(ID, ResUtil.getString(RP_SYS_Mute.class, "CTL_RpMuteName"), ResUtil.getString(RP_SYS_Mute.class, "CTL_RpMuteDesc"), defaultVal, possibleValues);
     }
-
 
     /**
      * A factory method to build a RhythmParameter for a specified rhythm.
@@ -94,13 +85,12 @@ public class RP_SYS_Mute extends RP_StringSet
             for (String s : value)
             {
                 RhythmVoice rv = map.get(s);
-                assert rv != null : "r=" + r + " s=" + s + " value=" + value;
+                assert rv != null : "r=" + r + " s=" + s + " value=" + value;   //NOI18N
                 res.add(rv);
             }
         }
         return res;
     }
-
 
     /**
      * Find the first RP_SYS_Mute instance in the rhythm parameters of r.
@@ -112,7 +102,7 @@ public class RP_SYS_Mute extends RP_StringSet
     {
         if (rhythm == null)
         {
-            throw new NullPointerException("r");
+            throw new NullPointerException("r");   //NOI18N
         }
         return (RP_SYS_Mute) rhythm.getRhythmParameters()
                 .stream()
@@ -120,7 +110,6 @@ public class RP_SYS_Mute extends RP_StringSet
                 .findAny()
                 .orElse(null);
     }
-
 
     // ========================================================================================
     // Private methods

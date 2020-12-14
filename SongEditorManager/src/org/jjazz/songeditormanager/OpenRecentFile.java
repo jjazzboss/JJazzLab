@@ -150,7 +150,7 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
 
     private void updatePreferences()
     {
-        LOGGER.log(Level.FINE, "updatePreferences() recentFiles=" + recentFiles);
+        LOGGER.log(Level.FINE, "updatePreferences() recentFiles=" + recentFiles);   //NOI18N
         if (recentFiles.isEmpty())
         {
             prefs.put(PREF_RECENT_FILES, "");
@@ -205,7 +205,7 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.log(Level.FINE, "propertyChange() evt={0}", evt);
+        LOGGER.log(Level.FINE, "propertyChange() evt={0}", evt);   //NOI18N
         
         
         if (evt.getSource() == SongEditorManager.getInstance())

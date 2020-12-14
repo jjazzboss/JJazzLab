@@ -78,7 +78,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
     {
         if (ri == null)
         {
-            throw new IllegalArgumentException("ri=" + ri);
+            throw new IllegalArgumentException("ri=" + ri);   //NOI18N
         }
         exitOk = false;
         cleanup();
@@ -198,7 +198,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -209,7 +209,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 

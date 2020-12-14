@@ -65,7 +65,7 @@ public class RpEditorList extends RpEditor implements ListSelectionListener
 
         if (!(rp instanceof RP_StringSet))
         {
-            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp);
+            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp);   //NOI18N
         }
 
         // Prepare our editor component
@@ -104,7 +104,7 @@ public class RpEditorList extends RpEditor implements ListSelectionListener
     {
         if (!(value instanceof Set<?>))
         {
-            throw new IllegalArgumentException("value=" + value);
+            throw new IllegalArgumentException("value=" + value);   //NOI18N
         }
         if (value != null && !value.equals(getRpValue()))
         {

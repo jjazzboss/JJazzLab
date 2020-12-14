@@ -39,7 +39,7 @@ abstract public class RpCustomizeDialog extends JDialog
         RpCustomizeDialog result = Lookup.getDefault().lookup(RpCustomizeDialog.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);
+            throw new NullPointerException("result=" + result);   //NOI18N
         }
         return result;
     }

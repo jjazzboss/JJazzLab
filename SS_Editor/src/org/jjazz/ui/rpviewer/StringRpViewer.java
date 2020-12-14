@@ -65,7 +65,7 @@ public class StringRpViewer extends RpViewer implements PropertyChangeListener
         super(spt, rp, settings);
         if (formatter == null)
         {
-            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " formatter=" + formatter);
+            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " formatter=" + formatter);   //NOI18N
         }
         this.settings = settings.getStringRpViewerSettings();
         this.settings.addPropertyChangeListener(this);

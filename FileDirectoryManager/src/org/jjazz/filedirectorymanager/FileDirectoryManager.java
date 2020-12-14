@@ -48,10 +48,10 @@ public class FileDirectoryManager
     public static final String TEMPLATE_SONG_NAME = "NewSongTemplate";
     public static final String MIX_FILE_EXTENSION = "mix";
     public static final String SONG_EXTENSION = "sng";
-    public static final String PROP_LAST_SONG_DIRECTORY = "PropLastSongDirectory";
-    public static final String PROP_RHYTHM_USER_DIRECTORY = "PropRhythmUserDirectory";
-    public static final String PROP_RHYTHM_MIX_DIRECTORY = "PropRhythmMixDirectory";
-    public static final String PROP_USE_RHYTHM_USER_DIR_FOR_RHYTHM_DEFAULT_MIX = "PropUseRhythmUserDirForRhythmDefaultMix";
+    public static final String PROP_LAST_SONG_DIRECTORY = "PropLastSongDirectory";   //NOI18N 
+    public static final String PROP_RHYTHM_USER_DIRECTORY = "PropRhythmUserDirectory";   //NOI18N 
+    public static final String PROP_RHYTHM_MIX_DIRECTORY = "PropRhythmMixDirectory";   //NOI18N 
+    public static final String PROP_USE_RHYTHM_USER_DIR_FOR_RHYTHM_DEFAULT_MIX = "PropUseRhythmUserDirForRhythmDefaultMix";   //NOI18N 
 
     private static FileDirectoryManager INSTANCE;
     /**
@@ -106,7 +106,7 @@ public class FileDirectoryManager
     {
         if (rhythm == null)
         {
-            throw new IllegalArgumentException("rhythm=" + rhythm);
+            throw new IllegalArgumentException("rhythm=" + rhythm);   //NOI18N
         }
         if (rhythm instanceof AdaptedRhythm)
         {
@@ -153,9 +153,9 @@ public class FileDirectoryManager
     {
         // We need a valid user.home directory        
         String uh = System.getProperty("user.home");
-        assert uh != null : "user.home property does not exist: " + uh;
+        assert uh != null : "user.home property does not exist: " + uh;   //NOI18N
         File userHome = new File(uh);
-        assert userHome.isDirectory() : "user.home directory does not exist: " + uh;
+        assert userHome.isDirectory() : "user.home directory does not exist: " + uh;   //NOI18N
 
 
         // Our user dir
@@ -165,11 +165,11 @@ public class FileDirectoryManager
             // Create the directory
             if (!userDir.mkdir())
             {
-                LOGGER.warning("getJJazzLabUserDirectory() Can't create directory " + userDir.getAbsolutePath() + ". Using " + uh + " instead...");
+                LOGGER.warning("getJJazzLabUserDirectory() Can't create directory " + userDir.getAbsolutePath() + ". Using " + uh + " instead...");   //NOI18N
                 userDir = userHome;
             } else
             {
-                LOGGER.warning("getJJazzLabUserDirectory() Created JJazzLab user directory " + userDir.getAbsolutePath());
+                LOGGER.warning("getJJazzLabUserDirectory() Created JJazzLab user directory " + userDir.getAbsolutePath());   //NOI18N
             }
         }
 
@@ -190,14 +190,14 @@ public class FileDirectoryManager
         File f = new File(s);
         if (!f.isDirectory())
         {
-            LOGGER.warning("getUserRhythmDirectory() User rhythm directory not found: " + s + " Using: " + uh + " instead.");
+            LOGGER.warning("getUserRhythmDirectory() User rhythm directory not found: " + s + " Using: " + uh + " instead.");   //NOI18N
             f = new File(uh);
             if (!f.isDirectory())
             {
-                LOGGER.severe("getUserRhythmDirectory() No valid user rhythm directory found. Can't reuse system user directory because it does not exist: " + f.getAbsolutePath());
+                LOGGER.severe("getUserRhythmDirectory() No valid user rhythm directory found. Can't reuse system user directory because it does not exist: " + f.getAbsolutePath());   //NOI18N
             }
         }
-        LOGGER.fine("getUserRhythmDirectory() f=" + f);
+        LOGGER.fine("getUserRhythmDirectory() f=" + f);   //NOI18N
         return f;
     }
 
@@ -210,11 +210,11 @@ public class FileDirectoryManager
     {
         if (!dir.isDirectory())
         {
-            throw new IllegalArgumentException("dir=" + dir);
+            throw new IllegalArgumentException("dir=" + dir);   //NOI18N
         }
         File old = getUserRhythmDirectory();
         prefs.put(PROP_RHYTHM_USER_DIRECTORY, dir.getAbsolutePath());
-        LOGGER.fine("setUserRhythmDirectory() old=" + old + " new=" + dir);
+        LOGGER.fine("setUserRhythmDirectory() old=" + old + " new=" + dir);   //NOI18N
         pcs.firePropertyChange(PROP_RHYTHM_USER_DIRECTORY, old, dir);
     }
 
@@ -238,10 +238,10 @@ public class FileDirectoryManager
             f = getUserRhythmDirectory();
             if (!f.isDirectory())
             {
-                LOGGER.severe("getRhythmMixDirectory() No valid rhythm mix directory found : " + f.getAbsolutePath());
+                LOGGER.severe("getRhythmMixDirectory() No valid rhythm mix directory found : " + f.getAbsolutePath());   //NOI18N
             }
         }
-        LOGGER.fine("getRhythmMixDirectory() f=" + f);
+        LOGGER.fine("getRhythmMixDirectory() f=" + f);   //NOI18N
         return f;
 
     }
@@ -255,11 +255,11 @@ public class FileDirectoryManager
     {
         if (dir == null || !dir.isDirectory())
         {
-            throw new IllegalArgumentException("dir=" + dir);
+            throw new IllegalArgumentException("dir=" + dir);   //NOI18N
         }
         File old = getRhythmMixDirectory();
         prefs.put(PROP_RHYTHM_MIX_DIRECTORY, dir.getAbsolutePath());
-        LOGGER.fine("setRhythmMixDirectory() old=" + old + " new=" + dir);
+        LOGGER.fine("setRhythmMixDirectory() old=" + old + " new=" + dir);   //NOI18N
         pcs.firePropertyChange(PROP_RHYTHM_MIX_DIRECTORY, old, dir);
     }
 
@@ -297,12 +297,12 @@ public class FileDirectoryManager
         File userDir = Places.getUserDirectory();
         if (userDir == null)
         {
-            LOGGER.warning("getAppConfigDirectory() Netbeans user directory is null. Using user's home directory.");
+            LOGGER.warning("getAppConfigDirectory() Netbeans user directory is null. Using user's home directory.");   //NOI18N
             userDir = new File(System.getProperty("user.home"));
         }
         if (!userDir.isDirectory())
         {
-            LOGGER.severe("getAppConfigDirectory() Can't find a valid user directory userDir=" + userDir);
+            LOGGER.severe("getAppConfigDirectory() Can't find a valid user directory userDir=" + userDir);   //NOI18N
             return null;
         }
         File appConfigDir = userDir.toPath().resolve(APP_CONFIG_PREFIX_DIR).toFile();
@@ -313,7 +313,7 @@ public class FileDirectoryManager
                 appConfigDir.mkdir();
             } catch (SecurityException e)
             {
-                LOGGER.severe("getAppConfigDirectory() impossible to create application config dir=" + appConfigDir.getAbsolutePath() + ". Using user home directory instead.");
+                LOGGER.severe("getAppConfigDirectory() impossible to create application config dir=" + appConfigDir.getAbsolutePath() + ". Using user home directory instead.");   //NOI18N
                 appConfigDir = new File(System.getProperty("user.home"));
             }
         }
@@ -330,12 +330,12 @@ public class FileDirectoryManager
 
                 } catch (SecurityException e)
                 {
-                    LOGGER.warning("getAppConfigDirectory() impossible to create " + res.getAbsolutePath());
+                    LOGGER.warning("getAppConfigDirectory() impossible to create " + res.getAbsolutePath());   //NOI18N
                     res = appConfigDir;
                 }
             }
         }
-        LOGGER.fine("getAppConfigDirectory() res=" + res);
+        LOGGER.fine("getAppConfigDirectory() res=" + res);   //NOI18N
         return res;
     }
 
@@ -351,13 +351,13 @@ public class FileDirectoryManager
     {
         if (oldVersion == null)
         {
-            throw new IllegalArgumentException("oldVersion=" + oldVersion + " subDirname=" + subDirname);
+            throw new IllegalArgumentException("oldVersion=" + oldVersion + " subDirname=" + subDirname);   //NOI18N
         }
 
         File userDir = Places.getUserDirectory();
         if (userDir == null || !userDir.isDirectory() || userDir.getParentFile() == null)
         {
-            LOGGER.warning("getOldAppConfigDirectory() Invalid Netbeans User Directory userDir=" + userDir);
+            LOGGER.warning("getOldAppConfigDirectory() Invalid Netbeans User Directory userDir=" + userDir);   //NOI18N
             return null;
         }
 
@@ -407,7 +407,7 @@ public class FileDirectoryManager
                 f = null;
             }
         }
-        LOGGER.fine("getLastSongDirectory() f=" + f);
+        LOGGER.fine("getLastSongDirectory() f=" + f);   //NOI18N
         return f;
     }
 
@@ -420,11 +420,11 @@ public class FileDirectoryManager
     {
         if (!dir.isDirectory())
         {
-            throw new IllegalArgumentException("dir=" + dir);
+            throw new IllegalArgumentException("dir=" + dir);   //NOI18N
         }
         File old = getLastSongDirectory();
         prefs.put(PROP_LAST_SONG_DIRECTORY, dir.getAbsolutePath());
-        LOGGER.fine("setLastSongDirectory() old=" + old + " new=" + dir);
+        LOGGER.fine("setLastSongDirectory() old=" + old + " new=" + dir);   //NOI18N
         pcs.firePropertyChange(PROP_LAST_SONG_DIRECTORY, old, dir);
     }
 

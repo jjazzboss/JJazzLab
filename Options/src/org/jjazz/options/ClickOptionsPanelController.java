@@ -38,10 +38,6 @@ import org.openide.util.Lookup;
         keywordsCategory = "Click",
         position = 220
 )
-@org.openide.util.NbBundle.Messages(
-{
-    "OptionsCategory_Name_Click=Click", "OptionsCategory_Keywords_Click=click metronome"
-})
 public final class ClickOptionsPanelController extends OptionsPanelController
 {
 

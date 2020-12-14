@@ -67,9 +67,9 @@ public class GeneralUISettings
 
     public static final String DEFAULT_THEME_NAME = LightTheme.NAME;
     public static final LookAndFeelId DEFAULT_LAF_ID = LookAndFeelId.LOOK_AND_FEEL_SYSTEM_DEFAULT;  // Must be the laf of DEFAULT_THEME_NAME
-    public static final String PREF_THEME_UPON_RESTART = "ThemeUponRestart";
-    public static final String PREF_LAF_ID_UPON_RESTART = "LafIdUponRestart";
-    public static final String PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL = "ChangeWithMouseWheel";
+    public static final String PREF_THEME_UPON_RESTART = "ThemeUponRestart";   //NOI18N 
+    public static final String PREF_LAF_ID_UPON_RESTART = "LafIdUponRestart";   //NOI18N 
+    public static final String PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL = "ChangeWithMouseWheel";   //NOI18N 
     private static GeneralUISettings INSTANCE;
     private Theme currentTheme;
     private final HashMap<WeakReference<JComponent>, MouseWheelListener> mouseWheelInstalledComponents = new HashMap<>();
@@ -102,7 +102,7 @@ public class GeneralUISettings
     {
         if (theme == null)
         {
-            throw new NullPointerException("theme");
+            throw new NullPointerException("theme");   //NOI18N
         }
         prefs.put(PREF_THEME_UPON_RESTART, theme.getName());
         prefs.put(PREF_LAF_ID_UPON_RESTART, theme.getLookAndFeel().name());
@@ -132,7 +132,7 @@ public class GeneralUISettings
             res = LookAndFeelId.valueOf(strLaf);
         } catch (IllegalArgumentException | NullPointerException ex)
         {
-            LOGGER.warning("getLafIdUponRestart() Invalid LAF name=" + strLaf + ". Using default LAF=" + res.name());
+            LOGGER.warning("getLafIdUponRestart() Invalid LAF name=" + strLaf + ". Using default LAF=" + res.name());   //NOI18N
         }
         return res;
     }
@@ -245,10 +245,10 @@ public class GeneralUISettings
             } catch (IOException | FontFormatException e)
             {
                 FONT_10 = Font.getFont("Arial-PLAIN-10");
-                LOGGER.log(Level.SEVERE, "Can't get font from " + FONT_PATH + ". Using default font instead=" + FONT_10);
+                LOGGER.log(Level.SEVERE, "Can't get font from " + FONT_PATH + ". Using default font instead=" + FONT_10);   //NOI18N
             }
         }
-        assert FONT_10 != null;
+        assert FONT_10 != null;   //NOI18N
         return FONT_10;
     }
 
@@ -269,10 +269,10 @@ public class GeneralUISettings
             } catch (IOException | FontFormatException e)
             {
                 CONDENSED_FONT_10 = Font.getFont("Arial-PLAIN-10");
-                LOGGER.log(Level.SEVERE, "Can't get font from " + CONDENSED_FONT_PATH + ". Using default font instead=" + CONDENSED_FONT_10);
+                LOGGER.log(Level.SEVERE, "Can't get font from " + CONDENSED_FONT_PATH + ". Using default font instead=" + CONDENSED_FONT_10);   //NOI18N
             }
         }
-        assert CONDENSED_FONT_10 != null;
+        assert CONDENSED_FONT_10 != null;   //NOI18N
         return CONDENSED_FONT_10;
     }
 
@@ -291,32 +291,33 @@ public class GeneralUISettings
     //=============================================================================  
     public Icon getIcon(String key)
     {
-        return currentTheme.getUIDefaults().getIcon(key);
+        // currentTheme might be null when using the Netbeans Matisse UI builder!!! This avoids a NullPointerException
+        return currentTheme == null ? null : currentTheme.getUIDefaults().getIcon(key);
     }
 
     public Color getColor(String key)
     {
-        return currentTheme.getUIDefaults().getColor(key);
+        return currentTheme == null ? null : currentTheme.getUIDefaults().getColor(key);
     }
 
     public Font getFont(String key)
     {
-        return currentTheme.getUIDefaults().getFont(key);
+        return currentTheme == null ? null : currentTheme.getUIDefaults().getFont(key);
     }
 
     public boolean getBoolean(String key)
     {
-        return currentTheme.getUIDefaults().getBoolean(key);
+        return currentTheme == null ? null : currentTheme.getUIDefaults().getBoolean(key);
     }
 
     public Border getBorder(String key)
     {
-        return currentTheme.getUIDefaults().getBorder(key);
+        return currentTheme == null ? null : currentTheme.getUIDefaults().getBorder(key);
     }
 
     public int getInt(String key)
     {
-        return currentTheme.getUIDefaults().getInt(key);
+        return currentTheme == null ? null : currentTheme.getUIDefaults().getInt(key);
     }
 
     //=============================================================================
@@ -354,13 +355,13 @@ public class GeneralUISettings
     {
         if (currentTheme != null)
         {
-            throw new IllegalStateException("currentTheme is already set=" + currentTheme.getName() + ". themeName=" + themeName);
+            throw new IllegalStateException("currentTheme is already set=" + currentTheme.getName() + ". themeName=" + themeName);   //NOI18N
         }
         currentTheme = getTheme(themeName);
         if (currentTheme == null)
         {
             currentTheme = getTheme(DEFAULT_THEME_NAME);
-            assert currentTheme != null : "DEFAULT_THEME_NAME=" + DEFAULT_THEME_NAME;
+            assert currentTheme != null : "DEFAULT_THEME_NAME=" + DEFAULT_THEME_NAME;   //NOI18N
         }
     }
 

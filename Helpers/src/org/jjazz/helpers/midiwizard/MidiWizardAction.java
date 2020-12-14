@@ -66,7 +66,7 @@ public final class MidiWizardAction implements ActionListener
 {
 
     // SoundFont sequence data
-    public static final String PROP_USE_JJAZZLAB_SOUNDFONT = "UseJJazzLabSoundFont";
+    public static final String PROP_USE_JJAZZLAB_SOUNDFONT = "UseJJazzLabSoundFont";   //NOI18N 
     public static String PROP_MIDI_OUT_DEVICE = "PropMidiOutDevice";
     public static String PROP_JJAZZLAB_SOUNDFONT_FILE = "PropJJazzLabSoundFontFile";
 
@@ -107,7 +107,7 @@ public final class MidiWizardAction implements ActionListener
                     jms.setDefaultOutDevice(md);
                 } catch (MidiUnavailableException ex)
                 {
-                    LOGGER.warning("actionPerformed() Can't set default Midi out device to " + JJazzMidiSystem.getInstance().getDeviceFriendlyName(md) + ". ex=" + ex.getLocalizedMessage());
+                    LOGGER.warning("actionPerformed() Can't set default Midi out device to " + JJazzMidiSystem.getInstance().getDeviceFriendlyName(md) + ". ex=" + ex.getLocalizedMessage());   //NOI18N
                     NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(nd);
                 }
@@ -171,7 +171,7 @@ public final class MidiWizardAction implements ActionListener
                 } catch (IOException ex)
                 {
                     String msg = ResUtil.getString(getClass(), "MidiWizardAction.CTL_ErrSavingOutputFile", f.getName()) + " : " + ex.getLocalizedMessage();
-                    LOGGER.warning("actionPerformed() " + msg);
+                    LOGGER.warning("actionPerformed() " + msg);   //NOI18N
                     NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(nd);
                 }
@@ -204,8 +204,8 @@ public final class MidiWizardAction implements ActionListener
             UpgradeManager um = UpgradeManager.getInstance();
             if (um.isFreshStart() && um.getImportSourceVersion() == null)
             {
-                Action a = Actions.forID("JJazz", "org.jjazz.helpers.midiwizard.MidiWizardAction");
-                assert a != null;
+                Action a = Actions.forID("JJazz", "org.jjazz.helpers.midiwizard.MidiWizardAction");   //NOI18N
+                assert a != null;   //NOI18N
                 a.actionPerformed(null);
                 return true;
             } else

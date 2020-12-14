@@ -152,7 +152,7 @@ public class ColorSetManagerImpl implements ColorSetManager
                 c = new Color(prefs.getInt(COLOR_PROP_PREFIX + index, c6.getRGB()));
                 break;
             default:
-                throw new IllegalArgumentException("index=" + index + " NB_COLORS=" + NB_COLORS);
+                throw new IllegalArgumentException("index=" + index + " NB_COLORS=" + NB_COLORS);   //NOI18N
         }
         return c;
     }
@@ -162,7 +162,7 @@ public class ColorSetManagerImpl implements ColorSetManager
     {
         if (c == null || index < 0 || index >= NB_COLORS)
         {
-            throw new IllegalArgumentException("index=" + index + " c=" + c);
+            throw new IllegalArgumentException("index=" + index + " c=" + c);   //NOI18N
         }
         Color oldColor = getReferenceColor(index);
         prefs.putInt(COLOR_PROP_PREFIX + index, c.getRGB());

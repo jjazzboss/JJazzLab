@@ -131,7 +131,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if (!checkPitch(p) || bd <= 0 || alt == null || !checkVelocity(v))
         {
-            throw new IllegalArgumentException("p=" + p + " bd=" + bd + " alt=" + alt + " v=" + v);
+            throw new IllegalArgumentException("p=" + p + " bd=" + bd + " alt=" + alt + " v=" + v);   //NOI18N
         }
         pitch = p;
         beatDuration = bd;
@@ -177,7 +177,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if (s == null)
         {
-            throw new NullPointerException("s");
+            throw new NullPointerException("s");   //NOI18N
         }
         String str = s.trim();
         Alteration alt = Alteration.FLAT;         // By default
@@ -373,7 +373,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if (relPitch > 11 || relPitch < 0)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch);
+            throw new IllegalArgumentException("relPitch=" + relPitch);   //NOI18N
         }
         int pitchDelta = relPitch - getRelativePitch();
         if (pitchDelta > 6)
@@ -409,7 +409,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if (lowPitch > highPitch - 12)
         {
-            throw new IllegalArgumentException("lowPitch=" + lowPitch + " highPïtch=" + highPitch);
+            throw new IllegalArgumentException("lowPitch=" + lowPitch + " highPïtch=" + highPitch);   //NOI18N
         }
         int newPitch = pitch;
         while (pitch < lowPitch)
@@ -438,7 +438,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if (pitchLimit < 13 || pitchLimit > 119)
         {
-            throw new IllegalArgumentException("t=" + pitchShift + " pitchLimit=" + pitchLimit);
+            throw new IllegalArgumentException("t=" + pitchShift + " pitchLimit=" + pitchLimit);   //NOI18N
         }
         int newPitch = this.pitch + pitchShift;
         if (pitchShift > 0)
@@ -493,7 +493,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if (relPitch < 0 || relPitch > 11)
         {
-            throw new IllegalArgumentException("this=" + this + " relPitch=" + relPitch);
+            throw new IllegalArgumentException("this=" + this + " relPitch=" + relPitch);   //NOI18N
         }
         int p = getOctave() * 12 + relPitch;
         if ((relPitch == getRelativePitch() && !acceptEquals) || relPitch > getRelativePitch())
@@ -523,7 +523,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if (relPitch < 0 || relPitch > 11)
         {
-            throw new IllegalArgumentException("this=" + this + " relPitch=" + relPitch);
+            throw new IllegalArgumentException("this=" + this + " relPitch=" + relPitch);   //NOI18N
         }
         int p = getOctave() * 12 + relPitch;
         if ((relPitch == getRelativePitch() && !acceptEquals) || relPitch < getRelativePitch())
@@ -796,7 +796,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if (lowPitch > highPitch - 11)
         {
-            throw new IllegalArgumentException("lowPitch=" + lowPitch + " highPitch=" + highPitch);
+            throw new IllegalArgumentException("lowPitch=" + lowPitch + " highPitch=" + highPitch);   //NOI18N
         }
         int newPitch = pitch;
         while (newPitch < lowPitch)
@@ -823,7 +823,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         if ((pitchFrom > pitchTo) || (pitchFrom < 0) || (pitchTo < 0))
         {
-            throw new IllegalArgumentException("pitchFrom=" + pitchFrom + " pitchTo=" + pitchTo);
+            throw new IllegalArgumentException("pitchFrom=" + pitchFrom + " pitchTo=" + pitchTo);   //NOI18N
         }
 
         Note[] notes = new Note[pitchTo - pitchFrom + 1];

@@ -47,8 +47,8 @@ public class ApplyToolbarConfig implements Runnable
     @Override
     public void run()
     {
-        assert EventQueue.isDispatchThread();
-        LOGGER.fine("ApplyToolbarConfig.run() --");
+        assert EventQueue.isDispatchThread();   //NOI18N
+        LOGGER.fine("ApplyToolbarConfig.run() --");   //NOI18N
         ToolbarPool.getDefault().setConfiguration("MyToolBarConfig");
     }
 }

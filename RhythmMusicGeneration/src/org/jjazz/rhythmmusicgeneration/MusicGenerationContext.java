@@ -71,7 +71,7 @@ public class MusicGenerationContext
     {
         if (s == null || mix == null)
         {
-            throw new IllegalArgumentException("s=" + s + " mix=" + mix + "r=" + r);
+            throw new IllegalArgumentException("s=" + s + " mix=" + mix + "r=" + r);   //NOI18N
         }
         song = s;
         this.mix = mix;
@@ -84,7 +84,7 @@ public class MusicGenerationContext
             this.range = new IntRange(0, sizeInBars - 1);
         } else if (r.from > sizeInBars - 1 || r.to > sizeInBars - 1)
         {
-            throw new IllegalArgumentException("s=" + s + " mix=" + mix + "r=" + r);
+            throw new IllegalArgumentException("s=" + s + " mix=" + mix + "r=" + r);   //NOI18N
         } else
         {
             this.range = r;
@@ -315,7 +315,7 @@ public class MusicGenerationContext
     {
         if (pos == null)
         {
-            throw new NullPointerException("pos");
+            throw new NullPointerException("pos");   //NOI18N
         }
         long tick = -1;
         int bar = pos.getBar();

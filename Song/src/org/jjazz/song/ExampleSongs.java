@@ -65,7 +65,7 @@ public class ExampleSongs implements StartupTask
         File dir = new File(fdm.getJJazzLabUserDirectory(), DIR_NAME);
         if (!dir.isDirectory() && !dir.mkdir())
         {
-            LOGGER.warning("run() Could not create directory " + dir.getAbsolutePath() + ".");
+            LOGGER.warning("run() Could not create directory " + dir.getAbsolutePath() + ".");   //NOI18N
             return false;
         } else
         {
@@ -100,7 +100,7 @@ public class ExampleSongs implements StartupTask
             isEmpty = Utilities.isEmpty(dir.toPath());
         } catch (IOException ex)
         {
-            LOGGER.warning("copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getLocalizedMessage());
+            LOGGER.warning("copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getLocalizedMessage());   //NOI18N
             return;
         }
         if (!isEmpty)
@@ -124,7 +124,7 @@ public class ExampleSongs implements StartupTask
 
         // Copy the default rhythms
         List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
-        LOGGER.info("copyFilesOrNot() Copied " + res.size() + " song files to " + dir.getAbsolutePath());
+        LOGGER.info("copyFilesOrNot() Copied " + res.size() + " song files to " + dir.getAbsolutePath());   //NOI18N
 
     }
 

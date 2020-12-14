@@ -143,7 +143,7 @@ public class SongFactory implements PropertyChangeListener
     {
         if (f == null)
         {
-            throw new IllegalArgumentException("f=" + f);
+            throw new IllegalArgumentException("f=" + f);   //NOI18N
         }
         Song song = null;
 
@@ -235,7 +235,7 @@ public class SongFactory implements PropertyChangeListener
     {
         if (name == null || name.isEmpty() || cls == null)
         {
-            throw new IllegalArgumentException("name=" + name + " cls=" + cls);
+            throw new IllegalArgumentException("name=" + name + " cls=" + cls);   //NOI18N
         }
         Song song = new Song(name, cls);
         registerSong(song);
@@ -266,7 +266,7 @@ public class SongFactory implements PropertyChangeListener
     {
         if (name == null || name.isEmpty() || clsSize < 1)
         {
-            throw new IllegalArgumentException("name=" + name + " clsSize=" + clsSize);
+            throw new IllegalArgumentException("name=" + name + " clsSize=" + clsSize);   //NOI18N
         }
         ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
         ChordLeadSheet cls = clsf.createEmptyLeadSheet("A", TimeSignature.FOUR_FOUR, clsSize);
@@ -277,7 +277,7 @@ public class SongFactory implements PropertyChangeListener
         } catch (UnsupportedEditException ex)
         {
             // We should not be here
-            throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);
+            throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);   //NOI18N
         }
         int tempo = song.getSongStructure().getSongPart(0).getRhythm().getPreferredTempo();
         song.setTempo(tempo);
@@ -317,7 +317,7 @@ public class SongFactory implements PropertyChangeListener
     {
         if (song == null)
         {
-            throw new IllegalArgumentException("song");
+            throw new IllegalArgumentException("song");   //NOI18N
         }
         ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
         ChordLeadSheet newCls = clsf.getCopy(song.getChordLeadSheet());
@@ -329,7 +329,7 @@ public class SongFactory implements PropertyChangeListener
         } catch (UnsupportedEditException ex)
         {
             // Should not occur since it's a clone, ie already accepted edits
-            throw new IllegalArgumentException("clone() failed. Song's name=" + song.getName(), ex);
+            throw new IllegalArgumentException("clone() failed. Song's name=" + song.getName(), ex);   //NOI18N
         }
         s.setComments(song.getComments());
         s.setTempo(song.getTempo());
@@ -351,7 +351,7 @@ public class SongFactory implements PropertyChangeListener
         for (SongPart spt : song.getSongStructure().getSongParts())
         {
             CLI_Section newParentSection = newCls.getSection(spt.getParentSection().getData().getName());
-            assert newParentSection != null : "spt=" + spt;
+            assert newParentSection != null : "spt=" + spt;   //NOI18N
             SongPart sptCopy = spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
             newSpts.add(sptCopy);
         }
@@ -362,7 +362,7 @@ public class SongFactory implements PropertyChangeListener
         } catch (UnsupportedEditException ex)
         {
             // Should never happen
-            throw new IllegalArgumentException("getCopy() failed. Song's name=" + song.getName() + " newSgs=" + newSgs + " newSpts=" + newSpts, ex);
+            throw new IllegalArgumentException("getCopy() failed. Song's name=" + song.getName() + " newSgs=" + newSgs + " newSpts=" + newSpts, ex);   //NOI18N
         }
 
 
@@ -390,7 +390,7 @@ public class SongFactory implements PropertyChangeListener
     {
         if (song == null)
         {
-            throw new IllegalArgumentException("song");
+            throw new IllegalArgumentException("song");   //NOI18N
         }
         ChordLeadSheet cls = ChordLeadSheetFactory.getDefault().getCopy(song.getChordLeadSheet());
         SongStructure ss = null;
@@ -415,7 +415,7 @@ public class SongFactory implements PropertyChangeListener
             ss.addSongParts(newSpts);            // Can raise UnsupportedEditException     
         } catch (UnsupportedEditException ex)
         {
-            throw new IllegalArgumentException("getCopyUnlinked() failed. Song's name=" + song.getName() + " ss=" + ss, ex);
+            throw new IllegalArgumentException("getCopyUnlinked() failed. Song's name=" + song.getName() + " ss=" + ss, ex);   //NOI18N
         }
 
         // Now create the song copy
@@ -441,7 +441,7 @@ public class SongFactory implements PropertyChangeListener
     {
         if (song == null)
         {
-            throw new IllegalArgumentException("song");
+            throw new IllegalArgumentException("song");   //NOI18N
         }
 
 
@@ -561,7 +561,7 @@ public class SongFactory implements PropertyChangeListener
     {
         if (song == null)
         {
-            throw new IllegalArgumentException("song");
+            throw new IllegalArgumentException("song");   //NOI18N
         }
 
         // Create a full copy to preserve links between SongParts and Sections
@@ -602,7 +602,7 @@ public class SongFactory implements PropertyChangeListener
         if (e.getSource() instanceof Song)
         {
             Song song = (Song) e.getSource();
-            assert songs.keySet().contains(song) : "song=" + song + " songs=" + songs.keySet();
+            assert songs.keySet().contains(song) : "song=" + song + " songs=" + songs.keySet();   //NOI18N
             if (e.getPropertyName() == Song.PROP_CLOSED)
             {
                 unregisterSong(song);

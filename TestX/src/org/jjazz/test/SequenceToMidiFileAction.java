@@ -55,18 +55,18 @@ public final class SequenceToMidiFileAction implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.info("actionPerformed() --");
+        LOGGER.info("actionPerformed() --");   //NOI18N
         
         Sequencer s = JJazzMidiSystem.getInstance().getDefaultSequencer();
         if (s == null)
         {
-            LOGGER.severe("actionPerformed() can't acquire sequencer");
+            LOGGER.severe("actionPerformed() can't acquire sequencer");   //NOI18N
             return;
         }
         Sequence seq = s.getSequence();
         if (seq == null)
         {
-            LOGGER.warning("No sequence");
+            LOGGER.warning("No sequence");   //NOI18N
             return;
         }
 
@@ -100,14 +100,14 @@ public final class SequenceToMidiFileAction implements ActionListener
             int[] fileTypes = MidiSystem.getMidiFileTypes(sequence);
             for (Integer i : fileTypes)
             {
-                LOGGER.info(" supported fileType=" + i);
+                LOGGER.info(" supported fileType=" + i);   //NOI18N
             }
             if (fileTypes.length == 0)
             {
-                LOGGER.info(" NO fileTypes supported for this sequence !");
+                LOGGER.info(" NO fileTypes supported for this sequence !");   //NOI18N
             }
 
-            LOGGER.info("writing sequence to Midi File: " + midiTempFile.getAbsolutePath());
+            LOGGER.info("writing sequence to Midi File: " + midiTempFile.getAbsolutePath());   //NOI18N
             try
             {
                 MidiSystem.write(sequence, 1, midiTempFile);
@@ -117,7 +117,7 @@ public final class SequenceToMidiFileAction implements ActionListener
                 return;
             } 
             
-            LOGGER.info("Starting Midi Editor...");
+            LOGGER.info("Starting Midi Editor...");   //NOI18N
             ProcessBuilder pb = new ProcessBuilder("C:\\Program Files (x86)\\MidiEditor\\MidiEditor.exe", midiTempFile.getAbsolutePath());
             try
             {

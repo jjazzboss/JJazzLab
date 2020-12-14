@@ -100,7 +100,7 @@ public class Quantizer
     {
         if (q == null || !ts.checkBeat(pos.getBeat()) || pos.getBar() > maxBarIndex)
         {
-            throw new IllegalArgumentException("q=" + q + " pos=" + pos + " ts=" + ts + " maxBarIndex=" + maxBarIndex);
+            throw new IllegalArgumentException("q=" + q + " pos=" + pos + " ts=" + ts + " maxBarIndex=" + maxBarIndex);   //NOI18N
         }
         Position newPos;
         switch (q)
@@ -124,7 +124,7 @@ public class Quantizer
                 newPos = quantizeStandard(pos, ts, maxBarIndex, QPOINTS_ONE_QUARTER_BEAT);
                 break;
             default:
-                throw new IllegalStateException("quantization=" + q);
+                throw new IllegalStateException("quantization=" + q);   //NOI18N
         }
 
         return newPos;

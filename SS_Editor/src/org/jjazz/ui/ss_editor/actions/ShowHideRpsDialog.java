@@ -41,6 +41,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
+import org.jjazz.util.ResUtil;
 import org.openide.windows.WindowManager;
 
 public class ShowHideRpsDialog extends javax.swing.JDialog
@@ -125,7 +126,7 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -136,7 +137,7 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
             @Override
@@ -145,7 +146,7 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
                 actionCancel();
             }
         });
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Control-A"), "actionSelectAll");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Control-A"), "actionSelectAll");   //NOI18N
         contentPane.getActionMap().put("actionSelectAll", new AbstractAction("Cancel")
         {
 
@@ -364,7 +365,7 @@ public class ShowHideRpsDialog extends javax.swing.JDialog
             String s;
             if (colIndex == COL_RP)
             {
-                s = "Parameter";
+                s = ResUtil.getString(getClass(), "PARAMETER");
             } else
             {
                 s = rhythms.get(colIndex - COL_FIRST_RHYTHM).getName();

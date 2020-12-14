@@ -92,7 +92,7 @@ public class ContextChordSequence extends ChordSequence
                 // Don't allow Void chordsymbol if it's the init chord symbol
                 if (newEcs == VoidAltExtChordSymbol.getInstance() && newPos.equals(new Position(0, 0)))
                 {
-                    LOGGER.info("ContextChordSequence() Can't use the void alternate chord symbol of " + ecs.getName() + " at initial position.");
+                    LOGGER.info("ContextChordSequence() Can't use the void alternate chord symbol of " + ecs.getName() + " at initial position.");   //NOI18N
                     newEcs = ecs;
                 }
 
@@ -110,12 +110,12 @@ public class ContextChordSequence extends ChordSequence
             // This must be because the range starts in the middle of the first section                
             SongPart spt0 = this.context.getSongParts().get(0);
             IntRange clsRange = toClsRange(spt0);
-            assert clsRange.from > 0 : "clsRange=" + clsRange;
+            assert clsRange.from > 0 : "clsRange=" + clsRange;   //NOI18N
             List<? extends CLI_ChordSymbol> items = cls.getItems(0, clsRange.from - 1, CLI_ChordSymbol.class);
             CLI_ChordSymbol prevCliCs = items.get(items.size() - 1);        // Take the last chord before the range
             CLI_ChordSymbol newCs = getInitCopy(prevCliCs);
             add(0, newCs);      // Add at first position                    
-            LOGGER.log(Level.FINE, "fixChordSequence()   lacking a starting chord. Add a copy of previous chord={0}", newCs);
+            LOGGER.log(Level.FINE, "fixChordSequence()   lacking a starting chord. Add a copy of previous chord={0}", newCs);   //NOI18N
         }
     }
 
@@ -143,7 +143,7 @@ public class ContextChordSequence extends ChordSequence
      */
     public <T> HashMap<ChordSequence, T> split(Rhythm r, RhythmParameter<T> rp)
     {
-        LOGGER.fine("split() --");
+        LOGGER.fine("split() --");   //NOI18N
         HashMap<ChordSequence, T> mapCsRpValue = new HashMap<>();
         int seqStartBar = getStartBar();
         int seqEndBar = seqStartBar;
@@ -193,7 +193,7 @@ public class ContextChordSequence extends ChordSequence
             ChordSequence cSeq = subSequence(seqStartBar, seqEndBar, true);
             mapCsRpValue.put(cSeq, lastRpValue);
         }
-        LOGGER.log(Level.FINE, "split()   mapCsSp={0}", mapCsRpValue.toString());
+        LOGGER.log(Level.FINE, "split()   mapCsSp={0}", mapCsRpValue.toString());   //NOI18N
         return mapCsRpValue;
     }
 

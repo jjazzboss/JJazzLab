@@ -38,7 +38,7 @@ public interface ItemRendererSettings
         ItemRendererSettings result = Lookup.getDefault().lookup(ItemRendererSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);
+            throw new NullPointerException("result=" + result);   //NOI18N
         }
         return result;
     }

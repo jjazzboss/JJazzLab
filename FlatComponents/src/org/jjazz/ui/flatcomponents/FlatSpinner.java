@@ -68,7 +68,7 @@ public class FlatSpinner<E> extends javax.swing.JPanel implements PropertyChange
      * Client Property: background of the editor
      */
     public final static String PROP_EDITOR_BACKGROUND = "PropEditorBackground";
-    public static final String PROP_VALUE = "PropValue";
+    public static final String PROP_VALUE = "PropValue";   //NOI18N 
     private static final int VALUE_X_POS = 50;
     private int valueXpos;
     private int valueIndex = -1;
@@ -163,12 +163,12 @@ public class FlatSpinner<E> extends javax.swing.JPanel implements PropertyChange
     {
         if (possibleValues == null)
         {
-            throw new IllegalStateException("possibleValues=" + possibleValues + " value=" + value);
+            throw new IllegalStateException("possibleValues=" + possibleValues + " value=" + value);   //NOI18N
         }
         int index = possibleValues.indexOf(value);
         if (index == -1)
         {
-            throw new IllegalArgumentException("value=" + value + " possibleValues=" + possibleValues);
+            throw new IllegalArgumentException("value=" + value + " possibleValues=" + possibleValues);   //NOI18N
         }
         if (valueIndex != index)
         {
@@ -197,7 +197,7 @@ public class FlatSpinner<E> extends javax.swing.JPanel implements PropertyChange
     {
         if (valueXpos < 0 || valueXpos > 1000)
         {
-            throw new IllegalArgumentException("valueXpos=" + valueXpos);
+            throw new IllegalArgumentException("valueXpos=" + valueXpos);   //NOI18N
         }
         this.valueXpos = Math.max(valueXpos, 10);
         Dimension d = lbl_text.getPreferredSize();
@@ -217,7 +217,7 @@ public class FlatSpinner<E> extends javax.swing.JPanel implements PropertyChange
     {
         if (values == null || values.isEmpty())
         {
-            throw new IllegalArgumentException("values=" + values);
+            throw new IllegalArgumentException("values=" + values);   //NOI18N
         }
         if (possibleValues == null)
         {
@@ -296,7 +296,7 @@ public class FlatSpinner<E> extends javax.swing.JPanel implements PropertyChange
 
     private void mouseWheelChanged(MouseWheelEvent evt)
     {
-        LOGGER.fine("mouseWheelChanged() " + evt.getWheelRotation());
+        LOGGER.fine("mouseWheelChanged() " + evt.getWheelRotation());   //NOI18N
         if (possibleValues == null)
         {
             return;
@@ -368,13 +368,13 @@ public class FlatSpinner<E> extends javax.swing.JPanel implements PropertyChange
 
     private void formMouseEntered(java.awt.event.MouseEvent evt)//GEN-FIRST:event_formMouseEntered
     {//GEN-HEADEREND:event_formMouseEntered
-        LOGGER.fine("formMouseEntered()");
+        LOGGER.fine("formMouseEntered()");   //NOI18N
         setBorder(getBorder(PROP_BORDER_ENTERED));
     }//GEN-LAST:event_formMouseEntered
 
     private void formMouseExited(java.awt.event.MouseEvent evt)//GEN-FIRST:event_formMouseExited
     {//GEN-HEADEREND:event_formMouseExited
-        LOGGER.fine("formMouseExited()");
+        LOGGER.fine("formMouseExited()");   //NOI18N
         setBorder(getBorder(PROP_BORDER_DEFAULT));
     }//GEN-LAST:event_formMouseExited
 
@@ -382,7 +382,7 @@ public class FlatSpinner<E> extends javax.swing.JPanel implements PropertyChange
     {//GEN-HEADEREND:event_formMouseClicked
         if (isEditable && evt.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(evt))
         {
-            LOGGER.fine("formMouseClicked() simple-click");
+            LOGGER.fine("formMouseClicked() simple-click");   //NOI18N
             if (TEXT_EDIT_DIALOG == null)
             {
                 TEXT_EDIT_DIALOG = new FlatTextEditDialog(WindowManager.getDefault().getMainWindow(), true);
@@ -405,7 +405,7 @@ public class FlatSpinner<E> extends javax.swing.JPanel implements PropertyChange
                 E value = stringToValue(text);
                 if (value == null || !possibleValues.contains(value))
                 {
-                    LOGGER.fine("formMouseClicked() invalid value : " + value);
+                    LOGGER.fine("formMouseClicked() invalid value : " + value);   //NOI18N
                     Toolkit.getDefaultToolkit().beep();
                 } else
                 {

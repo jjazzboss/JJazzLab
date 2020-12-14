@@ -98,7 +98,7 @@ public class ConverterManager
     {
         if (srcIns == null || destSynth == null)
         {
-            throw new IllegalArgumentException("ins=" + srcIns + " destSynth=" + destSynth);
+            throw new IllegalArgumentException("ins=" + srcIns + " destSynth=" + destSynth);   //NOI18N
         }
         if (banks != null)
         {
@@ -106,7 +106,7 @@ public class ConverterManager
             {
                 if (bank.getMidiSynth() != destSynth)
                 {
-                    throw new IllegalArgumentException("srcIns=" + srcIns.toLongString() + " destSynth=" + destSynth + " banks=" + banks + " bank=" + bank);
+                    throw new IllegalArgumentException("srcIns=" + srcIns.toLongString() + " destSynth=" + destSynth + " banks=" + banks + " bank=" + bank);   //NOI18N
                 }
             }
         }

@@ -47,7 +47,7 @@ public class SaveAsCapableSong implements SaveAsCapable
     {
         if (song == null)
         {
-            throw new IllegalArgumentException("song=" + song);
+            throw new IllegalArgumentException("song=" + song);   //NOI18N
         }
         this.song = song;
     }

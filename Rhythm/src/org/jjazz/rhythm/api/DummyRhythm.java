@@ -70,7 +70,7 @@ public class DummyRhythm implements Rhythm
     {
         if (ts == null)
         {
-            throw new NullPointerException("ts");
+            throw new NullPointerException("ts");   //NOI18N
         }
 
         this.name = name;

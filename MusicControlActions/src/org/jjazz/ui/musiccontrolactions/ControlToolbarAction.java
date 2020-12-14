@@ -30,7 +30,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.*;
 import org.openide.util.actions.Presenter;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.musiccontrolactions.controltoolbaraction")
@@ -38,10 +37,6 @@ import org.openide.util.actions.Presenter;
 @ActionReferences(
         {
             @ActionReference(path = "Toolbars/MusicControls", position = 50)     // This will insert our toolbar
-        })
-@NbBundle.Messages(
-        {
-            "CTL_ControlToolbarAction=Music Control Toolbar"
         })
 public class ControlToolbarAction extends AbstractAction implements Presenter.Toolbar
 {

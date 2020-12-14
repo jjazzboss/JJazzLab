@@ -58,10 +58,10 @@ public class ShowLogWindow implements Runnable
      */
     static public void actionPerformed()
     {
-        Action a = Actions.forID(ACTION_CAT, ACTION_ID);
+        Action a = Actions.forID(ACTION_CAT, ACTION_ID);   //NOI18N
         if (a == null)
         {
-            LOGGER.warning("actionPerformed() Action not found cat=" + ACTION_CAT + " id=" + ACTION_ID);
+            LOGGER.warning("actionPerformed() Action not found cat=" + ACTION_CAT + " id=" + ACTION_ID);   //NOI18N
             return;
         }
         a.actionPerformed(null);

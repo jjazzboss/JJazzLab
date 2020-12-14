@@ -66,6 +66,7 @@ import org.jjazz.outputsynth.OutputSynth.SendModeOnUponStartup;
 import org.jjazz.outputsynth.ui.spi.RemapTableInstrumentChooser;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.uisettings.GeneralUISettings;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
@@ -124,7 +125,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     {
         if (outSynth == null)
         {
-            throw new IllegalArgumentException("outSynth=" + outSynth);
+            throw new IllegalArgumentException("outSynth=" + outSynth);   //NOI18N
         }
 
         clean();        // Unregister outputSynth
@@ -163,7 +164,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     @Override
     public void valueChanged(ListSelectionEvent e)
     {
-        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);
+        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);   //NOI18N
         if (e.getValueIsAdjusting())
         {
             return;
@@ -310,7 +311,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
      */
     private boolean confirmRemoval(String removedStr)
     {
-        String msg = "Some Default Instruments use " + removedStr + ", they will be removed. Do you confirm ?";
+        String msg = ResUtil.getString(getClass(), "CTL_ConfirmedDefInstrumentRemoval", removedStr);
         NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
         Object result = DialogDisplayer.getDefault().notify(d);
         return NotifyDescriptor.YES_OPTION == result;
@@ -359,7 +360,9 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             String s = synth.getName() + " (" + synth.getNbInstruments() + ")";
             setText(s);
             File f = synth.getFile();
-            s = (f == null) ? "Builtin" : f.getAbsolutePath();
+            s = (f == null) ? ResUtil.getString(getClass(), "BUILTIN", new Object[]
+            {
+            }) : f.getAbsolutePath();
             if (synth == editorStdSynth)
             {
                 setFont(getFont().deriveFont(Font.ITALIC));
@@ -379,7 +382,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             InstrumentBank<?> bank = (InstrumentBank<?>) value;
             setText(bank.getName() + " (" + bank.getSize() + ")");
-            setToolTipText("Bank select method: " + bank.getDefaultBankSelectMethod().toString());
+            setToolTipText(ResUtil.getString(getClass(), "CTL_BankSelectMethod", bank.getDefaultBankSelectMethod().toString()));
             if (StdSynth.getInstance().getBanks().contains(bank) || bank == GSSynth.getInstance().getGSBank())
             {
                 Font ft = getFont();
@@ -809,7 +812,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             }
             if (!outputSynth.removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank()))
             {
-                String msg = "Can't remove the GM bank, otherwise output synth would be empty.";
+                String msg = ResUtil.getString(getClass(), "ERR_CantRemoveGMbank");
                 NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
                 cb_GM.setSelected(true);
@@ -850,7 +853,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         {
             if (outputSynth.getGMRemapTable().isUsed(null, StdSynth.getInstance().getGM2Bank()))
             {
-                if (!confirmRemoval("the GM2 bank"))
+                if (!confirmRemoval(ResUtil.getString(getClass(), "THE GM2 BANK")))
                 {
                     cb_GM2.setSelected(true);
                     return;
@@ -869,7 +872,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         {
             if (outputSynth.getGMRemapTable().isUsed(null, StdSynth.getInstance().getXGBank()))
             {
-                if (!confirmRemoval("the XG bank"))
+                if (!confirmRemoval(ResUtil.getString(getClass(), "THE XG BANK")))
                 {
                     cb_XG.setSelected(true);
                     return;
@@ -888,7 +891,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         {
             if (outputSynth.getGMRemapTable().isUsed(null, GSSynth.getInstance().getGSBank()))
             {
-                if (!confirmRemoval("the GS bank"))
+                if (!confirmRemoval(ResUtil.getString(getClass(), "THE GS BANK")))
                 {
                     cb_GS.setSelected(true);
                     return;
@@ -947,7 +950,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         Instrument ins = this.tbl_Instruments.getSelectedInstrument();
         if (ins == null || !ins.getMidiAddress().isFullyDefined())
         {
-            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + (ins != null ? ins.getMidiAddress() : null));
+            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + (ins != null ? ins.getMidiAddress() : null));   //NOI18N
             return;
         }
         list_MidiSynths.setEnabled(false);
@@ -1021,13 +1024,13 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
         Instrument remappedIns = tbl_Remap.getSelectedRemappedInstrument();
         if (remappedIns == null)
         {
-            LOGGER.fine("btn_HearActionPerformed() called but invalid remappedIns=" + remappedIns);
+            LOGGER.fine("btn_HearActionPerformed() called but invalid remappedIns=" + remappedIns);   //NOI18N
             return;
         }
         Instrument ins = outputSynth.getGMRemapTable().getInstrument(remappedIns);
         if (ins == null || !ins.getMidiAddress().isFullyDefined())
         {
-            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + (ins != null ? ins.getMidiAddress() : ""));
+            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + (ins != null ? ins.getMidiAddress() : ""));   //NOI18N
             return;
         }
         tabPane.setEnabled(false);

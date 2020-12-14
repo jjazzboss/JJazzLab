@@ -78,7 +78,7 @@ public class FavoriteMidiSynth extends MidiSynth implements PropertyChangeListen
     {
         if (l == null)
         {
-            throw new NullPointerException("l");
+            throw new NullPointerException("l");   //NOI18N
         }
         listeners.add(l);
     }
@@ -138,7 +138,7 @@ public class FavoriteMidiSynth extends MidiSynth implements PropertyChangeListen
         {
             if (instrument == null)
             {
-                throw new IllegalArgumentException("instrument=" + instrument);
+                throw new IllegalArgumentException("instrument=" + instrument);   //NOI18N
             }
             if (!instruments.contains(instrument))
             {

@@ -381,7 +381,7 @@ final class ClickPanel extends javax.swing.JPanel
                 rbtn_precount_auto.setSelected(true);
                 break;
             default:
-                throw new IllegalStateException("mode=" + mode);
+                throw new IllegalStateException("mode=" + mode);   //NOI18N
         }
     }
 

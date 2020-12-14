@@ -71,7 +71,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     {
         if (cs == null || pos == null)
         {
-            throw new NullPointerException(" cs=" + cs + " pos=" + pos);
+            throw new NullPointerException(" cs=" + cs + " pos=" + pos);   //NOI18N
         }
         data = cs;
         setPosition(pos);
@@ -98,7 +98,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     {
         if (position == null)
         {
-            throw new NullPointerException("p=" + p);
+            throw new NullPointerException("p=" + p);   //NOI18N
         }
         if (!position.equals(p))
         {
@@ -125,7 +125,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     {
         if (cs == null)
         {
-            throw new NullPointerException("cs=" + cs);
+            throw new NullPointerException("cs=" + cs);   //NOI18N
         }
         if (!cs.equals(data))
         {

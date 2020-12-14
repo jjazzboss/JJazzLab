@@ -105,53 +105,53 @@ public class SS_EditorController implements SS_EditorMouseListener
         dragStartRp = null;
 
         // Actions created by annotations (equivalent to org.openide.awt.Actions.context())
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_DOWN), "PreviousRpValue");
-        editor.getActionMap().put("PreviousRpValue", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.previousrpvalue"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_UP), "NextRpValue");
-        editor.getActionMap().put("NextRpValue", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.nextrpvalue"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("I"), "InsertSpt");
-        editor.getActionMap().put("InsertSpt", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.insertspt"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_I), "AppendSpt");
-        editor.getActionMap().put("AppendSpt", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.appendspt"));
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_DOWN), "PreviousRpValue");  //NOI18N
+        editor.getActionMap().put("PreviousRpValue", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.previousrpvalue"));   //NOI18N
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_UP), "NextRpValue");   //NOI18N
+        editor.getActionMap().put("NextRpValue", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.nextrpvalue"));   //NOI18N
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("I"), "InsertSpt");  //NOI18N
+        editor.getActionMap().put("InsertSpt", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.insertspt"));   //NOI18N
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_I), "AppendSpt");   //NOI18N
+        editor.getActionMap().put("AppendSpt", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.appendspt"));   //NOI18N
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_I,
-                Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK), "PasteAppend");
-        editor.getActionMap().put("PasteAppend", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.pasteappend"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("R"), "EditRhythm");
-        editor.getActionMap().put("EditRhythm", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editrhythm"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("D"), "Duplicate");
-        editor.getActionMap().put("Duplicate", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.duplicatespt"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Z"), "ResetRpValue");
-        editor.getActionMap().put("ResetRpValue", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.resetrpvalue"));
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK), "PasteAppend");  //NOI18N
+        editor.getActionMap().put("PasteAppend", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.pasteappend"));   //NOI18N
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("R"), "EditRhythm");  //NOI18N
+        editor.getActionMap().put("EditRhythm", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editrhythm"));   //NOI18N
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("D"), "Duplicate");   //NOI18N
+        editor.getActionMap().put("Duplicate", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.duplicatespt"));   //NOI18N
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("Z"), "ResetRpValue");  //NOI18N
+        editor.getActionMap().put("ResetRpValue", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.resetrpvalue"));   //NOI18N
 
         // Our delegates for standard Netbeans callback actions
-        editor.getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.cut"));
-        editor.getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.copy"));
-        editor.getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.paste"));
+        editor.getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.cut"));   //NOI18N
+        editor.getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.copy"));   //NOI18N
+        editor.getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.paste"));   //NOI18N
 
         // Delegates for our callback actions        
-        editor.getActionMap().put("jjazz-delete", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.removespt"));
-        editor.getActionMap().put("jjazz-selectall", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.selectall"));
-        editor.getActionMap().put("jjazz-edit", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editsptname"));
-        editor.getActionMap().put("jjazz-zoomfitwidth", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.zoomfitwidth"));
+        editor.getActionMap().put("jjazz-delete", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.removespt"));   //NOI18N
+        editor.getActionMap().put("jjazz-selectall", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.selectall"));   //NOI18N
+        editor.getActionMap().put("jjazz-edit", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editsptname"));   //NOI18N
+        editor.getActionMap().put("jjazz-zoomfitwidth", Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.zoomfitwidth"));   //NOI18N
 
 //        // Add keybindings which would be otherwise consumed by enclosing JScrollPane or other enclosing components
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"), "MoveSelectionLeft");
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift TAB"), "MoveSelectionLeft");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"), "MoveSelectionLeft");   //NOI18N
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift TAB"), "MoveSelectionLeft");  //NOI18N
         editor.getActionMap().put("MoveSelectionLeft", new MoveSelectionLeft());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("RIGHT"), "MoveSelectionRight");
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("TAB"), "MoveSelectionRight");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("RIGHT"), "MoveSelectionRight");  //NOI18N
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("TAB"), "MoveSelectionRight");  //NOI18N
         editor.getActionMap().put("MoveSelectionRight", new MoveSelectionRight());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift LEFT"), "ExtendSelectionLeft");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift LEFT"), "ExtendSelectionLeft");  //NOI18N
         editor.getActionMap().put("ExtendSelectionLeft", new ExtendSelectionLeft());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift RIGHT"), "ExtendSelectionRight");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift RIGHT"), "ExtendSelectionRight");  //NOI18N
         editor.getActionMap().put("ExtendSelectionRight", new ExtendSelectionRight());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("UP"), "MoveSelectionUp");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("UP"), "MoveSelectionUp");   //NOI18N
         editor.getActionMap().put("MoveSelectionUp", new MoveSelectionUp());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DOWN"), "MoveSelectionDown");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DOWN"), "MoveSelectionDown");  //NOI18N
         editor.getActionMap().put("MoveSelectionDown", new MoveSelectionDown());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), "JumpToHome");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), "JumpToHome");   //NOI18N
         editor.getActionMap().put("JumpToHome", new JumpToHome());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "JumpToEnd");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "JumpToEnd");  //NOI18N
         editor.getActionMap().put("JumpToEnd", new JumpToEnd());
      
     }
@@ -163,10 +163,10 @@ public class SS_EditorController implements SS_EditorMouseListener
         selection.unselectAll(editor);
         editor.selectSongPart(spt, true);
         editor.setFocusOnSongPart(spt);
-        Action a = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editrhythm");
+        Action a = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editrhythm");   //NOI18N
         if (a == null)
         {
-            LOGGER.log(Level.SEVERE, "Can't find action: org.jjazz.ui.ss_editor.actions.editrhythm");
+            LOGGER.log(Level.SEVERE, "Can't find action: org.jjazz.ui.ss_editor.actions.editrhythm");   //NOI18N
         } else
         {
             a.actionPerformed(null);
@@ -181,10 +181,10 @@ public class SS_EditorController implements SS_EditorMouseListener
         editor.selectSongPart(spt, true);
         editor.setFocusOnSongPart(spt);
 
-        Action a = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editsptname");
+        Action a = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editsptname");   //NOI18N
         if (a == null)
         {
-            LOGGER.log(Level.SEVERE, "Can't find the EditSptName action: org.jjazz.ui.ss_editor.actions.editsptname");
+            LOGGER.log(Level.SEVERE, "Can't find the EditSptName action: org.jjazz.ui.ss_editor.actions.editsptname");   //NOI18N
         } else
         {
             a.actionPerformed(null);
@@ -203,7 +203,7 @@ public class SS_EditorController implements SS_EditorMouseListener
 
         SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
 
-        LOGGER.log(Level.FINE, "songPartClicked() spt=" + spt + " multiSelect=" + multiSelect);
+        LOGGER.log(Level.FINE, "songPartClicked() spt=" + spt + " multiSelect=" + multiSelect);   //NOI18N
 
         if (e.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(e))
         {
@@ -211,7 +211,7 @@ public class SS_EditorController implements SS_EditorMouseListener
                     || (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
             {
                 // SIMPLE CLICK, or no previous selection set on a similar item
-                LOGGER.log(Level.FINE, "    simple click");
+                LOGGER.log(Level.FINE, "    simple click");   //NOI18N
                 selection.unselectAll(editor);
                 editor.selectSongPart(spt, true);
                 editor.setFocusOnSongPart(spt);
@@ -252,7 +252,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             } else if (focusedSpt != null && (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == InputEvent.SHIFT_DOWN_MASK)
             {
                 // SHIFT CLICK
-                LOGGER.log(Level.FINE, "    SHIFT click");
+                LOGGER.log(Level.FINE, "    SHIFT click");   //NOI18N
                 // Set selection from focusedSpt to shift clicked Spt
                 selection.unselectAll(editor);
                 List<SongPart> spts = editor.getModel().getSongParts();
@@ -276,11 +276,11 @@ public class SS_EditorController implements SS_EditorMouseListener
             // DOUBLE CLICK
             // Don't assume the first click was on a SongPart, it can be on something else !
             // (for example it happens when double clicking while moving near the RhythmParameter editor boundaries)
-            LOGGER.log(Level.FINE, "    DOUBLE click");
-            Action a = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editsptname");
+            LOGGER.log(Level.FINE, "    DOUBLE click");   //NOI18N
+            Action a = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editsptname");   //NOI18N
             if (a == null)
             {
-                LOGGER.log(Level.SEVERE, "Can't find the EditSptName action: org.jjazz.ui.ss_editor.actions.editsptname");
+                LOGGER.log(Level.SEVERE, "Can't find the EditSptName action: org.jjazz.ui.ss_editor.actions.editsptname");   //NOI18N
             } else if (selection.isSongPartSelected())
             {
                 a.actionPerformed(null);
@@ -288,7 +288,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         } else if (e.getClickCount() == 1 && SwingUtilities.isRightMouseButton(e))
         {
             // Right click      
-            LOGGER.log(Level.FINE, "    RIGHT click");
+            LOGGER.log(Level.FINE, "    RIGHT click");   //NOI18N
             if (!selection.isSongPartSelected(spt))
             {
                 // If not selected first do like simple click
@@ -315,14 +315,14 @@ public class SS_EditorController implements SS_EditorMouseListener
     @Override
     public void songPartReleased(MouseEvent e, SongPart spt)
     {
-        LOGGER.log(Level.FINER, "songPartReleased() spt=" + spt);
+        LOGGER.log(Level.FINER, "songPartReleased() spt=" + spt);   //NOI18N
         // Managed by SS_EditorTransferHandler of the SongPart
     }
 
     @Override
     public void songPartDragged(MouseEvent e, SongPart spt)
     {
-        LOGGER.log(Level.FINE, "songPartDragged() spt=" + spt);
+        LOGGER.log(Level.FINE, "songPartDragged() spt=" + spt);   //NOI18N
         // Managed by SS_EditorTransferHandler of the SongPart
     }
 
@@ -395,7 +395,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         {
             factor = Math.max(0, factor - STEP);
         }
-        LOGGER.log(Level.FINE, "editorWheelMoved() factor={0}", factor);
+        LOGGER.log(Level.FINE, "editorWheelMoved() factor={0}", factor);   //NOI18N
         editor.setZoomHFactor(factor);
     }
 
@@ -413,7 +413,7 @@ public class SS_EditorController implements SS_EditorMouseListener
 
         SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
 
-        LOGGER.log(Level.FINE, "rhythmParameterClicked() spt=" + spt + " rp=" + rp);
+        LOGGER.log(Level.FINE, "rhythmParameterClicked() spt=" + spt + " rp=" + rp);   //NOI18N
 
         if (e.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(e))
         {
@@ -422,7 +422,7 @@ public class SS_EditorController implements SS_EditorMouseListener
                     || (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
             {
                 // SIMPLE CLICK, or no previous selection set on a similar item
-                LOGGER.log(Level.FINE, "   simple click()");
+                LOGGER.log(Level.FINE, "   simple click()");   //NOI18N
                 selection.unselectAll(editor);
                 editor.selectRhythmParameter(spt, rp, true);
                 editor.setFocusOnRhythmParameter(spt, rp);
@@ -431,7 +431,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             {
                 // CTRL CLICK
                 // Just add selection, don't change focus
-                LOGGER.log(Level.FINE, "   ctrl click()");
+                LOGGER.log(Level.FINE, "   ctrl click()");   //NOI18N
                 if (spt != focusedSpt)
                 {
                     editor.selectRhythmParameter(spt, rp, !selection.isRhythmParameterSelected(spt, rp));
@@ -441,7 +441,7 @@ public class SS_EditorController implements SS_EditorMouseListener
                     == InputEvent.SHIFT_DOWN_MASK)
             {
                 // SHIFT CLICK
-                LOGGER.log(Level.FINE, "   shift click()");
+                LOGGER.log(Level.FINE, "   shift click()");   //NOI18N
                 // Set selection from focusedRp to shift clicked Rp
                 selection.unselectAll(editor);
                 List<SongPart> spts = editor.getModel().getSongParts();
@@ -470,7 +470,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         } else if (e.getClickCount() == 1 && SwingUtilities.isRightMouseButton(e))
         {
             // Right click        
-            LOGGER.log(Level.FINE, "   right click()");
+            LOGGER.log(Level.FINE, "   right click()");   //NOI18N
             if (!selection.isRhythmParameterSelected(spt, rp))
             {
                 // First do like simple click
@@ -554,11 +554,11 @@ public class SS_EditorController implements SS_EditorMouseListener
 
         if (e.getWheelRotation() < 0)
         {
-            Action action = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.nextrpvalue");
+            Action action = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.nextrpvalue");   //NOI18N
             action.actionPerformed(null);
         } else
         {
-            Action action = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.previousrpvalue");
+            Action action = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.previousrpvalue");   //NOI18N
             action.actionPerformed(null);
         }
     }
@@ -581,7 +581,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             selection.unselectAll(editor);
             editor.selectRhythmParameter(spt, rp, true);
             editor.setFocusOnRhythmParameter(spt, rp);
-            LOGGER.log(Level.FINE, "rpDragged() start drag dragStartSptIndex={0}", dragStartSpt);
+            LOGGER.log(Level.FINE, "rpDragged() start drag dragStartSptIndex={0}", dragStartSpt);   //NOI18N
         } else
         {
             // We continue a drag operation previously started
@@ -611,7 +611,7 @@ public class SS_EditorController implements SS_EditorMouseListener
     @Override
     public void rhythmParameterReleased(MouseEvent e, SongPart spt, RhythmParameter<?> rp)
     {
-        LOGGER.log(Level.FINE, "rhythmParameterReleased() spt=" + spt + " rp=" + rp);
+        LOGGER.log(Level.FINE, "rhythmParameterReleased() spt=" + spt + " rp=" + rp);   //NOI18N
         dragStartSpt = null;
     }
 
@@ -624,7 +624,7 @@ public class SS_EditorController implements SS_EditorMouseListener
     static public List<SongPart> getMultiSelectSongParts(SongPart spt)
     {
         SongStructure sgs = spt.getContainer();
-        assert sgs != null : "spt=" + spt;
+        assert sgs != null : "spt=" + spt;   //NOI18N
         List<SongPart> res = new ArrayList<>();
         List<SongPart> spts = sgs.getSongParts();
         int index = spts.indexOf(spt);

@@ -92,7 +92,7 @@ public class SaveRhythmDefaultMix extends AbstractAction
             savedRhythms.add(rhythm);
         }
 
-        assert !savedRhythms.isEmpty() : "song.getSongStructure()=" + song.getSongStructure() + " rhythm=" + rhythm;
+        assert !savedRhythms.isEmpty() : "song.getSongStructure()=" + song.getSongStructure() + " rhythm=" + rhythm;   //NOI18N
 
         String savedFiles = "";         // Used to show a message
 
@@ -106,7 +106,7 @@ public class SaveRhythmDefaultMix extends AbstractAction
                 rhythmMix.addInstrumentMixes(songMidiMix, r);
             } catch (MidiUnavailableException ex)
             {
-                LOGGER.log(Level.SEVERE, "MidiMix(MidiMix, Rhythm unexpected exception!", ex);
+                LOGGER.log(Level.SEVERE, "MidiMix(MidiMix, Rhythm unexpected exception!", ex);   //NOI18N
             }
             if (rhythmMix.saveToFileNotify(f, true))
             {

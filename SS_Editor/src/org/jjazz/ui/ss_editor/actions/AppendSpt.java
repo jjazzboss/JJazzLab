@@ -34,20 +34,18 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.database.api.RhythmDatabase;
-import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.JJazzUndoManager;
+import org.jjazz.util.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.appendspt")
 @ActionRegistration(displayName = "#CTL_AppendSpt", lazy = false)
@@ -55,11 +53,10 @@ import org.jjazz.undomanager.JJazzUndoManager;
         {
             @ActionReference(path = "Actions/SS_Editor", position = 300)
         })
-@NbBundle.Messages("CTL_AppendSpt=Insert At The End...")
 public class AppendSpt extends AbstractAction
 {
 
-    private String undoText = CTL_AppendSpt();
+    private String undoText = ResUtil.getString(getClass(), "CTL_AppendSpt");
     private static final Logger LOGGER = Logger.getLogger(AppendSpt.class.getSimpleName());
 
     public AppendSpt()
@@ -85,7 +82,7 @@ public class AppendSpt extends AbstractAction
         ChordLeadSheet cls = sgs.getParentChordLeadSheet();
         if (cls == null)
         {
-            throw new IllegalStateException("sgs=" + sgs);
+            throw new IllegalStateException("sgs=" + sgs);   //NOI18N
         }
         
         
@@ -101,7 +98,7 @@ public class AppendSpt extends AbstractAction
         {
             // Perform change
             CLI_Section parentSection = dlg.getParentSection();
-            assert parentSection != null;
+            assert parentSection != null;   //NOI18N
                                    
             
             // Create the song part
@@ -131,7 +128,8 @@ public class AppendSpt extends AbstractAction
             } catch (UnsupportedEditException ex)
             {
                 // We should not be here, we reuse an existing rhythm
-                String msg = "Impossible to append song part\n" + ex.getLocalizedMessage();
+                String msg = ResUtil.getString(getClass(), "ERR_ImpossibleToAppend");
+                msg += "\n" + ex.getLocalizedMessage();
                 um.handleUnsupportedEditException(undoText, msg);
                 return;
             }

@@ -61,7 +61,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
     {
         if (mMix == null || !MidiConst.checkMidiChannel(channel) || mMix.getInstrumentMixFromChannel(channel) == null)
         {
-            throw new IllegalArgumentException("mMix=" + mMix + " channel=" + channel);
+            throw new IllegalArgumentException("mMix=" + mMix + " channel=" + channel);   //NOI18N
         }
         channelId = channel;
         midiMix = mMix;
@@ -232,7 +232,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
                 } else
                 {
                     // Managed via conversion
-                    LOGGER.info("editInstrument() channel=" + channelId + " ins=" + ins.getPatchName() + ": drum keymap conversion will be used " + srcKeyMap + ">" + destKeyMap);
+                    LOGGER.info("editInstrument() channel=" + channelId + " ins=" + ins.getPatchName() + ": drum keymap conversion will be used " + srcKeyMap + ">" + destKeyMap);   //NOI18N
                     String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DrumKeyMapConversion",
                             srcKeyMap.getName(), destKeyMap.getName(), ins.getPatchName(), (channelId + 1));
                     StatusDisplayer.getDefault().setStatusText(msg);
@@ -263,7 +263,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
 
     private String buildTitle()
     {
-        StringBuilder title = new StringBuilder(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DialogTitle", channelId + 1));
+        StringBuilder title = new StringBuilder(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DialogTitle", channelId + 1));        
         RhythmVoice rv = midiMix.getRhythmVoice(channelId);
         if (rv instanceof UserChannelRvKey)
         {

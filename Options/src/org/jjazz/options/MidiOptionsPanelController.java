@@ -40,10 +40,6 @@ import org.openide.util.Lookup;
         position = 100,
         id = "MidiPanelId"
 )
-@org.openide.util.NbBundle.Messages(
-        {
-            "OptionsCategory_Name_Midi=Midi", "OptionsCategory_Keywords_Midi=midi"
-        })
 public final class MidiOptionsPanelController extends OptionsPanelController
 {
 
@@ -55,7 +51,7 @@ public final class MidiOptionsPanelController extends OptionsPanelController
     @Override
     public void update()
     {
-        LOGGER.log(Level.FINE, "update()");
+        LOGGER.log(Level.FINE, "update()");   //NOI18N
         getPanel().load();
         changed = false;
     }
@@ -63,7 +59,7 @@ public final class MidiOptionsPanelController extends OptionsPanelController
     @Override
     public void applyChanges()
     {
-        LOGGER.log(Level.FINE, "applyChanges()");
+        LOGGER.log(Level.FINE, "applyChanges()");   //NOI18N
         SwingUtilities.invokeLater(new Runnable()
         {
             @Override
@@ -80,7 +76,7 @@ public final class MidiOptionsPanelController extends OptionsPanelController
     {
         // need not do anything special, if no changes have been persisted yet
         getPanel().cancel();
-        LOGGER.log(Level.FINE, "cancel()");
+        LOGGER.log(Level.FINE, "cancel()");   //NOI18N
     }
 
     @Override

@@ -38,13 +38,12 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
-import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.openide.util.*;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
+import org.jjazz.util.ResUtil;
 
 /**
  * SelectAll
@@ -56,7 +55,6 @@ import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
             @ActionReference(path = "Actions/SongPart", position = 1300),
             @ActionReference(path = "Actions/RhythmParameter", position = 1300, separatorBefore = 1290),
         })
-@Messages("CTL_SelectAll=Select all")
 public class SelectAll extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
@@ -74,7 +72,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, SS_
         this.context = context;
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        putValue(NAME, CTL_SelectAll());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_SelectAll"));
         putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_A));
         selectionChange(cap.getSelection());
     }

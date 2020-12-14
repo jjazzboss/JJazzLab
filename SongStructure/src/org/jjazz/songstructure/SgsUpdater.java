@@ -62,7 +62,7 @@ public class SgsUpdater implements ClsChangeListener
     {
         if (sgs == null)
         {
-            throw new IllegalArgumentException("sgs=" + sgs);
+            throw new IllegalArgumentException("sgs=" + sgs);   //NOI18N
         }
         this.sgs = sgs;
         parentCls = sgs.getParentChordLeadSheet();
@@ -92,13 +92,13 @@ public class SgsUpdater implements ClsChangeListener
         {
             // Should never happen if it has been authorized first
             Exceptions.printStackTrace(ex);
-            throw new IllegalStateException();
+            throw new IllegalStateException();   //NOI18N
         }
     }
 
     private void processChangeEvent(ClsChangeEvent evt, boolean authorizeOnly) throws UnsupportedEditException
     {
-        LOGGER.log(Level.FINE, "processChangeEvent() evt=" + evt + " authorizeOnly=" + authorizeOnly);
+        LOGGER.log(Level.FINE, "processChangeEvent() evt=" + evt + " authorizeOnly=" + authorizeOnly);   //NOI18N
 
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
@@ -107,7 +107,7 @@ public class SgsUpdater implements ClsChangeListener
             // IMPORTANT : SongStructure generates his own undoableEdits,
             // so we must not listen to chordleadsheet changes if undo/redo in progress, otherwise 
             // the "undo/redo" restore operations will be performed twice !
-            LOGGER.log(Level.FINE, "processChangeEvent() undo is in progress, exiting");
+            LOGGER.log(Level.FINE, "processChangeEvent() undo is in progress, exiting");   //NOI18N
             return;
         }
 
@@ -167,7 +167,7 @@ public class SgsUpdater implements ClsChangeListener
     private void processSectionMoved(SectionMovedEvent evt, CLI_Section cliSection) throws UnsupportedEditException
     {
         int newBarIndex = cliSection.getPosition().getBar();
-        assert newBarIndex > 0 : "cliSection=" + cliSection;
+        assert newBarIndex > 0 : "cliSection=" + cliSection;   //NOI18N
         CLI_Section prevSection = parentCls.getSection(newBarIndex - 1);
         CLI_Section sectionPrevBar = parentCls.getSection(evt.getOldBar());
         SmallMap<SongPart, Integer> mapSptSize = new SmallMap<>();
@@ -456,7 +456,7 @@ public class SgsUpdater implements ClsChangeListener
                     break;
                 }
             }
-            assert sptBarIndex != - 1 : "prevSpts=" + prevSpts + " prevSection=" + prevSection + " newSection=" + newSection;
+            assert sptBarIndex != - 1 : "prevSpts=" + prevSpts + " prevSection=" + prevSection + " newSection=" + newSection;   //NOI18N
         }
 
         // Choose rhythm

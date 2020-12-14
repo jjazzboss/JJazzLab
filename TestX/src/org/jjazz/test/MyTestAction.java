@@ -60,7 +60,7 @@ public final class MyTestAction implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.log(Level.INFO, "MyTestAction()");
+        LOGGER.log(Level.INFO, "MyTestAction()");   //NOI18N
         FlatDarkLaf.install();
         UIManager.LookAndFeelInfo plaf[] = UIManager.getInstalledLookAndFeels();
         try
@@ -73,8 +73,8 @@ public final class MyTestAction implements ActionListener
 
         for (int i = 0, n = plaf.length; i < n; i++)
         {
-            LOGGER.severe("Name: " + plaf[i].getName());
-            LOGGER.severe("  Class name: " + plaf[i].getClassName());
+            LOGGER.severe("Name: " + plaf[i].getName());   //NOI18N
+            LOGGER.severe("  Class name: " + plaf[i].getClassName());   //NOI18N
         }
         if (true)
         {

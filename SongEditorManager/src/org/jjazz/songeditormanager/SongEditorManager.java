@@ -61,19 +61,19 @@ public class SongEditorManager implements PropertyChangeListener
      * <p>
      * NewValue is the song object.
      */
-    public static final String PROP_SONG_OPENED = "SongOpened";
+    public static final String PROP_SONG_OPENED = "SongOpened";   //NOI18N 
     /**
      * This property change event is fired when a song is closed.
      * <p>
      * NewValue is the song object. Note that a Song object also fires a Closed event when it is closed by the SongEditorManager.
      */
-    public static final String PROP_SONG_CLOSED = "SongClosed";
+    public static final String PROP_SONG_CLOSED = "SongClosed";   //NOI18N 
     /**
      * This property change event is fired when a song is saved.
      * <p>
      * NewValue is the song object. This is just a forward of a Song Saved event.
      */
-    public static final String PROP_SONG_SAVED = "SongSaved";
+    public static final String PROP_SONG_SAVED = "SongSaved";   //NOI18N 
 
     private static SongEditorManager INSTANCE;
     private final HashMap<Song, Editors> mapSongEditors;       // Don't use WeakHashMap here
@@ -133,7 +133,7 @@ public class SongEditorManager implements PropertyChangeListener
     {
         if (song == null)
         {
-            throw new IllegalArgumentException("song=" + song);
+            throw new IllegalArgumentException("song=" + song);   //NOI18N
         }
 
         for (Song s : getOpenedSongs())
@@ -277,7 +277,7 @@ public class SongEditorManager implements PropertyChangeListener
     {
         if (s == null)
         {
-            throw new IllegalArgumentException("s=" + s);
+            throw new IllegalArgumentException("s=" + s);   //NOI18N
         }
         return mapSongEditors.get(s);
     }
@@ -341,7 +341,7 @@ public class SongEditorManager implements PropertyChangeListener
     private void songSaved(Song s)
     {
         File f = s.getFile();
-        assert f != null : "s=" + s;
+        assert f != null : "s=" + s;   //NOI18N
         FileDirectoryManager.getInstance().setLastSongDirectory(f.getAbsoluteFile().getParentFile());
         pcs.firePropertyChange(PROP_SONG_SAVED, false, s);
     }
@@ -395,7 +395,7 @@ public class SongEditorManager implements PropertyChangeListener
                 mm = MidiMixManager.getInstance().findMix(song);
             } catch (MidiUnavailableException ex)
             {
-                LOGGER.warning("activateSong() Could not find MidiMix for song " + song.getName() + ".\n" + ex.getLocalizedMessage());
+                LOGGER.warning("activateSong() Could not find MidiMix for song " + song.getName() + ".\n" + ex.getLocalizedMessage());   //NOI18N
             }
             if (mm != null)
             {

@@ -145,7 +145,7 @@ public class FlatToggleButton extends FlatButton
     {
         if (selectedIcon == null)
         {
-            throw new NullPointerException("selectedIcon");
+            throw new NullPointerException("selectedIcon");   //NOI18N
         }
         this.selectedIcon = selectedIcon;
         if (isSelected())
@@ -163,7 +163,7 @@ public class FlatToggleButton extends FlatButton
     {
         if (c == null)
         {
-            throw new NullPointerException("c");
+            throw new NullPointerException("c");   //NOI18N
         }
         this.selectedForeground = c;
         if (isSelected())
@@ -190,7 +190,7 @@ public class FlatToggleButton extends FlatButton
     {
         super.propertyChange(evt);
 
-        LOGGER.fine("propertyChange() this.action=" + (getAction() != null ? getAction().getValue(Action.NAME) : "") + ", evt=" + evt);
+        LOGGER.fine("propertyChange() this.action=" + (getAction() != null ? getAction().getValue(Action.NAME) : "") + ", evt=" + evt);   //NOI18N
         if (evt.getSource() == getAction())
         {
             if (evt.getPropertyName() == Action.LARGE_ICON_KEY)

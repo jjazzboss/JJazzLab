@@ -938,7 +938,7 @@ public class GSBank_SC88Pro extends InstrumentBank<Instrument>
                     Exceptions.printStackTrace(ex);
                 }
                 messages[0] = sysMsg;
-                LOGGER.log(Level.INFO, "getMidiMessages() (special GS Drums instrument) sending SysEx messages to enable drums on channel 8");
+                LOGGER.log(Level.INFO, "getMidiMessages() (special GS Drums instrument) sending SysEx messages to enable drums on channel 8");   //NOI18N
             } else
             {
                 messages = new MidiMessage[1];          // Send Only PC

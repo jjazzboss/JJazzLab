@@ -41,7 +41,7 @@ public abstract class SimpleEdit extends AbstractUndoableEdit
     {
         if (presentationName == null)
         {
-            throw new NullPointerException("name=" + presentationName);
+            throw new NullPointerException("name=" + presentationName);   //NOI18N
         }
         this.presentationName = presentationName;
     }
@@ -50,7 +50,7 @@ public abstract class SimpleEdit extends AbstractUndoableEdit
     public void undo()
     {
         super.undo();
-        LOGGER.log(Level.FINE, "undo() edit: {0}", getPresentationName());
+        LOGGER.log(Level.FINE, "undo() edit: {0}", getPresentationName());   //NOI18N
         undoBody();
     }
 
@@ -60,7 +60,7 @@ public abstract class SimpleEdit extends AbstractUndoableEdit
     public void redo()
     {
         super.redo();
-        LOGGER.log(Level.FINE, "redo() edit: {0}", getPresentationName());
+        LOGGER.log(Level.FINE, "redo() edit: {0}", getPresentationName());   //NOI18N
         redoBody();
     }
 

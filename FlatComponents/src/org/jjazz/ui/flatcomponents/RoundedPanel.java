@@ -83,7 +83,7 @@ public class RoundedPanel extends JPanel
     {
         if (arcDiameter < 0 || arcDiameter > 2000)
         {
-            throw new IllegalArgumentException("arcDiameter=" + arcDiameter);
+            throw new IllegalArgumentException("arcDiameter=" + arcDiameter);   //NOI18N
         }
         this.arcDiameter = arcDiameter;
         repaint();
@@ -104,7 +104,7 @@ public class RoundedPanel extends JPanel
     {
         if (thickness < 0 || thickness > 1000)
         {
-            throw new IllegalArgumentException("thickness=" + thickness);
+            throw new IllegalArgumentException("thickness=" + thickness);   //NOI18N
         }
         this.thickness = thickness;
         repaint();

@@ -109,7 +109,7 @@ public final class NewSong implements ActionListener
             {
                 song = null; // Because non null if it's a MidiUnavailableException
                 String msg = "Can't create song from template file " + songTemplateFile.getAbsolutePath() + ": " + ex.getLocalizedMessage();
-                LOGGER.warning("createSongFromTemplate() " + msg);
+                LOGGER.warning("createSongFromTemplate() " + msg);   //NOI18N
                 NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
             }

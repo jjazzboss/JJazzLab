@@ -30,16 +30,10 @@ import javax.swing.JLabel;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.song.api.Song;
-import org.jjazz.songstructure.api.SongStructure;
-import org.openide.util.NbBundle;
 
 /**
  * Show the position in bar/beat.
  */
-@NbBundle.Messages(
-        {
-            "CTL_ToolTip=Playback position (bar:beat)"
-        })
 public class PositionViewer extends JLabel implements PropertyChangeListener
 {
 
@@ -60,7 +54,7 @@ public class PositionViewer extends JLabel implements PropertyChangeListener
     {
         if (pos == null)
         {
-            throw new IllegalArgumentException("song=" + song + " pos=" + pos);
+            throw new IllegalArgumentException("song=" + song + " pos=" + pos);   //NOI18N
         }
         if (posModel != null)
         {

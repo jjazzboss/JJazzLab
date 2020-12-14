@@ -67,18 +67,18 @@ import org.openide.NotifyDescriptor;
 public class Song implements Serializable, ClsChangeListener, SgsChangeListener
 {
 
-    public static final String PROP_NAME = "PROP_NAME";
-    public static final String PROP_COMMENTS = "PROP_COMMENTS";
-    public static final String PROP_TAGS = "PROP_TAGS";
-    public static final String PROP_TEMPO = "PROP_TEMPO";
+    public static final String PROP_NAME = "PROP_NAME";   //NOI18N 
+    public static final String PROP_COMMENTS = "PROP_COMMENTS";   //NOI18N 
+    public static final String PROP_TAGS = "PROP_TAGS";   //NOI18N 
+    public static final String PROP_TEMPO = "PROP_TEMPO";   //NOI18N 
     /**
      * Fired when the close() method is called.
      */
-    public static final String PROP_CLOSED = "PROP_CLOSED";
+    public static final String PROP_CLOSED = "PROP_CLOSED";   //NOI18N 
     /**
      * This property changes each time the song is modified (false&gt;true) or saved (true&gt;false).
      */
-    public static final String PROP_MODIFIED_OR_SAVED = "PROP_MODIFIED_OR_SAVED";
+    public static final String PROP_MODIFIED_OR_SAVED = "PROP_MODIFIED_OR_SAVED";   //NOI18N 
     private SongStructure songStructure;
     private ChordLeadSheet chordLeadSheet;
     private String name;
@@ -122,7 +122,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     {
         if (name == null || name.trim().isEmpty() || cls == null || sgs == null)
         {
-            throw new IllegalArgumentException("name=" + name + " cls=" + cls + " sgs=" + sgs);
+            throw new IllegalArgumentException("name=" + name + " cls=" + cls + " sgs=" + sgs);   //NOI18N
         }
         setName(name);
         chordLeadSheet = cls;
@@ -158,7 +158,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     {
         if (key == null)
         {
-            throw new NullPointerException("key=" + key + " value=" + value);
+            throw new NullPointerException("key=" + key + " value=" + value);   //NOI18N
         }
         String oldValue = clientProperties.getProperty(key);
         if (oldValue == null && value == null)
@@ -202,7 +202,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     {
         if (!TempoRange.checkTempo(newTempo))
         {
-            throw new IllegalArgumentException("newTempo=" + newTempo);
+            throw new IllegalArgumentException("newTempo=" + newTempo);   //NOI18N
         }
         final int oldTempo = tempo;
 
@@ -245,7 +245,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     {
         if (newTags == null)
         {
-            throw new NullPointerException("newTags");
+            throw new NullPointerException("newTags");   //NOI18N
         }
 
         final ArrayList<String> oldTags = new ArrayList<>(tags);
@@ -312,7 +312,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     {
         if (newName == null || newName.trim().isEmpty())
         {
-            throw new IllegalArgumentException("newName=" + newName);
+            throw new IllegalArgumentException("newName=" + newName);   //NOI18N
         }
         if (!newName.equals(name))
         {
@@ -385,7 +385,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     {
         if (newComments == null)
         {
-            throw new IllegalArgumentException("newComments=" + newComments);
+            throw new IllegalArgumentException("newComments=" + newComments);   //NOI18N
         }
         if (!newComments.equals(comments))
         {
@@ -448,13 +448,13 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     {
         if (f == null)
         {
-            throw new IllegalArgumentException("f=" + f + " isCopy=" + isCopy);
+            throw new IllegalArgumentException("f=" + f + " isCopy=" + isCopy);   //NOI18N
         }
         boolean b = true;
         if (f.exists() && !f.canWrite())
         {
             String msg = "Can not overwrite " + f.getName();
-            LOGGER.warning("saveToFileNotify() " + msg);
+            LOGGER.warning("saveToFileNotify() " + msg);   //NOI18N
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             b = false;
@@ -467,7 +467,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             } catch (IOException ex)
             {
                 String msg = "Problem saving song file " + f.getName() + " : " + ex.getLocalizedMessage();
-                LOGGER.warning("saveToFileNotify() " + msg);
+                LOGGER.warning("saveToFileNotify() " + msg);   //NOI18N
                 NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
                 b = false;
@@ -493,7 +493,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     {
         if (songFile == null)
         {
-            throw new IllegalArgumentException("songFile=" + songFile + " isCopy=" + isCopy);
+            throw new IllegalArgumentException("songFile=" + songFile + " isCopy=" + isCopy);   //NOI18N
         }
         
         if (!isCopy)
@@ -563,7 +563,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     {
         if (l == null)
         {
-            throw new NullPointerException("l=" + l);
+            throw new NullPointerException("l=" + l);   //NOI18N
         }
         undoListeners.remove(l);
         undoListeners.add(l);
@@ -573,7 +573,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     {
         if (l == null)
         {
-            throw new NullPointerException("l=" + l);
+            throw new NullPointerException("l=" + l);   //NOI18N
         }
         undoListeners.remove(l);
     }
@@ -643,7 +643,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     {
         if (edit == null)
         {
-            throw new IllegalArgumentException("edit=" + edit);
+            throw new IllegalArgumentException("edit=" + edit);   //NOI18N
         }
         UndoableEditEvent event = new UndoableEditEvent(this, edit);
         for (UndoableEditListener l : undoListeners.toArray(new UndoableEditListener[undoListeners.size()]))

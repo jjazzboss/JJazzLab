@@ -44,10 +44,10 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.midimix.MidiMix;
 import org.jjazz.ui.utilities.SingleRootFileSystemView;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.util.ResUtil;
 import org.jjazz.util.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -133,7 +133,7 @@ public class OutputSynthManager implements PropertyChangeListener
     {
         if (outSynth == null)
         {
-            throw new IllegalArgumentException("outSynth=" + outSynth);
+            throw new IllegalArgumentException("outSynth=" + outSynth);   //NOI18N
         }
         OutputSynth old = this.outputSynth;
         if (old != null)
@@ -160,7 +160,7 @@ public class OutputSynthManager implements PropertyChangeListener
     public File showSelectOutputSynthFileDialog(boolean save)
     {
         JFileChooser chooser = getFileChooserInstance();
-        chooser.setDialogTitle((save ? "Save" : "Load") + " Output Synth Configuration File");
+        chooser.setDialogTitle(save ? ResUtil.getString(getClass(), "CTL_SaveOuputSynthConfigFile") : ResUtil.getString(getClass(), "CTL_LoadOutputSynthConfigFile"));
         Object res;
         if (save)
         {
@@ -200,7 +200,7 @@ public class OutputSynthManager implements PropertyChangeListener
     {
         if (f == null)
         {
-            throw new NullPointerException("f");
+            throw new NullPointerException("f");   //NOI18N
         }
         OutputSynth synth = null;
         XStream xstream = Utilities.getSecuredXStreamInstance();
@@ -211,8 +211,9 @@ public class OutputSynthManager implements PropertyChangeListener
             synth = (OutputSynth) xstream.fromXML(r);
         } catch (XStreamException | IOException ex)
         {
-            String msg = "Problem reading file " + f.getAbsolutePath() + ": " + ex.getLocalizedMessage();
-            LOGGER.log(Level.WARNING, "loadOutputSynth() - {0}", msg);
+            String msg = ResUtil.getString(getClass(), "ERR_ProbReadingFile", f.getAbsolutePath());
+            msg += ": " + ex.getLocalizedMessage();
+            LOGGER.log(Level.WARNING, "loadOutputSynth() - {0}", msg);   //NOI18N
             if (notifyUser)
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
@@ -266,7 +267,7 @@ public class OutputSynthManager implements PropertyChangeListener
         File rDir = FileDirectoryManager.getInstance().getAppConfigDirectory(OUTPUT_SYNTH_FILES_DIR);
         if (rDir == null)
         {
-            String msg = "SERIOUS ERROR - Can't find the app. config. directory for " + OUTPUT_SYNTH_FILES_DIR;
+            String msg = ResUtil.getString(getClass(), "ERR_NoAppConfigDir", OUTPUT_SYNTH_FILES_DIR);
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }
@@ -280,7 +281,7 @@ public class OutputSynthManager implements PropertyChangeListener
             FileSystemView fsv = new SingleRootFileSystemView(getOutputSynthFilesDir());
             CHOOSER_INSTANCE = new JFileChooser(fsv);
             CHOOSER_INSTANCE.resetChoosableFileFilters();
-            FileNameExtensionFilter filter = new FileNameExtensionFilter("Output synth config. files (" + "." + OUTPUT_SYNTH_FILES_EXT + ")", OUTPUT_SYNTH_FILES_EXT);
+            FileNameExtensionFilter filter = new FileNameExtensionFilter(ResUtil.getString(getClass(), "CTL_OutputSynthConfigFiles") + " (." + OUTPUT_SYNTH_FILES_EXT + ")", OUTPUT_SYNTH_FILES_EXT);
             CHOOSER_INSTANCE.addChoosableFileFilter(filter);
             CHOOSER_INSTANCE.setAcceptAllFileFilterUsed(false);
             CHOOSER_INSTANCE.setMultiSelectionEnabled(false);
@@ -313,14 +314,14 @@ public class OutputSynthManager implements PropertyChangeListener
             Properties oldProp = um.getPropertiesFromPrefs(prefs);
             if (oldProp == null)
             {
-                LOGGER.warning("upgrade() no old properties found for prefs=" + prefs.absolutePath());
+                LOGGER.warning("upgrade() no old properties found for prefs=" + prefs.absolutePath());   //NOI18N
                 return;
             }
             String oldCfgFileName = oldProp.getProperty(PROP_DEFAULT_OUTPUTSYNTH);
 
             if (oldCfgFileName == null)
             {
-                LOGGER.warning("upgrade() oldVersion=" + oldVersion + ", undefined Output Synth config file property" + PROP_DEFAULT_OUTPUTSYNTH);
+                LOGGER.warning("upgrade() oldVersion=" + oldVersion + ", undefined Output Synth config file property" + PROP_DEFAULT_OUTPUTSYNTH);   //NOI18N
                 return;
             }
 
@@ -328,14 +329,14 @@ public class OutputSynthManager implements PropertyChangeListener
             File prevAppConfigDir = fdm.getOldAppConfigDirectory(oldVersion, OUTPUT_SYNTH_FILES_DIR);
             if (prevAppConfigDir == null)
             {
-                LOGGER.warning("upgrade() can't find prevAppConfigDir=" + prevAppConfigDir);
+                LOGGER.warning("upgrade() can't find prevAppConfigDir=" + prevAppConfigDir);   //NOI18N
                 return;
             }
 
             File oldCfgFile = new File(prevAppConfigDir, oldCfgFileName);
             if (!oldCfgFile.exists())
             {
-                LOGGER.warning("upgrade() can't find oldCfgFile=" + oldCfgFile.getAbsolutePath());
+                LOGGER.warning("upgrade() can't find oldCfgFile=" + oldCfgFile.getAbsolutePath());   //NOI18N
                 return;
             }
 
@@ -347,7 +348,7 @@ public class OutputSynthManager implements PropertyChangeListener
                 prefs.put(PROP_DEFAULT_OUTPUTSYNTH, oldCfgFileName);
             } catch (IOException ex)
             {
-                LOGGER.warning("upgrade() error copying output synth config file=" + oldCfgFile.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());
+                LOGGER.warning("upgrade() error copying output synth config file=" + oldCfgFile.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());   //NOI18N
             }
         }
     }

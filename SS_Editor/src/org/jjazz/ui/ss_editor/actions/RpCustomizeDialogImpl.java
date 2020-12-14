@@ -60,7 +60,7 @@ public class RpCustomizeDialogImpl extends RpCustomizeDialog
     {
         if (rp == null || n < 2)
         {
-            throw new IllegalArgumentException("rp=" + rp + " n=" + n);
+            throw new IllegalArgumentException("rp=" + rp + " n=" + n);   //NOI18N
         }
         this.rp = rp;
         this.nbValues = n;
@@ -86,7 +86,7 @@ public class RpCustomizeDialogImpl extends RpCustomizeDialog
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -97,7 +97,7 @@ public class RpCustomizeDialogImpl extends RpCustomizeDialog
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 

@@ -66,7 +66,7 @@ public class ProportionalPanel extends JPanel
     {
         if (widthOverHeightRatio < 0.0001f)
         {
-            throw new IllegalArgumentException("widthOverHeightRatio=" + widthOverHeightRatio);
+            throw new IllegalArgumentException("widthOverHeightRatio=" + widthOverHeightRatio);   //NOI18N
         }
         this.widthOverHeightRatio = widthOverHeightRatio;
         revalidate();

@@ -105,6 +105,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
                 handleTableMouseClicked(e);
             }
         });
+        org.jjazz.ui.utilities.Utilities.installSelectAllWhenFocused(tf_Filter);
     }
 
     @Override
@@ -112,7 +113,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
     {
         if (outSynth == null || rv == null || !MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("outSynth=" + outSynth + " rv=" + rv + " preselectedIns=" + preselectedIns + " channel=" + channel);
+            throw new IllegalArgumentException("outSynth=" + outSynth + " rv=" + rv + " preselectedIns=" + preselectedIns + " channel=" + channel);   //NOI18N
         }
         this.outputSynth = outSynth;
         this.channel = channel;
@@ -201,7 +202,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -212,7 +213,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 
@@ -231,7 +232,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
     @Override
     public void valueChanged(ListSelectionEvent e)
     {
-        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);
+        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);   //NOI18N
         if (e.getValueIsAdjusting())
         {
             return;
@@ -674,7 +675,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         Instrument ins = tbl_Instruments.getSelectedInstrument();
         if (ins == null || !ins.getMidiAddress().isFullyDefined())
         {
-            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + ins.getMidiAddress());
+            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + ins.getMidiAddress());   //NOI18N
             return;
         }
 
@@ -711,7 +712,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
 
     private void tf_FilterActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tf_FilterActionPerformed
     {//GEN-HEADEREND:event_tf_FilterActionPerformed
-        LOGGER.fine("tf_FilterActionPerformed()");
+        LOGGER.fine("tf_FilterActionPerformed()");   //NOI18N
         String s = tf_Filter.getText().trim();
         if (s.isEmpty())
         {
@@ -723,7 +724,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             rf = RowFilter.regexFilter("(?i)" + s);
         } catch (java.util.regex.PatternSyntaxException e)
         {
-            LOGGER.warning("tf_FilterActionPerformed() invalid filter regex string e=" + e.getLocalizedMessage());
+            LOGGER.warning("tf_FilterActionPerformed() invalid filter regex string e=" + e.getLocalizedMessage());   //NOI18N
             return;
         }
         TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) tbl_Instruments.getRowSorter();
@@ -731,7 +732,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         btn_TxtFilter.setEnabled(false);
         btn_TxtClear.setEnabled(true);
         tf_Filter.setEnabled(false);
-        String msg = ResUtil.getString(getClass(), "", Utilities.truncateWithDots(s, 10));
+        String msg = ResUtil.getString(getClass(), "InstrumentChooserDialogImpl.Filtered", Utilities.truncateWithDots(s, 10));
         lbl_Filtered.setText(msg);
     }//GEN-LAST:event_tf_FilterActionPerformed
 

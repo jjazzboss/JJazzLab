@@ -82,7 +82,7 @@ public class UserChannelRvKey extends RhythmVoice
     {
         if (!MidiConst.checkMidiChannel(c))
         {
-            throw new IllegalArgumentException("c=" + c);
+            throw new IllegalArgumentException("c=" + c);   //NOI18N
         }
         prefs.putInt(PREF_USER_CHANNEL, c);
     }

@@ -56,7 +56,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
         super();
         if (startBar < 0 || nbBars < 0)
         {
-            throw new IllegalArgumentException("startBar=" + startBar + " nbBars=" + nbBars);
+            throw new IllegalArgumentException("startBar=" + startBar + " nbBars=" + nbBars);   //NOI18N
         }
         this.startBar = startBar;
         this.nbBars = nbBars;
@@ -104,7 +104,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     {
         if (startBarPosInBeats < 0 || ts == null)
         {
-            throw new IllegalArgumentException("startBarPosInBeats=" + startBarPosInBeats + " ts=" + ts);
+            throw new IllegalArgumentException("startBarPosInBeats=" + startBarPosInBeats + " ts=" + ts);   //NOI18N
         }
         return new FloatRange(startBarPosInBeats, startBarPosInBeats + nbBars * ts.getNbNaturalBeats());
     }
@@ -146,7 +146,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     {
         if (chordIndex < 0 || chordIndex >= size() || ts == null)
         {
-            throw new IllegalArgumentException("chordIndex=" + chordIndex + " ts=" + ts);
+            throw new IllegalArgumentException("chordIndex=" + chordIndex + " ts=" + ts);   //NOI18N
         }
         Position pos = get(chordIndex).getPosition();
         Position nextPos;
@@ -175,7 +175,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     {
         if (pos == null || ts == null || startBarPosInBeats < 0)
         {
-            throw new IllegalArgumentException("pos=" + pos + " ts=" + ts + " startBarPosInBeats=" + startBarPosInBeats);
+            throw new IllegalArgumentException("pos=" + pos + " ts=" + ts + " startBarPosInBeats=" + startBarPosInBeats);   //NOI18N
         }
         float relPosInBeats = (pos.getBar() - startBar) * ts.getNbNaturalBeats() + pos.getBeat();
         return startBarPosInBeats + relPosInBeats;
@@ -217,7 +217,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
         // LOGGER.severe("subSequence() -- subStartBar=" + subStartBar + ", subEndBar=" + subEndBar + ", addInitChordSymbol=" + addInitChordSymbol + ", this=" + this);
         if (subStartBar < startBar || subEndBar > (startBar + nbBars - 1))
         {
-            throw new IllegalArgumentException("subStartBar=" + subStartBar + " subEndBar=" + subEndBar + " this=" + this);
+            throw new IllegalArgumentException("subStartBar=" + subStartBar + " subEndBar=" + subEndBar + " this=" + this);   //NOI18N
         }
         ChordSequence cSeq = new ChordSequence(subStartBar, subEndBar - subStartBar + 1);
         for (CLI_ChordSymbol cs : this)
@@ -275,7 +275,7 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     {
         if (absoluteBarIndex < 1)
         {
-            throw new IllegalArgumentException("absoluteBarIndex=" + absoluteBarIndex);
+            throw new IllegalArgumentException("absoluteBarIndex=" + absoluteBarIndex);   //NOI18N
         }
         int index = -1;
         int firstIndex = indexOfFirstFromBar(absoluteBarIndex);

@@ -117,7 +117,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
     {
         if (synthName == null)
         {
-            throw new IllegalArgumentException("synthName=" + synthName);
+            throw new IllegalArgumentException("synthName=" + synthName);   //NOI18N
         }
         if (StdSynth.getInstance().getName().equals(synthName))
         {
@@ -161,7 +161,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
     {
         if (synthFile == null)
         {
-            throw new NullPointerException("synthFile");
+            throw new NullPointerException("synthFile");   //NOI18N
         }
         ArrayList<MidiSynth> res = new ArrayList<>();
 
@@ -172,7 +172,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
         {
             // Extension not managed by any MidiSynthFileReader
             String msg = ResUtil.getString(getClass(), "FileExtensionNotSupported", synthFile.getAbsolutePath());
-            LOGGER.log(Level.WARNING, msg);
+            LOGGER.log(Level.WARNING, msg);   //NOI18N
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
         } else
@@ -194,7 +194,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
             {
 
                 String msg = ResUtil.getString(getClass(), "ProblemReadingFile") + ": " + ex.getLocalizedMessage();
-                LOGGER.log(Level.WARNING, msg);
+                LOGGER.log(Level.WARNING, msg);   //NOI18N
                 NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
             }
@@ -273,7 +273,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
         {
             if (synthName == null)
             {
-                throw new IllegalArgumentException("synthName=" + synthName + " synthFile=" + synthFile);
+                throw new IllegalArgumentException("synthName=" + synthName + " synthFile=" + synthFile);   //NOI18N
             }
             var msm = MidiSynthManagerImpl.getInstance();
 
@@ -309,17 +309,17 @@ public class MidiSynthManagerImpl implements MidiSynthManager
     private MidiSynth readOneResourceSynth(String insResourcePath)
     {
         InputStream is = getClass().getResourceAsStream(insResourcePath);
-        assert is != null : "insResourcePath=" + insResourcePath;
+        assert is != null : "insResourcePath=" + insResourcePath;   //NOI18N
         MidiSynthFileReader r = MidiSynthFileReader.Util.getReader("ins");
-        assert r != null;
+        assert r != null;   //NOI18N
         try
         {
             List<MidiSynth> synths = r.readSynthsFromStream(is, null);
-            assert synths.size() == 1;
+            assert synths.size() == 1;   //NOI18N
             return synths.get(0);
         } catch (IOException ex)
         {
-            throw new IllegalStateException("Unexpected error", ex);
+            throw new IllegalStateException("Unexpected error", ex);   //NOI18N
         }
     }
 
@@ -396,7 +396,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
             }
             if (!dir.isDirectory())
             {
-                LOGGER.warning("CopyMidiSynthsTask.initializeDir() Could not access directory " + dir.getAbsolutePath() + ".");
+                LOGGER.warning("CopyMidiSynthsTask.initializeDir() Could not access directory " + dir.getAbsolutePath() + ".");   //NOI18N
             } else
             {
                 // Copy files 
@@ -420,7 +420,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
                 isEmpty = Utilities.isEmpty(dir.toPath());
             } catch (IOException ex)
             {
-                LOGGER.warning("CopyMidiSynthsTask.copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getLocalizedMessage());
+                LOGGER.warning("CopyMidiSynthsTask.copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getLocalizedMessage());   //NOI18N
                 return;
             }
             if (!isEmpty)
@@ -441,7 +441,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
 
             // Copy the default rhythms
             List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
-            LOGGER.info("CopyMidiSynthsTask.copyFilesOrNot() Copied " + res.size() + " Midi synth definition files to " + dir.getAbsolutePath());
+            LOGGER.info("CopyMidiSynthsTask.copyFilesOrNot() Copied " + res.size() + " Midi synth definition files to " + dir.getAbsolutePath());   //NOI18N
 
         }
 

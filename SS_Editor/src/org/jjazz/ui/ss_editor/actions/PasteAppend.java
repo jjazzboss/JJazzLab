@@ -36,8 +36,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ui.ss_editor.api.CopyBuffer;
-import static org.jjazz.ui.ss_editor.actions.Bundle.CTL_PasteAppend;
-import static org.jjazz.ui.ss_editor.actions.Bundle.ERR_Paste;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManager;
@@ -48,11 +46,11 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.util.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.pasteappend")
 @ActionRegistration(displayName = "#CTL_PasteAppend", lazy = false)
@@ -60,13 +58,12 @@ import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
         {
             @ActionReference(path = "Actions/SS_Editor", position = 900)
         })
-@NbBundle.Messages("CTL_PasteAppend=Paste At The End")
 public class PasteAppend extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, ChangeListener
 {
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = CTL_PasteAppend();
+    private String undoText = ResUtil.getString(getClass(), "CTL_PasteAppend");
 
     public PasteAppend()
     {
@@ -78,7 +75,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
         this.context = context;
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        putValue(NAME, CTL_PasteAppend());
+        putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK));
         setEnabled(false);
         CopyBuffer buffer = CopyBuffer.getInstance();
@@ -120,7 +117,8 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
                 targetSgs.addSongParts(Arrays.asList(spt));
             } catch (UnsupportedEditException ex)
             {
-                String msg = ERR_Paste() + "\n" + ex.getLocalizedMessage();
+                String msg = ResUtil.getString(getClass(), "ERR_Paste");
+                msg += "\n" + ex.getLocalizedMessage();
                 um.handleUnsupportedEditException(undoText, msg);
                 return;
             }

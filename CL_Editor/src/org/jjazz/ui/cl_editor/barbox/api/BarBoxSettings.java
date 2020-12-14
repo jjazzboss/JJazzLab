@@ -48,7 +48,7 @@ public interface BarBoxSettings
         BarBoxSettings result = Lookup.getDefault().lookup(BarBoxSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);
+            throw new NullPointerException("result=" + result);   //NOI18N
         }
         return result;
     }

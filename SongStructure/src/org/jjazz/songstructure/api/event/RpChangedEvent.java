@@ -43,7 +43,7 @@ public class RpChangedEvent extends SgsChangeEvent
         super(src, spt);
         if (spt == null || rp == null || newValue == null)
         {
-            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " oldValue=" + oldValue + " newValue=" + newValue);
+            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " oldValue=" + oldValue + " newValue=" + newValue);   //NOI18N
         }
         this.rhytmParameter = rp;
         this.oldValue = oldValue;

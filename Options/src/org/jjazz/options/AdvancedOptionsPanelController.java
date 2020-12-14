@@ -37,10 +37,6 @@ import org.openide.util.Lookup;
         keywordsCategory = "Advanced",
         position = 500
 )
-@org.openide.util.NbBundle.Messages(
-        {
-            "OptionsCategory_Name_Advanced=Advanced", "OptionsCategory_Keywords_Advanced=advanced"
-        })
 public final class AdvancedOptionsPanelController extends OptionsPanelController
 {
 

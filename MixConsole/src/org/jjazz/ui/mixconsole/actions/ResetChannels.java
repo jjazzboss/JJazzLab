@@ -71,11 +71,11 @@ public class ResetChannels extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.fine("actionPerformed() songMidiMix=" + songMidiMix);
+        LOGGER.fine("actionPerformed() songMidiMix=" + songMidiMix);   //NOI18N
         MixConsole mixConsole = MixConsoleTopComponent.getInstance().getEditor();
         Rhythm visibleRhythm = mixConsole.getVisibleRhythm();
         Song song = mixConsole.getSong();
-        assert song != null;
+        assert song != null;   //NOI18N
         JJazzUndoManagerFinder.getDefault().get(song).startCEdit(undoText);
         for (Integer channel : songMidiMix.getUsedChannels())
         {

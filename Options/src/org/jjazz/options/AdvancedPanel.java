@@ -33,6 +33,7 @@ import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.device.MidiFilter;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.ui.utilities.Utilities;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.LifecycleManager;
 import org.openide.NotifyDescriptor;
@@ -55,9 +56,9 @@ public final class AdvancedPanel extends javax.swing.JPanel
         this.controller = controller;
 
         initComponents();
-        
+
         Utilities.installSelectAllWhenFocused(tf_loggerName);
-        
+
         // TODO listen to changes in form fields and call controller.changed()
 
     }
@@ -255,12 +256,12 @@ public final class AdvancedPanel extends javax.swing.JPanel
         if (logger != null)
         {
             logger.setLevel(level);
-            String msg = "Success: " + name + ".level=" + level.toString();
+            String msg = ResUtil.getString(getClass(), "CTL_LoggerLevelSet", name, level.toString());
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         } else
         {
-            String msg = "No logger found with name '" + name + "'";
+            String msg = ResUtil.getString(getClass(), "ERR_NoLoggerFound", name);
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }
@@ -274,7 +275,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
     private void btn_resetSettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetSettingsActionPerformed
     {//GEN-HEADEREND:event_btn_resetSettingsActionPerformed
 
-        String msg = "JJazzLab will perform a fresh restart. All user settings/customizations will be lost.\n\nOK to proceed?";
+        String msg = ResUtil.getString(getClass(), "CTL_ConfirmUserSettingsRestart");
         NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
         Object result = DialogDisplayer.getDefault().notify(d);
         if (NotifyDescriptor.OK_OPTION == result)
@@ -300,7 +301,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
             cb_loggerLevel.setSelectedItem(logger.getLevel());
         } else
         {
-            String msg = "No logger found with name '" + name + "'";
+            String msg = ResUtil.getString(getClass(), "ERR_NoLoggerFound", name);
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }

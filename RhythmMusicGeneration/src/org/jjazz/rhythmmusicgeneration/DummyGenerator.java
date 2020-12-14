@@ -46,7 +46,7 @@ public class DummyGenerator implements MusicGenerator
     {
         if (r == null)
         {
-            throw new NullPointerException("r=" + r);
+            throw new NullPointerException("r=" + r);   //NOI18N
         }
         rhythm = r;
     }
@@ -91,19 +91,19 @@ public class DummyGenerator implements MusicGenerator
                 }
                 if (rv.isDrums())
                 {
-                    LOGGER.fine("generateMusic() generate dummy drums track for RhythmVoice: " + rv.getName());
+                    LOGGER.fine("generateMusic() generate dummy drums track for RhythmVoice: " + rv.getName());   //NOI18N
                     Phrase p = getBasicDrumPhrase(sptPosInBeats, sptRange.size(), ts, destChannel);
                     pRes.add(p);
                 } else
                 {
                     if (rv.getPreferredInstrument().getSubstitute().getFamily().equals(Family.Bass))
                     {
-                        LOGGER.fine("generateMusic() generate dummy bass track for RhythmVoice: " + rv.getName());
+                        LOGGER.fine("generateMusic() generate dummy bass track for RhythmVoice: " + rv.getName());   //NOI18N
                         Phrase p = getBasicBassPhrase(sptPosInBeats, cSeq, ts, destChannel);
                         pRes.add(p);
                     } else
                     {
-                        LOGGER.fine("generateMusic() music generation not supported for this RhythmVoice: " + rv.getName());
+                        LOGGER.fine("generateMusic() music generation not supported for this RhythmVoice: " + rv.getName());   //NOI18N
                     }
                 }
             }
@@ -125,7 +125,7 @@ public class DummyGenerator implements MusicGenerator
     {
         if (ts == null || !MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("nbBars=" + nbBars + " ts=" + ts + " channel=" + channel);
+            throw new IllegalArgumentException("nbBars=" + nbBars + " ts=" + ts + " channel=" + channel);   //NOI18N
         }
         Phrase p = new Phrase(channel);
         float duration = 0.25f;
@@ -165,7 +165,7 @@ public class DummyGenerator implements MusicGenerator
     {
         if (cSeq == null || ts == null || !MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("cSeq=" + cSeq + " ts=" + ts + " channel=" + channel);
+            throw new IllegalArgumentException("cSeq=" + cSeq + " ts=" + ts + " channel=" + channel);   //NOI18N
         }
         Phrase p = new Phrase(channel);
         for (int i = 0; i < cSeq.size(); i++)

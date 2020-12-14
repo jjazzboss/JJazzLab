@@ -35,20 +35,20 @@ import org.jjazz.midi.Instrument;
 public interface MixChannelPanelModel
 {
 
-    public static final String PROP_PANORAMIC = "PropPanoramic";
-    public static final String PROP_REVERB = "PropReverb";
-    public static final String PROP_CHORUS = "PropChorus";
-    public static final String PROP_PANORAMIC_ENABLED = "PropPanoramicEnabled";
-    public static final String PROP_REVERB_ENABLED = "PropReverbEnabled";
-    public static final String PROP_CHORUS_ENABLED = "PropChorusEnabled";
-    public static final String PROP_VOLUME_ENABLED = "PropVolumeEnabled";
-    public static final String PROP_INSTRUMENT_ENABLED = "PropInstrumentEnabled";
-    public static final String PROP_DRUMS_CHANNEL_REROUTED = "PropDrumsChannelRerouted";
-    public static final String PROP_MUTE = "PropMute";
-    public static final String PROP_SOLO = "PropSolo";
-    public static final String PROP_VOLUME = "PropVolume";
-    public static final String PROP_INSTRUMENT = "PropInstrument";
-    public static final String PROP_CHANNEL_ID = "PropChannelId";
+    public static final String PROP_PANORAMIC = "PropPanoramic";   //NOI18N 
+    public static final String PROP_REVERB = "PropReverb";   //NOI18N 
+    public static final String PROP_CHORUS = "PropChorus";   //NOI18N 
+    public static final String PROP_PANORAMIC_ENABLED = "PropPanoramicEnabled";   //NOI18N 
+    public static final String PROP_REVERB_ENABLED = "PropReverbEnabled";   //NOI18N 
+    public static final String PROP_CHORUS_ENABLED = "PropChorusEnabled";   //NOI18N 
+    public static final String PROP_VOLUME_ENABLED = "PropVolumeEnabled";   //NOI18N 
+    public static final String PROP_INSTRUMENT_ENABLED = "PropInstrumentEnabled";   //NOI18N 
+    public static final String PROP_DRUMS_CHANNEL_REROUTED = "PropDrumsChannelRerouted";   //NOI18N 
+    public static final String PROP_MUTE = "PropMute";   //NOI18N 
+    public static final String PROP_SOLO = "PropSolo";   //NOI18N 
+    public static final String PROP_VOLUME = "PropVolume";   //NOI18N 
+    public static final String PROP_INSTRUMENT = "PropInstrument";   //NOI18N 
+    public static final String PROP_CHANNEL_ID = "PropChannelId";   //NOI18N 
 
     public void addPropertyChangeListener(PropertyChangeListener l);
 

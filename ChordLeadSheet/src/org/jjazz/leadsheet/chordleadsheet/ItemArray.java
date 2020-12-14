@@ -96,7 +96,7 @@ public class ItemArray extends ArrayList<ChordLeadSheetItem<?>>
     {
         if (indexFrom < 0 || indexFrom > indexTo || indexTo > size() - 1)
         {
-            throw new IllegalArgumentException("indexFrom=" + indexFrom + " indexTo=" + indexTo);
+            throw new IllegalArgumentException("indexFrom=" + indexFrom + " indexTo=" + indexTo);   //NOI18N
         }
         ArrayList<ChordLeadSheetItem<?>> result = new ArrayList<>();
         for (int i = indexFrom; i <= indexTo; i++)

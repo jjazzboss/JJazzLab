@@ -32,25 +32,19 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midi.MidiConst;
-import static org.jjazz.options.Bundle.*;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.ui.MidiDeviceRenderer;
 import org.jjazz.midimix.UserChannelRvKey;
 import org.jjazz.musiccontrol.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.uisettings.GeneralUISettings;
+import org.jjazz.util.ResUtil;
 import org.openide.*;
-import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 
-@NbBundle.Messages(
-        {
-            "CTL_DeviceProblem=Problem accessing MIDI device: ",
-            "ERR_SynthSoundFileProblem=Problem loading sound file"
-        })
 final class MidiPanel extends javax.swing.JPanel
 {
-    
+
     private final MidiOptionsPanelController controller;
     private boolean loadInProgress;
     private MidiDevice saveOutDevice;      // For cancel operation
@@ -58,16 +52,16 @@ final class MidiPanel extends javax.swing.JPanel
     private boolean saveMidiThru;          // For cancel operation
     private boolean saveSendGmOnUponStartup;          // For cancel operation
     private static final Logger LOGGER = Logger.getLogger(MidiPanel.class.getSimpleName());
-    
+
     MidiPanel(MidiOptionsPanelController controller)
     {
         this.controller = controller;
         initComponents();
-        
+
         spn_preferredUserChannel.addChangeListener(cl -> controller.changed());
-        
+
         list_InDevices.setCellRenderer(new MidiDeviceRenderer());
-        btn_test.setEnabled(false);        
+        btn_test.setEnabled(false);
     }
 
     /**
@@ -202,7 +196,6 @@ final class MidiPanel extends javax.swing.JPanel
         spn_preferredUserChannel.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.spn_preferredUserChannel.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_preferredUserChannel, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.lbl_preferredUserChannel.text")); // NOI18N
-        lbl_preferredUserChannel.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.lbl_preferredUserChannel.toolTipText")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -265,7 +258,7 @@ final class MidiPanel extends javax.swing.JPanel
     private void cb_midiThruActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_midiThruActionPerformed
     {//GEN-HEADEREND:event_cb_midiThruActionPerformed
         controller.applyChanges();
-        controller.changed();        
+        controller.changed();
     }//GEN-LAST:event_cb_midiThruActionPerformed
 
     private void list_InDevicesValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_list_InDevicesValueChanged
@@ -280,7 +273,7 @@ final class MidiPanel extends javax.swing.JPanel
 
     private void btn_testActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_testActionPerformed
     {//GEN-HEADEREND:event_btn_testActionPerformed
-        LOGGER.log(Level.FINE, "Testing {0}", list_OutDevices.getSelectedValue().getDeviceInfo().getName());
+        LOGGER.log(Level.FINE, "Testing {0}", list_OutDevices.getSelectedValue().getDeviceInfo().getName());   //NOI18N
         sendTestNotes();
     }//GEN-LAST:event_btn_testActionPerformed
 
@@ -294,7 +287,7 @@ final class MidiPanel extends javax.swing.JPanel
        chooser.setMultiSelectionEnabled(false);
        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
        chooser.setFileFilter(filter);
-       chooser.setDialogTitle("Load sound bank file");
+       chooser.setDialogTitle(ResUtil.getString(getClass(),"LoadSoundBankDialogTitle"));
        File previousFile = jms.getDefaultJavaSynthPreferredSoundFontFile();
        if (previousFile == null)
        {
@@ -315,11 +308,11 @@ final class MidiPanel extends javax.swing.JPanel
        {
            return;
        }
-       
+
        boolean b = jms.loadSoundbankFileOnSynth(f, false);
        if (!b)
        {
-           String msg = ERR_SynthSoundFileProblem() + ":" + f.getAbsolutePath();
+           String msg = ResUtil.getString(getClass(), "ERR_SynthSoundFileProblem", f.getAbsolutePath());
            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
            DialogDisplayer.getDefault().notify(d);
        }
@@ -356,10 +349,10 @@ final class MidiPanel extends javax.swing.JPanel
             list_OutDevices.setSelectedValue(save, true);
         }
     }//GEN-LAST:event_btn_refreshActionPerformed
-    
+
     void load()
     {
-        LOGGER.log(Level.FINE, "load() --");
+        LOGGER.log(Level.FINE, "load() --");   //NOI18N
         // TODO read settings and initialize GUI
         // Example:        
         // someCheckBox.setSelected(Preferences.userNodeForPackage(MidiPanel.class).getBoolean("someFlag", false));
@@ -378,26 +371,26 @@ final class MidiPanel extends javax.swing.JPanel
         // Select default devices (can be null)
         saveOutDevice = jms.getDefaultOutDevice();
         saveInDevice = jms.getDefaultInDevice();
-        LOGGER.log(Level.FINE, "load() saveOutDevice=" + saveOutDevice + " .info=" + ((saveOutDevice == null) ? "null" : saveOutDevice.getDeviceInfo()));
+        LOGGER.log(Level.FINE, "load() saveOutDevice=" + saveOutDevice + " .info=" + ((saveOutDevice == null) ? "null" : saveOutDevice.getDeviceInfo()));   //NOI18N
         list_OutDevices.setSelectedValue(saveOutDevice, true);
         list_InDevices.setSelectedValue(saveInDevice, true);
 
         // Other stuff
         saveMidiThru = jms.isThruMode();
         cb_midiThru.setSelected(saveMidiThru);
-        
+
         btn_test.setEnabled(saveOutDevice != null);
 
         // Soundbank enabled only if Out device is a synth
         boolean b = (saveOutDevice instanceof Synthesizer);
         org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, pnl_soundbankFile);
         updateSoundbankText();
-        
+
         spn_preferredUserChannel.setValue(UserChannelRvKey.getInstance().getPreferredUserChannel() + 1);
-        
+
         loadInProgress = false;
     }
-    
+
     public void cancel()
     {
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
@@ -405,10 +398,10 @@ final class MidiPanel extends javax.swing.JPanel
         openInDevice(saveInDevice);
         openOutDevice(saveOutDevice);
     }
-    
+
     void store()
     {
-        LOGGER.log(Level.FINE, "store() --");
+        LOGGER.log(Level.FINE, "store() --");   //NOI18N
         // TODO store modified settings
         // Example:
         // Preferences.userNodeForPackage(MidiPanel.class).putBoolean("someFlag", someCheckBox.isSelected());
@@ -421,7 +414,7 @@ final class MidiPanel extends javax.swing.JPanel
         MidiDevice inDevice = list_InDevices.getSelectedValue();
         openInDevice(inDevice);
         MidiDevice outDevice = list_OutDevices.getSelectedValue();
-        LOGGER.log(Level.FINE, "store() outDevice=" + outDevice + " .info=" + ((outDevice == null) ? "null" : outDevice.getDeviceInfo()));
+        LOGGER.log(Level.FINE, "store() outDevice=" + outDevice + " .info=" + ((outDevice == null) ? "null" : outDevice.getDeviceInfo()));   //NOI18N
         openOutDevice(outDevice);
         UserChannelRvKey.getInstance().setPreferredUserChannel(((Integer) spn_preferredUserChannel.getValue()) - 1);
     }
@@ -439,9 +432,9 @@ final class MidiPanel extends javax.swing.JPanel
             JJazzMidiSystem.getInstance().setDefaultInDevice(mdIn);
         } catch (MidiUnavailableException ex)
         {
-            String msg = CTL_DeviceProblem() + mdIn.getDeviceInfo().getName();
+            String msg = ResUtil.getString(getClass(), "ERR_DeviceProblem", mdIn.getDeviceInfo().getName());
             msg += "\n\n" + ex.getLocalizedMessage();
-            LOGGER.log(Level.WARNING, msg);
+            LOGGER.log(Level.WARNING, msg);   //NOI18N
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return false;
@@ -462,16 +455,16 @@ final class MidiPanel extends javax.swing.JPanel
             JJazzMidiSystem.getInstance().setDefaultOutDevice(mdOut);
         } catch (MidiUnavailableException ex)
         {
-            String msg = CTL_DeviceProblem() + mdOut.getDeviceInfo().getName();
+            String msg = ResUtil.getString(getClass(), "ERR_DeviceProblem", mdOut.getDeviceInfo().getName());
             msg += "\n\n" + ex.getLocalizedMessage();
-            LOGGER.log(Level.WARNING, msg);
+            LOGGER.log(Level.WARNING, msg);   //NOI18N
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return false;
         }
         return true;
     }
-    
+
     boolean valid()
     {
         // LOGGER.log(Level.INFO, "valid()");
@@ -525,7 +518,7 @@ final class MidiPanel extends javax.swing.JPanel
                 list_OutDevices.setEnabled(true);
             }
         };
-        
+
         TestPlayer tp = TestPlayer.getInstance();
         try
         {
@@ -536,5 +529,5 @@ final class MidiPanel extends javax.swing.JPanel
             DialogDisplayer.getDefault().notify(d);
         }
     }
-    
+
 }

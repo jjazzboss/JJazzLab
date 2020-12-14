@@ -67,7 +67,7 @@ public final class PlayMidiFile implements ActionListener, MetaEventListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.log(Level.INFO, "actionPerformed()");
+        LOGGER.log(Level.INFO, "actionPerformed()");   //NOI18N
         JFileChooser chooser = Utilities.getFileChooserInstance();
         chooser.setDialogTitle("Play midi file");                
         chooser.resetChoosableFileFilters();
@@ -90,7 +90,7 @@ public final class PlayMidiFile implements ActionListener, MetaEventListener
             sequencer = mc.acquireSequencer(this);
             if (sequencer == null)
             {
-                LOGGER.severe("actionPerformed() can't acquire sequencer");
+                LOGGER.severe("actionPerformed() can't acquire sequencer");   //NOI18N
                 return;
             }
             sequencer.addMetaEventListener(this);
@@ -111,7 +111,7 @@ public final class PlayMidiFile implements ActionListener, MetaEventListener
         {
             // This method  is called from the Sequencer thread, NOT from the EDT !
             // So if this method impacts the UI, it must use SwingUtilities.InvokeLater() (or InvokeAndWait())
-            LOGGER.info("Play Midi file : END OF PLAYBACK");
+            LOGGER.info("Play Midi file : END OF PLAYBACK");   //NOI18N
             Runnable doRun = new Runnable()
             {
                 @Override

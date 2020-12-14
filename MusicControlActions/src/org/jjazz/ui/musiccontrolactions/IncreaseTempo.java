@@ -31,7 +31,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 
 @ActionID(category = "File", id = "org.jjazz.ui.actions.IncreaseTempo")
 @ActionRegistration(displayName = "#CTL_IncreaseTempo", lazy = true)
@@ -41,10 +40,6 @@ import org.openide.util.NbBundle.Messages;
             @ActionReference(path = "Shortcuts", name = "S-EQUALS"),
             @ActionReference(path = "Shortcuts", name = "PLUS"),
             @ActionReference(path = "Shortcuts", name = "K"),
-        })
-@Messages(
-        {
-            "CTL_IncreaseTempo=Increase Tempo"
         })
 public final class IncreaseTempo implements ActionListener
 {

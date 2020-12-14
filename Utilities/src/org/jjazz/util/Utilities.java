@@ -126,7 +126,7 @@ public class Utilities
     {
         if (filename == null || ext == null || ext.contains(" ") || ext.equals("."))
         {
-            throw new IllegalArgumentException("filename=" + filename + " ext=" + ext);
+            throw new IllegalArgumentException("filename=" + filename + " ext=" + ext);   //NOI18N
         }
         if (!ext.isEmpty() && !ext.startsWith("."))
         {
@@ -167,7 +167,7 @@ public class Utilities
     {
         if (maxLength < 5)
         {
-            throw new IllegalArgumentException("collection=" + collection + " maxLength=" + maxLength);
+            throw new IllegalArgumentException("collection=" + collection + " maxLength=" + maxLength);   //NOI18N
         }
         String s = collection.toString();
         s = s.substring(1, s.length() - 1);   // Remove the []        
@@ -189,7 +189,7 @@ public class Utilities
     {
         if (maxLength < 3)
         {
-            throw new IllegalArgumentException("s=" + s + " maxLength=" + maxLength);
+            throw new IllegalArgumentException("s=" + s + " maxLength=" + maxLength);   //NOI18N
         }
         String res = s;
         if (s.length() > maxLength)
@@ -234,7 +234,7 @@ public class Utilities
     {
         if (smallArray.length > 9)
         {
-            throw new IllegalArgumentException("smallArray.size()=" + smallArray.length + " n=" + n + " result=" + result);
+            throw new IllegalArgumentException("smallArray.size()=" + smallArray.length + " n=" + n + " result=" + result);   //NOI18N
         }
         // Reference: https://stackoverflow.com/questions/29042819/heaps-algorithm-permutation-generator
         if (n == 1)
@@ -412,10 +412,10 @@ public class Utilities
     {
         if (myClass == null || zipResource == null || !zipResource.toLowerCase().endsWith(".zip") || !Files.isDirectory(destDir))
         {
-            throw new IllegalArgumentException("myClass=" + myClass + " zipResource=" + zipResource + " destDir=" + destDir);
+            throw new IllegalArgumentException("myClass=" + myClass + " zipResource=" + zipResource + " destDir=" + destDir);   //NOI18N
         }
 
-        LOGGER.fine("extractZipResource() -- myClass=" + myClass + " zipResource=" + zipResource + " destDir=" + destDir);
+        LOGGER.fine("extractZipResource() -- myClass=" + myClass + " zipResource=" + zipResource + " destDir=" + destDir);   //NOI18N
         ArrayList<File> res = new ArrayList<>();
         try (InputStream is = myClass.getResourceAsStream(zipResource);
                 BufferedInputStream bis = new BufferedInputStream(is);
@@ -427,7 +427,7 @@ public class Utilities
             {
                 // Build destination file
                 File destFile = destDir.resolve(entry.getName()).toFile();
-                LOGGER.log(Level.FINE, "extractZipResource() processing zipEntry={0} destFile={1}", new Object[]
+                LOGGER.log(Level.FINE, "extractZipResource() processing zipEntry={0} destFile={1}", new Object[]   //NOI18N
                 {
                     entry.getName(), destFile.getAbsolutePath()
                 });
@@ -436,7 +436,7 @@ public class Utilities
                     // Directory, recreate if not present
                     if (!destFile.exists() && !destFile.mkdirs())
                     {
-                        LOGGER.warning("extractZipResource() can't create destination folder : " + destFile.getAbsolutePath());
+                        LOGGER.warning("extractZipResource() can't create destination folder : " + destFile.getAbsolutePath());   //NOI18N
                     }
                     continue;
                 }
@@ -458,7 +458,7 @@ public class Utilities
             }
         } catch (IOException ex)
         {
-            LOGGER.log(Level.SEVERE, "extractZipResource() problem extracting resource for myClass=" + myClass + " zipResource=" + zipResource + " ex=" + ex.getLocalizedMessage());
+            LOGGER.log(Level.SEVERE, "extractZipResource() problem extracting resource for myClass=" + myClass + " zipResource=" + zipResource + " ex=" + ex.getLocalizedMessage());   //NOI18N
         }
         return res;
     }
@@ -478,7 +478,7 @@ public class Utilities
     {
         if (c == null || resourceFilePath == null || resourceFilePath.isEmpty() || targetFile == null)
         {
-            throw new IllegalArgumentException("c=" + c + " resourceFilePath=" + resourceFilePath + " targetFile=" + targetFile);
+            throw new IllegalArgumentException("c=" + c + " resourceFilePath=" + resourceFilePath + " targetFile=" + targetFile);   //NOI18N
         }
         boolean b = false;
         try (InputStream in = c.getResourceAsStream(resourceFilePath))
@@ -489,11 +489,11 @@ public class Utilities
                 b = true;
             } else
             {
-                LOGGER.log(Level.SEVERE, "copyResource() resource not found. c=" + c + " resourcePath=" + resourceFilePath);
+                LOGGER.log(Level.SEVERE, "copyResource() resource not found. c=" + c + " resourcePath=" + resourceFilePath);   //NOI18N
             }
         } catch (IOException ex)
         {
-            LOGGER.log(Level.SEVERE, "copyResource() problem copying resource. c=" + c + ", resourcePath=" + resourceFilePath + ", targetFile=" + targetFile, ex);
+            LOGGER.log(Level.SEVERE, "copyResource() problem copying resource. c=" + c + ", resourcePath=" + resourceFilePath + ", targetFile=" + targetFile, ex);   //NOI18N
         }
 
         return b;
@@ -531,7 +531,7 @@ public class Utilities
     {
         if (map == null)
         {
-            throw new IllegalArgumentException("map=" + map);
+            throw new IllegalArgumentException("map=" + map);   //NOI18N
         }
         if (map.isEmpty())
         {
@@ -559,7 +559,7 @@ public class Utilities
     {
         if (list == null)
         {
-            throw new IllegalArgumentException("list=" + list);
+            throw new IllegalArgumentException("list=" + list);   //NOI18N
         }
         if (list.isEmpty())
         {
@@ -700,7 +700,7 @@ public class Utilities
             path = path.substring(5);
             return new File(path);
         }
-        throw new IllegalArgumentException("Invalid URL: " + url);
+        throw new IllegalArgumentException("Invalid URL: " + url);   //NOI18N
     }
 
     /**
@@ -777,7 +777,7 @@ public class Utilities
     {
         if (dirTree == null || maxDepth < 0)
         {
-            throw new IllegalArgumentException("dirTree=" + dirTree + " fnFilter=" + fnFilter + " ignoreDirPrefix=" + ignoreDirPrefix);
+            throw new IllegalArgumentException("dirTree=" + dirTree + " fnFilter=" + fnFilter + " ignoreDirPrefix=" + ignoreDirPrefix);   //NOI18N
         }
         final HashSet<Path> pathSet = new HashSet<>();
         try
@@ -809,13 +809,13 @@ public class Utilities
                 @Override
                 public FileVisitResult visitFileFailed(Path file, IOException ex)
                 {
-                    LOGGER.warning("visitFileFailed() file=" + file + ", ex=" + ex.getLocalizedMessage());
+                    LOGGER.warning("visitFileFailed() file=" + file + ", ex=" + ex.getLocalizedMessage());   //NOI18N
                     return CONTINUE;
                 }
             });
         } catch (IOException ex)
         {
-            LOGGER.warning("listFile() IOException ex=" + ex.getLocalizedMessage() + ". Some files may have not been listed.");
+            LOGGER.warning("listFile() IOException ex=" + ex.getLocalizedMessage() + ". Some files may have not been listed.");   //NOI18N
         }
         return pathSet;
     }

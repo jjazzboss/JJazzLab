@@ -82,7 +82,7 @@ public class MidiChannelDispatcher extends JJazzMidiDevice
     {
         if (!MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("channel=" + channel);
+            throw new IllegalArgumentException("channel=" + channel);   //NOI18N
         }
 
         Transmitter mt = super.getTransmitter();
@@ -94,7 +94,7 @@ public class MidiChannelDispatcher extends JJazzMidiDevice
     {
         if (!MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("channel=" + channel);
+            throw new IllegalArgumentException("channel=" + channel);   //NOI18N
         }
 
         return channelTransmitters[channel];
@@ -128,7 +128,7 @@ public class MidiChannelDispatcher extends JJazzMidiDevice
 
             if (!isOpen || !isReceiverOpen)
             {
-                throw new IllegalStateException("ChannelDispatcher object is closed");
+                throw new IllegalStateException("ChannelDispatcher object is closed");   //NOI18N
             }
 
             // Channel information available only for ShortMessage, otherwise channel 0 is used.

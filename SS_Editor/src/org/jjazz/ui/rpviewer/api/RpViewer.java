@@ -70,7 +70,7 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
     {
         if (rp == null || spt == null || settings == null)
         {
-            throw new NullPointerException("spt=" + spt + " rp=" + rp + " settings=" + settings);
+            throw new NullPointerException("spt=" + spt + " rp=" + rp + " settings=" + settings);   //NOI18N
         }
         this.rpModel = rp;
         this.sptModel = spt;
@@ -110,7 +110,7 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
     {
         if (factor < 0 || factor > 100)
         {
-            throw new IllegalArgumentException("factor=" + factor);
+            throw new IllegalArgumentException("factor=" + factor);   //NOI18N
         }
         if (factor != zoomVFactor)
         {
@@ -156,7 +156,7 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
     public void setSelected(boolean b)
     {
         isSelected = b;
-        LOGGER.log(Level.FINE, "setSelected this=" + this + " b=" + b);
+        LOGGER.log(Level.FINE, "setSelected this=" + this + " b=" + b);   //NOI18N
         if (isSelected)
         {
             setBackground(settings.getSelectedBackgroundColor());

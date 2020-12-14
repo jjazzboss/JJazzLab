@@ -72,7 +72,7 @@ public final class RandomSong implements ActionListener
     {
         if (name == null || name.isEmpty() || clsSize < 1 || !TempoRange.checkTempo(tempo))
         {
-            throw new IllegalArgumentException("name=" + name + " clsSize=" + clsSize + " tempo=" + tempo);
+            throw new IllegalArgumentException("name=" + name + " clsSize=" + clsSize + " tempo=" + tempo);   //NOI18N
         }
         SongFactory sf = SongFactory.getInstance();
         ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
@@ -89,7 +89,7 @@ public final class RandomSong implements ActionListener
                 robustness--;
                 if (robustness == 0)
                 {
-                    LOGGER.log(Level.WARNING, "Impossible to create random song", ex);
+                    LOGGER.log(Level.WARNING, "Impossible to create random song", ex);   //NOI18N
                     song = sf.createEmptySong(name);
                 }
             }

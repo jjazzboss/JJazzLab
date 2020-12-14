@@ -62,7 +62,7 @@ final public class CL_SelectionUtilities
     {
         if (lookup == null)
         {
-            throw new IllegalArgumentException("lookup=" + lookup);
+            throw new IllegalArgumentException("lookup=" + lookup);   //NOI18N
         }
 
         items = new ArrayList<>((Collection<ChordLeadSheetItem<?>>) lookup.lookupAll(ChordLeadSheetItem.class));
@@ -70,7 +70,7 @@ final public class CL_SelectionUtilities
 
         if (!items.isEmpty() && !selectedBars.isEmpty())
         {
-            throw new IllegalStateException("items=" + items + " selectedBars=" + selectedBars);
+            throw new IllegalStateException("items=" + items + " selectedBars=" + selectedBars);   //NOI18N
         }
 
         if (!items.isEmpty())

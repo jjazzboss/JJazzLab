@@ -365,11 +365,11 @@ public class ChordRenderingInfo implements Serializable
     {
         if (features.contains(Feature.HOLD) && features.contains(Feature.SHOT))
         {
-            throw new IllegalArgumentException("features=" + features);
+            throw new IllegalArgumentException("features=" + features);   //NOI18N
         }
         if (features.contains(Feature.CRASH) && features.contains(Feature.NO_CRASH))
         {
-            throw new IllegalArgumentException("features=" + features);
+            throw new IllegalArgumentException("features=" + features);   //NOI18N
         }
         int count = 0;
         for (Feature f : features)
@@ -379,7 +379,7 @@ public class ChordRenderingInfo implements Serializable
                 count++;
                 if (count > 1)
                 {
-                    throw new IllegalArgumentException("features=" + features);
+                    throw new IllegalArgumentException("features=" + features);   //NOI18N
                 }
             }
         }
@@ -473,7 +473,7 @@ public class ChordRenderingInfo implements Serializable
                         spFeatures = EnumSet.of(Feature.ACCENT, Feature.SHOT);
                         break;
                     default:
-                        LOGGER.warning("readResolve() Invalid value for spPlayStyle=" + spPlayStyleV1 + ". Ignored.");
+                        LOGGER.warning("readResolve() Invalid value for spPlayStyle=" + spPlayStyleV1 + ". Ignored.");   //NOI18N
                 }
                 if (!spAnticipate)
                 {

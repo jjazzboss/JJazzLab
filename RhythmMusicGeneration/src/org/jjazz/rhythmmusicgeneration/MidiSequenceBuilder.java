@@ -77,10 +77,10 @@ public class MidiSequenceBuilder
     {
         if (context == null)
         {
-            throw new NullPointerException("context");
+            throw new NullPointerException("context");   //NOI18N
         }
         this.context = context;
-        assert !context.getSong().getSongStructure().getSongParts().isEmpty();
+        assert !context.getSong().getSongStructure().getSongParts().isEmpty();   //NOI18N
         this.postProcessors = postProcessors;
     }
 
@@ -167,7 +167,7 @@ public class MidiSequenceBuilder
         MusicGenerator generator = r.getLookup().lookup(MusicGenerator.class);
         if (generator != null)
         {
-            LOGGER.fine("fillRhythmTracks() calling generateMusic() for rhythm r=" + r.getName());
+            LOGGER.fine("fillRhythmTracks() calling generateMusic() for rhythm r=" + r.getName());   //NOI18N
             r.loadResources();
             return generator.generateMusic(context);
         } else
@@ -255,7 +255,7 @@ public class MidiSequenceBuilder
                 Phrase p = rvPhrases.get(rv);
                 if (p == null)
                 {
-                    LOGGER.warning("muteNotes() Unexpected null phase. rv=" + rv + " rvPhrases=" + rvPhrases);
+                    LOGGER.warning("muteNotes() Unexpected null phase. rv=" + rv + " rvPhrases=" + rvPhrases);   //NOI18N
                     continue;
                 }
                 p.split(sptRange.from, sptRange.to, true, false);
@@ -270,7 +270,7 @@ public class MidiSequenceBuilder
      */
     private void processInstrumentsSettings(HashMap<RhythmVoice, Phrase> rvPhrases)
     {
-        LOGGER.fine("processInstrumentsSettings() -- ");
+        LOGGER.fine("processInstrumentsSettings() -- ");   //NOI18N
         MidiMix midiMix = context.getMidiMix();
         for (RhythmVoice rv : rvPhrases.keySet())
         {
@@ -278,19 +278,19 @@ public class MidiSequenceBuilder
             InstrumentMix insMix = midiMix.getInstrumentMixFromKey(rv);
             if (insMix == null)
             {
-                LOGGER.warning("applyInstrumentsSettings() Unexpected null InstrumentMix for rv=" + rv + " midMix=" + midiMix);
+                LOGGER.warning("applyInstrumentsSettings() Unexpected null InstrumentMix for rv=" + rv + " midMix=" + midiMix);   //NOI18N
                 continue;
             }
             InstrumentSettings insSet = insMix.getSettings();
             if (insSet.getTransposition() != 0)
             {
                 p.processPitch(pitch -> pitch + insSet.getTransposition());
-                LOGGER.fine("processInstrumentsSettings()    Adjusting transposition=" + insSet.getTransposition() + " for rv=" + rv);
+                LOGGER.fine("processInstrumentsSettings()    Adjusting transposition=" + insSet.getTransposition() + " for rv=" + rv);   //NOI18N
             }
             if (insSet.getVelocityShift() != 0)
             {
                 p.processVelocity(v -> v + insSet.getVelocityShift());
-                LOGGER.fine("processInstrumentsSettings()    Adjusting velocity=" + insSet.getVelocityShift() + " for rv=" + rv);
+                LOGGER.fine("processInstrumentsSettings()    Adjusting velocity=" + insSet.getVelocityShift() + " for rv=" + rv);   //NOI18N
             }
         }
     }
@@ -342,8 +342,8 @@ public class MidiSequenceBuilder
                 {
                     // context.getPosition(0)
                     String msg = "Invalid note position " + ne.toString() + " for rhythm " + r.getName();
-                    LOGGER.log(Level.INFO, "checkRhythmPhrasesScope() " + msg);
-                    LOGGER.fine("DEBUG!  rv=" + rv.getName() + " ne=" + ne + " p=" + p);
+                    LOGGER.log(Level.INFO, "checkRhythmPhrasesScope() " + msg);   //NOI18N
+                    LOGGER.fine("DEBUG!  rv=" + rv.getName() + " ne=" + ne + " p=" + p);   //NOI18N
                     throw new MusicGenerationException(msg);
                 }
             }
@@ -430,7 +430,7 @@ public class MidiSequenceBuilder
             // Make sure all tracks have the same EndOfTrack
             if (!MidiUtilities.setEndOfTrackPosition(t, lastTick))
             {
-                LOGGER.log(Level.WARNING, "checkSequence() problem adjusting EndOfTrack event to lastTick={0}", lastTick);
+                LOGGER.log(Level.WARNING, "checkSequence() problem adjusting EndOfTrack event to lastTick={0}", lastTick);   //NOI18N
             }
         }
     }
@@ -513,7 +513,7 @@ public class MidiSequenceBuilder
                     Phrase pDest = mapRes.get(rvd.getSource());
                     if (pDest == null)
                     {
-                        throw new IllegalStateException("rv=" + rv + " res=" + mapRes);
+                        throw new IllegalStateException("rv=" + rv + " res=" + mapRes);   //NOI18N
                     }
 
                     // There should be no overlap of phrases since the delegate is from a different rhythm, so for different song parts 

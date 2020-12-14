@@ -71,7 +71,7 @@ public interface RhythmVoiceInstrumentProvider
             {
                 return defaultProvider;
             }
-            throw new IllegalStateException("No provider found");
+            throw new IllegalStateException("No provider found");   //NOI18N
         }
     }
 

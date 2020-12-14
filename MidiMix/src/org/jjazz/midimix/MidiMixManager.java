@@ -85,7 +85,7 @@ public class MidiMixManager implements PropertyChangeListener
      */
     public MidiMix findMix(Song s) throws MidiUnavailableException
     {
-        LOGGER.fine("findMix() -- s=" + s);
+        LOGGER.fine("findMix() -- s=" + s);   //NOI18N
         // Try to get existing MidiMix in memory
         MidiMix mm = mapSongMix.get(s);
         if (mm == null)
@@ -101,7 +101,7 @@ public class MidiMixManager implements PropertyChangeListener
                     StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "LoadedSongMix", mixFile.getAbsolutePath()));
                 } catch (IOException ex)
                 {
-                    LOGGER.warning("findMix(Song) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage());
+                    LOGGER.warning("findMix(Song) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage());   //NOI18N
                 }
                 if (mm == null)
                 {
@@ -131,7 +131,7 @@ public class MidiMixManager implements PropertyChangeListener
      */
     public MidiMix findMix(Rhythm r)
     {
-        LOGGER.fine("findMix() -- r=" + r);
+        LOGGER.fine("findMix() -- r=" + r);   //NOI18N
         MidiMix mm = null;
         File mixFile = FileDirectoryManager.getInstance().getRhythmMixFile(r);
         if (mixFile != null && mixFile.canRead())
@@ -142,7 +142,7 @@ public class MidiMixManager implements PropertyChangeListener
                 StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "LoadedRhythmMix", mixFile.getAbsolutePath()));
             } catch (IOException ex)
             {
-                LOGGER.severe("findMix(rhythm) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage() + ". Creating a new mix instead.");
+                LOGGER.severe("findMix(rhythm) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage() + ". Creating a new mix instead.");   //NOI18N
             }
         }
         if (mm == null)
@@ -164,7 +164,7 @@ public class MidiMixManager implements PropertyChangeListener
      */
     public MidiMix createMix(Song sg) throws MidiUnavailableException
     {
-        LOGGER.fine("createMix() -- sg=" + sg);
+        LOGGER.fine("createMix() -- sg=" + sg);   //NOI18N
         MidiMix mm = new MidiMix(sg);
         for (Rhythm r : sg.getSongStructure().getUniqueRhythms(true))
         {
@@ -188,7 +188,7 @@ public class MidiMixManager implements PropertyChangeListener
      */
     public MidiMix createMix(Rhythm r)
     {
-        LOGGER.fine("createMix() -- r=" + r);
+        LOGGER.fine("createMix() -- r=" + r);   //NOI18N
 
         MidiMix mm = new MidiMix();
 
@@ -201,23 +201,23 @@ public class MidiMixManager implements PropertyChangeListener
             {
                 RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.Util.getProvider();
                 Instrument ins = p.findInstrument(rv);
-                assert ins != null : "rv=" + rv;
+                assert ins != null : "rv=" + rv;   //NOI18N
                 int channel = rv.getPreferredChannel();
 
                 if (mm.getInstrumentMixFromChannel(channel) != null)
                 {
                     // If 2 rhythm voices have the same preferred channel (strange...)
-                    LOGGER.warning("createMix() 2 rhythm voices have the same preferredChannel. r=" + r.getName() + " mm=" + mm + " channel=" + channel);
+                    LOGGER.warning("createMix() 2 rhythm voices have the same preferredChannel. r=" + r.getName() + " mm=" + mm + " channel=" + channel);   //NOI18N
                     channel = mm.findFreeChannel(rv.isDrums());
                     if (channel == -1)
                     {
-                        throw new IllegalStateException("No Midi channel available in MidiMix. r=" + r + " rhythmVoices=" + r.getRhythmVoices());
+                        throw new IllegalStateException("No Midi channel available in MidiMix. r=" + r + " rhythmVoices=" + r.getRhythmVoices());   //NOI18N
                     }
                 }
 
                 InstrumentMix im = new InstrumentMix(ins, rv.getPreferredInstrumentSettings());
                 mm.setInstrumentMix(channel, rv, im);
-                LOGGER.fine("createMix()    created InstrumentMix for rv=" + rv + " ins=" + ins);
+                LOGGER.fine("createMix()    created InstrumentMix for rv=" + rv + " ins=" + ins);   //NOI18N
             }
         }
 
@@ -233,7 +233,7 @@ public class MidiMixManager implements PropertyChangeListener
         if (e.getSource() instanceof Song)
         {
             Song song = (Song) e.getSource();
-            assert mapSongMix.get(song) != null : "song=" + song + " mapSongMix=" + mapSongMix;
+            assert mapSongMix.get(song) != null : "song=" + song + " mapSongMix=" + mapSongMix;   //NOI18N
             if (e.getPropertyName() == Song.PROP_CLOSED)
             {
                 unregisterSong(song);

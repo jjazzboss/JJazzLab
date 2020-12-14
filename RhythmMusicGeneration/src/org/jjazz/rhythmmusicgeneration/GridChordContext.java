@@ -89,7 +89,7 @@ public class GridChordContext
     {
         if (cliCs == null || cSeq == null || !cSeq.contains(cliCs) || cSeqStartPosInBeats < 0 || grid == null || ts == null)
         {
-            throw new IllegalArgumentException("cliCs=" + cliCs + " cSeq=" + cSeq + " cSeqStartPosInBeats=" + cSeqStartPosInBeats + " grid=" + grid + " ts=" + ts);
+            throw new IllegalArgumentException("cliCs=" + cliCs + " cSeq=" + cSeq + " cSeqStartPosInBeats=" + cSeqStartPosInBeats + " grid=" + grid + " ts=" + ts);   //NOI18N
         }
         this.chord = cliCs;
         this.chordSequence = cSeq;

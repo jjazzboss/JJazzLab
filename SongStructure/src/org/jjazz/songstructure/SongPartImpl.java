@@ -102,7 +102,7 @@ public class SongPartImpl implements SongPart, Serializable
     {
         if (r == null || startBarIndex < 0 || nbBars < 1)
         {
-            throw new IllegalArgumentException(
+            throw new IllegalArgumentException(   //NOI18N
                     "r=" + r + " startBarIndex=" + startBarIndex + " nbBars=" + nbBars + " parentSection=" + parentSection);
         }
         rhythm = r;
@@ -129,7 +129,7 @@ public class SongPartImpl implements SongPart, Serializable
     {
         if (name == null || name.length() == 0)
         {
-            throw new IllegalArgumentException("name=" + name);
+            throw new IllegalArgumentException("name=" + name);   //NOI18N
         }
         String oldName = this.name;
         if (!name.equals(this.name))
@@ -162,11 +162,11 @@ public class SongPartImpl implements SongPart, Serializable
     {
         if (rp == null || !rhythm.getRhythmParameters().contains(rp))
         {
-            throw new IllegalArgumentException("this=" + this + " rp=" + rp);
+            throw new IllegalArgumentException("this=" + this + " rp=" + rp);   //NOI18N
         }
         @SuppressWarnings("unchecked")
         T value = (T) mapRpValue.getValue(rp);
-        assert value != null : "rp=" + rp + " mapRpValueProfile=" + mapRpValue;
+        assert value != null : "rp=" + rp + " mapRpValueProfile=" + mapRpValue;   //NOI18N
         return value;
     }
 
@@ -180,11 +180,11 @@ public class SongPartImpl implements SongPart, Serializable
     {
         if (!rhythm.getRhythmParameters().contains(rp) || value == null || !rp.isValidValue(value))
         {
-            throw new IllegalArgumentException("rp=" + rp + " value=" + value);
+            throw new IllegalArgumentException("rp=" + rp + " value=" + value);   //NOI18N
         }
         @SuppressWarnings("unchecked")
         T oldValue = (T) mapRpValue.getValue(rp);
-        assert oldValue != null : "rpValueProfileMap=" + mapRpValue + " rp=" + rp + " value=" + value;
+        assert oldValue != null : "rpValueProfileMap=" + mapRpValue + " rp=" + rp + " value=" + value;   //NOI18N
         if (oldValue != value)
         {
             mapRpValue.putValue(rp, value);
@@ -207,7 +207,7 @@ public class SongPartImpl implements SongPart, Serializable
     {
         if (barIndex < 0)
         {
-            throw new IllegalArgumentException("barIndex=" + barIndex);
+            throw new IllegalArgumentException("barIndex=" + barIndex);   //NOI18N
         }
         if (barIndex != startBarIndex)
         {
@@ -232,14 +232,14 @@ public class SongPartImpl implements SongPart, Serializable
     {
         if (newStartBarIndex < 0)
         {
-            throw new IllegalArgumentException("newStartBarIndex=" + newStartBarIndex);
+            throw new IllegalArgumentException("newStartBarIndex=" + newStartBarIndex);   //NOI18N
         }
         Rhythm newRhythm = (r == null) ? getRhythm() : r;
 
         // Check that time signature match
         if (cliSection != null && !cliSection.getData().getTimeSignature().equals(newRhythm.getTimeSignature()))
         {
-            throw new IllegalArgumentException("r=" + r + " newRhythm=" + newRhythm + " cliSection=" + cliSection);
+            throw new IllegalArgumentException("r=" + r + " newRhythm=" + newRhythm + " cliSection=" + cliSection);   //NOI18N
         }
 
         SongPartImpl newSpt = new SongPartImpl(newRhythm, newStartBarIndex, newNbBars, cliSection);
@@ -280,7 +280,7 @@ public class SongPartImpl implements SongPart, Serializable
     {
         if (n < 1)
         {
-            throw new IllegalArgumentException("n=" + n);
+            throw new IllegalArgumentException("n=" + n);   //NOI18N
         }
         if (nbBars != n)
         {
@@ -486,19 +486,19 @@ public class SongPartImpl implements SongPart, Serializable
             } catch (UnavailableRhythmException ex1)
             {
                 // Problem ! The saved rhythm does not exist on the system, need to find another one
-                LOGGER.warning("readResolve() Can't get rhythm instance for rhythm id=" + spRhythmId + ". ex1=" + ex1.getLocalizedMessage());
+                LOGGER.warning("readResolve() Can't get rhythm instance for rhythm id=" + spRhythmId + ". ex1=" + ex1.getLocalizedMessage());   //NOI18N
                 RhythmInfo ri = rdb.getDefaultRhythm(spRhythmTs);
                 try
                 {
                     r = rdb.getRhythmInstance(ri);
                 } catch (UnavailableRhythmException ex2)
                 {
-                    LOGGER.warning("readResolve() Can't get rhythm instance for " + ri + ". ex2=" + ex2.getLocalizedMessage());
+                    LOGGER.warning("readResolve() Can't get rhythm instance for " + ri + ". ex2=" + ex2.getLocalizedMessage());   //NOI18N
                     r = rdb.getDefaultStubRhythmInstance(spRhythmTs);   // Can't be null
                 }
                 errRhythm = ERR_RhythmNotFound() + ": " + spRhythmName + ". " + ERR_UsingReplacementRhythm() + ": " + r.getName();
             }
-            assert r != null;
+            assert r != null;   //NOI18N
 
             // Recreate a SongPart
             SongPartImpl newSpt = new SongPartImpl(r, spStartBarIndex, spNbBars, spParentSection);
@@ -528,13 +528,13 @@ public class SongPartImpl implements SongPart, Serializable
                 } else if (!saveUnavailableRhythmIds.contains(spRhythmId))
                 {
                     String msg = "- '" + savedRpId + "' original rhythm parameter value can not be reused by new rhythm '" + r.getName() + "'";
-                    LOGGER.log(Level.WARNING, msg);
+                    LOGGER.log(Level.WARNING, msg);   //NOI18N
                 }
             }
 
             if (errRhythm != null && !saveUnavailableRhythmIds.contains(spRhythmId))
             {
-                LOGGER.warning(errRhythm);
+                LOGGER.warning(errRhythm);   //NOI18N
                 NotifyDescriptor nd = new NotifyDescriptor.Message(errRhythm, NotifyDescriptor.WARNING_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
                 saveUnavailableRhythmIds.add(spRhythmId);

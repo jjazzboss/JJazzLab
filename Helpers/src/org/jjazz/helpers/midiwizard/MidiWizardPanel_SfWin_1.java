@@ -123,7 +123,7 @@ public class MidiWizardPanel_SfWin_1 implements WizardDescriptor.Panel<WizardDes
 
   private MidiDevice getVirtualMidiSynthDevice()
     {
-        assert Utilities.isWindows();
+        assert Utilities.isWindows();   //NOI18N
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
         MidiDevice res = null;
         MidiDevice md = jms.getDefaultOutDevice();

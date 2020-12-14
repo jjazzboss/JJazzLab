@@ -69,7 +69,7 @@ public class FlatHoverManager implements MouseListener, MouseMotionListener
     {
         if (component == null)
         {
-            throw new NullPointerException("component");
+            throw new NullPointerException("component");   //NOI18N
         }
         if (!components.contains(component))
         {
@@ -84,7 +84,7 @@ public class FlatHoverManager implements MouseListener, MouseMotionListener
     {
         if (component == null || !components.contains(component))
         {
-            throw new IllegalArgumentException("component=" + component + " components=" + components);
+            throw new IllegalArgumentException("component=" + component + " components=" + components);   //NOI18N
         }
         component.removeMouseListener(this);
         component.removeMouseMotionListener(this);

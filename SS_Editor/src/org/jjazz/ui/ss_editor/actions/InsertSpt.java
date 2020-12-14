@@ -37,8 +37,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.database.api.RhythmDatabase;
-import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
@@ -48,12 +46,12 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.util.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.insertspt")
 @ActionRegistration(displayName = "#CTL_InsertSpt", lazy = false)
@@ -61,18 +59,12 @@ import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
         {
             @ActionReference(path = "Actions/SongPart", position = 300)
         })
-@NbBundle.Messages(
-        {
-            "CTL_InsertSpt=Insert...",
-            "ERR_InsertSpt=Impossible to insert Song Part"
-        })
-
 public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = CTL_InsertSpt();
+    private String undoText = ResUtil.getString(getClass(), "CTL_InsertSpt");
     private static final Logger LOGGER = Logger.getLogger(InsertSpt.class.getSimpleName());
 
     public InsertSpt()
@@ -107,7 +99,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
         cls = sgs.getParentChordLeadSheet();
         if (cls == null)
         {
-            throw new IllegalStateException("sgs=" + sgs);
+            throw new IllegalStateException("sgs=" + sgs);   //NOI18N
         }
 
 
@@ -122,13 +114,13 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
         {
             // Perform change
             CLI_Section parentSection = dlg.getParentSection();
-            assert parentSection != null;
-                     
+            assert parentSection != null;   //NOI18N
+
 
             // Create the new song part
             int startBarIndex = spts.get(selection.getMinStartSptIndex()).getStartBarIndex();
-            Rhythm r = sgs.getRecommendedRhythm(parentSection.getData().getTimeSignature(), startBarIndex);            
-            int nbBars = cls.getSectionRange(parentSection).size();                                  
+            Rhythm r = sgs.getRecommendedRhythm(parentSection.getData().getTimeSignature(), startBarIndex);
+            int nbBars = cls.getSectionRange(parentSection).size();
             SongPart newSpt = sgs.createSongPart(r, parentSection.getData().getName(), startBarIndex, nbBars, parentSection, true);
 
 
@@ -142,7 +134,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
 
             } catch (UnsupportedEditException ex)
             {
-                String msg = ERR_InsertSpt() + "\n" + ex.getLocalizedMessage();
+                String msg = ResUtil.getString(getClass(), "ERR_InsertSpt") + "\n" + ex.getLocalizedMessage();
                 um.handleUnsupportedEditException(undoText, msg);
                 return;
             }
@@ -156,7 +148,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
     public void selectionChange(SS_SelectionUtilities selection)
     {
         boolean b = selection.isOneSectionSptSelection();
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);
+        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   //NOI18N
         setEnabled(b);
     }
 }

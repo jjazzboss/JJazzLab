@@ -61,7 +61,7 @@ public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_
     public RemoveBar()
     {
         this(Utilities.actionsGlobalContext());
-        LOGGER.log(Level.FINE, "RemoveBar()");
+        LOGGER.log(Level.FINE, "RemoveBar()");   //NOI18N
     }
 
     private RemoveBar(Lookup context)
@@ -71,14 +71,14 @@ public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_
         cap.addListener(this);
         putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("shift DELETE"));
-        LOGGER.log(Level.FINE, "RemoveBar(context) context=" + context);
+        LOGGER.log(Level.FINE, "RemoveBar(context) context=" + context);   //NOI18N
         selectionChange(cap.getSelection());
     }
 
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
-        LOGGER.log(Level.FINE, "createContextAwareInstance(context)");
+        LOGGER.log(Level.FINE, "createContextAwareInstance(context)");   //NOI18N
         return new RemoveBar(context);
     }
 
@@ -92,7 +92,7 @@ public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_
         int lastBar = cls.getSize() - 1;
 
 
-        LOGGER.log(Level.FINE, "actionPerformed() minBar=" + minBar + " cls=" + cls + " context=" + context);
+        LOGGER.log(Level.FINE, "actionPerformed() minBar=" + minBar + " cls=" + cls + " context=" + context);   //NOI18N
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
         um.startCEdit(undoText);
@@ -124,7 +124,7 @@ public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_
         {
             b = true;
         }
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);
+        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   //NOI18N
         setEnabled(b);
     }
 

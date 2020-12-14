@@ -152,7 +152,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     @Override
     public void showInsertionPoint(boolean b, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
     {
-        LOGGER.fine("showInsertionPoint() b=" + b + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);
+        LOGGER.fine("showInsertionPoint() b=" + b + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);   //NOI18N
         if (!b)
         {
             // Remove the insertion point
@@ -260,7 +260,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     {
         if (!isRegisteredItemClass(item))
         {
-            throw new IllegalArgumentException("item=" + item);
+            throw new IllegalArgumentException("item=" + item);   //NOI18N
         }
         ItemRenderer ir;
         ItemRendererFactory irf = getItemRendererFactory();
@@ -287,7 +287,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     public void componentResized(ComponentEvent e)
     {
         Dimension d = getPrefSizePanelSharedInstance().getSize();
-        LOGGER.fine("componentResized() d=" + d);
+        LOGGER.fine("componentResized() d=" + d);   //NOI18N
         setPreferredSize(d);
         revalidate();
         repaint();

@@ -175,9 +175,9 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         {
             if (rhythms == null)
             {
-                throw new NullPointerException("rhythms");
+                throw new NullPointerException("rhythms");   //NOI18N
             }
-            LOGGER.fine("setRhythms() rhythms.size()=" + rhythms.size());
+            LOGGER.fine("setRhythms() rhythms.size()=" + rhythms.size());   //NOI18N
             this.rhythms = new ArrayList<>(rhythms);
             this.rhythms.sort(new RhythmComparator());
                         
@@ -201,7 +201,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         public void setHighlighted(RhythmInfo ri, boolean b)
         {
             int mIndex = model.getRhythms().indexOf(ri);
-            LOGGER.severe("setHighlighted() ri=" + ri + " b=" + b + " mIndex=" + mIndex);
+            LOGGER.severe("setHighlighted() ri=" + ri + " b=" + b + " mIndex=" + mIndex);   //NOI18N
             
             if (mIndex == -1)
             {
@@ -244,7 +244,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                 case COL_DIR:
                     return String.class;
                 default:
-                    throw new IllegalStateException("columnIndex=" + col);
+                    throw new IllegalStateException("columnIndex=" + col);   //NOI18N
             }
         }
 
@@ -273,7 +273,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                     s = "#   ";
                     break;
                 default:
-                    throw new IllegalStateException("columnIndex=" + columnIndex);
+                    throw new IllegalStateException("columnIndex=" + columnIndex);   //NOI18N
             }
             return s;
         }
@@ -322,7 +322,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                         s = "./" + relPath.toString();
                     } catch (IllegalArgumentException ex)
                     {
-                        LOGGER.warning("getValueAt() Can't relativize pFile=" + pFile + " to pDir=" + pDir);
+                        LOGGER.warning("getValueAt() Can't relativize pFile=" + pFile + " to pDir=" + pDir);   //NOI18N
                         s = pFile.toString();
                     }
                     return s;
@@ -335,7 +335,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                 case COL_ID:
                     return row + 1;
                 default:
-                    throw new IllegalStateException("col=" + col);
+                    throw new IllegalStateException("col=" + col);   //NOI18N
             }
         }
 
@@ -450,7 +450,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                     // Nothing
                     break;
                 default:
-                    throw new IllegalStateException("col=" + colIndex);
+                    throw new IllegalStateException("col=" + colIndex);   //NOI18N
             }
         }
     }

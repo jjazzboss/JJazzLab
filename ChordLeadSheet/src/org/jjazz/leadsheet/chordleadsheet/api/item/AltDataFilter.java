@@ -64,7 +64,7 @@ public class AltDataFilter implements Serializable
     {
         if (values == null || values.isEmpty())
         {
-            throw new IllegalArgumentException("values=" + values);
+            throw new IllegalArgumentException("values=" + values);   //NOI18N
         }
 
         this.values = new ArrayList<>(values);
@@ -80,7 +80,7 @@ public class AltDataFilter implements Serializable
     {
         if (r == null)
         {
-            throw new IllegalArgumentException("r=" + r);
+            throw new IllegalArgumentException("r=" + r);   //NOI18N
         }
         random = r;
         values = null;
@@ -152,7 +152,7 @@ public class AltDataFilter implements Serializable
     {
         if (str == null)
         {
-            throw new NullPointerException("str");
+            throw new NullPointerException("str");   //NOI18N
         }
         if (random != null)
         {

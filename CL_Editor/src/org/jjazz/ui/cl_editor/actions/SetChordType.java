@@ -138,7 +138,7 @@ public final class SetChordType extends AbstractAction implements Presenter.Menu
                     menuSus4.add(mi);
                     break;
                 default:
-                    throw new IllegalStateException("ct=" + ct);
+                    throw new IllegalStateException("ct=" + ct);   //NOI18N
             }
         }
         return menu;

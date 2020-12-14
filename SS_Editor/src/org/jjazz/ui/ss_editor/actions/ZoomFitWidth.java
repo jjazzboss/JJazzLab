@@ -30,26 +30,21 @@ import static javax.swing.Action.ACCELERATOR_KEY;
 import javax.swing.ImageIcon;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 
 /**
  * This the delegate action for the ZoomFitWidth action of the ZoomableSliders module.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.zoomfitwidth")
-@ActionRegistration(displayName = "CTL_ZoomFitWidth()", lazy = false)  // To have the tooltip
+@ActionRegistration(displayName = "#CTL_ZoomFitWidth", lazy = false)  // To have the tooltip
 @ActionReferences(
         {
             @ActionReference(path = "Actions/SS_EditorToolBar", position = 100, separatorAfter = 101)
         // @ActionReference(path = "Shortcuts", name = "D-F")
-        })
-@Messages(
-        {
-            "CTL_ZoomFitWidth=Zoom to Fit Width",
-            "DESC_ZoomFitWidth=Zoom to Fit Width (ctrl-F)"
         })
 public class ZoomFitWidth extends AbstractAction
 {
@@ -58,16 +53,16 @@ public class ZoomFitWidth extends AbstractAction
     public ZoomFitWidth()
     {
         putValue("hideActionText", true);        
-        putValue(NAME, Bundle.CTL_ZoomFitWidth());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_ZoomFitWidth"));
         putValue(SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/ss_editor/actions/resources/ZoomToFit.png")));
         putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_F));    // For popupmenu display only
-        putValue(SHORT_DESCRIPTION, Bundle.DESC_ZoomFitWidth());
+        putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "DESC_ZoomFitWidth"));
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.fine("actionPerformed()");
+        LOGGER.fine("actionPerformed()");   //NOI18N
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.getActive();
         if (ssTc != null)
         {

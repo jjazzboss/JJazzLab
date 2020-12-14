@@ -66,7 +66,7 @@ public class Phrase extends LinkedList<NoteEvent>
     {
         if (!MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("channel=" + channel);
+            throw new IllegalArgumentException("channel=" + channel);   //NOI18N
         }
         this.channel = channel;
     }
@@ -582,7 +582,7 @@ public class Phrase extends LinkedList<NoteEvent>
             float newPosInBeats = ne.getPositionInBeats() + shiftInBeats;
             if (newPosInBeats < 0)
             {
-                throw new IllegalArgumentException("ne=" + ne + " shiftInBeats=" + shiftInBeats);
+                throw new IllegalArgumentException("ne=" + ne + " shiftInBeats=" + shiftInBeats);   //NOI18N
             }
             NoteEvent shiftedNe = new NoteEvent(ne, ne.getDurationInBeats(), newPosInBeats);
             it.set(shiftedNe);
@@ -619,10 +619,10 @@ public class Phrase extends LinkedList<NoteEvent>
 
     public void dump()
     {
-        LOGGER.info(toString());
+        LOGGER.info(toString());   //NOI18N
         for (NoteEvent ne : this)
         {
-            LOGGER.info(ne.toString());
+            LOGGER.info(ne.toString());   //NOI18N
         }
     }
 
@@ -702,7 +702,7 @@ public class Phrase extends LinkedList<NoteEvent>
     {
         if (lowLimit < 0 || highLimit > 127 || lowLimit > highLimit || highLimit - lowLimit < 11)
         {
-            throw new IllegalArgumentException("lowLimit=" + lowLimit + " highLimit=" + highLimit);
+            throw new IllegalArgumentException("lowLimit=" + lowLimit + " highLimit=" + highLimit);   //NOI18N
         }
         var it = listIterator();
         while (it.hasNext())

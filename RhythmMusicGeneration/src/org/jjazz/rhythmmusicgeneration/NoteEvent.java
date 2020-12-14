@@ -47,7 +47,7 @@ public class NoteEvent extends Note implements Cloneable
         super(pitch, duration, velocity);
         if (posInBeats < 0)
         {
-            throw new IllegalArgumentException("posInBeats=" + posInBeats);
+            throw new IllegalArgumentException("posInBeats=" + posInBeats);   //NOI18N
         }
         position = posInBeats;
     }

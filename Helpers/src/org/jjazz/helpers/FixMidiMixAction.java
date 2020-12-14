@@ -72,7 +72,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
     @Override
     public void vetoableChange(PropertyChangeEvent evt) throws PropertyVetoException
     {
-        LOGGER.log(Level.FINE, "vetoableChange() -- evt={0}", evt);
+        LOGGER.log(Level.FINE, "vetoableChange() -- evt={0}", evt);   //NOI18N
 
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() != mc
@@ -83,7 +83,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
         }
 
         MusicGenerationContext context = (MusicGenerationContext) evt.getNewValue();
-        assert context != null : "evt=" + evt;
+        assert context != null : "evt=" + evt;   //NOI18N
         MidiMix midiMix = context.getMidiMix();
 
         OutputSynth outputSynth = OutputSynthManager.getInstance().getOutputSynth();
@@ -110,7 +110,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
                             // Do nothing, leave toBeFixedChannels empty
                             break;
                         default:
-                            throw new IllegalStateException("choice=" + choice);
+                            throw new IllegalStateException("choice=" + choice);   //NOI18N
                     }
                     if (dialog.isRememberChoiceSelected())
                     {
@@ -124,7 +124,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
                     // Do nothing, leave toBeFixedChannels empty
                     break;
                 default:
-                    throw new IllegalStateException("savedChoice=" + savedChoice);
+                    throw new IllegalStateException("savedChoice=" + savedChoice);   //NOI18N
             }
         }
     }

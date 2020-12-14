@@ -81,7 +81,7 @@ public class ItemRendererFactoryImpl implements ItemRendererFactory
                 ir = new IR_PositionMark(item);
                 break;
             default:
-                throw new IllegalArgumentException("type=" + type + " item=" + item);
+                throw new IllegalArgumentException("type=" + type + " item=" + item);   //NOI18N
         }
         return ir;
     }
@@ -130,7 +130,7 @@ public class ItemRendererFactoryImpl implements ItemRendererFactory
                 ir = SAMPLE_POSITION_MARK_RENDERER;
                 break;
             default:
-                throw new IllegalArgumentException("type=" + type);
+                throw new IllegalArgumentException("type=" + type);   //NOI18N
         }
         return ir;
     }

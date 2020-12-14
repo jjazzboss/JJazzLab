@@ -199,7 +199,7 @@ public final class AccentStronger extends AbstractAction implements ContextAware
     {
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        assert cls != null : "selection=" + selection;
+        assert cls != null : "selection=" + selection;   //NOI18N
 
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
 

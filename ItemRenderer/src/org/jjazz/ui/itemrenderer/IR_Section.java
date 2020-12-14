@@ -114,7 +114,7 @@ public class IR_Section extends ItemRenderer implements IR_Copiable
         Font f = getFont();
         int zFactor = getZoomFactor();
         Graphics2D g2 = (Graphics2D) getGraphics();
-        assert g2 != null : "g2=" + g2 + " sectionString=" + sectionString + " f=" + f + " zFactor=" + zFactor;
+        assert g2 != null : "g2=" + g2 + " sectionString=" + sectionString + " f=" + f + " zFactor=" + zFactor;   //NOI18N
 
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -135,7 +135,7 @@ public class IR_Section extends ItemRenderer implements IR_Copiable
         g2.dispose();
 
         Dimension d = new Dimension(pw, ph);
-        LOGGER.fine("getPreferredSize() d=" + d);
+        LOGGER.fine("getPreferredSize() d=" + d);   //NOI18N
         return d;
     }
 

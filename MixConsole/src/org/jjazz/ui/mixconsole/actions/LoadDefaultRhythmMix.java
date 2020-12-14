@@ -87,7 +87,7 @@ public class LoadDefaultRhythmMix extends AbstractAction
             // Can happen if song structure empty
             return;
         }
-        assert !rhythms.isEmpty() : "song.getSongStructure()=" + song.getSongStructure() + " rhythm=" + rhythm;
+        assert !rhythms.isEmpty() : "song.getSongStructure()=" + song.getSongStructure() + " rhythm=" + rhythm;   //NOI18N
         String loadedFiles = "";
         for (Rhythm r : rhythms)
         {

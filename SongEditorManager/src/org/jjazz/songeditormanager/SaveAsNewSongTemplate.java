@@ -63,7 +63,7 @@ public class SaveAsNewSongTemplate extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        assert song != null;
+        assert song != null;   //NOI18N
         FileDirectoryManager fdm = FileDirectoryManager.getInstance();
         String fileNames = "";
         File songFile = fdm.getNewSongTemplateSongFile();
@@ -106,7 +106,7 @@ public class SaveAsNewSongTemplate extends AbstractAction
             midiMix = MidiMixManager.getInstance().findMix(song);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.severe("getMidiMixSilent() Could not retrieve MidiMix for song " + song.getName() + " - ex=" + ex.getLocalizedMessage());
+            LOGGER.severe("getMidiMixSilent() Could not retrieve MidiMix for song " + song.getName() + " - ex=" + ex.getLocalizedMessage());   //NOI18N
         }
         return midiMix;
     }

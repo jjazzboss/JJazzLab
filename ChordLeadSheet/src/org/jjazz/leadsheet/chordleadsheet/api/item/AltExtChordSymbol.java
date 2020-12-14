@@ -106,7 +106,7 @@ public class AltExtChordSymbol extends ExtChordSymbol
                 cs = new AltExtChordSymbol(spName, spRenderingInfo);
             } catch (ParseException e)
             {
-                LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol. Using 'C' ChordSymbol instead.");
+                LOGGER.log(Level.WARNING, spName + ": Invalid chord symbol. Using 'C' ChordSymbol instead.");   //NOI18N
                 ChordTypeDatabase ctdb = ChordTypeDatabase.getInstance();
                 cs = new AltExtChordSymbol(new Note(0), new Note(0), ctdb.getChordType(""), spRenderingInfo);
             }

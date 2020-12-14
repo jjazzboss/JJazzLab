@@ -24,7 +24,6 @@ package org.jjazz.ui.ss_editor.actions;
 
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -32,7 +31,6 @@ import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
 import org.jjazz.rhythm.parameters.RhythmParameter;
-import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
@@ -42,11 +40,11 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.util.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.resetrpvalue")
 @ActionRegistration(displayName = "#CTL_ResetRpValue", lazy = false)
@@ -54,13 +52,12 @@ import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
         {
             @ActionReference(path = "Actions/RhythmParameter", position = 600),
         })
-@Messages("CTL_ResetRpValue=Reset to default value")
 public final class ResetRpValue extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = CTL_ResetRpValue();
+    private String undoText = ResUtil.getString(getClass(), "CTL_ResetRpValue");
     private static final Logger LOGGER = Logger.getLogger(ResetRpValue.class.getSimpleName());
 
     public ResetRpValue()
@@ -73,7 +70,7 @@ public final class ResetRpValue extends AbstractAction implements ContextAwareAc
         this.context = context;
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        putValue(NAME, CTL_ResetRpValue());                          // For popupmenu 
+        putValue(NAME, undoText);                          // For popupmenu 
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("Z"));      // For popupmenu
     }
 
@@ -86,7 +83,7 @@ public final class ResetRpValue extends AbstractAction implements ContextAwareAc
     {
         SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
-        LOGGER.log(Level.FINE, "actionPerformed() sgs=" + sgs + " selection=" + selection);
+        LOGGER.log(Level.FINE, "actionPerformed() sgs=" + sgs + " selection=" + selection);   //NOI18N
         JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
 
         if (selection.isRhythmParameterSelected())
@@ -117,7 +114,7 @@ public final class ResetRpValue extends AbstractAction implements ContextAwareAc
     {
         boolean b = !selection.isEmpty();
         setEnabled(b);
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);
+        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   //NOI18N
     }
 
     @Override

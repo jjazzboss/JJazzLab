@@ -72,7 +72,7 @@ public class ChordSymbolTextInput
     {
         if (str == null || defaultPos == null)
         {
-            throw new IllegalArgumentException("str=" + str + " defaultPos=" + defaultPos + " cls=" + cls);
+            throw new IllegalArgumentException("str=" + str + " defaultPos=" + defaultPos + " cls=" + cls);   //NOI18N
         }
 
         Position newPos;
@@ -80,7 +80,7 @@ public class ChordSymbolTextInput
         String s = str.trim();
         if (s.isEmpty())
         {
-            throw new IllegalArgumentException("str=" + str + " defaultPos=" + defaultPos + " cls=" + cls);
+            throw new IllegalArgumentException("str=" + str + " defaultPos=" + defaultPos + " cls=" + cls);   //NOI18N
         }
         int openIndex = s.indexOf(OPEN_POS_CHAR);
         int closeIndex = s.indexOf(CLOSE_POS_CHAR);
@@ -230,7 +230,7 @@ public class ChordSymbolTextInput
     {
         if ((barIndex < 0) || str == null || cls == null || barIndex >= cls.getSize())
         {
-            throw new IllegalArgumentException("str=" + str + " barIndex=" + barIndex + " cls=" + cls);
+            throw new IllegalArgumentException("str=" + str + " barIndex=" + barIndex + " cls=" + cls);   //NOI18N
         }
 
         ArrayList<CLI_ChordSymbol> newItems = new ArrayList<>();
@@ -317,7 +317,7 @@ public class ChordSymbolTextInput
     {
         if ((ts == null) || (items == null))
         {
-            throw new IllegalArgumentException("ts=" + ts + " barEvents=" + items);
+            throw new IllegalArgumentException("ts=" + ts + " barEvents=" + items);   //NOI18N
         }
 
         // Check if nb of items and their position match the special configuration

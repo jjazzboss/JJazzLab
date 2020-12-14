@@ -105,7 +105,7 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
     {
         if (a == null)
         {
-            throw new NullPointerException("a");
+            throw new NullPointerException("a");   //NOI18N
         }
         if (action != null)
         {
@@ -186,7 +186,7 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
     @Override
     public void setEnabled(boolean b)
     {
-        LOGGER.fine("setEnabled() b=" + b);
+        LOGGER.fine("setEnabled() b=" + b);   //NOI18N
         if (isEnabled() && !b)
         {
             saveForeground = getForeground();

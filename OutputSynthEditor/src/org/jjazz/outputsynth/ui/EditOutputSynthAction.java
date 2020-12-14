@@ -23,20 +23,16 @@
 package org.jjazz.outputsynth.ui;
 
 import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.File;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.OutputSynthManager;
-import static org.jjazz.outputsynth.ui.Bundle.CTL_editoutputsynth;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 
 @ActionID(category = "OutputSynth", id = "org.jjazz.outputsynth.ui.editoutputsynth")
@@ -45,14 +41,10 @@ import org.openide.windows.WindowManager;
         {
             // @ActionReference(path = "Menu/Edit", position = 98392)
         })
-@NbBundle.Messages(
-        {
-            "CTL_editoutputsynth=Configure Output Synth"
-        })
 public class EditOutputSynthAction extends AbstractAction
 {
 
-    private String undoText = CTL_editoutputsynth();
+    private String undoText = ResUtil.getString(getClass(), "CTL_editoutputsynth");
     private static final Logger LOGGER = Logger.getLogger(EditOutputSynthAction.class.getSimpleName());
 
     public EditOutputSynthAction()
@@ -60,7 +52,7 @@ public class EditOutputSynthAction extends AbstractAction
         putValue(NAME, undoText);
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/OutputSynth2.png")));
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/OutputSynth2.png")));
-        putValue(Action.SHORT_DESCRIPTION, "Open the Output Synth Editor");
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_OpenOutputSynthEditor"));
         putValue("hideActionText", true);
 
     }

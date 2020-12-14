@@ -168,7 +168,7 @@ public enum Degree
     {
         if (alt < -1 || alt > 1)
         {
-            throw new IllegalArgumentException("n=" + n + " alt=" + alt);
+            throw new IllegalArgumentException("n=" + n + " alt=" + alt);   //NOI18N
         }
         for (Degree d : Degree.values())
         {
@@ -190,7 +190,7 @@ public enum Degree
     {
         if (relPitch < 0 || relPitch > 11)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch);
+            throw new IllegalArgumentException("relPitch=" + relPitch);   //NOI18N
         }
         ArrayList<Degree> res = new ArrayList<>();
         for (Degree d : Degree.values())
@@ -215,7 +215,7 @@ public enum Degree
     {
         if (relPitch < 0 || relPitch > 11)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch);
+            throw new IllegalArgumentException("relPitch=" + relPitch);   //NOI18N
         }
         Degree d = ROOT;
         switch (relPitch)
@@ -254,7 +254,7 @@ public enum Degree
                 d = SEVENTH;
                 break;
             default:
-                throw new IllegalArgumentException("d=" + d);
+                throw new IllegalArgumentException("d=" + d);   //NOI18N
         }
         return d;
     }

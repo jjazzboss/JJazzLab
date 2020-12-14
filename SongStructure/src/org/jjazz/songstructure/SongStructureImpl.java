@@ -110,7 +110,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (cls == null)
         {
-            throw new IllegalArgumentException("cls=" + cls + " keepUpdated=" + keepUpdated);
+            throw new IllegalArgumentException("cls=" + cls + " keepUpdated=" + keepUpdated);   //NOI18N
         }
         parentCls = cls;
         keepSgsUpdated = keepUpdated;
@@ -186,7 +186,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (r == null || startBarIndex < 0 || nbBars < 0 || name == null)
         {
-            throw new IllegalArgumentException("r=" + r + " name=" + name
+            throw new IllegalArgumentException("r=" + r + " name=" + name   //NOI18N
                     + " startBarIndex=" + startBarIndex + " nbBars=" + nbBars
                     + " parentSection=" + parentSection + " reusePrevParamValues=" + reusePrevParamValues);
         }
@@ -237,11 +237,11 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (spts == null)
         {
-            throw new IllegalArgumentException("spts=" + spts);
+            throw new IllegalArgumentException("spts=" + spts);   //NOI18N
         }
 
 
-        LOGGER.fine("addSongParts() -- spts=" + spts);
+        LOGGER.fine("addSongParts() -- spts=" + spts);   //NOI18N
 
 
         if (spts.isEmpty())
@@ -292,10 +292,10 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (spts == null)
         {
-            throw new IllegalArgumentException("this=" + this + " spts=" + spts);
+            throw new IllegalArgumentException("this=" + this + " spts=" + spts);   //NOI18N
         }
 
-        LOGGER.fine("removeSongParts() -- spts=" + spts);
+        LOGGER.fine("removeSongParts() -- spts=" + spts);   //NOI18N
 
 
         if (spts.isEmpty())
@@ -318,10 +318,10 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (mapSptSize == null)
         {
-            throw new IllegalArgumentException("this=" + this + " mapSptsSize=" + mapSptSize);
+            throw new IllegalArgumentException("this=" + this + " mapSptsSize=" + mapSptSize);   //NOI18N
         }
 
-        LOGGER.fine("resizeSongParts() -- mapSptSize=" + mapSptSize);
+        LOGGER.fine("resizeSongParts() -- mapSptSize=" + mapSptSize);   //NOI18N
 
 
         if (mapSptSize.isEmpty())
@@ -336,7 +336,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             if (!songParts.contains(spt))
             {
-                throw new IllegalArgumentException("this=" + this + " spt=" + spt + " mapSptsSize=" + mapSptSize);
+                throw new IllegalArgumentException("this=" + this + " spt=" + spt + " mapSptsSize=" + mapSptSize);   //NOI18N
             }
             // Save the old size before modifying it
             oldMap.putValue(spt, spt.getNbBars());
@@ -354,7 +354,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("resizeSongParts.undoBody() mapSptSize=" + mapSptSize);
+                LOGGER.finer("resizeSongParts.undoBody() mapSptSize=" + mapSptSize);   //NOI18N
                 for (SongPart spt : oldMap.getKeys())
                 {
                     ((SongPartImpl) spt).setNbBars(oldMap.getValue(spt));
@@ -366,7 +366,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("resizeSongParts.redoBody() mapSptSize=" + mapSptSize);
+                LOGGER.finer("resizeSongParts.redoBody() mapSptSize=" + mapSptSize);   //NOI18N
                 for (SongPart spt : saveMap.getKeys())
                 {
                     ((SongPartImpl) spt).setNbBars(saveMap.getValue(spt));
@@ -426,11 +426,11 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (oldSpts == null || newSpts == null || oldSpts.size() != newSpts.size())
         {
-            throw new IllegalArgumentException("this=" + this + " oldSpts=" + oldSpts + " newSpts=" + newSpts);
+            throw new IllegalArgumentException("this=" + this + " oldSpts=" + oldSpts + " newSpts=" + newSpts);   //NOI18N
         }
 
 
-        LOGGER.log(Level.FINE, "replaceSongParts() -- oldSpts=={0} newSpts={1}", new Object[]
+        LOGGER.log(Level.FINE, "replaceSongParts() -- oldSpts=={0} newSpts={1}", new Object[]   //NOI18N
         {
             oldSpts.toString(), newSpts.toString()
         });
@@ -445,7 +445,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                     || oldSpt.getStartBarIndex() != newSpt.getStartBarIndex()
                     || oldSpt.getNbBars() != newSpt.getNbBars())
             {
-                throw new IllegalArgumentException("this=" + this + " oldSpts=" + oldSpts + " newSpts=" + newSpts);
+                throw new IllegalArgumentException("this=" + this + " oldSpts=" + oldSpts + " newSpts=" + newSpts);   //NOI18N
             }
         }
         if (oldSpts.equals(newSpts))
@@ -493,7 +493,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.log(Level.FINER, "ReplaceSongParts.undoBody() songParts=" + songParts);
+                LOGGER.log(Level.FINER, "ReplaceSongParts.undoBody() songParts=" + songParts);   //NOI18N
 
                 // Restore the state of the songStructure
                 songParts = new ArrayList<>(oldSongParts);      // Must use a copy to make sure oldSongParts remains unaffected
@@ -512,7 +512,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.log(Level.FINER, "ReplaceSongParts.redoBody() songParts=" + songParts);
+                LOGGER.log(Level.FINER, "ReplaceSongParts.redoBody() songParts=" + songParts);   //NOI18N
 
                 // Restore the state of the songStructure
                 songParts = new ArrayList<>(newSongParts);      // Must use a copy to make sure newSongParts remains unaffected
@@ -547,10 +547,10 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (spts == null)
         {
-            throw new IllegalArgumentException("this=" + this + " spts=" + spts + " name=" + name);
+            throw new IllegalArgumentException("this=" + this + " spts=" + spts + " name=" + name);   //NOI18N
         }
 
-        LOGGER.fine("setSongPartsName() spts=" + spts + " name=" + name);
+        LOGGER.fine("setSongPartsName() spts=" + spts + " name=" + name);   //NOI18N
 
         if (spts.isEmpty() || (spts.size() == 1 && spts.get(0).getName().equals(name)))
         {
@@ -569,7 +569,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("setSongPartsName.undoBody() spts=" + spts + " name=" + name);
+                LOGGER.finer("setSongPartsName.undoBody() spts=" + spts + " name=" + name);   //NOI18N
                 for (SongPart wspt : save.getKeys())
                 {
                     ((SongPartImpl) wspt).setName(save.getValue(wspt));
@@ -580,7 +580,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("setSongPartsName.redoBody() spts=" + spts + " name=" + name);
+                LOGGER.finer("setSongPartsName.redoBody() spts=" + spts + " name=" + name);   //NOI18N
                 for (SongPart wspt : save.getKeys())
                 {
                     ((SongPartImpl) wspt).setName(name);
@@ -601,10 +601,10 @@ public class SongStructureImpl implements SongStructure, Serializable
         if (spt == null || rp == null || newValue == null || !songParts.contains(spt)
                 || !spt.getRhythm().getRhythmParameters().contains(rp))
         {
-            throw new IllegalArgumentException("this=" + this + " spt=" + spt + " rp=" + rp + " newValue=" + newValue);
+            throw new IllegalArgumentException("this=" + this + " spt=" + spt + " rp=" + rp + " newValue=" + newValue);   //NOI18N
         }
 
-        LOGGER.fine("setRhythmParameterValue() -- spt=" + spt + " rp=" + rp + " newValue=" + newValue);
+        LOGGER.fine("setRhythmParameterValue() -- spt=" + spt + " rp=" + rp + " newValue=" + newValue);   //NOI18N
 
         if (spt.getRPValue(rp) == newValue)
         {
@@ -620,7 +620,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("setRhythmParameterValue.undoBody() spt=" + spt + " rp=" + rp + " newValue=" + newValue);
+                LOGGER.finer("setRhythmParameterValue.undoBody() spt=" + spt + " rp=" + rp + " newValue=" + newValue);   //NOI18N
                 wspt.setRPValue(rp, oldValue);
                 fireAuthorizedChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, newValue, oldValue));
             }
@@ -628,7 +628,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("setRhythmParameterValue.redoBody() spt=" + spt + " rp=" + rp + " newValue=" + newValue);
+                LOGGER.finer("setRhythmParameterValue.redoBody() spt=" + spt + " rp=" + rp + " newValue=" + newValue);   //NOI18N
                 wspt.setRPValue(rp, newValue);
                 fireAuthorizedChangeEvent(new RpChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
             }
@@ -653,7 +653,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 r = null;
             }
         }
-        LOGGER.fine("getLastUsedRhythm() ts=" + ts + " result r=" + r);
+        LOGGER.fine("getLastUsedRhythm() ts=" + ts + " result r=" + r);   //NOI18N
         return r;
     }
 
@@ -663,13 +663,13 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (ts == null || sptBarIndex < 0)
         {
-            throw new IllegalArgumentException("ts=" + ts + " sptBarIndex=" + sptBarIndex);
+            throw new IllegalArgumentException("ts=" + ts + " sptBarIndex=" + sptBarIndex);   //NOI18N
         }
 
         RhythmDatabase rdb = RhythmDatabase.getDefault();
 
 
-        LOGGER.fine("getRecommendedRhythm() ts=" + ts + " sptBarIndex=" + sptBarIndex);
+        LOGGER.fine("getRecommendedRhythm() ts=" + ts + " sptBarIndex=" + sptBarIndex);   //NOI18N
 
 
         // Try to use the last used rhythm for this new time signature
@@ -702,12 +702,12 @@ public class SongStructureImpl implements SongStructure, Serializable
                 r = rdb.getRhythmInstance(ri);
             } catch (UnavailableRhythmException ex)
             {
-                LOGGER.warning("getRecommendedRhythm() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getLocalizedMessage());
+                LOGGER.warning("getRecommendedRhythm() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getLocalizedMessage());   //NOI18N
                 r = rdb.getDefaultStubRhythmInstance(ts);  // non null
             }
         }
 
-        LOGGER.fine("getRecommendedRhythm() ts=" + ts + " sptBarIndex=" + sptBarIndex + " result r=" + r);
+        LOGGER.fine("getRecommendedRhythm() ts=" + ts + " sptBarIndex=" + sptBarIndex + " result r=" + r);   //NOI18N
         return r;
     }
 
@@ -737,7 +737,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (posInBeats < 0)
         {
-            throw new IllegalArgumentException("posInBeats=" + posInBeats);
+            throw new IllegalArgumentException("posInBeats=" + posInBeats);   //NOI18N
         }
         for (SongPart spt : songParts)
         {
@@ -760,7 +760,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (barIndex < 0 || barIndex > getSizeInBars())
         {
-            throw new IllegalArgumentException("barIndex=" + barIndex);
+            throw new IllegalArgumentException("barIndex=" + barIndex);   //NOI18N
         }
         float posInBeats = 0;
         if (barIndex == getSizeInBars())
@@ -794,12 +794,12 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (parentCls == null)
         {
-            throw new IllegalStateException("parentCls is null. spt=" + spt + " clsItem=" + clsItem);
+            throw new IllegalStateException("parentCls is null. spt=" + spt + " clsItem=" + clsItem);   //NOI18N
         }
         CLI_Section section = spt.getParentSection();
         if (!parentCls.getItems(spt.getParentSection(), clsItem.getClass()).contains(clsItem))
         {
-            throw new IllegalArgumentException("clsItem=" + clsItem + " not found in parent section items. section=" + section + ", spt=" + spt);
+            throw new IllegalArgumentException("clsItem=" + clsItem + " not found in parent section items. section=" + section + ", spt=" + spt);   //NOI18N
         }
         Position pos = clsItem.getPosition();
         int relBar = pos.getBar() - section.getPosition().getBar();
@@ -818,7 +818,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (l == null)
         {
-            throw new NullPointerException("l=" + l);
+            throw new NullPointerException("l=" + l);   //NOI18N
         }
         listeners.remove(l);
         listeners.add(l);
@@ -829,7 +829,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (l == null)
         {
-            throw new NullPointerException("l=" + l);
+            throw new NullPointerException("l=" + l);   //NOI18N
         }
         listeners.remove(l);
     }
@@ -839,7 +839,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (l == null)
         {
-            throw new NullPointerException("l=" + l);
+            throw new NullPointerException("l=" + l);   //NOI18N
         }
         undoListeners.remove(l);
         undoListeners.add(l);
@@ -850,7 +850,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (l == null)
         {
-            throw new NullPointerException("l=" + l);
+            throw new NullPointerException("l=" + l);   //NOI18N
         }
         undoListeners.remove(l);
     }
@@ -876,7 +876,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                     // Have the adapted rhythm created and made available in the database
                     if (rdb.getAdaptedRhythmInstance(r, ts) == null)
                     {
-                        LOGGER.info("generateAllAdaptedRhythms() Can't get a " + ts + "-adapted rhythm for r=" + r);
+                        LOGGER.info("generateAllAdaptedRhythms() Can't get a " + ts + "-adapted rhythm for r=" + r);   //NOI18N
                     }
                 }
             }
@@ -897,10 +897,10 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (spt == null)
         {
-            throw new IllegalArgumentException("this=" + this + " spt=" + spt);
+            throw new IllegalArgumentException("this=" + this + " spt=" + spt);   //NOI18N
         }
 
-        LOGGER.log(Level.FINE, "addSongPartInternal() -- spt={0}", spt);
+        LOGGER.log(Level.FINE, "addSongPartInternal() -- spt={0}", spt);   //NOI18N
 
 
         // Save the old state
@@ -913,7 +913,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         int barIndex = spt.getStartBarIndex();
         if (songParts.contains(spt) || barIndex > getSizeInBars())
         {
-            throw new IllegalArgumentException("this=" + this + " spt=" + spt);
+            throw new IllegalArgumentException("this=" + this + " spt=" + spt);   //NOI18N
         }
         if (barIndex == getSizeInBars())
         {
@@ -926,7 +926,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             if (barIndex != curSpt.getStartBarIndex())
             {
                 // Caller must have correctly set startBarIndex of the inserted spt
-                throw new IllegalArgumentException("this=" + this + " spt=" + spt + " curSpt=" + curSpt);
+                throw new IllegalArgumentException("this=" + this + " spt=" + spt + " curSpt=" + curSpt);   //NOI18N
             }
             int rpIndex = songParts.indexOf(curSpt);
             songParts.add(rpIndex, spt);
@@ -953,7 +953,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("addSongPartInternal.undoBody() spt=" + spt);
+                LOGGER.finer("addSongPartInternal.undoBody() spt=" + spt);   //NOI18N
 
                 ((SongPartImpl) spt).setContainer(oldContainer);
                 songParts = new ArrayList<>(oldSpts);         // Must use a copy to make sure oldSpts remains unaffected
@@ -967,7 +967,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("addSongPartInternal.redoBody() spt=" + spt);
+                LOGGER.finer("addSongPartInternal.redoBody() spt=" + spt);   //NOI18N
 
                 ((SongPartImpl) spt).setContainer(SongStructureImpl.this);
                 songParts = new ArrayList<>(newSpts);          // Must use a copy to make sure newSpts remains unaffected
@@ -997,10 +997,10 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (spts == null)
         {
-            throw new IllegalArgumentException("this=" + this + " spts=" + spts);
+            throw new IllegalArgumentException("this=" + this + " spts=" + spts);   //NOI18N
         }
 
-        LOGGER.finer("removeSongPartInternal() -- spts=" + spts);
+        LOGGER.finer("removeSongPartInternal() -- spts=" + spts);   //NOI18N
 
         // Save state
         final ArrayList<SongPart> oldSpts = new ArrayList<>(songParts);
@@ -1011,7 +1011,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             if (!songParts.remove(spt))
             {
-                throw new IllegalArgumentException("this=" + this + " spt=" + spt + " songParts=" + songParts);
+                throw new IllegalArgumentException("this=" + this + " spt=" + spt + " songParts=" + songParts);   //NOI18N
             }
         }
         updateStartBarIndexes();
@@ -1028,7 +1028,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("removeSongPartInternal.undoBody() spts=" + spts);
+                LOGGER.finer("removeSongPartInternal.undoBody() spts=" + spts);   //NOI18N
                 songParts = new ArrayList<>(oldSpts);            // Must use a copy to make sure oldSpts remains unaffected
                 updateStartBarIndexes();
                 fireAuthorizedChangeEvent(new SptAddedEvent(SongStructureImpl.this, saveSpts));
@@ -1037,7 +1037,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("removeSongPartInternal.redoBody() spts=" + spts);
+                LOGGER.finer("removeSongPartInternal.redoBody() spts=" + spts);   //NOI18N
                 songParts = new ArrayList<>(newSpts);            // Must use a copy to make sure newSpts remains unaffected
                 updateStartBarIndexes();
                 fireAuthorizedChangeEvent(new SptRemovedEvent(SongStructureImpl.this, saveSpts));
@@ -1084,7 +1084,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (sptIndex < 0 || sptIndex >= songParts.size())
         {
-            throw new IllegalArgumentException("rpIndex=" + sptIndex);
+            throw new IllegalArgumentException("rpIndex=" + sptIndex);   //NOI18N
         }
         SongPart spt = songParts.get(sptIndex);
         return spt.getStartBarIndex() + spt.getNbBars() - 1;
@@ -1117,7 +1117,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (event == null)
         {
-            throw new IllegalArgumentException("event=" + event);
+            throw new IllegalArgumentException("event=" + event);   //NOI18N
         }
         var ls = listeners.toArray(new SgsChangeListener[0]);
         for (SgsChangeListener l : ls)
@@ -1135,7 +1135,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (event == null)
         {
-            throw new IllegalArgumentException("event=" + event);
+            throw new IllegalArgumentException("event=" + event);   //NOI18N
         }
         for (SgsChangeListener l : listeners.toArray(new SgsChangeListener[0]))
         {
@@ -1147,7 +1147,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         if (edit == null)
         {
-            throw new IllegalArgumentException("edit=" + edit);
+            throw new IllegalArgumentException("edit=" + edit);   //NOI18N
         }
         UndoableEditEvent event = new UndoableEditEvent(this, edit);
         for (UndoableEditListener l : undoListeners.toArray(new UndoableEditListener[undoListeners.size()]))
@@ -1194,7 +1194,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             if (spSpts == null)
             {
-                throw new IllegalStateException("spSpts=" + spSpts);
+                throw new IllegalStateException("spSpts=" + spSpts);   //NOI18N
             }
 
             SongStructureImpl sgs = new SongStructureImpl(spParentCls, spKeepUpdated);

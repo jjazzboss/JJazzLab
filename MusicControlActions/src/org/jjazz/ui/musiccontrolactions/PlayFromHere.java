@@ -42,7 +42,6 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
-import static org.jjazz.ui.musiccontrolactions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.openide.DialogDisplayer;
@@ -51,13 +50,13 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
+import org.jjazz.util.ResUtil;
 import org.openide.windows.TopComponent;
 
 /**
@@ -73,12 +72,6 @@ import org.openide.windows.TopComponent;
             @ActionReference(path = "Actions/SongPart", position = 830, separatorBefore = 829),
             @ActionReference(path = "Shortcuts", name = "D-SPACE")
         })
-@NbBundle.Messages(
-        {
-            "CTL_PlayFromHere=Play from here",
-            "CTL_PlayFromHereToolTip=Play from selected bar or song part (ctrl+space)",
-            "ERR_NotActive=Can't play from here: song is not active"
-        })
 public class PlayFromHere extends AbstractAction
 {
 
@@ -88,7 +81,7 @@ public class PlayFromHere extends AbstractAction
 
     public PlayFromHere()
     {
-        putValue(Action.NAME, CTL_PlayFromHere());
+        putValue(Action.NAME, ResUtil.getString(getClass(), "CTL_PlayFromHere"));
         putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_SPACE));     // For popup display only     
 
 
@@ -115,7 +108,7 @@ public class PlayFromHere extends AbstractAction
     {
         if (song == null)
         {
-            LOGGER.severe("actionPerformed() unexpected value song=" + song);
+            LOGGER.severe("actionPerformed() unexpected value song=" + song);   //NOI18N
             return;
         }
 
@@ -123,7 +116,7 @@ public class PlayFromHere extends AbstractAction
         ActiveSongManager asm = ActiveSongManager.getInstance();
         if (asm.getActiveSong() != song)
         {
-            String msg = ERR_NotActive();
+            String msg = ResUtil.getString(getClass(), "ERR_NotActive");
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -132,14 +125,14 @@ public class PlayFromHere extends AbstractAction
 
         ChordLeadSheet cls = song.getChordLeadSheet();
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
-        assert clTc != null;
+        assert clTc != null;   //NOI18N
         CL_Editor clEditor = clTc.getCL_Editor();
         CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clEditor.getLookup());
 
 
         SongStructure ss = song.getSongStructure();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
-        assert ssTc != null;
+        assert ssTc != null;   //NOI18N
         SS_Editor ssEditor = ssTc.getSS_Editor();
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
 
@@ -167,7 +160,7 @@ public class PlayFromHere extends AbstractAction
 
         if (playFromBar == -1)
         {
-            String msg = "Can't play from here. Select first on a valid bar in the chord leadsheet editor, or a song part in the song structure editor.";
+            String msg = ResUtil.getString(getClass(), "ERR_CantPlayFromHere");
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -221,7 +214,7 @@ public class PlayFromHere extends AbstractAction
         }
 
         boolean b = song != null;
-        LOGGER.fine("updateEnabledStatus() b=" + b);
+        LOGGER.fine("updateEnabledStatus() b=" + b);   //NOI18N
 
         setEnabled(b);
     }
@@ -238,12 +231,12 @@ public class PlayFromHere extends AbstractAction
     {
         int sgsBarIndex = -1;
         CLI_Section section = cls.getSection(clsBarIndex);
-        LOGGER.fine("getSsBarIndex() section=" + section);
+        LOGGER.fine("getSsBarIndex() section=" + section);   //NOI18N
 
 
         // If there are some selected spts, try to match one of them
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
-        assert ssTc != null : "sgs=" + ss;
+        assert ssTc != null : "sgs=" + ss;   //NOI18N
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssTc.getLookup());
         for (SongPart spt : ssSelection.getIndirectlySelectedSongParts())
         {
@@ -259,7 +252,7 @@ public class PlayFromHere extends AbstractAction
         if (sgsBarIndex == -1)
         {
             // It did not work, search the first SongPart which matches
-            LOGGER.fine("getSsBarIndex() no matching in selected spt, test all spts");
+            LOGGER.fine("getSsBarIndex() no matching in selected spt, test all spts");   //NOI18N
             for (SongPart spt : ss.getSongParts())
             {
                 if (spt.getParentSection() == section)
@@ -272,10 +265,9 @@ public class PlayFromHere extends AbstractAction
         }
 
 
-        LOGGER.fine("getSsBarIndex() sgsBarIndex=" + sgsBarIndex);
+        LOGGER.fine("getSsBarIndex() sgsBarIndex=" + sgsBarIndex);   //NOI18N
         return sgsBarIndex;
     }
-
 
     /**
      * Find the section-relative bar index from where to start when a song part is selected.

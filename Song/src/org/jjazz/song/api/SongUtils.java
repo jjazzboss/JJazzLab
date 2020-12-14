@@ -92,7 +92,7 @@ public class SongUtils
     {
         if (song == null)
         {
-            throw new NullPointerException("song");
+            throw new NullPointerException("song");   //NOI18N
         }
         ChordLeadSheet cls = song.getChordLeadSheet();
 

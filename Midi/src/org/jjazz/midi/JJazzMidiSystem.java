@@ -178,7 +178,7 @@ public final class JJazzMidiSystem
             defaultSequencer.getTransmitter().setReceiver(jjazzMidiOut.getReceiver());
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.log(Level.SEVERE, "JJazzMidiSystem() No sequencer found on this system. Music can not be played ! " + ex.getLocalizedMessage());
+            LOGGER.log(Level.SEVERE, "JJazzMidiSystem() No sequencer found on this system. Music can not be played ! " + ex.getLocalizedMessage());   //NOI18N
             defaultSequencer = null;
         }
 
@@ -189,13 +189,13 @@ public final class JJazzMidiSystem
             defaultSynth.open();
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.log(Level.WARNING, "JJazzMidiSystem() problem getting Java default synthesizer: {0}", ex.getLocalizedMessage());
+            LOGGER.log(Level.WARNING, "JJazzMidiSystem() problem getting Java default synthesizer: {0}", ex.getLocalizedMessage());   //NOI18N
             defaultSynth = null;
         }
 
         // Try to restore default Midi OUT
         List<MidiDevice> outDevices = getOutDeviceList();
-        LOGGER.info("JJazzMidiSystem() Midi out devices=" + getDeviceListAsString(outDevices));
+        LOGGER.info("JJazzMidiSystem() Midi out devices=" + getDeviceListAsString(outDevices));   //NOI18N
         defaultOutDevice = null;
         MidiDevice md = null;
         String mdName = prefs.get(PROP_MIDI_OUT, NOT_SET);
@@ -213,7 +213,7 @@ public final class JJazzMidiSystem
 
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.log(Level.WARNING, "JJazzMidiSystem() Can''t set default Midi OUT device to {0}: {1}", new Object[]
+            LOGGER.log(Level.WARNING, "JJazzMidiSystem() Can''t set default Midi OUT device to {0}: {1}", new Object[]   //NOI18N
             {
                 md.getDeviceInfo().getName(), ex.getLocalizedMessage()
             });
@@ -231,7 +231,7 @@ public final class JJazzMidiSystem
                 setDefaultInDevice(md);
             } catch (MidiUnavailableException ex)
             {
-                LOGGER.log(Level.WARNING, "JJazzMidiSystem() Can''t set default Midi IN device to {0}: {1}", new Object[]
+                LOGGER.log(Level.WARNING, "JJazzMidiSystem() Can''t set default Midi IN device to {0}: {1}", new Object[]   //NOI18N
                 {
                     mdName, ex.getLocalizedMessage()
                 });
@@ -248,7 +248,7 @@ public final class JJazzMidiSystem
             {
                 // File has moved or something else: fix the preference
                 prefs.put(PREF_JAVA_SYNTH_SOUNDFONT_FILE, NOT_SET);
-                LOGGER.warning("JJazzMidiSystem() can't access SoundFont file: " + synthFile.getAbsolutePath());
+                LOGGER.warning("JJazzMidiSystem() can't access SoundFont file: " + synthFile.getAbsolutePath());   //NOI18N
             } else
             {
                 loadSoundbankFileOnSynth(synthFile, true);      // Run in silent mode, return value is useless
@@ -275,7 +275,7 @@ public final class JJazzMidiSystem
                 device = MidiSystem.getMidiDevice(info);
             } catch (MidiUnavailableException ex)
             {
-                LOGGER.log(Level.WARNING, "getInDeviceList() Can''t access Midi device : {0}", ex.getLocalizedMessage());
+                LOGGER.log(Level.WARNING, "getInDeviceList() Can''t access Midi device : {0}", ex.getLocalizedMessage());   //NOI18N
                 continue;
             }
             if (!(device instanceof Sequencer) && device.getMaxTransmitters() != 0)
@@ -305,7 +305,7 @@ public final class JJazzMidiSystem
                 device = MidiSystem.getMidiDevice(info);
             } catch (MidiUnavailableException ex)
             {
-                LOGGER.log(Level.WARNING, "getOutDeviceList() Can''t access Midi device : {0}", ex.getLocalizedMessage());
+                LOGGER.log(Level.WARNING, "getOutDeviceList() Can''t access Midi device : {0}", ex.getLocalizedMessage());   //NOI18N
                 continue;
             }
             if ((device instanceof Sequencer) || (device instanceof Synthesizer))
@@ -419,7 +419,7 @@ public final class JJazzMidiSystem
             }
         } catch (IllegalArgumentException ex)
         {
-            LOGGER.warning("resetSynth() Can't unload instruments from soundbank " + lastLoadedSoundbank.getName() + ":" + ex.getLocalizedMessage());
+            LOGGER.warning("resetSynth() Can't unload instruments from soundbank " + lastLoadedSoundbank.getName() + ":" + ex.getLocalizedMessage());   //NOI18N
         }
     }
 
@@ -440,7 +440,7 @@ public final class JJazzMidiSystem
     {
         if (f == null)
         {
-            throw new IllegalArgumentException("f=" + f);
+            throw new IllegalArgumentException("f=" + f);   //NOI18N
         }
 
         // Same file ?
@@ -469,7 +469,7 @@ public final class JJazzMidiSystem
                 }
             } catch (InvalidMidiDataException | IOException | MidiUnavailableException ex)
             {
-                LOGGER.log(Level.WARNING, "loadSoundbankFileOnSynth() {0}", ex.getLocalizedMessage());
+                LOGGER.log(Level.WARNING, "loadSoundbankFileOnSynth() {0}", ex.getLocalizedMessage());   //NOI18N
                 return;
             }
             
@@ -485,18 +485,18 @@ public final class JJazzMidiSystem
                     synth.unloadAllInstruments(lastLoadedSoundbank);
                 } catch (IllegalArgumentException ex)
                 {
-                    LOGGER.warning("loadSoundbankFileOnSynth() Problem unloading Soundbank " + lastLoadedSoundbank.getName() + " : " + ex.getLocalizedMessage());
+                    LOGGER.warning("loadSoundbankFileOnSynth() Problem unloading Soundbank " + lastLoadedSoundbank.getName() + " : " + ex.getLocalizedMessage());   //NOI18N
                     return;
                 }
             }
             try
             {
-                LOGGER.info("loadSoundbankFileOnSynth() start loading... Java Synth sound file " + f.getAbsolutePath());
+                LOGGER.info("loadSoundbankFileOnSynth() start loading... Java Synth sound file " + f.getAbsolutePath());   //NOI18N
                 synth.loadAllInstruments(newSb);       // Ignore return value (false is incomplete loading) throw IllegalArgumentException
             } catch (IllegalArgumentException ex)
             {
                 // Reload previous soundbank
-                LOGGER.warning("loadSoundbankFileOnSynth() Problem loading Soundbank " + newSb.getName() + " : " + ex.getLocalizedMessage());
+                LOGGER.warning("loadSoundbankFileOnSynth() Problem loading Soundbank " + newSb.getName() + " : " + ex.getLocalizedMessage());   //NOI18N
                 if (lastLoadedSoundbank != null)
                 {
                     synth.loadAllInstruments(lastLoadedSoundbank);
@@ -508,7 +508,7 @@ public final class JJazzMidiSystem
             // Save the new preference
             prefs.put(PREF_JAVA_SYNTH_SOUNDFONT_FILE, f.getAbsolutePath());
             resultOk.set(true);
-            LOGGER.info("loadSoundbankFileOnSynth() successfully loaded Java Synth sound file " + f.getAbsolutePath());
+            LOGGER.info("loadSoundbankFileOnSynth() successfully loaded Java Synth sound file " + f.getAbsolutePath());   //NOI18N
         };
         if (silentRun)
         {
@@ -561,7 +561,7 @@ public final class JJazzMidiSystem
                 // Restore previous state
                 md.close();
                 defaultOutDevice = oldDevice;
-                LOGGER.warning("setDefaultOutDevice() ex=" + ex.getLocalizedMessage());
+                LOGGER.warning("setDefaultOutDevice() ex=" + ex.getLocalizedMessage());   //NOI18N
                 throw new MidiUnavailableException(ex.getLocalizedMessage());
             }
 
@@ -583,7 +583,7 @@ public final class JJazzMidiSystem
         }
         prefs.put(PROP_MIDI_OUT, s);
         pcs.firePropertyChange(PROP_MIDI_OUT, oldDevice, defaultOutDevice);
-        LOGGER.log(Level.INFO, "setDefaultOutDevice() oldDevice={0} newDevice={1}", new Object[]
+        LOGGER.log(Level.INFO, "setDefaultOutDevice() oldDevice={0} newDevice={1}", new Object[]   //NOI18N
         {
             oldDevice, s
         });
@@ -595,7 +595,7 @@ public final class JJazzMidiSystem
      */
     public void closeDefaultOutDevice()
     {
-        LOGGER.fine("closeDefaultOutDevice()");
+        LOGGER.fine("closeDefaultOutDevice()");   //NOI18N
         if (defaultOutDevice == null)
         {
             return;
@@ -658,7 +658,7 @@ public final class JJazzMidiSystem
                 // Restore previous state
                 md.close();
                 defaultInDevice = oldDevice;
-                LOGGER.warning("setDefaultInDevice() ex=" + ex.getLocalizedMessage());
+                LOGGER.warning("setDefaultInDevice() ex=" + ex.getLocalizedMessage());   //NOI18N
                 throw ex;
             }
             defaultInDevice = md;
@@ -666,7 +666,7 @@ public final class JJazzMidiSystem
         }
         prefs.put(PROP_MIDI_IN, defaultInDevice == null ? NOT_SET : defaultInDevice.getDeviceInfo().getName());
         pcs.firePropertyChange(PROP_MIDI_IN, oldDevice, defaultInDevice);
-        LOGGER.log(Level.INFO, "setDefaultInDevice() oldDevice={0} newDevice={1}", new Object[]
+        LOGGER.log(Level.INFO, "setDefaultInDevice() oldDevice={0} newDevice={1}", new Object[]   //NOI18N
         {
             oldDevice, defaultInDevice
         });
@@ -711,7 +711,7 @@ public final class JJazzMidiSystem
             jjazzMidiOut.setFilterConfig(EnumSet.of(MidiFilter.Config.FILTER_EVERYTHING));
         }
         prefs.putBoolean(PROP_MIDI_THRU, b);
-        LOGGER.info("setThruMode() b=" + b);
+        LOGGER.info("setThruMode() b=" + b);   //NOI18N
         pcs.firePropertyChange(PROP_MIDI_THRU, !b, b);
     }
 
@@ -731,7 +731,7 @@ public final class JJazzMidiSystem
      */
     public void panic()
     {
-        LOGGER.info("panic()");
+        LOGGER.info("panic()");   //NOI18N
         ArrayList<ShortMessage> sms = new ArrayList<>();
         for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
         {
@@ -762,7 +762,7 @@ public final class JJazzMidiSystem
     {
         if (f < 0 || f > 2)
         {
-            throw new IllegalArgumentException("f=" + f);
+            throw new IllegalArgumentException("f=" + f);   //NOI18N
         }
         float old = masterVolumeFactor;
         if (f == old)
@@ -808,7 +808,7 @@ public final class JJazzMidiSystem
         {
             jjazzMidiOut.setFilterConfig(saveFilterConfig);
         }
-        LOGGER.info("setMidiOutFiltering() b=" + b);
+        LOGGER.info("setMidiOutFiltering() b=" + b);   //NOI18N
         pcs.firePropertyChange(PROP_MIDI_OUT_FILTERING, !b, b);
     }
 
@@ -850,7 +850,7 @@ public final class JJazzMidiSystem
                             sm.setMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_VOLUME_MSB, newVol);
                         } catch (InvalidMidiDataException ex)
                         {
-                            LOGGER.warning("sendMidiMessagesOnJJazzMidiOut() problem applying master volume :" + ex.getLocalizedMessage());
+                            LOGGER.warning("sendMidiMessagesOnJJazzMidiOut() problem applying master volume :" + ex.getLocalizedMessage());   //NOI18N
                         }
                     }
                 }
@@ -858,7 +858,7 @@ public final class JJazzMidiSystem
             }
         } else
         {
-            LOGGER.warning("sendMidiMessagesOnJJazzMidiOut() receiverJJazzOut=null: no midi message sent.");
+            LOGGER.warning("sendMidiMessagesOnJJazzMidiOut() receiverJJazzOut=null: no midi message sent.");   //NOI18N
         }
     }
 
@@ -886,7 +886,7 @@ public final class JJazzMidiSystem
     {
         if (md == null)
         {
-            throw new NullPointerException("md");
+            throw new NullPointerException("md");   //NOI18N
         }
         String name = md.getDeviceInfo().getName();
         if (md == getDefaultJavaSynth())

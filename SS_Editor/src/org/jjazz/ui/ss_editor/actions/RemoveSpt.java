@@ -33,7 +33,6 @@ import javax.swing.Icon;
 import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
-import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.actions.DeleteAction;
 import org.openide.awt.ActionID;
@@ -42,15 +41,12 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.openide.util.actions.SystemAction;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.undomanager.JJazzUndoManager;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
+import org.jjazz.util.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.removespt")
 @ActionRegistration(displayName = "not_used", lazy = false)
@@ -58,13 +54,12 @@ import org.openide.util.Exceptions;
         {
             @ActionReference(path = "Actions/SongPart", position = 400),
         })
-@Messages("CTL_RemoveSpt=Remove")
 public class RemoveSpt extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = CTL_RemoveSpt();
+    private String undoText = ResUtil.getString(getClass(), "CTL_RemoveSpt");
 
     public RemoveSpt()
     {
@@ -76,7 +71,7 @@ public class RemoveSpt extends AbstractAction implements ContextAwareAction, SS_
         this.context = context;
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        putValue(NAME, CTL_RemoveSpt());
+        putValue(NAME, undoText);
         Icon icon = SystemAction.get(DeleteAction.class).getIcon();
         putValue(SMALL_ICON, icon);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("DELETE"));
@@ -95,7 +90,8 @@ public class RemoveSpt extends AbstractAction implements ContextAwareAction, SS_
             sgs.removeSongParts(selection.getSelectedSongParts());
         } catch (UnsupportedEditException ex)
         {
-            String msg = "Impossible to remove song parts.\n" + ex.getLocalizedMessage();
+            String msg = ResUtil.getString(getClass(), "ERR_CantRemoveSongParts");
+            msg += "\n" + ex.getLocalizedMessage();
             um.handleUnsupportedEditException(undoText, msg);
             return;
         }

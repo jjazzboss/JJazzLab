@@ -134,7 +134,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener
     @Override
     public void moveItemRenderer(ChordLeadSheetItem<?> item)
     {
-        throw new IllegalStateException("item=" + item);
+        throw new IllegalStateException("item=" + item);   //NOI18N
     }
 
     @Override
@@ -249,7 +249,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener
     {
         if (!isRegisteredItemClass(item))
         {
-            throw new IllegalArgumentException("item=" + item);
+            throw new IllegalArgumentException("item=" + item);   //NOI18N
         }
         ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.Section, item, getSettings().getItemRendererSettings());
         return ir;

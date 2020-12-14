@@ -78,7 +78,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (initSection == null || initSection.getPosition().getBar() != 0 || size < 1 || size > MAX_SIZE)
         {
-            throw new IllegalArgumentException("section=" + initSection + " size=" + size);
+            throw new IllegalArgumentException("section=" + initSection + " size=" + size);   //NOI18N
         }
         this.size = size;
         WritableItem<Section> wSection = (WritableItem<Section>) initSection;
@@ -91,10 +91,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (newSize < 1 || newSize > MAX_SIZE)
         {
-            throw new IllegalArgumentException("newSize=" + newSize);
+            throw new IllegalArgumentException("newSize=" + newSize);   //NOI18N
         }
 
-        LOGGER.fine("setSize() -- newSize=" + newSize);
+        LOGGER.fine("setSize() -- newSize=" + newSize);   //NOI18N
 
         // First remove items
         final int oldSize = size;
@@ -146,7 +146,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("setSize.undoBody() newSize=" + newSize);
+                LOGGER.finer("setSize.undoBody() newSize=" + newSize);   //NOI18N
                 size = oldSize;
                 fireAuthorizedChangeEvent(new SizeChangedEvent(ChordLeadSheetImpl.this, newSize, oldSize));
             }
@@ -154,7 +154,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("setSize.redoBody() newSize=" + newSize);
+                LOGGER.finer("setSize.redoBody() newSize=" + newSize);   //NOI18N
                 size = newSize;
                 fireAuthorizedChangeEvent(new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize));
             }
@@ -176,16 +176,16 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (item == null || (item instanceof CLI_Section) || !(item instanceof WritableItem))
         {
-            throw new IllegalArgumentException("item=" + item);
+            throw new IllegalArgumentException("item=" + item);   //NOI18N
         }
 
-        LOGGER.fine("addItem() -- item=" + item);
+        LOGGER.fine("addItem() -- item=" + item);   //NOI18N
 
         final WritableItem<?> wItem = (WritableItem<?>) item;
         int barIndex = wItem.getPosition().getBar();
         if (barIndex >= getSize())
         {
-            throw new IllegalArgumentException("item=" + item + " size=" + getSize());
+            throw new IllegalArgumentException("item=" + item + " size=" + getSize());   //NOI18N
         }
 
         // Set the container
@@ -208,7 +208,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("addItem.undoBody() item=" + item);
+                LOGGER.finer("addItem.undoBody() item=" + item);   //NOI18N
                 wItem.setPosition(oldPos);
                 wItem.setContainer(oldContainer);
                 items.remove(wItem);
@@ -218,7 +218,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("addItem.redoBody() item=" + item);
+                LOGGER.finer("addItem.redoBody() item=" + item);   //NOI18N
                 wItem.setPosition(newAdjustedPos);
                 wItem.setContainer(newContainer);
                 items.add(index, wItem);
@@ -238,12 +238,12 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         if (cliSection == null || cliSection.getPosition().getBar() >= getSize() || getSection(cliSection.getData().getName()) != null
                 || !(cliSection instanceof WritableItem))
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection
+            throw new IllegalArgumentException("cliSection=" + cliSection   //NOI18N
                     + ", getSize()=" + getSize()
                     + (cliSection != null ? ", getSection(cliSection.getData().getName())=" + getSection(cliSection.getData().getName()) : ""));
         }
 
-        LOGGER.fine("addSection() -- cliSection=" + cliSection);
+        LOGGER.fine("addSection() -- cliSection=" + cliSection);   //NOI18N
 
         // Check that change is not vetoed
         var event = new ItemAddedEvent(ChordLeadSheetImpl.this, cliSection);
@@ -258,7 +258,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         final CLI_Section prevSection = getSection(barIndex);
         if (prevSection.getPosition().getBar() == barIndex)
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection + " prevSection=" + prevSection);
+            throw new IllegalArgumentException("cliSection=" + cliSection + " prevSection=" + prevSection);   //NOI18N
         }
 
         // Change state
@@ -275,7 +275,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("addSection.undoBody() cliSection=" + cliSection);
+                LOGGER.finer("addSection.undoBody() cliSection=" + cliSection);   //NOI18N
                 wSection.setContainer(oldContainer);
                 items.remove(wSection);
                 fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, wSection));
@@ -284,7 +284,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("addSection.redoBody() cliSection=" + cliSection);
+                LOGGER.finer("addSection.redoBody() cliSection=" + cliSection);   //NOI18N
                 wSection.setContainer(newContainer);
                 items.insertOrdered(wSection);
                 fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, wSection));
@@ -302,16 +302,16 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (cliSection == null)
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection);
+            throw new IllegalArgumentException("cliSection=" + cliSection);   //NOI18N
         }
 
-        LOGGER.fine("removeSection() -- cliSection=" + cliSection);
+        LOGGER.fine("removeSection() -- cliSection=" + cliSection);   //NOI18N
 
         final int barIndex = cliSection.getPosition().getBar();
         final int index = items.indexOf(cliSection);
         if (barIndex == 0 || index == -1)
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection);
+            throw new IllegalArgumentException("cliSection=" + cliSection);   //NOI18N
         }
 
         // Check change is not vetoed
@@ -336,7 +336,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("removeSection.undoBody() cliSection=" + cliSection);
+                LOGGER.finer("removeSection.undoBody() cliSection=" + cliSection);   //NOI18N
                 items.add(index, cliSection);
                 fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, cliSection));
             }
@@ -344,7 +344,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("removeSection.redoBody() cliSection=" + cliSection);
+                LOGGER.finer("removeSection.redoBody() cliSection=" + cliSection);   //NOI18N
                 items.remove(index);
                 fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, cliSection));
             }
@@ -361,10 +361,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (cliSection == null || newBarIndex <= 0 || newBarIndex >= getSize() || !(cliSection instanceof WritableItem))
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection + " newBarIndex=" + newBarIndex);
+            throw new IllegalArgumentException("cliSection=" + cliSection + " newBarIndex=" + newBarIndex);   //NOI18N
         }
 
-        LOGGER.fine("moveSection() -- cliSection=" + cliSection + " newBarIndex=" + newBarIndex);
+        LOGGER.fine("moveSection() -- cliSection=" + cliSection + " newBarIndex=" + newBarIndex);   //NOI18N
 
         final int oldBarIndex = cliSection.getPosition().getBar();
         if (newBarIndex == oldBarIndex)
@@ -376,13 +376,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         if (oldBarIndex == 0 || newPosPrevSection.getPosition().getBar() == newBarIndex)
         {
             // Tried to move initial section, or there is already a section at destination
-            throw new IllegalArgumentException("section=" + cliSection + " newBarIndex=" + newBarIndex);
+            throw new IllegalArgumentException("section=" + cliSection + " newBarIndex=" + newBarIndex);   //NOI18N
         }
 
 
         if (items.indexOf(cliSection) == -1)
         {
-            throw new IllegalArgumentException("section=" + cliSection);
+            throw new IllegalArgumentException("section=" + cliSection);   //NOI18N
         }
 
 
@@ -412,7 +412,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("moveSection.undoBody() cliSection=" + cliSection + " newBarIndex=" + newBarIndex);
+                LOGGER.finer("moveSection.undoBody() cliSection=" + cliSection + " newBarIndex=" + newBarIndex);   //NOI18N
                 wSection.setPosition(new Position(oldBarIndex, 0));
                 items.remove(wSection);
                 items.insertOrdered(wSection);
@@ -422,7 +422,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("moveSection.redoBody() cliSection=" + cliSection + " newBarIndex=" + newBarIndex);
+                LOGGER.finer("moveSection.redoBody() cliSection=" + cliSection + " newBarIndex=" + newBarIndex);   //NOI18N
                 wSection.setPosition(new Position(newBarIndex, 0));
                 items.remove(wSection);
                 items.insertOrdered(wSection);
@@ -441,15 +441,15 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (item == null || (item instanceof CLI_Section))
         {
-            throw new IllegalArgumentException("item=" + item);
+            throw new IllegalArgumentException("item=" + item);   //NOI18N
         }
 
-        LOGGER.fine("removeItem() -- item=" + item);
+        LOGGER.fine("removeItem() -- item=" + item);   //NOI18N
 
         final int index = items.indexOf(item);
         if (index == -1)
         {
-            throw new IllegalArgumentException("item=" + item);
+            throw new IllegalArgumentException("item=" + item);   //NOI18N
         }
 
         // Change state
@@ -461,7 +461,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("removeItem.undoBody() item=" + item);
+                LOGGER.finer("removeItem.undoBody() item=" + item);   //NOI18N
                 items.insertOrdered(item);
                 fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, item));
             }
@@ -469,7 +469,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("removeItem.redoBody() item=" + item);
+                LOGGER.finer("removeItem.redoBody() item=" + item);   //NOI18N
                 items.remove(item);
                 fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, item));
             }
@@ -486,10 +486,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (item == null || newPos == null || !(item instanceof WritableItem) || (item instanceof CLI_Section))
         {
-            throw new IllegalArgumentException("item=" + item + " newPos=" + newPos);
+            throw new IllegalArgumentException("item=" + item + " newPos=" + newPos);   //NOI18N
         }
 
-        LOGGER.fine("moveItem() -- item=" + item + " newPos=" + newPos);
+        LOGGER.fine("moveItem() -- item=" + item + " newPos=" + newPos);   //NOI18N
 
         final WritableItem<T> wItem = (WritableItem<T>) item;
         final Position oldPos = wItem.getPosition();
@@ -502,7 +502,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         // Change the position 
         if (!items.remove(wItem))
         {
-            throw new IllegalArgumentException("oldPosition=" + oldPos + " wItem=" + wItem + " items=" + items);
+            throw new IllegalArgumentException("oldPosition=" + oldPos + " wItem=" + wItem + " items=" + items);   //NOI18N
         }
         wItem.setPosition(newAdjustedPos);
         items.insertOrdered(wItem);
@@ -513,7 +513,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("moveItem.undoBody() item=" + item + " oldPos=" + oldPos + " newAdjustedPos=" + newAdjustedPos);
+                LOGGER.finer("moveItem.undoBody() item=" + item + " oldPos=" + oldPos + " newAdjustedPos=" + newAdjustedPos);   //NOI18N
                 items.remove(wItem);
                 wItem.setPosition(oldPos);
                 items.insertOrdered(wItem);
@@ -523,7 +523,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("moveItem.redoBody() item=" + item + " oldPos=" + oldPos + " newAdjustedPos=" + newAdjustedPos);
+                LOGGER.finer("moveItem.redoBody() item=" + item + " oldPos=" + oldPos + " newAdjustedPos=" + newAdjustedPos);   //NOI18N
                 items.remove(wItem);
                 wItem.setPosition(newAdjustedPos);
                 items.insertOrdered(wItem);
@@ -541,10 +541,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (item == null || items.indexOf(item) == -1 || !(item instanceof WritableItem) || (item instanceof CLI_Section))
         {
-            throw new IllegalArgumentException("item=" + item + " newData=" + newData + " items=" + items);
+            throw new IllegalArgumentException("item=" + item + " newData=" + newData + " items=" + items);   //NOI18N
         }
 
-        LOGGER.fine("changeItem() -- item=" + item + " newData=" + newData);
+        LOGGER.fine("changeItem() -- item=" + item + " newData=" + newData);   //NOI18N
 
         final T oldData = item.getData();
         if (oldData.equals(newData))
@@ -562,7 +562,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("changeItem.undoBody() item=" + item + " oldData=" + oldData + " newData=" + newData);
+                LOGGER.finer("changeItem.undoBody() item=" + item + " oldData=" + oldData + " newData=" + newData);   //NOI18N
                 wItem.setData(oldData);
                 fireAuthorizedChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, wItem, newData, oldData));
             }
@@ -570,7 +570,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("changeItem.undoBody() item=" + item + " oldData=" + oldData + " newData=" + newData);
+                LOGGER.finer("changeItem.undoBody() item=" + item + " oldData=" + oldData + " newData=" + newData);   //NOI18N
                 wItem.setData(newData);
                 fireAuthorizedChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, wItem, oldData, newData));
             }
@@ -587,10 +587,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (barIndex < 0 || barIndex > getSize() || nbBars <= 0)
         {
-            throw new IllegalArgumentException("barIndex=" + barIndex + " nbBars=" + nbBars);
+            throw new IllegalArgumentException("barIndex=" + barIndex + " nbBars=" + nbBars);   //NOI18N
         }
 
-        LOGGER.fine("insertBars() -- barIndex=" + barIndex + " nbBars=" + nbBars);
+        LOGGER.fine("insertBars() -- barIndex=" + barIndex + " nbBars=" + nbBars);   //NOI18N
 
         // First set the size larger
         final int newSize = getSize() + nbBars;
@@ -634,12 +634,12 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         if (barIndexFrom < 0 || barIndexTo < barIndexFrom || barIndexTo >= getSize()
                 || (barIndexTo - barIndexFrom + 1) >= getSize())
         {
-            throw new IllegalArgumentException(
+            throw new IllegalArgumentException(   //NOI18N
                     "barIndexFrom=" + barIndexFrom + " barIndexTo=" + barIndexTo);
         }
 
 
-        LOGGER.fine("deleteBars() -- barIndexFrom=" + barIndexFrom + " barIndexTo=" + barIndexTo);
+        LOGGER.fine("deleteBars() -- barIndexFrom=" + barIndexFrom + " barIndexTo=" + barIndexTo);   //NOI18N
 
 
         // Save data after the bar deletions
@@ -733,10 +733,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         if (cliSection == null || items.indexOf(cliSection) == -1 || name == null || (getSection(name) != null && getSection(name) != cliSection)
                 || !(cliSection instanceof WritableItem))
         {
-            throw new IllegalArgumentException("section=" + cliSection + " name=" + name);
+            throw new IllegalArgumentException("section=" + cliSection + " name=" + name);   //NOI18N
         }
 
-        LOGGER.fine("setSectionName() -- cliSection=" + cliSection + " name=" + name);
+        LOGGER.fine("setSectionName() -- cliSection=" + cliSection + " name=" + name);   //NOI18N
 
         try
         {
@@ -754,10 +754,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         if (cliSection == null || ts == null || items.indexOf(cliSection) == -1
                 || !(cliSection instanceof WritableItem))
         {
-            throw new IllegalArgumentException("section=" + cliSection + " ts=" + ts);
+            throw new IllegalArgumentException("section=" + cliSection + " ts=" + ts);   //NOI18N
         }
 
-        LOGGER.fine("setSectionTimeSignature() -- cliSection=" + cliSection + " ts=" + ts);
+        LOGGER.fine("setSectionTimeSignature() -- cliSection=" + cliSection + " ts=" + ts);   //NOI18N
 
         changeSection(cliSection, new Section(cliSection.getData().getName(), ts));
     }
@@ -801,7 +801,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (barFrom < 0 || barTo < barFrom || barTo >= getSize() || aClass == null)
         {
-            throw new IllegalArgumentException(
+            throw new IllegalArgumentException(   //NOI18N
                     "barFrom=" + barFrom + " barTo=" + barTo + " aClass=" + aClass);
         }
 
@@ -826,13 +826,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (cliSection == null || aClass == null)
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection + " aClass=" + aClass);
+            throw new IllegalArgumentException("cliSection=" + cliSection + " aClass=" + aClass);   //NOI18N
         }
         List<T> result = new ArrayList<>();
         int index = items.indexOf(cliSection);
         if (index == -1)
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection + " aClass=" + aClass + " items=" + items);
+            throw new IllegalArgumentException("cliSection=" + cliSection + " aClass=" + aClass + " items=" + items);   //NOI18N
         }
         index++;
         while (index < items.size())
@@ -856,7 +856,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (barIndex < 0 || barIndex >= getSize())
         {
-            throw new IllegalArgumentException("barIndex=" + barIndex);
+            throw new IllegalArgumentException("barIndex=" + barIndex);   //NOI18N
         }
         CLI_Section lastSection = (CLI_Section) items.get(0);       // The initial block
         for (int i = 1; i < items.size(); i++)
@@ -879,7 +879,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (sectionName == null)
         {
-            throw new NullPointerException("sectionName=" + sectionName);
+            throw new NullPointerException("sectionName=" + sectionName);   //NOI18N
         }
         for (ChordLeadSheetItem<?> item : items)
         {
@@ -900,13 +900,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (cliSection == null)
         {
-            throw new NullPointerException("cliSection=" + cliSection);
+            throw new NullPointerException("cliSection=" + cliSection);   //NOI18N
         }
         int startBar = cliSection.getPosition().getBar();
         int index = items.indexOf(cliSection);
         if (index == -1)
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection);
+            throw new IllegalArgumentException("cliSection=" + cliSection);   //NOI18N
         }
 
         index++;
@@ -927,7 +927,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (l == null)
         {
-            throw new NullPointerException("l=" + l);
+            throw new NullPointerException("l=" + l);   //NOI18N
         }
         undoListeners.remove(l);
         undoListeners.add(l);
@@ -938,7 +938,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (l == null)
         {
-            throw new NullPointerException("l=" + l);
+            throw new NullPointerException("l=" + l);   //NOI18N
         }
         undoListeners.remove(l);
     }
@@ -948,7 +948,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (l == null)
         {
-            throw new NullPointerException("l=" + l);
+            throw new NullPointerException("l=" + l);   //NOI18N
         }
         listeners.remove(l);
         listeners.add(l);
@@ -959,7 +959,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (l == null)
         {
-            throw new NullPointerException("l=" + l);
+            throw new NullPointerException("l=" + l);   //NOI18N
         }
         listeners.remove(l);
     }
@@ -1001,7 +1001,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      */
     private void removeSectionsAndItems(List<ChordLeadSheetItem<?>> allItems) throws UnsupportedEditException
     {
-        LOGGER.finer("removeSectionsAndItems() -- removedItems=" + allItems);
+        LOGGER.finer("removeSectionsAndItems() -- removedItems=" + allItems);   //NOI18N
 
         if (allItems.isEmpty())
         {
@@ -1037,7 +1037,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 @Override
                 public void undoBody()
                 {
-                    LOGGER.finer("removeSectionsAndItems.undoBody() removedItems=" + removedItems);
+                    LOGGER.finer("removeSectionsAndItems.undoBody() removedItems=" + removedItems);   //NOI18N
                     for (ChordLeadSheetItem<?> item : removedItems)
                     {
                         items.insertOrdered(item);
@@ -1048,7 +1048,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 @Override
                 public void redoBody()
                 {
-                    LOGGER.finer("removeSectionsAndItems.redoBody() removedItems=" + removedItems);
+                    LOGGER.finer("removeSectionsAndItems.redoBody() removedItems=" + removedItems);   //NOI18N
                     items.removeAll(removedItems);
                     fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, removedItems));
                 }
@@ -1081,10 +1081,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (newTs == null || items == null || oldTs == null)
         {
-            throw new IllegalArgumentException("items=" + items + " oldTs=" + oldTs + " newTs=" + newTs);
+            throw new IllegalArgumentException("items=" + items + " oldTs=" + oldTs + " newTs=" + newTs);   //NOI18N
         }
 
-        LOGGER.finer("adjustItemsToTimeSignature() -- oldTs=" + oldTs + " newTs=" + newTs + " items=" + items);
+        LOGGER.finer("adjustItemsToTimeSignature() -- oldTs=" + oldTs + " newTs=" + newTs + " items=" + items);   //NOI18N
 
         if (oldTs.equals(newTs))
         {
@@ -1113,10 +1113,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (shiftedItems == null)
         {
-            throw new IllegalArgumentException("shiftedItems=" + shiftedItems + " nbBars=" + nbBars);
+            throw new IllegalArgumentException("shiftedItems=" + shiftedItems + " nbBars=" + nbBars);   //NOI18N
         }
 
-        LOGGER.finer("shiftItemsPosition() -- shiftedItems=" + shiftedItems + " nbBars=" + nbBars);
+        LOGGER.finer("shiftItemsPosition() -- shiftedItems=" + shiftedItems + " nbBars=" + nbBars);   //NOI18N
 
         if (shiftedItems.isEmpty())
         {
@@ -1132,7 +1132,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             int newBar = newPos.getBar() + nbBars;
             if (newBar < 0 || newBar >= getSize())
             {
-                throw new IllegalArgumentException("wItem=" + wItem + " nbBars=" + nbBars + " size="
+                throw new IllegalArgumentException("wItem=" + wItem + " nbBars=" + nbBars + " size="   //NOI18N
                         + getSize());
             }
             newPos.setBar(newBar);
@@ -1146,7 +1146,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("shiftItemsPosition.undoBody() shiftedItems=" + shiftedItems + " nbBars=" + nbBars);
+                LOGGER.finer("shiftItemsPosition.undoBody() shiftedItems=" + shiftedItems + " nbBars=" + nbBars);   //NOI18N
                 int i = 0;
                 for (ChordLeadSheetItem<?> item : shiftedItems)
                 {
@@ -1159,7 +1159,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("shiftItemsPosition.redoBody() shiftedItems=" + shiftedItems + " nbBars=" + nbBars);
+                LOGGER.finer("shiftItemsPosition.redoBody() shiftedItems=" + shiftedItems + " nbBars=" + nbBars);   //NOI18N
                 int i = 0;
                 for (ChordLeadSheetItem<?> item : shiftedItems)
                 {
@@ -1179,10 +1179,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (cliSection == null || !(cliSection instanceof WritableItem) || newData == null)
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection + " newData=" + newData);
+            throw new IllegalArgumentException("cliSection=" + cliSection + " newData=" + newData);   //NOI18N
         }
 
-        LOGGER.finer("changeSection() -- cliSection=" + cliSection + " newData=" + newData);
+        LOGGER.finer("changeSection() -- cliSection=" + cliSection + " newData=" + newData);   //NOI18N
 
         final Section oldData = cliSection.getData();
         if (oldData.equals(newData))
@@ -1211,7 +1211,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void undoBody()
             {
-                LOGGER.finer("changeSection.undoBody() cliSection=" + cliSection + " oldData=" + oldData + " newData=" + newData);
+                LOGGER.finer("changeSection.undoBody() cliSection=" + cliSection + " oldData=" + oldData + " newData=" + newData);   //NOI18N
                 wSection.setData(oldData);
                 fireAuthorizedChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, wSection, newData, oldData));
             }
@@ -1219,7 +1219,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void redoBody()
             {
-                LOGGER.finer("changeSection.redoBody() cliSection=" + cliSection + " oldData=" + oldData + " newData=" + newData);
+                LOGGER.finer("changeSection.redoBody() cliSection=" + cliSection + " oldData=" + oldData + " newData=" + newData);   //NOI18N
                 wSection.setData(newData);
                 fireAuthorizedChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, wSection, oldData, newData));
             }
@@ -1241,7 +1241,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (event == null)
         {
-            throw new IllegalArgumentException("event=" + event);
+            throw new IllegalArgumentException("event=" + event);   //NOI18N
         }
         var ls = listeners.toArray(new ClsChangeListener[0]);
         for (ClsChangeListener l : ls)
@@ -1259,7 +1259,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (event == null)
         {
-            throw new IllegalArgumentException("event=" + event);
+            throw new IllegalArgumentException("event=" + event);   //NOI18N
         }
         for (ClsChangeListener l : listeners.toArray(new ClsChangeListener[0]))
         {
@@ -1271,7 +1271,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (edit == null)
         {
-            throw new IllegalArgumentException("edit=" + edit);
+            throw new IllegalArgumentException("edit=" + edit);   //NOI18N
         }
         UndoableEditEvent event = new UndoableEditEvent(this, edit);
         for (UndoableEditListener l : undoListeners.toArray(new UndoableEditListener[undoListeners.size()]))
@@ -1317,7 +1317,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         {
             if (spItems == null || spItems.size() < 1 || !(spItems.get(0) instanceof CLI_Section))
             {
-                throw new IllegalStateException("spItems=" + spItems);
+                throw new IllegalStateException("spItems=" + spItems);   //NOI18N
             }
             // CLI_Section's container field must be transient, otherwise with Xstream line below produces 
             // a non-null but empty section (data=null, pos=null).            

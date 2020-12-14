@@ -57,7 +57,7 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
     {
         if (item == null)
         {
-            throw new NullPointerException("item=" + item);
+            throw new NullPointerException("item=" + item);   //NOI18N
         }
         cli = item;
         position = cli.getPosition();

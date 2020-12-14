@@ -28,17 +28,15 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.activesong.ActiveSongManager;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.musiccontrol.MusicController.State;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.FlatToggleButton;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
@@ -63,8 +61,7 @@ import org.openide.util.actions.BooleanStateAction;
         })
 @NbBundle.Messages(
         {
-            "CTL_Pause=Pause",
-            "CTL_PauseTooltip=Pause playback"
+
         })
 public class Pause extends BooleanStateAction implements PropertyChangeListener, LookupListener
 {
@@ -79,7 +76,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
 
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorder-24x24.png")));
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorderOn-24x24.png")));
-        putValue(Action.SHORT_DESCRIPTION, Bundle.CTL_PauseTooltip());
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_PauseTooltip"));
         putValue("hideActionText", true);
 
         // Listen to pausebackState and position changes
@@ -111,7 +108,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
 
         MusicController mc = MusicController.getInstance();
         MusicController.State playBackState = mc.getState();
-        LOGGER.fine("buttonStateChanged() newState=" + newState + " playBackState=" + playBackState);
+        LOGGER.fine("buttonStateChanged() newState=" + newState + " playBackState=" + playBackState);   //NOI18N
         switch (playBackState)
         {
             case STOPPED:
@@ -132,7 +129,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
                 } else
                 {
                     // Restart playback
-                    assert currentSong != null; // Otherwise button should be disabled
+                    assert currentSong != null; // Otherwise button should be disabled   //NOI18N
                     try
                     {
                         mc.resume();
@@ -158,7 +155,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
                 }
                 break;
             default:
-                throw new IllegalArgumentException("playBackState=" + playBackState + " newState=" + newState);
+                throw new IllegalArgumentException("playBackState=" + playBackState + " newState=" + newState);   //NOI18N
         }
     }
 
@@ -172,7 +169,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
         if (newSong != null)
         {
             // Current song has changed
@@ -193,7 +190,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
     @Override
     public String getName()
     {
-        return Bundle.CTL_Pause();
+        return ResUtil.getString(getClass(), "CTL_Pause");
     }
 
     @Override
@@ -261,7 +258,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
     private void playbackStateChanged()
     {
         MusicController mc = MusicController.getInstance();
-        LOGGER.fine("playbackStateChanged() actionState=" + getBooleanState() + " mc.getPlaybackState()=" + mc.getState());        
+        LOGGER.fine("playbackStateChanged() actionState=" + getBooleanState() + " mc.getPlaybackState()=" + mc.getState());           //NOI18N
         setEnabled(!mc.getState().equals(State.DISABLED));
         setBooleanState(mc.getState().equals(MusicController.State.PAUSED));
     }

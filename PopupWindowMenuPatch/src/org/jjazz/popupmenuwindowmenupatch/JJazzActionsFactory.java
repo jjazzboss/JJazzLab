@@ -81,13 +81,13 @@ public class JJazzActionsFactory extends ActionsFactory
     @Override
     public Action[] createPopupActions(TopComponent tc, Action[] actions)
     {
-        LOGGER.fine("createPopupActions() tc=" + tc + " actions.length=" + actions.length);
+        LOGGER.fine("createPopupActions() tc=" + tc + " actions.length=" + actions.length);   //NOI18N
         ArrayList<Action> newActions = new ArrayList<>();
         Collections.addAll(newActions, actions);
-        LOGGER.fine("createPopupActions() Actions IN:");
+        LOGGER.fine("createPopupActions() Actions IN:");   //NOI18N
         logActions(actions);
         Mode mode = WindowManager.getDefault().findMode(tc);
-        assert mode != null;
+        assert mode != null;   //NOI18N
         if (mode.getName().equals("editor"))
         {
             // e.g. CL_editor TopComponent
@@ -182,7 +182,7 @@ public class JJazzActionsFactory extends ActionsFactory
         }
 
         removeUselessSeparators(newActions);
-        LOGGER.fine("createPopupActions(tc) Actions OUT:");
+        LOGGER.fine("createPopupActions(tc) Actions OUT:");   //NOI18N
         Action[] newActionsArray = newActions.toArray(new Action[0]);
         logActions(newActionsArray);
         return newActionsArray;
@@ -199,8 +199,8 @@ public class JJazzActionsFactory extends ActionsFactory
     @Override
     public Action[] createPopupActions(Mode mode, Action[] actions)
     {
-        LOGGER.fine("createPopupActions() mode=" + mode + " actions.length=" + actions.length);
-        LOGGER.fine("createPopupActions() Actions IN:");
+        LOGGER.fine("createPopupActions() mode=" + mode + " actions.length=" + actions.length);   //NOI18N
+        LOGGER.fine("createPopupActions() Actions IN:");   //NOI18N
         logActions(actions);
         ArrayList<Action> newActions = new ArrayList<>();
         Collections.addAll(newActions, actions);
@@ -243,7 +243,7 @@ public class JJazzActionsFactory extends ActionsFactory
         }
 
         removeUselessSeparators(newActions);
-        LOGGER.fine("createPopupActions(mode) Actions OUT:");
+        LOGGER.fine("createPopupActions(mode) Actions OUT:");   //NOI18N
         Action[] newActionsArray = newActions.toArray(new Action[0]);
         logActions(newActionsArray);
         return newActionsArray;
@@ -276,10 +276,10 @@ public class JJazzActionsFactory extends ActionsFactory
         {
             if (a == null)
             {
-                LOGGER.fine(" a=" + a);
+                LOGGER.fine(" a=" + a);   //NOI18N
             } else
             {
-                LOGGER.fine(" a=" + a.getValue(Action.NAME) + " class=" + a.getClass().getSimpleName());
+                LOGGER.fine(" a=" + a.getValue(Action.NAME) + " class=" + a.getClass().getSimpleName());   //NOI18N
             }
         }
     }

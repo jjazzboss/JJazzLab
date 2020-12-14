@@ -90,7 +90,7 @@ public class StdInstrumentConverter implements InstrumentConverter
     {
         if (srcIns == null)
         {
-            throw new IllegalArgumentException("srcIns=" + srcIns + " destSynth=" + destSynth + " destBanks=" + destBanks);
+            throw new IllegalArgumentException("srcIns=" + srcIns + " destSynth=" + destSynth + " destBanks=" + destBanks);   //NOI18N
         }
         InstrumentBank<?> srcBank = srcIns.getBank();
         if (!isValidBank(srcBank))
@@ -117,7 +117,7 @@ public class StdInstrumentConverter implements InstrumentConverter
         {
             if (!isValidBank(destBank))
             {
-                throw new IllegalArgumentException("srcIns=" + srcIns.toLongString() + " destSynth=" + destSynth + " destBanks=" + destBanks);
+                throw new IllegalArgumentException("srcIns=" + srcIns.toLongString() + " destSynth=" + destSynth + " destBanks=" + destBanks);   //NOI18N
             }
         }
 
@@ -172,7 +172,7 @@ public class StdInstrumentConverter implements InstrumentConverter
             }
         } else
         {
-            assert srcBank == xgBank : "srcBank=" + srcBank;
+            assert srcBank == xgBank : "srcBank=" + srcBank;   //NOI18N
             // XG => GM2/GS/GM
             int xgIndex = xgBank.getIndex(srcIns);
             if (destBanks.contains(gm2Bank))
@@ -194,7 +194,7 @@ public class StdInstrumentConverter implements InstrumentConverter
         }
         if (ins == null)
         {
-            LOGGER.log(Level.FINE, "convertInstrument() no instrument found for srcIns={0} destSynth={1} destBanks={2}", new Object[]
+            LOGGER.log(Level.FINE, "convertInstrument() no instrument found for srcIns={0} destSynth={1} destBanks={2}", new Object[]   //NOI18N
             {
                 srcIns.toLongString(), destSynth, destBanks
             });
@@ -215,7 +215,7 @@ public class StdInstrumentConverter implements InstrumentConverter
     {
         if (srcKit == null || destBanks == null)
         {
-            throw new IllegalArgumentException("srcKit=" + srcKit + " destBanks=" + destBanks + " tryHarder=" + tryHarder);
+            throw new IllegalArgumentException("srcKit=" + srcKit + " destBanks=" + destBanks + " tryHarder=" + tryHarder);   //NOI18N
         }
         if (destBanks.isEmpty())
         {
@@ -225,7 +225,7 @@ public class StdInstrumentConverter implements InstrumentConverter
         {
             if (!isValidBank(destBank))
             {
-                throw new IllegalArgumentException("srcKit=" + srcKit + " destBanks=" + destBanks);
+                throw new IllegalArgumentException("srcKit=" + srcKit + " destBanks=" + destBanks);   //NOI18N
             }
         }
 

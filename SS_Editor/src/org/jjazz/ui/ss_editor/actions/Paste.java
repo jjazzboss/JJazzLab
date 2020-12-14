@@ -35,7 +35,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ui.ss_editor.api.CopyBuffer;
-import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManager;
@@ -46,12 +45,12 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
+import org.jjazz.util.ResUtil;
 
 /**
  * Paste SongParts.
@@ -64,17 +63,12 @@ import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
         {
             @ActionReference(path = "Actions/SongPart", position = 1200),
         })
-@NbBundle.Messages(
-        {
-            "CTL_Paste=Paste",
-            "ERR_Paste=Impossible to paste song part"
-        })
 public class Paste extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, ChangeListener
 {
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = CTL_Paste();
+    private String undoText = ResUtil.getString(getClass(), "CTL_Paste");
 
     public Paste()
     {
@@ -86,7 +80,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
         this.context = context;
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        putValue(NAME, CTL_Paste());
+        putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_V));
         CopyBuffer buffer = CopyBuffer.getInstance();
         buffer.addChangeListener(this);
@@ -117,7 +111,8 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
                 targetSgs.addSongParts(Arrays.asList(spt));
             } catch (UnsupportedEditException ex)
             {
-                String msg = ERR_Paste() + "\n" + ex.getLocalizedMessage();
+                String msg = ResUtil.getString(getClass(), "ERR_Paste");
+                msg += "\n" + ex.getLocalizedMessage();
                 um.handleUnsupportedEditException(undoText, msg);
                 return;
             }

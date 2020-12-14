@@ -78,7 +78,7 @@ public final class SetEndBar extends AbstractAction implements ContextAwareActio
     public void actionPerformed(ActionEvent e)
     {
         CL_SelectionUtilities selection = cap.getSelection();
-        assert endBar >= 0 : "selection=" + selection;
+        assert endBar >= 0 : "selection=" + selection;   //NOI18N
         ChordLeadSheet cls = selection.getChordLeadSheet();
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);

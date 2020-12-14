@@ -60,7 +60,7 @@ public class JJazzUndoManagerFinder
      */
     public void put(JJazzUndoManager um, Object key)
     {
-        assert um != null && key != null;
+        assert um != null && key != null;   //NOI18N
         map.putValue(key, um);
     }
 

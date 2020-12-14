@@ -37,10 +37,6 @@ import org.openide.util.Lookup;
         keywordsCategory = "Rhythms",
         position = 350
 )
-@org.openide.util.NbBundle.Messages(
-        {
-            "OptionsCategory_Name_Rhythms=Rhythms", "OptionsCategory_Keywords_Rhythms=Rhythms Database"
-        })
 public final class RhythmsOptionsPanelController extends OptionsPanelController
 {
 

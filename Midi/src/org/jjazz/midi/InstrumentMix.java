@@ -41,10 +41,10 @@ import javax.swing.event.SwingPropertyChangeSupport;
 public class InstrumentMix implements Serializable
 {
 
-    public static final String PROP_INSTRUMENT = "PropInstrument";
-    public static final String PROP_INSTRUMENT_ENABLED = "PropInstrumentEnabled";
-    public static final String PROP_MUTE = "PropMute";
-    public static final String PROP_SOLO = "PropSolo";
+    public static final String PROP_INSTRUMENT = "PropInstrument";   //NOI18N 
+    public static final String PROP_INSTRUMENT_ENABLED = "PropInstrumentEnabled";   //NOI18N 
+    public static final String PROP_MUTE = "PropMute";   //NOI18N 
+    public static final String PROP_SOLO = "PropSolo";   //NOI18N 
 
     private Instrument instrument;
     private InstrumentSettings settings;
@@ -58,7 +58,7 @@ public class InstrumentMix implements Serializable
         setInstrument(instrument);
         if (settings == null)
         {
-            throw new NullPointerException("instrument=" + instrument + " settings=" + settings);
+            throw new NullPointerException("instrument=" + instrument + " settings=" + settings);   //NOI18N
         }
         this.settings = settings;
         this.settings.setContainer(this);
@@ -75,7 +75,7 @@ public class InstrumentMix implements Serializable
     {
         if (im == null)
         {
-            throw new NullPointerException("im");
+            throw new NullPointerException("im");   //NOI18N
         }
         setMute(im.isMute());
         setSolo(im.isSolo());
@@ -100,7 +100,7 @@ public class InstrumentMix implements Serializable
     {
         if (instrument == null)
         {
-            throw new NullPointerException("instrument");
+            throw new NullPointerException("instrument");   //NOI18N
         }
         Instrument old = this.instrument;
         this.instrument = instrument;

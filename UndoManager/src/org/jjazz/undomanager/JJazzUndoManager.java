@@ -74,7 +74,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     {
         if (name == null || name.isBlank())
         {
-            throw new IllegalArgumentException("name=" + name);
+            throw new IllegalArgumentException("name=" + name);   //NOI18N
         }
         this.name = name;
     }
@@ -93,7 +93,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     {
         if (currentCEdit != null)
         {
-            throw new IllegalStateException("currentCEdit=" + currentCEdit + " n=" + n);
+            throw new IllegalStateException("currentCEdit=" + currentCEdit + " n=" + n);   //NOI18N
         }
         currentCEdit = new CEdit(n);
         addEdit(currentCEdit);
@@ -109,7 +109,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     {
         if (currentCEdit == null || !currentCEdit.getPresentationName().equals(n))
         {
-            throw new IllegalStateException("currentCEdit=" + currentCEdit + " n=" + n);
+            throw new IllegalStateException("currentCEdit=" + currentCEdit + " n=" + n);   //NOI18N
         }
 
         currentCEdit.end();
@@ -362,7 +362,7 @@ class CEdit extends CompoundEdit
     {
         if (n == null)
         {
-            throw new IllegalArgumentException("n=" + n);
+            throw new IllegalArgumentException("n=" + n);   //NOI18N
         }
         name = n;
     }

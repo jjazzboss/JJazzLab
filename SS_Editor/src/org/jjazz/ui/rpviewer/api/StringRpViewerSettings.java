@@ -38,7 +38,7 @@ public interface StringRpViewerSettings
         StringRpViewerSettings result = Lookup.getDefault().lookup(StringRpViewerSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);
+            throw new NullPointerException("result=" + result);   //NOI18N
         }
         return result;
     }

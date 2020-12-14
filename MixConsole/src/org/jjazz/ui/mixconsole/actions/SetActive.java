@@ -101,7 +101,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
         if (newSong != null)
         {
             // Current song has changed
@@ -117,7 +117,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
             } catch (MidiUnavailableException ex)
             {
                 // We should never be here
-                throw new IllegalStateException("Unexpected MidiUnavailableException", ex);
+                throw new IllegalStateException("Unexpected MidiUnavailableException", ex);   //NOI18N
             }
             currentSong.addPropertyChangeListener(this);
             currentSongChanged();
@@ -216,7 +216,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
     // ======================================================================   
     private void activeSongChanged()
     {
-        LOGGER.fine("activeSongChanged() calling stop()");
+        LOGGER.fine("activeSongChanged() calling stop()");   //NOI18N
         MusicController.getInstance().stop();  // In case the last activesong was playing or in pause mode
         currentSongChanged();    // Enable/Disable components            
     }

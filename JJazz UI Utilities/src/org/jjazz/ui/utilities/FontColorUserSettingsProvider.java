@@ -75,7 +75,7 @@ public interface FontColorUserSettingsProvider
         {
             if (id == null || id.isEmpty() || displayName == null || displayName.isEmpty())
             {
-                throw new IllegalArgumentException("id=" + id + " name=" + displayName);
+                throw new IllegalArgumentException("id=" + id + " name=" + displayName);   //NOI18N
             }
             this.id = id;
             this.displayName = displayName;

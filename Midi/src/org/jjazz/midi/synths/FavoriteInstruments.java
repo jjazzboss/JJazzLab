@@ -85,7 +85,7 @@ public class FavoriteInstruments
     {
         if (ins == null)
         {
-            throw new NullPointerException("ins=" + ins);
+            throw new NullPointerException("ins=" + ins);   //NOI18N
         }
         if (!instruments.contains(ins))
         {
@@ -107,7 +107,7 @@ public class FavoriteInstruments
     {
         if (ins == null)
         {
-            throw new NullPointerException("ins");
+            throw new NullPointerException("ins");   //NOI18N
         }
         if (instruments.remove(ins))
         {
@@ -143,7 +143,7 @@ public class FavoriteInstruments
     {
         if (synth == null)
         {
-            throw new NullPointerException("synth");
+            throw new NullPointerException("synth");   //NOI18N
         }
         ArrayList<Instrument> res = new ArrayList<>();
         for (Instrument ins : instruments)
@@ -205,7 +205,7 @@ public class FavoriteInstruments
                 instruments.add(ins);
             } else
             {
-                LOGGER.warning("No instrument could be created from FavoriteInstruments property: " + s + ". Property will be removed.");
+                LOGGER.warning("No instrument could be created from FavoriteInstruments property: " + s + ". Property will be removed.");   //NOI18N
                 prefs.remove(PROP_FAVORITE_INSTRUMENT + i);
             }
         }

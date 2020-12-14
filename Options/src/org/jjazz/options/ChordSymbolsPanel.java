@@ -30,6 +30,7 @@ import javax.swing.table.TableColumnModel;
 import org.jjazz.harmony.ChordType;
 import org.jjazz.harmony.ChordTypeDatabase;
 import org.jjazz.harmony.Note;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
@@ -142,7 +143,8 @@ final class ChordSymbolsPanel extends javax.swing.JPanel implements ListSelectio
             return;
         }
         ChordType ct = ctdb.getChordType(row);
-        NotifyDescriptor.InputLine input = new NotifyDescriptor.InputLine("Alias", "Add alias for C" + ct.getName());
+        NotifyDescriptor.InputLine input = new NotifyDescriptor.InputLine(ResUtil.getString(getClass(), "ALIAS"), 
+                ResUtil.getString(getClass(), "AddAliasForC", ct.getName()));
         input.setInputText("C" + ct.getName()); // specify a default name
         Object result = DialogDisplayer.getDefault().notify(input);
         if (result != NotifyDescriptor.OK_OPTION)
@@ -154,7 +156,7 @@ final class ChordSymbolsPanel extends javax.swing.JPanel implements ListSelectio
         {
             if (s.charAt(0) != 'C' && s.charAt(0) != 'c')
             {
-                NotifyDescriptor d = new NotifyDescriptor.Message("Alias must start with 'C'", NotifyDescriptor.ERROR_MESSAGE);
+                NotifyDescriptor d = new NotifyDescriptor.Message(ResUtil.getString(getClass(),"ERR_AliasMustStartWithC"), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
                 return;
             }
@@ -189,7 +191,7 @@ final class ChordSymbolsPanel extends javax.swing.JPanel implements ListSelectio
     private void btn_resetAllActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetAllActionPerformed
     {//GEN-HEADEREND:event_btn_resetAllActionPerformed
         ChordTypeDatabase ctdb = ChordTypeDatabase.getInstance();
-        String msg = "This will reset aliases for all chord symbols. Are you sure ?";
+        String msg = ResUtil.getString(getClass(),"CTL_ResetAllAliases");
         NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
         Object result = DialogDisplayer.getDefault().notify(nd);
         if (result == NotifyDescriptor.OK_OPTION)
@@ -274,16 +276,16 @@ final class ChordSymbolsPanel extends javax.swing.JPanel implements ListSelectio
             switch (columnIndex)
             {
                 case 0:
-                    s = "Chord Symbol";
+                    s = ResUtil.getString(getClass(),"CHORD_SYMBOL");
                     break;
                 case 1:
-                    s = "Notes";
+                    s = ResUtil.getString(getClass(),"NOTES");
                     break;
                 case 2:
-                    s = "Aliases";
+                    s = ResUtil.getString(getClass(),"ALIASES");
                     break;
                 default:
-                    throw new IllegalStateException("columnIndex=" + columnIndex);
+                    throw new IllegalStateException("columnIndex=" + columnIndex);   //NOI18N
             }
             return s;
         }
@@ -323,7 +325,7 @@ final class ChordSymbolsPanel extends javax.swing.JPanel implements ListSelectio
                     }
                     return sb.toString();
                 default:
-                    throw new IllegalStateException("columnIndex=" + columnIndex);
+                    throw new IllegalStateException("columnIndex=" + columnIndex);   //NOI18N
             }
         }
 

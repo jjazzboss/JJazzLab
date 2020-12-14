@@ -195,7 +195,7 @@ public class VTextIcon implements Icon, PropertyChangeListener
     public void paintIcon(Component c, Graphics g, int x, int y)
     {
         // We don't insist that it be on the same Component
-        LOGGER.fine("paintIcon() c.getForeground()=" + c.getForeground());
+        LOGGER.fine("paintIcon() c.getForeground()=" + c.getForeground());   //NOI18N
         g.setColor(c.getForeground());
         g.setFont(c.getFont());
         if (fRotation == ROTATE_NONE)

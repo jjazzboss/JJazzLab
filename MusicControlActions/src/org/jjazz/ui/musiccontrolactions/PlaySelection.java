@@ -43,7 +43,6 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
-import static org.jjazz.ui.musiccontrolactions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.openide.DialogDisplayer;
@@ -52,13 +51,13 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.util.IntRange;
+import org.jjazz.util.ResUtil;
 import org.openide.windows.TopComponent;
 
 /**
@@ -74,11 +73,6 @@ import org.openide.windows.TopComponent;
             @ActionReference(path = "Actions/SongPart", position = 831, separatorAfter = 832),
             @ActionReference(path = "Shortcuts", name = "DS-SPACE")
         })
-@NbBundle.Messages(
-        {
-            "CTL_PlaySelection=Play selection",
-            "CTL_PlaySelectionToolTip=Play selected bars/song parts"
-        })
 public class PlaySelection extends AbstractAction
 {
 
@@ -88,7 +82,7 @@ public class PlaySelection extends AbstractAction
 
     public PlaySelection()
     {
-        putValue(Action.NAME, CTL_PlaySelection());
+        putValue(Action.NAME, ResUtil.getString(getClass(), "CTL_PlaySelection"));
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control shift SPACE"));     // For popup display only     
 
         // Listen to TopComponent activation changes
@@ -113,7 +107,7 @@ public class PlaySelection extends AbstractAction
     {
         if (song == null)
         {
-            LOGGER.severe("actionPerformed() unexpected value song=" + song);
+            LOGGER.severe("actionPerformed() unexpected value song=" + song);   //NOI18N
             return;
         }
 
@@ -122,7 +116,7 @@ public class PlaySelection extends AbstractAction
         ActiveSongManager asm = ActiveSongManager.getInstance();
         if (asm.getActiveSong() != song)
         {
-            String msg = ERR_NotActive();
+            String msg = ResUtil.getString(getClass(), "ERR_NotActive");
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -131,20 +125,20 @@ public class PlaySelection extends AbstractAction
 
         ChordLeadSheet cls = song.getChordLeadSheet();
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
-        assert clTc != null;
+        assert clTc != null;   //NOI18N
         CL_Editor clEditor = clTc.getCL_Editor();
         CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clEditor.getLookup());
 
 
         SongStructure ss = song.getSongStructure();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
-        assert ssTc != null;
+        assert ssTc != null;   //NOI18N
         SS_Editor ssEditor = ssTc.getSS_Editor();
         SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
 
 
         IntRange rg = null;
-        String errMsg = "Selected bars/songs parts need to be contiguous.";     // By default
+        String errMsg = ResUtil.getString(getClass(), "ERR_NeedContiguousSelection");     // By default
 
 
         if (lastValidActivatedTc == clTc && clSelection.isContiguousBarboxSelectionWithinCls())
@@ -153,7 +147,7 @@ public class PlaySelection extends AbstractAction
             rg = toSgsRange(ss, cls, new IntRange(clSelection.getMinBarIndexWithinCls(), clSelection.getMaxBarIndexWithinCls()));   // Can be null
             if (rg == null)
             {
-                errMsg = "First and last selected bars don't correctly match song parts.";
+                errMsg = ResUtil.getString(getClass(), "ERR_BadSelection");
             }
 
         } else if (lastValidActivatedTc == ssTc && ssSelection.isOneSectionSptSelection())
@@ -169,7 +163,7 @@ public class PlaySelection extends AbstractAction
 
         if (rg == null)
         {
-            String msg = "Can't play this selection. " + errMsg;
+            String msg = ResUtil.getString(getClass(), "ERR_InvalidPlayableSelection", errMsg);
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -223,7 +217,7 @@ public class PlaySelection extends AbstractAction
         }
 
         boolean b = song != null;
-        LOGGER.fine("updateEnabledStatus() b=" + b);
+        LOGGER.fine("updateEnabledStatus() b=" + b);   //NOI18N
 
         setEnabled(b);
     }
@@ -246,7 +240,7 @@ public class PlaySelection extends AbstractAction
     {
         if (ss == null || cls == null || clsRange.to > cls.getSize() - 1)
         {
-            throw new IllegalArgumentException("cls=" + cls + ", ss=" + ss + ", clsRange=" + clsRange);
+            throw new IllegalArgumentException("cls=" + cls + ", ss=" + ss + ", clsRange=" + clsRange);   //NOI18N
         }
         CLI_Section fromSection = cls.getSection(clsRange.from);
         int fromBar = -1;

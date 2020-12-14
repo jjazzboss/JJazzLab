@@ -37,7 +37,7 @@ public interface CL_EditorSettings
         CL_EditorSettings result = Lookup.getDefault().lookup(CL_EditorSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);
+            throw new NullPointerException("result=" + result);   //NOI18N
         }
         return result;
     }

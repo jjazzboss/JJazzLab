@@ -48,7 +48,7 @@ public class ItemMovedEvent extends ClsChangeEvent
         super(src, item);
         if (oldPos == null || newPos == null || item instanceof CLI_Section)
         {
-            throw new IllegalArgumentException("item=" + item + " oldPos=" + oldPos + " newPos=" + newPos);
+            throw new IllegalArgumentException("item=" + item + " oldPos=" + oldPos + " newPos=" + newPos);   //NOI18N
         }
         oldPosition = oldPos;
         newPosition = newPos;

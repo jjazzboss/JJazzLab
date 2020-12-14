@@ -38,7 +38,7 @@ public interface IR_SectionSettings
         IR_SectionSettings result = Lookup.getDefault().lookup(IR_SectionSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);
+            throw new NullPointerException("result=" + result);   //NOI18N
         }
         return result;
     }

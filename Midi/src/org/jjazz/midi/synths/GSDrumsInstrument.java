@@ -124,7 +124,7 @@ public class GSDrumsInstrument extends Instrument implements Serializable
         super(patchName, bank, ma, kit, substitute);
         if (!ma.getBankSelectMethod().equals(MidiAddress.BankSelectMethod.PC_ONLY))
         {
-            throw new IllegalArgumentException("patchName=" + patchName + " bank=" + bank + " ma=" + ma);
+            throw new IllegalArgumentException("patchName=" + patchName + " bank=" + bank + " ma=" + ma);   //NOI18N
         }
     }
 
@@ -146,12 +146,12 @@ public class GSDrumsInstrument extends Instrument implements Serializable
     {
         if (!MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("channel=" + channel);
+            throw new IllegalArgumentException("channel=" + channel);   //NOI18N
         }
 
         MidiMessage[] messages = new MidiMessage[2];
         MidiMessage[] msgs = MidiUtilities.getPatchMessages(channel, this);
-        assert msgs.length == 1 : "msgs.length=" + msgs.length + " this=" + getFullName(); // GS DrumsInstrument use PC_ONLY addressing mode        
+        assert msgs.length == 1 : "msgs.length=" + msgs.length + " this=" + getFullName(); // GS DrumsInstrument use PC_ONLY addressing mode           //NOI18N
 
         byte[] bytes = SYSEX_SET_DRUMS_CHANNEL[channel];
         SysexMessage sysMsg = new SysexMessage();
@@ -164,7 +164,7 @@ public class GSDrumsInstrument extends Instrument implements Serializable
         }
         messages[0] = sysMsg;
         messages[1] = msgs[0];
-        LOGGER.log(Level.FINE, "getMidiMessages() Sending SysEx messages to set drums mode on channel " + channel);
+        LOGGER.log(Level.FINE, "getMidiMessages() Sending SysEx messages to set drums mode on channel " + channel);   //NOI18N
         return messages;
     }
 
@@ -197,7 +197,7 @@ public class GSDrumsInstrument extends Instrument implements Serializable
         {
             if (ins.getBank() == null || ins.getBank().getMidiSynth() == null)
             {
-                throw new IllegalStateException("ins=" + ins + " ins.getBank()=" + ins.getBank());
+                throw new IllegalStateException("ins=" + ins + " ins.getBank()=" + ins.getBank());   //NOI18N
             }
             spSaveString = ins.saveAsString();
         }

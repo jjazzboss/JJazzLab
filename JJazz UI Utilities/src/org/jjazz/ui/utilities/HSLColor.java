@@ -383,19 +383,19 @@ public class HSLColor
         if (s < 0.0f || s > 100.0f)
         {
             String message = "Color parameter outside of expected range - Saturation";
-            throw new IllegalArgumentException(message);
+            throw new IllegalArgumentException(message);   //NOI18N
         }
 
         if (l < 0.0f || l > 100.0f)
         {
             String message = "Color parameter outside of expected range - Luminance";
-            throw new IllegalArgumentException(message);
+            throw new IllegalArgumentException(message);   //NOI18N
         }
 
         if (alpha < 0.0f || alpha > 1.0f)
         {
             String message = "Color parameter outside of expected range - Alpha";
-            throw new IllegalArgumentException(message);
+            throw new IllegalArgumentException(message);   //NOI18N
         }
 
         //  Formula needs all values between 0 - 1.

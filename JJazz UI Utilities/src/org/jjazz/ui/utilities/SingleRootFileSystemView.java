@@ -57,13 +57,13 @@ public class SingleRootFileSystemView extends FileSystemView
             roots[0] = root;
         } catch (IOException e)
         {
-            throw new IllegalArgumentException(e);
+            throw new IllegalArgumentException(e);   //NOI18N
         }
 
         if (!root.isDirectory())
         {
             String message = root + " is not a directory";
-            throw new IllegalArgumentException(message);
+            throw new IllegalArgumentException(message);   //NOI18N
         }
     }
 

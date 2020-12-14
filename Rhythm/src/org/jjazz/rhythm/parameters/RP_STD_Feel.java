@@ -23,8 +23,7 @@
 package org.jjazz.rhythm.parameters;
 
 import org.jjazz.rhythm.api.Rhythm;
-import static org.jjazz.rhythm.parameters.Bundle.CTL_StdFeelDesc;
-import static org.jjazz.rhythm.parameters.Bundle.CTL_StdFeelName;
+import org.jjazz.util.ResUtil;
 import org.openide.util.NbBundle;
 
 /**
@@ -32,8 +31,7 @@ import org.openide.util.NbBundle;
  */
 @NbBundle.Messages(
         {
-            "CTL_StdFeelName=Hafl-time feel",
-            "CTL_StdFeelDesc=Give a feeling tempo is half timed",
+
         })
 public final class RP_STD_Feel extends RP_State
 {
@@ -42,14 +40,14 @@ public final class RP_STD_Feel extends RP_State
 
     public RP_STD_Feel()
     {
-        super(ID, CTL_StdFeelName(), CTL_StdFeelDesc(), "", "", "half-time");
+        super(ID, ResUtil.getString(RP_STD_Feel.class, "CTL_StdFeelName"), ResUtil.getString(RP_STD_Feel.class, "CTL_StdFeelDesc"), "", "", "half-time");
     }
 
     static public RP_STD_Feel getFeelRp(Rhythm rhythm)
     {
         if (rhythm == null)
         {
-            throw new NullPointerException("r");
+            throw new NullPointerException("r");   //NOI18N
         }
         return (RP_STD_Feel) rhythm.getRhythmParameters()
                 .stream()

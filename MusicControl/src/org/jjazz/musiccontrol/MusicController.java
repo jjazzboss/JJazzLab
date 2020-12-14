@@ -61,6 +61,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
+import org.jjazz.util.ResUtil;
 import org.openide.util.NbPreferences;
 
 /**
@@ -77,16 +78,16 @@ import org.openide.util.NbPreferences;
 public class MusicController implements PropertyChangeListener, MetaEventListener, ControllerEventListener
 {
 
-    public static final String PROP_PLAYBACK_KEY_TRANSPOSITION = "PlaybackTransposition";
-    public static final String PROP_STATE = "PropPlaybackState";
+    public static final String PROP_PLAYBACK_KEY_TRANSPOSITION = "PlaybackTransposition";              //NOI18N
+    public static final String PROP_STATE = "PropPlaybackState";   //NOI18N 
     /**
      * This vetoable property is changed/fired just before playing song and can be vetoed by vetoables listeners to cancel
      * playback start.
      * <p>
      * NewValue=MusicGenerationContext object.
      */
-    public static final String PROPVETO_PRE_PLAYBACK = "PropVetoPrePlayback";
-    public static final String PROP_LOOPCOUNT = "PropLoopCount";
+    public static final String PROPVETO_PRE_PLAYBACK = "PropVetoPrePlayback";   //NOI18N 
+    public static final String PROP_LOOPCOUNT = "PropLoopCount";   //NOI18N 
 
     /**
      * The playback states.
@@ -199,7 +200,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         if (lockHolder == null)
         {
-            throw new NullPointerException("lockHolder");
+            throw new NullPointerException("lockHolder");   //NOI18N
         }
 
         LOGGER.fine("acquireSequencer() -- lockHolder=" + lockHolder);  //NOI18N
@@ -241,7 +242,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         if (lockHolder == null || sequencerLockHolder != lockHolder)
         {
-            throw new IllegalArgumentException("lockHolder=" + lockHolder + " sequencerLockHolder=" + sequencerLockHolder);
+            throw new IllegalArgumentException("lockHolder=" + lockHolder + " sequencerLockHolder=" + sequencerLockHolder);   //NOI18N
         }
 
         LOGGER.fine("releaseSequencer() -- lockHolder=" + lockHolder);  //NOI18N
@@ -260,7 +261,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         // Change state
         State old = state;
-        assert old.equals(State.DISABLED);
+        assert old.equals(State.DISABLED);   //NOI18N
         state = State.STOPPED;
         pcs.firePropertyChange(PROP_STATE, old, state);
     }
@@ -283,7 +284,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         if (state.equals(State.DISABLED))
         {
-            throw new MusicGenerationException("Playback is disabled.");
+            throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK IS DISABLED"));
         }
 
         this.postProcessors = postProcessors;
@@ -344,11 +345,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         if (mgContext == null)
         {
-            throw new IllegalStateException("context=" + mgContext + ", fromBarIndex=" + fromBarIndex);
+            throw new IllegalStateException("context=" + mgContext + ", fromBarIndex=" + fromBarIndex);   //NOI18N
         }
         if (!mgContext.getBarRange().contains(fromBarIndex))
         {
-            throw new IllegalArgumentException("context=" + mgContext + ", fromBarIndex=" + fromBarIndex);
+            throw new IllegalArgumentException("context=" + mgContext + ", fromBarIndex=" + fromBarIndex);   //NOI18N
         }
 
 
@@ -358,10 +359,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         // Check state
         if (state == State.PLAYING)
         {
-            throw new MusicGenerationException("A song is already playing.");
+            throw new MusicGenerationException(ResUtil.getString(getClass(), "A SONG IS ALREADY PLAYING"));
         } else if (state == State.DISABLED)
         {
-            throw new MusicGenerationException("Playback is disabled.");
+            throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK IS DISABLED"));
         }
 
 
@@ -369,7 +370,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         if (mgContext.getBarRange().isEmpty())
         {
             // Throw an exception to let the UI roll back (eg play button)
-            throw new MusicGenerationException("Nothing to play");
+            throw new MusicGenerationException(ResUtil.getString(getClass(), "NOTHING TO PLAY"));
         }
 
 
@@ -419,7 +420,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         if (state == State.DISABLED)
         {
-            throw new MusicGenerationException("Playback is disabled.");
+            throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK IS DISABLED"));
         } else if (!state.equals(State.PAUSED))
         {
             return;
@@ -436,7 +437,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         if (mgContext == null)
         {
-            throw new IllegalStateException("context=" + mgContext);
+            throw new IllegalStateException("context=" + mgContext);   //NOI18N
         }
 
 
@@ -572,7 +573,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         if (t < -11 || t > 0)
         {
-            throw new IllegalArgumentException("t=" + t);
+            throw new IllegalArgumentException("t=" + t);   //NOI18N
         }
 
         int old = getPlaybackKeyTransposition();
@@ -603,7 +604,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         if (loopCount != Sequencer.LOOP_CONTINUOUSLY && loopCount < 0)
         {
-            throw new IllegalArgumentException("loopCount=" + loopCount);
+            throw new IllegalArgumentException("loopCount=" + loopCount);   //NOI18N
         }
 
         if (state.equals(State.DISABLED))
@@ -862,7 +863,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private void setPosition(int fromBar)
     {
-        assert !state.equals(State.DISABLED);
+        assert !state.equals(State.DISABLED);   //NOI18N
 
         long tick = 0;       // Default when fromBar==0 and click precount is true
         if (mgContext != null)
@@ -889,7 +890,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private void updateTrackMuteState(InstrumentMix insMix, HashMap<RhythmVoice, Integer> mapRvTrack)
     {
-        assert !state.equals(State.DISABLED);
+        assert !state.equals(State.DISABLED);   //NOI18N
 
         boolean b = insMix.isMute();
         RhythmVoice rv = mgContext.getMidiMix().geRhythmVoice(insMix);
@@ -944,7 +945,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private void seqStart()
     {
-        assert !state.equals(State.DISABLED);
+        assert !state.equals(State.DISABLED);   //NOI18N
 
         sequencer.start();
 
@@ -955,7 +956,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
     private void setCurrentBeatPosition(int bar, float beat)
     {
-        assert !state.equals(State.DISABLED);
+        assert !state.equals(State.DISABLED);   //NOI18N
 
         Position oldPos = new Position(currentBeatPosition);
         currentBeatPosition.setBar(bar);
@@ -982,7 +983,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private void updateTempoFactor()
     {
-        assert !state.equals(State.DISABLED);
+        assert !state.equals(State.DISABLED);   //NOI18N
 
         // Recommended way instead of setTempoInBpm() which cause problems when playback is looped
         float f = songPartTempoFactor * songTempoFactor;
@@ -993,7 +994,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         if (JJazzMidiSystem.getInstance().getDefaultOutDevice() == null)
         {
-            throw new MusicGenerationException("No MIDI output device set. Please select a Midi device in the Midi panel of the Options/Preferences");
+            throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_NoMidiOutputDeviceSet"));
         }
     }
 
@@ -1042,7 +1043,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             if (context == null)
             {
-                throw new NullPointerException("context");
+                throw new NullPointerException("context");   //NOI18N
             }
             this.originalContext = context;
             dirty = true;
@@ -1076,7 +1077,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 if (sequence == null)
                 {
                     // If unexpected error, assertion error etc.
-                    throw new MusicGenerationException("Unexpected error while building sequence. Consult log for details.");
+                    throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_BuildSeqError"));
                 }
 
 

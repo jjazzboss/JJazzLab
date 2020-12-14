@@ -83,7 +83,7 @@ public class CopyBuffer
     {
         if (items == null || items.isEmpty())
         {
-            throw new IllegalArgumentException("items=" + items);
+            throw new IllegalArgumentException("items=" + items);   //NOI18N
         }
         isBarCopyMode = false;
         isEmpty = false;
@@ -101,7 +101,7 @@ public class CopyBuffer
     {
         if ((items == null) || (fromBarIndex < 0) || (toBarIndex < 0) || (fromBarIndex > toBarIndex))
         {
-            throw new IllegalArgumentException("items=" + items + " fromBarIndex=" + fromBarIndex + " toBarIndex="
+            throw new IllegalArgumentException("items=" + items + " fromBarIndex=" + fromBarIndex + " toBarIndex="   //NOI18N
                     + toBarIndex);
         }
 

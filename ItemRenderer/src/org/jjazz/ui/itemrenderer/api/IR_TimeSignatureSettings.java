@@ -38,7 +38,7 @@ public interface IR_TimeSignatureSettings
         IR_TimeSignatureSettings result = Lookup.getDefault().lookup(IR_TimeSignatureSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);
+            throw new NullPointerException("result=" + result);   //NOI18N
         }
         return result;
     }

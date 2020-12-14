@@ -102,7 +102,7 @@ public class ExportToMidiFile extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        assert song != null;
+        assert song != null;   //NOI18N
 
         if (song.getSongStructure().getSongParts().isEmpty())
         {
@@ -159,7 +159,7 @@ public class ExportToMidiFile extends AbstractAction
             midiMix = MidiMixManager.getInstance().findMix(song);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);   //NOI18N
             return;
         }
 
@@ -176,7 +176,7 @@ public class ExportToMidiFile extends AbstractAction
         if (allMuted)
         {
             String msg = "Can't export to Midi file: all channels are muted.";
-            LOGGER.warning(msg);
+            LOGGER.warning(msg);   //NOI18N
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return;
@@ -198,7 +198,7 @@ public class ExportToMidiFile extends AbstractAction
             mapRvTrackId = seqBuilder.getRvTrackIdMap();
         } catch (MusicGenerationException ex)
         {
-            LOGGER.warning("actionPerformed() ex=" + ex.getLocalizedMessage());
+            LOGGER.warning("actionPerformed() ex=" + ex.getLocalizedMessage());   //NOI18N
             if (ex.getLocalizedMessage() != null)
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -209,7 +209,7 @@ public class ExportToMidiFile extends AbstractAction
         {
             songCopy.close(false);
         }
-        assert sequence != null;
+        assert sequence != null;   //NOI18N
 
 
         // Check Midi export capabilities
@@ -226,7 +226,7 @@ public class ExportToMidiFile extends AbstractAction
         if (!fileTypeOK)
         {
             String msg = "Can't export to Midi file: MidiSystem does not support Midi file 1 format";
-            LOGGER.warning(msg);
+            LOGGER.warning(msg);   //NOI18N
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return;
@@ -265,20 +265,20 @@ public class ExportToMidiFile extends AbstractAction
         // Dump sequence in debug mode
         if (MusicController.getInstance().isDebugBuiltSequence())
         {
-            LOGGER.info("actionPerformed() song=" + song.getName() + " - sequence :");
-            LOGGER.info(MidiUtilities.toString(sequence));
+            LOGGER.info("actionPerformed() song=" + song.getName() + " - sequence :");   //NOI18N
+            LOGGER.info(MidiUtilities.toString(sequence));   //NOI18N
         }
 
 
         // Finally write to file
-        LOGGER.info("actionPerformed() writing sequence to Midi file: " + midiFile.getAbsolutePath());
+        LOGGER.info("actionPerformed() writing sequence to Midi file: " + midiFile.getAbsolutePath());   //NOI18N
         try
         {
             MidiSystem.write(sequence, 1, midiFile);
             StatusDisplayer.getDefault().setStatusText("Midi sequence written to " + midiFile.getAbsolutePath());
         } catch (IOException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);   //NOI18N
         }
     }
 
@@ -338,7 +338,7 @@ public class ExportToMidiFile extends AbstractAction
         Track[] tracks = sequence.getTracks();
         if (tracks.length == 0)
         {
-            LOGGER.warning("prepareForMidiFile() no track found in sequence ! mapRvTrackId=" + mapRvTrackId);
+            LOGGER.warning("prepareForMidiFile() no track found in sequence ! mapRvTrackId=" + mapRvTrackId);   //NOI18N
             return;
         }
 

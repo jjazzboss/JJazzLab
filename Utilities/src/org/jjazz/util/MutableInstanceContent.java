@@ -113,7 +113,7 @@ class MutableSimpleItem<T> extends Pair<T>
     {
         if (obj == null)
         {
-            throw new NullPointerException();
+            throw new NullPointerException();   //NOI18N
         }
         this.obj = obj;
     }

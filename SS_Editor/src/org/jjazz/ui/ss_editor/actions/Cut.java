@@ -31,7 +31,6 @@ import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ui.ss_editor.api.CopyBuffer;
-import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
@@ -40,15 +39,12 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.JJazzUndoManager;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
+import org.jjazz.util.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.cut")
 @ActionRegistration(displayName = "#CTL_Cut", lazy = false)
@@ -56,13 +52,12 @@ import org.openide.util.Exceptions;
         {
             @ActionReference(path = "Actions/SongPart", position = 1000, separatorBefore = 900),
         })
-@NbBundle.Messages("CTL_Cut=Cut")
 public class Cut extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = CTL_Cut();
+    private String undoText = ResUtil.getString(getClass(), "CTL_Cut");
 
     public Cut()
     {
@@ -99,7 +94,8 @@ public class Cut extends AbstractAction implements ContextAwareAction, SS_Contex
             sgs.removeSongParts(selection.getSelectedSongParts());
         } catch (UnsupportedEditException ex)
         {
-            String msg = "Impossible to cut song parts\n" + ex.getLocalizedMessage();
+            String msg = ResUtil.getString(getClass(), "ERR_CantCut");
+            msg += "\n" + ex.getLocalizedMessage();
             um.handleUnsupportedEditException(undoText, msg);
             return;
         }

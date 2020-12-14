@@ -37,10 +37,6 @@ import org.openide.util.Lookup;
         keywordsCategory = "Theme",
         position = 390
 )
-@org.openide.util.NbBundle.Messages(
-        {
-            "OptionsCategory_Name_Theme=Theme", "OptionsCategory_Keywords_Theme=theme font color"
-        })
 public final class ThemeOptionsPanelController extends OptionsPanelController
 {
 

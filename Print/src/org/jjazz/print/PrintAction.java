@@ -29,7 +29,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 
 @ActionID(category = "File", id = "org.jjazz.print.PrintAction")
 @ActionRegistration(displayName = "#CTL_PrintAction", lazy = true)
@@ -37,10 +36,6 @@ import org.openide.util.NbBundle.Messages;
         {
             @ActionReference(path = "Menu/File", position = 1600),
             @ActionReference(path = "Shortcuts", name = "D-P")
-        })
-@Messages(
-        {
-            "CTL_PrintAction=Print Song"
         })
 public final class PrintAction implements ActionListener
 {

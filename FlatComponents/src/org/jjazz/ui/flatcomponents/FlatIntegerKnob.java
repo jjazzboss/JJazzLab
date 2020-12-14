@@ -59,7 +59,7 @@ import org.openide.windows.WindowManager;
 public class FlatIntegerKnob extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener, PropertyChangeListener
 {
 
-    public static final String PROP_VALUE = "PropValue";
+    public static final String PROP_VALUE = "PropValue";   //NOI18N 
     /**
      * Client Property: line thickness
      */
@@ -139,7 +139,7 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
     @Override
     public void setEnabled(boolean b)
     {
-        LOGGER.fine("setEnabled() b=" + b);
+        LOGGER.fine("setEnabled() b=" + b);   //NOI18N
         if (isEnabled() && !b)
         {
             saveForeground = getForeground();
@@ -340,14 +340,14 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
             yText = yMax - 1;
             g2.drawString(label, (float) xText, (float) yText);
         }
-        LOGGER.finer("paintComponent() isEnabled()=" + isEnabled());
+        LOGGER.finer("paintComponent() isEnabled()=" + isEnabled());   //NOI18N
     }
 
     public void setValue(int v)
     {
         if (v < minValue || v > maxValue)
         {
-            throw new IllegalArgumentException("v=" + v);
+            throw new IllegalArgumentException("v=" + v);   //NOI18N
         }
         if (value != v)
         {
@@ -573,7 +573,7 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
         }
         if (r == -1)
         {
-            LOGGER.fine("parseString() text=" + text);
+            LOGGER.fine("parseString() text=" + text);   //NOI18N
         }
         return r;
     }

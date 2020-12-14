@@ -72,7 +72,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     {
         if (model == null || controller == null || settings == null)
         {
-            throw new IllegalArgumentException("model=" + model + " controller=" + controller + " settings=" + settings);
+            throw new IllegalArgumentException("model=" + model + " controller=" + controller + " settings=" + settings);   //NOI18N
         }
         this.model = model;
         this.controller = controller;
@@ -148,7 +148,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     {
         if (upperName == null)
         {
-            throw new NullPointerException("upperName");
+            throw new NullPointerException("upperName");   //NOI18N
         }
         upperName = Utilities.truncate(upperName, 9);       // Because bold
         lowerName = Utilities.truncate(lowerName, 10);

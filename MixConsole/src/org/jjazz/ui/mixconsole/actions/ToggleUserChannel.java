@@ -81,7 +81,7 @@ public class ToggleUserChannel extends AbstractAction implements Presenter.Menu
                     public void run()
                     {
                         Collection<? extends MidiMix> res = result.allInstances();
-                        assert res.size() < 2 : "res=" + res;
+                        assert res.size() < 2 : "res=" + res;   //NOI18N
                         setEnabled(!res.isEmpty());
                         if (res.isEmpty())
                         {
@@ -105,8 +105,8 @@ public class ToggleUserChannel extends AbstractAction implements Presenter.Menu
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.fine("actionPerformed() songMidiMix=" + songMidiMix);
-        assert checkbox != null;
+        LOGGER.fine("actionPerformed() songMidiMix=" + songMidiMix);   //NOI18N
+        assert checkbox != null;   //NOI18N
         if (!checkbox.isSelected())
         {
             songMidiMix.removeUserChannel();

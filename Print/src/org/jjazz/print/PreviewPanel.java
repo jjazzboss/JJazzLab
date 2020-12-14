@@ -30,6 +30,7 @@ import java.awt.print.Pageable;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import javax.swing.JPanel;
+import org.jjazz.util.ResUtil;
 
 /**
  * A panel to render the print preview.
@@ -107,10 +108,10 @@ public class PreviewPanel extends JPanel
             printable.print(g2d, pageFormat, pageIndex);
         } catch (IndexOutOfBoundsException e)
         {
-            g2d.drawString("Page index out of range", 10, 30);
+            g2d.drawString(ResUtil.getString(getClass(),"PAGE INDEX OUT OF RANGE"), 10, 30);
         } catch (PrinterException e)
         {
-            g2d.drawString("Printer error", 10, 30);
+            g2d.drawString(ResUtil.getString(getClass(),"PRINTER ERROR"), 10, 30);
         }
         g2d.dispose();
 

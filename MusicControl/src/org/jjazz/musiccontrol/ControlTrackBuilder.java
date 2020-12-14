@@ -61,7 +61,7 @@ public class ControlTrackBuilder
     {
         if (context == null)
         {
-            throw new IllegalArgumentException("context=" + context);
+            throw new IllegalArgumentException("context=" + context);   //NOI18N
         }
         this.context = context;
     }
@@ -79,7 +79,7 @@ public class ControlTrackBuilder
     {
         if (sequence == null)
         {
-            throw new IllegalArgumentException("sequence=" + sequence);
+            throw new IllegalArgumentException("sequence=" + sequence);   //NOI18N
         }
         Track track = sequence.createTrack();
 
@@ -137,7 +137,7 @@ public class ControlTrackBuilder
         float nbNaturalBeatsPerBar = spt.getRhythm().getTimeSignature().getNbNaturalBeats();
         float nbNaturalBeats = sptRange.size() * nbNaturalBeatsPerBar;
 
-        LOGGER.fine("fillControlTrack() -- tickOffset=" + tickOffset + " spt=" + spt + " sptRange=" + sptRange);
+        LOGGER.fine("fillControlTrack() -- tickOffset=" + tickOffset + " spt=" + spt + " sptRange=" + sptRange);   //NOI18N
 
         // Add CTRL_CHG_JJAZZ_BEAT_CHANGE events every beat change
         for (float beat = 0; beat < nbNaturalBeats; beat++)
@@ -158,7 +158,7 @@ public class ControlTrackBuilder
         {
             Position ssPos = context.getSong().getSongStructure().getSptItemPosition(spt, cli);
             long tick = context.getRelativeTick(ssPos); 
-            LOGGER.log(Level.FINE, "fillControlTrack() cli={0} tick={1} ssPos={2}", new Object[]
+            LOGGER.log(Level.FINE, "fillControlTrack() cli={0} tick={1} ssPos={2}", new Object[]   //NOI18N
             {
                 cli, tick, ssPos
             });

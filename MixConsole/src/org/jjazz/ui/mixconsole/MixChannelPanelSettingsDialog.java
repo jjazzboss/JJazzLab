@@ -89,7 +89,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
     {
         if (mm == null || !MidiConst.checkMidiChannel(channel))
         {
-            throw new IllegalArgumentException("mm=" + mm + " channel=" + channel + " title=" + title);
+            throw new IllegalArgumentException("mm=" + mm + " channel=" + channel + " title=" + title);   //NOI18N
         }
         midiMix = mm;
         insMix = mm.getInstrumentMixFromChannel(channel);
@@ -111,7 +111,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
         } else if (saveDrumsRerouting)
         {
             // Check consistency of the model
-            throw new IllegalStateException("Drums rerouting is ON though it should not. channel=" + channel + " rv=" + rv + " mm=" + mm);
+            throw new IllegalStateException("Drums rerouting is ON though it should not. channel=" + channel + " rv=" + rv + " mm=" + mm);   //NOI18N
         } else
         {
             // Drums rerouting not available for this channel
@@ -130,7 +130,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -141,7 +141,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 

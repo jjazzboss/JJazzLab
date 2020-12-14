@@ -47,7 +47,7 @@ public class SS_EditorToolBar extends JToolBar
     {
         if (editor == null)
         {
-            throw new NullPointerException("editor");
+            throw new NullPointerException("editor");   //NOI18N
         }
         this.editor = editor;
         

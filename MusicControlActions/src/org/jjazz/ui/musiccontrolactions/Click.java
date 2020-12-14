@@ -31,9 +31,9 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.musiccontrol.ClickManager;
-import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.FlatToggleButton;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
@@ -41,7 +41,6 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.util.actions.BooleanStateAction;
 
@@ -54,11 +53,6 @@ import org.openide.util.actions.BooleanStateAction;
         {
             // 
         })
-@NbBundle.Messages(
-        {
-            "CTL_Click=Click",
-            "CTL_ClickTooltip=Click during playback"
-        })
 public class Click extends BooleanStateAction implements PropertyChangeListener, LookupListener
 {
 
@@ -70,12 +64,12 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
     {
         setBooleanState(false);
 
-        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Click-OFF-24x24.png")));
-        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Click-ON-24x24.png")));
-//        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/ClickOff-20x20.png")));
-//        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/ClickOn-20x20.png")));
-        putValue(Action.SHORT_DESCRIPTION, Bundle.CTL_ClickTooltip());
-        putValue("hideActionText", true);
+        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Click-OFF-24x24.png")));     //NOI18N
+        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Click-ON-24x24.png")));   //NOI18N
+//        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/ClickOff-20x20.png")));   //NOI18N
+//        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/ClickOn-20x20.png")));   //NOI18N
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(),"CTL_ClickTooltip"));   //NOI18N
+        putValue("hideActionText", true);       //NOI18N
 
         // Listen to clickbackState and position changes
         ClickManager.getInstance().addPropertyChangeListener(this);
@@ -99,7 +93,7 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
         if (newSong != null)
         {
             // Current song has changed
@@ -120,7 +114,7 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        assert currentSong != null; // Otherwise button should be disabled
+        assert currentSong != null; // Otherwise button should be disabled   //NOI18N
         setSelected(!getBooleanState());
     }
 
@@ -138,7 +132,7 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
     @Override
     public String getName()
     {
-        return Bundle.CTL_Click();
+        return ResUtil.getString(getClass(),"CTL_Click");       //NOI18N
     }
 
     @Override

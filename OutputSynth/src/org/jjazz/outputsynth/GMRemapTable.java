@@ -39,7 +39,6 @@ import org.jjazz.midi.InstrumentBank;
 import org.jjazz.midi.MidiSynth;
 import org.jjazz.midi.keymap.KeyMapGM;
 import org.jjazz.midi.synths.Family;
-import org.jjazz.midiconverters.api.StdKeyMapConverter;
 
 /**
  * The table can associate an Instrument to each of the GM1 instruments + the special DRUMS/PERCUSSION static instances.
@@ -70,11 +69,11 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
     /**
      * oldValue=Family, newValue=Instrument
      */
-    public static final String PROP_FAMILY = "Family";
+    public static final String PROP_FAMILY = "Family";   //NOI18N 
     /**
      * oldValue=GM1Instrument or the special DRUMS/PERCUSSION static instances, newValue=Instrument
      */
-    public static final String PROP_INSTRUMENT = "Instrument";
+    public static final String PROP_INSTRUMENT = "Instrument";   //NOI18N 
     private HashMap<Instrument, Instrument> mapInstruments = new HashMap<>();
     private HashMap<Family, Instrument> mapFamilyInstruments = new HashMap<>();
     private transient OutputSynth container;
@@ -151,7 +150,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
     {
         if (remappedIns == null || remappedIns != DRUMS_INSTRUMENT && remappedIns != PERCUSSION_INSTRUMENT && !(remappedIns instanceof GM1Instrument))
         {
-            throw new IllegalArgumentException("remappedIns");
+            throw new IllegalArgumentException("remappedIns");   //NOI18N
         }
     }
 
@@ -205,7 +204,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
     {
         if (family == null)
         {
-            throw new NullPointerException("family");
+            throw new NullPointerException("family");   //NOI18N
         }
         return mapFamilyInstruments.get(family);
     }
@@ -342,7 +341,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
         {
             if (table == null)
             {
-                throw new IllegalStateException("table=" + table);
+                throw new IllegalStateException("table=" + table);   //NOI18N
             }
             // Can't copy the map because DRUMS/PERCUSSION_INSTRUMENT are not serializable
             HashMap<Instrument, Instrument> mapOrig = table.getInstrumentMap();
@@ -388,7 +387,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
                 Instrument destIns = Instrument.loadFromString(strIns);
                 if (destIns == null)
                 {
-                    LOGGER.warning("readResolve() Can't find instrument for saved string: " + strIns + ". Instrument mapping could not be set for GM instrument " + gmIns.getPatchName());
+                    LOGGER.warning("readResolve() Can't find instrument for saved string: " + strIns + ". Instrument mapping could not be set for GM instrument " + gmIns.getPatchName());   //NOI18N
                     continue;
                 }
                 table.setInstrumentNoException(gmIns, destIns, useAsFamilyDefault);
@@ -398,7 +397,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
                 Instrument ins = Instrument.loadFromString(spPercInstrumentStr);
                 if (ins == null)
                 {
-                    LOGGER.warning("readResolve() Can't find instrument for saved string: " + spPercInstrumentStr + ". Instrument mapping could not be set for the PERCUSSION instrument.");
+                    LOGGER.warning("readResolve() Can't find instrument for saved string: " + spPercInstrumentStr + ". Instrument mapping could not be set for the PERCUSSION instrument.");   //NOI18N
                 } else
                 {
                     table.setInstrumentNoException(PERCUSSION_INSTRUMENT, ins, false);
@@ -409,7 +408,7 @@ public class GMRemapTable implements Serializable, PropertyChangeListener
                 Instrument ins = Instrument.loadFromString(spDrumsInstrumentStr);
                 if (ins == null)
                 {
-                    LOGGER.warning("readResolve() Can't find instrument for saved string: " + spDrumsInstrumentStr + ". Instrument mapping could not be set for the DRUMS instrument.");
+                    LOGGER.warning("readResolve() Can't find instrument for saved string: " + spDrumsInstrumentStr + ". Instrument mapping could not be set for the DRUMS instrument.");   //NOI18N
                 } else
                 {
                     table.setInstrumentNoException(DRUMS_INSTRUMENT, ins, false);

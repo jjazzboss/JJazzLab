@@ -95,7 +95,7 @@ public class StdSynth extends MidiSynth
         {
             // GM 
             ins = getGM1Bank().getInstrument(pc);
-            assert ins != null;
+            assert ins != null;   //NOI18N
         } else if (bankMSB == 121 || bankMSB == 120)
         {
             // GM2 

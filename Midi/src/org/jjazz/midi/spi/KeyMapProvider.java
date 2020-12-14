@@ -47,7 +47,7 @@ public interface KeyMapProvider
         {
             if (name == null)
             {
-                throw new NullPointerException("name");
+                throw new NullPointerException("name");   //NOI18N
             }
             DrumKit.KeyMap res = null;
             for (KeyMapProvider kmp : getKeyMapProviders())

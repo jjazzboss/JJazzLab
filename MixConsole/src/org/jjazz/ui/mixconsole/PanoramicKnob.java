@@ -105,7 +105,7 @@ public class PanoramicKnob extends FlatIntegerKnob
         }
         if (value == -1)
         {
-            LOGGER.fine("parseString() text=" + text);
+            LOGGER.fine("parseString() text=" + text);   //NOI18N
         }
         return value;
     }

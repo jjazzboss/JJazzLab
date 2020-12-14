@@ -29,11 +29,11 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.SwingUtilities;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.FlatToggleButton;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
@@ -41,7 +41,6 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.util.actions.BooleanStateAction;
 import org.openide.util.actions.Presenter;
@@ -54,11 +53,6 @@ import org.openide.util.actions.Presenter;
 @ActionReferences(
         {
             // 
-        })
-@NbBundle.Messages(
-        {
-            "CTL_Stop=Stop",
-            "CTL_StopTooltip=Stop playback"
         })
 public class Stop extends BooleanStateAction implements PropertyChangeListener, LookupListener, Presenter.Toolbar
 {
@@ -73,7 +67,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
 
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButtonBorderOff-24x24.png")));
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButtonBorderOn-24x24.png")));
-        putValue(Action.SHORT_DESCRIPTION, Bundle.CTL_StopTooltip());
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_StopTooltip"));
         putValue("hideActionText", true);
 
         // Listen to stopbackState and position changes
@@ -105,7 +99,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
 
         MusicController mc = MusicController.getInstance();
         MusicController.State playBackState = mc.getState();
-        LOGGER.fine("setSelected() newState=" + newState + " playBackState=" + playBackState);
+        LOGGER.fine("setSelected() newState=" + newState + " playBackState=" + playBackState);   //NOI18N
         switch (playBackState)
         {
             case PAUSED:
@@ -130,7 +124,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
                 }
                 break;
             default:
-                throw new IllegalArgumentException("playBackState=" + playBackState + " newState=" + newState);
+                throw new IllegalArgumentException("playBackState=" + playBackState + " newState=" + newState);   //NOI18N
         }
     }
 
@@ -144,7 +138,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
         if (newSong != null)
         {
             // Current song has changed
@@ -165,7 +159,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
     @Override
     public String getName()
     {
-        return Bundle.CTL_Stop();
+        return ResUtil.getString(getClass(), "CTL_Stop");
     }
 
     @Override
@@ -240,7 +234,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
     private void playbackStateChanged()
     {
         MusicController mc = MusicController.getInstance();
-        LOGGER.fine("playbackStateChanged() actionState=" + getBooleanState() + " mc.getPlaybackState()=" + mc.getState());
+        LOGGER.fine("playbackStateChanged() actionState=" + getBooleanState() + " mc.getPlaybackState()=" + mc.getState());   //NOI18N
         setEnabled(!mc.getState().equals(MusicController.State.DISABLED));
         setBooleanState(mc.getState() == MusicController.State.STOPPED);
     }

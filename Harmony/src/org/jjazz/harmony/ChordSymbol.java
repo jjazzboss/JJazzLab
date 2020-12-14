@@ -90,7 +90,7 @@ public class ChordSymbol implements Cloneable
     {
         if ((rootDg == null) || (ct == null))
         {
-            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct);
+            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct);   //NOI18N
         }
         rootNote = rootDg;
         bassNote = (bassDg != null) ? bassDg : rootDg;
@@ -112,7 +112,7 @@ public class ChordSymbol implements Cloneable
         this(rootDg, bassDg, ct);
         if (originalName == null || originalName.isBlank())
         {
-            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct + " originalName=" + originalName);
+            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct + " originalName=" + originalName);   //NOI18N
         }
         this.originalName = originalName;
     }
@@ -127,7 +127,7 @@ public class ChordSymbol implements Cloneable
     {
         if (str == null || str.isBlank())
         {
-            throw new IllegalArgumentException("str=\"" + str + "\"");
+            throw new IllegalArgumentException("str=\"" + str + "\"");   //NOI18N
         }
         str = str.trim();
 
@@ -317,7 +317,7 @@ public class ChordSymbol implements Cloneable
     {
         if (cs == null)
         {
-            throw new NullPointerException("cs");
+            throw new NullPointerException("cs");   //NOI18N
         }
         // We can use "==" equality (and not equals) because ChordTypes are immutable objects
         // that only come from the ChordType.database
@@ -337,7 +337,7 @@ public class ChordSymbol implements Cloneable
     {
         if (relPitch < 0 || relPitch > 11 || destCs == null)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch + " destCs=" + destCs);
+            throw new IllegalArgumentException("relPitch=" + relPitch + " destCs=" + destCs);   //NOI18N
         }
         int srcRelPitchToRoot = Note.getNormalizedRelPitch(relPitch - getRootNote().getRelativePitch());
         int destRelPitch = Note.getNormalizedRelPitch(destCs.getRootNote().getRelativePitch() + srcRelPitchToRoot);
@@ -375,7 +375,7 @@ public class ChordSymbol implements Cloneable
     {
         if (d == null)
         {
-            throw new NullPointerException("d");
+            throw new NullPointerException("d");   //NOI18N
         }
         int relPitch = Note.getNormalizedRelPitch(rootNote.getRelativePitch() + d.getPitch());
         return relPitch;

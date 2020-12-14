@@ -47,7 +47,7 @@ public class LookAndFeelInstaller extends ModuleInstall
         var uis = GeneralUISettings.getInstance();
         GeneralUISettings.LookAndFeelId lafId = uis.getLafIdUponRestart();
 
-        LOGGER.info("validate() Installing Look & Feel: " + lafId.name());
+        LOGGER.info("validate() Installing Look & Feel: " + lafId.name());   //NOI18N
         
         switch (lafId)
         {

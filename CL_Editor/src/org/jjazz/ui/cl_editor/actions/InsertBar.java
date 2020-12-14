@@ -67,7 +67,7 @@ public class InsertBar extends AbstractAction implements ContextAwareAction, CL_
         this.context = context;
         cap = CL_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        LOGGER.log(Level.FINE, "InsertBar(context) context=" + context);
+        LOGGER.log(Level.FINE, "InsertBar(context) context=" + context);   //NOI18N
         putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("I"));
         selectionChange(cap.getSelection());
@@ -76,14 +76,14 @@ public class InsertBar extends AbstractAction implements ContextAwareAction, CL_
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
-        LOGGER.log(Level.FINE, "createContextAwareInstance()");
+        LOGGER.log(Level.FINE, "createContextAwareInstance()");   //NOI18N
         return new InsertBar(context);
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        assert insertModelBarIndex >= 0;
+        assert insertModelBarIndex >= 0;   //NOI18N
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
         InsertBarDialog dlg = InsertBarDialog.getInstance();
@@ -122,7 +122,7 @@ public class InsertBar extends AbstractAction implements ContextAwareAction, CL_
                 insertNbBars = selection.getSelectedBars().size();
             }
         }
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);
+        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   //NOI18N
         setEnabled(b);
     }
 

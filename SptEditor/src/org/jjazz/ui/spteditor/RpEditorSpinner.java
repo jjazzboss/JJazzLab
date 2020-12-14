@@ -71,7 +71,7 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
             sm = new SpinnerListModel(rpModel.getPossibleValues());
         } else
         {
-            throw new IllegalArgumentException("RhythmParameter type not supported for this editor. rp=" + rp);
+            throw new IllegalArgumentException("RhythmParameter type not supported for this editor. rp=" + rp);   //NOI18N
         }
         spinner_rpValue.setModel(sm);
         spinner_rpValue.setValue(sptModel.getRPValue(rpModel));
@@ -164,7 +164,7 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
         {
             if (!(val instanceof Integer) || !((RP_Integer) getRpModel()).isValidValue((Integer) val))
             {
-                throw new IllegalArgumentException(); // Will be catched by the JSpinner code to revert to previous value
+                throw new IllegalArgumentException(); // Will be catched by the JSpinner code to revert to previous value   //NOI18N
             }
             super.setValue(val);
         }

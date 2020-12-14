@@ -57,7 +57,7 @@ public class SourcePhrase extends Phrase
         super(channel);
         if (ecs == null)
         {
-            throw new IllegalArgumentException("channel=" + channel + " ecs=" + ecs);
+            throw new IllegalArgumentException("channel=" + channel + " ecs=" + ecs);   //NOI18N
         }
         chordSymbol = ecs;
     }
@@ -73,7 +73,7 @@ public class SourcePhrase extends Phrase
         super(p.getChannel());
         if (ecs == null)
         {
-            throw new IllegalArgumentException("p=" + p + " ecs=" + ecs);
+            throw new IllegalArgumentException("p=" + p + " ecs=" + ecs);   //NOI18N
         }
         chordSymbol = ecs;
         add(p);
@@ -103,7 +103,7 @@ public class SourcePhrase extends Phrase
     {
         if (propName == null)
         {
-            throw new IllegalArgumentException("propName=" + propName + " propValue=" + propValue);
+            throw new IllegalArgumentException("propName=" + propName + " propValue=" + propValue);   //NOI18N
         }
         if (clientProperties == null)
         {
@@ -128,7 +128,7 @@ public class SourcePhrase extends Phrase
     {
         if (propName == null)
         {
-            throw new IllegalArgumentException("propName=" + propName);
+            throw new IllegalArgumentException("propName=" + propName);   //NOI18N
         }
         return clientProperties.get(propName);
     }
@@ -288,7 +288,7 @@ public class SourcePhrase extends Phrase
     {
         if (ecsDest == null || chordMode.equals(ChordMode.OFF))
         {
-            throw new IllegalArgumentException("ecsDest=" + ecsDest + " chordMode=" + chordMode);
+            throw new IllegalArgumentException("ecsDest=" + ecsDest + " chordMode=" + chordMode);   //NOI18N
         }
 
         HashMap<Degree, Degree> mapResult = new HashMap<>();

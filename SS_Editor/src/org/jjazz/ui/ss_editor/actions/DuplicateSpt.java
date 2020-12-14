@@ -25,7 +25,6 @@ package org.jjazz.ui.ss_editor.actions;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,7 +35,6 @@ import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
@@ -45,13 +43,13 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.undomanager.JJazzUndoManager;
+import org.jjazz.util.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.duplicatespt")
 @ActionRegistration(displayName = "#CTL_DuplicateSpt", lazy = false)
@@ -59,13 +57,12 @@ import org.jjazz.undomanager.JJazzUndoManager;
         {
             @ActionReference(path = "Actions/SongPart", position = 320)
         })
-@NbBundle.Messages("CTL_DuplicateSpt=Duplicate...")
 public class DuplicateSpt extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = CTL_DuplicateSpt();
+    private String undoText = ResUtil.getString(getClass(), "CTL_DuplicateSpt");
     private static final Logger LOGGER = Logger.getLogger(DuplicateSpt.class.getSimpleName());
 
     public DuplicateSpt()
@@ -131,12 +128,13 @@ public class DuplicateSpt extends AbstractAction implements ContextAwareAction, 
                     } catch (UnsupportedEditException ex)
                     {
                         // We should not be here, we reuse existing rhythms
-                        String msg = "Impossible to duplicate song parts\n" + ex.getLocalizedMessage();
-                        um.handleUnsupportedEditException(undoText, msg);                 
+                        String msg = ResUtil.getString(getClass(), "ERR_CantDuplicate");
+                        msg += "\n" + ex.getLocalizedMessage();
+                        um.handleUnsupportedEditException(undoText, msg);
                         return;
                     }
                     um.endCEdit(undoText);
-                }              
+                }
             }
         };
 
@@ -151,7 +149,7 @@ public class DuplicateSpt extends AbstractAction implements ContextAwareAction, 
     public void selectionChange(SS_SelectionUtilities selection)
     {
         boolean b = selection.isOneSectionSptSelection();  // True whatever the selection SongParts or RhythmParameters
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);
+        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   //NOI18N
         setEnabled(b);
     }
 }

@@ -134,7 +134,7 @@ public class Utilities
     {
         if (action == null)
         {
-            throw new IllegalArgumentException("action=" + action + " context=" + context);
+            throw new IllegalArgumentException("action=" + action + " context=" + context);   //NOI18N
         }
 
         // switch to replacement action if there is some
@@ -143,7 +143,7 @@ public class Utilities
             Action contextAwareAction = ((ContextAwareAction) action).createContextAwareInstance(context);
             if (contextAwareAction == null)
             {
-                throw new IllegalArgumentException("ContextAwareAction.createContextAwareInstance(context) returns null.");
+                throw new IllegalArgumentException("ContextAwareAction.createContextAwareInstance(context) returns null.");   //NOI18N
             } else
             {
                 action = contextAwareAction;
@@ -156,7 +156,7 @@ public class Utilities
             item = ((Presenter.Popup) action).getPopupPresenter();
             if (item == null)
             {
-                throw new IllegalArgumentException("getPopupPresenter() returning null for action=" + action);
+                throw new IllegalArgumentException("getPopupPresenter() returning null for action=" + action);   //NOI18N
             }
         } else
         {
@@ -264,7 +264,7 @@ public class Utilities
     {
         if (menuBar == null)
         {
-            throw new NullPointerException("menuBar=" + menuBar + " fontSizeOffset=" + fontSizeOffset);
+            throw new NullPointerException("menuBar=" + menuBar + " fontSizeOffset=" + fontSizeOffset);   //NOI18N
         }
         for (int i = 0; i < menuBar.getMenuCount(); i++)
         {
@@ -308,7 +308,7 @@ public class Utilities
     {
         if (c == null)
         {
-            throw new NullPointerException("c=" + c + " fontSizeOffset=" + fontSizeOffset);
+            throw new NullPointerException("c=" + c + " fontSizeOffset=" + fontSizeOffset);   //NOI18N
         }
         Font f = c.getFont();
         if (f != null)

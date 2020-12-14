@@ -37,10 +37,6 @@ import org.openide.util.Lookup;
         keywordsCategory = "chordsymbols",
         position = 380
 )
-@org.openide.util.NbBundle.Messages(
-        {
-            "OptionsCategory_Name_chordsymbols=Chord Symbols", "OptionsCategory_Keywords_chordsymbols=chord symbols"
-        })
 public final class ChordSymbolsOptionsPanelController extends OptionsPanelController
 {
 

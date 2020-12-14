@@ -91,7 +91,7 @@ public class Instrument implements Serializable
     {
         if (patchName == null || patchName.trim().isEmpty() || ma == null || (kit != null && substitute != null))
         {
-            throw new IllegalArgumentException("patchName=" + patchName + " bank=" + bank + " ma=" + ma + " kit=" + kit + " substitute=" + substitute);
+            throw new IllegalArgumentException("patchName=" + patchName + " bank=" + bank + " ma=" + ma + " kit=" + kit + " substitute=" + substitute);   //NOI18N
         }
         this.patchName = patchName;
         this.bank = bank;
@@ -123,11 +123,11 @@ public class Instrument implements Serializable
     {
         if (this.bank != null)
         {
-            throw new IllegalStateException("Instrument=" + this.toLongString() + " - can't set bank to " + bank.getName() + ", bank is already set to " + this.bank.getName());
+            throw new IllegalStateException("Instrument=" + this.toLongString() + " - can't set bank to " + bank.getName() + ", bank is already set to " + this.bank.getName());   //NOI18N
         }
         if (bank == null)
         {
-            throw new IllegalArgumentException("bank=" + bank);
+            throw new IllegalArgumentException("bank=" + bank);   //NOI18N
         }
         this.bank = bank;
         if (!address.isFullyDefined())
@@ -284,9 +284,9 @@ public class Instrument implements Serializable
     {
         if (getBank() == null || getBank().getMidiSynth() == null)
         {
-            throw new IllegalStateException("getBank()=" + getBank());
+            throw new IllegalStateException("getBank()=" + getBank());   //NOI18N
         }
-        LOGGER.log(Level.FINE, "saveAsString() this={0} bank={1} midiSynth={2}", new Object[]
+        LOGGER.log(Level.FINE, "saveAsString() this={0} bank={1} midiSynth={2}", new Object[]   //NOI18N
         {
             this, getBank().getName(), getBank().getMidiSynth().getName()
         });
@@ -307,7 +307,7 @@ public class Instrument implements Serializable
     {
         if (s == null)
         {
-            throw new NullPointerException("s");
+            throw new NullPointerException("s");   //NOI18N
         }
         String[] strs = s.split("#_#");
         if (strs.length != 3)
@@ -315,7 +315,7 @@ public class Instrument implements Serializable
             strs = s.split(",");        // Kept for backwards compatibility with 1.x 
             if (strs.length != 3)
             {
-                LOGGER.warning("loadFromString() Invalid string format : " + s);
+                LOGGER.warning("loadFromString() Invalid string format : " + s);   //NOI18N
                 return null;
             }
         }
@@ -367,7 +367,7 @@ public class Instrument implements Serializable
         {
             if (ins.getBank() == null || ins.getBank().getMidiSynth() == null)
             {
-                throw new IllegalStateException("ins=" + ins + " ins.getBank()=" + ins.getBank());
+                throw new IllegalStateException("ins=" + ins + " ins.getBank()=" + ins.getBank());   //NOI18N
             }
             spSaveString = ins.saveAsString();
             spPatchname = ins.getPatchName();       // Robustness, if spSaveString not usable
@@ -384,7 +384,7 @@ public class Instrument implements Serializable
                 {
                     ins = gm1Bank.getInstrument(0);
                 }
-                LOGGER.log(Level.WARNING, "readResolve() Can not retrieve Instrument from string={0}, using instead GM1 Instrument={1}", new Object[]
+                LOGGER.log(Level.WARNING, "readResolve() Can not retrieve Instrument from string={0}, using instead GM1 Instrument={1}", new Object[]   //NOI18N
                 {
                     spSaveString, ins.getPatchName()
                 });

@@ -40,7 +40,7 @@ public class CrossShape extends Polygon
     {
         if (branchBigSide < 1 || branchSmallSide < 1)
         {
-            throw new IllegalArgumentException("branchBigSide=" + branchBigSide + " branchSmallSide=" + branchSmallSide);
+            throw new IllegalArgumentException("branchBigSide=" + branchBigSide + " branchSmallSide=" + branchSmallSide);   //NOI18N
         }
         int v1 = branchBigSide;
         int v2 = branchBigSide + branchSmallSide;

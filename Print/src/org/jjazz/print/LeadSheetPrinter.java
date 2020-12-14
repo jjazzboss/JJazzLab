@@ -215,7 +215,7 @@ public class LeadSheetPrinter implements Printable, Pageable
     public int print(Graphics g, PageFormat pageFormat, int pageIndex) throws PrinterException
     {
 
-        LOGGER.fine("print() -- pageIndex=" + pageIndex);
+        LOGGER.fine("print() -- pageIndex=" + pageIndex);   //NOI18N
 
 
         Graphics2D g2d = (Graphics2D) g.create();
@@ -226,7 +226,7 @@ public class LeadSheetPrinter implements Printable, Pageable
 
         // Y offset corresponding to pageIndex
         double yOffset = pageIndex * scaledEditorPageHeight;
-        LOGGER.fine("print() yOffset=" + yOffset);
+        LOGGER.fine("print() yOffset=" + yOffset);   //NOI18N
 
 
         // Set position on upper left corner of Imageable area
@@ -330,7 +330,7 @@ public class LeadSheetPrinter implements Printable, Pageable
         scaledEditorLastPageHeight = scaledEditorHeight - (nbPages - 1) * scaledEditorPageHeight;
 
 
-        LOGGER.fine("computeEditorDimensions() scaledEditorBarHeight=" + scaledEditorBarHeight
+        LOGGER.fine("computeEditorDimensions() scaledEditorBarHeight=" + scaledEditorBarHeight   //NOI18N
                 + " scaledEditorHeight=" + scaledEditorHeight
                 + " scaledEditorPageHeight=" + scaledEditorPageHeight
                 + " centralZoneHeight=" + centralZoneHeight

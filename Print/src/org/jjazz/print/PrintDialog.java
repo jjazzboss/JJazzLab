@@ -99,7 +99,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
     {
         if (sg == null)
         {
-            throw new IllegalArgumentException("sg=" + sg);
+            throw new IllegalArgumentException("sg=" + sg);   //NOI18N
         }
 
         this.refSong = sg;
@@ -215,7 +215,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -226,7 +226,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 
@@ -237,13 +237,13 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_UP"), "PreviousPreviewPageAction");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_UP"), "PreviousPreviewPageAction");   //NOI18N
         contentPane.getActionMap().put("PreviousPreviewPageAction", new PreviousPreviewPageAction());
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_DOWN"), "NextPreviewPageAction");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PAGE_DOWN"), "NextPreviewPageAction");   //NOI18N
         contentPane.getActionMap().put("NextPreviewPageAction", new NextPreviewPageAction());
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), "FirstPageAction");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), "FirstPageAction");   //NOI18N
         contentPane.getActionMap().put("FirstPageAction", new AbstractAction()
         {
             @Override
@@ -253,7 +253,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             }
 
         });
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "LastPageAction");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "LastPageAction");   //NOI18N
         contentPane.getActionMap().put("LastPageAction", new AbstractAction()
         {
             @Override
@@ -264,8 +264,8 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PLUS"), "BarHeightPlus");
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ADD"), "BarHeightPlus");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("PLUS"), "BarHeightPlus");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ADD"), "BarHeightPlus");   //NOI18N
         contentPane.getActionMap().put("BarHeightPlus", new AbstractAction()
         {
             @Override
@@ -276,8 +276,8 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("MINUS"), "BarHeightMinus");
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("SUBTRACT"), "BarHeightMinus");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("MINUS"), "BarHeightMinus");   //NOI18N
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("SUBTRACT"), "BarHeightMinus");   //NOI18N
         contentPane.getActionMap().put("BarHeightMinus", new AbstractAction()
         {
             @Override
@@ -639,19 +639,17 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
         btn_previousPage.setFont(btn_previousPage.getFont().deriveFont(btn_previousPage.getFont().getSize()-1f));
         btn_previousPage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/print/resources/LeftArrow14.png"))); // NOI18N
         btn_previousPage.setToolTipText(org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.btn_previousPage.toolTipText")); // NOI18N
-        btn_previousPage.setLabel(org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.btn_previousPage.label")); // NOI18N
         btn_previousPage.setMargin(new java.awt.Insets(2, 2, 2, 2));
         jPanel1.add(btn_previousPage);
 
         lbl_pageNb.setFont(lbl_pageNb.getFont());
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_pageNb, org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.lbl_pageNb.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_pageNb, "jLabel2"); // NOI18N
         jPanel1.add(lbl_pageNb);
 
         btn_nextPage.setAction(new NextPreviewPageAction());
         btn_nextPage.setFont(btn_nextPage.getFont().deriveFont(btn_nextPage.getFont().getSize()-1f));
         btn_nextPage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/print/resources/RightArrow14.png"))); // NOI18N
         btn_nextPage.setToolTipText(org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.btn_nextPage.toolTipText")); // NOI18N
-        btn_nextPage.setLabel(org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.btn_nextPage.label")); // NOI18N
         btn_nextPage.setMargin(new java.awt.Insets(2, 2, 2, 2));
         jPanel1.add(btn_nextPage);
 

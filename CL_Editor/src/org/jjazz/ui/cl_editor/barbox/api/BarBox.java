@@ -109,7 +109,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
 
         if (bbIndex < 0 || model == null || config == null)
         {
-            throw new IllegalArgumentException("barIndex=" + bbIndex + " model=" + model + " config="
+            throw new IllegalArgumentException("barIndex=" + bbIndex + " model=" + model + " config="   //NOI18N
                     + config);
         }
 
@@ -150,7 +150,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         if (model == null || modelBarIndex >= model.getSize())
         {
-            throw new IllegalArgumentException("model=" + model);
+            throw new IllegalArgumentException("model=" + model);   //NOI18N
         }
         this.modelBarIndex = modelBarIndex;
         this.model = model;
@@ -173,7 +173,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         if (item == null)
         {
-            throw new IllegalArgumentException("item=" + item);
+            throw new IllegalArgumentException("item=" + item);   //NOI18N
         }
         ArrayList<ItemRenderer> result = new ArrayList<>();
         for (BarRenderer br : getBarRenderers())
@@ -195,7 +195,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         if (item == null)
         {
-            throw new IllegalArgumentException("item=" + item);
+            throw new IllegalArgumentException("item=" + item);   //NOI18N
         }
         ArrayList<ItemRenderer> result = new ArrayList<>();
         for (BarRenderer br : getBarRenderers())
@@ -246,7 +246,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         if (item == null)
         {
-            throw new IllegalArgumentException("item=" + item);
+            throw new IllegalArgumentException("item=" + item);   //NOI18N
         }
         for (BarRenderer br : getBarRenderers())
         {
@@ -382,7 +382,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         if (bar >= model.getSize())
         {
-            throw new IllegalArgumentException("bar=" + bar);
+            throw new IllegalArgumentException("bar=" + bar);   //NOI18N
         }
 
         if (bar == modelBarIndex)
@@ -471,7 +471,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         if (cfg == null || cfg.getActiveBarRenderers().isEmpty())
         {
-            throw new IllegalArgumentException("cfg=" + cfg);
+            throw new IllegalArgumentException("cfg=" + cfg);   //NOI18N
         }
 
         if (cfg.equals(barBoxConfig))
@@ -530,7 +530,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         if (b && pos.getBar() != getBarIndex())
         {
-            throw new IllegalArgumentException("b=" + b + " pos=" + pos);
+            throw new IllegalArgumentException("b=" + b + " pos=" + pos);   //NOI18N
         }
         isPlaybackOn = b;
         refreshBackground();

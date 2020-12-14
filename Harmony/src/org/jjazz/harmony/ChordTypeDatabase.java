@@ -181,7 +181,7 @@ public class ChordTypeDatabase
     {
         if (ctStr == null)
         {
-            throw new IllegalArgumentException("ctStr=" + ctStr);
+            throw new IllegalArgumentException("ctStr=" + ctStr);   //NOI18N
         }
         if (ctStr.isBlank())
         {
@@ -227,7 +227,7 @@ public class ChordTypeDatabase
     {
         if (!chordTypes.contains(ct))
         {
-            throw new IllegalArgumentException("ct=" + ct + " alias=" + alias);
+            throw new IllegalArgumentException("ct=" + ct + " alias=" + alias);   //NOI18N
         }
         ChordType oldCt = mapAliasCt.get(alias);
         if (oldCt == ct)
@@ -266,7 +266,7 @@ public class ChordTypeDatabase
             buildAliasMap();
         } catch (BackingStoreException ex)
         {
-            LOGGER.warning("resetAliasesToDefault() problem resetting aliases : " + ex.getLocalizedMessage());
+            LOGGER.warning("resetAliasesToDefault() problem resetting aliases : " + ex.getLocalizedMessage());   //NOI18N
         }
     }
 
@@ -325,7 +325,7 @@ public class ChordTypeDatabase
     {
         if ((i < 0) || (i >= chordTypes.size()))
         {
-            throw new IllegalArgumentException("i=" + i);
+            throw new IllegalArgumentException("i=" + i);   //NOI18N
         }
 
         return chordTypes.get(i);
@@ -343,7 +343,7 @@ public class ChordTypeDatabase
     {
         if (s == null)
         {
-            throw new IllegalArgumentException("s=" + s);
+            throw new IllegalArgumentException("s=" + s);   //NOI18N
         }
         return mapAliasCt.get(s);
     }
@@ -358,7 +358,7 @@ public class ChordTypeDatabase
     {
         if (degrees == null || degrees.isEmpty())
         {
-            throw new IllegalArgumentException("degrees=" + degrees);
+            throw new IllegalArgumentException("degrees=" + degrees);   //NOI18N
         }
         for (ChordType ct : chordTypes)
         {
@@ -381,7 +381,7 @@ public class ChordTypeDatabase
     {
         if (ct == null)
         {
-            throw new IllegalArgumentException("ct=" + ct);
+            throw new IllegalArgumentException("ct=" + ct);   //NOI18N
         }
         return chordTypes.indexOf(ct);
     }
@@ -412,7 +412,7 @@ public class ChordTypeDatabase
         int index = chordTypes.indexOf(ct);
         if (index != -1)
         {
-            throw new IllegalStateException("ChordType already exists ! ct=" + ct + " a=" + aliases + " existing_ct=" + chordTypes.get(index));
+            throw new IllegalStateException("ChordType already exists ! ct=" + ct + " a=" + aliases + " existing_ct=" + chordTypes.get(index));   //NOI18N
         }
 
         // Save in the database
@@ -452,7 +452,7 @@ public class ChordTypeDatabase
         }
         if (!b)
         {
-            throw new IllegalStateException("buildAliasMap() error(s) building the alias map, see log messages.");
+            throw new IllegalStateException("buildAliasMap() error(s) building the alias map, see log messages.");   //NOI18N
         }
     }
 

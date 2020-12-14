@@ -160,7 +160,7 @@ public class Chord implements Cloneable
 
         if (relPitches.size() != getRelativePitchChord().size())
         {
-            throw new IllegalArgumentException("this=" + this + " relPitches=" + relPitches);
+            throw new IllegalArgumentException("this=" + this + " relPitches=" + relPitches);   //NOI18N
         } else if (size() == 0)
         {
             return result;
@@ -211,7 +211,7 @@ public class Chord implements Cloneable
     {
         if ((index < 0) || (index > notes.size()))
         {
-            throw new IllegalArgumentException("index=" + index + " notes=" + notes);
+            throw new IllegalArgumentException("index=" + index + " notes=" + notes);   //NOI18N
         }
 
         return notes.get(index);
@@ -227,7 +227,7 @@ public class Chord implements Cloneable
     {
         if ((index < 0) || (index > notes.size()))
         {
-            throw new IllegalArgumentException("i=" + index);
+            throw new IllegalArgumentException("i=" + index);   //NOI18N
         }
         Note rn = notes.remove(index);
         return rn;
@@ -245,7 +245,7 @@ public class Chord implements Cloneable
     {
         if (!Note.checkPitch(p))
         {
-            throw new IllegalArgumentException("pitch=" + p);
+            throw new IllegalArgumentException("pitch=" + p);   //NOI18N
         }
 
         for (int i = 0; i < notes.size(); i++)
@@ -276,7 +276,7 @@ public class Chord implements Cloneable
     {
         if ((p < 0) || (p > 11))
         {
-            throw new IllegalArgumentException("p=" + p);
+            throw new IllegalArgumentException("p=" + p);   //NOI18N
         }
 
         for (int i = 0; i < notes.size(); i++)
@@ -369,7 +369,7 @@ public class Chord implements Cloneable
     {
         if (c == null || c.size() != size())
         {
-            throw new IllegalArgumentException("c=" + c + " this=" + this);
+            throw new IllegalArgumentException("c=" + c + " this=" + this);   //NOI18N
         }
         int dist = 0;
         for (int i = 0; i < size(); i++)

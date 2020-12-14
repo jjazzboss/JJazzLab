@@ -82,7 +82,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
     {
         if (INSTANCE == null)
         {
-            throw new NullPointerException("INSTANCE");
+            throw new NullPointerException("INSTANCE");   //NOI18N
         }
         return INSTANCE;
     }
@@ -126,7 +126,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
     @Override
     protected void process(Env env, Map<Option, String[]> values) throws CommandException
     {
-        LOGGER.fine("process() --  env=" + env + " values=" + values);
+        LOGGER.fine("process() --  env=" + env + " values=" + values);   //NOI18N
 
 
         cmdLineFilesToOpen.clear();
@@ -137,7 +137,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
             var fileNames = values.get(openOption);
             for (String fileName : fileNames)
             {
-                LOGGER.info("process() Opening command line file: " + fileName + ", current dir: " + env.getCurrentDirectory().getAbsolutePath());
+                LOGGER.info("process() Opening command line file: " + fileName + ", current dir: " + env.getCurrentDirectory().getAbsolutePath());   //NOI18N
 
                 // Normally fileName contains the absolute path, but just in case...
                 File file = new File(fileName);
@@ -149,7 +149,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
 
                 if (!file.exists())
                 {
-                    LOGGER.warning("process() Can't find " + file.getAbsolutePath());
+                    LOGGER.warning("process() Can't find " + file.getAbsolutePath());   //NOI18N
                     continue;
 
                 } else
@@ -163,7 +163,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                             SongEditorManager.getInstance().showSong(file, last, true);
                         } catch (SongCreationException ex)
                         {
-                            LOGGER.warning("process() Problem opening song file: " + file.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());
+                            LOGGER.warning("process() Problem opening song file: " + file.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());   //NOI18N
                         }
 
                     } else
@@ -255,7 +255,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
         @Override
         public boolean run()
         {
-            LOGGER.fine("OpenFilesAtStartupTask.run() --");
+            LOGGER.fine("OpenFilesAtStartupTask.run() --");   //NOI18N
 
             // If command line arguments specified, just open them and ignore recent open files
             var instance = StartupShutdownSongManager.getInstance();
@@ -271,7 +271,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                         sem.showSong(f, last, true);
                     } catch (SongCreationException ex)
                     {
-                        LOGGER.warning("OpenFilesAtStartupTask.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());
+                        LOGGER.warning("OpenFilesAtStartupTask.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());   //NOI18N
                     }
                 }
 
@@ -314,7 +314,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                             SongEditorManager.getInstance().showSong(f, last, true);
                         } catch (SongCreationException ex)
                         {
-                            LOGGER.warning("openRecentFilesUponStartup.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());
+                            LOGGER.warning("openRecentFilesUponStartup.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());   //NOI18N
                         }
                     }
                 };

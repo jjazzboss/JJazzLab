@@ -25,6 +25,7 @@ package org.jjazz.rhythm.parameters;
 import org.jjazz.rhythm.api.Rhythm;
 import org.openide.util.NbBundle;
 import static org.jjazz.rhythm.parameters.Bundle.*;
+import org.jjazz.util.ResUtil;
 
 /**
  * Standard RhythmParameter: a marker for song parts, used to conditionnaly enable the optional alternate chord symbols.
@@ -34,8 +35,7 @@ import static org.jjazz.rhythm.parameters.Bundle.*;
  */
 @NbBundle.Messages(
         {
-            "CTL_SysMarker=Marker",
-            "CTL_SysMarkerDesc=Marker for a song part",
+
         })
 public class RP_SYS_Marker extends RP_State
 {
@@ -60,7 +60,7 @@ public class RP_SYS_Marker extends RP_State
 
     private RP_SYS_Marker()
     {
-        super(ID, CTL_SysMarker(), CTL_SysMarkerDesc(), THEME, THEME, SOLO, THEME + "2", THEME + "3", THEME + "4", SOLO + "2", SOLO + "3", SOLO + "4");
+        super(ID, ResUtil.getString(RP_SYS_Marker.class, "CTL_SysMarker"), ResUtil.getString(RP_SYS_Marker.class, "CTL_SysMarkerDesc"), THEME, THEME, SOLO, THEME + "2", THEME + "3", THEME + "4", SOLO + "2", SOLO + "3", SOLO + "4");
     }
 
     /**
@@ -73,7 +73,7 @@ public class RP_SYS_Marker extends RP_State
     {
         if (r == null)
         {
-            throw new NullPointerException("r");
+            throw new NullPointerException("r");   //NOI18N
         }
         return r.getRhythmParameters().contains(INSTANCE) ? INSTANCE : null;
     }

@@ -82,7 +82,7 @@ public class FavoriteRhythms
     {
         if (ri == null)
         {
-            throw new NullPointerException("r=" + ri);
+            throw new NullPointerException("r=" + ri);   //NOI18N
         }
         if (!rhythms.contains(ri))
         {
@@ -104,7 +104,7 @@ public class FavoriteRhythms
     {
         if (ri == null)
         {
-            throw new NullPointerException("ri");
+            throw new NullPointerException("ri");   //NOI18N
         }
         if (rhythms.remove(ri))
         {
@@ -140,7 +140,7 @@ public class FavoriteRhythms
     {
         if (rp == null)
         {
-            throw new NullPointerException("rp");
+            throw new NullPointerException("rp");   //NOI18N
         }
         RhythmDatabase rdb = RhythmDatabase.getDefault();
         ArrayList<RhythmInfo> res = new ArrayList<>();
@@ -164,7 +164,7 @@ public class FavoriteRhythms
     {
         if (ts == null)
         {
-            throw new NullPointerException("ts");
+            throw new NullPointerException("ts");   //NOI18N
         }
         ArrayList<RhythmInfo> res = new ArrayList<>();
         for (RhythmInfo r : rhythms)
@@ -227,7 +227,7 @@ public class FavoriteRhythms
                 rhythms.add(ri);
             } else
             {
-                LOGGER.warning("Could not restore favorite rhythm using saved property rhythmId=" + rId);
+                LOGGER.warning("Could not restore favorite rhythm using saved property rhythmId=" + rId);   //NOI18N
                 prefs.remove(PROP_FAVORITE_RHYTHM + i);
             }
         }

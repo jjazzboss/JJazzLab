@@ -41,7 +41,6 @@ import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
 import org.jjazz.undomanager.JJazzUndoManager;
@@ -52,15 +51,14 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.editrhythm")
 @ActionRegistration(displayName = "#CTL_EditRhythm", lazy = false)
@@ -68,18 +66,13 @@ import org.openide.util.Exceptions;
         {
             @ActionReference(path = "Actions/SongPart", position = 80)
         })
-@NbBundle.Messages(
-        {
-            "CTL_EditRhythm=Change rhythm...",
-            "ERR_EditRhythm=Impossible to set rhythm"
-        })
 public class EditRhythm extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     static private boolean dialogShown = false;
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = CTL_EditRhythm();
+    private String undoText = ResUtil.getString(getClass(), "CTL_EditRhythm");
     private static final Logger LOGGER = Logger.getLogger(EditRhythm.class.getSimpleName());
 
     public EditRhythm()
@@ -118,7 +111,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
      */
     static public void changeRhythm(final List<SongPart> selectedSpts)
     {
-        LOGGER.fine("changeRhythm() -- selectedSpts=" + selectedSpts);
+        LOGGER.fine("changeRhythm() -- selectedSpts=" + selectedSpts);   //NOI18N
 
 
         List<SongPart> selSpts = new ArrayList<>(selectedSpts);               // Copy to avoid concurrent modifications
@@ -137,7 +130,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             previewer = new EditRhythmPreviewer(song, selSpt0);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.warning("changeRhythm() Can't create RhythmPreviewer ex=" + ex.getLocalizedMessage() + ". RhythmPreviewer disabled.");
+            LOGGER.warning("changeRhythm() Can't create RhythmPreviewer ex=" + ex.getLocalizedMessage() + ". RhythmPreviewer disabled.");   //NOI18N
             previewer = null;
         }
         var rdb = RhythmDatabase.getDefault();
@@ -166,14 +159,14 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
 
         // Get the new rhythm
         RhythmInfo newRhythmInfo = dlg.getSelectedRhythm();
-        LOGGER.fine("changeRhythm() selected newRhythm=" + newRhythmInfo);
+        LOGGER.fine("changeRhythm() selected newRhythm=" + newRhythmInfo);   //NOI18N
         Rhythm newRhythm;
         try
         {
             newRhythm = rdb.getRhythmInstance(newRhythmInfo);
         } catch (UnavailableRhythmException ex)
         {
-            LOGGER.warning("changeRhythm() can't get Rhythm instance from RhythmInfo=" + newRhythmInfo);
+            LOGGER.warning("changeRhythm() can't get Rhythm instance from RhythmInfo=" + newRhythmInfo);   //NOI18N
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -182,7 +175,8 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
 
         // Start the edit : update the tempo (optional) and each songpart's rhythm
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
-        um.startCEdit(CTL_EditRhythm());
+        String editName = ResUtil.getString(EditRhythm.class, "CTL_EditRhythm");
+        um.startCEdit(editName);
 
 
         // Change tempo if required
@@ -238,13 +232,13 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             sgs.replaceSongParts(oldSpts, newSpts);
         } catch (UnsupportedEditException ex)
         {
-            String msg = ERR_EditRhythm() + ": " + newRhythm.getName() + ".\n" + ex.getLocalizedMessage();
-            um.handleUnsupportedEditException(CTL_EditRhythm(), msg);
+            String msg = ResUtil.getString(EditRhythm.class, "ERR_EditRhythm") + ": " + newRhythm.getName() + ".\n" + ex.getLocalizedMessage();
+            um.handleUnsupportedEditException(editName, msg);
             return;
         }
 
 
-        um.endCEdit(CTL_EditRhythm());
+        um.endCEdit(editName);
 
 
         dlg.cleanup();
@@ -255,7 +249,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
     {
         boolean b;
         b = !selection.isEmpty();
-        LOGGER.log(Level.FINE, "selectionChange() b=" + b);
+        LOGGER.log(Level.FINE, "selectionChange() b=" + b);   //NOI18N
         setEnabled(b);
     }
 

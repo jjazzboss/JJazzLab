@@ -30,18 +30,13 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.*;
 import org.openide.util.actions.Presenter;
 
 @ActionID(category = "JJazz", id = "org.jjazz.outputsynth.ui.outputsynthtoolbaraction")
-@ActionRegistration(displayName = "#CTL_OutputSynthToolBar", lazy = false)   // Need to be false because we implement Presenter.Toolbar
+@ActionRegistration(displayName = "not_used", lazy = false)   // Need to be false because we implement Presenter.Toolbar
 @ActionReferences(
         {
             @ActionReference(path = "Toolbars/OutputSynth", position = 450)     // This will insert our toolbar
-        })
-@NbBundle.Messages(
-        {
-            "CTL_OutputSynthToolBar=Output Synth Toolbar"
         })
 public class OutputSynthlToolbarAction extends AbstractAction implements Presenter.Toolbar
 {

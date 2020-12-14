@@ -34,6 +34,7 @@ import org.jjazz.midi.MidiConst;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.NoteEvent;
 import org.jjazz.rhythmmusicgeneration.Phrase;
+import org.jjazz.util.ResUtil;
 
 /**
  * Play test notes.
@@ -100,14 +101,14 @@ public class TestPlayer
     {
         if (p == null)
         {
-            throw new NullPointerException("p=" + p + " endAction=" + endAction);
+            throw new NullPointerException("p=" + p + " endAction=" + endAction);   //NOI18N
         }
 
         final MusicController mc = MusicController.getInstance();
         Sequencer sequencer = mc.acquireSequencer(this);
         if (sequencer == null)
         {
-            throw new MusicGenerationException("Can't access sequencer");
+            throw new MusicGenerationException(ResUtil.getString(getClass(), "Err_CantAccessSequencer"));
         }
 
 
@@ -145,7 +146,7 @@ public class TestPlayer
                         if (endAction != null)
                         {
                             endAction.run();
-                        }                        
+                        }
                     }
                 }
             };
@@ -169,12 +170,11 @@ public class TestPlayer
     // ===============================================================================================
     // Private methods
     // ===============================================================================================
-
     private void checkMidi() throws MusicGenerationException
     {
         if (JJazzMidiSystem.getInstance().getDefaultOutDevice() == null)
         {
-            throw new MusicGenerationException("No MIDI Out device set. Go to menu Tools/Options/Midi and select a Midi device.");
+            throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_NoMidiOutputDeviceSet"));
         }
     }
 

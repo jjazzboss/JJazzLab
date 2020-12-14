@@ -70,7 +70,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     {
         if (sectionName == null || sectionName.trim().isEmpty() || ts == null || barIndex < 0)
         {
-            throw new IllegalArgumentException("sectionName=" + sectionName + " ts=" + ts + " barIndex=" + barIndex);
+            throw new IllegalArgumentException("sectionName=" + sectionName + " ts=" + ts + " barIndex=" + barIndex);   //NOI18N
         }
         data = new Section(sectionName, ts);
         position = new Position(barIndex, 0);
@@ -98,7 +98,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     {
         if (section == null)
         {
-            throw new NullPointerException("section=" + section);
+            throw new NullPointerException("section=" + section);   //NOI18N
         }
         if (!section.equals(data))
         {
@@ -181,7 +181,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     {
         if (position == null)
         {
-            throw new NullPointerException("p=" + p);
+            throw new NullPointerException("p=" + p);   //NOI18N
         }
         if (!position.equals(p))
         {

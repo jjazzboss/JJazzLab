@@ -222,7 +222,7 @@ public class InstrumentSettings implements Serializable
     {
         if (!MidiConst.checkVolume(v))
         {
-            throw new IllegalArgumentException("v=" + v);
+            throw new IllegalArgumentException("v=" + v);   //NOI18N
         }
         if (volume != v)
         {
@@ -241,7 +241,7 @@ public class InstrumentSettings implements Serializable
     {
         if (!MidiConst.checkPanoramic(v))
         {
-            throw new IllegalArgumentException("v=" + v);
+            throw new IllegalArgumentException("v=" + v);   //NOI18N
         }
         if (panoramic != v)
         {
@@ -260,7 +260,7 @@ public class InstrumentSettings implements Serializable
     {
         if (!MidiConst.checkReverb(v))
         {
-            throw new IllegalArgumentException("v=" + v);
+            throw new IllegalArgumentException("v=" + v);   //NOI18N
         }
         if (reverb != v)
         {
@@ -279,7 +279,7 @@ public class InstrumentSettings implements Serializable
     {
         if (!MidiConst.checkChorus(v))
         {
-            throw new IllegalArgumentException("v=" + v);
+            throw new IllegalArgumentException("v=" + v);   //NOI18N
         }
         if (chorus != v)
         {
@@ -305,7 +305,7 @@ public class InstrumentSettings implements Serializable
     {
         if (v < -64 || v > 64)
         {
-            throw new IllegalArgumentException("v=" + v);
+            throw new IllegalArgumentException("v=" + v);   //NOI18N
         }
         if (velocityShift != v)
         {
@@ -329,7 +329,7 @@ public class InstrumentSettings implements Serializable
     {
         if (t < -36 || t > 36)
         {
-            throw new IllegalArgumentException("t=" + t);
+            throw new IllegalArgumentException("t=" + t);   //NOI18N
         }
         if (transposition != t)
         {

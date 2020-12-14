@@ -55,13 +55,13 @@ import org.jjazz.midi.keymap.KeyMapGSGM2;
 import org.jjazz.midi.keymap.KeyMapXG;
 import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.midi.ui.InstrumentTable;
-import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.musiccontrol.TestPlayer;
 import org.jjazz.outputsynth.GMRemapTable;
 import org.jjazz.outputsynth.OutputSynth;
 import org.jjazz.outputsynth.ui.spi.RemapTableInstrumentChooser;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.uisettings.GeneralUISettings;
+import org.jjazz.util.ResUtil;
 import org.jjazz.util.Utilities;
 import org.openide.*;
 import org.openide.windows.WindowManager;
@@ -96,7 +96,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
     {
         setModal(true);
         initComponents();
-        setTitle("Instrument Selection Dialog");
+        setTitle(ResUtil.getString(getClass(), "RemapTableInstrumentChooserImpl.CTL_RemapInstSelectDialogTitle"));
         favoriteSynth = FavoriteMidiSynth.getInstance();
         favoriteSynth.addChangeListener(this);      // Listen to added/removed favorites
 
@@ -114,6 +114,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
                 handleTableMouseClicked(e);
             }
         });
+        org.jjazz.ui.utilities.Utilities.installSelectAllWhenFocused(tf_Filter);
     }
 
     @Override
@@ -122,19 +123,19 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         GMRemapTable.checkRemappedInstrument(remappedIns);
         if (outSynth == null)
         {
-            throw new IllegalArgumentException("outSynth=" + outSynth + " remappedIns=" + remappedIns);
+            throw new IllegalArgumentException("outSynth=" + outSynth + " remappedIns=" + remappedIns);   //NOI18N
         }
 
         remappedInstrument = remappedIns;
         outputSynth = outSynth;
         GMRemapTable rTable = outputSynth.getGMRemapTable();
 
-        String myTitle = "Mapped instrument: " + remappedInstrument.getPatchName();
+        String myTitle = ResUtil.getString(getClass(), "RemapTableInstrumentChooserImpl.CTL_MappedInstrument", remappedInstrument.getPatchName());
         if (remappedInstrument instanceof GM1Instrument)
         {
             // Melodic
             remappedInstrumentAsGM1 = (GM1Instrument) remappedInstrument;
-            myTitle += " (family=" + remappedInstrumentAsGM1.getFamily().toString() + ")";
+            myTitle += " (" + ResUtil.getString(getClass(), "RemapTableInstrumentChooserImpl.family") + "=" + remappedInstrumentAsGM1.getFamily().toString() + ")";
         } else
         {
             // Drums
@@ -195,7 +196,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -206,7 +207,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 
@@ -227,7 +228,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
     {
         if (evt.getSource() == favoriteSynth)
         {
-            LOGGER.fine("stateChanged()");
+            LOGGER.fine("stateChanged()");   //NOI18N
 
 //            // Favorite synth must be the first : make sure it is repaint to have the right size displayed
 //            list_MidiSynths.repaint(list_MidiSynths.getCellBounds(0, 0));
@@ -254,7 +255,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
     @Override
     public void valueChanged(ListSelectionEvent e)
     {
-        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);
+        LOGGER.log(Level.FINE, "valueChanged() e={0}", e);   //NOI18N
         if (e.getValueIsAdjusting())
         {
             return;
@@ -416,22 +417,6 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         this.rbtn_showRecommended.setText(text);
     }
 
-    private void toggleFavoriteInstrument()
-    {
-        LOGGER.fine("toggleFavoriteInstrument() selectedInstrument=" + selectedInstrument);
-        if (selectedInstrument != null)
-        {
-//            FavoriteInstruments fi = FavoriteInstruments.getInstance();
-//            if (fi.contains(selectedInstrument))
-//            {
-//                fi.removeInstrument(selectedInstrument);
-//            } else
-//            {
-//                fi.addInstrument(selectedInstrument);
-//            }
-        }
-    }
-
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
      * this method is always regenerated by the Form Editor.
@@ -541,7 +526,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         });
 
         lbl_Filtered.setForeground(new java.awt.Color(153, 0, 0));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_Filtered, org.openide.util.NbBundle.getMessage(RemapTableInstrumentChooserImpl.class, "RemapTableInstrumentChooserImpl.lbl_Filtered.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_Filtered, "(FILTERED)"); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_UseAsFamilyDefault, org.openide.util.NbBundle.getMessage(RemapTableInstrumentChooserImpl.class, "RemapTableInstrumentChooserImpl.cb_UseAsFamilyDefault.text")); // NOI18N
         cb_UseAsFamilyDefault.setToolTipText(org.openide.util.NbBundle.getMessage(RemapTableInstrumentChooserImpl.class, "RemapTableInstrumentChooserImpl.cb_UseAsFamilyDefault.toolTipText")); // NOI18N
@@ -647,7 +632,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         Instrument ins = tbl_Instruments.getSelectedInstrument();
         if (ins == null || !ins.getMidiAddress().isFullyDefined())
         {
-            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + ins.getMidiAddress());
+            LOGGER.fine("btn_HearActionPerformed() called but invalid ins=" + ins + " ins.getMidiAddress()=" + ins.getMidiAddress());   //NOI18N
             return;
         }
 
@@ -684,7 +669,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
 
     private void tf_FilterActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tf_FilterActionPerformed
     {//GEN-HEADEREND:event_tf_FilterActionPerformed
-        LOGGER.fine("tf_FilterActionPerformed()");
+        LOGGER.fine("tf_FilterActionPerformed()");   //NOI18N
         String s = tf_Filter.getText().trim();
         if (s.isEmpty())
         {
@@ -696,7 +681,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             rf = RowFilter.regexFilter("(?i)" + s);
         } catch (java.util.regex.PatternSyntaxException e)
         {
-            LOGGER.warning("tf_FilterActionPerformed() invalid filter regex string e=" + e.getLocalizedMessage());
+            LOGGER.warning("tf_FilterActionPerformed() invalid filter regex string e=" + e.getLocalizedMessage());   //NOI18N
             return;
         }
         TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) tbl_Instruments.getRowSorter();
@@ -704,7 +689,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
         btn_TxtFilter.setEnabled(false);
         btn_TxtClear.setEnabled(true);
         tf_Filter.setEnabled(false);
-        lbl_Filtered.setText("(FILTERED '" + Utilities.truncateWithDots(s, 20) + "')");
+        lbl_Filtered.setText(ResUtil.getString(getClass(), "RemapTableInstrumentChooserImpl.Filtered", Utilities.truncateWithDots(s, 20)));
     }//GEN-LAST:event_tf_FilterActionPerformed
 
     private void btn_TxtClearActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_TxtClearActionPerformed

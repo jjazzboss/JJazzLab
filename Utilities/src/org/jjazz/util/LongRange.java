@@ -47,7 +47,7 @@ public class LongRange
     {
         if (from < 0 || from > to)
         {
-            throw new IllegalArgumentException("from=" + from + " to=" + to);
+            throw new IllegalArgumentException("from=" + from + " to=" + to);   //NOI18N
         }
         this.from = from;
         this.to = to;

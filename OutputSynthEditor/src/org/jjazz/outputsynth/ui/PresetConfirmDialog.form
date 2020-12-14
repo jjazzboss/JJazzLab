@@ -98,9 +98,6 @@
       <SubComponents>
         <Component class="org.jjazz.ui.utilities.HelpTextArea" name="hlp_area">
           <Properties>
-            <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color type="null"/>
-            </Property>
             <Property name="columns" type="int" value="20"/>
             <Property name="rows" type="int" value="5"/>
           </Properties>
@@ -164,9 +161,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="lbl_title">
           <Properties>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="PresetConfirmDialog.lbl_title.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-            </Property>
+            <Property name="text" type="java.lang.String" value="Apply preset: &apos;&apos;xxx&apos;&apos;" noResource="true"/>
           </Properties>
         </Component>
       </SubComponents>

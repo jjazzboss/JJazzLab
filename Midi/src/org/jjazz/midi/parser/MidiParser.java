@@ -127,7 +127,7 @@ public class MidiParser
 
         if (sequence.getDivisionType() != Sequence.PPQ)
         {
-            LOGGER.log(Level.SEVERE, "{0} - parse() sequence.getDivisionType() is not PPQ, can''t parse.", this.name);
+            LOGGER.log(Level.SEVERE, "{0} - parse() sequence.getDivisionType() is not PPQ, can''t parse.", this.name);   //NOI18N
             return;
         }
         this.resolutionTicksPerBeat = sequence.getResolution();
@@ -361,7 +361,7 @@ public class MidiParser
             // Robustness to corrupted Midi files
             if (!skipPitchError)
             {
-                LOGGER.log(Level.INFO,
+                LOGGER.log(Level.INFO,   //NOI18N
                         name + " - noteOff() invalid Midi note pitch={0} channel={1} posInBeats={2}. Skipping similar errors...",
                         new Object[]
                         {
@@ -384,7 +384,7 @@ public class MidiParser
         this.currentTimeInBeats[this.currentChannel] = startTime;
 
         long durationInTicks = event.getTick() - tempNote.startTick;
-        assert durationInTicks >= 0 : "channel=" + channel + " durationInTicks=" + durationInTicks + " note=" + note + " event=<" + MidiUtilities.
+        assert durationInTicks >= 0 : "channel=" + channel + " durationInTicks=" + durationInTicks + " note=" + note + " event=<" + MidiUtilities.   //NOI18N
                 toString(event.getMessage(), event.getTick()) + "> tempNote=" + tempNote;
         double durationInBeats = getDurationInBeats(durationInTicks);
         this.expectedTimeInBeats[this.currentChannel] = this.currentTimeInBeats[this.currentChannel] + durationInBeats;
@@ -412,7 +412,7 @@ public class MidiParser
             // Robustness to corrupted Midi files
             if (!skipPitchError)
             {
-                LOGGER.log(Level.INFO,
+                LOGGER.log(Level.INFO,   //NOI18N
                         name + " - noteOn() invalid Midi note pitch={0} channel={1} posInBeats={2}. Skipping similar errors...",
                         new Object[]
                         {
@@ -431,7 +431,7 @@ public class MidiParser
             // Safer to ignore it
             if (!skipUselessNoteError)
             {
-                LOGGER.log(Level.FINE,
+                LOGGER.log(Level.FINE,   //NOI18N
                         name + " - noteOn() useless Midi note velocity={0} channel={1} posInBeats={2}. Skipping similar errors...",
                         new Object[]
                         {
@@ -444,7 +444,7 @@ public class MidiParser
         {
             if (!skipVelocityError)
             {
-                LOGGER.log(Level.INFO,
+                LOGGER.log(Level.INFO,   //NOI18N
                         name + " - noteOn() invalid Midi note velocity={0} channel={1} posInBeats={2}. Skipping similar errors...",
                         new Object[]
                         {

@@ -85,7 +85,7 @@ public final class SectionAtNewLine extends AbstractAction implements ContextAwa
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        assert cliSection != null && editor != null :
+        assert cliSection != null && editor != null :   //NOI18N
                 "cliSection=" + cliSection + " editor=" + editor + " cap.getSelection()=" + cap.getSelection();
         editor.setSectionStartOnNewLine(cliSection, checkBoxMenuItem.isSelected());
     }

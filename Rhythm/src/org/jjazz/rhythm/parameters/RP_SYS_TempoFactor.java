@@ -23,7 +23,7 @@
 package org.jjazz.rhythm.parameters;
 
 import org.jjazz.rhythm.api.Rhythm;
-
+import org.jjazz.util.ResUtil;
 
 /**
  * Standard RhythmParameter: Tempo percentage change.
@@ -35,8 +35,6 @@ public final class RP_SYS_TempoFactor extends RP_Integer
 
     private static RP_SYS_TempoFactor INSTANCE;
     public static String ID = "rpTempoID";
-    private static String NAME = "Tempo %";
-    private static String DESC = "Change tempo by %";
 
     public static RP_SYS_TempoFactor getInstance()
     {
@@ -52,7 +50,7 @@ public final class RP_SYS_TempoFactor extends RP_Integer
 
     private RP_SYS_TempoFactor()
     {
-        super(ID, NAME, DESC, 100, 50, 200, 5);
+        super(ID, ResUtil.getString(RP_SYS_TempoFactor.class, "CTL_RpTempoFactorName"), ResUtil.getString(RP_SYS_TempoFactor.class, "CTL_RpTempoFactorDesc"), 100, 50, 200, 5);
     }
 
     /**
@@ -65,7 +63,7 @@ public final class RP_SYS_TempoFactor extends RP_Integer
     {
         if (r == null)
         {
-            throw new NullPointerException("r");
+            throw new NullPointerException("r");   //NOI18N
         }
         return r.getRhythmParameters().contains(INSTANCE) ? INSTANCE : null;
     }

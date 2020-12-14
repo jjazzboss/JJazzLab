@@ -71,7 +71,7 @@ public class RpEditorFactoryImpl implements RpEditorFactory
     {
         if (song == null || spt == null || rp == null)
         {
-            throw new NullPointerException("song=" + song + " spt=" + spt + " rp=" + rp);
+            throw new NullPointerException("song=" + song + " spt=" + spt + " rp=" + rp);   //NOI18N
         }
         RpEditor rpe;
         if (rp instanceof RP_Integer) // || rp instanceof RP_State)
@@ -88,7 +88,7 @@ public class RpEditorFactoryImpl implements RpEditorFactory
             rpe = new RpEditorList(spt, rp, null);
         } else
         {
-            throw new IllegalArgumentException("No RpEditor found for this rp type. rp=" + rp);
+            throw new IllegalArgumentException("No RpEditor found for this rp type. rp=" + rp);   //NOI18N
         }
         return rpe;
     }

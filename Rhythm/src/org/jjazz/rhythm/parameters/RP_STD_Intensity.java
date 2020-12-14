@@ -23,17 +23,11 @@
 package org.jjazz.rhythm.parameters;
 
 import org.jjazz.rhythm.api.Rhythm;
-import org.openide.util.NbBundle.Messages;
-import static org.jjazz.rhythm.parameters.Bundle.*;
+import org.jjazz.util.ResUtil;
 
 /**
  * Standard RhythmParameter: Intensity=[-10;+10]
  */
-@Messages(
-        {
-            "CTL_RpIntensityName=Intensity",
-            "CTL_RpIntensityDesc=Rhythm intensity",
-        })
 public final class RP_STD_Intensity extends RP_Integer
 {
 
@@ -41,19 +35,19 @@ public final class RP_STD_Intensity extends RP_Integer
 
     public RP_STD_Intensity()
     {
-        super(ID, CTL_RpIntensityName(), CTL_RpIntensityDesc(), 0, -10, 10, 1);
+        super(ID, ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityName"), ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityDesc"), 0, -10, 10, 1);
     }
 
     public RP_STD_Intensity(int defaultVal, int minVal, int maxVal, int step)
     {
-        super(ID, CTL_RpIntensityName(), CTL_RpIntensityDesc(), defaultVal, minVal, maxVal, step);
+        super(ID, ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityName"), ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityDesc"), defaultVal, minVal, maxVal, step);
     }
-    
-     static public RP_STD_Intensity getIntensityRp(Rhythm rhythm)
+
+    static public RP_STD_Intensity getIntensityRp(Rhythm rhythm)
     {
         if (rhythm == null)
         {
-            throw new NullPointerException("r");
+            throw new NullPointerException("r");   //NOI18N
         }
         return (RP_STD_Intensity) rhythm.getRhythmParameters()
                 .stream()

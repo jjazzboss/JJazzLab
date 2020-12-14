@@ -75,7 +75,7 @@ public class BarRendererFactoryImpl implements BarRendererFactory
                 br = new BR_Sections(editor, barIndex, settings, irf);
                 break;
             default:
-                throw new IllegalStateException("type=" + type);
+                throw new IllegalStateException("type=" + type);   //NOI18N
         }
         // Set the model
         int modelBarIndex = barIndex < model.getSize() ? barIndex : -1;

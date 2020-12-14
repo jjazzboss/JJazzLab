@@ -40,22 +40,18 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.harmony.TimeSignature;
-import static org.jjazz.options.Bundle.CTL_SelectRhythmDir;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythmselectiondialog.ui.RhythmProviderList;
 import org.jjazz.rhythmselectiondialog.ui.RhythmTable;
 import org.jjazz.ui.utilities.Utilities;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.LifecycleManager;
 import org.openide.NotifyDescriptor;
-import org.openide.util.NbBundle;
 
-@NbBundle.Messages(
-        {
-            "CTL_SelectRhythmDir=Directory for rhythm files"
-        })
+
 final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeListener, ChangeListener, ListSelectionListener, ActionListener
 {    
     private final RhythmsOptionsPanelController controller;
@@ -101,7 +97,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.log(Level.FINE, "PropertyChangeEvent() evt={0}", evt);
+        LOGGER.log(Level.FINE, "PropertyChangeEvent() evt={0}", evt);   //NOI18N
         FileDirectoryManager fdm = FileDirectoryManager.getInstance();
         if (evt.getSource() == fdm)
         {
@@ -125,7 +121,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         if (e.getSource() == list_rhythmProviders)
         {
             RhythmProvider rp = list_rhythmProviders.getSelectedValue();
-            LOGGER.log(Level.FINE, "valueChanged() selected RhythmProvider=" + rp);
+            LOGGER.log(Level.FINE, "valueChanged() selected RhythmProvider=" + rp);   //NOI18N
             boolean b = false;
             if (rp != null)
             {
@@ -136,7 +132,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         } else if (e.getSource() == rhythmTable.getSelectionModel())
         {
             RhythmInfo ri = rhythmTable.getSelectedRhythm();
-            LOGGER.log(Level.FINE, "valueChanged() selected Rhythm=" + ri);
+            LOGGER.log(Level.FINE, "valueChanged() selected Rhythm=" + ri);   //NOI18N
             btn_setDefaultRhythm.setEnabled(ri != null && !ri.isAdaptedRhythm());
         }
     }
@@ -190,7 +186,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     public void stateChanged(ChangeEvent e)
     {
         // We can be out of the EDT
-        LOGGER.fine("stateChanged()");
+        LOGGER.fine("stateChanged()");   //NOI18N
         Runnable run = new Runnable()
         {
             @Override
@@ -388,7 +384,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
    {//GEN-HEADEREND:event_btn_rhythmDirActionPerformed
        FileDirectoryManager fdm = FileDirectoryManager.getInstance();
        File oldDir = fdm.getUserRhythmDirectory();
-       File newDir = Utilities.showDirChooser(tf_rhythmUserDir.getText(), CTL_SelectRhythmDir());
+       File newDir = Utilities.showDirChooser(tf_rhythmUserDir.getText(), ResUtil.getString(getClass(), "CTL_RhythmDirDialogTitle"));
        if (newDir != null && !oldDir.equals(newDir) && newDir.isDirectory())
        {
            fdm.setUserRhythmDirectory(newDir);   
@@ -401,7 +397,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         RhythmDatabase.getDefault().forceRescan(false);
         
         
-        String msg = "A full rescan of rhythm files has been planned for next startup. Would you like to restart JJazzLab now?";
+        String msg = ResUtil.getString(getClass(),"CTL_ConfirmFullRescanRestart");
         NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
         Object result = DialogDisplayer.getDefault().notify(d);
         if (NotifyDescriptor.YES_OPTION == result)
@@ -515,7 +511,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     {
         if (rp == null)
         {
-            throw new IllegalArgumentException("rp=" + rp);
+            throw new IllegalArgumentException("rp=" + rp);   //NOI18N
         }
         // Refresh the list of rhythms        
         RhythmDatabase rdb = RhythmDatabase.getDefault();
@@ -525,7 +521,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
                 .collect(Collectors.toList());
 
         // Update the table
-        LOGGER.fine("updateRhythmTable() rp=" + rp.getInfo().getName() + " rhythms.size()=" + rhythms.size());
+        LOGGER.fine("updateRhythmTable() rp=" + rp.getInfo().getName() + " rhythms.size()=" + rhythms.size());   //NOI18N
         rhythmTable.getModel().setRhythms(rhythms);
     }
     

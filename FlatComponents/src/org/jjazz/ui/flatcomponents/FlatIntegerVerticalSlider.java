@@ -59,7 +59,7 @@ import org.openide.windows.WindowManager;
 public class FlatIntegerVerticalSlider extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener, PropertyChangeListener
 {
 
-    public static final String PROP_VALUE = "PropValue";
+    public static final String PROP_VALUE = "PropValue";   //NOI18N 
     /**
      * Client Property: top color, used to created the gradient
      */
@@ -358,7 +358,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     {
         if (v < 0 || v > 127)
         {
-            throw new IllegalArgumentException("v=" + v);
+            throw new IllegalArgumentException("v=" + v);   //NOI18N
         }
         if (value != v)
         {
@@ -407,7 +407,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     @Override
     public void setEnabled(boolean b)
     {
-        LOGGER.fine("setEnabled() b=" + b);
+        LOGGER.fine("setEnabled() b=" + b);   //NOI18N
         if (isEnabled() && !b)
         {
             saveColorLine = getColorLine();
@@ -459,7 +459,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     public void mouseDragged(MouseEvent e)
     {
         int y = e.getY();
-        LOGGER.fine("mouseDragged() y=" + y + " yValue=" + yValue + " value=" + value);
+        LOGGER.fine("mouseDragged() y=" + y + " yValue=" + yValue + " value=" + value);   //NOI18N
         if (!isEnabled() || !SwingUtilities.isLeftMouseButton(e))
         {
             return;
@@ -632,7 +632,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
         }
         if (r == -1)
         {
-            LOGGER.fine("parseString() text=" + text);
+            LOGGER.fine("parseString() text=" + text);   //NOI18N
         }
         return r;
     }

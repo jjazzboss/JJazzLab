@@ -90,7 +90,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     {
         if (song == null || song.getSongStructure() == null)
         {
-            throw new IllegalArgumentException("song=" + song);
+            throw new IllegalArgumentException("song=" + song);   //NOI18N
         }
         songModel = song;
         songModel.addPropertyChangeListener(this);
@@ -264,7 +264,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
                     }
                     if (zfx < 0 || zfx > 100)
                     {
-                        LOGGER.warning("SS_EditorController() Invalid zoom factor X client property=" + str + " in song=" + ssEditor.getSongModel().getName());
+                        LOGGER.warning("SS_EditorController() Invalid zoom factor X client property=" + str + " in song=" + ssEditor.getSongModel().getName());   //NOI18N
                     } else
                     {
                         Zoomable zoomable = ssEditor.getLookup().lookup(Zoomable.class);

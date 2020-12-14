@@ -48,7 +48,7 @@ public class SavableSong implements Savable
     {
         if (s == null)
         {
-            throw new IllegalArgumentException("s=" + s);
+            throw new IllegalArgumentException("s=" + s);   //NOI18N
         }
         song = s;
     }

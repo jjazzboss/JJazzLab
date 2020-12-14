@@ -116,7 +116,7 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
             int newFactor = (int) evt.getNewValue();
             if (newFactor < 0 || newFactor > 100)
             {
-                throw new IllegalStateException("factor=" + newFactor);
+                throw new IllegalStateException("factor=" + newFactor);   //NOI18N
             }
             slider.setValue(newFactor);
             slider.setToolTipText(String.valueOf(newFactor));
@@ -193,10 +193,10 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
                 || (evt.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK))
         {
             // Simple CTRL-CLICK
-            Action a = Actions.forID("JJazz", "org.jjazz.ui.zoomablesliders.zoomfitwidth");
+            Action a = Actions.forID("JJazz", "org.jjazz.ui.zoomablesliders.zoomfitwidth");   //NOI18N
             if (a == null)
             {
-                LOGGER.warning("Can't find the ZoomFitWidth action: org.jjazz.ui.zoomablesliders.zoomfitwidth");
+                LOGGER.warning("Can't find the ZoomFitWidth action: org.jjazz.ui.zoomablesliders.zoomfitwidth");   //NOI18N
             } else
             {
                 a.actionPerformed(null);

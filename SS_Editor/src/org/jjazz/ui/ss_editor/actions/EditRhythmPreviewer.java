@@ -24,7 +24,6 @@ package org.jjazz.ui.ss_editor.actions;
 
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -62,6 +61,7 @@ import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
+import org.jjazz.util.ResUtil;
 import org.openide.util.Exceptions;
 
 /**
@@ -91,7 +91,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
     {
         if (sg == null || spt == null)
         {
-            throw new IllegalArgumentException("sg=" + sg + " spt=" + spt);
+            throw new IllegalArgumentException("sg=" + sg + " spt=" + spt);   //NOI18N
         }
         originalSong = sg;
         originalSpt = spt;
@@ -124,7 +124,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             mm = previouslyActivatedSong == null ? null : MidiMixManager.getInstance().findMix(previouslyActivatedSong);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.severe("cleanup() ex=" + ex.getLocalizedMessage());
+            LOGGER.severe("cleanup() ex=" + ex.getLocalizedMessage());   //NOI18N
             Exceptions.printStackTrace(ex);
             previouslyActivatedSong = null;
         }
@@ -136,10 +136,10 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
     {
         if (r == null)
         {
-            throw new IllegalArgumentException("r=" + r + " useRhythmTempo=" + useRhythmTempo + " loop=" + loop);
+            throw new IllegalArgumentException("r=" + r + " useRhythmTempo=" + useRhythmTempo + " loop=" + loop);   //NOI18N
         }
 
-        LOGGER.fine("previewRhythm() -- r=" + r + " useRhythmTempo=" + useRhythmTempo + " loop=" + loop + " endListener=" + endListener);
+        LOGGER.fine("previewRhythm() -- r=" + r + " useRhythmTempo=" + useRhythmTempo + " loop=" + loop + " endListener=" + endListener);   //NOI18N
 
         if (isPreviewRunning)
         {
@@ -162,7 +162,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             sequencer = mc.acquireSequencer(this);
             if (sequencer == null)
             {
-                throw new MusicGenerationException("Can't acquire sequencer");
+                throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_CantAcquireSequencer"));
             }
             sequencer.addMetaEventListener(this);
         }
@@ -181,7 +181,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             context = new MusicGenerationContext(song, mm);
         } catch (UnsupportedEditException | MidiUnavailableException ex)
         {
-            LOGGER.warning("previewRhythm() ex=" + ex.getLocalizedMessage());
+            LOGGER.warning("previewRhythm() ex=" + ex.getLocalizedMessage());   //NOI18N
             throw new MusicGenerationException(ex.getLocalizedMessage());
         }
         SongPart spt0 = song.getSongStructure().getSongPart(0);
@@ -198,7 +198,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         {
             // Can happen if unexpected error, assertion error etc.
             song.close(false);
-            throw new MusicGenerationException("Unexpected error while building sequence. Consult log for details.");
+            throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_BuildingSequence"));
         }
 
         // Reroute drums channels if needed
@@ -212,7 +212,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             sequencer.setSequence(sequence);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.warning("previewRhythm() ex=" + ex.getLocalizedMessage());
+            LOGGER.warning("previewRhythm() ex=" + ex.getLocalizedMessage());   //NOI18N
             throw new MusicGenerationException(ex.getLocalizedMessage());
         }
         sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
@@ -262,7 +262,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         {
             // This method  is called from the Sequencer thread, NOT from the EDT !
             // So if this method impacts the UI, it must use SwingUtilities.InvokeLater() (or InvokeAndWait())
-            LOGGER.fine("Sequence end reached");
+            LOGGER.fine("Sequence end reached");   //NOI18N
             Runnable doRun = new Runnable()
             {
                 @Override
@@ -280,7 +280,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
     // ===============================================================================================
     private void stopSequencer()
     {
-        assert sequencer != null;
+        assert sequencer != null;   //NOI18N
         sequencer.stop();
         isPreviewRunning = false;
         if (endAction != null)
@@ -301,7 +301,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         OutputSynth outputSynth = OutputSynthManager.getInstance().getOutputSynth();
         HashMap<Integer, Instrument> mapNewInstruments = outputSynth.getNeedFixInstruments(mm);
 
-        LOGGER.fine("fixMidiMix()    mapNewInstruments=" + mapNewInstruments);
+        LOGGER.fine("fixMidiMix()    mapNewInstruments=" + mapNewInstruments);   //NOI18N
 
         for (int channel : mapNewInstruments.keySet())
         {
@@ -317,7 +317,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
 
         // Reroute drums channels
         List<Integer> reroutableChannels = mm.getChannelsNeedingDrumsRerouting(mapNewInstruments);
-        LOGGER.fine("fixMidiMix()    reroutableChannels=" + reroutableChannels);
+        LOGGER.fine("fixMidiMix()    reroutableChannels=" + reroutableChannels);   //NOI18N
         for (int ch : reroutableChannels)
         {
             mm.setDrumsReroutedChannel(true, ch);

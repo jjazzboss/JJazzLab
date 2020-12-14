@@ -50,7 +50,7 @@ public class BarBoxConfig
     {
         if (brs == null || brs.length < 0)
         {
-            throw new IllegalArgumentException("brs=" + brs);
+            throw new IllegalArgumentException("brs=" + brs);   //NOI18N
         }
         Collections.addAll(supportedBarRenderers, brs);
         Collections.addAll(activeBarRenderers, brs);
@@ -63,7 +63,7 @@ public class BarBoxConfig
         {
             if (!supportedBarRenderers.contains(type))
             {
-                throw new IllegalArgumentException("type=" + type);
+                throw new IllegalArgumentException("type=" + type);   //NOI18N
             }
         }
         activeBarRenderers.clear();

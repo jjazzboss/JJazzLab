@@ -53,7 +53,7 @@ public class RP_State implements RhythmParameter<String>
     {
         if (id == null || name == null || defaultValue == null || possibleValues == null || possibleValues.length == 0)
         {
-            throw new IllegalArgumentException(
+            throw new IllegalArgumentException(   //NOI18N
                     "id=" + id + " name=" + name + " defaultVal=" + defaultValue + " possibleValues=" + Arrays.asList(possibleValues));
         }
         this.id = id;
@@ -64,7 +64,7 @@ public class RP_State implements RhythmParameter<String>
         this.maxValue = possibleValues[possibleValues.length - 1];
         if (indexOf(defaultValue) == -1)
         {
-            throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + Arrays.asList(possibleValues));
+            throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + Arrays.asList(possibleValues));   //NOI18N
         }
         this.defaultValue = defaultValue;
 
@@ -121,7 +121,7 @@ public class RP_State implements RhythmParameter<String>
     {
         if (y < 0 || y > 1)
         {
-            throw new IllegalArgumentException("y=" + y);
+            throw new IllegalArgumentException("y=" + y);   //NOI18N
         }
         int index = (int) Math.round(y * (possibleValues.length - 1));
         return possibleValues[index];
@@ -132,7 +132,7 @@ public class RP_State implements RhythmParameter<String>
     {
         if (!isValidValue(value))
         {
-            throw new IllegalArgumentException("value=" + value + " this=" + this);
+            throw new IllegalArgumentException("value=" + value + " this=" + this);   //NOI18N
         }
         double index = indexOf(value);
         return index / (possibleValues.length - 1);
@@ -168,7 +168,7 @@ public class RP_State implements RhythmParameter<String>
         int valueIndex = indexOf(value);
         if (valueIndex == -1)
         {
-            throw new IllegalArgumentException("value=" + value);
+            throw new IllegalArgumentException("value=" + value);   //NOI18N
         }
         return possibleValues[(valueIndex >= possibleValues.length - 1) ? 0 : valueIndex + 1];
 
@@ -180,7 +180,7 @@ public class RP_State implements RhythmParameter<String>
         int valueIndex = indexOf(value);
         if (valueIndex == -1)
         {
-            throw new IllegalArgumentException("value=" + value);
+            throw new IllegalArgumentException("value=" + value);   //NOI18N
         }
         return possibleValues[(valueIndex == 0) ? possibleValues.length - 1 : valueIndex - 1];
     }

@@ -81,7 +81,7 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
     {
         if (size < 12)
         {
-            throw new IllegalArgumentException("size=" + size);
+            throw new IllegalArgumentException("size=" + size);   //NOI18N
         }
         ChordLeadSheet cls = new ChordLeadSheetImpl(sectionName, TimeSignature.FOUR_FOUR, size);
         CLI_Factory clif = CLI_Factory.getDefault();
@@ -122,7 +122,7 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
         } catch (ParseException | UnsupportedEditException ex)
         {
             String msg = ERR_CreateSampleLeadSheet12() + ".\n" + ex.getLocalizedMessage();
-            LOGGER.log(Level.WARNING, "createSampleLeadSheet12bars() {0}", msg);
+            LOGGER.log(Level.WARNING, "createSampleLeadSheet12bars() {0}", msg);   //NOI18N
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }
@@ -135,7 +135,7 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
         int sectionId = 0;
         if (size < 1)
         {
-            throw new IllegalArgumentException("size=" + size);
+            throw new IllegalArgumentException("size=" + size);   //NOI18N
         }
         CLI_Factory clif = CLI_Factory.getDefault();
         ChordLeadSheet cls = new ChordLeadSheetImpl(sectionName, ts, size);
@@ -190,7 +190,7 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
                 } catch (UnsupportedEditException ex)
                 {
                     // We should not be there normally
-                    throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);
+                    throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);   //NOI18N
                 }
             } else
             {

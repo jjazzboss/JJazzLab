@@ -73,7 +73,7 @@ public class QuantizerTest
         pos.setBeat(0);
         Position expResult = new Position(0, 0);
         Position result = instance.quantize(pos, ts, maxBarIndex);
-        assertEquals(expResult, result);
+        assertEquals(expResult, result);   //NOI18N
     }
 
     @Test
@@ -83,7 +83,7 @@ public class QuantizerTest
         pos.setBeat(0.2f);
         Position expResult = new Position(0, 0f);
         Position result = instance.quantize(pos, ts, maxBarIndex);
-        assertEquals(expResult, result);
+        assertEquals(expResult, result);   //NOI18N
     }
 
     @Test
@@ -93,7 +93,7 @@ public class QuantizerTest
         pos.setBeat(0.25f);
         Position expResult = new Position(0, 0.5f);
         Position result = instance.quantize(pos, ts, maxBarIndex);
-        assertEquals(expResult, result);
+        assertEquals(expResult, result);   //NOI18N
     }
 
     @Test
@@ -103,7 +103,7 @@ public class QuantizerTest
         pos.setBeat(0.4f);
         Position expResult = new Position(0, 0.5f);
         Position result = instance.quantize(pos, ts, maxBarIndex);
-        assertEquals(expResult, result);
+        assertEquals(expResult, result);   //NOI18N
     }
 
     @Test
@@ -113,7 +113,7 @@ public class QuantizerTest
         pos.setBeat(0.5f);
         Position expResult = new Position(0, 0.5f);
         Position result = instance.quantize(pos, ts, maxBarIndex);
-        assertEquals(expResult, result);
+        assertEquals(expResult, result);   //NOI18N
     }
 
     @Test
@@ -123,7 +123,7 @@ public class QuantizerTest
         pos.setBeat(0.7f);
         Position expResult = new Position(0, 0.5f);
         Position result = instance.quantize(pos, ts, maxBarIndex);
-        assertEquals(expResult, result);
+        assertEquals(expResult, result);   //NOI18N
     }
 
     @Test
@@ -133,7 +133,7 @@ public class QuantizerTest
         pos.setBeat(1f);
         Position expResult = new Position(0, 1f);
         Position result = instance.quantize(pos, ts, maxBarIndex);
-        assertEquals(expResult, result);
+        assertEquals(expResult, result);   //NOI18N
     }
 
     @Test
@@ -143,7 +143,7 @@ public class QuantizerTest
         pos.setBeat(1.1f);
         Position expResult = new Position(0, 1f);
         Position result = instance.quantize(pos, ts, maxBarIndex);
-        assertEquals(expResult, result);
+        assertEquals(expResult, result);   //NOI18N
     }
 
     @Test
@@ -153,7 +153,7 @@ public class QuantizerTest
         pos.setBeat(1.25f);
         Position expResult = new Position(0, 1.5f);
         Position result = instance.quantize(pos, ts, maxBarIndex);
-        assertEquals(expResult, result);
+        assertEquals(expResult, result);   //NOI18N
     }
 
     @Test
@@ -163,7 +163,7 @@ public class QuantizerTest
         pos.setBeat(1.3f);
         Position expResult = new Position(0, 1.5f);
         Position result = instance.quantize(pos, ts, maxBarIndex);
-        assertEquals(expResult, result);
+        assertEquals(expResult, result);   //NOI18N
     }
 
     @Test
@@ -173,7 +173,7 @@ public class QuantizerTest
         pos.setBeat(1.5f);
         Position expResult = new Position(0, 1.5f);
         Position result = instance.quantize(pos, ts, maxBarIndex);
-        assertEquals(expResult, result);
+        assertEquals(expResult, result);   //NOI18N
     }
 
     @Test
@@ -183,7 +183,7 @@ public class QuantizerTest
         pos.setBeat(1.7f);
         Position expResult = new Position(0, 1.5f);
         Position result = instance.quantize(pos, ts, maxBarIndex);
-        assertEquals(expResult, result);
+        assertEquals(expResult, result);   //NOI18N
     }
 
     @Test
@@ -193,6 +193,6 @@ public class QuantizerTest
         pos.setBeat(1.8f);
         Position expResult = new Position(0, 2f);
         Position result = instance.quantize(pos, ts, maxBarIndex);
-        assertEquals(expResult, result);
+        assertEquals(expResult, result);   //NOI18N
     }
 }

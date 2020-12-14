@@ -77,7 +77,7 @@ public class CopyBuffer
     {
         if (spts == null)
         {
-            throw new IllegalArgumentException("spts=" + spts);
+            throw new IllegalArgumentException("spts=" + spts);   //NOI18N
         }
         if (spts.isEmpty())
         {

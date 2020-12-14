@@ -699,7 +699,7 @@ public class JFontChooser extends JComponent
         ActionMap actionMap = buttonsPanel.getActionMap();
         actionMap.put(cancelAction.getValue(Action.DEFAULT), cancelAction);
         actionMap.put(okAction.getValue(Action.DEFAULT), okAction);
-        InputMap inputMap = buttonsPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        InputMap inputMap = buttonsPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);   //NOI18N
         inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), cancelAction.getValue(Action.DEFAULT));
         inputMap.put(KeyStroke.getKeyStroke("ENTER"), okAction.getValue(Action.DEFAULT));
 

@@ -68,24 +68,24 @@ public class OutputSynth implements Serializable
     {
         OFF, GM, GM2, XG, GS
     }
-    public static final String PROP_FILE = "file";
+    public static final String PROP_FILE = "file";   //NOI18N 
     /**
      * Fired when of the sendModeOnUponStartup is changed.
      */
-    public static final String PROP_SEND_MSG_UPON_STARTUP = "sendMsgUponStartup";
+    public static final String PROP_SEND_MSG_UPON_STARTUP = "sendMsgUponStartup";   //NOI18N 
 
     /**
      * oldValue=false if removed, true if added. newValue=InstrumentBank<?>
      */
-    public static final String PROP_STD_BANK = "PROP_STD_BANK";
+    public static final String PROP_STD_BANK = "PROP_STD_BANK";   //NOI18N 
     /**
      * oldValue=false if removed, true if added. newValue=MidiSynth
      */
-    public static final String PROP_CUSTOM_SYNTH = "PROP_CUSTOM_SYNTH";
+    public static final String PROP_CUSTOM_SYNTH = "PROP_CUSTOM_SYNTH";   //NOI18N 
     /**
      * oldValue=old UserInstrument, newValue=new UserInstrument
      */
-    public static final String PROP_USER_INSTRUMENT = "PROP_USER_INSTRUMENT";
+    public static final String PROP_USER_INSTRUMENT = "PROP_USER_INSTRUMENT";   //NOI18N 
 
     private final List<InstrumentBank<?>> compatibleStdBanks;
     private final List<MidiSynth> customSynths;
@@ -202,16 +202,16 @@ public class OutputSynth implements Serializable
     {
         if (stdBank == null || !isStdBank(stdBank))
         {
-            throw new IllegalArgumentException("stdBank=" + stdBank);
+            throw new IllegalArgumentException("stdBank=" + stdBank);   //NOI18N
         }
 
         if ((stdBank == StdSynth.getInstance().getGM2Bank() || stdBank == StdSynth.getInstance().getXGBank()) && compatibleStdBanks.contains(GSSynth.getInstance().getGSBank()))
         {
-            LOGGER.warning("addCompatibleStdBank() Can't add " + stdBank + " because the GS bank is used");
+            LOGGER.warning("addCompatibleStdBank() Can't add " + stdBank + " because the GS bank is used");   //NOI18N
             return;
         } else if (stdBank == GSSynth.getInstance().getGSBank() && (compatibleStdBanks.contains(StdSynth.getInstance().getGM2Bank()) || compatibleStdBanks.contains(StdSynth.getInstance().getXGBank())))
         {
-            LOGGER.warning("addCompatibleStdBank() Can't add " + stdBank + " because the GM2 or XG bank is used");
+            LOGGER.warning("addCompatibleStdBank() Can't add " + stdBank + " because the GM2 or XG bank is used");   //NOI18N
             return;
         }
 
@@ -236,7 +236,7 @@ public class OutputSynth implements Serializable
     {
         if (stdBank == null)
         {
-            throw new IllegalArgumentException("stdBank=" + stdBank);
+            throw new IllegalArgumentException("stdBank=" + stdBank);   //NOI18N
         }
         GM1Bank gmBank = StdSynth.getInstance().getGM1Bank();
         if (customSynths.isEmpty() && compatibleStdBanks.size() == 1 && compatibleStdBanks.get(0) == stdBank)
@@ -296,7 +296,7 @@ public class OutputSynth implements Serializable
     {
         if (synth == null)
         {
-            throw new IllegalArgumentException("stdBank=" + synth);
+            throw new IllegalArgumentException("stdBank=" + synth);   //NOI18N
         }
 
         if (!customSynths.contains(synth))
@@ -325,7 +325,7 @@ public class OutputSynth implements Serializable
     {
         if (synth == null || synth == StdSynth.getInstance())
         {
-            throw new IllegalArgumentException("stdBank=" + synth);
+            throw new IllegalArgumentException("stdBank=" + synth);   //NOI18N
         }
         if (compatibleStdBanks.isEmpty() && customSynths.size() == 1 && customSynths.get(0) == synth)
         {
@@ -375,7 +375,7 @@ public class OutputSynth implements Serializable
     {
         if (mode == null)
         {
-            throw new NullPointerException("mode");
+            throw new NullPointerException("mode");   //NOI18N
         }
         if (mode.equals(this.sendModeOnUponPlay))
         {
@@ -409,7 +409,7 @@ public class OutputSynth implements Serializable
             case OFF:
                 break;
             default:
-                throw new IllegalStateException("sendModeOnUponPlay=" + sendModeOnUponPlay);
+                throw new IllegalStateException("sendModeOnUponPlay=" + sendModeOnUponPlay);   //NOI18N
         }
     }
 
@@ -453,19 +453,19 @@ public class OutputSynth implements Serializable
     public Instrument findInstrument(RhythmVoice rv)
     {
         Instrument rvIns = rv.getPreferredInstrument();
-        assert rvIns != null : "rv=" + rv;
+        assert rvIns != null : "rv=" + rv;   //NOI18N
         InstrumentBank<?> rvInsBank = rvIns.getBank();
         MidiSynth rvInsSynth = (rvInsBank != null) ? rvInsBank.getMidiSynth() : null;
 
         ConverterManager cm = ConverterManager.getInstance();
         Instrument ins = null;
-        LOGGER.log(Level.FINE, "findInstrument() -- rv={0}", rv.toString());
+        LOGGER.log(Level.FINE, "findInstrument() -- rv={0}", rv.toString());   //NOI18N
 
         if (rvIns == StdSynth.getInstance().getVoidInstrument())
         {
             // Special case: no conversion possible, use void for drums or the default at instrument
             ins = rv.isDrums() ? StdSynth.getInstance().getVoidInstrument() : rv.getType().getDefaultInstrument();
-            LOGGER.log(Level.FINE, "findInstrument() rv preferred instrument=VoidInstrument, return ins=" + ins);
+            LOGGER.log(Level.FINE, "findInstrument() rv preferred instrument=VoidInstrument, return ins=" + ins);   //NOI18N
             return ins;
         }
 
@@ -475,7 +475,7 @@ public class OutputSynth implements Serializable
             ins = cm.convertInstrument(rvIns, synth, null);
             if (ins != null)
             {
-                LOGGER.log(Level.FINE, "findInstrument()    Found in custom synth using custom conversion {0}, ins={1}", new Object[]
+                LOGGER.log(Level.FINE, "findInstrument()    Found in custom synth using custom conversion {0}, ins={1}", new Object[]   //NOI18N
                 {
                     synth.getName(), ins.toLongString()
                 });
@@ -488,7 +488,7 @@ public class OutputSynth implements Serializable
                 || (rvInsSynth != null && customSynths.contains(rvInsSynth)))
         {
             ins = rvIns;
-            LOGGER.fine("findInstrument()    No conversion needed, instrument can be directly reused : " + ins.getFullName());
+            LOGGER.fine("findInstrument()    No conversion needed, instrument can be directly reused : " + ins.getFullName());   //NOI18N
             return ins;
         }
 
@@ -501,7 +501,7 @@ public class OutputSynth implements Serializable
             ins = StdInstrumentConverter.getInstance().convertInstrument(rvIns, null, compatibleStdBanks);
             if (ins != null)
             {
-                LOGGER.log(Level.FINE, "findInstrument()    found in compatibleStdBanks, ins={0}", ins.toLongString());
+                LOGGER.log(Level.FINE, "findInstrument()    found in compatibleStdBanks, ins={0}", ins.toLongString());   //NOI18N
                 return ins;
             }
         }
@@ -515,12 +515,12 @@ public class OutputSynth implements Serializable
             ins = remapTable.getInstrument(gmSubstitute);
             if (ins != null)
             {
-                LOGGER.log(Level.FINE, "findInstrument()    using mapped instrument for substitute. ins={0}", ins.toLongString());
+                LOGGER.log(Level.FINE, "findInstrument()    using mapped instrument for substitute. ins={0}", ins.toLongString());   //NOI18N
                 return ins;
             }
 
             // Search in the custom synth for instruments whose GMSubstitute match
-            assert gmSubstitute != null : "rv=" + rv;
+            assert gmSubstitute != null : "rv=" + rv;   //NOI18N
             for (MidiSynth synth : customSynths)
             {
                 for (InstrumentBank<? extends Instrument> bank : synth.getBanks())
@@ -529,7 +529,7 @@ public class OutputSynth implements Serializable
                     if (!inss.isEmpty())
                     {
                         ins = inss.get(0);
-                        LOGGER.log(Level.FINE, "findInstrument()    found in custom synth using substitute. ins={0}", ins.toLongString());
+                        LOGGER.log(Level.FINE, "findInstrument()    found in custom synth using substitute. ins={0}", ins.toLongString());   //NOI18N
                         return ins;
                     }
                 }
@@ -539,19 +539,19 @@ public class OutputSynth implements Serializable
             ins = remapTable.getInstrument(gmSubstitute.getFamily());
             if (ins != null)
             {
-                LOGGER.log(Level.FINE, "findInstrument()    using mapped instrument for substitute family. ins={0}", ins.toLongString());
+                LOGGER.log(Level.FINE, "findInstrument()    using mapped instrument for substitute family. ins={0}", ins.toLongString());   //NOI18N
                 return ins;
             }
 
             // Search in the std banks for instruments whose GMSubstitute match
-            assert gmSubstitute != null : "rv=" + rv;
+            assert gmSubstitute != null : "rv=" + rv;   //NOI18N
             for (var bank : compatibleStdBanks)
             {
                 List<? extends Instrument> inss = bank.getInstrumentsFromSubstitute(gmSubstitute);
                 if (!inss.isEmpty())
                 {
                     ins = inss.get(0);
-                    LOGGER.log(Level.FINE, "findInstrument()    found in std bank using substitute. ins={0}", ins.toLongString());
+                    LOGGER.log(Level.FINE, "findInstrument()    found in std bank using substitute. ins={0}", ins.toLongString());   //NOI18N
                     return ins;
                 }
             }
@@ -565,7 +565,7 @@ public class OutputSynth implements Serializable
                     if (!inss.isEmpty())
                     {
                         ins = inss.get(0);
-                        LOGGER.log(Level.FINE, "findInstrument()    found in custom synth using substitute's family. ins={0}", ins.toLongString());
+                        LOGGER.log(Level.FINE, "findInstrument()    found in custom synth using substitute's family. ins={0}", ins.toLongString());   //NOI18N
                         return ins;
                     }
                 }
@@ -578,28 +578,28 @@ public class OutputSynth implements Serializable
                 if (!inss.isEmpty())
                 {
                     ins = inss.get(0);
-                    LOGGER.log(Level.FINE, "findInstrument()    found in std bank using substitute's family. ins={0}", ins.toLongString());
+                    LOGGER.log(Level.FINE, "findInstrument()    found in std bank using substitute's family. ins={0}", ins.toLongString());   //NOI18N
                     return ins;
                 }
             }
 
             // No possible conversion found
             ins = rvIns.getSubstitute();
-            LOGGER.log(Level.FINE, "findInstrument()    no conversion found. Using rv substitute. ins={0}", ins.toLongString());
+            LOGGER.log(Level.FINE, "findInstrument()    no conversion found. Using rv substitute. ins={0}", ins.toLongString());   //NOI18N
             return ins;
 
         } else
         {
             // Drums voices: use the DrumKit information
             DrumKit kit = rvIns.getDrumKit();
-            assert kit != null : "rv=" + rv;
+            assert kit != null : "rv=" + rv;   //NOI18N
 
             // Use the user-defined default instrument for drums/perc if DrumKit matches
             Instrument defaultIns = remapTable.getInstrument(rv.getType().equals(RhythmVoice.Type.DRUMS) ? GMRemapTable.DRUMS_INSTRUMENT : GMRemapTable.PERCUSSION_INSTRUMENT);
             if (defaultIns != null && kit.equals(defaultIns.getDrumKit()))
             {
                 ins = defaultIns;
-                LOGGER.log(Level.FINE, "findInstrument()    using the remap table (good DrumKit match) ins={0}", ins.toLongString());
+                LOGGER.log(Level.FINE, "findInstrument()    using the remap table (good DrumKit match) ins={0}", ins.toLongString());   //NOI18N
                 return defaultIns;
             }
 
@@ -612,7 +612,7 @@ public class OutputSynth implements Serializable
                     if (!inss.isEmpty())
                     {
                         ins = inss.get(0);
-                        LOGGER.log(Level.FINE, "findInstrument()    found in custom synth using drumkit. ins={0}", ins.toLongString());
+                        LOGGER.log(Level.FINE, "findInstrument()    found in custom synth using drumkit. ins={0}", ins.toLongString());   //NOI18N
                         return ins;
                     }
                 }
@@ -622,7 +622,7 @@ public class OutputSynth implements Serializable
             ins = StdInstrumentConverter.getInstance().findStandardDrumsInstrument(rvIns.getDrumKit(), compatibleStdBanks, false);
             if (ins != null)
             {
-                LOGGER.log(Level.FINE, "findInstrument()    found in std bank using drumkit. ins={0}", ins.toLongString());
+                LOGGER.log(Level.FINE, "findInstrument()    found in std bank using drumkit. ins={0}", ins.toLongString());   //NOI18N
                 return ins;
             }
 
@@ -635,7 +635,7 @@ public class OutputSynth implements Serializable
                     if (!inss.isEmpty())
                     {
                         ins = inss.get(0);
-                        LOGGER.log(Level.FINE, "findInstrument()    found in custom synth using drumkit. ins={0}", ins.toLongString());
+                        LOGGER.log(Level.FINE, "findInstrument()    found in custom synth using drumkit. ins={0}", ins.toLongString());   //NOI18N
                         return ins;
                     }
                 }
@@ -645,7 +645,7 @@ public class OutputSynth implements Serializable
             ins = StdInstrumentConverter.getInstance().findStandardDrumsInstrument(rvIns.getDrumKit(), compatibleStdBanks, true);
             if (ins != null)
             {
-                LOGGER.log(Level.FINE, "findInstrument()    found in std bank using drumkit. ins={0}", ins.toLongString());
+                LOGGER.log(Level.FINE, "findInstrument()    found in std bank using drumkit. ins={0}", ins.toLongString());   //NOI18N
                 return ins;
             }
 
@@ -653,13 +653,13 @@ public class OutputSynth implements Serializable
             if (defaultIns != null)
             {
                 ins = defaultIns;
-                LOGGER.log(Level.FINE, "findInstrument()    using the remap table for drums/perc. ins={0}", ins.toLongString());
+                LOGGER.log(Level.FINE, "findInstrument()    using the remap table for drums/perc. ins={0}", ins.toLongString());   //NOI18N
                 return ins;
             }
 
             // NOTHING correct found...
             ins = StdSynth.getInstance().getVoidInstrument();
-            LOGGER.log(Level.FINE, "findInstrument()    using VoidInstrument drums/perc. ins={0}", ins.toLongString());
+            LOGGER.log(Level.FINE, "findInstrument()    using VoidInstrument drums/perc. ins={0}", ins.toLongString());   //NOI18N
             return ins;
         }
     }
@@ -684,13 +684,13 @@ public class OutputSynth implements Serializable
     {
         if (ins == null || ins.getBank() == null || ins.getBank().getMidiSynth() == null)
         {
-            throw new IllegalArgumentException("ins=" + ins.toLongString());
+            throw new IllegalArgumentException("ins=" + ins.toLongString());   //NOI18N
         }
         InstrumentBank<?> bank = ins.getBank();
         MidiSynth synth = bank.getMidiSynth();
         if (!this.compatibleStdBanks.contains(bank) && !this.customSynths.contains(synth))
         {
-            throw new IllegalArgumentException("ins=" + ins.toLongString());
+            throw new IllegalArgumentException("ins=" + ins.toLongString());   //NOI18N
         }
         Instrument oldIns = userInstrument;
         if (oldIns != ins)
@@ -768,9 +768,9 @@ public class OutputSynth implements Serializable
     {
         if (f == null)
         {
-            throw new IllegalArgumentException("f=" + f);
+            throw new IllegalArgumentException("f=" + f);   //NOI18N
         }
-        LOGGER.fine("saveToFile() f=" + f.getAbsolutePath());
+        LOGGER.fine("saveToFile() f=" + f.getAbsolutePath());   //NOI18N
 
         File prevFile = getFile();
         setFile(f);
@@ -788,7 +788,7 @@ public class OutputSynth implements Serializable
         } catch (XStreamException e)
         {
             setFile(prevFile);
-            LOGGER.warning("saveToFile() exception=" + e.getLocalizedMessage());
+            LOGGER.warning("saveToFile() exception=" + e.getLocalizedMessage());   //NOI18N
             // Translate into an IOException to be handled by the Netbeans framework 
             throw new IOException("XStream XML marshalling error", e);
         }
@@ -922,7 +922,7 @@ public class OutputSynth implements Serializable
                 MidiSynth synth = MidiSynth.loadFromString(strSynth);
                 if (synth == null)
                 {
-                    LOGGER.warning("readResolve() Can't restore MidiSynth from save string: " + strSynth);
+                    LOGGER.warning("readResolve() Can't restore MidiSynth from save string: " + strSynth);   //NOI18N
                 } else
                 {
                     outSynth.addCustomSynth(synth);
@@ -931,13 +931,13 @@ public class OutputSynth implements Serializable
             if (!spCompatibleStdBankNames.contains("GM"))
             {
                 boolean b = outSynth.removeCompatibleStdBank(StdSynth.getInstance().getGM1Bank());  // Remove must be done last
-                assert b = true : "spCompatibleStdBankNames=" + spCompatibleStdBankNames + " spCustomSynthsStrings=" + spCustomSynthsStrings;
+                assert b = true : "spCompatibleStdBankNames=" + spCompatibleStdBankNames + " spCustomSynthsStrings=" + spCustomSynthsStrings;   //NOI18N
             }
             outSynth.remapTable = spRemapTable;
             outSynth.remapTable.setContainer(outSynth);
             if (spUserInstrument == null)
             {
-                LOGGER.warning("readResolve() spUserInstrument=" + spUserInstrument + ". Using default user instrument");
+                LOGGER.warning("readResolve() spUserInstrument=" + spUserInstrument + ". Using default user instrument");   //NOI18N
             } else
             {
                 outSynth.setUserInstrument(spUserInstrument);

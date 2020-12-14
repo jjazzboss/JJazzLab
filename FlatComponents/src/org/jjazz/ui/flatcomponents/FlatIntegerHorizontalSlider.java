@@ -59,7 +59,7 @@ import org.openide.windows.WindowManager;
 public class FlatIntegerHorizontalSlider extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener, PropertyChangeListener
 {
 
-    public static final String PROP_VALUE = "PropValue";
+    public static final String PROP_VALUE = "PropValue";   //NOI18N 
     /**
      * Client Property: top color, used to created the gradient
      */
@@ -376,7 +376,7 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
     {
         if (v < minValue || v > maxValue)
         {
-            throw new IllegalArgumentException("v=" + v);
+            throw new IllegalArgumentException("v=" + v);   //NOI18N
         }
         if (value != v)
         {
@@ -419,18 +419,18 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
     {
         int h = getKnobDiameter() + 10;
         Object o = getClientProperty(PROP_WH_RATIO);
-        LOGGER.fine("getPreferredSize() o=" + o + " o.getClass()=" + o.getClass());
+        LOGGER.fine("getPreferredSize() o=" + o + " o.getClass()=" + o.getClass());   //NOI18N
         float ratio = (Float) getClientProperty(PROP_WH_RATIO);
         int w = (int) (h * ratio);
         Dimension res = new Dimension(w, h);
-        LOGGER.fine("getPreferredSize() res=" + res);
+        LOGGER.fine("getPreferredSize() res=" + res);   //NOI18N
         return res;
     }
 
     @Override
     public void setEnabled(boolean b)
     {
-        LOGGER.fine("setEnabled() b=" + b);
+        LOGGER.fine("setEnabled() b=" + b);   //NOI18N
         if (isEnabled() && !b)
         {
             saveColorLine = getColorLine();
@@ -482,7 +482,7 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
     public void mouseDragged(MouseEvent e)
     {
         int x = e.getX();
-        LOGGER.fine("mouseDragged() x=" + x + " xValue=" + xValue + " value=" + value);
+        LOGGER.fine("mouseDragged() x=" + x + " xValue=" + xValue + " value=" + value);   //NOI18N
         if (!isEnabled() || !SwingUtilities.isLeftMouseButton(e))
         {
             return;
@@ -669,7 +669,7 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
         }
         if (r == -1)
         {
-            LOGGER.fine("parseString() text=" + text);
+            LOGGER.fine("parseString() text=" + text);   //NOI18N
         }
         return r;
     }

@@ -45,7 +45,7 @@ public class ConversionTable
     {
         if (id == null || id.isEmpty() || map == null || map.length == 0)
         {
-            throw new IllegalArgumentException("id=" + id + " map=" + map);
+            throw new IllegalArgumentException("id=" + id + " map=" + map);   //NOI18N
         }
         this.map = map;
     }

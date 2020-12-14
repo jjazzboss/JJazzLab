@@ -78,7 +78,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     {
         if (song == null || song.getChordLeadSheet() == null)
         {
-            throw new IllegalArgumentException("song=" + song);
+            throw new IllegalArgumentException("song=" + song);   //NOI18N
         }
         songModel = song;
         songModel.addPropertyChangeListener(this);

@@ -144,7 +144,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     {
         if (settings == null)
         {
-            throw new IllegalArgumentException("settings=" + settings);
+            throw new IllegalArgumentException("settings=" + settings);   //NOI18N
         }
         // Listen to settings change events
         this.settings = settings;
@@ -168,10 +168,10 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         cb_viewRhythms.setRenderer(new MyRenderer());
 
         // Connect to standard actions
-        // fbtn_muteAll.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.mastermuteall"));
-        fbtn_panic.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.panic"));
-        fbtn_switchAllMute.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.switchallmute"));
-        fbtn_allSoloOff.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.allsolooff"));
+        // fbtn_muteAll.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.mastermuteall"));   //NOI18N
+        fbtn_panic.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.panic"));   //NOI18N
+        fbtn_switchAllMute.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.switchallmute"));   //NOI18N
+        fbtn_allSoloOff.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.allsolooff"));   //NOI18N
 
         // Prepare the menu with smaller font
         menuBar = new MenuBar(DataFolder.findFolder(FileUtil.getConfigFile("Actions/MixConsole/MenuBar")));
@@ -246,7 +246,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     {
         if (songModel == null || r instanceof AdaptedRhythm || (r != null && !songModel.getSongStructure().getUniqueRhythms(true).contains(r)))
         {
-            throw new IllegalStateException("songModel=" + songModel + " r=" + r);
+            throw new IllegalStateException("songModel=" + songModel + " r=" + r);   //NOI18N
         }
         Rhythm oldVisibleRhythm = getVisibleRhythm();
         if (r != oldVisibleRhythm)
@@ -415,7 +415,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
-        LOGGER.fine("propertyChange() -- e=" + e);
+        LOGGER.fine("propertyChange() -- e=" + e);   //NOI18N
         if (e.getSource() == settings)
         {
             if (e.getPropertyName() == MixConsoleSettings.PROP_BACKGROUND_COLOR)
@@ -435,7 +435,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                 if (insMix == null)
                 {
                     // InstrumentMix was removed
-                    LOGGER.fine("propertyChange() InstrumentMix removed");
+                    LOGGER.fine("propertyChange() InstrumentMix removed");   //NOI18N
                     MixChannelPanel mcp = getMixChannelPanel(channel); // can be null if not visible
                     if (mcp != null)
                     {
@@ -448,7 +448,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                 } else if (oldInsMix == null)
                 {
                     // New InstrumentMix was added
-                    LOGGER.fine("propertyChange() InstrumentMix added insMix=" + insMix);
+                    LOGGER.fine("propertyChange() InstrumentMix added insMix=" + insMix);   //NOI18N
                     if (getVisibleRhythm() == null || getVisibleRhythm() == rv.getContainer())
                     {
                         addMixChannelPanel(songMidiMix, channel);
@@ -456,7 +456,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                 } else
                 {
                     // InstrumentMix is replacing an existing one
-                    LOGGER.fine("propertyChange() InstrumentMix replaced");
+                    LOGGER.fine("propertyChange() InstrumentMix replaced");   //NOI18N
                     MixChannelPanel mcp = getMixChannelPanel(channel);
                     if (mcp != null)
                     {
@@ -508,7 +508,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private void songPresenceChanged()
     {
         Song song = Utilities.actionsGlobalContext().lookup(Song.class);
-        LOGGER.log(Level.FINE, "songPresenceChanged() -- song=" + song + " songModel=" + songModel);
+        LOGGER.log(Level.FINE, "songPresenceChanged() -- song=" + song + " songModel=" + songModel);   //NOI18N
         if (songModel == song || song == null)
         {
             // Do nothing if same window or non song-editor-topcomponent got activated
@@ -525,7 +525,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         {
             String msg = ResUtil.getString(getClass(), "CTL_NoMidiMixFound", song.getName());
             msg += ".\n" + ex.getLocalizedMessage();
-            LOGGER.severe(msg);
+            LOGGER.severe(msg);   //NOI18N
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
@@ -534,7 +534,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         // Connect the song UndoManager to the MidiMix
         UndoManager um = JJazzUndoManagerFinder.getDefault().get(songModel);
-        assert um != null;
+        assert um != null;   //NOI18N
         songMidiMix.addUndoableEditListener(um);
 
         // Update the combobox
@@ -558,7 +558,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         // Add the visible channel panels
         addVisibleMixChannelPanels();
 
-        LOGGER.fine("   songMidiMix=" + songMidiMix);
+        LOGGER.fine("   songMidiMix=" + songMidiMix);   //NOI18N
     }
 
     private void addVisibleMixChannelPanels()
@@ -589,7 +589,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
     private MixChannelPanel createMixChannelPanelForRhythmVoice(MidiMix mm, int channel, RhythmVoice rv)
     {
-        LOGGER.fine("createMixChannelPanelForRhythmVoice() -- mm=" + mm + " channel=" + channel + " rv=" + rv);
+        LOGGER.fine("createMixChannelPanelForRhythmVoice() -- mm=" + mm + " channel=" + channel + " rv=" + rv);   //NOI18N
         MixChannelPanelModelImpl mcpModel = new MixChannelPanelModelImpl(mm, channel);
         MixChannelPanelControllerImpl mcpController = new MixChannelPanelControllerImpl(mm, channel);
         MixChannelPanel mcp = new MixChannelPanel(mcpModel, mcpController, settings);
@@ -665,7 +665,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
     private MixChannelPanel createMixChannelPanelForUserVoice(MidiMix mm, int channel)
     {
-        LOGGER.fine("createMixChannelPanelForUserVoice() -- mm=" + mm + " channel=" + channel);
+        LOGGER.fine("createMixChannelPanelForUserVoice() -- mm=" + mm + " channel=" + channel);   //NOI18N
         MixChannelPanelModelImpl mcpModel = new MixChannelPanelModelImpl(mm, channel);
         MixChannelPanelControllerImpl mcpController = new MixChannelPanelControllerImpl(mm, channel);
         MixChannelPanel mcp = new MixChannelPanel(mcpModel, mcpController, settings);
@@ -809,7 +809,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         {
             instanceContent.remove(songMidiMix);
             UndoManager um = JJazzUndoManagerFinder.getDefault().get(songModel);
-            assert um != null;
+            assert um != null;   //NOI18N
             songMidiMix.removeUndoableEditListener(um);
         }
         if (saveAsCapableSong != null)
@@ -836,7 +836,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
      */
     private void updateActiveState(boolean b)
     {
-        LOGGER.fine("updateActiveState() -- b=" + b);
+        LOGGER.fine("updateActiveState() -- b=" + b);   //NOI18N
         org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, menuBar);
         org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, panel_MasterControls);
     }

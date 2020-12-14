@@ -55,7 +55,7 @@ public class ChooseImporterDialog extends javax.swing.JDialog
     {
         if (fileExtension == null || fileExtension.isEmpty() || importers == null || importers.size() < 2)
         {
-            throw new IllegalArgumentException("fileExtension=" + fileExtension + " importers=" + importers);
+            throw new IllegalArgumentException("fileExtension=" + fileExtension + " importers=" + importers);   //NOI18N
         }
         list_importers.setListData(importers.toArray(new SongImporter[0]));
         list_importers.setSelectedIndex(0);
@@ -83,7 +83,7 @@ public class ChooseImporterDialog extends javax.swing.JDialog
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
 
@@ -94,7 +94,7 @@ public class ChooseImporterDialog extends javax.swing.JDialog
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
 

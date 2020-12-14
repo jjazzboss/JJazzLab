@@ -49,7 +49,7 @@ public class DebugArray<T> extends ArrayList<T>
     @Override
     public void add(int index, T e)
     {
-        LOGGER.log(Level.FINE, id + ":add(index,e) index={0} e={1}", new Object[]
+        LOGGER.log(Level.FINE, id + ":add(index,e) index={0} e={1}", new Object[]   //NOI18N
         {
             index, e
         });
@@ -59,14 +59,14 @@ public class DebugArray<T> extends ArrayList<T>
     @Override
     public boolean add(T e)
     {
-        LOGGER.log(Level.FINE, id + ":add(e) e={0}", e);
+        LOGGER.log(Level.FINE, id + ":add(e) e={0}", e);   //NOI18N
         return super.add(e);
     }
 
     @Override
     public T set(int index, T e)
     {
-        LOGGER.log(Level.FINE, id + ":set(index, e) index={0} e={1}", new Object[]
+        LOGGER.log(Level.FINE, id + ":set(index, e) index={0} e={1}", new Object[]   //NOI18N
         {
             index, e
         });
@@ -76,35 +76,35 @@ public class DebugArray<T> extends ArrayList<T>
     @Override
     public T remove(int index)
     {
-        LOGGER.log(Level.FINE, id + ":remove(index) index={0}", index);
+        LOGGER.log(Level.FINE, id + ":remove(index) index={0}", index);   //NOI18N
         return super.remove(index);
     }
 
     @Override
     public boolean remove(Object o)
     {
-        LOGGER.log(Level.FINE, id + ":remove(o) o={0}", o);
+        LOGGER.log(Level.FINE, id + ":remove(o) o={0}", o);   //NOI18N
         return super.remove(o);
     }
 
     @Override
     public void clear()
     {
-        LOGGER.log(Level.FINE, id + ":clear()");
+        LOGGER.log(Level.FINE, id + ":clear()");   //NOI18N
         super.clear();
     }
 
     @Override
     public boolean addAll(Collection<? extends T> c)
     {
-        LOGGER.log(Level.FINE, id + ":addAll(c) c={0}", c);
+        LOGGER.log(Level.FINE, id + ":addAll(c) c={0}", c);   //NOI18N
         return super.addAll(c);
     }
 
     @Override
     public boolean addAll(int index, Collection<? extends T> c)
     {
-        LOGGER.log(Level.FINE, id + ":addAll(index,c) index={0} c={1}", new Object[]
+        LOGGER.log(Level.FINE, id + ":addAll(index,c) index={0} c={1}", new Object[]   //NOI18N
         {
             index, c
         });
@@ -114,14 +114,14 @@ public class DebugArray<T> extends ArrayList<T>
     @Override
     public boolean removeAll(Collection<?> c)
     {
-        LOGGER.log(Level.FINE, id + ":removeAll(c) c={0}", c);
+        LOGGER.log(Level.FINE, id + ":removeAll(c) c={0}", c);   //NOI18N
         return super.removeAll(c);
     }
 
     @Override
     public boolean retainAll(Collection<?> c)
     {
-        LOGGER.log(Level.FINE, id + ":retainAll(c) c={0}", c);
+        LOGGER.log(Level.FINE, id + ":retainAll(c) c={0}", c);   //NOI18N
         return super.retainAll(c);
     }
 

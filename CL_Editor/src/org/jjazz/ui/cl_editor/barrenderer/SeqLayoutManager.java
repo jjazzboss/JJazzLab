@@ -39,7 +39,7 @@ public class SeqLayoutManager implements LayoutManager
     {
         if (!(parent instanceof BarRenderer))
         {
-            throw new IllegalArgumentException("parent=" + parent);
+            throw new IllegalArgumentException("parent=" + parent);   //NOI18N
         }
         BarRenderer br = (BarRenderer) parent;
         int barHeight = br.getDrawingArea().height;

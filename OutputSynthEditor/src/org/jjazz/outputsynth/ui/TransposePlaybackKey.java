@@ -31,6 +31,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.util.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -42,7 +43,7 @@ import org.openide.windows.WindowManager;
  * Transpose the leadsheet for playback.
  */
 @ActionID(category = "MusicControls", id = "org.jjazz.ui.musiccontrolactions.transposeplaybackkey")
-@ActionRegistration(displayName = "Transpose playback key", lazy = false)
+@ActionRegistration(displayName = "#CTL_TransposePlaybackKey", lazy = false)
 public class TransposePlaybackKey extends AbstractAction implements PropertyChangeListener
 {
 
@@ -85,7 +86,7 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
             mc.setPlaybackKeyTransposition(dlg.getPlaybackKeyTransposition());
             if (old != dlg.getPlaybackKeyTransposition() && mc.getState().equals(MusicController.State.PLAYING))
             {
-                String msg = "Change will take effect when current song play back is over.";
+                String msg = ResUtil.getString(getClass(),"CTL_ChangeWillTakeEffectAfter");
                 NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
             }
@@ -120,7 +121,7 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource(iconPath)));
 
 
-        String s = "Current playback key transposition: " + t;
+        String s = ResUtil.getString(getClass(),"CTL_CurrentPlaybackTransposition", t);
         putValue(Action.SHORT_DESCRIPTION, s);
 
     }

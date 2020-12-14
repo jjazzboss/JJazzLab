@@ -25,7 +25,6 @@ package org.jjazz.ui.ss_editor.actions;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -33,7 +32,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
-import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -41,12 +39,12 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.HideIfDisabledAction;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.undomanager.JJazzUndoManager;
+import org.jjazz.util.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.removerhythmchange")
 @ActionRegistration(displayName = "not_used", lazy = false)
@@ -54,13 +52,12 @@ import org.jjazz.undomanager.JJazzUndoManager;
         {
             @ActionReference(path = "Actions/SongPart", position = 90),
         })
-@Messages("CTL_RemoveRhythmChange=Remove Rhythm Change")
 public class RemoveRhythmChange extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, HideIfDisabledAction
 {
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = CTL_RemoveRhythmChange();
+    private String undoText = ResUtil.getString(getClass(), "CTL_RemoveRhythmChange");
     private static final Logger LOGGER = Logger.getLogger(RemoveRhythmChange.class.getSimpleName());
 
     public RemoveRhythmChange()
@@ -73,7 +70,7 @@ public class RemoveRhythmChange extends AbstractAction implements ContextAwareAc
         this.context = context;
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
-        putValue(NAME, CTL_RemoveRhythmChange());
+        putValue(NAME, undoText);
         selectionChange(cap.getSelection());
     }
 
@@ -115,7 +112,8 @@ public class RemoveRhythmChange extends AbstractAction implements ContextAwareAc
         } catch (UnsupportedEditException ex)
         {
             // We possibly removed 1 rhythm, can't be here
-            String msg = "Impossible to remove rhythm change.\n" + ex.getLocalizedMessage();
+            String msg = ResUtil.getString(getClass(), "ERR_CantRemoveRhythmChange");
+            msg += "\n" + ex.getLocalizedMessage();
             um.handleUnsupportedEditException(undoText, msg);
             return;
         }

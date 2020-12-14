@@ -36,7 +36,6 @@ import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.JDialog;
 import javax.swing.KeyStroke;
-import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
@@ -48,11 +47,11 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.util.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.editsptname")
 @ActionRegistration(displayName = "#CTL_EditSptName", lazy = false)
@@ -60,13 +59,12 @@ import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
         {
             @ActionReference(path = "Actions/SongPart", position = 50)
         })
-@NbBundle.Messages("CTL_EditSptName=Rename...")
 public class EditSptName extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = CTL_EditSptName();
+    private String undoText = ResUtil.getString(getClass(), "CTL_EditSptName");
     private static final Logger LOGGER = Logger.getLogger(EditSptName.class.getSimpleName());
 
     public EditSptName()
@@ -81,7 +79,7 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, S
         cap.addListener(this);
         putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("ENTER"));
-        LOGGER.log(Level.FINE, "constructor called");
+        LOGGER.log(Level.FINE, "constructor called");   //NOI18N
         selectionChange(cap.getSelection());
     }
 
@@ -89,7 +87,7 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, S
     public void actionPerformed(ActionEvent e)
     {
         SS_SelectionUtilities selection = cap.getSelection();
-        LOGGER.log(Level.FINE, "actionPerformed() selection=" + selection.toString());
+        LOGGER.log(Level.FINE, "actionPerformed() selection=" + selection.toString());   //NOI18N
         List<SongPart> spts = selection.getIndirectlySelectedSongParts();
         SongPart spt0 = spts.get(0);
         SongStructure sgs = selection.getModel();
@@ -115,7 +113,7 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, S
     public void selectionChange(SS_SelectionUtilities selection)
     {
         boolean b = selection.isOneSectionSptSelection();
-        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   //NOI18N
         setEnabled(b);
     }
 

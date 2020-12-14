@@ -37,10 +37,6 @@ import org.openide.util.Lookup;
         keywordsCategory = "General",
         position = 400
 )
-@org.openide.util.NbBundle.Messages(
-        {
-            "OptionsCategory_Name_General=General", "OptionsCategory_Keywords_General=General Options"
-        })
 public final class GeneralOptionsPanelController extends OptionsPanelController
 {
 

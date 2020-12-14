@@ -31,11 +31,8 @@ import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.songeditormanager.StartupShutdownSongManager;
 import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.ui.utilities.Utilities;
-import org.openide.util.NbBundle.Messages;
 
-@Messages(
-        {
-        })
+
 final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
 
@@ -64,7 +61,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.log(Level.FINE, "PropertyChangeEvent() evt={0}", evt);
+        LOGGER.log(Level.FINE, "PropertyChangeEvent() evt={0}", evt);   //NOI18N
         FileDirectoryManager fdm = FileDirectoryManager.getInstance();
         if (evt.getSource() == fdm)
         {
@@ -137,7 +134,6 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         });
 
         tf_defaultRhythmMixDir.setEditable(false);
-        tf_defaultRhythmMixDir.setText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.tf_defaultRhythmMixDir.text")); // NOI18N
 
         jScrollPane1.setBorder(null);
 

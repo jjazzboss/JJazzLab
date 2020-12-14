@@ -149,7 +149,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     {
         if (preset == null || cls == null || barIndx < 0 || barIndx >= cls.getSize())
         {
-            throw new IllegalArgumentException("preset=" + preset + " cls=" + cls + " barIndx=" + barIndx + " swing=" + swing);
+            throw new IllegalArgumentException("preset=" + preset + " cls=" + cls + " barIndx=" + barIndx + " swing=" + swing);   //NOI18N
         }
 
         cleanup();
@@ -356,7 +356,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                     return (i1.getData().equals(i2.getData())) ? 0 : 1;
                 }
             });
-            LOGGER.log(Level.FINE, "Diff model=" + modelCsList + " newItems=" + newItems);
+            LOGGER.log(Level.FINE, "Diff model=" + modelCsList + " newItems=" + newItems);   //NOI18N
             for (Difference aDiff : diffResult)
             {
                 if (aDiff.getType() == Difference.ResultType.ADDED)
@@ -364,14 +364,14 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                     for (int i = aDiff.getAddedStart(); i <= aDiff.getAddedEnd(); i++)
                     {
                         resultAddedItems.add(newItems.get(i));
-                        LOGGER.log(Level.FINE, "adding " + newItems.get(i));
+                        LOGGER.log(Level.FINE, "adding " + newItems.get(i));   //NOI18N
                     }
                 } else if (aDiff.getType() == Difference.ResultType.DELETED)
                 {
                     for (int i = aDiff.getDeletedStart(); i <= aDiff.getDeletedEnd(); i++)
                     {
                         resultRemovedItems.add(modelCsList.get(i));
-                        LOGGER.log(Level.FINE, "removing " + modelCsList.get(i));
+                        LOGGER.log(Level.FINE, "removing " + modelCsList.get(i));   //NOI18N
                     }
                 } else
                 {
@@ -381,7 +381,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                     do
                     {
                         resultMapChangedChordSymbols.put(modelCsList.get(d), newItems.get(a).getData());
-                        LOGGER.log(Level.FINE, "changing " + modelCsList.get(d) + " to " + newItems.get(a));
+                        LOGGER.log(Level.FINE, "changing " + modelCsList.get(d) + " to " + newItems.get(a));   //NOI18N
                         d++;
                         a++;
                     } while (d <= aDiff.getDeletedEnd());
@@ -451,7 +451,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     protected JRootPane createRootPane()
     {
         JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   //NOI18N
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
             @Override
@@ -461,7 +461,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   //NOI18N
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
             @Override
@@ -471,7 +471,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
             }
         });
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl Z"), "actionUndo");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl Z"), "actionUndo");   //NOI18N
         contentPane.getActionMap().put("actionUndo", new AbstractAction("Undo")
         {
             @Override
@@ -480,7 +480,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                 actionUndo();
             }
         });
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl Y"), "actionRedo");
+        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl Y"), "actionRedo");   //NOI18N
         contentPane.getActionMap().put("actionRedo", new AbstractAction("Redo")
         {
             @Override
@@ -495,7 +495,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     private void selectChordSymbol(CLI_ChordSymbol item)
     {
         int index = modelCsList.indexOf(item);
-        assert index >= 0 : " modelCsList=" + modelCsList + " item=" + item;
+        assert index >= 0 : " modelCsList=" + modelCsList + " item=" + item;   //NOI18N
         String[] rawStrings = jtfChordSymbols.getText().split("\\s+");
         int start = 0;
         for (int i = 0; i < index; i++)

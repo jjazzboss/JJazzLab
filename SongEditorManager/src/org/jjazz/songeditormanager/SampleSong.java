@@ -71,7 +71,7 @@ public final class SampleSong implements ActionListener
     {
         if (name == null || name.isEmpty() || clsSize < 12 || !TempoRange.checkTempo(tempo))
         {
-            throw new IllegalArgumentException("name=" + name + " clsSize=" + clsSize + " tempo=" + tempo);
+            throw new IllegalArgumentException("name=" + name + " clsSize=" + clsSize + " tempo=" + tempo);   //NOI18N
         }
         ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
         ChordLeadSheet cls = clsf.createSampleLeadSheet12bars("A", clsSize);
@@ -83,7 +83,7 @@ public final class SampleSong implements ActionListener
         } catch (UnsupportedEditException ex)
         {
             // We should not be here for a simple song !
-            LOGGER.log(Level.WARNING, "createSample12BarsSong() Unexpected exception", ex);
+            LOGGER.log(Level.WARNING, "createSample12BarsSong() Unexpected exception", ex);   //NOI18N
             song = sf.createEmptySong(name);
         }
         song.setTempo(tempo);

@@ -30,11 +30,10 @@ import javax.swing.ImageIcon;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.songstructure.api.SgsChangeListener;
-import static org.jjazz.ui.ss_editor.actions.Bundle.*;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
+import org.jjazz.util.ResUtil;
 
 //@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.showhiderps")
 //@ActionRegistration(displayName = "#CTL_ShowHideRp", lazy=false) // lazy=false to have the tooltip defined
@@ -45,15 +44,9 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
 ////            @ActionReference(path = "Actions/SS_Editor", position = 3000, separatorBefore = 2990),
 //            @ActionReference(path = "Actions/SS_EditorToolBar", position = 200, separatorAfter = 201)
 //        })
-
 /**
  * The action can't be instanciated declaratively because there must be one action per editor and action is stateful.
  */
-@NbBundle.Messages(
-        {
-            "CTL_ShowHideRp=Parameters",
-            "DESC_ShowHideRp=Show/Hide Parameters"
-        })
 public class ShowHideRp extends AbstractAction implements SgsChangeListener
 {
 
@@ -66,14 +59,14 @@ public class ShowHideRp extends AbstractAction implements SgsChangeListener
     {
         if (editor == null)
         {
-            throw new NullPointerException("editor");
+            throw new NullPointerException("editor");   //NOI18N
         }
         this.editor = editor;
         this.editor.addPropertyChangeListener(SS_Editor.PROP_VISIBLE_RPS, evt -> updateIcon());
 
         putValue("hideActionText", true);
-        putValue(NAME, CTL_ShowHideRp());
-        putValue(SHORT_DESCRIPTION, Bundle.DESC_ShowHideRp());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_ShowHideRp"));
+        putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "DESC_ShowHideRp"));
         updateIcon();
 
         // Maintain the action disabled when no song part 
@@ -88,7 +81,7 @@ public class ShowHideRp extends AbstractAction implements SgsChangeListener
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.log(Level.FINE, "actionPerformed()");
+        LOGGER.log(Level.FINE, "actionPerformed()");   //NOI18N
         ShowHideRpsDialog dlg = ShowHideRpsDialog.getInstance();
         dlg.setModel(editor);
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
@@ -119,18 +112,17 @@ public class ShowHideRp extends AbstractAction implements SgsChangeListener
         if (hidden > 0)
         {
             putValue(SMALL_ICON, ICON_BIS);
-            putValue(SHORT_DESCRIPTION, Bundle.DESC_ShowHideRp() + " (" + hidden + " hidden parameters)");
+            putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "DESC_ShowHideRpHidden", hidden));
         } else
         {
             putValue(SMALL_ICON, ICON);
-            putValue(SHORT_DESCRIPTION, Bundle.DESC_ShowHideRp());
+            putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "DESC_ShowHideRp"));
         }
     }
 
     // =================================================================================
     // SgsChangeListener implementation
     // =================================================================================
-
     @Override
     public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
     {

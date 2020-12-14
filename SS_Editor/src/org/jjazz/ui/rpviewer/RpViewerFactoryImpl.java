@@ -55,7 +55,7 @@ public class RpViewerFactoryImpl implements RpViewerFactory
     {
         if (!spt.getRhythm().getRhythmParameters().contains(rp))
         {
-            throw new IllegalStateException("type=" + type + " spt=" + spt + " rp=" + rp);
+            throw new IllegalStateException("type=" + type + " spt=" + spt + " rp=" + rp);   //NOI18N
         }
         RpViewer e = null;
         switch (type)
@@ -87,7 +87,7 @@ public class RpViewerFactoryImpl implements RpViewerFactory
                 }, settings);
                 break;
             default:
-                throw new IllegalStateException("type=" + type);
+                throw new IllegalStateException("type=" + type);   //NOI18N
         }
         return e;
     }

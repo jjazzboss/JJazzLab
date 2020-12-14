@@ -62,7 +62,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
     {
         if (cls == null)
         {
-            throw new IllegalArgumentException("cls=" + cls);
+            throw new IllegalArgumentException("cls=" + cls);   //NOI18N
         }
 
         SongStructureImpl sgs = new SongStructureImpl(cls, keepSgsUpdated);
@@ -84,7 +84,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
             } catch (UnavailableRhythmException ex)
             {
                 // Might happen if file deleted
-                LOGGER.warning("createSgs() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getLocalizedMessage());
+                LOGGER.warning("createSgs() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getLocalizedMessage());   //NOI18N
                 r = rdb.getDefaultStubRhythmInstance(section.getData().getTimeSignature());  // non null
             }
 
@@ -118,10 +118,10 @@ public class SongStructureFactoryImpl extends SongStructureFactory
         } catch (UnavailableRhythmException ex)
         {
             // Might happen if file deleted
-            LOGGER.warning("createSimpleSgs() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getLocalizedMessage());
+            LOGGER.warning("createSimpleSgs() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getLocalizedMessage());   //NOI18N
             r = rdb.getDefaultStubRhythmInstance(TimeSignature.FOUR_FOUR);  // non null
         }
-        assert r != null;
+        assert r != null;   //NOI18N
         SongPart spt = sgs.createSongPart(r, "Name", 0, 8, null, false);
         try
         {
@@ -129,7 +129,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
         } catch (UnsupportedEditException ex)
         {
             // This should not happen for a simple SGS.
-            throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);
+            throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);   //NOI18N
         }
         return sgs;
     }

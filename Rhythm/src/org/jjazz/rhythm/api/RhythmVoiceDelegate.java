@@ -47,7 +47,7 @@ public class RhythmVoiceDelegate extends RhythmVoice
     {
         if (container == null || rvSource == null || rvSource.getContainer() == container)
         {
-            throw new IllegalArgumentException("container=" + container + " rvSource=" + rvSource);
+            throw new IllegalArgumentException("container=" + container + " rvSource=" + rvSource);   //NOI18N
         }
         if (!rvSource.isDrums())
         {

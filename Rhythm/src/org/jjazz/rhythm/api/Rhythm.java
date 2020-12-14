@@ -41,7 +41,7 @@ import org.openide.util.Lookup;
 public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
 {
 
-    public static final String PROP_RESOURCES_LOADED = "ResourcesLoaded";
+    public static final String PROP_RESOURCES_LOADED = "ResourcesLoaded";   //NOI18N 
 
     /**
      * The general features of this rhythm.

@@ -60,7 +60,7 @@ public final class MidiWizardVisualPanel4 extends JPanel
 
     private void sendTestNotes(int channel)
     {
-        assert midiDeviceOut != null;
+        assert midiDeviceOut != null;   //NOI18N
 
         final JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
         final MidiDevice saveDeviceOut = jms.getDefaultOutDevice();

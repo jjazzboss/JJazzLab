@@ -76,7 +76,7 @@ public class RhythmStub implements Rhythm
     {
         if (uniqueId == null || uniqueId.trim().isEmpty() || ts == null)
         {
-            throw new IllegalArgumentException("uniqueId=" + uniqueId + " ts=" + ts);
+            throw new IllegalArgumentException("uniqueId=" + uniqueId + " ts=" + ts);   //NOI18N
         }
 
         this.uniqueId = uniqueId;

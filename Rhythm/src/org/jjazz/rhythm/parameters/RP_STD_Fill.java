@@ -23,18 +23,13 @@
 package org.jjazz.rhythm.parameters;
 
 import org.jjazz.rhythm.api.Rhythm;
-import org.openide.util.NbBundle;
 import static org.jjazz.rhythm.parameters.Bundle.*;
+import org.jjazz.util.ResUtil;
 
 /**
  * Standard RhythmParameter: is there a fill at the end of a SongPart.
  * <p>
  */
-@NbBundle.Messages(
-        {
-            "CTL_RpFillName=Fill",
-            "CTL_RpFillDesc=Add a rhythm fill at last bar",
-        })
 public class RP_STD_Fill extends RP_State
 {
 
@@ -49,19 +44,19 @@ public class RP_STD_Fill extends RP_State
      */
     public RP_STD_Fill()
     {
-        super(ID, CTL_RpFillName(), CTL_RpFillDesc(), "", "", VALUE_ALWAYS, VALUE_RANDOM, VALUE_RANDOM_RARE, VALUE_BREAK);
+        super(ID, ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillDesc"), "", "", VALUE_ALWAYS, VALUE_RANDOM, VALUE_RANDOM_RARE, VALUE_BREAK);
     }
 
     public RP_STD_Fill(String defaultVal, String... possibleValues)
     {
-        super(ID, CTL_RpFillName(), CTL_RpFillDesc(), defaultVal, possibleValues);
+        super(ID, ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillDesc"), defaultVal, possibleValues);
     }
 
     static public RP_STD_Fill getFillRp(Rhythm rhythm)
     {
         if (rhythm == null)
         {
-            throw new NullPointerException("r");
+            throw new NullPointerException("r");   //NOI18N
         }
         return (RP_STD_Fill) rhythm.getRhythmParameters()
                 .stream()

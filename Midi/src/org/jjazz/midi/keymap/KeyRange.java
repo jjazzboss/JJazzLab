@@ -36,7 +36,7 @@ public class KeyRange
     {
         if (low < 0 || high > 127 || low > high)
         {
-            throw new IllegalArgumentException("low=" + low + " high=" + high);
+            throw new IllegalArgumentException("low=" + low + " high=" + high);   //NOI18N
         }
         lowNote = low;
         highNote = high;

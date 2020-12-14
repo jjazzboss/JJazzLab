@@ -50,7 +50,7 @@ public class STUBAdaptedRhythm implements AdaptedRhythm
     {
         if (rs == null)
         {
-            throw new IllegalArgumentException("rs=" + rs);
+            throw new IllegalArgumentException("rs=" + rs);   //NOI18N
         }
         sourceRhythm = rs;
         timeSignature = ts;

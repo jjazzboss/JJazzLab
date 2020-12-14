@@ -289,7 +289,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
-        LOGGER.fine("propertyChange() e=" + e);
+        LOGGER.fine("propertyChange() e=" + e);   //NOI18N
         if (e.getSource() == settings)
         {
             tf_name.setFont(settings.getNameFont());
@@ -318,7 +318,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
             SongPart spt = (SongPart) e.getSource();
             if (!songParts.contains(spt))
             {
-                throw new IllegalStateException("spt=" + spt + " songParts=" + songParts);
+                throw new IllegalStateException("spt=" + spt + " songParts=" + songParts);   //NOI18N
             }
             if (e.getPropertyName() == SongPart.PROPERTY_NAME
                     || e.getPropertyName() == SongPart.PROPERTY_NB_BARS
@@ -377,7 +377,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
             // SongPart selection. Nothing to do
         }
 
-        LOGGER.log(Level.FINE, "refresh() spts=" + spts);
+        LOGGER.log(Level.FINE, "refresh() spts=" + spts);   //NOI18N
 
         // Unregister previous songParts
         for (SongPart spt : songParts)
@@ -423,7 +423,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
      */
     private void sptPresenceChanged()
     {
-        LOGGER.log(Level.FINE, "sptPresenceChanged()");
+        LOGGER.log(Level.FINE, "sptPresenceChanged()");   //NOI18N
         refresh(rlEditor.getLookup());
     }
 
@@ -432,7 +432,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
      */
     private void sptpPresenceChanged()
     {
-        LOGGER.log(Level.FINE, "sptpPresenceChanged()");
+        LOGGER.log(Level.FINE, "sptpPresenceChanged()");   //NOI18N
         refresh(rlEditor.getLookup());
     }
 
@@ -443,7 +443,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
      */
     private void songPresenceChanged()
     {
-        LOGGER.log(Level.FINE, "songPresenceChanged()");
+        LOGGER.log(Level.FINE, "songPresenceChanged()");   //NOI18N
         Song song = Utilities.actionsGlobalContext().lookup(Song.class);
         if (song == songModel || song == null)
         {
@@ -462,7 +462,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         instanceContent.add(songModel.getChordLeadSheet());
 
         rlEditor = SS_EditorTopComponent.get(songModel.getSongStructure()).getSS_Editor();
-        assert rlEditor != null : "songModel=" + songModel;
+        assert rlEditor != null : "songModel=" + songModel;   //NOI18N
 
         // Directly listen to the sgsModel editor selection changes
         Lookup context = rlEditor.getLookup();
@@ -482,7 +482,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
     {
         if (songParts.isEmpty())
         {
-            throw new IllegalStateException("isEnabled()=" + isEnabled() + " songParts=" + songParts);
+            throw new IllegalStateException("isEnabled()=" + isEnabled() + " songParts=" + songParts);   //NOI18N
         }
 
         // SongParts can have different rhythms
@@ -644,7 +644,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
 
     private String getParentSectionText(SongPart spt)
     {
-        assert spt != null;
+        assert spt != null;   //NOI18N
         Section section = spt.getParentSection().getData();
         return CTL_LinkedTo() + section.getName() + " [" + section.getTimeSignature() + "] "
                 + CTL_Start() + spt.getStartBarIndex() + " " + CTL_Size() + spt.getNbBars();

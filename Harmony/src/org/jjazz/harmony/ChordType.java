@@ -117,7 +117,7 @@ final public class ChordType
         if ((b == null) || (e == null) || !checkDegree(i9) || !checkDegree(i3) || !checkDegree(i11)
                 || !checkDegree(i5) || !checkDegree(i13) || !checkDegree(i7))
         {
-            throw new IllegalArgumentException("b=" + b + " e=" + e + " f=" + f + " i9=" + i9 + " i3=" + i3 + " i11=" + i11 + " i5=" + i5 + " i13=" + i13 + " i7=" + i7);
+            throw new IllegalArgumentException("b=" + b + " e=" + e + " f=" + f + " i9=" + i9 + " i3=" + i3 + " i11=" + i11 + " i5=" + i5 + " i13=" + i13 + " i7=" + i7);   //NOI18N
         }
 
         base = b;
@@ -133,7 +133,7 @@ final public class ChordType
         if (i3 != NOT_PRESENT)
         {
             // THIRD
-            assert i3 != +1;
+            assert i3 != +1;   //NOI18N
             chord.add(new Note(4 + i3));
             degrees.add(Degree.getDegree(Degree.Natural.THIRD, i3));
         }
@@ -163,7 +163,7 @@ final public class ChordType
 
         if (i7 != NOT_PRESENT)
         {
-            assert i7 != +1;
+            assert i7 != +1;   //NOI18N
             chord.add(new Note(11 + i7));
             Degree d = Degree.getDegree(Degree.Natural.SEVENTH, i7);
             degrees.add(d);
@@ -179,7 +179,7 @@ final public class ChordType
         if (i11 != NOT_PRESENT && !(i11 == 0 && i3 == NOT_PRESENT))
         {
             // ELEVENTH, Cm11, C7M#11
-            assert i11 != -1
+            assert i11 != -1   //NOI18N
                     && !(i3 == 0 && i11 == 0) // Can't have a 3rd degree with a sus4 chord
                     && !(i3 == NOT_PRESENT && i11 != 0);        // if no 3rd then it must be a sus4
             chord.add(new Note(5 + i11));
@@ -189,7 +189,7 @@ final public class ChordType
 
         if (i13 != NOT_PRESENT && !(i13 == 0 && i7 == NOT_PRESENT))
         {
-            assert i13 != 1;
+            assert i13 != 1;   //NOI18N
             chord.add(new Note(9 + i13));
             Degree d = Degree.getDegree(Degree.Natural.SIXTH, i13);
             degrees.add(d);
@@ -231,7 +231,7 @@ final public class ChordType
     {
         if (d == null)
         {
-            throw new NullPointerException("d");
+            throw new NullPointerException("d");   //NOI18N
         }
         int index = degrees.indexOf(d);
         if (index == -1)
@@ -324,7 +324,7 @@ final public class ChordType
     {
         if (relPitch < 0 || relPitch > 11)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch);
+            throw new IllegalArgumentException("relPitch=" + relPitch);   //NOI18N
         }
         for (Degree d : degrees)
         {
@@ -371,7 +371,7 @@ final public class ChordType
     {
         if (relPitch < 0 || relPitch > 11)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch);
+            throw new IllegalArgumentException("relPitch=" + relPitch);   //NOI18N
         }
         Degree d = getDegree(relPitch);
         if (d == null)
@@ -476,7 +476,7 @@ final public class ChordType
                 mostImportantDegrees.add(DegreeIndex.EXTENSION3);
             }
         }
-        LOGGER.fine("getMostImportantDegreeIndexes() this=" + this + " result=" + mostImportantDegrees);
+        LOGGER.fine("getMostImportantDegreeIndexes() this=" + this + " result=" + mostImportantDegrees);   //NOI18N
         return new ArrayList<DegreeIndex>(mostImportantDegrees);
     }
 
@@ -493,7 +493,7 @@ final public class ChordType
      */
     public Degree fitDegree(Degree d)
     {
-        LOGGER.fine("fitDegree() -- d=" + d + " this=" + this);
+        LOGGER.fine("fitDegree() -- d=" + d + " this=" + this);   //NOI18N
 
         // Try natural degree match 
         Degree destDegree = getDegree(d.getNatural());
@@ -512,7 +512,7 @@ final public class ChordType
             destDegree = getDegree(Natural.SEVENTH);
         }
 
-        LOGGER.fine("fitDegree()  destDegree=" + destDegree);
+        LOGGER.fine("fitDegree()  destDegree=" + destDegree);   //NOI18N
         return destDegree;
     }
 
@@ -534,7 +534,7 @@ final public class ChordType
      */
     public Degree fitDegreeAdvanced(Degree d, StandardScaleInstance optScale)
     {
-        LOGGER.fine("fitDegreeAdvanced() -- d=" + d + " this=" + this + " scales=" + optScale);
+        LOGGER.fine("fitDegreeAdvanced() -- d=" + d + " this=" + this + " scales=" + optScale);   //NOI18N
 
         // Try natural degree match 
         Degree destDegree = fitDegree(d);
@@ -611,7 +611,7 @@ final public class ChordType
                 case FIFTH:
                 case FIFTH_SHARP:
                     // We should never be here : all chord types have a fifth defined
-                    throw new IllegalStateException("We should not end up here ! d=" + d + " this=" + this + " scales=" + optScale);
+                    throw new IllegalStateException("We should not end up here ! d=" + d + " this=" + this + " scales=" + optScale);   //NOI18N
                 case THIRTEENTH_FLAT:
                     // Thirteenth natural can only be naturally mapped on b13, 13 or #5 chord types. If we're here this chord type is different.
                     destDegree = getDegree(Degree.Natural.FIFTH);            // go to 5 or b5
@@ -642,13 +642,13 @@ final public class ChordType
                     }
                     break;
                 default:
-                    throw new IllegalStateException("d=" + d + " this=" + this + " scales=" + optScale);
+                    throw new IllegalStateException("d=" + d + " this=" + this + " scales=" + optScale);   //NOI18N
             }
         }
 
-        assert destDegree != null : "destDegree is null ! d=" + d + " this=" + this + " scales=" + optScale;
+        assert destDegree != null : "destDegree is null ! d=" + d + " this=" + this + " scales=" + optScale;   //NOI18N
 
-        LOGGER.fine("fitDegreeAdvanced()  destDegree=" + destDegree);
+        LOGGER.fine("fitDegreeAdvanced()  destDegree=" + destDegree);   //NOI18N
         return destDegree;
     }
 
@@ -670,7 +670,7 @@ final public class ChordType
                 case THIRD_OR_FOURTH:
                 case FIFTH:
                     // We should not be here because all chords must have those degrees defined 
-                    throw new IllegalStateException("di=" + di);
+                    throw new IllegalStateException("di=" + di);   //NOI18N
                 case SIXTH_OR_SEVENTH:
                     d = fitDegreeAdvanced(Degree.SEVENTH, optScale);       // 7 suits most chords...
                     break;
@@ -682,7 +682,7 @@ final public class ChordType
                     d = fitDegreeAdvanced(Degree.SIXTH_OR_THIRTEENTH, optScale);
                     break;
                 default:
-                    throw new IllegalStateException("di=" + di);
+                    throw new IllegalStateException("di=" + di);   //NOI18N
             }
         }
         return d;

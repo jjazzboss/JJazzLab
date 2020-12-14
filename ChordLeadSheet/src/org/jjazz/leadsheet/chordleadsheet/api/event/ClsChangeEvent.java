@@ -53,7 +53,7 @@ public abstract class ClsChangeEvent
     {
         if (src == null)
         {
-            throw new IllegalArgumentException("src=" + src);
+            throw new IllegalArgumentException("src=" + src);   //NOI18N
         }
         source = src;
         items = new ArrayList<>();
@@ -75,7 +75,7 @@ public abstract class ClsChangeEvent
         this(src);
         if (items == null)
         {
-            throw new NullPointerException("src=" + src + " items=" + items);
+            throw new NullPointerException("src=" + src + " items=" + items);   //NOI18N
         }
         this.items.addAll(ChordLeadSheetItem.Utilities.sortByPosition(items));
     }
