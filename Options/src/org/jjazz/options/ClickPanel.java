@@ -207,7 +207,6 @@ final class ClickPanel extends javax.swing.JPanel
 
         rbtn_group_precount.add(rbtn_precount1);
         org.openide.awt.Mnemonics.setLocalizedText(rbtn_precount1, org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.rbtn_precount1.text")); // NOI18N
-        rbtn_precount1.setToolTipText(org.openide.util.NbBundle.getMessage(ClickPanel.class, "ClickPanel.rbtn_precount1.toolTipText")); // NOI18N
 
         jScrollPane2.setBorder(null);
 

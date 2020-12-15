@@ -74,7 +74,7 @@ public class ChordTypeDatabase
         // MAJOR
         addBuiltin("", "", MAJ, ":M:maj:MAJ:Maj:bass:Bass:BASS:1+8:1+5:5:", NP, 0, NP, 0, NP, NP);
         addBuiltin("2", "", MAJ, ":add9:1+2+5:sus2:add2:", 0, 0, NP, 0, NP, NP);
-        addBuiltin("+", "", MAJ, ":maj#5:maj+5:M#5:ma#5:ma+5:aug:#5:", NP, 0, NP, 1, NP, NP);
+        addBuiltin("+", "", MAJ, ":maj#5:maj+5:M#5:ma#5:ma+5:aug:", NP, 0, NP, 1, NP, NP);
         addBuiltin("6", "", MAJ, ":maj6:MAJ6:Maj6:M6:", NP, 0, NP, 0, 0, NP);
         addBuiltin("6", "9", MAJ, ":M69:ma69:maj69:MAJ69:Maj6(9):", 0, 0, NP, 0, 0, NP);
         addBuiltin("M7", "", MAJ, ":7M:maj7:ma7:MAJ7:Maj7:", NP, 0, NP, 0, NP, 0);

@@ -118,7 +118,6 @@ public final class MidiWizardVisualPanelStart extends JPanel
         jPanel4.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
         lbl_image.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/helpers/midiwizard/resources/MidiWizard-image0.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_image, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanelStart.class, "MidiWizardVisualPanelStart.lbl_image.text")); // NOI18N
         jPanel4.add(lbl_image);
 
         jScrollPane1.setBorder(null);

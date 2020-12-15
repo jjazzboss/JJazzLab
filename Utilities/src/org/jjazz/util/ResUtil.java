@@ -43,7 +43,7 @@ public class ResUtil
      * @param params Optional parameters to be used if the resource string is a compound message
      * @return
      */
-    static public String getString(Class cl, String key, Object... params)
+    static public String getString(Class<?> cl, String key, Object... params)
     {
         ResourceBundle bundle = getBundle(cl);
         String s = bundle.getString(key);
@@ -57,7 +57,7 @@ public class ResUtil
      * @param cl
      * @return
      */
-    static public ResourceBundle getBundle(Class cl)
+    static public ResourceBundle getBundle(Class<?> cl)
     {
         // LOGGER.severe("cl.getPackageName()=" + cl.getPackageName()+" module="+cl.getModule());
         return ResourceBundle.getBundle(cl.getPackageName().replace('.', '/') + "/Bundle", cl.getModule());

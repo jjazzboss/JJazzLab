@@ -116,7 +116,6 @@ public class PresetConfirmDialog extends javax.swing.JDialog
         setTitle(org.openide.util.NbBundle.getMessage(PresetConfirmDialog.class, "PresetConfirmDialog.title")); // NOI18N
 
         lbl_image.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/QuestionMarkBlueCircle.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_image, org.openide.util.NbBundle.getMessage(PresetConfirmDialog.class, "PresetConfirmDialog.lbl_image.text")); // NOI18N
 
         scrollPane_helpArea.setBorder(null);
 
