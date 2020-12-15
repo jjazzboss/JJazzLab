@@ -33,18 +33,13 @@ import java.awt.event.MouseListener;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.border.Border;
-import static org.jjazz.ui.sptviewer.Bundle.CTL_ToolTip;
-import org.openide.util.NbBundle;
+import org.jjazz.util.ResUtil;
 
 /**
  * The component used for the "multi-selection" of song parts in the SptViewer.
  * <p>
  * Component is painted only if opaque.
  */
-@NbBundle.Messages(
-        {
-            "CTL_ToolTip=Click to select this group of song parts"
-        })
 public class MultiSelectBar extends JComponent implements MouseListener
 {
 
@@ -113,7 +108,7 @@ public class MultiSelectBar extends JComponent implements MouseListener
     public void setOn(boolean on)
     {
         this.on = on;
-        String s = on ? CTL_ToolTip() : null;
+        String s = on ? ResUtil.getString(getClass(), "CTL_MultiSelectBarToolTip") : null;
         setToolTipText(s);
         repaint();
     }

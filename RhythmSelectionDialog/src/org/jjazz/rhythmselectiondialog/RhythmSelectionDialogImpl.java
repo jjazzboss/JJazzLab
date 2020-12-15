@@ -773,6 +773,10 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_timeSignature, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.lbl_timeSignature.text")); // NOI18N
 
+        jScrollPane3.setBackground(null);
+        jScrollPane3.setBorder(null);
+
+        helpTextArea1.setBackground(null);
         helpTextArea1.setColumns(20);
         helpTextArea1.setRows(2);
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.helpTextArea1.text")); // NOI18N

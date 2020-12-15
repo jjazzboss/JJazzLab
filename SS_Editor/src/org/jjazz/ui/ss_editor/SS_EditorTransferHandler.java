@@ -39,33 +39,21 @@ import static javax.swing.TransferHandler.MOVE;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.database.api.RhythmDatabase;
-import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.songstructure.api.SongPartParameter;
-import static org.jjazz.ui.ss_editor.Bundle.CTL_CopySpt;
-import static org.jjazz.ui.ss_editor.Bundle.CTL_MoveSpt;
-import static org.jjazz.ui.ss_editor.Bundle.ERR_AddSpt;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.ui.sptviewer.api.SptViewer;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.openide.util.NbBundle;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.util.ResUtil;
 
 /**
  * Drag n Drop Transfer handler for Section/SongParts.
  * <p>
  * Drag n Drop between different SongStructures is not supported.
  */
-@NbBundle.Messages(
-        {
-            "CTL_MoveSpt=Move Song Part",
-            "CTL_CopySpt=Copy Song Part",
-            "CTL_AddSpt=Add Song Part",
-            "ERR_AddSpt=Impossible to add Song Part"
-        })
 public class SS_EditorTransferHandler extends TransferHandler
 {
 
@@ -258,7 +246,7 @@ public class SS_EditorTransferHandler extends TransferHandler
         {
             // Move the SongPart
             LOGGER.log(Level.FINE, "importSongPart() MOVE spt=" + spt + " newSpt=" + newSpt);   //NOI18N
-            um.startCEdit(CTL_MoveSpt());
+            um.startCEdit(ResUtil.getString(getClass(), "CTL_MoveSpt"));
             try
             {
                 // Add to be done first !
@@ -268,27 +256,29 @@ public class SS_EditorTransferHandler extends TransferHandler
             } catch (UnsupportedEditException ex)
             {
                 // Should never happen : we just use existing SongParts with the same song
-                String msg = "Impossible to move song part.\n" + ex.getLocalizedMessage();
-                um.handleUnsupportedEditException(CTL_MoveSpt(), msg);
+                String msg = ResUtil.getString(getClass(),"ERR_CantMoveSongPart");
+                msg += "\n" + ex.getLocalizedMessage();
+                um.handleUnsupportedEditException(ResUtil.getString(getClass(), "CTL_MoveSpt"), msg);
                 return false;
             }
-            um.endCEdit(CTL_MoveSpt());
+            um.endCEdit(ResUtil.getString(getClass(), "CTL_MoveSpt"));
         } else
         {
             // Copy
             LOGGER.log(Level.FINE, "importSongPart() COPY newSpt=" + newSpt);   //NOI18N
-            um.startCEdit(CTL_CopySpt());
+            um.startCEdit(ResUtil.getString(getClass(), "CTL_CopySpt"));
             try
             {
                 editor.getModel().addSongParts(Arrays.asList(newSpt));
             } catch (UnsupportedEditException ex)
             {
                 // No new rhythm, so we should never be here
-                String msg = "Impossible to copy song part.\n" + ex.getLocalizedMessage();
-                um.handleUnsupportedEditException(CTL_CopySpt(), msg);
+                String msg = ResUtil.getString(getClass(),"ERR_CantCopy");
+                msg += "\n" + ex.getLocalizedMessage();
+                um.handleUnsupportedEditException(ResUtil.getString(getClass(), "CTL_CopySpt"), msg);
                 return false;
             }
-            um.endCEdit(CTL_CopySpt());
+            um.endCEdit(ResUtil.getString(getClass(), "CTL_CopySpt"));
         }
 
         // Select the target spt
@@ -414,7 +404,7 @@ public class SS_EditorTransferHandler extends TransferHandler
 
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
-        um.startCEdit(Bundle.CTL_AddSpt());
+        um.startCEdit(ResUtil.getString(getClass(), "CTL_AddSpt"));
 
 
         try
@@ -424,13 +414,14 @@ public class SS_EditorTransferHandler extends TransferHandler
 
         } catch (UnsupportedEditException ex)
         {
-            String msg = ERR_AddSpt() + " for section " + parentSection.getData() + ".\n" + ex.getLocalizedMessage();
-            um.handleUnsupportedEditException(Bundle.CTL_AddSpt(), msg);
+            String msg = ResUtil.getString(getClass(),"ERR_CantAdd", parentSection.getData());
+            msg += ".\n" + ex.getLocalizedMessage();
+            um.handleUnsupportedEditException(ResUtil.getString(getClass(), "CTL_AddSpt"), msg);
             return null;
         }
 
 
-        um.endCEdit(Bundle.CTL_AddSpt());
+        um.endCEdit(ResUtil.getString(getClass(), "CTL_AddSpt"));
 
 
         return spt;

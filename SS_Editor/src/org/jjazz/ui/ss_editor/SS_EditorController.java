@@ -55,12 +55,10 @@ import org.jjazz.ui.ss_editor.actions.MoveSelectionUp;
 import org.jjazz.ui.sptviewer.api.SptViewer;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.songstructure.api.SongPartParameter;
-import static org.jjazz.ui.ss_editor.Bundle.CTL_SetRpValue;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.Actions;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
@@ -68,14 +66,11 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_EditorMouseListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
+import org.jjazz.util.ResUtil;
 
 /**
  * Controller implementation of a SS_Editor.
  */
-@NbBundle.Messages(
-        {
-            "CTL_SetRpValue=Set Rhythm Parameter"
-        })
 public class SS_EditorController implements SS_EditorMouseListener
 {
     /**
@@ -538,7 +533,8 @@ public class SS_EditorController implements SS_EditorMouseListener
         {
             // First align the RhythmParameters values
             double dValue = rp.calculatePercentage(spt.getRPValue(rp));
-            JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(CTL_SetRpValue());
+            String editName = ResUtil.getString(getClass(), "CTL_SetRpValue");
+            JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(editName);
             for (SongPartParameter srb : selection.getSelectedSongPartParameters())
             {
                 SongPart spti = srb.getSpt();
@@ -549,7 +545,7 @@ public class SS_EditorController implements SS_EditorMouseListener
                     editor.getModel().setRhythmParameterValue(spti, rpi, compatibleValue);
                 }
             }
-            JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(CTL_SetRpValue());
+            JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(editName);
         }
 
         if (e.getWheelRotation() < 0)

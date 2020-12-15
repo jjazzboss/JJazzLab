@@ -217,14 +217,14 @@ public abstract class RpEditor extends JPanel
         pnl_placeHolder.setLayout(new javax.swing.BoxLayout(pnl_placeHolder, javax.swing.BoxLayout.LINE_AXIS));
 
         lbl_placeHolder.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_placeHolder, org.openide.util.NbBundle.getMessage(RpEditor.class, "RpEditor.lbl_placeHolder.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_placeHolder, "Editor Placeholder"); // NOI18N
         pnl_placeHolder.add(lbl_placeHolder);
 
         pnl_rpName.setFixedPreferredWidth(60);
         pnl_rpName.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEADING, 5, 0));
 
         lbl_rpName.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_rpName, org.openide.util.NbBundle.getMessage(RpEditor.class, "RpEditor.lbl_rpName.text_1")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_rpName, "RP name"); // NOI18N
         pnl_rpName.add(lbl_rpName);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);

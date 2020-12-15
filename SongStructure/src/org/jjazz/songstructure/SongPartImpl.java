@@ -41,14 +41,12 @@ import org.jjazz.rhythm.parameters.RhythmParameter;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
-import static org.jjazz.songstructure.Bundle.*;
 import org.jjazz.util.SmallMap;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.NbBundle.Messages;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.openide.util.Exceptions;
+import org.jjazz.util.ResUtil;
 
 public class SongPartImpl implements SongPart, Serializable
 {
@@ -102,7 +100,7 @@ public class SongPartImpl implements SongPart, Serializable
     {
         if (r == null || startBarIndex < 0 || nbBars < 1)
         {
-            throw new IllegalArgumentException(   //NOI18N
+            throw new IllegalArgumentException( //NOI18N
                     "r=" + r + " startBarIndex=" + startBarIndex + " nbBars=" + nbBars + " parentSection=" + parentSection);
         }
         rhythm = r;
@@ -415,11 +413,6 @@ public class SongPartImpl implements SongPart, Serializable
      * Can not save RhythmParameters instances: they will change because the Rhythm are not serialized but recreated from the
      * local database.
      */
-    @Messages(
-            {
-                "ERR_RhythmNotFound=Rhythm not found",
-                "ERR_UsingReplacementRhythm=Using replacement rhythm"
-            })
     private static class SerializationProxy implements Serializable
     {
 
@@ -496,7 +489,7 @@ public class SongPartImpl implements SongPart, Serializable
                     LOGGER.warning("readResolve() Can't get rhythm instance for " + ri + ". ex2=" + ex2.getLocalizedMessage());   //NOI18N
                     r = rdb.getDefaultStubRhythmInstance(spRhythmTs);   // Can't be null
                 }
-                errRhythm = ERR_RhythmNotFound() + ": " + spRhythmName + ". " + ERR_UsingReplacementRhythm() + ": " + r.getName();
+                errRhythm = ResUtil.getString(getClass(), "ERR_RhythmNotFound") + ": " + spRhythmName + ". " + ResUtil.getString(getClass(), "ERR_UsingReplacementRhythm") + ": " + r.getName();
             }
             assert r != null;   //NOI18N
 

@@ -1,0 +1,23 @@
+Internationlization info
+
+Convenient regex 
+(CTL_\w+)\(\)  =>   ResUtil.getString(getClass(), "$1")
+(ERR_\w+)\(\)  =>   ResUtil.getString(getClass(), "$1")
+ 
+
+To be used post I18N wizard 
+, new Object[] {}  => ""
+, new Object\[\] \{(\w+)\}  =>  ", $1"
+
+
+I18N wizard Format to use (it's often reset if string has some args or not, so need to copy & paste): ResUtil.getString(getClass(),"{key}", {arguments})
+
+Check Bundle.properties:
+- replace ' by 2 single quotes ''
+- replace \\n by \n
+
+Tips: 
+- "(?<!')'(?!')" regex to search for single occurences of '
+
+
+

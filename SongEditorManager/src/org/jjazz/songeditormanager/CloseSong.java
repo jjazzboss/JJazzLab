@@ -25,11 +25,10 @@ package org.jjazz.songeditormanager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import org.jjazz.song.api.Song;
-import org.openide.awt.ActionID;
+import org.openide.awt.ActionID; 
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 
 
 @ActionID(
@@ -44,7 +43,6 @@ import org.openide.util.NbBundle.Messages;
             @ActionReference(path = "Menu/File", position = 1700, separatorAfter = 1705),
             @ActionReference(path = "Shortcuts", name = "D-W")
         })
-@Messages("CTL_CloseSong=Close Song")
 public final class CloseSong implements ActionListener
 {
 

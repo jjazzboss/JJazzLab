@@ -24,15 +24,9 @@ package org.jjazz.ui.spteditor;
 
 import java.awt.Component;
 import java.util.HashMap;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.synths.StdSynth;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.parameters.RP_Integer;
 import org.jjazz.rhythm.parameters.RP_SYS_Mute;
@@ -43,7 +37,6 @@ import org.jjazz.song.api.Song;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.ui.spteditor.spi.RpEditorFactory;
 import org.jjazz.songstructure.api.SongPart;
-import org.openide.util.Exceptions;
 
 public class RpEditorFactoryImpl implements RpEditorFactory
 {

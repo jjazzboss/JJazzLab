@@ -25,20 +25,17 @@ package org.jjazz.songeditormanager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.song.api.SongCreationException;
-import static org.jjazz.songeditormanager.Bundle.CTL_JJazzOpenSongs;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 import org.jjazz.ui.utilities.Utilities;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.windows.WindowManager;
@@ -51,11 +48,6 @@ import org.openide.windows.WindowManager;
             @ActionReference(path = "Toolbars/File", position = 10),
             @ActionReference(path = "Shortcuts", name = "D-O")
         })
-@Messages(
-        {
-            "CTL_OpenSong=Open Songs...",
-            "CTL_JJazzOpenSongs=JJazz Songs"
-        })
 public final class OpenSong implements ActionListener
 {
 
@@ -65,14 +57,14 @@ public final class OpenSong implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
         JFileChooser chooser = Utilities.getFileChooserInstance();
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(CTL_JJazzOpenSongs() + " (" + "." + FileDirectoryManager.SONG_EXTENSION + ")", FileDirectoryManager.SONG_EXTENSION);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(ResUtil.getString(getClass(), "CTL_JJazzOpenSongs") + " (" + "." + FileDirectoryManager.SONG_EXTENSION + ")", FileDirectoryManager.SONG_EXTENSION);
         chooser.resetChoosableFileFilters();
         chooser.setFileFilter(filter);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setMultiSelectionEnabled(true);
         chooser.setCurrentDirectory(FileDirectoryManager.getInstance().getLastSongDirectory());
         chooser.setSelectedFile(new File(""));
-        chooser.setDialogTitle("Open song from file");
+        chooser.setDialogTitle(ResUtil.getString(getClass(),"CTL_OpenSongFromFile", new Object[] {}));
         chooser.showOpenDialog(WindowManager.getDefault().getMainWindow());
 
 
@@ -103,7 +95,7 @@ public final class OpenSong implements ActionListener
             SongEditorManager.getInstance().showSong(songFile, makeActive, updateLastSongDir);
         } catch (SongCreationException ex)
         {
-            String msg = "Can't open file " + songFile.getAbsolutePath() + ": " + ex.getLocalizedMessage();
+            String msg = ResUtil.getString(OpenSong.class,"ERR_CantOpenSongFile", songFile.getAbsolutePath(), ex.getLocalizedMessage());
             LOGGER.warning("openSong() " + msg);   //NOI18N
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);

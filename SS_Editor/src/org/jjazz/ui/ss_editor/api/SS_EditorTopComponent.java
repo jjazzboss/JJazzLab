@@ -39,7 +39,6 @@ import org.jjazz.ui.ss_editor.SS_EditorController;
 import org.jjazz.savablesong.SavableSong;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.jjazz.songstructure.api.SongStructure;
@@ -47,6 +46,7 @@ import org.jjazz.ui.sptviewer.api.SptViewerFactory;
 import org.jjazz.ui.ss_editor.SS_EditorImpl;
 import org.jjazz.ui.ss_editor.SS_EditorToolBar;
 import org.jjazz.ui.utilities.Zoomable;
+import org.jjazz.util.ResUtil;
 
 /**
  * Top component for the SongStructure editor.
@@ -55,10 +55,6 @@ import org.jjazz.ui.utilities.Zoomable;
  * Accept a paired TopComponent which must be always be shown/closed in the same time.<br>
  * The TopComponent's lookup is the SS_Editor's lookup.
  */
-@Messages(
-        {
-            "CTL_SS_ConfirmClose=OK to close this song without saving changes ?"
-        })
 public final class SS_EditorTopComponent extends TopComponent implements PropertyChangeListener
 {
 
@@ -114,8 +110,6 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
 
         // Make editor printable by Netbeans PrintManager
         // ssEditor.putClientProperty("print.printable", Boolean.TRUE); // NOI18N
-
-
         // Create the toolbar
         ssToolBar = new SS_EditorToolBar(ssEditor);
 
@@ -332,27 +326,23 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     public void propertyChange(final PropertyChangeEvent evt)
     {
         // Model changes can be generated outside the EDT      
-        Runnable run = new Runnable()
+        Runnable run = () ->
         {
-            @Override
-            public void run()
+            ActiveSongManager asm = ActiveSongManager.getInstance();
+            if (evt.getSource() == songModel)
             {
-                ActiveSongManager asm = ActiveSongManager.getInstance();
-                if (evt.getSource() == songModel)
+                if (evt.getPropertyName().equals(Song.PROP_NAME))
                 {
-                    if (evt.getPropertyName() == Song.PROP_NAME)
-                    {
-                        updateTabName();
-                    } else if (evt.getPropertyName() == Song.PROP_MODIFIED_OR_SAVED)
-                    {
-                        updateTabName();
-                    }
-                } else if (evt.getSource() == asm)
+                    updateTabName();
+                } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED))
                 {
-                    if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
-                    {
-                        updateTabName();
-                    }
+                    updateTabName();
+                }
+            } else if (evt.getSource() == asm)
+            {
+                if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
+                {
+                    updateTabName();
                 }
             }
         };
@@ -373,7 +363,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         {
             setHtmlDisplayName("<html>" + name + "</html>");
         }
-        String tt = songModel.getFile() == null ? "not saved to file yet" : songModel.getFile().getAbsolutePath();
-        setToolTipText("Song structure editor : " + tt);
+        String tt = songModel.getFile() == null ? ResUtil.getString(getClass(), "CTL_NotSavedYet") : songModel.getFile().getAbsolutePath();
+        setToolTipText(ResUtil.getString(getClass(), "CTL_SongStructureEditor") + ": " + tt);
     }
 }

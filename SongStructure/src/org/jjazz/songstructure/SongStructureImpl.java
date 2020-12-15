@@ -63,7 +63,7 @@ import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.FloatRange;
 import org.jjazz.util.IntRange;
-import org.openide.util.Exceptions;
+import org.jjazz.util.ResUtil;
 
 public class SongStructureImpl implements SongStructure, Serializable
 {
@@ -222,7 +222,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         if (faultyAdRhythm != null)
         {
             var sr = faultyAdRhythm.getSourceRhythm();
-            String msg = "Can't add adapted rhythm " + faultyAdRhythm.getName() + ": its source rhythm (" + sr.getName() + ") is not present";
+            String msg = ResUtil.getString(getClass(),"ERR_CantAddAdaptedRhythm", faultyAdRhythm.getName(), sr.getName());
             throw new UnsupportedEditException(msg);
         }
 
@@ -277,7 +277,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         if (faultyAdRhythm != null)
         {
             var sr = faultyAdRhythm.getSourceRhythm();
-            String msg = "Can't remove rhythm " + sr + ": it is used by adapted rhythm " + faultyAdRhythm.getName();
+            String msg = ResUtil.getString(getClass(),"ERR_CantRemoveRhythm", sr, faultyAdRhythm.getName());
             throw new UnsupportedEditException(msg);
         }
 
@@ -398,7 +398,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         if (faultyAdRhythm != null)
         {
             var sr = faultyAdRhythm.getSourceRhythm();
-            String msg = "Can't replace song parts: adapted rhythm " + faultyAdRhythm.getName() + " can not be used if its source rhythm (" + sr.getName() + ") is not present";
+            String msg = ResUtil.getString(getClass(),"ERR_CantReplaceSongPart", faultyAdRhythm.getName(), sr.getName());
             throw new UnsupportedEditException(msg);
         }
 

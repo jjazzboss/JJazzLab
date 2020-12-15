@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.util.ResUtil;
 import org.openide.*;
 import org.openide.modules.OnStart;
 import org.openide.modules.Places;
@@ -253,8 +254,7 @@ public class UpgradeManager
             // If not null ask user confirmation before importing
             if (importVersion != null)
             {
-                String msg = "User settings from a previous version has been found: JJazzLab " + importVersion
-                        + "\n\nDo you want to import them?";
+                String msg = ResUtil.getString(getClass(),"CTL_ConfirmImportSettings", importVersion);
                 NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_OPTION);
                 Object result = DialogDisplayer.getDefault().notify(d);
                 if (NotifyDescriptor.YES_OPTION != result)

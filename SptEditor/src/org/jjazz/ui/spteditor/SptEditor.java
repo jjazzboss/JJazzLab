@@ -194,7 +194,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
 
         panel_RhythmParameters.setLayout(new javax.swing.BoxLayout(panel_RhythmParameters, javax.swing.BoxLayout.Y_AXIS));
 
-        tf_name.setText(org.openide.util.NbBundle.getMessage(SptEditor.class, "SptEditor.tf_name.text")); // NOI18N
+        tf_name.setText("Name"); // NOI18N
         tf_name.setToolTipText(org.openide.util.NbBundle.getMessage(SptEditor.class, "SptEditor.tf_name.toolTipText")); // NOI18N
         tf_name.addActionListener(new java.awt.event.ActionListener()
         {
@@ -204,7 +204,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Rhythm, org.openide.util.NbBundle.getMessage(SptEditor.class, "SptEditor.btn_Rhythm.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Rhythm, "Rhythm"); // NOI18N
         btn_Rhythm.setToolTipText(org.openide.util.NbBundle.getMessage(SptEditor.class, "SptEditor.btn_Rhythm.toolTipText")); // NOI18N
         btn_Rhythm.addActionListener(new java.awt.event.ActionListener()
         {
@@ -216,7 +216,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
 
         lbl_ParentSection.setFont(new java.awt.Font("Arial", 0, 10)); // NOI18N
         lbl_ParentSection.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_ParentSection, org.openide.util.NbBundle.getMessage(SptEditor.class, "SptEditor.lbl_ParentSection.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_ParentSection, "A (4/4)"); // NOI18N
         lbl_ParentSection.setToolTipText(org.openide.util.NbBundle.getMessage(SptEditor.class, "SptEditor.lbl_ParentSection.toolTipText")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);

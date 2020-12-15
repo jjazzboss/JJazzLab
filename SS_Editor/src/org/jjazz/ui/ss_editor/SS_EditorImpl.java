@@ -84,7 +84,6 @@ import org.jjazz.savablesong.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.utilities.Utilities;
 import org.openide.awt.UndoRedo;
-import org.openide.util.NbBundle;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
@@ -93,10 +92,6 @@ import org.jjazz.ui.ss_editor.api.SS_EditorMouseListener;
 /**
  * An implementation of the SongStructure editor.
  */
-@NbBundle.Messages(
-        {
-            "CTL_SaveCancelled=Save cancelled by user"
-        })
 public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, SgsChangeListener, MouseListener, MouseWheelListener
 {
 

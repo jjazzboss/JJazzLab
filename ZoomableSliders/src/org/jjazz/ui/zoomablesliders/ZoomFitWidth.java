@@ -36,7 +36,7 @@ import org.openide.awt.ActionRegistration;
  */
 public class ZoomFitWidth
 {
-    @ActionRegistration(displayName = "Zoom to Fit Width")
+    @ActionRegistration(displayName = "#CTL_ZoomToFit")
     @ActionID(category = "JJazz", id = "org.jjazz.ui.zoomablesliders.zoomfitwidth")
     @ActionReferences(
             {

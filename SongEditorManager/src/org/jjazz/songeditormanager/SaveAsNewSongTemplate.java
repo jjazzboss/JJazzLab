@@ -31,12 +31,12 @@ import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
 import org.jjazz.song.api.Song;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbBundle;
 
 /**
  * Save the current song as the New Song template.
@@ -47,7 +47,6 @@ import org.openide.util.NbBundle;
         {
             @ActionReference(path = "Menu/File", position = 1570)
         })
-@NbBundle.Messages("CTL_NewSongTemplate=Save As New Song template")
 public class SaveAsNewSongTemplate extends AbstractAction
 {
 
@@ -84,7 +83,7 @@ public class SaveAsNewSongTemplate extends AbstractAction
         }
         if (!fileNames.isEmpty())
         {
-            StatusDisplayer.getDefault().setStatusText("Saved template files: " + fileNames);
+            StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_SavedTemplates", fileNames));
         }
     }
 

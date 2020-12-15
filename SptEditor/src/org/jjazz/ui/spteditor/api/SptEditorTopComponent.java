@@ -24,11 +24,10 @@ package org.jjazz.ui.spteditor.api;
 
 import java.awt.Dimension;
 import org.jjazz.ui.spteditor.SptEditor;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle.Messages;
 import org.openide.windows.TopComponent;
-import static org.jjazz.ui.spteditor.api.Bundle.*;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.windows.WindowManager;
@@ -49,12 +48,6 @@ import org.openide.windows.WindowManager;
         displayName = "#CTL_SptEditorAction",
         preferredID = "SptEditorTopComponent"
 )
-@Messages(
-        {
-            "CTL_SptEditorAction=Song Part Editor",
-            "CTL_SptEditorTopComponent=Song Part",
-            "HINT_SptEditorTopComponent=Edit parameters of the selected Song Parts"
-        })
 /**
  * A TopComponent to edit one SongPart.
  * <p>
@@ -67,8 +60,8 @@ public final class SptEditorTopComponent extends TopComponent
 
     public SptEditorTopComponent()
     {
-        setName(CTL_SptEditorTopComponent());
-        setToolTipText(HINT_SptEditorTopComponent());
+        setName(ResUtil.getString(getClass(), "CTL_SptEditorTopComponent"));
+        setToolTipText(ResUtil.getString(getClass(), "CTL_SptEditorTopComponent"));
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.TRUE);

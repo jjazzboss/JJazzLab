@@ -262,7 +262,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
         setTitle(org.openide.util.NbBundle.getMessage(SimpleRhythmSelectionDialog.class, "SimpleRhythmSelectionDialog.title")); // NOI18N
         setModal(true);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_Title, org.openide.util.NbBundle.getMessage(SimpleRhythmSelectionDialog.class, "SimpleRhythmSelectionDialog.lbl_Title.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_Title, "Select rhythm"); // NOI18N
 
         list_Rhythms.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         list_Rhythms.addMouseListener(new java.awt.event.MouseAdapter()
@@ -307,7 +307,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
         tbl_props.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_LAST_COLUMN);
         jScrollPane2.setViewportView(tbl_props);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(SimpleRhythmSelectionDialog.class, "SimpleRhythmSelectionDialog.btn_Ok.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, "OK"); // NOI18N
         btn_Ok.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -316,7 +316,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(SimpleRhythmSelectionDialog.class, "SimpleRhythmSelectionDialog.btn_Cancel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, "Cancel"); // NOI18N
         btn_Cancel.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -325,8 +325,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_applyRhythmToNextSpts, org.openide.util.NbBundle.getMessage(SimpleRhythmSelectionDialog.class, "SimpleRhythmSelectionDialog.cb_applyRhythmToNextSpts.text")); // NOI18N
-        cb_applyRhythmToNextSpts.setToolTipText(org.openide.util.NbBundle.getMessage(SimpleRhythmSelectionDialog.class, "SimpleRhythmSelectionDialog.cb_applyRhythmToNextSpts.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(cb_applyRhythmToNextSpts, "Apply rhythm also to next song parts"); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -343,9 +342,9 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
                             .addComponent(lbl_Title, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(btn_Cancel)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btn_Ok, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(btn_Ok, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btn_Cancel))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 176, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)

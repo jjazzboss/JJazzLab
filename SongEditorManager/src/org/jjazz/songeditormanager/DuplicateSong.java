@@ -30,7 +30,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 
 @ActionID(category = "File", id = "org.jjazz.ui.actions.DuplicateSong")
 @ActionRegistration(displayName = "#CTL_DuplicateSong", lazy = true)
@@ -40,10 +39,6 @@ import org.openide.util.NbBundle.Messages;
             @ActionReference(path = "Actions/CL_EditorTopComponent", position = 110),
             @ActionReference(path = "Actions/RL_EditorTopComponent", position = 110),
             @ActionReference(path = "Shortcuts", name = "D-D")
-        })
-@Messages(
-        {
-            "CTL_DuplicateSong=Duplicate Song"
         })
 public final class DuplicateSong implements ActionListener
 {

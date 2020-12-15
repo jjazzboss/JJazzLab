@@ -578,7 +578,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         pnl_labels.setLayout(new javax.swing.BoxLayout(pnl_labels, javax.swing.BoxLayout.Y_AXIS));
 
         fbtn_sptName.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_sptName, org.openide.util.NbBundle.getMessage(SptViewerImpl.class, "SptViewerImpl.fbtn_sptName.text_1")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(fbtn_sptName, "Spt name"); // NOI18N
         fbtn_sptName.setMinimumSize(new java.awt.Dimension(25, 10));
         fbtn_sptName.addActionListener(new java.awt.event.ActionListener()
         {
@@ -593,13 +593,12 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         multiSelectBar.setOn(true);
         pnl_labels.add(multiSelectBar);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_Parent, org.openide.util.NbBundle.getMessage(SptViewerImpl.class, "SptViewerImpl.lbl_Parent.text_1")); // NOI18N
-        lbl_Parent.setToolTipText(org.openide.util.NbBundle.getMessage(SptViewerImpl.class, "SptViewerImpl.lbl_Parent.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_Parent, "4/4 (parent)"); // NOI18N
         lbl_Parent.setMinimumSize(new java.awt.Dimension(25, 10));
         pnl_labels.add(lbl_Parent);
         pnl_labels.add(filler2);
 
-        org.openide.awt.Mnemonics.setLocalizedText(fbtn_rhythm, org.openide.util.NbBundle.getMessage(SptViewerImpl.class, "SptViewerImpl.fbtn_rhythm.text_1")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(fbtn_rhythm, "rhythm"); // NOI18N
         fbtn_rhythm.setMinimumSize(new java.awt.Dimension(25, 10));
         fbtn_rhythm.addActionListener(new java.awt.event.ActionListener()
         {
@@ -617,10 +616,10 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         pnl_RpEditors.setOpaque(false);
         pnl_RpEditors.setLayout(new javax.swing.BoxLayout(pnl_RpEditors, javax.swing.BoxLayout.Y_AXIS));
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(SptViewerImpl.class, "SptViewerImpl.jLabel1.text_1")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "rpViewer1"); // NOI18N
         pnl_RpEditors.add(jLabel1);
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(SptViewerImpl.class, "SptViewerImpl.jLabel2.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, "rpViewer2"); // NOI18N
         pnl_RpEditors.add(jLabel2);
 
         add(pnl_RpEditors, java.awt.BorderLayout.CENTER);

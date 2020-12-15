@@ -33,15 +33,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import org.jjazz.song.api.Song;
+import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
 import org.openide.util.actions.Presenter;
 
@@ -55,10 +54,6 @@ import org.openide.util.actions.Presenter;
 @ActionReferences(
         {
             @ActionReference(path = "Menu/File", position = 7)
-        })
-@Messages(
-        {
-            "CTL_OpenRecentFile=Open recent file"
         })
 public final class OpenRecentFile extends AbstractAction implements Presenter.Menu, Presenter.Popup, PropertyChangeListener
 {
@@ -94,7 +89,7 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
 
         // Build the menu
         subMenu = new JMenu();
-        subMenu.setText("Open Recent Song");
+        subMenu.setText(ResUtil.getString(getClass(),"CTL_OpenRecentSong"));
         updateMenuItems();
 
     }

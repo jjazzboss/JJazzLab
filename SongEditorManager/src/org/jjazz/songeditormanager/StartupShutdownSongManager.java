@@ -39,6 +39,7 @@ import org.jjazz.song.api.SongCreationException;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
+import org.jjazz.util.ResUtil;
 import org.netbeans.api.sendopts.CommandException;
 import org.netbeans.spi.sendopts.Env;
 import org.netbeans.spi.sendopts.Option;
@@ -46,7 +47,6 @@ import org.netbeans.spi.sendopts.OptionProcessor;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.modules.OnStop;
-import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -200,7 +200,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
         if (!savables.isEmpty())
         {
             StringBuilder msg = new StringBuilder();
-            msg.append("There are unsaved changes in the files below. OK to exit anyway ?").append("\n\n");
+            msg.append(ResUtil.getString(getClass(),"CTL_UnsavedChangesExitAnyway")).append("\n\n");
             for (Savable s : savables)
             {
                 msg.append("  ").append(s.toString()).append("\n");

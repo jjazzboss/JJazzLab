@@ -40,7 +40,6 @@ import javax.sound.midi.Track;
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
@@ -63,6 +62,7 @@ import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.utilities.Utilities;
+import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
@@ -81,10 +81,6 @@ import org.openide.windows.WindowManager;
 @ActionReferences(
         {
             @ActionReference(path = "Menu/File", position = 1580, separatorAfter = 1590)
-        })
-@NbBundle.Messages(
-        {
-            "CTL_ExportToMidiFile=Export to Midi file..."
         })
 public class ExportToMidiFile extends AbstractAction
 {
@@ -106,7 +102,7 @@ public class ExportToMidiFile extends AbstractAction
 
         if (song.getSongStructure().getSongParts().isEmpty())
         {
-            String msg = "Can't export an empty song (no song parts)";
+            String msg = ResUtil.getString(getClass(), "ERR_CantExportEmptySong");
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return;
@@ -120,7 +116,7 @@ public class ExportToMidiFile extends AbstractAction
         File midiFile = getMidiFile(song);
         if (midiFile == null)
         {
-            String msg = "Can't build destination Midi file for song " + song.getName();
+            String msg = ResUtil.getString(getClass(), "ERR_CantBuildMidiFile",              song.getName());
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return;
@@ -130,7 +126,7 @@ public class ExportToMidiFile extends AbstractAction
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setSelectedFile(midiFile);
-        chooser.setDialogTitle("Export to Midi file");
+        chooser.setDialogTitle(ResUtil.getString(getClass(), "CTL_ExportToMidiDialogTitle"));
         int res = chooser.showSaveDialog(WindowManager.getDefault().getMainWindow());
         if (res != JFileChooser.APPROVE_OPTION)
         {
@@ -143,7 +139,7 @@ public class ExportToMidiFile extends AbstractAction
         if (midiFile.exists())
         {
             // File overwrite confirm dialog
-            String msg = "File " + midiFile + " already exists. Confirm overwrite ?";
+            String msg = ResUtil.getString(getClass(), "CTL_ConfirmFileOverwrite", midiFile);
             NotifyDescriptor nd = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
             Object result = DialogDisplayer.getDefault().notify(nd);
             if (result != NotifyDescriptor.OK_OPTION)
@@ -175,7 +171,7 @@ public class ExportToMidiFile extends AbstractAction
         }
         if (allMuted)
         {
-            String msg = "Can't export to Midi file: all channels are muted.";
+            String msg = ResUtil.getString(getClass(), "ERR_AllChannelsMuted");
             LOGGER.warning(msg);   //NOI18N
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
@@ -225,7 +221,7 @@ public class ExportToMidiFile extends AbstractAction
         }
         if (!fileTypeOK)
         {
-            String msg = "Can't export to Midi file: MidiSystem does not support Midi file 1 format";
+            String msg = ResUtil.getString(getClass(), "ERR_MidiFile1NotSupported");
             LOGGER.warning(msg);   //NOI18N
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
@@ -275,7 +271,7 @@ public class ExportToMidiFile extends AbstractAction
         try
         {
             MidiSystem.write(sequence, 1, midiFile);
-            StatusDisplayer.getDefault().setStatusText("Midi sequence written to " + midiFile.getAbsolutePath());
+            StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_MidiSequenceWritten", midiFile.getAbsolutePath()));
         } catch (IOException ex)
         {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);   //NOI18N
