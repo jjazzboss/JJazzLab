@@ -97,9 +97,7 @@
             <Font component="lbl_songName" property="font" relativeSize="true" size="-1"/>
           </FontInfo>
         </Property>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/songmemoviewer/Bundle.properties" key="SongMemoEditor.lbl_songName.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="-" noResource="true"/>
       </Properties>
     </Component>
   </SubComponents>

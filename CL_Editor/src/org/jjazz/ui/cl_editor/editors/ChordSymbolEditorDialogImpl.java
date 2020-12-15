@@ -817,7 +817,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         helpTextArea2.setText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.helpTextArea2.text")); // NOI18N
         jScrollPane3.setViewportView(helpTextArea2);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_scaleNotes, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.lbl_scaleNotes.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_scaleNotes, "[C, D, E, F, G, A, B]"); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_scaleTip, org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.lbl_scaleTip.text")); // NOI18N
 

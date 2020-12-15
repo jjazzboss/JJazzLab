@@ -427,7 +427,6 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
     {
 
         btn_showInstruments = new javax.swing.ButtonGroup();
-        jLabel1 = new javax.swing.JLabel();
         btn_Ok = new javax.swing.JButton();
         btn_Cancel = new javax.swing.JButton();
         tf_Filter = new javax.swing.JTextField();
@@ -445,8 +444,6 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         lbl_transpose = new javax.swing.JLabel();
         lbl_preferredInstrument = new javax.swing.JLabel();
         lbl_outputSynthConfig = new javax.swing.JLabel();
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.jLabel1.text")); // NOI18N
 
         setTitle(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.title")); // NOI18N
 
@@ -555,7 +552,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         org.openide.awt.Mnemonics.setLocalizedText(lbl_preferredInstrument, "jLabel3"); // NOI18N
         lbl_preferredInstrument.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_preferredInstrument.toolTipText")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_outputSynthConfig, org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_outputSynthConfig.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_outputSynthConfig, "Output synth config: Default.cfg"); // NOI18N
         lbl_outputSynthConfig.setToolTipText(org.openide.util.NbBundle.getMessage(InstrumentChooserDialogImpl.class, "InstrumentChooserDialogImpl.lbl_outputSynthConfig.toolTipText")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -774,7 +771,6 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
     private javax.swing.JButton btn_TxtClear;
     private javax.swing.JButton btn_TxtFilter;
     private javax.swing.ButtonGroup btn_showInstruments;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbl_Filtered;
     private javax.swing.JLabel lbl_Title;

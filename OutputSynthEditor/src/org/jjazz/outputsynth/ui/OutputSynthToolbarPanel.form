@@ -94,9 +94,7 @@
                 <Font component="lbl_stdBanks" property="font" relativeSize="true" size="-2"/>
               </FontInfo>
             </Property>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="OutputSynthToolbarPanel.lbl_stdBanks.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-            </Property>
+            <Property name="text" type="java.lang.String" value="jLabel1" noResource="true"/>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="OutputSynthToolbarPanel.lbl_stdBanks.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
@@ -109,9 +107,7 @@
                 <Font component="lbl_synths" property="font" relativeSize="true" size="-2"/>
               </FontInfo>
             </Property>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="OutputSynthToolbarPanel.lbl_synths.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-            </Property>
+            <Property name="text" type="java.lang.String" value="jLabel2" noResource="true"/>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="OutputSynthToolbarPanel.lbl_synths.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>

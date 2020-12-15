@@ -122,7 +122,7 @@ public final class InsertBarDialog extends javax.swing.JDialog
 
         lbl_spinner.setText(org.openide.util.NbBundle.getMessage(InsertBarDialog.class, "InsertBarDialog.lbl_spinner.text")); // NOI18N
 
-        lblFromBar.setText(org.openide.util.NbBundle.getMessage(InsertBarDialog.class, "InsertBarDialog.lblFromBar.text")); // NOI18N
+        lblFromBar.setText("34"); // NOI18N
 
         jButton1.setText("OK"); // NOI18N
         jButton1.addActionListener(new java.awt.event.ActionListener()

@@ -343,7 +343,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
         jScrollPane1.setViewportView(helpTextArea1);
 
         lbl_songName.setFont(lbl_songName.getFont().deriveFont(lbl_songName.getFont().getSize()-1f));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_songName, org.openide.util.NbBundle.getMessage(SongMemoEditor.class, "SongMemoEditor.lbl_songName.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_songName, "-"); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

@@ -503,9 +503,7 @@
             </Container>
             <Component class="javax.swing.JLabel" name="lbl_scaleNotes">
               <Properties>
-                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="ChordSymbolEditorDialogImpl.lbl_scaleNotes.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
+                <Property name="text" type="java.lang.String" value="[C, D, E, F, G, A, B]" noResource="true"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="lbl_scaleTip">

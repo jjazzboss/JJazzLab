@@ -120,12 +120,12 @@ public class OutputSynthToolbarPanel extends javax.swing.JPanel implements Prope
         pnl_labels.setLayout(new javax.swing.BoxLayout(pnl_labels, javax.swing.BoxLayout.Y_AXIS));
 
         lbl_stdBanks.setFont(lbl_stdBanks.getFont().deriveFont(lbl_stdBanks.getFont().getSize()-2f));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_stdBanks, org.openide.util.NbBundle.getMessage(OutputSynthToolbarPanel.class, "OutputSynthToolbarPanel.lbl_stdBanks.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_stdBanks, "jLabel1"); // NOI18N
         lbl_stdBanks.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthToolbarPanel.class, "OutputSynthToolbarPanel.lbl_stdBanks.toolTipText")); // NOI18N
         pnl_labels.add(lbl_stdBanks);
 
         lbl_synths.setFont(lbl_synths.getFont().deriveFont(lbl_synths.getFont().getSize()-2f));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_synths, org.openide.util.NbBundle.getMessage(OutputSynthToolbarPanel.class, "OutputSynthToolbarPanel.lbl_synths.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_synths, "jLabel2"); // NOI18N
         lbl_synths.setToolTipText(org.openide.util.NbBundle.getMessage(OutputSynthToolbarPanel.class, "OutputSynthToolbarPanel.lbl_synths.toolTipText")); // NOI18N
         pnl_labels.add(lbl_synths);
 

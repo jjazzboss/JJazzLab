@@ -695,7 +695,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
         pnl_Compatibility.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.pnl_Compatibility.border.title"))); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_GM, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.cb_GM.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(cb_GM, "GM  - General Midi 1"); // NOI18N
         cb_GM.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -704,7 +704,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_GM2, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.cb_GM2.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(cb_GM2, "GM2  - General Midi 2"); // NOI18N
         cb_GM2.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -713,7 +713,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_XG, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.cb_XG.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(cb_XG, "XG - Yamaha Extended General Midi"); // NOI18N
         cb_XG.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -722,7 +722,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_GS, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.cb_GS.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(cb_GS, "GS - Roland General Midi Standard (SC55)"); // NOI18N
         cb_GS.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
