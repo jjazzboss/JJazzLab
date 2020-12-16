@@ -24,13 +24,13 @@ package org.jjazz.songmemoviewer.api;
 
 import java.util.logging.Logger;
 import org.jjazz.songmemoviewer.SongMemoEditor;
+import org.jjazz.util.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.windows.TopComponent;
-import org.openide.util.NbBundle.Messages;
 import org.openide.windows.WindowManager;
 
 /**
@@ -52,12 +52,6 @@ import org.openide.windows.WindowManager;
         displayName = "#CTL_SongNotesAction",
         preferredID = "SongNotesTopComponent"
 )
-@Messages(
-        {
-            "CTL_SongNotesAction=Song Memo",
-            "CTL_SongNotesTopComponent=Song Memo",
-            "HINT_SongNotesTopComponent=This is a Song Memo window"
-        })
 public final class SongMemoTopComponent extends TopComponent
 {
     
@@ -67,8 +61,8 @@ public final class SongMemoTopComponent extends TopComponent
     public SongMemoTopComponent()
     {
         initComponents();
-        setName(Bundle.CTL_SongNotesTopComponent());
-        setToolTipText(Bundle.HINT_SongNotesTopComponent());
+        setName(ResUtil.getString(getClass(), "CTL_SongNotesTopComponent"));
+        setToolTipText(ResUtil.getString(getClass(), "CTL_SongNotesTopComponentDesc"));
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.FALSE);
         putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.TRUE);
