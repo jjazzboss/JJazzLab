@@ -158,7 +158,7 @@ public final class AccentOptions extends AbstractAction implements ContextAwareA
     {
         if (subMenu == null)
         {
-            subMenu = new JMenu(ResUtil.getString(getClass(), "CTL_AccentOptions()"));
+            subMenu = new JMenu(ResUtil.getString(getClass(), "CTL_AccentOptions"));
             var actions = Utilities.actionsForPath("Actions/ChordSymbolAccent");
             for (Action action : actions)
             {

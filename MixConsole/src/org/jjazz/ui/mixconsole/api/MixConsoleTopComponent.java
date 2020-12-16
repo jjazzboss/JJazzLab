@@ -23,14 +23,12 @@
 package org.jjazz.ui.mixconsole.api;
 
 import java.awt.Dimension;
-import static org.jjazz.ui.mixconsole.api.Bundle.*;
+import org.jjazz.util.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.windows.TopComponent;
-import org.openide.util.NbBundle.Messages;
-import org.openide.windows.WindowManager;
 
 /**
  * Top component which displays something.
@@ -50,15 +48,9 @@ import org.openide.windows.WindowManager;
 @ActionID(category = "Window", id = "org.jjazz.ui.mixconsole.api.MixConsoleTopComponent")
 // @ActionReference(path = "Menu/Window", position = 120)      Useless if not closable
 @TopComponent.OpenActionRegistration(
-        displayName = "#CTL_MixConsoleAction",
+        displayName = "#CTL_MixConsoleTopComponent",
         preferredID = "MixConsoleTopComponent"
 )
-@Messages(
-        {
-            "CTL_MixConsoleAction=Mix Console",
-            "CTL_MixConsoleTopComponent=Mix Console",
-            "HINT_MixConsoleTopComponent=Mix Console window"
-        })
 public final class MixConsoleTopComponent extends TopComponent
 {
 
@@ -67,8 +59,8 @@ public final class MixConsoleTopComponent extends TopComponent
 
     public MixConsoleTopComponent()
     {
-        setName(CTL_MixConsoleTopComponent());
-        setToolTipText(HINT_MixConsoleTopComponent());
+        setName(ResUtil.getString(getClass(), "CTL_MixConsoleTopComponent"));
+        setToolTipText(ResUtil.getString(getClass(), "CTL_MixConsoleTopComponentDesc"));
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.TRUE);

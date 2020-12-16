@@ -160,7 +160,7 @@ public final class AccentStronger extends AbstractAction implements ContextAware
     {
         if (checkBox == null)
         {
-            checkBox = new JCheckBoxMenuItem(ResUtil.getString(getClass(), "CTL_AccentStronger()"));
+            checkBox = new JCheckBoxMenuItem(ResUtil.getString(getClass(), "CTL_AccentStronger"));
             checkBox.setAccelerator(KeyStroke.getKeyStroke('S'));
             checkBox.addItemListener(evt -> setAccent(evt.getStateChange() == ItemEvent.SELECTED));
             checkBox.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
