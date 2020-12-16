@@ -49,6 +49,7 @@ import org.jjazz.midi.synths.GM1Instrument;
 import org.jjazz.rhythm.database.api.FavoriteRhythms;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.RhythmVoiceInfo;
+import org.jjazz.util.ResUtil;
 
 /**
  * A JTable to show a list of rhythms.
@@ -180,7 +181,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             LOGGER.fine("setRhythms() rhythms.size()=" + rhythms.size());   //NOI18N
             this.rhythms = new ArrayList<>(rhythms);
             this.rhythms.sort(new RhythmComparator());
-                        
+
             highlightedRhythms.clear();
 
             fireTableDataChanged();
@@ -202,18 +203,18 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         {
             int mIndex = model.getRhythms().indexOf(ri);
             LOGGER.severe("setHighlighted() ri=" + ri + " b=" + b + " mIndex=" + mIndex);   //NOI18N
-            
+
             if (mIndex == -1)
             {
                 return;
             }
-            
+
             if ((b && highlightedRhythms.contains(ri)) || (!b && !highlightedRhythms.contains(ri)))
             {
                 return;
             }
-            
-            
+
+
             if (b)
             {
                 highlightedRhythms.add(ri);
@@ -221,7 +222,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             {
                 highlightedRhythms.remove(ri);
             }
-                        
+
             fireTableRowsUpdated(mIndex, mIndex);
         }
 
@@ -255,19 +256,19 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             switch (columnIndex)
             {
                 case COL_TEMPO:
-                    s = "Tempo ";
+                    s = ResUtil.getString(getClass(), "COL_Tempo");
                     break;
                 case COL_NAME:
-                    s = "Name ";
+                    s = ResUtil.getString(getClass(), "COL_Name");
                     break;
                 case COL_NB_VOICES:
-                    s = "Nb Inst. ";
+                    s = ResUtil.getString(getClass(), "COL_NbInstruments");
                     break;
                 case COL_FEEL:
-                    s = "Feel ";
+                    s = ResUtil.getString(getClass(), "COL_Feel");
                     break;
                 case COL_DIR:
-                    s = "Directory ";
+                    s = ResUtil.getString(getClass(), "COL_Directory");
                     break;
                 case COL_ID:
                     s = "#   ";
@@ -311,7 +312,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                     } else if (ri.getFile().getAbsolutePath().contains(FileDirectoryManager.APP_CONFIG_PREFIX_DIR))
                     {
                         // Don't show path of the builtin files
-                        return "default";
+                        return ResUtil.getString(getClass(), "DefaultRhythmsPath");
                     }
                     Path pDir = fdm.getUserRhythmDirectory().toPath();
                     Path pFile = ri.getFile().getParentFile().toPath();
@@ -506,11 +507,11 @@ public class RhythmTable extends JTable implements PropertyChangeListener
                     lbl.setToolTipText(RhythmTable.this.getInstrumentsString(ri));
                     break;
                 case Model.COL_NAME:
-                    String s = f == null ? "" : ", File: " + f.getName();
-                    lbl.setToolTipText("Desc.: " + ri.getDescription() + s);
+                    String s = f == null ? "" : ", " + ResUtil.getString(getClass(), "COL_NameToolTip", f.getName());
+                    lbl.setToolTipText(ResUtil.getString(getClass(), "COL_DescToolTip", ri.getDescription() + s));
                     break;
                 case Model.COL_DIR:
-                    lbl.setToolTipText("Relative file path to the User Rhythm Directory");
+                    lbl.setToolTipText(ResUtil.getString(getClass(), "COL_DirTooltip"));
 //                    // Left dots and the right part of the string visible in the cell
 //                    int availableWidth = table.getColumnModel().getColumn(col).getWidth();
 //                    availableWidth -= table.getIntercellSpacing().getWidth();

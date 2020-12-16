@@ -10,7 +10,8 @@ To be used post I18N wizard
 , new Object\[\] \{(\w+)\}  =>  ", $1"
 
 
-I18N wizard Format to use (it's often reset if string has some args or not, so need to copy & paste): ResUtil.getString(getClass(),"{key}", {arguments})
+I18N wizard Format to use (it's often reset if string has some args or not, so need to copy & paste): 
+ResUtil.getString(getClass(),"{key}", {arguments})
 
 Check Bundle.properties:
 - replace ' by 2 single quotes ''
@@ -21,3 +22,6 @@ Tips:
 
 
 
+
+
+Jnc01081941

@@ -46,6 +46,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JList;
+import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
@@ -173,12 +174,16 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         fbtn_switchAllMute.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.switchallmute"));   //NOI18N
         fbtn_allSoloOff.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.allsolooff"));   //NOI18N
 
-        // Prepare the menu with smaller font
-        menuBar = new MenuBar(DataFolder.findFolder(FileUtil.getConfigFile("Actions/MixConsole/MenuBar")));
-        org.jjazz.ui.utilities.Utilities.changeMenuBarFontSize(menuBar, -2f);
+
+        // Prepare our MenuBar from specified folder in layer file 
+        menuBar = buildMenuBar("Actions/MixConsole/MenuBar");
+
+
         // Filler to put Midi device on the right
         Box.Filler filler = new Box.Filler(new Dimension(0, 1), new Dimension(5000, 1), new Dimension(5000, 1));
         menuBar.add(filler);
+
+
         // Reuse menu font size
         Font menuFont = menuBar.getMenu(0).getItem(0).getFont();//.deriveFont(Font.ITALIC);
         MyOutDeviceButton outLabel = new MyOutDeviceButton();
@@ -646,11 +651,10 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         }
         mcp.setNameToolTipText(r.getName() + " - " + rv.getName());
-        
-        
+
 
         mcp.setIcon(icon);
-        String txt = ResUtil.getString(getClass(), "CTL_RECOMMENDED");    
+        String txt = ResUtil.getString(getClass(), "CTL_RECOMMENDED");
         if (!(prefIns instanceof GM1Instrument))
         {
             DrumKit kit = prefIns.getDrumKit();
@@ -864,6 +868,47 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         root.setJMenuBar(menuBar);
         root.getContentPane().add(child);
         parent.putClientProperty("root", root);  // if you need later
+    }
+
+    /**
+     * Get MixConsole MenuBar.
+     * <p>
+     * Created from layer registrations the lawyer, and apply tweaking for the MixConsole.
+     *
+     * @param menuBar
+     * @todo Localize File & Edit menu names
+     */
+    private MenuBar buildMenuBar(String layerPath)
+    {
+
+        // Hack to manage I18N on File and Edit submenus : rename the folder in the layer file!
+
+        // Build the bar from actions which are registered in layerPath
+        MenuBar menuBar = new MenuBar(DataFolder.findFolder(FileUtil.getConfigFile(layerPath)));
+
+
+        // Reduce font size
+        org.jjazz.ui.utilities.Utilities.changeMenuBarFontSize(menuBar, -2f);
+
+
+//        // Replace File & Edit menus (hard-coded in the declaratively-registered actions) by internationalized strings
+//        for (int i = 0; i < menuBar.getMenuCount(); i++)
+//        {
+//            JMenu menu = menuBar.getMenu(i);
+//            if (menu != null)
+//            {
+//                menu.setText("bobo");
+//                if (menu.getText().equals("File"))
+//                {
+//                    menu.setText(ResUtil.getString(getClass(), "MixConsoleMenuFile"));
+//                } else if (menu.getText().equals("Edit"))
+//                {
+//                    menu.setText(ResUtil.getString(getClass(), "MixConsoleMenuEdit"));
+//                }
+//            }
+//        }
+
+        return menuBar;
     }
 
     // ========================================================================================================
