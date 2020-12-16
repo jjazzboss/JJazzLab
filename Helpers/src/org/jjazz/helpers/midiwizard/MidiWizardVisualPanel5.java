@@ -335,7 +335,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.jPanel2.border.title"))); // NOI18N
 
         buttonGroupXG.add(rbtn_yesXG);
-        org.openide.awt.Mnemonics.setLocalizedText(rbtn_yesXG, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.rbtn_yesXG.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_yesXG, rbtn_yesGM2.getText());
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_testDrumsOtherChannelXG, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.btn_testDrumsOtherChannelXG.text")); // NOI18N
         btn_testDrumsOtherChannelXG.addActionListener(new java.awt.event.ActionListener()
@@ -347,7 +347,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
         });
 
         buttonGroupXG.add(rbtn_noXG);
-        org.openide.awt.Mnemonics.setLocalizedText(rbtn_noXG, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.rbtn_noXG.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_noXG, rbtn_noGM2.getText());
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel2, lbl_doYouHearDrums.getText());
 
@@ -381,7 +381,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
         jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.jPanel3.border.title"))); // NOI18N
 
         buttonGroupGS.add(rbtn_yesGS);
-        org.openide.awt.Mnemonics.setLocalizedText(rbtn_yesGS, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.rbtn_yesGS.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_yesGS, rbtn_yesGM2.getText());
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_testDrumsOtherChannelGS, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.btn_testDrumsOtherChannelGS.text")); // NOI18N
         btn_testDrumsOtherChannelGS.addActionListener(new java.awt.event.ActionListener()
@@ -393,7 +393,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
         });
 
         buttonGroupGS.add(rbtn_noGS);
-        org.openide.awt.Mnemonics.setLocalizedText(rbtn_noGS, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.rbtn_noGS.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(rbtn_noGS, rbtn_noGM2.getText());
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel3, lbl_doYouHearDrums.getText());
 
