@@ -53,14 +53,13 @@ import org.openide.util.WeakListeners;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
-import static org.jjazz.ui.spteditor.Bundle.*;
 import org.jjazz.ui.spteditor.spi.RpEditorFactory;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.api.SptEditorTopComponent;
 import org.jjazz.ui.utilities.JTextFieldNoKeyBinding;
+import org.jjazz.util.ResUtil;
 
 /**
  * Edit one or more selected SongParts.
@@ -69,16 +68,6 @@ import org.jjazz.ui.utilities.JTextFieldNoKeyBinding;
  * - edited SongStructure<br>
  * - edited Song (container of the SongStructure if there is one)<br>
  */
-@Messages(
-        {
-            "CTL_LinkedTo=",
-            "CTL_Start=start:",
-            "CTL_Size=size:",
-            "CTL_ChangeSptName=Change Song Part Name",
-            "CTL_ChangeSptRhythm=Change Rhythm",
-            "CTL_SetRpValue=Set Rhythm Parameter",
-            "ERR_ChangeRhythm=Impossible to use rhythm"
-        })
 public class SptEditor extends JPanel implements PropertyChangeListener
 {
 
@@ -253,9 +242,9 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         String name = tf_name.getText().trim();
         if (!name.isEmpty())
         {
-            getUndoManager().startCEdit(CTL_ChangeSptName());
+            getUndoManager().startCEdit(ResUtil.getString(getClass(), "CTL_ChangeSptName"));
             songModel.getSongStructure().setSongPartsName(songParts, name);
-            getUndoManager().endCEdit(CTL_ChangeSptName());
+            getUndoManager().endCEdit(ResUtil.getString(getClass(), "CTL_ChangeSptName"));
         }
 
     }//GEN-LAST:event_tf_nameActionPerformed
@@ -306,9 +295,9 @@ public class SptEditor extends JPanel implements PropertyChangeListener
                     Object value = spt.getRPValue(rp);
                     if (!value.equals(newValue))
                     {
-                        getUndoManager().startCEdit(CTL_SetRpValue());
+                        getUndoManager().startCEdit(ResUtil.getString(getClass(), "CTL_SetRpValue"));
                         songModel.getSongStructure().setRhythmParameterValue(spt, rp, newValue);
-                        getUndoManager().endCEdit(CTL_SetRpValue());
+                        getUndoManager().endCEdit(ResUtil.getString(getClass(), "CTL_SetRpValue"));
                     }
                 }
             }
@@ -646,8 +635,8 @@ public class SptEditor extends JPanel implements PropertyChangeListener
     {
         assert spt != null;   //NOI18N
         Section section = spt.getParentSection().getData();
-        return CTL_LinkedTo() + section.getName() + " [" + section.getTimeSignature() + "] "
-                + CTL_Start() + spt.getStartBarIndex() + " " + CTL_Size() + spt.getNbBars();
+        return section.getName() + " [" + section.getTimeSignature() + "] "
+                + ResUtil.getString(getClass(), "CTL_Start") + spt.getStartBarIndex() + " " + ResUtil.getString(getClass(), "CTL_Size") + spt.getNbBars();
     }
 
     /**
@@ -659,7 +648,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
     {
         if (tcContainer != null)
         {
-            String tabName = "Song Part";
+            String tabName = ResUtil.getString(getClass(), "CTL_SongParts");
             if (!spts.isEmpty())
             {
                 SongPart spt0 = spts.get(0);
@@ -670,10 +659,10 @@ public class SptEditor extends JPanel implements PropertyChangeListener
                     SongPart lastSpt = spts.get(spts.size() - 1);
                     int lastSptIndex = songModel.getSongStructure().getSongParts().indexOf(lastSpt);
                     String lastSptName = org.jjazz.util.Utilities.truncate(lastSpt.getName(), 4) + "(" + (lastSptIndex + 1) + ")";
-                    tabName += "s: " + spt0Name + "..." + lastSptName;
+                    tabName += " " + spt0Name + "..." + lastSptName;
                 } else
                 {
-                    tabName += ": " + org.jjazz.util.Utilities.truncateWithDots(spt0.getName(), 10) + "(" + (spt0Index + 1) + ")";
+                    tabName += " " + org.jjazz.util.Utilities.truncateWithDots(spt0.getName(), 10) + "(" + (spt0Index + 1) + ")";
                 }
             }
             tcContainer.setDisplayName(tabName);
