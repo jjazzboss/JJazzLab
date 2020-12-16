@@ -37,7 +37,7 @@ import org.openide.awt.ActionRegistration;
 public class Edit
 {
 
-    @ActionRegistration(displayName = "Edit")
+    @ActionRegistration(displayName = "#CTL_Edit")
     @ActionID(category = "JJazz", id = "org.jjazz.base.actions.edit")
     @ActionReferences(
             {

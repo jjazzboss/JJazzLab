@@ -35,7 +35,7 @@ import org.openide.awt.ActionRegistration;
 public class SelectAll
 {
 
-    @ActionRegistration(displayName = "Select All")
+    @ActionRegistration(displayName = "#CTL_SelectAll")
     @ActionID(category = "JJazz", id = "org.jjazz.base.actions.selectall")
     @ActionReferences(
             {

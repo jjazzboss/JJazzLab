@@ -23,12 +23,10 @@
 package org.jjazz.base.actions;
 
 import java.awt.event.ActionEvent;
-import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.base.actions.Savable;
 import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -41,7 +39,7 @@ import org.openide.awt.StatusDisplayer;
 // Can't use lazy=true because otherwise then we can't listen to the Savable.ToBeSavedList
 // So iconBase in registration is ignored
 // @ActionRegistration(displayName = "#CTL_SaveAll", lazy = false, iconBase = "org/jjazz/base/actions/resources/saveAll.gif")
-@ActionRegistration(displayName = "blabla", lazy = false)
+@ActionRegistration(displayName = "#CTL_SaveAll", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Menu/File", position = 1540),

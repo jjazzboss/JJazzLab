@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.base.actions;
+package org.jjazz.base.actions; 
 
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -37,7 +37,7 @@ import org.openide.awt.ActionRegistration;
 public class Delete
 {
 
-    @ActionRegistration(displayName = "Delete")
+    @ActionRegistration(displayName = "#CTL_Delete")
     @ActionID(category = "JJazz", id = "org.jjazz.base.actions.delete")
     @ActionReferences(
             {
