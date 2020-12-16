@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.util.ResUtil;
 import org.openide.windows.WindowManager;
 
 /**
@@ -47,7 +48,7 @@ public class FixMidiMixDialog extends javax.swing.JDialog
 
     protected FixMidiMixDialog()
     {
-        super(WindowManager.getDefault().getMainWindow(), "Midi Configuration Problems", true);
+        super(WindowManager.getDefault().getMainWindow(), ResUtil.getString(FixMidiMixDialog.class, "MIDI CONFIGURATION PROBLEMS"), true);
         choice = FixChoice.CANCEL;
         initComponents();
         setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
@@ -85,11 +86,9 @@ public class FixMidiMixDialog extends javax.swing.JDialog
 
         // Update dialog UI
         // Fix instruments part
-        String fixInstrumentsTitle = null;
         String fixInstrumentsText = null;
         if (!mapChannelNewIns.isEmpty())
         {
-            fixInstrumentsTitle = "The following instruments should be replaced to fit the output synth configuration:";
             StringBuilder sb = new StringBuilder();
             sb.append("<HTML>");
             List<Integer> channels = new ArrayList<>(mapChannelNewIns.keySet());
@@ -109,7 +108,6 @@ public class FixMidiMixDialog extends javax.swing.JDialog
             sb.append("</HTML>");
             fixInstrumentsText = sb.toString();
         }
-        lbl_fixInstrumentTitle.setText(fixInstrumentsTitle);
         lbl_fixedInstruments.setText(fixInstrumentsText);
 
         // Reroute channels part
@@ -136,7 +134,7 @@ public class FixMidiMixDialog extends javax.swing.JDialog
         lbl_reroutedChannels.setText(reroutedChannelsText);
 
         cb_rememberMyChoice.setSelected(false);
-        
+
         pack();
     }
 
