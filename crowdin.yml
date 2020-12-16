@@ -1,7 +1,5 @@
 files:
   - source: /**/Bundle.properties
-  - translation: /**/Bundle_%locale_with_underscore%.properties
-  - source: /**/Bundle.properties
     ignore:
       - /branding/**/Bundle.properties
       - /nbproject/**/Bundle.properties
