@@ -201,7 +201,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
         });
 
         tf_configName.setEditable(false);
-        tf_configName.setText(org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.tf_configName.text")); // NOI18N
+        tf_configName.setText("ConfigName"); // NOI18N
         tf_configName.setToolTipText(org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.tf_configName.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.jLabel1.text")); // NOI18N
@@ -232,7 +232,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
 
         org.openide.awt.Mnemonics.setLocalizedText(menu_predefined, org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.menu_predefined.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(mi_defaultGM, org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.mi_defaultGM.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(mi_defaultGM, "GM"); // NOI18N
         mi_defaultGM.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -242,7 +242,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
         });
         menu_predefined.add(mi_defaultGM);
 
-        org.openide.awt.Mnemonics.setLocalizedText(submnu_JJazzLabSoundFont, org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.submnu_JJazzLabSoundFont.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(submnu_JJazzLabSoundFont, "JJazzLab SoundFont"); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(mi_jjazzlabSoundFontGS, org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.mi_jjazzlabSoundFontGS.text")); // NOI18N
         mi_jjazzlabSoundFontGS.addActionListener(new java.awt.event.ActionListener()
@@ -276,7 +276,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
 
         menu_predefined.add(submnu_JJazzLabSoundFont);
 
-        org.openide.awt.Mnemonics.setLocalizedText(mi_yamaha, org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.mi_yamaha.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(mi_yamaha, "Yamaha Tyros"); // NOI18N
         mi_yamaha.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
