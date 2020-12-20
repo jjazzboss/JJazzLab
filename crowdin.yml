@@ -1,7 +1,6 @@
 files:
   - source: /**/Bundle.properties
     ignore:
-      - /branding/**/Bundle.properties
       - /nbproject/**/Bundle.properties
       - /Test*/**/Bundle.properties
     translation: /**/Bundle_%locale_with_underscore%.properties
