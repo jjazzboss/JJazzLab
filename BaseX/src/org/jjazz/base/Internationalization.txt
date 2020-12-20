@@ -26,7 +26,7 @@ NB: ImageUtilities.loadImage() can handle localized image (change file name), se
 HOW TO LOCALIZE NETBEANS STANDARD MENU ITEMS LIKE MAIN MENUBAR "FILE" ?
 => Use JJazzLab Branding 
 Find the resource bundle which defines the action: 
-- Go to JJazzLab branding, Resource Branding, search "File" entry, get name of corresponding resource bundle.  
+- Go to JJazzLab branding, Internatation resources, select french (to create the first one), search "File" entry, get name of corresponding resource bundle.  
 - Go to Internationalization bundle, locate resource bundle above, add an entry different for File, File=Fichier
 => this creates a Bundle_fr_FR.properties with the entry in jjazzlab/branding/modules/jar_name/path
 => duplicate the bundle for each other language Bundle_de_XX.properties 
@@ -45,14 +45,31 @@ Select File, righ-click Localize, Type "FileInEnglish"  translation.
 => copy and add the entry in Bundle_fr <module_path>/File=FichierEnFrancais
 
 
+----------------------
+.properties by default are NOT saved under UTF8 encoding, use ISO-8859-1! 
+So problem when reusing them from crowdin which stores them in UTF8
+As a workaround there is the possibility to change the encoding used by NB file by file (select .properties, right-click properties, check "use project encoding" which is UTF8.)
+But where is this information stored!? ==> need to manually change it if creating a new .properties
 
-The best links:
+=> Created SetProjectEncodingPlugin <===========
+IMPORTANT: each time a new .properties is created, select the project, menu Edit, "Use Project Encoding on all properties"
+
+
+Discussion & explanations
+https://bz.apache.org/netbeans/show_bug.cgi?id=75906
+
+The patch which introduced the possibility to alter encoding file by file
+http://hg.netbeans.org/core-main/rev/f32f64dd4a38
++ file.getAttribute(PropertiesDataNode.PROPERTY_ENCODING); => if true it will use project encoding (UTF8), otherwise it uses the default ISO-8859-1
++        if (attribute != null) {
++            boolean useProjectEncoding = (Boolean) attribute;
+
+-------------------------------------------------
+BEST LINKS
 https://www.slideshare.net/eppleton/branding-internationalization-with-the-netbeans-platform
 
 Change language on-the-fly:
 http://netbeans-org.1045718.n5.nabble.com/change-application-language-td5719798.html
-
-
 
 http://wiki.netbeans.org/NetBeans82Branding
 
