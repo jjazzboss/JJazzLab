@@ -5,10 +5,12 @@
     <folder name="Actions">
         <folder name="MixConsole">
             <folder name="MenuBar">
-                <folder name="File">
+                <folder name="File">                                     
+                    <attr name="displayName" bundlevalue="org.jjazz.ui.mixconsole.Bundle#Actions/MixConsole/MenuBar/File"/>
                     <attr intvalue="100" name="position"/>
                 </folder>
                 <folder name="Edit">
+                    <attr name="displayName" bundlevalue="org.jjazz.ui.mixconsole.Bundle#Actions/MixConsole/MenuBar/Edit"/>                    
                     <attr intvalue="200" name="position"/>
                 </folder>
                 <folder name="Midi">

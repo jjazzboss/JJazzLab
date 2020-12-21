@@ -1,17 +1,13 @@
-Internationlization info
-
-Convenient regex 
-(CTL_\w+)\(\)  =>   ResUtil.getString(getClass(), "$1")
-(ERR_\w+)\(\)  =>   ResUtil.getString(getClass(), "$1")
- 
-
-To be used post I18N wizard 
-, new Object[] {}  => ""
-, new Object\[\] \{(\w+)\}  =>  ", $1"
-
+Internationalization INFO
 
 I18N wizard Format to use (it's often reset if string has some args or not, so need to copy & paste): 
 ResUtil.getString(getClass(),"{key}", {arguments})
+
+Convenient regex to be used To be used post I18N wizard (the simple file-by-file one)
+(CTL_\w+)\(\)  =>   ResUtil.getString(getClass(), "$1")
+(ERR_\w+)\(\)  =>   ResUtil.getString(getClass(), "$1")
+, new Object[] {}  => ""
+, new Object\[\] \{(\w+)\}  =>  ", $1"
 
 Check Bundle.properties:
 - replace ' by 2 single quotes ''
@@ -20,8 +16,64 @@ Check Bundle.properties:
 Tips: 
 - "(?<!')'(?!')" regex to search for single occurences of '
 
+-------------
+USE  NbBundle.getMessage() and localize-ready Netbeans utilities
+http://wiki.netbeans.org/DevFaqNbIdiosyncracies
+NB: ImageUtilities.loadImage() can handle localized image (change file name), see https://www.slideshare.net/eppleton/branding-internationalization-with-the-netbeans-platform
 
 
+-------------------
+HOW TO LOCALIZE NETBEANS STANDARD MENU ITEMS LIKE MAIN MENUBAR "FILE" ?
+=> Use JJazzLab Branding 
+Find the resource bundle which defines the action: 
+- Go to JJazzLab branding, Internatation resources, select french (to create the first one), search "File" entry, get name of corresponding resource bundle.  
+- Go to Internationalization bundle, locate resource bundle above, add an entry different for File, File=Fichier
+=> this creates a Bundle_fr_FR.properties with the entry in jjazzlab/branding/modules/jar_name/path
+=> duplicate the bundle for each other language Bundle_de_XX.properties 
+
+Info: It seems that the Netbeans-declared layer folders use attribute "SystemFileSystem.localizingBundle" to make the item localizable via branding
+<folder name="Platforms">
+            <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.java.platform.resources.Bundle"/>
 
 
-Jnc01081941
+------------------
+HOW TO LOCALIZE MY OWN LAYER.XML FOLDERS, which sometimes appeart in UI ?
+Like for the MixConsole menubar which is constructed from layer.xml folders found in "MixConsole/MenuBar",  so "File" folder translates to File menu title. So how to change "File"?
+Edit the layer.xml file which defines the MixConsole/MenuBar/File
+Select File, righ-click Localize, Type "FileInEnglish"  translation. 
+=> this adds the displayName attribute to the layer.xml folder + add an entry <module_path>/File=FileInEnglish in Bundle.properties
+=> copy and add the entry in Bundle_fr <module_path>/File=FichierEnFrancais
+
+
+----------------------
+.properties by default are NOT saved under UTF8 encoding, use ISO-8859-1! 
+So problem when reusing them from crowdin which stores them in UTF8
+As a workaround there is the possibility to change the encoding used by NB file by file (select .properties, right-click properties, check "use project encoding" which is UTF8.)
+But where is this information stored!? ==> need to manually change it if creating a new .properties
+
+=> Created SetProjectEncodingPlugin <===========
+IMPORTANT: each time a new .properties is created, select the project, menu Edit, "Use Project Encoding on all properties"
+
+
+Discussion & explanations
+https://bz.apache.org/netbeans/show_bug.cgi?id=75906
+
+The patch which introduced the possibility to alter encoding file by file
+http://hg.netbeans.org/core-main/rev/f32f64dd4a38
++ file.getAttribute(PropertiesDataNode.PROPERTY_ENCODING); => if true it will use project encoding (UTF8), otherwise it uses the default ISO-8859-1
++        if (attribute != null) {
++            boolean useProjectEncoding = (Boolean) attribute;
+
+-------------------------------------------------
+BEST LINKS
+https://www.slideshare.net/eppleton/branding-internationalization-with-the-netbeans-platform
+
+Change language on-the-fly:
+http://netbeans-org.1045718.n5.nabble.com/change-application-language-td5719798.html
+
+http://wiki.netbeans.org/NetBeans82Branding
+
+http://bits.netbeans.org/dev/javadoc/org-openide-modules/org/openide/modules/doc-files/i18n-branding.html
+
+https://stackoverflow.com/questions/25689808/localization-system-filesystem-in-netbeans/65374344#65374344
+https://stackoverflow.com/questions/10416631/netbeans-platform-and-menus
