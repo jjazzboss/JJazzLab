@@ -53,7 +53,6 @@ public class SelectAllChordSymbols implements ActionListener
 {
 
     private final ChordLeadSheet cls;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_SelectAllChordSymbols");
     private static final Logger LOGGER = Logger.getLogger(SelectAllChordSymbols.class.getSimpleName());
 
     public SelectAllChordSymbols(ChordLeadSheet context)
