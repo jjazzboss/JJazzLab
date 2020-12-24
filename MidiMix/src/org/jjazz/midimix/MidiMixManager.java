@@ -33,6 +33,7 @@ import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.InstrumentMix;
 import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
@@ -133,7 +134,7 @@ public class MidiMixManager implements PropertyChangeListener
     {
         LOGGER.fine("findMix() -- r=" + r);   //NOI18N
         MidiMix mm = null;
-        File mixFile = FileDirectoryManager.getInstance().getRhythmMixFile(r);
+        File mixFile = r instanceof AdaptedRhythm ? null : FileDirectoryManager.getInstance().getRhythmMixFile(r.getName(), r.getFile());
         if (mixFile != null && mixFile.canRead())
         {
             try
