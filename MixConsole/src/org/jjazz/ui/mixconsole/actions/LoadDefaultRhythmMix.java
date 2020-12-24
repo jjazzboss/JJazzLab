@@ -91,7 +91,7 @@ public class LoadDefaultRhythmMix extends AbstractAction
         String loadedFiles = "";
         for (Rhythm r : rhythms)
         {
-            File f = FileDirectoryManager.getInstance().getRhythmMixFile(r);
+            File f = FileDirectoryManager.getInstance().getRhythmMixFile(r.getName(), r.getFile());
             if (!f.exists())
             {                
                 String msg = ResUtil.getString(getClass(), "CTL_NoDefaultRhythmMix", r.getName());

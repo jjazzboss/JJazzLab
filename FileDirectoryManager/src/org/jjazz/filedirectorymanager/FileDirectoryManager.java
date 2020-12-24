@@ -28,8 +28,8 @@ import java.nio.file.Path;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.rhythm.api.AdaptedRhythm;
-import org.jjazz.rhythm.api.Rhythm;
+//import org.jjazz.rhythm.api.AdaptedRhythm;
+//import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.Utilities;
@@ -99,28 +99,24 @@ public class FileDirectoryManager
      * Get the rhythm mix File object for the specified rhythm.
      * <p>
      *
-     * @param rhythm A non-null object. Note that the actual file on the file system might not exist yet.
+     * @param rhythmName
+     * @param rhythmFile Can be empty (no file) but can not null.
      * @return
      */
-    public File getRhythmMixFile(Rhythm rhythm)
+    public File getRhythmMixFile(String rhythmName, File rhythmFile)
     {
-        if (rhythm == null)
+        if (rhythmName == null || rhythmName.isEmpty() || rhythmFile==null)
         {
-            throw new IllegalArgumentException("rhythm=" + rhythm);   //NOI18N
+            throw new IllegalArgumentException("rhythmName=" + rhythmName+" rhythmFile="+rhythmName);   //NOI18N
         }
-        if (rhythm instanceof AdaptedRhythm)
-        {
-            return new File("dummyForAdaptedRhythm.mix");
-        }
-        File rf = rhythm.getFile();
         String rhythmMixFileName;
-        if (rf.getName().isEmpty())
+        if (rhythmFile.getName().isEmpty())
         {
             // No file
-            rhythmMixFileName = rhythm.getName().replace(" ", "") + "." + MIX_FILE_EXTENSION;
+            rhythmMixFileName = rhythmName.replace(" ", "") + "." + MIX_FILE_EXTENSION;
         } else
         {
-            rhythmMixFileName = Utilities.replaceExtension(rf.getName(), MIX_FILE_EXTENSION);
+            rhythmMixFileName = Utilities.replaceExtension(rhythmFile.getName(), MIX_FILE_EXTENSION);
         }
         File f = new File(getRhythmMixDirectory(), rhythmMixFileName);
         return f;
