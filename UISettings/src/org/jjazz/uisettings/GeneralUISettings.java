@@ -28,12 +28,19 @@ import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -41,15 +48,26 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.modules.OnStart;
 import org.openide.util.*;
 
 /**
- * Store general UI settings, manage the current and available Themes.
+ * Store general UI settings, manage the current and available Themes, the current and available Locales.
  */
 public class GeneralUISettings
 {
+
+    /**
+     * The list of currently supported locales by the application.
+     */
+    public static final Locale[] SUPPORTED_LOCALES = new Locale[]
+    {
+        new Locale("en", "US"),
+        new Locale("fr", "FR"),
+        new Locale("ja", "JP")
+    };
 
     /**
      * The supported Look & Feels.
@@ -64,6 +82,7 @@ public class GeneralUISettings
     @StaticResource(relative = true)
     private static final String FONT_PATH = "resources/Roboto-Regular.ttf";
     private static Font FONT_10;
+    private static final String JJAZZLAB_CONFIG_FILE_NAME = "jjazzlab.conf";
 
     public static final String DEFAULT_THEME_NAME = LightTheme.NAME;
     public static final LookAndFeelId DEFAULT_LAF_ID = LookAndFeelId.LOOK_AND_FEEL_SYSTEM_DEFAULT;  // Must be the laf of DEFAULT_THEME_NAME
@@ -116,6 +135,65 @@ public class GeneralUISettings
     public String getThemeNameUponRestart()
     {
         return prefs.get(PREF_THEME_UPON_RESTART, DEFAULT_THEME_NAME);
+    }
+
+    /**
+     * Set the locale to use upon next restart.
+     * <p>
+     * Replace the --locale code in the user conf file.
+     *
+     * @param locale
+     * @throws java.io.IOException If a problem occured
+     */
+    public void setLocaleUponRestart(Locale locale) throws IOException
+    {
+        if (!Arrays.asList(SUPPORTED_LOCALES).contains(locale))
+        {
+            throw new IllegalArgumentException("Invalid locale=" + locale);
+        }
+
+        // Get the user-defined conf file        
+        File etcDir = FileDirectoryManager.getInstance().getAppConfigDirectory("etc");
+        assert etcDir != null;
+        File userConfigFile = new File(etcDir, JJAZZLAB_CONFIG_FILE_NAME);
+
+
+        if (!userConfigFile.exists())
+        {
+            // Not present, copy the default one to create it
+            String strNBPlatformDir = System.getProperty("netbeans.home", null);
+            if (strNBPlatformDir == null)
+            {
+                throw new IOException("Unexpected error: netbeans.home property value=null");
+            }
+
+            
+            if (System.getProperty("NOT_RUN_FROM_IDE")!=null)
+            {
+                // When run from IDE, strNBPlatformDir is the Netbeans IDE installation directory!
+            }
+                
+            
+            Path nbConfigFile = Path.of(strNBPlatformDir, "..", "etc", JJAZZLAB_CONFIG_FILE_NAME);
+            if (!nbConfigFile.toFile().exists())
+            {
+                
+                
+                throw new IOException("Unexpected error: " + nbConfigFile + " file not found");
+            }
+            Files.copy(nbConfigFile, userConfigFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            LOGGER.info("setLocaleUponRestart() Successfully created user .conf file: " + userConfigFile.getAbsolutePath());
+        }
+
+
+        // Replace the locale code
+        String code = locale.getLanguage() + ":" + locale.getCountry();
+        String content = new String(Files.readAllBytes(userConfigFile.toPath()), StandardCharsets.UTF_8);
+        content = content.replaceFirst("(^\\s*default_options.*--locale\\s+)([a-zA-Z:]+)(.*)", "$1" + code + "$3");
+        Files.write(userConfigFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
+
+
+        LOGGER.info("setLocaleUponRestart() Set next locale upon restart=" + code);
     }
 
     /**

@@ -22,16 +22,25 @@
  */
 package org.jjazz.options;
 
+import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.IOException;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.songeditormanager.StartupShutdownSongManager;
 import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.ui.utilities.Utilities;
-
+import org.jjazz.util.ResUtil;
+import org.openide.DialogDisplayer;
+import org.openide.LifecycleManager;
+import org.openide.NotifyDescriptor;
 
 final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
@@ -47,14 +56,23 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
 
         initComponents();
 
+        cmb_languages.setRenderer(new LocaleCellRenderer());
+
+//        cmb_languages.setRenderer((list, value, index, isSelected, cellHasFocus) ->
+//        {
+//            Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);      // actually c=this !
+//            return null; //To change body of generated lambdas, choose Tools | Templates.
+//        };
+
         // Make button Apply up to date
         cb_disableMouseWheelChangeValue.addActionListener(al -> controller.changed());
         cb_loadLastRecentFile.addActionListener(al -> controller.changed());
-        cb_useRhythmFileUserDir.addActionListener(al -> controller.changed());        
-        
+        cb_useRhythmFileUserDir.addActionListener(al -> controller.changed());
+
         // Listen to directory changes
         FileDirectoryManager fdm = FileDirectoryManager.getInstance();
-        fdm.addPropertyChangeListener(this); // RhythmDir changes      
+        fdm.addPropertyChangeListener(this); // RhythmDir changes   
+
 
     }
 
@@ -103,6 +121,11 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         jScrollPane1 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
         cb_disableMouseWheelChangeValue = new javax.swing.JCheckBox();
+        pnl_language = new javax.swing.JPanel();
+        cmb_languages = new javax.swing.JComboBox<>();
+        lbl_curLanguage = new javax.swing.JLabel();
+        btn_changeLanguage = new javax.swing.JButton();
+        lbl_currentLanguage = new javax.swing.JLabel();
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_loadLastRecentFile, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_loadLastRecentFile.text")); // NOI18N
         cb_loadLastRecentFile.addChangeListener(new javax.swing.event.ChangeListener()
@@ -156,7 +179,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
                             .addComponent(tf_defaultRhythmMixDir, javax.swing.GroupLayout.PREFERRED_SIZE, 297, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_changeDefaultRhythmMixDir)
-                        .addGap(0, 123, Short.MAX_VALUE)))
+                        .addGap(0, 133, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -175,31 +198,88 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         org.openide.awt.Mnemonics.setLocalizedText(cb_disableMouseWheelChangeValue, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_disableMouseWheelChangeValue.text")); // NOI18N
         cb_disableMouseWheelChangeValue.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_disableMouseWheelChangeValue.toolTipText")); // NOI18N
 
+        pnl_language.setBorder(javax.swing.BorderFactory.createTitledBorder(ResUtil.getString(getClass(),"GeneralPanel.pnl_language.border.title", new Object[] {}))); // NOI18N
+
+        cmb_languages.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cmb_languagesActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_curLanguage, ResUtil.getString(getClass(),"GeneralPanel.lbl_curLanguage.text", new Object[] {})); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(btn_changeLanguage, ResUtil.getString(getClass(),"GeneralPanel.btn_changeLanguage.text", new Object[] {})); // NOI18N
+        btn_changeLanguage.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_changeLanguageActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_currentLanguage, "English"); // NOI18N
+
+        javax.swing.GroupLayout pnl_languageLayout = new javax.swing.GroupLayout(pnl_language);
+        pnl_language.setLayout(pnl_languageLayout);
+        pnl_languageLayout.setHorizontalGroup(
+            pnl_languageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnl_languageLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnl_languageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnl_languageLayout.createSequentialGroup()
+                        .addComponent(lbl_curLanguage)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lbl_currentLanguage))
+                    .addGroup(pnl_languageLayout.createSequentialGroup()
+                        .addComponent(cmb_languages, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_changeLanguage)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        pnl_languageLayout.setVerticalGroup(
+            pnl_languageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnl_languageLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnl_languageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lbl_curLanguage)
+                    .addComponent(lbl_currentLanguage))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(pnl_languageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cmb_languages, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btn_changeLanguage))
+                .addContainerGap())
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(pnl_language, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(cb_disableMouseWheelChangeValue)
                             .addComponent(cb_loadLastRecentFile))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 234, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(12, 12, 12)
+                .addComponent(pnl_language, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addComponent(cb_loadLastRecentFile)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cb_disableMouseWheelChangeValue)
-                .addGap(18, 18, 18)
+                .addGap(24, 24, 24)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(232, Short.MAX_VALUE))
+                .addContainerGap(116, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -224,6 +304,38 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         fdm.setUseRhyhtmUserDirAsRhythmDefaultMixDir(cb_useRhythmFileUserDir.isSelected());
     }//GEN-LAST:event_cb_useRhythmFileUserDirActionPerformed
 
+    private void cmb_languagesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cmb_languagesActionPerformed
+    {//GEN-HEADEREND:event_cmb_languagesActionPerformed
+        var uis = GeneralUISettings.getInstance();
+        btn_changeLanguage.setEnabled(!Locale.getDefault().getDisplayLanguage(Locale.ENGLISH).equals(cmb_languages.getSelectedItem().toString()));
+
+    }//GEN-LAST:event_cmb_languagesActionPerformed
+
+    private void btn_changeLanguageActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_changeLanguageActionPerformed
+    {//GEN-HEADEREND:event_btn_changeLanguageActionPerformed
+
+        String msg = ResUtil.getString(getClass(), "CTL_ConfirmRestartToChangeLanguage");
+        NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.OK_CANCEL_OPTION);
+        Object result = DialogDisplayer.getDefault().notify(d);
+        if (NotifyDescriptor.OK_OPTION == result)
+        {
+            var uis = GeneralUISettings.getInstance();
+            try
+            {
+                uis.setLocaleUponRestart((Locale) cmb_languages.getSelectedItem());
+            } catch (IOException ex)
+            {
+                d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                return;
+            }
+            LifecycleManager.getDefault().markForRestart();
+            LifecycleManager.getDefault().exit();
+        }
+
+
+    }//GEN-LAST:event_btn_changeLanguageActionPerformed
+
     void load()
     {
         // TODO read settings and initialize GUI
@@ -236,11 +348,18 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
 
         cb_loadLastRecentFile.setSelected(StartupShutdownSongManager.getInstance().isOpenRecentFilesUponStartup());
         cb_disableMouseWheelChangeValue.setSelected(!GeneralUISettings.getInstance().isChangeValueWithMouseWheelEnabled());
-        
-                
 
 
+        // Rhythm Mix directory
         updateRhythmMixDirPanel();
+
+
+        // Language combo
+        lbl_currentLanguage.setText(Locale.getDefault().getDisplayLanguage(Locale.ENGLISH));
+        var cmbModel = new DefaultComboBoxModel<Locale>(GeneralUISettings.SUPPORTED_LOCALES);
+        cmb_languages.setModel(cmbModel);
+        cmb_languages.setSelectedItem(Locale.getDefault());
+        cmb_languagesActionPerformed(null);
     }
 
     void store()
@@ -254,7 +373,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
         StartupShutdownSongManager.getInstance().setOpenRecentFilesUponStartup(cb_loadLastRecentFile.isSelected());
 
-        GeneralUISettings.getInstance().setChangeValueWithMouseWheelEnabled(!cb_disableMouseWheelChangeValue.isSelected());        
+        GeneralUISettings.getInstance().setChangeValueWithMouseWheelEnabled(!cb_disableMouseWheelChangeValue.isSelected());
     }
 
     boolean valid()
@@ -266,12 +385,38 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_changeDefaultRhythmMixDir;
+    private javax.swing.JButton btn_changeLanguage;
     private javax.swing.JCheckBox cb_disableMouseWheelChangeValue;
     private javax.swing.JCheckBox cb_loadLastRecentFile;
     private javax.swing.JCheckBox cb_useRhythmFileUserDir;
+    private javax.swing.JComboBox<Locale> cmb_languages;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lbl_curLanguage;
+    private javax.swing.JLabel lbl_currentLanguage;
+    private javax.swing.JPanel pnl_language;
     private javax.swing.JTextField tf_defaultRhythmMixDir;
     // End of variables declaration//GEN-END:variables
+
+    // ========================================================================================================
+    // Private classes
+    // ========================================================================================================
+    private static class LocaleCellRenderer extends DefaultListCellRenderer
+    {
+
+        @Override
+        @SuppressWarnings("rawtypes")
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+        {
+            super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus); // returned component=this
+            if (value instanceof Locale)
+            {
+                Locale locale = (Locale) value;
+                setText(locale.getDisplayLanguage(Locale.ENGLISH));
+            }
+            return this;
+        }
+    }
+
 }

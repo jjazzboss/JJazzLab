@@ -17,7 +17,7 @@ Tips:
 - "(?<!')'(?!')" regex to search for single occurences of '
 
 -------------
-USE  NbBundle.getMessage() and localize-ready Netbeans utilities
+USE  NbBundle.getMessage() and localize-ready Netbeans utilities  => PROBLEM READS ONLY ISO!!
 http://wiki.netbeans.org/DevFaqNbIdiosyncracies
 NB: ImageUtilities.loadImage() can handle localized image (change file name), see https://www.slideshare.net/eppleton/branding-internationalization-with-the-netbeans-platform
 
@@ -55,8 +55,24 @@ But where is this information stored!? ==> need to manually change it if creatin
 IMPORTANT: each time a new .properties is created, select the project, menu Edit, "Use Project Encoding on all properties"
 
 
-Discussion & explanations
+
+My EMAIL USERS@NETBEANRS.ORG
+> Well since unfortunately the encoding of a property file is set as ISO-8859-1 in it spec,
+At least for JDK 11 the API says the opposite : https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/PropertyResourceBundle.html, see the API paragraph.
+And indeed it's what I experiment: if I use ResourceBundle.getBundle(Class, Module),getString(key), it does automatically read UTF-8 or ISO strings (I made a test with both encodings in a single.properties file).
+If I use NbBundle.getMessage() then it always expects ISO, that's why I don't use it. The problem is that I can't alter the behavior of the Netbeans internal stuff which still works the "old way". This impacts branding localization or action displayname declared via @ActionRegistration(lazy=true).
+
+I posted a JIRA enhancement request
+
+Tested an Ant patch (-post-compile extension point) to automatically apply native2ascii on copied resource bundles before they got put in jar. Works OK for modules. 
+See MyRCPapp(common_module)+module4(build.xml)+shell UTF8toISO8859.sh. But still problem for reencoding branding localization bundles, no easy way to patch the build script!
+See question on NB user devlist (no answer...).
+
+
+--------------------------------
+Historic discussion & explanations
 https://bz.apache.org/netbeans/show_bug.cgi?id=75906
+
 
 The patch which introduced the possibility to alter encoding file by file
 http://hg.netbeans.org/core-main/rev/f32f64dd4a38
@@ -77,3 +93,5 @@ http://bits.netbeans.org/dev/javadoc/org-openide-modules/org/openide/modules/doc
 
 https://stackoverflow.com/questions/25689808/localization-system-filesystem-in-netbeans/65374344#65374344
 https://stackoverflow.com/questions/10416631/netbeans-platform-and-menus
+
+
