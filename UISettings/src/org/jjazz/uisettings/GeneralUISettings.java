@@ -44,6 +44,7 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.regex.Pattern;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.border.Border;
@@ -141,7 +142,7 @@ public class GeneralUISettings
     /**
      * Set the locale to use upon next restart.
      * <p>
-     * Replace the --locale code in the user conf file. Note: can't be used while running from IDE!
+     * Add or replace the --locale code in the user conf file. Note: can't be used while running from IDE!
      *
      * @param locale
      * @throws java.io.IOException If a problem occured
@@ -153,23 +154,23 @@ public class GeneralUISettings
             throw new IllegalArgumentException("Invalid locale=" + locale);
         }
 
-         // Special case: if running from IDE, jjazzlab.conf file is not used
+        // Special case: if running from IDE, jjazzlab.conf file is not used
         if (System.getProperty("jjazzlab.version") == null)
         {
             throw new IOException("Can't change language when running JJazzLab from the IDE");
         }
 
-        
+
         // Make sure <nbUserDir>/etc exists
         File nbUserDir = Places.getUserDirectory();
         assert nbUserDir != null && nbUserDir.isDirectory() : "nbUserDir=" + nbUserDir;
         File userEtcDir = new File(nbUserDir, "etc");
         if (!userEtcDir.exists())
-        {   
+        {
             userEtcDir.mkdir();
         }
-        
-        
+
+
         // Get the user-defined conf file                        
         File userConfigFile = new File(userEtcDir, JJAZZLAB_CONFIG_FILE_NAME);
         if (!userConfigFile.exists())
@@ -186,19 +187,33 @@ public class GeneralUISettings
             {
                 throw new IOException("Unexpected error: " + nbConfigFile + " file not found");
             }
-            
+
             // Make the copy
             Files.copy(nbConfigFile, userConfigFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             LOGGER.info("setLocaleUponRestart() Successfully created user .conf file: " + userConfigFile.getAbsolutePath());
         }
 
 
-        // Replace the locale code
+        // Add or replace the locale code
         String code = locale.getLanguage() + ":" + locale.getCountry();
         String content = new String(Files.readAllBytes(userConfigFile.toPath()), StandardCharsets.UTF_8);
-        content = content.replaceFirst("(^\\s*default_options.*--locale\\s+)([a-zA-Z:]+)(.*)", "$1" + code + "$3");
+        Pattern p1 = Pattern.compile("^\\s*default_options\\s*=.*--locale\\s+", Pattern.MULTILINE);   
+        Pattern p2 = Pattern.compile("^\\s*default_options\\s*=\\s*\"", Pattern.MULTILINE); 
+        
+        if (p1.matcher(content).find())
+        {
+            // Replace the --locale xx:XX
+            content = content.replaceFirst("(?m)(^\\s*default_options\\s*=.*--locale\\s+)([a-zA-Z:]+)(.*)", "$1" + code + "$3");
+        } else if (p2.matcher(content).find())
+        {
+            // Add the --locale xx:XX
+            code = "--locale " + code + " ";
+            content = content.replaceFirst("(?m)(^\\s*default_options\\s*=\\s*\")(.*)", "$1" + code + "$2");
+        } else
+        {
+            throw new IOException("Unexpected error: no 'default_options' property found in " + userConfigFile.getAbsolutePath());
+        }
         Files.write(userConfigFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
-
 
         LOGGER.info("setLocaleUponRestart() Set next locale upon restart=" + code);
     }
