@@ -51,6 +51,7 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.modules.OnStart;
+import org.openide.modules.Places;
 import org.openide.util.*;
 
 /**
@@ -140,7 +141,7 @@ public class GeneralUISettings
     /**
      * Set the locale to use upon next restart.
      * <p>
-     * Replace the --locale code in the user conf file.
+     * Replace the --locale code in the user conf file. Note: can't be used while running from IDE!
      *
      * @param locale
      * @throws java.io.IOException If a problem occured
@@ -152,35 +153,41 @@ public class GeneralUISettings
             throw new IllegalArgumentException("Invalid locale=" + locale);
         }
 
-        // Get the user-defined conf file        
-        File etcDir = FileDirectoryManager.getInstance().getAppConfigDirectory("etc");
-        assert etcDir != null;
-        File userConfigFile = new File(etcDir, JJAZZLAB_CONFIG_FILE_NAME);
+         // Special case: if running from IDE, jjazzlab.conf file is not used
+        if (System.getProperty("jjazzlab.version") == null)
+        {
+            throw new IOException("Can't change language when running JJazzLab from the IDE");
+        }
 
-
+        
+        // Make sure <nbUserDir>/etc exists
+        File nbUserDir = Places.getUserDirectory();
+        assert nbUserDir != null && nbUserDir.isDirectory() : "nbUserDir=" + nbUserDir;
+        File userEtcDir = new File(nbUserDir, "etc");
+        if (!userEtcDir.exists())
+        {   
+            userEtcDir.mkdir();
+        }
+        
+        
+        // Get the user-defined conf file                        
+        File userConfigFile = new File(userEtcDir, JJAZZLAB_CONFIG_FILE_NAME);
         if (!userConfigFile.exists())
         {
-            // Not present, copy the default one to create it
+            // Not present, copy the default one to create it                        
             String strNBPlatformDir = System.getProperty("netbeans.home", null);
             if (strNBPlatformDir == null)
             {
                 throw new IOException("Unexpected error: netbeans.home property value=null");
             }
 
-            
-            if (System.getProperty("NOT_RUN_FROM_IDE")!=null)
-            {
-                // When run from IDE, strNBPlatformDir is the Netbeans IDE installation directory!
-            }
-                
-            
             Path nbConfigFile = Path.of(strNBPlatformDir, "..", "etc", JJAZZLAB_CONFIG_FILE_NAME);
             if (!nbConfigFile.toFile().exists())
             {
-                
-                
                 throw new IOException("Unexpected error: " + nbConfigFile + " file not found");
             }
+            
+            // Make the copy
             Files.copy(nbConfigFile, userConfigFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             LOGGER.info("setLocaleUponRestart() Successfully created user .conf file: " + userConfigFile.getAbsolutePath());
         }
