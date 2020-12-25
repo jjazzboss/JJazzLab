@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This script is injected in each of the individual module build process (module/build.xml).
+    Use it to apply module-build specific changes to all modules of the module suite.
+-->
+<project name="module_common">
+
+    <target name="UTF8toISO8859" extensionOf="-post-compile" if="${enable.utf2iso.transcoding}">       
+       <exec executable="${cygwin.bash}" osfamily="windows">
+            <arg value="--login"/> 
+            <arg value="-c"/> 
+            <!-- arg value="-x"/ -->
+            <arg value="'${suite.dir}'/UTF8toISO8859.sh '${build.classes.dir}'"/>  
+        </exec>            
+    </target>      
+    
+</project>    
+
