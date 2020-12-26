@@ -68,7 +68,7 @@ public class GeneralUISettings
     {
         new Locale("en", "US"),
         new Locale("fr", "FR"),
-        new Locale("ja", "JP")
+        new Locale("de", "DE")
     };
 
     /**
