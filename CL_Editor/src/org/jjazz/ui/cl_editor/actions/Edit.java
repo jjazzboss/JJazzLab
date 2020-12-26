@@ -111,7 +111,8 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
     }
 
     /**
-     * @param e If action triggered by a key press, e.getActionCommand() provide the key pressed.
+     * @param e If action triggered by a key press, e.getActionCommand() provide
+     * the key pressed.
      */
     @Override
     public void actionPerformed(ActionEvent e)
@@ -120,15 +121,19 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         final ChordLeadSheet cls = selection.getChordLeadSheet();
         final CL_Editor editor = CL_EditorTopComponent.getActive().getCL_Editor();
         char key = (char) 0;
-        LOGGER.log(Level.FINE, "e=" + e);   //NOI18N
-        if (e != null)
+        LOGGER.fine("e=" + e);   //NOI18N
+        
+        // Is it a chord note ?        
+        if (e != null && e.getActionCommand().length() == 1)
         {
-            String strCmd = org.jjazz.util.Utilities.truncate(e.getActionCommand(), 4);
-            if (!strCmd.equalsIgnoreCase("Edit") && !strCmd.equalsIgnoreCase("Ente"))
+            char c = e.getActionCommand().toUpperCase().charAt(0);
+            if (c >= 'A' && c <= 'G')
             {
-                key = e.getActionCommand().charAt(0);
+                key = c;
             }
         }
+        
+        
         if (selection.isItemSelected())
         {
             ChordLeadSheetItem<?> item = selection.getSelectedItems().get(0);
