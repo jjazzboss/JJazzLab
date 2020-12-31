@@ -156,9 +156,8 @@ public class InsertSptDialog extends javax.swing.JDialog
 
         setTitle(org.openide.util.NbBundle.getMessage(InsertSptDialog.class, "InsertSptDialog.title")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_text, org.openide.util.NbBundle.getMessage(InsertSptDialog.class, "InsertSptDialog.lbl_text.text_1")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_text, org.openide.util.NbBundle.getMessage(InsertSptDialog.class, "InsertSptDialog.lbl_text.text")); // NOI18N
 
-        cbo_sections.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         cbo_sections.addKeyListener(new java.awt.event.KeyAdapter()
         {
             public void keyPressed(java.awt.event.KeyEvent evt)
@@ -167,7 +166,7 @@ public class InsertSptDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_ok, org.openide.util.NbBundle.getMessage(InsertSptDialog.class, "InsertSptDialog.btn_ok.text_1")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_ok, org.openide.util.NbBundle.getMessage(InsertSptDialog.class, "InsertSptDialog.btn_ok.text")); // NOI18N
         btn_ok.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -176,7 +175,7 @@ public class InsertSptDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_cancel, org.openide.util.NbBundle.getMessage(InsertSptDialog.class, "InsertSptDialog.btn_cancel.text_1")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_cancel, org.openide.util.NbBundle.getMessage(InsertSptDialog.class, "InsertSptDialog.btn_cancel.text")); // NOI18N
         btn_cancel.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)

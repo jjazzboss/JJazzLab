@@ -42,7 +42,7 @@ import org.openide.awt.ActionRegistration;
 @ActionRegistration(displayName = "#CTL_DisableAllMidiParameters", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/MixConsole/MenuBar/Edit", position = 400)
+            @ActionReference(path = "Actions/MixConsole/MenuBar/Midi", position = 200)
         })
 public class DisableAllMidiParameters extends AbstractAction
 {
