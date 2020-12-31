@@ -162,9 +162,9 @@ public class DuplicateSptDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_text, org.openide.util.NbBundle.getMessage(DuplicateSptDialog.class, "DuplicateSptDialog.lbl_text.text_1")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_text, org.openide.util.NbBundle.getMessage(DuplicateSptDialog.class, "DuplicateSptDialog.lbl_text.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_ok, org.openide.util.NbBundle.getMessage(DuplicateSptDialog.class, "DuplicateSptDialog.btn_ok.text_1")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_ok, org.openide.util.NbBundle.getMessage(DuplicateSptDialog.class, "DuplicateSptDialog.btn_ok.text")); // NOI18N
         btn_ok.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -173,7 +173,7 @@ public class DuplicateSptDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_cancel, org.openide.util.NbBundle.getMessage(DuplicateSptDialog.class, "DuplicateSptDialog.btn_cancel.text_1")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_cancel, org.openide.util.NbBundle.getMessage(DuplicateSptDialog.class, "DuplicateSptDialog.btn_cancel.text")); // NOI18N
         btn_cancel.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -195,7 +195,7 @@ public class DuplicateSptDialog extends javax.swing.JDialog
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(lbl_text)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(spn_Number, javax.swing.GroupLayout.DEFAULT_SIZE, 68, Short.MAX_VALUE))
+                        .addComponent(spn_Number, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(btn_ok, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)

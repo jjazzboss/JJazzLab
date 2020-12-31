@@ -44,6 +44,7 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.regex.Pattern;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.border.Border;
@@ -51,6 +52,7 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.modules.OnStart;
+import org.openide.modules.Places;
 import org.openide.util.*;
 
 /**
@@ -66,7 +68,7 @@ public class GeneralUISettings
     {
         new Locale("en", "US"),
         new Locale("fr", "FR"),
-        new Locale("ja", "JP")
+        new Locale("de", "DE")
     };
 
     /**
@@ -140,7 +142,7 @@ public class GeneralUISettings
     /**
      * Set the locale to use upon next restart.
      * <p>
-     * Replace the --locale code in the user conf file.
+     * Add or replace the --locale code in the user conf file. Note: can't be used while running from IDE!
      *
      * @param locale
      * @throws java.io.IOException If a problem occured
@@ -152,46 +154,66 @@ public class GeneralUISettings
             throw new IllegalArgumentException("Invalid locale=" + locale);
         }
 
-        // Get the user-defined conf file        
-        File etcDir = FileDirectoryManager.getInstance().getAppConfigDirectory("etc");
-        assert etcDir != null;
-        File userConfigFile = new File(etcDir, JJAZZLAB_CONFIG_FILE_NAME);
+        // Special case: if running from IDE, jjazzlab.conf file is not used
+        if (System.getProperty("jjazzlab.version") == null)
+        {
+            throw new IOException("Can't change language when running JJazzLab from the IDE");
+        }
 
 
+        // Make sure <nbUserDir>/etc exists
+        File nbUserDir = Places.getUserDirectory();
+        assert nbUserDir != null && nbUserDir.isDirectory() : "nbUserDir=" + nbUserDir;
+        File userEtcDir = new File(nbUserDir, "etc");
+        if (!userEtcDir.exists())
+        {
+            userEtcDir.mkdir();
+        }
+
+
+        // Get the user-defined conf file                        
+        File userConfigFile = new File(userEtcDir, JJAZZLAB_CONFIG_FILE_NAME);
         if (!userConfigFile.exists())
         {
-            // Not present, copy the default one to create it
+            // Not present, copy the default one to create it                        
             String strNBPlatformDir = System.getProperty("netbeans.home", null);
             if (strNBPlatformDir == null)
             {
                 throw new IOException("Unexpected error: netbeans.home property value=null");
             }
 
-            
-            if (System.getProperty("NOT_RUN_FROM_IDE")!=null)
-            {
-                // When run from IDE, strNBPlatformDir is the Netbeans IDE installation directory!
-            }
-                
-            
             Path nbConfigFile = Path.of(strNBPlatformDir, "..", "etc", JJAZZLAB_CONFIG_FILE_NAME);
             if (!nbConfigFile.toFile().exists())
             {
-                
-                
                 throw new IOException("Unexpected error: " + nbConfigFile + " file not found");
             }
+
+            // Make the copy
             Files.copy(nbConfigFile, userConfigFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             LOGGER.info("setLocaleUponRestart() Successfully created user .conf file: " + userConfigFile.getAbsolutePath());
         }
 
 
-        // Replace the locale code
+        // Add or replace the locale code
         String code = locale.getLanguage() + ":" + locale.getCountry();
         String content = new String(Files.readAllBytes(userConfigFile.toPath()), StandardCharsets.UTF_8);
-        content = content.replaceFirst("(^\\s*default_options.*--locale\\s+)([a-zA-Z:]+)(.*)", "$1" + code + "$3");
+        Pattern p1 = Pattern.compile("^\\s*default_options\\s*=.*--locale\\s+", Pattern.MULTILINE);   
+        Pattern p2 = Pattern.compile("^\\s*default_options\\s*=\\s*\"", Pattern.MULTILINE); 
+        
+        if (p1.matcher(content).find())
+        {
+            // Replace the --locale xx:XX
+            content = content.replaceFirst("(?m)(^\\s*default_options\\s*=.*--locale\\s+)([a-zA-Z:]+)(.*)", "$1" + code + "$3");
+        } else if (p2.matcher(content).find())
+        {
+            // Add the --locale xx:XX
+            code = "--locale " + code + " ";
+            content = content.replaceFirst("(?m)(^\\s*default_options\\s*=\\s*\")(.*)", "$1" + code + "$2");
+        } else
+        {
+            throw new IOException("Unexpected error: no 'default_options' property found in " + userConfigFile.getAbsolutePath());
+        }
         Files.write(userConfigFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
-
 
         LOGGER.info("setLocaleUponRestart() Set next locale upon restart=" + code);
     }

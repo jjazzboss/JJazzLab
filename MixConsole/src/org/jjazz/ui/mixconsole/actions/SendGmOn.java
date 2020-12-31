@@ -40,7 +40,7 @@ import org.openide.util.NbBundle;
 @ActionRegistration(displayName = "#CTL_SendGmOn", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/MixConsole/MenuBar/Midi", position = 300)
+            @ActionReference(path = "Actions/MixConsole/MenuBar/Midi", position = 300, separatorBefore=299)
         })
 @NbBundle.Messages(
         {

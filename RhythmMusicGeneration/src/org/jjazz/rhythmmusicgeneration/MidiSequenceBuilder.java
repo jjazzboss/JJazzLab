@@ -116,9 +116,7 @@ public class MidiSequenceBuilder
             task.run();
         } else
         {
-            BaseProgressUtils.showProgressDialogAndRun(task, ResUtil.getString(getClass(), "PREPARING MUSIC", new Object[]
-            {
-            }));
+            BaseProgressUtils.showProgressDialogAndRun(task, ResUtil.getString(getClass(), "PREPARING MUSIC"));
         }
 
         if (task.musicException != null)

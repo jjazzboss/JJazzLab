@@ -4,5 +4,5 @@
 <!-- If you delete this file and reopen the project it will be recreated. -->
 <project name="org.jjazz.ui.spteditor" default="netbeans" basedir=".">
     <description>Builds, tests, and runs the project org.jjazz.ui.spteditor.</description>
-    <import file="nbproject/build-impl.xml"/>
+    <import file="nbproject/build-impl.xml"/> <import file="${suite.dir}/nbproject/module_common.xml"/>
 </project>

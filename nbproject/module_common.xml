@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This script is injected in each of the individual module build process (module/build.xml).
+    Use it to apply module-build specific changes to all modules of the module suite.
+-->
+<project name="module_common">
+       
+</project>    
+

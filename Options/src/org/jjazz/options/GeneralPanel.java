@@ -234,9 +234,9 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
                         .addComponent(lbl_currentLanguage))
                     .addGroup(pnl_languageLayout.createSequentialGroup()
                         .addComponent(cmb_languages, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGap(18, 18, 18)
                         .addComponent(btn_changeLanguage)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(352, Short.MAX_VALUE))
         );
         pnl_languageLayout.setVerticalGroup(
             pnl_languageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -306,9 +306,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
 
     private void cmb_languagesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cmb_languagesActionPerformed
     {//GEN-HEADEREND:event_cmb_languagesActionPerformed
-        var uis = GeneralUISettings.getInstance();
-        btn_changeLanguage.setEnabled(!Locale.getDefault().getDisplayLanguage(Locale.ENGLISH).equals(cmb_languages.getSelectedItem().toString()));
-
+        btn_changeLanguage.setEnabled(!Locale.getDefault().equals(cmb_languages.getSelectedItem()));
     }//GEN-LAST:event_cmb_languagesActionPerformed
 
     private void btn_changeLanguageActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_changeLanguageActionPerformed
