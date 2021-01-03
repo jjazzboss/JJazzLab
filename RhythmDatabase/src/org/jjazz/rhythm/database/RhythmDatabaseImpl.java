@@ -73,11 +73,14 @@ import org.openide.windows.WindowManager;
  * RhythmDatabase implementation.
  * <p>
  * Upon clean/fresh start:<br>
- * - retrieve all available builtin & file-based rhythm instances by polling RhythmProviders (this can be long if many rhythm
- * files need to be scanned).<br>
- * - create RhythmInfo instances from the Rhythm instances and save the file-based RhythmInfos to a cache file.<p>
+ * - retrieve all available builtin & file-based rhythm instances by polling
+ * RhythmProviders (this can be long if many rhythm files need to be
+ * scanned).<br>
+ * - create RhythmInfo instances from the Rhythm instances and save the
+ * file-based RhythmInfos to a cache file.<p>
  * Then upon normal start:<br>
- * - retrieve all available builtin rhythm instances by polling RhythmProviders, create the corresponding RhythmInfos.<br>
+ * - retrieve all available builtin rhythm instances by polling RhythmProviders,
+ * create the corresponding RhythmInfos.<br>
  * - load additional file-based RhythmInfos from the cache file<br>
  * - create Rhythm instances only when required.<p>
  * <p>
@@ -117,7 +120,8 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     private static final Logger LOGGER = Logger.getLogger(RhythmDatabaseImpl.class.getSimpleName());
 
     /**
-     * If database is not ready yet (scanning rhythm files) then the call blocks and shows a dialog to inform user we're waiting.
+     * If database is not ready yet (scanning rhythm files) then the call blocks
+     * and shows a dialog to inform user we're waiting.
      *
      * @return
      */
@@ -165,7 +169,9 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         // Prepare the ProgressHandle
         boolean needRescan = prefs.getBoolean(PREF_NEED_RESCAN, true);
         String dir = FileDirectoryManager.getInstance().getUserRhythmDirectory().getAbsolutePath();
-        String msg = needRescan ? "Scanning all rhythms in " + dir + "..." : "Reading rhythm list...";
+        String msg1 = ResUtil.getString(getClass(), "CTL_ScanningAllRhythmsInDir", dir);
+        String msg2 = ResUtil.getString(getClass(), "CTL_ReadingRhythmDbCacheFile");
+        String msg = needRescan ? msg1 : msg2;
         ProgressHandle ph = ProgressHandle.createHandle(msg);
         ph.start();
 
@@ -615,8 +621,8 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         boolean cacheFilePresent = RhythmDbCache.getFile().isFile();
         LOGGER.info("initDatabase() needRescan=" + needRescan + " cacheFilePresent=" + cacheFilePresent);   //NOI18N
 
-        String msg1 = ResUtil.getString(getClass(),"CTL_ScanningAllRhythmsInDir", rDir.getAbsolutePath());
-        String msg2 = ResUtil.getString(getClass(),"CTL_SavingRhythmDbCacheFile");
+        String msg1 = ResUtil.getString(getClass(), "CTL_ScanningAllRhythmsInDir", rDir.getAbsolutePath());
+        String msg2 = ResUtil.getString(getClass(), "CTL_SavingRhythmDbCacheFile");
 
         // Perform a scan or use the cache file
         if (needRescan || !cacheFilePresent)
@@ -636,20 +642,20 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             // Reuse cache file to avoid a full scan
 
             // Scan only for builtin Rhythms
-            ph.progress(ResUtil.getString(getClass(),"CTL_ScanningAllBuiltinRhythms"));
+            ph.progress(ResUtil.getString(getClass(), "CTL_ScanningAllBuiltinRhythms"));
             addNewRhythmsFromRhythmProviders(false, true, false);
 
             // Read cache
             try
             {
-                ph.progress(ResUtil.getString(getClass(),"CTL_ReadingRhythmDbCacheFile"));
+                ph.progress(ResUtil.getString(getClass(), "CTL_ReadingRhythmDbCacheFile"));
                 readCache();
 
             } catch (IOException ex)
             {
                 // Notify
                 LOGGER.warning("RhythmDatabaseImpl() Can't load cache file. ex=" + ex.getLocalizedMessage());   //NOI18N
-                String msg = ResUtil.getString(getClass(),"ERR_LoadingCacheFile", RhythmDbCache.getFile().getAbsolutePath());
+                String msg = ResUtil.getString(getClass(), "ERR_LoadingCacheFile", RhythmDbCache.getFile().getAbsolutePath());
                 NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
 
@@ -712,7 +718,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                     @Override
                     public void run()
                     {
-                        new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), ResUtil.getString(getClass(),"CTL_BuiltinRhythmErrors"), builtinErrRpt).setVisible(true);
+                        new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), ResUtil.getString(getClass(), "CTL_BuiltinRhythmErrors"), builtinErrRpt).setVisible(true);
                     }
                 });
             }
@@ -741,14 +747,14 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                     @Override
                     public void run()
                     {
-                        new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), ResUtil.getString(getClass(),"CTL_FileBasedRhythmErrors"), fileErrRpt).setVisible(true);
+                        new MultipleErrorsReportDialog(WindowManager.getDefault().getMainWindow(), ResUtil.getString(getClass(), "CTL_FileBasedRhythmErrors"), fileErrRpt).setVisible(true);
                     }
                 });
             }
 
         }
 
-        LOGGER.info("addNewRhythmsFromRhythmProviders() excludeBuiltinRhythms=" + excludeBuiltinRhythms   //NOI18N
+        LOGGER.info("addNewRhythmsFromRhythmProviders() excludeBuiltinRhythms=" + excludeBuiltinRhythms //NOI18N
                 + " excludeFileRhythms=" + excludeFileRhythms + " forceFileRescan=" + forceFileRescan + ". Added " + n + " rhythms");
 
         return n;
@@ -1027,12 +1033,12 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             }
             if (!isEmpty)
             {
-                String msg = ResUtil.getString(getClass(),"CTL_CopyDefaultRhythmConfirmOverwrite", dir.getAbsolutePath());
+                String msg = ResUtil.getString(getClass(), "CTL_CopyDefaultRhythmConfirmOverwrite", dir.getAbsolutePath());
                 String[] options = new String[]
                 {
-                    "OK", ResUtil.getString(getClass(),"CTL_Skip")
+                    "OK", ResUtil.getString(getClass(), "CTL_Skip")
                 };
-                NotifyDescriptor d = new NotifyDescriptor(msg, ResUtil.getString(getClass(),"CTL_FirstTimeInit"), 0, NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
+                NotifyDescriptor d = new NotifyDescriptor(msg, ResUtil.getString(getClass(), "CTL_FirstTimeInit"), 0, NotifyDescriptor.QUESTION_MESSAGE, options, "OK");
                 Object result = DialogDisplayer.getDefault().notify(d);
 
                 if (!result.equals("OK"))
@@ -1050,7 +1056,8 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     }
 
     /**
-     * Create the database instance once the CopyDefaultRhythmFilesTask is complete.
+     * Create the database instance once the CopyDefaultRhythmFilesTask is
+     * complete.
      */
     @ServiceProvider(service = StartupTask.class)
     public static class CreateDatabaseTask implements StartupTask
