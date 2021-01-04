@@ -24,12 +24,10 @@ package org.jjazz.util;
 
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
-import org.openide.util.NbBundle;
 
 /**
  * Helper methods to use ResourceBundles.
  * <p>
- * TODO: REMOVE, DIRECTLY USE NBBUNDLE.GETMESSAGE()
  */
 public class ResUtil
 {
