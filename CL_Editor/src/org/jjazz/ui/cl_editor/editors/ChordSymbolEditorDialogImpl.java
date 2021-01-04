@@ -917,7 +917,6 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         );
 
         pnl_altChordSymbol.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.pnl_altChordSymbol.border.title"))); // NOI18N
-        pnl_altChordSymbol.setToolTipText(org.openide.util.NbBundle.getMessage(ChordSymbolEditorDialogImpl.class, "ChordSymbolEditorDialogImpl.pnl_altChordSymbol.toolTipText")); // NOI18N
 
         lbl_altChordSymbol.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         org.openide.awt.Mnemonics.setLocalizedText(lbl_altChordSymbol, "C7M"); // NOI18N

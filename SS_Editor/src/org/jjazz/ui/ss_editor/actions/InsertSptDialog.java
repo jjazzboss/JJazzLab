@@ -80,6 +80,7 @@ public class InsertSptDialog extends javax.swing.JDialog
         {
             cbo_sections.addItem(cli.getData().getName());
         }
+        pack();
         exitOk = false;
         cbo_sections.requestFocusInWindow();
     }

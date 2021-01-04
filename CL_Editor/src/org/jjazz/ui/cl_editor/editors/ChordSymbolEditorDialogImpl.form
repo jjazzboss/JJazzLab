@@ -518,7 +518,7 @@
         <Container class="javax.swing.JPanel" name="pnl_Alternate">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Alternate chord symbol" toolTip="Define an alternate chord symbol and when to use it">
+              <JTabbedPaneConstraints tabName="Substitute chord symbol" toolTip="Define a substitute chord symbol and when to use it">
                 <Property name="tabTitle" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="ChordSymbolEditorDialogImpl.pnl_Alternate.TabConstraints.tabTitle" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
@@ -676,13 +676,10 @@
               <Properties>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                   <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-                    <TitledBorder title="Alternate chord symbol">
+                    <TitledBorder title="Substitute chord symbol">
                       <ResourceString PropertyName="titleX" bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="ChordSymbolEditorDialogImpl.pnl_altChordSymbol.border.title" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                     </TitledBorder>
                   </Border>
-                </Property>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/ui/cl_editor/editors/Bundle.properties" key="ChordSymbolEditorDialogImpl.pnl_altChordSymbol.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
               </Properties>
 
