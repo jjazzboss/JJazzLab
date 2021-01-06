@@ -686,9 +686,9 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         String strName = showName ? sptModel.getName() : "   ";
         fbtn_sptName.setText(strName);
         Section section = sptModel.getParentSection().getData();
-        String strPlaying = ResUtil.getString(getClass(),"SongPartPlaying");
-        String strSongPart = ResUtil.getString(getClass(),"SongPart");
-        String strParentSection = ResUtil.getString(getClass(),"ParentSection");
+        String strPlaying = "[" + ResUtil.getString(getClass(), "SongPartPlaying") + "]";
+        String strSongPart = ResUtil.getString(getClass(), "SongPart");
+        String strParentSection = ResUtil.getString(getClass(), "ParentSection");
         String strTooltip = (isPlaybackOn ? strPlaying + " " : "") + strSongPart + "=" + sptModel.getName() + " (" + strParentSection + "=" + section.getName() + " " + section.getTimeSignature() + ")";
         setToolTipText(strTooltip);
         fbtn_sptName.setToolTipText(strTooltip);

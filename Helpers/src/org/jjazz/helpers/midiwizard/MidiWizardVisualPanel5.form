@@ -141,9 +141,7 @@
     </Container>
     <Component class="javax.swing.JLabel" name="lbl_outDevice">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/helpers/midiwizard/Bundle.properties" key="MidiWizardVisualPanel5.lbl_outDevice.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="Midi Out device: Java Internal Synth" noResource="true"/>
       </Properties>
     </Component>
     <Container class="javax.swing.JPanel" name="jPanel1">

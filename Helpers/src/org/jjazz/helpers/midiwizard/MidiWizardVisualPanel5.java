@@ -275,7 +275,7 @@ public final class MidiWizardVisualPanel5 extends JPanel
         helpTextArea1.setText(org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.helpTextArea1.text")); // NOI18N
         jScrollPane2.setViewportView(helpTextArea1);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_outDevice, org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.lbl_outDevice.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_outDevice, "Midi Out device: Java Internal Synth"); // NOI18N
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(MidiWizardVisualPanel5.class, "MidiWizardVisualPanel5.jPanel1.border.title"))); // NOI18N
 
