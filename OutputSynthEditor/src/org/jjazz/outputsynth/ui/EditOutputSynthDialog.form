@@ -134,6 +134,8 @@
                       <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="tf_configName" min="-2" pref="133" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Component id="btn_reset" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
                       <Component id="btn_Save" min="-2" max="-2" attributes="0"/>
                   </Group>
@@ -152,6 +154,7 @@
                   <Component id="btn_Save" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="tf_configName" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btn_reset" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -192,6 +195,19 @@
           <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="EditOutputSynthDialog.jLabel1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="btn_reset">
+      <Properties>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="EditOutputSynthDialog.btn_reset.text" replaceFormat="ResUtil.getString(getClass(),&quot;{key}&quot;, {arguments})"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="EditOutputSynthDialog.btn_reset.toolTipText" replaceFormat="ResUtil.getString(getClass(),&quot;{key}&quot;, {arguments})"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_resetActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>
