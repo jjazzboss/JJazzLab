@@ -52,8 +52,13 @@ From Netbeans IDE:
 
 Lesser GPL v3 (LGPL v3), see LICENCE file.
 
-## Developer's documentation 
-See the project's [GitHub Wiki](https://github.com/jjazzboss/JJazzLab-X/wiki).
+## User guide
+
+[https://jjazzlab.gitbook.io/user-guide/](https://jjazzlab.gitbook.io/user-guide)
+
+## Developer's guide 
+
+[https://jjazzlab.gitbook.io/developer-guide/](https://jjazzlab.gitbook.io/developer-guide/)
 
 ## Contact
 
