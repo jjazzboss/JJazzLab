@@ -16,10 +16,13 @@
                 </fileset>
             </sourcefiles>         
             <classpath>
-                <fileset dir="${nbplatform.active.dir}" />
+                <fileset dir="${nbplatform.active.dir}">
+                    <include name="**/*.jar" />
+                    <exclude name="**/org-netbeans-libs-javafx.jar"/>   <!-- javadoc error URISyntaxException! -->
+                </fileset>                
                 <fileset dir="${basedir}/build/cluster/modules/" />
             </classpath>
-            <link href="https://docs.oracle.com/javase/8/docs/api/"/>
+            <link href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/"/>
         </javadoc>
         <zip destfile="${suite.build.dir}/javadoc.zip" basedir="${suite.build.dir}/javadoc/" />
     </target>
