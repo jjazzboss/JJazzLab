@@ -50,7 +50,7 @@ public final class RP_SYS_TempoFactor extends RP_Integer
 
     private RP_SYS_TempoFactor()
     {
-        super(ID, ResUtil.getString(RP_SYS_TempoFactor.class, "CTL_RpTempoFactorName"), ResUtil.getString(RP_SYS_TempoFactor.class, "CTL_RpTempoFactorDesc"), 100, 50, 200, 5);
+        super(ID, ResUtil.getString(RP_SYS_TempoFactor.class, "CTL_RpTempoFactorName"), ResUtil.getString(RP_SYS_TempoFactor.class, "CTL_RpTempoFactorDesc"), 100, 50, 200, 1);
     }
 
     /**
