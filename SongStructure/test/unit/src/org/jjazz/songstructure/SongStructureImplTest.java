@@ -60,7 +60,7 @@ public class SongStructureImplTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        rdb = RhythmDatabase.getDefault();
+        rdb = RhythmDatabase.getUnitTestDefault();
         System.out.println("rdb=" + rdb);
     }
 
@@ -75,40 +75,55 @@ public class SongStructureImplTest
         try
         {
             undoManager = new JJazzUndoManager();
+            
+            
             sgs = new SongStructureImpl();
-            sgs.addUndoableEditListener(undoManager);
+            sgs.addUndoableEditListener(undoManager);            
             JJazzUndoManagerFinder.getDefault().put(undoManager, sgs);
+            
+            
             r44_1 = rdb.getRhythmInstance(rdb.getRhythms().get(0));
             r44_2 = rdb.getRhythmInstance(rdb.getRhythms().get(1));
             r34 = rdb.getRhythmInstance(rdb.getDefaultRhythm(TimeSignature.THREE_FOUR));
+            
+            
             spt0 = new SongPartImpl(r44_1, 0, 10, null);
             spt1 = new SongPartImpl(r44_1, 10, 4, null);
             spt2 = new SongPartImpl(r44_1, 14, 6, null);
             spt3 = new SongPartImpl(r34, 10, 12, null);
             spt4 = new SongPartImpl(r44_1, 30, 8, null);
+            
+            
             u_spt0 = spt0.clone(spt0.getRhythm(), spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
             u_spt1 = spt1.clone(spt1.getRhythm(), spt1.getStartBarIndex(), spt1.getNbBars(), spt0.getParentSection());
             u_spt2 = spt2.clone(spt2.getRhythm(), spt2.getStartBarIndex(), spt2.getNbBars(), spt0.getParentSection());
             u_spt3 = spt3.clone(spt3.getRhythm(), spt3.getStartBarIndex(), spt3.getNbBars(), spt0.getParentSection());
             u_spt4 = spt4.clone(spt4.getRhythm(), spt4.getStartBarIndex(), spt4.getNbBars(), spt0.getParentSection());
 
+            
             sgs.addSongParts(Arrays.asList(spt0, spt1, spt2));
+            
+            
             System.out.println("\n ==== SETUP sgs Before=" + sgs);
             undoManager.startCEdit("UT-edit");
 
+            
             // Copy to make the undo test
             u_sgs = new SongStructureImpl();
             u_sgs.addSongParts(Arrays.asList(u_spt0, u_spt1, u_spt2));
+            
         } catch (UnsupportedEditException | UnavailableRhythmException ex)
         {
             Exceptions.printStackTrace(ex);
         }
+
     }
 
     @After
     public void tearDown()
     {
         undoManager.endCEdit("UT-edit");
+        
         undoAll();
         redoAll();
         undoAll();

@@ -29,6 +29,7 @@ import java.util.List;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.ChordLeadSheetImpl;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.item.CLI_SectionImpl;
 import org.jjazz.leadsheet.chordleadsheet.item.CLI_ChordSymbolImpl;
@@ -40,7 +41,6 @@ import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.songstructure.api.SongStructureFactory;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.jjazz.util.SmallMap;
 import org.junit.*;
 import static org.junit.Assert.assertTrue;
 import org.openide.util.Exceptions;
@@ -71,7 +71,7 @@ public class LinkedSongStructureTest
     @BeforeClass
     public static void setUpClass() throws Exception
     {
-        rdb = RhythmDatabase.getDefault();
+        rdb = RhythmDatabase.getUnitTestDefault();
         System.out.println("rdb=" + rdb);
 
     }
@@ -282,7 +282,6 @@ public class LinkedSongStructureTest
         assertTrue(((AdaptedRhythm) r).getSourceRhythm() == sgs.getSongParts().get(2).getRhythm());   //NOI18N
     }
 
-
     @Test
     public void testChg()
     {
@@ -367,7 +366,6 @@ public class LinkedSongStructureTest
         assertTrue(sgs.getSizeInBars() == 8);   //NOI18N
     }
 
-
     @Test
     public void testRemoveBars()
     {
@@ -385,6 +383,29 @@ public class LinkedSongStructureTest
         assertTrue(sgs.getSongParts().get(1).getNbBars() == 4);   //NOI18N
         assertTrue(sgs.getSongParts().get(2).getStartBarIndex() == 6);   //NOI18N
         assertTrue(sgs.getSongParts().get(2).getNbBars() == 4);   //NOI18N
+    }
+
+    @Test
+    public void testRemoveInitialBarWithSectionOnBar1()
+    {
+        System.out.println("\n============ testRemoveInitialBarWithSectionOnBar1");
+        CLI_Section newSection = new CLI_SectionImpl("NewSection", TimeSignature.THREE_FOUR, 1);
+        try
+        {
+            cls1.addSection(newSection);
+            assertTrue(sgs.getSongParts().size() == 5 && sgs.getSizeInBars() == 11);   //NOI18N
+            assertTrue(sgs.getSongParts().get(1).getParentSection() == newSection);   //NOI18N
+//            System.out.println(" cls1 after=" + cls1.toDumpString());
+//            System.out.println(" sgs after=" + sgs);
+            cls1.deleteBars(0, 0);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
+        System.out.println(" cls1 after=" + cls1.toDumpString());
+        System.out.println(" sgs after=" + sgs);
+        assertTrue(sgs.getSongParts().size() == 4 && sgs.getSizeInBars() == 10);   //NOI18N
+        assertTrue(sgs.getSongParts().get(0).getParentSection() == newSection);   //NOI18N
     }
 
     @Test
@@ -498,12 +519,5 @@ public class LinkedSongStructureTest
         ArrayList<SongPart> l = new ArrayList<>();
         l.add(spt);
         return l;
-    }
-
-    private SmallMap<SongPart, SongPart> msm(SongPartImpl rp1, SongPartImpl rp2)
-    {
-        SmallMap<SongPart, SongPart> sm = new SmallMap<>();
-        sm.putValue(rp1, rp2);
-        return sm;
     }
 }

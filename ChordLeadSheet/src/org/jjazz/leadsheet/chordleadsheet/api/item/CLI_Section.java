@@ -28,6 +28,10 @@ import java.util.regex.Pattern;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 
+/**
+ * Represent a section with a name (e.g. "Verse1") and a time signature, at a specific bar.
+ * <p>
+ */
 public interface CLI_Section extends ChordLeadSheetItem<Section>
 {
 
@@ -39,10 +43,11 @@ public interface CLI_Section extends ChordLeadSheetItem<Section>
         static private Pattern PATTERN = Pattern.compile("[0-9]+$");
 
         /**
-         * Derive a new section name which is unique in the specified chord leadsheet.
+         * Derive a new section name which is unique in the specified chord
+         * leadsheet.
          * <p>
-         * If sectionName is not used, just return it. Otherwise append a number to sectionName (eg "Chorus2") until we get a
-         * non-used section name.
+         * If sectionName is not used, just return it. Otherwise append a number
+         * to sectionName (eg "Chorus2") until we get a non-used section name.
          *
          * @param sectionName Create a name from this parameter.
          * @param cls
@@ -74,7 +79,7 @@ public interface CLI_Section extends ChordLeadSheetItem<Section>
 
             if (robustness == 0)
             {
-                throw new IllegalStateException("createSectionName() sectionName=" + sectionName + " robustness="   //NOI18N
+                throw new IllegalStateException("createSectionName() sectionName=" + sectionName + " robustness=" //NOI18N
                         + robustness);
             }
             return newName;

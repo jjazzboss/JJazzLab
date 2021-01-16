@@ -83,7 +83,8 @@ public class FileDirectoryManager
      * SongMix file will be located in the same directory than songFile.
      *
      * @param songFile
-     * @return Return a new file identical to songFile except the extension. If songFile is null returns null.
+     * @return Return a new file identical to songFile except the extension. If
+     * songFile is null returns null.
      */
     public File getSongMixFile(File songFile)
     {
@@ -105,9 +106,9 @@ public class FileDirectoryManager
      */
     public File getRhythmMixFile(String rhythmName, File rhythmFile)
     {
-        if (rhythmName == null || rhythmName.isEmpty() || rhythmFile==null)
+        if (rhythmName == null || rhythmName.isEmpty() || rhythmFile == null)
         {
-            throw new IllegalArgumentException("rhythmName=" + rhythmName+" rhythmFile="+rhythmName);   //NOI18N
+            throw new IllegalArgumentException("rhythmName=" + rhythmName + " rhythmFile=" + rhythmName);   //NOI18N
         }
         String rhythmMixFileName;
         if (rhythmFile.getName().isEmpty())
@@ -217,7 +218,8 @@ public class FileDirectoryManager
     /**
      * Get the directory used for rhythm's default mix files.
      * <p>
-     * If isUseRhyhtmUserDirAsRhythmDefaultMixDir() is true use the same default value than getUserRhythmDirectory().
+     * If isUseRhyhtmUserDirAsRhythmDefaultMixDir() is true use the same default
+     * value than getUserRhythmDirectory().
      *
      * @return Can't be null.
      */
@@ -265,7 +267,8 @@ public class FileDirectoryManager
     }
 
     /**
-     * If b is true getRhythmMixDirectory() will return the same value as getUserRhythmDirectory().
+     * If b is true getRhythmMixDirectory() will return the same value as
+     * getUserRhythmDirectory().
      *
      * @param b
      */
@@ -280,10 +283,12 @@ public class FileDirectoryManager
      * Get the user specific JJazz configuration directory.
      * <p>
      * <p>
-     * Use the APP_CONFIG_PREFIX_DIR subdir of the Netbeans user directory, or if not set of the user.home system property. Create
-     * the directory if it does not exist.
+     * Use the APP_CONFIG_PREFIX_DIR subdir of the Netbeans user directory, or
+     * if not set of the user.home system property. Create the directory if it
+     * does not exist.
      *
-     * @param subDirName An optional extra subdirectory name (APP_CONFIG_PREFIX_DIR/subDir). Ignored if null or empty.
+     * @param subDirName An optional extra subdirectory name
+     * (APP_CONFIG_PREFIX_DIR/subDir). Ignored if null or empty.
      * @return Could be null if no user directory found.
      */
     public File getAppConfigDirectory(String subDirName)
@@ -293,8 +298,8 @@ public class FileDirectoryManager
         File userDir = Places.getUserDirectory();
         if (userDir == null)
         {
-            LOGGER.warning("getAppConfigDirectory() Netbeans user directory is null. Using user's home directory.");   //NOI18N
             userDir = new File(System.getProperty("user.home"));
+            LOGGER.warning("getAppConfigDirectory() Netbeans user directory is null. Using user's home directory=" + userDir.getAbsolutePath());   //NOI18N            
         }
         if (!userDir.isDirectory())
         {
@@ -378,7 +383,8 @@ public class FileDirectoryManager
     /**
      * The last directory used for song open or song save.
      * <p>
-     * If not set return getJJazzLabUserDirectory() unless it does not exist anymore.
+     * If not set return getJJazzLabUserDirectory() unless it does not exist
+     * anymore.
      *
      * @return Can be null
      */

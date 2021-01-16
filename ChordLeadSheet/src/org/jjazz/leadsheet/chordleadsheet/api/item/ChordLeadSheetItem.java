@@ -25,7 +25,6 @@ package org.jjazz.leadsheet.chordleadsheet.api.item;
 import java.awt.datatransfer.Transferable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 
@@ -47,14 +46,17 @@ public interface ChordLeadSheetItem<T> extends Item<T>, Transferable
     /**
      * Get a copy of this item at a specified position.
      * <p>
-     * @param newCls If null, the copy will have the same container that this object.
-     * @param newPos If null, the copy will have the same position that this object.
+     * @param newCls If null, the copy will have the same container that this
+     * object.
+     * @param newPos If null, the copy will have the same position that this
+     * object.
      * @return
      */
     public ChordLeadSheetItem<T> getCopy(ChordLeadSheet newCls, Position newPos);
 
     /**
-     * Return true if there can be only one single item perbar, like a time signature.
+     * Return true if there can be only one single item perbar, like a time
+     * signature.
      * <p>
      * @return
      */
@@ -75,14 +77,7 @@ public interface ChordLeadSheetItem<T> extends Item<T>, Transferable
         public static List<ChordLeadSheetItem<?>> sortByPosition(final List<ChordLeadSheetItem<?>> items)
         {
             ArrayList<ChordLeadSheetItem<?>> sortedItems = new ArrayList<>(items);
-            Collections.sort(sortedItems, new Comparator<ChordLeadSheetItem<?>>()
-            {
-                @Override
-                public int compare(ChordLeadSheetItem<?> i1, ChordLeadSheetItem<?> i2)
-                {
-                    return i1.getPosition().compareTo(i2.getPosition());
-                }
-            });
+            Collections.sort(sortedItems, (item1, item2) -> item1.getPosition().compareTo(item2.getPosition()));
             return sortedItems;
         }
     }

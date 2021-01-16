@@ -238,7 +238,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         if (cliSection == null || cliSection.getPosition().getBar() >= getSize() || getSection(cliSection.getData().getName()) != null
                 || !(cliSection instanceof WritableItem))
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection   //NOI18N
+            throw new IllegalArgumentException("cliSection=" + cliSection //NOI18N
                     + ", getSize()=" + getSize()
                     + (cliSection != null ? ", getSection(cliSection.getData().getName())=" + getSection(cliSection.getData().getName()) : ""));
         }
@@ -634,7 +634,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         if (barIndexFrom < 0 || barIndexTo < barIndexFrom || barIndexTo >= getSize()
                 || (barIndexTo - barIndexFrom + 1) >= getSize())
         {
-            throw new IllegalArgumentException(   //NOI18N
+            throw new IllegalArgumentException( //NOI18N
                     "barIndexFrom=" + barIndexFrom + " barIndexTo=" + barIndexTo);
         }
 
@@ -648,7 +648,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         List<? extends ChordLeadSheetItem> afterDeletionItems = null;
         if (afterDeletionSection != null)
         {
-            afterDeletionItems =  getItems(barIndexTo + 1, getSectionRange(afterDeletionSection).to, ChordLeadSheetItem.class);
+            afterDeletionItems = getItems(barIndexTo + 1, getSectionRange(afterDeletionSection).to, ChordLeadSheetItem.class);
         }
 
 
@@ -657,10 +657,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         List<ChordLeadSheetItem<?>> movedItems = new ArrayList<>();
 
 
-        // Avoid index=0  initial section
+        // Avoid initial section at index=0
+        // Iterate backwards so that remove operations have less impact
         for (int index = items.size() - 1; index > 0; index--)
         {
-
             ChordLeadSheetItem<?> item = items.get(index);
             int barIndex = item.getPosition().getBar();
 
@@ -671,7 +671,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             } else if (barIndex >= barIndexFrom)
             {
-                // We iterate backwards so remove is safe
                 removedItems.add(item);
 
             } else
@@ -682,7 +681,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         }
 
 
-        // Remove the items (except initial block)
+        // Remove everything to be removed except the initial block
         if (!removedItems.isEmpty())
         {
             // Possible exception below! Note that some changes might have been done before exception is thrown
@@ -693,19 +692,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         // Handle special case if barIndexFrom == 0 and there is a section right after the deleted bars
         if (barIndexFrom == 0 && afterDeletionSection != null && afterDeletionSection.getPosition().getBar() == barIndexTo + 1)
         {
-            // Change the initial time signature instead
-            CLI_Section initSection = getSection(0);
-
-            // First set time sig. to avoid transitionary repositioning of chord symbols
-            setSectionTimeSignature(initSection, afterDeletionSection.getData().getTimeSignature());
-            removeSection(afterDeletionSection);
-            setSectionName(initSection, afterDeletionSection.getData().getName());  // After removal to avoid name clash
-
-            // Don't need anymore to move it
-            movedItems.remove(afterDeletionSection);
+            // Remove the initial section (and fire undoableEvent)
+            removeInitialSection();
         }
 
-
+        
         // Shift remaining items
         int range = barIndexTo - barIndexFrom + 1;
         if (!movedItems.isEmpty())
@@ -801,7 +792,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         if (barFrom < 0 || barTo < barFrom || barTo >= getSize() || aClass == null)
         {
-            throw new IllegalArgumentException(   //NOI18N
+            throw new IllegalArgumentException( //NOI18N
                     "barFrom=" + barFrom + " barTo=" + barTo + " aClass=" + aClass);
         }
 
@@ -993,8 +984,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     /**
      * Remove sections and items.
      * <p>
-     * Chord symbols are removed in a single undoable operation. Then sections are removed one by one using removeSection()
-     * (possible exception).
+     * Chord symbols are removed in a single undoable operation. Then sections
+     * are removed one by one using removeSection() (possible exception).
      *
      * @param allItems
      * @throws UnsupportedEditException
@@ -1011,13 +1002,12 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         // Make 2 lists: removedSections for sections, removedItems for other items
         final List<CLI_Section> removedSections = new ArrayList<>();
         final List<ChordLeadSheetItem<?>> removedItems = new ArrayList<>();
-        for (var item: allItems)
+        for (var item : allItems)
         {
             if (item instanceof CLI_Section)
             {
                 removedSections.add((CLI_Section) item);
-            }
-            else
+            } else
             {
                 removedItems.add(item);
             }
@@ -1027,7 +1017,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         // Remove all non section items
         if (!removedItems.isEmpty())
         {
-            
+
             items.removeAll(removedItems);
 
 
@@ -1132,7 +1122,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             int newBar = newPos.getBar() + nbBars;
             if (newBar < 0 || newBar >= getSize())
             {
-                throw new IllegalArgumentException("wItem=" + wItem + " nbBars=" + nbBars + " size="   //NOI18N
+                throw new IllegalArgumentException("wItem=" + wItem + " nbBars=" + nbBars + " size=" //NOI18N
                         + getSize());
             }
             newPos.setBar(newBar);
@@ -1231,6 +1221,47 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         fireAuthorizedChangeEvent(event);
     }
 
+    private void removeInitialSection() throws UnsupportedEditException
+    {
+        CLI_Section cliSection = getSection(0);
+        LOGGER.fine("removeInitialSection() -- initSection=" + cliSection);   //NOI18N
+
+        
+        // Check change is not vetoed
+        var event = new ItemRemovedEvent(ChordLeadSheetImpl.this, cliSection);
+        authorizeChangeEvent(event);            // Possible exception here! 
+       
+        
+        // Change state: remove the item and adjust if required trailing items
+        items.remove(0);
+
+        
+        // Create the undoable event
+        UndoableEdit edit = new SimpleEdit("Remove initial section " + cliSection)
+        {
+            @Override
+            public void undoBody()
+            {
+                LOGGER.finer("removeInitialSection.undoBody() cliSection=" + cliSection);   //NOI18N
+                items.add(0, cliSection);
+                fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, cliSection));
+            }
+
+            @Override
+            public void redoBody()
+            {
+                LOGGER.finer("removeInitialSection.redoBody() cliSection=" + cliSection);   //NOI18N
+                items.remove(0);
+                fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, cliSection));
+            }
+        };
+
+        fireUndoableEditHappened(edit);
+
+        // Fire ItemChange event
+        fireAuthorizedChangeEvent(event);
+    }
+
     /**
      * Make sure change is authorized by all listeners.
      *
@@ -1296,7 +1327,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     /**
      * Need to restore each item's container.
      * <p>
-     * Allow to be independent of future chordleadsheet internal data structure changes.
+     * Allow to be independent of future chordleadsheet internal data structure
+     * changes.
      */
     private static class SerializationProxy implements Serializable
     {

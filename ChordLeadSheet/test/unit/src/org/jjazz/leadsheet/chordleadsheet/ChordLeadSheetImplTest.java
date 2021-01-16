@@ -203,7 +203,7 @@ public class ChordLeadSheetImplTest
         {
             Exceptions.printStackTrace(ex);
         }
-        assertTrue(cls1.getItems(1, 1, CLI_Section.class).get(0) == cliSection34_b3   //NOI18N
+        assertTrue(cls1.getItems(1, 1, CLI_Section.class).get(0) == cliSection34_b3 //NOI18N
                 && cls1.getItems(cliSection34_b3, ChordLeadSheetItem.class).get(1).getPosition().getBeat() == 2);
     }
 
@@ -316,7 +316,7 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("insertBars start of leadsheet bar=0  nbBars=3");
         cls1.insertBars(0, 3);
-        assertTrue(cls1.getSize() == 11 && cls1.getSection(0).getPosition().getBar() == 0 && cls1.getSection(5).   //NOI18N
+        assertTrue(cls1.getSize() == 11 && cls1.getSection(0).getPosition().getBar() == 0 && cls1.getSection(5). //NOI18N
                 getData().getName() == "Section2");
     }
 
@@ -356,7 +356,7 @@ public class ChordLeadSheetImplTest
         {
             Exceptions.printStackTrace(ex);
         }
-        assertTrue(cls1.getSize() == 6 && cls1.getItems(CLI_Section.class).size() == 2 && cls1.getSection(0).   //NOI18N
+        assertTrue(cls1.getSize() == 6 && cls1.getItems(CLI_Section.class).size() == 2 && cls1.getSection(0). //NOI18N
                 getData().
                 getName() == "Section2");
     }
@@ -374,6 +374,22 @@ public class ChordLeadSheetImplTest
         }
         CLI_Section cliSection0 = cls1.getSection(0);
         assertTrue(cls1.getSize() == 4 && cliSection0.getData().getName() == "Section1" && cls1.getSectionRange(cliSection0).size() == 1);   //NOI18N
+    }
+
+    @Test
+    public void testDeleteInitialBarWithSectionOnBar1()
+    {
+        System.out.println("deleteBars on initial bar 0 with a section on bar 1");
+        CLI_Section newSection = new CLI_SectionImpl("SectionBar1", TimeSignature.FIVE_FOUR, 1);
+        try
+        {
+            cls1.addSection(newSection);
+            cls1.deleteBars(0, 0);
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
+        assertTrue(cls1.getSize() == 7 && cls1.getSection(0).getData().equals(newSection.getData()));
     }
 
     // delete with item position adjustment
@@ -453,7 +469,6 @@ public class ChordLeadSheetImplTest
         assertTrue(cls1.getSize() == 3 && cls1.getItems(ChordLeadSheetItem.class).size() == 6);   //NOI18N
     }
 
-    
     // Undo --------------------------------------------------
     private void undoAll()
     {
@@ -463,14 +478,14 @@ public class ChordLeadSheetImplTest
         }
     }
 
-        private void redoAll()
+    private void redoAll()
     {
         while (undoManager.canRedo())
         {
             undoManager.redo();
         }
     }
-    
+
     private boolean diffCls(ChordLeadSheetImpl ls1, ChordLeadSheetImpl ls2)
     {
         if (ls1.getSize() != ls2.getSize())

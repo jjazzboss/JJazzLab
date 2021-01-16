@@ -111,6 +111,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
      * The initialization task.
      */
     protected volatile RequestProcessor.Task initTask;
+    private boolean unitTestMode;
     /**
      * Used to store the default rhythms
      */
@@ -127,6 +128,12 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
      */
     static public RhythmDatabaseImpl getInstance()
     {
+        if (INSTANCE != null && INSTANCE.unitTestMode)
+        {
+            // In unit test we don't use initTask
+            return INSTANCE;            
+        }
+        
         if (INSTANCE == null || INSTANCE.initTask == null)
         {
             // getInstance() calls should happen after initialization
@@ -158,26 +165,44 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         return INSTANCE;
     }
 
+    static public RhythmDatabase getUnitTestInstance()
+    {
+        if (INSTANCE == null)
+        {
+            INSTANCE = new RhythmDatabaseImpl(true);
+        }
+        return INSTANCE;
+    }
+
     /**
      * Create the database and start a background scanning task.
      */
-    private RhythmDatabaseImpl()
+    private RhythmDatabaseImpl(boolean unitTestMode)
     {
-        // LOGGER.severe("RhythmDatabaseImpl() --");
-        FileDirectoryManager.getInstance().addPropertyChangeListener(this);
+        this.unitTestMode = unitTestMode;
 
-        // Prepare the ProgressHandle
-        boolean needRescan = prefs.getBoolean(PREF_NEED_RESCAN, true);
-        String dir = FileDirectoryManager.getInstance().getUserRhythmDirectory().getAbsolutePath();
-        String msg1 = ResUtil.getString(getClass(), "CTL_ScanningAllRhythmsInDir", dir);
-        String msg2 = ResUtil.getString(getClass(), "CTL_ReadingRhythmDbCacheFile");
-        String msg = needRescan ? msg1 : msg2;
-        ProgressHandle ph = ProgressHandle.createHandle(msg);
-        ph.start();
+        if (!this.unitTestMode)
+        {
+            // LOGGER.severe("RhythmDatabaseImpl() --");
+            FileDirectoryManager.getInstance().addPropertyChangeListener(this);
 
-        // Start the task
-        Runnable run = () -> initDatabase(ph, needRescan);
-        initTask = RequestProcessor.getDefault().post(run);
+            // Prepare the ProgressHandle
+            boolean needRescan = prefs.getBoolean(PREF_NEED_RESCAN, true);
+            String dir = FileDirectoryManager.getInstance().getUserRhythmDirectory().getAbsolutePath();
+            String msg1 = ResUtil.getString(getClass(), "CTL_ScanningAllRhythmsInDir", dir);
+            String msg2 = ResUtil.getString(getClass(), "CTL_ReadingRhythmDbCacheFile");
+            String msg = needRescan ? msg1 : msg2;
+            ProgressHandle ph = ProgressHandle.createHandle(msg);
+            ph.start();
+
+            // Start the task
+            Runnable run = () -> initDatabase(ph, needRescan);
+            initTask = RequestProcessor.getDefault().post(run);
+        } else
+        {
+            // Only builtin rhythms, no task to update
+            addNewRhythmsFromRhythmProviders(false, true, false);
+        }
     }
 
     @Override
@@ -1068,7 +1093,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         @Override
         public boolean run()
         {
-            INSTANCE = new RhythmDatabaseImpl();
+            INSTANCE = new RhythmDatabaseImpl(false);
             return true;
         }
 
