@@ -191,7 +191,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
         setTitle(org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.title")); // NOI18N
         setIconImage(null);
 
-        btn_Save.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        btn_Save.setFont(btn_Save.getFont().deriveFont(btn_Save.getFont().getStyle() | java.awt.Font.BOLD));
         org.openide.awt.Mnemonics.setLocalizedText(btn_Save, org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.btn_Save.text")); // NOI18N
         btn_Save.setToolTipText(org.openide.util.NbBundle.getMessage(EditOutputSynthDialog.class, "EditOutputSynthDialog.btn_Save.toolTipText")); // NOI18N
         btn_Save.addActionListener(new java.awt.event.ActionListener()
