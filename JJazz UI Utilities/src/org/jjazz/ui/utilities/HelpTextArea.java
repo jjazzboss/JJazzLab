@@ -22,7 +22,10 @@
  */
 package org.jjazz.ui.utilities;
 
+import java.awt.Font;
+import java.util.Locale;
 import javax.swing.JTextArea;
+import org.jjazz.uisettings.GeneralUISettings;
 
 /**
  * A TextArea for help texts : non editable, font is preset, not opaque.
@@ -33,11 +36,20 @@ public class HelpTextArea extends JTextArea
     public HelpTextArea()
     {
         setEditable(false);
-        setFont(new java.awt.Font("Arial", 0, 10)); // NOI18N
         setLineWrap(true);
         setWrapStyleWord(true);
         setOpaque(false);
         setBackground(null);  // because setOpaque(false) seems not enough on Linux !?
         setBorder(null);
+
+        if (GeneralUISettings.isLatin(Locale.getDefault()))
+        {
+            // Don't do this for chinese etc.
+            setFont(new java.awt.Font("Arial", 0, 10)); 
+        } else
+        {
+            Font f = getFont();
+            setFont(getFont().deriveFont(f.getSize() - 1));     // Make it smaller
+        }
     }
 }

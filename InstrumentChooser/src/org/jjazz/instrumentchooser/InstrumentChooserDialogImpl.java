@@ -508,7 +508,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             }
         });
 
-        lbl_Title.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        lbl_Title.setFont(lbl_Title.getFont().deriveFont(lbl_Title.getFont().getStyle() | java.awt.Font.BOLD));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_Title, "Select an instrument for channel 9 - CHORD1 - Strings"); // NOI18N
 
         jScrollPane1.setViewportView(tbl_Instruments);

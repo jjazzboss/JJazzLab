@@ -49,7 +49,6 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.modules.OnStart;
 import org.openide.modules.Places;
@@ -68,8 +67,14 @@ public class GeneralUISettings
     {
         new Locale("en", "US"),
         new Locale("fr", "FR"),
-        new Locale("de", "DE")
+        new Locale("de", "DE"),
+        new Locale("zh", "CN")
     };
+
+    public static final boolean isLatin(Locale locale)
+    {
+        return !(locale.getLanguage().equals("zh") || locale.getLanguage().equals("ja"));
+    }
 
     /**
      * The supported Look & Feels.
@@ -197,9 +202,9 @@ public class GeneralUISettings
         // Add or replace the locale code
         String code = locale.getLanguage() + ":" + locale.getCountry();
         String content = new String(Files.readAllBytes(userConfigFile.toPath()), StandardCharsets.UTF_8);
-        Pattern p1 = Pattern.compile("^\\s*default_options\\s*=.*--locale\\s+", Pattern.MULTILINE);   
-        Pattern p2 = Pattern.compile("^\\s*default_options\\s*=\\s*\"", Pattern.MULTILINE); 
-        
+        Pattern p1 = Pattern.compile("^\\s*default_options\\s*=.*--locale\\s+", Pattern.MULTILINE);
+        Pattern p2 = Pattern.compile("^\\s*default_options\\s*=\\s*\"", Pattern.MULTILINE);
+
         if (p1.matcher(content).find())
         {
             // Replace the --locale xx:XX
