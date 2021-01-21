@@ -24,12 +24,12 @@ package org.jjazz.analytics.api;
 
 import org.jjazz.analytics.spi.AnalyticsProcessor;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.prefs.Preferences;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
-import org.json.JSONObject;
 import org.openide.util.*;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -38,6 +38,10 @@ import org.openide.util.lookup.ServiceProvider;
  * <p>
  * The class acts as a centralized bridge to collect all feature analytics events and pass them to AnalyticsProcessor instances
  * present in the global lookup.
+ * <p>
+ * Properties/event names must be like this "Upgrade" or "New Version"<br>
+ * Authorized property value classes: String, Long, Float, Boolean, Date, List.
+ * 
  */
 public class Analytics
 {
@@ -81,7 +85,7 @@ public class Analytics
      * @param eventName
      * @param properties
      */
-    static public void logEvent(String eventName, JSONObject properties)
+    static public void logEvent(String eventName, Map<String, ?> properties)
     {
         getInstance().processors.forEach(p -> p.logEvent(eventName, properties));
     }
@@ -93,7 +97,7 @@ public class Analytics
      * @param properties
      * @see Analytics#getJJazzLabComputerId()
      */
-    static public void setProperties(JSONObject properties)
+    static public void setProperties(Map<String, ?> properties)
     {
         getInstance().processors.forEach(p -> p.setProperties(properties));
     }
@@ -105,9 +109,51 @@ public class Analytics
      * @param properties
      * @see Analytics#getJJazzLabComputerId()
      */
-    static public void setPropertiesOnce(JSONObject properties)
+    static public void setPropertiesOnce(Map<String, ?> properties)
     {
         getInstance().processors.forEach(p -> p.setPropertiesOnce(properties));
+    }
+
+    /**
+     * Helper methods to quickly build a map from specified parameters.
+     *
+     * @param <T>
+     * @param key
+     * @param value
+     * @return
+     */
+    static public <T> Map<String, T> buildMap(String key, T value)
+    {
+        HashMap<String, T> res = new HashMap<>();
+        res.put(key, value);
+        return res;
+    }
+
+    static public Map<String, Object> buildMap(String k1, Object v1, String k2, Object v2)
+    {
+        HashMap<String, Object> res = new HashMap<>();
+        res.put(k1, v1);
+        res.put(k2, v2);
+        return res;
+    }
+
+    static public Map<String, Object> buildMap(String k1, Object v1, String k2, Object v2, String k3, Object v3)
+    {
+        HashMap<String, Object> res = new HashMap<>();
+        res.put(k1, v1);
+        res.put(k2, v2);
+        res.put(k3, v3);
+        return res;
+    }
+
+    static public Map<String, Object> buildMap(String k1, Object v1, String k2, Object v2, String k3, Object v3, String k4, Object v4)
+    {
+        HashMap<String, Object> res = new HashMap<>();
+        res.put(k1, v1);
+        res.put(k2, v2);
+        res.put(k3, v3);
+        res.put(k4, v4);
+        return res;
     }
 
     /**
@@ -155,6 +201,10 @@ public class Analytics
             // Copy the PREF_JJAZZLAB_COMPUTER_ID preference if present
             UpgradeManager um = UpgradeManager.getInstance();
             um.duplicateOldPreferences(prefs);
+
+            
+            String version = System.getProperty("jjazzlab.version");
+            logEvent("Upgrade", buildMap("Old Version", oldVersion, "New Version", (version == null ? "unknown" : version)));
         }
 
     }

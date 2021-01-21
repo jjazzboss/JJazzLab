@@ -23,15 +23,18 @@
 package org.jjazz.analytics.spi;
 
 import java.util.Map;
-import org.json.JSONObject;
+import org.jjazz.analytics.api.Analytics;
 
 /**
  * A processor of feature analytics events.
+ * <p>
+ * Authorized property value classes: String, Long, Float, Boolean, Date, List
  * <p>
  * The Analytics class will call the relevant methods on each service provider instance found in the global lookup.
  */
 public interface AnalyticsProcessor
 {
+
     /**
      * Log a generic event with no properties.
      *
@@ -43,33 +46,33 @@ public interface AnalyticsProcessor
      * Generic event with properties.
      *
      * @param eventName
-     * @param properties
+     * @param properties Authorized values String, Long, Float, Boolean, Date, List
      */
-    void logEvent(String eventName, JSONObject properties);
+    void logEvent(String eventName, Map<String, ?> properties);
 
     /**
      * Update the properties of the current JJazzLab computer.
      * <p>
      *
      * @param properties
-     * @see Analytics#getJJazzLabComputerId() 
+     * @see Analytics#getJJazzLabComputerId()
      */
-    void setProperties(JSONObject properties);
+    void setProperties(Map<String, ?> properties);
 
     /**
      * Update the properties of the current JJazzLab computer only if they are not already set.
      * <p>
      *
      * @param properties
-     * @see Analytics#getJJazzLabComputerId() 
+     * @see Analytics#getJJazzLabComputerId()
      */
-    void setPropertiesOnce(JSONObject properties);
+    void setPropertiesOnce(Map<String, ?> properties);
 
     /**
-     * Increment the properties of the current JJazzLab computer by the corresponding Long value.
+     * Increment numeric properties of the current JJazzLab computer by the corresponding Long value.
      *
      * @param properties
-     * @see Analytics#getJJazzLabComputerId() 
+     * @see Analytics#getJJazzLabComputerId()
      */
     void incrementProperties(Map<String, Long> properties);
 

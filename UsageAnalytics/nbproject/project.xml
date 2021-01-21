@@ -34,12 +34,7 @@
             <public-packages>
                 <package>org.jjazz.analytics.api</package>
                 <package>org.jjazz.analytics.spi</package>
-                <package>org.json</package>
             </public-packages>
-            <class-path-extension>
-                <runtime-relative-path>ext/json-20201115.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/json-20201115.jar</binary-origin>
-            </class-path-extension>
         </data>
     </configuration>
 </project>
