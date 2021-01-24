@@ -32,6 +32,7 @@ import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.*;
 import org.openide.util.lookup.ServiceProvider;
+import org.openide.windows.OnShowing;
 
 /**
  * Feature usage analytics methods.
@@ -41,15 +42,19 @@ import org.openide.util.lookup.ServiceProvider;
  * <p>
  * Properties/event names must be like this "Upgrade" or "New Version"<br>
  * Authorized property value classes: String, Long, Float, Boolean, Date, List.
- * 
+ * <p>
  */
 public class Analytics
 {
 
+    public static final String EVENT_ENABLED_CHANGE = "Analytics Enabled";
+    public static final String EVENT_START_APPLICATION = "Start Application";
     private static final String PREF_JJAZZLAB_COMPUTER_ID = "JJazzLabComputerId";
+    private static final String PREF_ANALYTICS_ENABLED = "AnalyticsEnabled";
     private static Analytics INSTANCE;
 
-    private List<AnalyticsProcessor> processors;
+    private final List<AnalyticsProcessor> processors;
+    private boolean enabled;
     private static Preferences prefs = NbPreferences.forModule(Analytics.class);
 
     public static Analytics getInstance()
@@ -67,6 +72,34 @@ public class Analytics
     private Analytics()
     {
         processors = new ArrayList<>(Lookup.getDefault().lookupAll(AnalyticsProcessor.class));
+        enabled = prefs.getBoolean(PREF_ANALYTICS_ENABLED, true);
+    }
+
+    public void setEnabled(boolean b)
+    {
+        if (enabled == b)
+        {
+            return;
+        }
+
+        if (!b)
+        {
+            logEvent(EVENT_ENABLED_CHANGE, buildMap("Value", b));
+        }
+
+        prefs.putBoolean(PREF_ANALYTICS_ENABLED, b);
+        enabled = b;
+
+        if (b)
+        {
+            logEvent(EVENT_ENABLED_CHANGE, buildMap("Value", b));
+        }
+
+    }
+
+    public boolean isEnabled()
+    {
+        return enabled;
     }
 
     /**
@@ -76,7 +109,10 @@ public class Analytics
      */
     static public void logEvent(String eventName)
     {
-        getInstance().processors.forEach(p -> p.logEvent(eventName));
+        if (getInstance().isEnabled())
+        {
+            getInstance().processors.forEach(p -> p.logEvent(eventName));
+        }
     }
 
     /**
@@ -87,7 +123,10 @@ public class Analytics
      */
     static public void logEvent(String eventName, Map<String, ?> properties)
     {
-        getInstance().processors.forEach(p -> p.logEvent(eventName, properties));
+        if (getInstance().isEnabled())
+        {
+            getInstance().processors.forEach(p -> p.logEvent(eventName, properties));
+        }
     }
 
     /**
@@ -99,7 +138,10 @@ public class Analytics
      */
     static public void setProperties(Map<String, ?> properties)
     {
-        getInstance().processors.forEach(p -> p.setProperties(properties));
+        if (getInstance().isEnabled())
+        {
+            getInstance().processors.forEach(p -> p.setProperties(properties));
+        }
     }
 
     /**
@@ -111,7 +153,24 @@ public class Analytics
      */
     static public void setPropertiesOnce(Map<String, ?> properties)
     {
-        getInstance().processors.forEach(p -> p.setPropertiesOnce(properties));
+        if (getInstance().isEnabled())
+        {
+            getInstance().processors.forEach(p -> p.setPropertiesOnce(properties));
+        }
+    }
+
+    /**
+     * Increment the properties of the current JJazzLab computer by the corresponding Long value.
+     *
+     * @param properties
+     * @see Analytics#getJJazzLabComputerId()
+     */
+    static public void incrementProperties(Map<String, Long> properties)
+    {
+        if (getInstance().isEnabled())
+        {
+            getInstance().processors.forEach(p -> p.incrementProperties(properties));
+        }
     }
 
     /**
@@ -157,17 +216,6 @@ public class Analytics
     }
 
     /**
-     * Increment the properties of the current JJazzLab computer by the corresponding Long value.
-     *
-     * @param properties
-     * @see Analytics#getJJazzLabComputerId()
-     */
-    static public void incrementProperties(Map<String, Long> properties)
-    {
-        getInstance().processors.forEach(p -> p.incrementProperties(properties));
-    }
-
-    /**
      * A unique and anonymous id computed when JJazzLab is run for the first time on a given computer.
      * <p>
      * The id is stored as a user preference, so it might be deleted if Netbeans user directory is deleted. If user upgrades to a
@@ -189,6 +237,21 @@ public class Analytics
     }
 
     // =====================================================================================
+    // Log the start application event
+    // =====================================================================================    
+    @OnShowing
+    static public class StartApplicationEvent implements Runnable
+    {
+
+        @Override
+        public void run()
+        {
+            logEvent(EVENT_START_APPLICATION);
+        }
+
+    }
+
+    // =====================================================================================
     // Upgrade Task
     // =====================================================================================
     @ServiceProvider(service = UpgradeTask.class)
@@ -202,7 +265,7 @@ public class Analytics
             UpgradeManager um = UpgradeManager.getInstance();
             um.duplicateOldPreferences(prefs);
 
-            
+
             String version = System.getProperty("jjazzlab.version");
             logEvent("Upgrade", buildMap("Old Version", oldVersion, "New Version", (version == null ? "unknown" : version)));
         }
