@@ -62,7 +62,7 @@ public class Utilities
         String str = System.getProperty("user.dir");
         return str;
     }
-
+    
     /**
      * Check if a directory is empty.
      * <p>

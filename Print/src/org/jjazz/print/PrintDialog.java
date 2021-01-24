@@ -33,6 +33,7 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.quantizer.Quantization;
 import org.jjazz.song.api.Song;
@@ -222,7 +223,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                new PrintAction().actionPerformed(e);
+                new DoPrintAction().actionPerformed(e);
             }
         });
 
@@ -422,7 +423,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
     }
 
-    private class PrintAction extends AbstractAction
+    private class DoPrintAction extends AbstractAction
     {
 
         @Override
@@ -433,8 +434,11 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
             if (job.printDialog())
             {
+                // Log event
+                Analytics.logEvent("Print");
+                
                 try
-                {
+                {                   
                     job.print();
                 } catch (PrinterException ex)
                 {
@@ -701,7 +705,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
             }
         });
 
-        btn_print.setAction(new PrintAction());
+        btn_print.setAction(new DoPrintAction());
         org.openide.awt.Mnemonics.setLocalizedText(btn_print, org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.btn_print.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_pageSetup, org.openide.util.NbBundle.getMessage(PrintDialog.class, "PrintDialog.btn_pageSetup.text")); // NOI18N

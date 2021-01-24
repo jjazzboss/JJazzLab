@@ -24,9 +24,12 @@ package org.jjazz.analytics.api;
 
 import org.jjazz.analytics.spi.AnalyticsProcessor;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
@@ -46,9 +49,9 @@ import org.openide.windows.OnShowing;
  */
 public class Analytics
 {
-
     public static final String EVENT_ENABLED_CHANGE = "Analytics Enabled";
-    public static final String EVENT_START_APPLICATION = "Start Application";
+    public static final String EVENT_START_APPLICATION = "Start";
+    public static final String PREF_FIRST_START_DATE = "FirstStartDate";
     private static final String PREF_JJAZZLAB_COMPUTER_ID = "JJazzLabComputerId";
     private static final String PREF_ANALYTICS_ENABLED = "AnalyticsEnabled";
     private static Analytics INSTANCE;
@@ -56,6 +59,7 @@ public class Analytics
     private final List<AnalyticsProcessor> processors;
     private boolean enabled;
     private static Preferences prefs = NbPreferences.forModule(Analytics.class);
+    private static final Logger LOGGER = Logger.getLogger(Analytics.class.getSimpleName());
 
     public static Analytics getInstance()
     {
@@ -215,6 +219,29 @@ public class Analytics
         return res;
     }
 
+    static public Map<String, Object> buildMap(String k1, Object v1, String k2, Object v2, String k3, Object v3, String k4, Object v4, String k5, Object v5)
+    {
+        HashMap<String, Object> res = new HashMap<>();
+        res.put(k1, v1);
+        res.put(k2, v2);
+        res.put(k3, v3);
+        res.put(k4, v4);
+        res.put(k5, v5);
+        return res;
+    }
+
+    static public Map<String, Object> buildMap(String k1, Object v1, String k2, Object v2, String k3, Object v3, String k4, Object v4, String k5, Object v5, String k6, Object v6)
+    {
+        HashMap<String, Object> res = new HashMap<>();
+        res.put(k1, v1);
+        res.put(k2, v2);
+        res.put(k3, v3);
+        res.put(k4, v4);
+        res.put(k5, v5);
+        res.put(k6, v6);
+        return res;
+    }
+
     /**
      * A unique and anonymous id computed when JJazzLab is run for the first time on a given computer.
      * <p>
@@ -240,13 +267,44 @@ public class Analytics
     // Log the start application event
     // =====================================================================================    
     @OnShowing
-    static public class StartApplicationEvent implements Runnable
+    static public class ApplicationStart implements Runnable
     {
 
         @Override
         public void run()
         {
-            logEvent(EVENT_START_APPLICATION);
+            // Get the first start date
+            Date firstDate;
+            String strDateLong = prefs.get(PREF_FIRST_START_DATE, null);
+            if (strDateLong == null)
+            {
+                // First start ever
+                firstDate = new Date();
+                prefs.put(PREF_FIRST_START_DATE, Long.toString(firstDate.getTime()));
+
+                // Save OS info
+                String name = System.getProperty("os.name", "?");
+                String version = System.getProperty("os.version", "?");
+                String arch = System.getProperty("os.arch", "?");
+                setProperties(buildMap("OS Name", name, "OS Version", version, "OS Arch.", arch));
+                setProperties(buildMap("Country", Locale.getDefault().getCountry(), "Language", Locale.getDefault().getLanguage()));
+
+            } else
+            {
+                try
+                {
+                    firstDate = new Date(Long.parseLong(strDateLong));
+                } catch (NumberFormatException ex)
+                {
+                    LOGGER.warning("ApplicationStart.run() strDateLong=" + strDateLong + " ex=" + ex.getMessage());
+                    firstDate = new Date();
+                    prefs.put(PREF_FIRST_START_DATE, Long.toString(firstDate.getTime()));
+                }
+            }
+
+
+            // Log
+            logEvent(EVENT_START_APPLICATION, buildMap("First Start Date", firstDate));
         }
 
     }

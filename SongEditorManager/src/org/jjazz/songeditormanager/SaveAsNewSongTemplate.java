@@ -27,6 +27,7 @@ import java.io.File;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.MidiMixManager;
@@ -85,6 +86,9 @@ public class SaveAsNewSongTemplate extends AbstractAction
         {
             StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_SavedTemplates", fileNames));
         }
+        
+        
+        Analytics.logEvent("Save As Song Template");
     }
 
     // ==============================================================================

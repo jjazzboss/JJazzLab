@@ -30,6 +30,7 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Synthesizer;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.JJazzMidiSystem;
@@ -280,14 +281,13 @@ final class MidiPanel extends javax.swing.JPanel
    private void btn_changeSoundbankFileActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_changeSoundbankFileActionPerformed
    {//GEN-HEADEREND:event_btn_changeSoundbankFileActionPerformed
        JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-       FileDirectoryManager fdm = FileDirectoryManager.getInstance();
        JFileChooser chooser = org.jjazz.ui.utilities.Utilities.getFileChooserInstance();
        FileNameExtensionFilter filter = new FileNameExtensionFilter(".sf2, .dls files ", "sf2", "dls", "SF2", "DLS");
        chooser.resetChoosableFileFilters();
        chooser.setMultiSelectionEnabled(false);
        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
        chooser.setFileFilter(filter);
-       chooser.setDialogTitle(ResUtil.getString(getClass(),"LoadSoundBankDialogTitle"));
+       chooser.setDialogTitle(ResUtil.getString(getClass(), "LoadSoundBankDialogTitle"));
        File previousFile = jms.getDefaultJavaSynthPreferredSoundFontFile();
        if (previousFile == null)
        {
@@ -316,6 +316,9 @@ final class MidiPanel extends javax.swing.JPanel
            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
            DialogDisplayer.getDefault().notify(d);
        }
+
+       Analytics.logEvent("Load SoundBank File", Analytics.buildMap("File", f.getName()));
+
        updateSoundbankText();
    }//GEN-LAST:event_btn_changeSoundbankFileActionPerformed
 
@@ -417,6 +420,11 @@ final class MidiPanel extends javax.swing.JPanel
         LOGGER.log(Level.FINE, "store() outDevice=" + outDevice + " .info=" + ((outDevice == null) ? "null" : outDevice.getDeviceInfo()));   //NOI18N
         openOutDevice(outDevice);
         UserChannelRvKey.getInstance().setPreferredUserChannel(((Integer) spn_preferredUserChannel.getValue()) - 1);
+
+        if (outDevice != saveOutDevice)
+        {
+            Analytics.setProperties(Analytics.buildMap("Midi Out", outDevice.getDeviceInfo().getName()));
+        }
     }
 
     /**

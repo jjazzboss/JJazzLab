@@ -49,6 +49,7 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.analytics.api.Analytics;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.modules.OnStart;
 import org.openide.modules.Places;
@@ -442,6 +443,9 @@ public class GeneralUISettings
         public void run()
         {
             getInstance().setCurrentTheme(prefs.get(PREF_THEME_UPON_RESTART, DEFAULT_THEME_NAME));
+
+            // Log current theme
+            Analytics.setProperties(Analytics.buildMap("Theme", getInstance().getCurrentTheme().getName()));
         }
 
     }

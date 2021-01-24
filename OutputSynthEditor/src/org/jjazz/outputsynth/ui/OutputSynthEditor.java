@@ -46,6 +46,7 @@ import javax.swing.JList;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
 import org.jjazz.midi.synths.GSSynth;
 import org.jjazz.midi.Instrument;
@@ -933,6 +934,8 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             {
                 outputSynth.addCustomSynth(synth);
             }
+
+            Analytics.logEvent("Add Midi Synth", Analytics.buildMap("File", f.getName()));
         }
     }//GEN-LAST:event_btn_AddSynthActionPerformed
 
@@ -1014,6 +1017,8 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                     NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(d);
                 }
+
+                Analytics.logEvent("Change Default Instrument");
             }
         }
     }//GEN-LAST:event_btn_changeRemappedInsActionPerformed

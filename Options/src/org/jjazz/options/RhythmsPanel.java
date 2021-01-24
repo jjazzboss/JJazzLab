@@ -38,6 +38,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.harmony.TimeSignature;
 import org.jjazz.rhythm.spi.RhythmProvider;
@@ -389,6 +390,8 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
        {
            fdm.setUserRhythmDirectory(newDir);   
            btn_rescanActionPerformed(null);
+           
+           Analytics.logEvent("Change User Rhythm Dir.");
        }
    }//GEN-LAST:event_btn_rhythmDirActionPerformed
 
@@ -402,6 +405,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         Object result = DialogDisplayer.getDefault().notify(d);
         if (NotifyDescriptor.YES_OPTION == result)
         {
+            Analytics.logEvent("Rescan User Rhythm Dir.");            
             LifecycleManager.getDefault().markForRestart();
             LifecycleManager.getDefault().exit();
         }
