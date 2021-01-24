@@ -203,7 +203,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
             }
         });
 
-        lbl_ParentSection.setFont(new java.awt.Font("Arial", 0, 10)); // NOI18N
+        lbl_ParentSection.setFont(lbl_ParentSection.getFont().deriveFont(lbl_ParentSection.getFont().getSize()-2f));
         lbl_ParentSection.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         org.openide.awt.Mnemonics.setLocalizedText(lbl_ParentSection, "A (4/4)"); // NOI18N
         lbl_ParentSection.setToolTipText(org.openide.util.NbBundle.getMessage(SptEditor.class, "SptEditor.lbl_ParentSection.toolTipText")); // NOI18N
@@ -636,7 +636,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         assert spt != null;   //NOI18N
         Section section = spt.getParentSection().getData();
         return section.getName() + " [" + section.getTimeSignature() + "] "
-                + ResUtil.getString(getClass(), "CTL_Start") + spt.getStartBarIndex() + " " + ResUtil.getString(getClass(), "CTL_Size") + spt.getNbBars();
+                + ResUtil.getString(getClass(), "CTL_Start") + (spt.getStartBarIndex() + 1) + " " + ResUtil.getString(getClass(), "CTL_Size") + spt.getNbBars();
     }
 
     /**

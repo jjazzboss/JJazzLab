@@ -23,6 +23,7 @@
 package org.jjazz.songmemoviewer;
 
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.KeyboardFocusManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -331,8 +332,6 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
         txt_notes.setColumns(20);
         txt_notes.setRows(5);
         txt_notes.setDragEnabled(true);
-        txt_notes.setFont(UIManager.getFont("label.font")
-        );
         jScrollPane2.setViewportView(txt_notes);
 
         jScrollPane1.setBorder(null);
