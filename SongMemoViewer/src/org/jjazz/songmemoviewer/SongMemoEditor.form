@@ -55,10 +55,8 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="org.jjazz.ui.utilities.JTextAreaNoKeyBinding" name="txt_notes">
+        <Component class="javax.swing.JTextArea" name="txt_notes">
           <Properties>
-            <Property name="columns" type="int" value="20"/>
-            <Property name="rows" type="int" value="5"/>
             <Property name="dragEnabled" type="boolean" value="true"/>
           </Properties>
         </Component>

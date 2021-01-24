@@ -58,7 +58,6 @@ import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.api.SptEditorTopComponent;
-import org.jjazz.ui.utilities.JTextFieldNoKeyBinding;
 import org.jjazz.util.ResUtil;
 
 /**
@@ -104,6 +103,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         initComponents();
 
         org.jjazz.ui.utilities.Utilities.installSelectAllWhenFocused(tf_name);
+        org.jjazz.ui.utilities.Utilities.installPrintableAsciiKeyTrap(tf_name);
 
         setEditorEnabled(false);
 
@@ -176,7 +176,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
     {
 
         panel_RhythmParameters = new javax.swing.JPanel();
-        tf_name = new JTextFieldNoKeyBinding();
+        tf_name = new javax.swing.JTextField();
         tf_name.setFont(settings.getNameFont());
         btn_Rhythm = new javax.swing.JButton();
         lbl_ParentSection = new javax.swing.JLabel();

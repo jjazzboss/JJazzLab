@@ -77,7 +77,10 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     {
         initComponents();
 
-
+        
+        org.jjazz.ui.utilities.Utilities.installPrintableAsciiKeyTrap(txt_notes);
+        
+        
         // UI Settings
         settings = SongMemoEditorSettings.getDefault();
         settings.addPropertyChangeListener(this);
@@ -320,13 +323,11 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     {
 
         jScrollPane2 = new javax.swing.JScrollPane();
-        txt_notes = new org.jjazz.ui.utilities.JTextAreaNoKeyBinding();
+        txt_notes = new javax.swing.JTextArea();
         jScrollPane1 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
         lbl_songName = new javax.swing.JLabel();
 
-        txt_notes.setColumns(20);
-        txt_notes.setRows(5);
         txt_notes.setDragEnabled(true);
         jScrollPane2.setViewportView(txt_notes);
 
@@ -375,7 +376,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lbl_songName;
-    private org.jjazz.ui.utilities.JTextAreaNoKeyBinding txt_notes;
+    private javax.swing.JTextArea txt_notes;
     // End of variables declaration//GEN-END:variables
 
     /**

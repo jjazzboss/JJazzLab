@@ -29,13 +29,16 @@ import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.InputEvent;
 import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -61,6 +64,7 @@ public class Utilities
 {
 
     private static JFileChooser fileChooser;
+    private static final NoAction NoActionInstance = new NoAction();
 
     public static JFileChooser getFileChooserInstance()
     {
@@ -226,6 +230,32 @@ public class Utilities
     }
 
     /**
+     * Make the specified textComponent capture all ASCII printable key presses.
+     * <p>
+     * Key presses are used by an editable JTextComponent to display the chars, but it does not consume the key presses. So they
+     * are transmitted up the containment hierarchy via the keybinding framework. This means a global Netbeans action might be
+     * triggered if user types a global action shortcut (eg SPACE) in the JTextComponent.<p>
+     * This method makes textComponent capture all ASCII printable key presses (ASCII char from 32 to 126) to avoid this
+     * behaviour.
+     * <p>
+     *
+     * @param textComponent
+     */
+    public static void installPrintableAsciiKeyTrap(JTextComponent textComponent)
+    {
+        // HACK ! 
+        // Only way to block them is to capture all the printable keys
+        // see https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html
+        for (char c = 32; c <= 126; c++)
+        {
+            textComponent.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, 0), "doNothing");   //NOI18N
+            textComponent.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(c, InputEvent.SHIFT_DOWN_MASK), "doNothing");   //NOI18N
+        }
+        textComponent.getActionMap().put("doNothing", NoActionInstance);
+
+    }
+
+    /**
      * Get a control-key KeyStroke which works on all OSes: Win, Linux AND Mac OSX.
      *
      * @param keyEventCode A KeyEvent constant like KeyEvent.VK_M (for ctrl-M)
@@ -371,8 +401,8 @@ public class Utilities
     {
         Objects.requireNonNull(text);
         Objects.requireNonNull(changeListener);
-        
-        
+
+
         DocumentListener dl = new DocumentListener()
         {
             private int lastChange = 0, lastNotifiedChange = 0;
@@ -403,8 +433,8 @@ public class Utilities
                 });
             }
         };
-        
-        
+
+
         text.addPropertyChangeListener("document", (PropertyChangeEvent e) ->
         {
             Document d1 = (Document) e.getOldValue();
@@ -419,9 +449,9 @@ public class Utilities
             }
             dl.changedUpdate(null);
         });
-        
-        
-        Document d = text.getDocument();        
+
+
+        Document d = text.getDocument();
         if (d != null)
         {
             d.addDocumentListener(dl);
@@ -431,4 +461,13 @@ public class Utilities
     // =================================================================================================
     // Static classes
     // =================================================================================================
+    static private class NoAction extends AbstractAction
+    {
+
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            //do nothing
+        }
+    }
 }

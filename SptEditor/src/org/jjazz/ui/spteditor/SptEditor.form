@@ -62,7 +62,6 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tf_nameActionPerformed"/>
       </Events>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new JTextFieldNoKeyBinding();"/>
         <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="tf_name.setFont(settings.getNameFont());"/>
       </AuxValues>
     </Component>
