@@ -79,8 +79,10 @@
     </Component>
     <Component class="javax.swing.JLabel" name="lbl_ParentSection">
       <Properties>
-        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-          <Font name="Arial" size="10" style="0"/>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+          <FontInfo relative="true">
+            <Font component="lbl_ParentSection" property="font" relativeSize="true" size="-2"/>
+          </FontInfo>
         </Property>
         <Property name="horizontalAlignment" type="int" value="4"/>
         <Property name="text" type="java.lang.String" value="A (4/4)" noResource="true"/>
