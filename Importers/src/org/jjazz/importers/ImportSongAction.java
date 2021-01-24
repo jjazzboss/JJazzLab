@@ -212,7 +212,7 @@ public final class ImportSongAction implements ActionListener
                 song = importer.importFromFile(f);
             } catch (SongCreationException | IOException ex)
             {
-                LOGGER.warning("importFiles() ex=" + ex.getLocalizedMessage());   //NOI18N
+                LOGGER.warning("importFiles() ex=" + ex.getMessage());   //NOI18N
                 NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
                 continue;

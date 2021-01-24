@@ -274,7 +274,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             ecs = new ExtChordSymbol(text, cri, getAltChordSymbol(), getAltFilter());
         } catch (ParseException ex)
         {
-            throw new IllegalStateException("text=" + text + " :" + ex.getLocalizedMessage());   //NOI18N
+            throw new IllegalStateException("text=" + text + " :" + ex.getMessage());   //NOI18N
         }
         return ecs;
     }

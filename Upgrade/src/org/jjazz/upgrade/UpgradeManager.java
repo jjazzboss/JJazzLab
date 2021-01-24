@@ -114,7 +114,7 @@ public class UpgradeManager
             prop.load(reader);
         } catch (IOException ex)
         {
-            LOGGER.warning("getPropertiesFromPrefs() problem reading file=" + f.getAbsolutePath() + ": ex=" + ex.getLocalizedMessage());   //NOI18N
+            LOGGER.warning("getPropertiesFromPrefs() problem reading file=" + f.getAbsolutePath() + ": ex=" + ex.getMessage());   //NOI18N
             return null;
         }
 
@@ -145,7 +145,7 @@ public class UpgradeManager
             nbPrefs.flush();        // Make sure it's copied to disk now
         } catch (BackingStoreException ex)
         {
-            LOGGER.warning("duplicateOldPreferences() Can't flush copied preferences. ex=" + ex.getLocalizedMessage());   //NOI18N
+            LOGGER.warning("duplicateOldPreferences() Can't flush copied preferences. ex=" + ex.getMessage());   //NOI18N
         }
         return true;
     }

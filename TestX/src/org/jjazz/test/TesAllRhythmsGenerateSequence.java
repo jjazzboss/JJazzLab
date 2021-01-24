@@ -153,7 +153,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
                     }
                 } catch (UnsupportedEditException ex)
                 {
-                    LOGGER.log(Level.SEVERE, "Problem changing rhythm. ex={0}", ex.getLocalizedMessage());   //NOI18N
+                    LOGGER.log(Level.SEVERE, "Problem changing rhythm. ex={0}", ex.getMessage());   //NOI18N
                     continue;
                 }
             }

@@ -679,7 +679,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
             } catch (IOException ex)
             {
                 // Notify
-                LOGGER.warning("RhythmDatabaseImpl() Can't load cache file. ex=" + ex.getLocalizedMessage());   //NOI18N
+                LOGGER.warning("RhythmDatabaseImpl() Can't load cache file. ex=" + ex.getMessage());   //NOI18N
                 String msg = ResUtil.getString(getClass(), "ERR_LoadingCacheFile", RhythmDbCache.getFile().getAbsolutePath());
                 NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
@@ -805,7 +805,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                 LOGGER.info("writeCache.run() cache file created, size=" + cacheFile.getSize());   //NOI18N
             } catch (IOException ex)
             {
-                LOGGER.severe("writeCache.run() Can't save cache file=" + RhythmDbCache.getFile().getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());   //NOI18N
+                LOGGER.severe("writeCache.run() Can't save cache file=" + RhythmDbCache.getFile().getAbsolutePath() + ". ex=" + ex.getMessage());   //NOI18N
                 prefs.putBoolean(PREF_NEED_RESCAN, true);
             }
         };
@@ -1053,7 +1053,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
                 isEmpty = Utilities.isEmpty(dir.toPath());
             } catch (IOException ex)
             {
-                LOGGER.warning("CopyDefaultRhythmFilesTask.copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getLocalizedMessage());   //NOI18N
+                LOGGER.warning("CopyDefaultRhythmFilesTask.copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getMessage());   //NOI18N
                 return;
             }
             if (!isEmpty)

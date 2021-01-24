@@ -702,7 +702,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 r = rdb.getRhythmInstance(ri);
             } catch (UnavailableRhythmException ex)
             {
-                LOGGER.warning("getRecommendedRhythm() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getLocalizedMessage());   //NOI18N
+                LOGGER.warning("getRecommendedRhythm() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getMessage());   //NOI18N
                 r = rdb.getDefaultStubRhythmInstance(ts);  // non null
             }
         }
@@ -1207,7 +1207,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 } catch (Exception ex)
                 {
                     // Translate to an ObjectStreamException
-                    throw new InvalidObjectException(ex.getLocalizedMessage());
+                    throw new InvalidObjectException(ex.getMessage());
                 }
             }
             return sgs;

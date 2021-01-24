@@ -163,7 +163,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                             SongEditorManager.getInstance().showSong(file, last, true);
                         } catch (SongCreationException ex)
                         {
-                            LOGGER.warning("process() Problem opening song file: " + file.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());   //NOI18N
+                            LOGGER.warning("process() Problem opening song file: " + file.getAbsolutePath() + ". ex=" + ex.getMessage());   //NOI18N
                         }
 
                     } else
@@ -271,7 +271,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                         sem.showSong(f, last, true);
                     } catch (SongCreationException ex)
                     {
-                        LOGGER.warning("OpenFilesAtStartupTask.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());   //NOI18N
+                        LOGGER.warning("OpenFilesAtStartupTask.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getMessage());   //NOI18N
                     }
                 }
 
@@ -314,7 +314,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                             SongEditorManager.getInstance().showSong(f, last, true);
                         } catch (SongCreationException ex)
                         {
-                            LOGGER.warning("openRecentFilesUponStartup.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());   //NOI18N
+                            LOGGER.warning("openRecentFilesUponStartup.run() Problem opening song file: " + f.getAbsolutePath() + ". ex=" + ex.getMessage());   //NOI18N
                         }
                     }
                 };

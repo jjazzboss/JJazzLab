@@ -395,7 +395,7 @@ public class SongEditorManager implements PropertyChangeListener
                 mm = MidiMixManager.getInstance().findMix(song);
             } catch (MidiUnavailableException ex)
             {
-                LOGGER.warning("activateSong() Could not find MidiMix for song " + song.getName() + ".\n" + ex.getLocalizedMessage());   //NOI18N
+                LOGGER.warning("activateSong() Could not find MidiMix for song " + song.getName() + ".\n" + ex.getMessage());   //NOI18N
             }
             if (mm != null)
             {

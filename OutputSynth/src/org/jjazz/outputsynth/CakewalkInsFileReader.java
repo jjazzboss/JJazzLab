@@ -362,7 +362,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                     bank.addInstrument(insCopy);    // Instrument will inherit the MSB/LSB/BSM from the bank
                                 } catch (IllegalArgumentException ex)
                                 {
-                                    LOGGER.warning("readSynthsFromStream() Can't add instrument " + insCopy.getPatchName() + " in file " + fileName + " at line " + lineCount + ". Exception=" + ex.getLocalizedMessage());   //NOI18N
+                                    LOGGER.warning("readSynthsFromStream() Can't add instrument " + insCopy.getPatchName() + " in file " + fileName + " at line " + lineCount + ". Exception=" + ex.getMessage());   //NOI18N
                                 }
                             }
                         }
@@ -437,7 +437,7 @@ public class CakewalkInsFileReader implements MidiSynthFileReader
                                     bank.addInstrument(insCopy);    // Instrument will inherit the MSB/LSB/BSM from the bank
                                 } catch (IllegalArgumentException ex)
                                 {
-                                    LOGGER.warning("readSynthsFromStream() Can't add instrument " + insCopy.getPatchName() + " in file " + fileName + " at line " + lineCount + ". Exception=" + ex.getLocalizedMessage());   //NOI18N
+                                    LOGGER.warning("readSynthsFromStream() Can't add instrument " + insCopy.getPatchName() + " in file " + fileName + " at line " + lineCount + ". Exception=" + ex.getMessage());   //NOI18N
                                 }
                             }
                         }

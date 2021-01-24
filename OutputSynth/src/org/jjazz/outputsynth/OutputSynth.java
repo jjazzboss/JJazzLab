@@ -788,7 +788,7 @@ public class OutputSynth implements Serializable
         } catch (XStreamException e)
         {
             setFile(prevFile);
-            LOGGER.warning("saveToFile() exception=" + e.getLocalizedMessage());   //NOI18N
+            LOGGER.warning("saveToFile() exception=" + e.getMessage());   //NOI18N
             // Translate into an IOException to be handled by the Netbeans framework 
             throw new IOException("XStream XML marshalling error", e);
         }

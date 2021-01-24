@@ -286,7 +286,7 @@ public class MusicXMLFileReader
                 ecs = new ExtChordSymbol(strChord);
             } catch (ParseException ex)
             {
-                LOGGER.warning("onChordSymbolParsed() Invalid chord string=" + strChord + "(" + ex.getLocalizedMessage() + "), can't insert chord at pos=" + pos);   //NOI18N
+                LOGGER.warning("onChordSymbolParsed() Invalid chord string=" + strChord + "(" + ex.getMessage() + "), can't insert chord at pos=" + pos);   //NOI18N
                 return;
             }
             CLI_ChordSymbol cliCs = CLI_Factory.getDefault().createChordSymbol(cls, ecs, pos);

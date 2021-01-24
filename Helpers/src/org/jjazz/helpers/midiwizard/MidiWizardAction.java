@@ -107,7 +107,7 @@ public final class MidiWizardAction implements ActionListener
                     jms.setDefaultOutDevice(md);
                 } catch (MidiUnavailableException ex)
                 {
-                    LOGGER.warning("actionPerformed() Can't set default Midi out device to " + JJazzMidiSystem.getInstance().getDeviceFriendlyName(md) + ". ex=" + ex.getLocalizedMessage());   //NOI18N
+                    LOGGER.warning("actionPerformed() Can't set default Midi out device to " + JJazzMidiSystem.getInstance().getDeviceFriendlyName(md) + ". ex=" + ex.getMessage());   //NOI18N
                     NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(nd);
                 }

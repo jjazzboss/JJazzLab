@@ -155,7 +155,7 @@ public class ExportToMidiFile extends AbstractAction
             midiMix = MidiMixManager.getInstance().findMix(song);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);   //NOI18N
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
             return;
         }
 
@@ -194,7 +194,7 @@ public class ExportToMidiFile extends AbstractAction
             mapRvTrackId = seqBuilder.getRvTrackIdMap();
         } catch (MusicGenerationException ex)
         {
-            LOGGER.warning("actionPerformed() ex=" + ex.getLocalizedMessage());   //NOI18N
+            LOGGER.warning("actionPerformed() ex=" + ex.getMessage());   //NOI18N
             if (ex.getLocalizedMessage() != null)
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -274,7 +274,7 @@ public class ExportToMidiFile extends AbstractAction
             StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_MidiSequenceWritten", midiFile.getAbsolutePath()));
         } catch (IOException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);   //NOI18N
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
         }
     }
 

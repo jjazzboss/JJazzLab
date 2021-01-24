@@ -332,7 +332,7 @@ public class SS_EditorTransferHandler extends TransferHandler
             section = (CLI_Section) t.getTransferData(CLI_Section.DATA_FLAVOR);
         } catch (UnsupportedFlavorException | IOException ex)
         {
-            LOGGER.log(Level.FINE, ex.getLocalizedMessage(), ex);   //NOI18N
+            LOGGER.log(Level.FINE, ex.getMessage(), ex);   //NOI18N
         }
         return section;
     }
@@ -345,7 +345,7 @@ public class SS_EditorTransferHandler extends TransferHandler
             spt = (SongPart) t.getTransferData(SongPart.DATA_FLAVOR);
         } catch (UnsupportedFlavorException | IOException ex)
         {
-            LOGGER.log(Level.FINE, ex.getLocalizedMessage(), ex);   //NOI18N
+            LOGGER.log(Level.FINE, ex.getMessage(), ex);   //NOI18N
         }
         return spt;
     }

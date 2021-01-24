@@ -939,7 +939,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
             {
                 file = null;
             }
-            LOGGER.warning("saveToFile() exception=" + e.getLocalizedMessage());   //NOI18N
+            LOGGER.warning("saveToFile() exception=" + e.getMessage());   //NOI18N
             // Translate into an IOException to be handled by the Netbeans framework 
             throw new IOException("XStream XML unmarshalling error", e);
         }
@@ -1149,7 +1149,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                     } catch (MidiUnavailableException ex)
                     {
                         // Should not be here since we made a test just above to avoid this
-                        throw new IllegalStateException("Unexpected MidiUnavailableException ex=" + ex.getLocalizedMessage() + " this=" + this + " r=" + r);   //NOI18N
+                        throw new IllegalStateException("Unexpected MidiUnavailableException ex=" + ex.getMessage() + " this=" + this + " r=" + r);   //NOI18N
                     }
                     mixRhythms.add(r);
                 }
@@ -1200,7 +1200,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                         } catch (MidiUnavailableException ex)
                         {
                             // Should not be here since we made a test earlier to avoid this
-                            throw new IllegalStateException("Unexpected MidiUnavailableException ex=" + ex.getLocalizedMessage() + " this=" + this + " r=" + r);   //NOI18N
+                            throw new IllegalStateException("Unexpected MidiUnavailableException ex=" + ex.getMessage() + " this=" + this + " r=" + r);   //NOI18N
                         }
                         mixRhythms.add(r);
                     });

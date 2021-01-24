@@ -420,7 +420,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
                 isEmpty = Utilities.isEmpty(dir.toPath());
             } catch (IOException ex)
             {
-                LOGGER.warning("CopyMidiSynthsTask.copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getLocalizedMessage());   //NOI18N
+                LOGGER.warning("CopyMidiSynthsTask.copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getMessage());   //NOI18N
                 return;
             }
             if (!isEmpty)

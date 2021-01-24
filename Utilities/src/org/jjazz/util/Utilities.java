@@ -458,7 +458,7 @@ public class Utilities
             }
         } catch (IOException ex)
         {
-            LOGGER.log(Level.SEVERE, "extractZipResource() problem extracting resource for myClass=" + myClass + " zipResource=" + zipResource + " ex=" + ex.getLocalizedMessage());   //NOI18N
+            LOGGER.log(Level.SEVERE, "extractZipResource() problem extracting resource for myClass=" + myClass + " zipResource=" + zipResource + " ex=" + ex.getMessage());   //NOI18N
         }
         return res;
     }
@@ -815,7 +815,7 @@ public class Utilities
             });
         } catch (IOException ex)
         {
-            LOGGER.warning("listFile() IOException ex=" + ex.getLocalizedMessage() + ". Some files may have not been listed.");   //NOI18N
+            LOGGER.warning("listFile() IOException ex=" + ex.getMessage() + ". Some files may have not been listed.");   //NOI18N
         }
         return pathSet;
     }
@@ -839,7 +839,7 @@ public class Utilities
                 Desktop.getDesktop().browse(url.toURI());
             } catch (URISyntaxException | IOException ex)
             {
-                errMsg = ex.getLocalizedMessage();
+                errMsg = ex.getMessage();
             }
         } else
         {

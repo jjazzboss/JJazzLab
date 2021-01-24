@@ -102,7 +102,7 @@ public class MidiMixManager implements PropertyChangeListener
                     StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "LoadedSongMix", mixFile.getAbsolutePath()));
                 } catch (IOException ex)
                 {
-                    LOGGER.warning("findMix(Song) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage());   //NOI18N
+                    LOGGER.warning("findMix(Song) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getMessage());   //NOI18N
                 }
                 if (mm == null)
                 {
@@ -143,7 +143,7 @@ public class MidiMixManager implements PropertyChangeListener
                 StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "LoadedRhythmMix", mixFile.getAbsolutePath()));
             } catch (IOException ex)
             {
-                LOGGER.severe("findMix(rhythm) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getLocalizedMessage() + ". Creating a new mix instead.");   //NOI18N
+                LOGGER.severe("findMix(rhythm) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getMessage() + ". Creating a new mix instead.");   //NOI18N
             }
         }
         if (mm == null)

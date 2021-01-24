@@ -101,7 +101,7 @@ public class ExampleSongs implements StartupTask
             isEmpty = Utilities.isEmpty(dir.toPath());
         } catch (IOException ex)
         {
-            LOGGER.warning("copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getLocalizedMessage());   //NOI18N
+            LOGGER.warning("copyFilesOrNot() Can't check if dir. is empty. ex=" + ex.getMessage());   //NOI18N
             return;
         }
         if (!isEmpty)

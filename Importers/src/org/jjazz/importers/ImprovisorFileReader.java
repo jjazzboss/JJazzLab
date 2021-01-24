@@ -137,7 +137,7 @@ public class ImprovisorFileReader
                         }
                     } catch (NumberFormatException ex)
                     {
-                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getLocalizedMessage());   //NOI18N
+                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getMessage());   //NOI18N
                     }
                 } else if (mMeter.find())
                 {
@@ -148,14 +148,14 @@ public class ImprovisorFileReader
                         upper = Integer.parseUnsignedInt(mMeter.group(1));
                     } catch (NumberFormatException ex)
                     {
-                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getLocalizedMessage());   //NOI18N
+                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getMessage());   //NOI18N
                     }
                     try
                     {
                         lower = Integer.parseUnsignedInt(mMeter.group(2));
                     } catch (NumberFormatException ex)
                     {
-                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getLocalizedMessage());   //NOI18N
+                        LOGGER.warning("readSong() file=" + file.getName() + ", line " + lineCount + ", ex=" + ex.getMessage());   //NOI18N
                     }
                     ts = TimeSignature.get(upper, lower);
                     if (ts == null)
@@ -373,7 +373,7 @@ public class ImprovisorFileReader
 
         } catch (ParseException ex)
         {
-            LOGGER.warning("getChordSymbol() can't convert token=" + token + ". ex=" + ex.getLocalizedMessage());   //NOI18N
+            LOGGER.warning("getChordSymbol() can't convert token=" + token + ". ex=" + ex.getMessage());   //NOI18N
         }
 
         return cs;

@@ -124,7 +124,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             mm = previouslyActivatedSong == null ? null : MidiMixManager.getInstance().findMix(previouslyActivatedSong);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.severe("cleanup() ex=" + ex.getLocalizedMessage());   //NOI18N
+            LOGGER.severe("cleanup() ex=" + ex.getMessage());   //NOI18N
             Exceptions.printStackTrace(ex);
             previouslyActivatedSong = null;
         }
@@ -181,7 +181,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             context = new MusicGenerationContext(song, mm);
         } catch (UnsupportedEditException | MidiUnavailableException ex)
         {
-            LOGGER.warning("previewRhythm() ex=" + ex.getLocalizedMessage());   //NOI18N
+            LOGGER.warning("previewRhythm() ex=" + ex.getMessage());   //NOI18N
             throw new MusicGenerationException(ex.getLocalizedMessage());
         }
         SongPart spt0 = song.getSongStructure().getSongPart(0);
@@ -212,7 +212,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             sequencer.setSequence(sequence);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.warning("previewRhythm() ex=" + ex.getLocalizedMessage());   //NOI18N
+            LOGGER.warning("previewRhythm() ex=" + ex.getMessage());   //NOI18N
             throw new MusicGenerationException(ex.getLocalizedMessage());
         }
         sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);

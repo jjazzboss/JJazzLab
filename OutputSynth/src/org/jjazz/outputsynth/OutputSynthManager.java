@@ -348,7 +348,7 @@ public class OutputSynthManager implements PropertyChangeListener
                 prefs.put(PROP_DEFAULT_OUTPUTSYNTH, oldCfgFileName);
             } catch (IOException ex)
             {
-                LOGGER.warning("upgrade() error copying output synth config file=" + oldCfgFile.getAbsolutePath() + ". ex=" + ex.getLocalizedMessage());   //NOI18N
+                LOGGER.warning("upgrade() error copying output synth config file=" + oldCfgFile.getAbsolutePath() + ". ex=" + ex.getMessage());   //NOI18N
             }
         }
     }

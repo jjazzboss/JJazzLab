@@ -187,7 +187,7 @@ public class MidiUtilities
             sm.setMessage(data, 6);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);   //NOI18N
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
         }
         return sm;
     }
@@ -204,7 +204,7 @@ public class MidiUtilities
             sm.setMessage(data, 6);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);   //NOI18N
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
         }
         return sm;
     }
@@ -221,7 +221,7 @@ public class MidiUtilities
             sm.setMessage(data, 9);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);   //NOI18N
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
         }
         return sm;
     }
@@ -238,7 +238,7 @@ public class MidiUtilities
             sm.setMessage(data, 11);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);   //NOI18N
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
         }
         return sm;
     }
@@ -259,7 +259,7 @@ public class MidiUtilities
             Thread.sleep(50);  // Give time for the hardware to execute
         } catch (InterruptedException ex)
         {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);   //NOI18N
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);   //NOI18N
         }
     }
 
@@ -339,7 +339,7 @@ public class MidiUtilities
             mm = new MetaMessage(88, data, 4);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.SEVERE, ex.getLocalizedMessage(), ex);   //NOI18N
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);   //NOI18N
         }
         return mm;
     }
@@ -361,7 +361,7 @@ public class MidiUtilities
             mm = new MetaMessage(81, data, 3);
         } catch (InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.SEVERE, ex.getLocalizedMessage(), ex);   //NOI18N
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);   //NOI18N
         }
         return mm;
     }
@@ -710,7 +710,7 @@ public class MidiUtilities
                             sm.setMessage(sm.getCommand(), destChannel, sm.getData1(), sm.getData2());
                         } catch (InvalidMidiDataException ex)
                         {
-                            LOGGER.warning("rerouteShortMessages() ex=" + ex.getLocalizedMessage());   //NOI18N
+                            LOGGER.warning("rerouteShortMessages() ex=" + ex.getMessage());   //NOI18N
                         }
                     }
                 }

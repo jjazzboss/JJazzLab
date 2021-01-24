@@ -681,7 +681,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             rf = RowFilter.regexFilter("(?i)" + s);
         } catch (java.util.regex.PatternSyntaxException e)
         {
-            LOGGER.warning("tf_FilterActionPerformed() invalid filter regex string e=" + e.getLocalizedMessage());   //NOI18N
+            LOGGER.warning("tf_FilterActionPerformed() invalid filter regex string e=" + e.getMessage());   //NOI18N
             return;
         }
         TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) tbl_Instruments.getRowSorter();

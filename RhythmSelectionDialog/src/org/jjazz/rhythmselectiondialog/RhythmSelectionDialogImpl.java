@@ -942,7 +942,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             rf = RowFilter.regexFilter("(?i)" + s);
         } catch (java.util.regex.PatternSyntaxException e)
         {
-            LOGGER.warning("btn_FilterActionPerformed() invalid filter regex string e=" + e.getLocalizedMessage());   //NOI18N
+            LOGGER.warning("btn_FilterActionPerformed() invalid filter regex string e=" + e.getMessage());   //NOI18N
             return;
         }
         TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) rhythmTable.getRowSorter();

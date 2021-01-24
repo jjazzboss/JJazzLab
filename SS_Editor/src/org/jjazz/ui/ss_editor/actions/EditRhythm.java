@@ -130,7 +130,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             previewer = new EditRhythmPreviewer(song, selSpt0);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.warning("changeRhythm() Can't create RhythmPreviewer ex=" + ex.getLocalizedMessage() + ". RhythmPreviewer disabled.");   //NOI18N
+            LOGGER.warning("changeRhythm() Can't create RhythmPreviewer ex=" + ex.getMessage() + ". RhythmPreviewer disabled.");   //NOI18N
             previewer = null;
         }
         var rdb = RhythmDatabase.getDefault();

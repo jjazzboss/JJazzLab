@@ -479,14 +479,14 @@ public class SongPartImpl implements SongPart, Serializable
             } catch (UnavailableRhythmException ex1)
             {
                 // Problem ! The saved rhythm does not exist on the system, need to find another one
-                LOGGER.warning("readResolve() Can't get rhythm instance for rhythm id=" + spRhythmId + ". ex1=" + ex1.getLocalizedMessage());   //NOI18N
+                LOGGER.warning("readResolve() Can't get rhythm instance for rhythm id=" + spRhythmId + ". ex1=" + ex1.getMessage());   //NOI18N
                 RhythmInfo ri = rdb.getDefaultRhythm(spRhythmTs);
                 try
                 {
                     r = rdb.getRhythmInstance(ri);
                 } catch (UnavailableRhythmException ex2)
                 {
-                    LOGGER.warning("readResolve() Can't get rhythm instance for " + ri + ". ex2=" + ex2.getLocalizedMessage());   //NOI18N
+                    LOGGER.warning("readResolve() Can't get rhythm instance for " + ri + ". ex2=" + ex2.getMessage());   //NOI18N
                     r = rdb.getDefaultStubRhythmInstance(spRhythmTs);   // Can't be null
                 }
                 errRhythm = ResUtil.getString(getClass(), "ERR_RhythmNotFound") + ": " + spRhythmName + ". " + ResUtil.getString(getClass(), "ERR_UsingReplacementRhythm") + ": " + r.getName();

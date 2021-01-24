@@ -1367,7 +1367,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     } catch (UnsupportedEditException ex)
                     {
                         // Translate to an ObjectStreamException
-                        throw new InvalidObjectException(ex.getLocalizedMessage());
+                        throw new InvalidObjectException(ex.getMessage());
                     }
                 } else
                 {

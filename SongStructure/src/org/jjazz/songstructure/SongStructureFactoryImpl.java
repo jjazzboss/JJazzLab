@@ -84,7 +84,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
             } catch (UnavailableRhythmException ex)
             {
                 // Might happen if file deleted
-                LOGGER.warning("createSgs() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getLocalizedMessage());   //NOI18N
+                LOGGER.warning("createSgs() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getMessage());   //NOI18N
                 r = rdb.getDefaultStubRhythmInstance(section.getData().getTimeSignature());  // non null
             }
 
@@ -118,7 +118,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
         } catch (UnavailableRhythmException ex)
         {
             // Might happen if file deleted
-            LOGGER.warning("createSimpleSgs() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getLocalizedMessage());   //NOI18N
+            LOGGER.warning("createSimpleSgs() Can't get rhythm instance for " + ri.getName() + ". Using stub rhythm instead. ex=" + ex.getMessage());   //NOI18N
             r = rdb.getDefaultStubRhythmInstance(TimeSignature.FOUR_FOUR);  // non null
         }
         assert r != null;   //NOI18N

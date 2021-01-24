@@ -152,7 +152,7 @@ class Util
             midiMix = MidiMixManager.getInstance().findMix(song);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.severe("getMidiMixSilent() Could not retrieve MidiMix for song " + song.getName() + " - ex=" + ex.getLocalizedMessage());   //NOI18N
+            LOGGER.severe("getMidiMixSilent() Could not retrieve MidiMix for song " + song.getName() + " - ex=" + ex.getMessage());   //NOI18N
         }
         return midiMix;
     }

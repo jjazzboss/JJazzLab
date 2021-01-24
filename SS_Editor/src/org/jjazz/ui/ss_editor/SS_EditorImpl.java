@@ -228,7 +228,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             getDropTarget().addDropTargetListener(dropTargetListener);
         } catch (TooManyListenersException ex)
         {
-            LOGGER.log(Level.SEVERE, ex.getLocalizedMessage(), ex);   //NOI18N
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);   //NOI18N
         }
 
         mapRhythmVisibleRps = new SmallMap<>();
@@ -1078,7 +1078,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             sptv.getDropTarget().addDropTargetListener(dropTargetListener);
         } catch (TooManyListenersException ex)
         {
-            LOGGER.log(Level.SEVERE, ex.getLocalizedMessage(), ex);   //NOI18N
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);   //NOI18N
         }
     }
 
