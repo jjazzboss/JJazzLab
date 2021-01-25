@@ -148,9 +148,7 @@ public class OutputSynthManager implements PropertyChangeListener
             prefs.put(PROP_DEFAULT_OUTPUTSYNTH, outputSynth.getFile().getName());
         }
         pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, old, outputSynth);
-
-
-        Analytics.setProperties(Analytics.buildMap("OutputSynth Std Banks", outputSynth.getCompatibleStdBanks(), "OutputSynth Custom Synths", outputSynth.getCustomSynths()));
+        
     }
 
     /**

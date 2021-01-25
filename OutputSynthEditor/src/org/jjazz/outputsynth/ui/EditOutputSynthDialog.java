@@ -354,6 +354,15 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
                 DialogDisplayer.getDefault().notify(nd);
             }
         }
+
+        
+        Analytics.setProperties(Analytics.buildMap("OutputSynth Std Banks", Analytics.toStrList(outputSynth.getCompatibleStdBanks()),
+                "OutputSynth Custom Synths", Analytics.toStrList(outputSynth.getCustomSynths())));
+        Analytics.setProperties(Analytics.buildMap("OutputSynth Send Mode On", outputSynth.getSendModeOnUponPlay().toString()));
+        int nbRemapped = outputSynth.getGMRemapTable().getInstrumentMap().size() + outputSynth.getGMRemapTable().getFamilyInstrumentMap().size();
+        Analytics.setProperties(Analytics.buildMap("OutputSynth Nb Remapped Ins", nbRemapped));                
+        
+        
         setVisible(false);
     }//GEN-LAST:event_btn_SaveActionPerformed
 
@@ -403,9 +412,9 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
             }
             osm.setOutputSynth(newOutSynth);
             StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_SavedOutputSynth", f.getAbsolutePath()));
-            
+
             Analytics.logEvent("Output Synth Save As");
-            
+
         }
     }//GEN-LAST:event_mi_saveAsActionPerformed
 
@@ -427,7 +436,8 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
             OutputSynth outSynth = new OutputSynth(OS_JJazzLabSoundFont_GS.getInstance());
             outSynth.setFile(f);
             osm.setOutputSynth(outSynth);
-            StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_AppliedOutputSynthPreset", preset));            
+            StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_AppliedOutputSynthPreset", preset));
+
         }
     }//GEN-LAST:event_mi_jjazzlabSoundFontGSActionPerformed
 
@@ -442,6 +452,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
             outSynth.setFile(f);
             osm.setOutputSynth(outSynth);
             StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_AppliedOutputSynthPreset", preset));
+
         }
     }//GEN-LAST:event_mi_yamahaActionPerformed
 
@@ -456,6 +467,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
             outSynth.setFile(f);
             osm.setOutputSynth(outSynth);
             StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_AppliedOutputSynthPreset", preset));
+
         }
 
     }//GEN-LAST:event_mi_jjazzlabSoundFontGM2ActionPerformed
@@ -471,6 +483,7 @@ public class EditOutputSynthDialog extends javax.swing.JDialog implements Proper
             outSynth.setFile(f);
             osm.setOutputSynth(outSynth);
             StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_AppliedOutputSynthPreset", preset));
+
         }
     }//GEN-LAST:event_mi_jjazzlabSoundFontXGActionPerformed
 

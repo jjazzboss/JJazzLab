@@ -380,7 +380,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
         // Log the play event        
-        Analytics.logEvent("Play", Analytics.buildMap("Range (bars)", mgContext.getBarRange(), "Rhythms", mgContext.getUniqueRhythms()));
+        Analytics.logEvent("Play", Analytics.buildMap("Bar Range", mgContext.getBarRange().toString(), "Rhythms", Analytics.toStrList(mgContext.getUniqueRhythms())));
 
 
         // Regenerate the sequence and the related data if needed

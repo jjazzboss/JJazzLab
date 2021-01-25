@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.songeditormanager.StartupShutdownSongManager;
 import org.jjazz.uisettings.GeneralUISettings;
@@ -372,6 +373,8 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         StartupShutdownSongManager.getInstance().setOpenRecentFilesUponStartup(cb_loadLastRecentFile.isSelected());
 
         GeneralUISettings.getInstance().setChangeValueWithMouseWheelEnabled(!cb_disableMouseWheelChangeValue.isSelected());
+
+        Analytics.setProperties(Analytics.buildMap("Mouse Wheel Value Change Support", !cb_disableMouseWheelChangeValue.isSelected()));
     }
 
     boolean valid()

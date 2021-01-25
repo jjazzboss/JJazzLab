@@ -28,7 +28,7 @@ import org.jjazz.analytics.api.Analytics;
 /**
  * A processor of feature analytics events.
  * <p>
- * Authorized property value classes: String, Long, Float, Boolean, Date, List
+ * Authorized value classes: String, Long, Float, Boolean, or a Collection of one these classes.
  * <p>
  * The Analytics class will call the relevant methods on each service provider instance found in the global lookup.
  */
@@ -46,7 +46,7 @@ public interface AnalyticsProcessor
      * Generic event with properties.
      *
      * @param eventName
-     * @param properties Authorized values String, Long, Float, Boolean, Date, List
+     * @param properties Authorized value classes: String, Long, Float, Boolean, or a Collection of one these classes.
      */
     void logEvent(String eventName, Map<String, ?> properties);
 
@@ -54,7 +54,7 @@ public interface AnalyticsProcessor
      * Update the properties of the current JJazzLab computer.
      * <p>
      *
-     * @param properties
+     * @param properties Authorized value classes: String, Long, Float, Boolean, or a Collection of one these classes.
      * @see Analytics#getJJazzLabComputerId()
      */
     void setProperties(Map<String, ?> properties);
@@ -63,7 +63,7 @@ public interface AnalyticsProcessor
      * Update the properties of the current JJazzLab computer only if they are not already set.
      * <p>
      *
-     * @param properties
+     * @param properties Authorized value classes: String, Long, Float, Boolean, or a Collection of one these classes.
      * @see Analytics#getJJazzLabComputerId()
      */
     void setPropertiesOnce(Map<String, ?> properties);

@@ -27,6 +27,7 @@ import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
@@ -68,6 +69,8 @@ public class EnableAllMidiParameters extends AbstractAction
         DisableAllMidiParameters.setAllMidiParametersEnabled(true, songMidiMix);
 
         JJazzUndoManagerFinder.getDefault().get(song).endCEdit(undoText);
+        
+        Analytics.logEvent("Enable All Midi Parameters");
     }
 
 }

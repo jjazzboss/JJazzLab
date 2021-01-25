@@ -22,15 +22,19 @@
  */
 package org.jjazz.analytics.api;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import org.jjazz.analytics.spi.AnalyticsProcessor;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.*;
@@ -43,19 +47,18 @@ import org.openide.windows.OnShowing;
  * The class acts as a centralized bridge to collect all feature analytics events and pass them to AnalyticsProcessor instances
  * present in the global lookup.
  * <p>
- * Properties/event names must be like this "Upgrade" or "New Version"<br>
- * Authorized property value classes: String, Long, Float, Boolean, Date, List.
+ * Properties/event names examples: "Upgrade" or "New Version"<br>
+ * Authorized property value classes: String, Long, Float, Boolean, or a Collection of one these classes.
  * <p>
  */
 public class Analytics
 {
+
     public static final String EVENT_ENABLED_CHANGE = "Analytics Enabled";
-    public static final String EVENT_START_APPLICATION = "Start";
-    public static final String PREF_FIRST_START_DATE = "FirstStartDate";
+
     private static final String PREF_JJAZZLAB_COMPUTER_ID = "JJazzLabComputerId";
     private static final String PREF_ANALYTICS_ENABLED = "AnalyticsEnabled";
     private static Analytics INSTANCE;
-
     private final List<AnalyticsProcessor> processors;
     private boolean enabled;
     private static Preferences prefs = NbPreferences.forModule(Analytics.class);
@@ -77,6 +80,15 @@ public class Analytics
     {
         processors = new ArrayList<>(Lookup.getDefault().lookupAll(AnalyticsProcessor.class));
         enabled = prefs.getBoolean(PREF_ANALYTICS_ENABLED, true);
+        if (System.getProperty("jjazzlab.version") == null)
+        {
+            // By default no analytics if run from IDE, except if "use.analytics" property is set
+            String ideAnalytics = System.getProperty("ide.analytics");
+            enabled = "true".equalsIgnoreCase(ideAnalytics);
+            LOGGER.info("Analytics() Application is run from Netbeans IDE");
+            LOGGER.info("Analytics() ide.analytics=" + ideAnalytics);
+
+        }
     }
 
     public void setEnabled(boolean b)
@@ -123,12 +135,13 @@ public class Analytics
      * Generic event with properties.
      *
      * @param eventName
-     * @param properties
+     * @param properties Authorized value classes: String, Long, Float, Boolean, or a Collection of one these classes..
      */
     static public void logEvent(String eventName, Map<String, ?> properties)
     {
         if (getInstance().isEnabled())
         {
+            checkProperties(properties);
             getInstance().processors.forEach(p -> p.logEvent(eventName, properties));
         }
     }
@@ -137,13 +150,14 @@ public class Analytics
      * Update the properties of the current JJazzLab computer.
      * <p>
      *
-     * @param properties
+     * @param properties Authorized value classes: String, Long, Float, Boolean, or a Collection of one these classes..
      * @see Analytics#getJJazzLabComputerId()
      */
     static public void setProperties(Map<String, ?> properties)
     {
         if (getInstance().isEnabled())
         {
+            checkProperties(properties);
             getInstance().processors.forEach(p -> p.setProperties(properties));
         }
     }
@@ -152,13 +166,14 @@ public class Analytics
      * Update the properties of the current JJazzLab computer only if they are not already set.
      * <p>
      *
-     * @param properties
+     * @param properties Authorized value classes: String, Long, Float, Boolean, or a Collection of one these classes..
      * @see Analytics#getJJazzLabComputerId()
      */
     static public void setPropertiesOnce(Map<String, ?> properties)
     {
         if (getInstance().isEnabled())
         {
+            checkProperties(properties);
             getInstance().processors.forEach(p -> p.setPropertiesOnce(properties));
         }
     }
@@ -174,6 +189,27 @@ public class Analytics
         if (getInstance().isEnabled())
         {
             getInstance().processors.forEach(p -> p.incrementProperties(properties));
+        }
+    }
+
+    static public void incrementProperties(String property, long value)
+    {
+        if (getInstance().isEnabled())
+        {
+            HashMap<String, Long> map = new HashMap<>();
+            map.put(property, value);
+            getInstance().processors.forEach(p -> p.incrementProperties(map));
+        }
+    }
+
+    static public void incrementProperties(String p1, long v1, String p2, long v2)
+    {
+        if (getInstance().isEnabled())
+        {
+            HashMap<String, Long> map = new HashMap<>();
+            map.put(p1, v1);
+            map.put(p1, v2);
+            getInstance().processors.forEach(p -> p.incrementProperties(map));
         }
     }
 
@@ -243,6 +279,30 @@ public class Analytics
     }
 
     /**
+     * Helper method to get the current date and time as a string in a consistent way, whatever the current locale or time zone.
+     * <p>
+     * Uses UTC time and ISO format: YYYY-MM-DDTHH:MM:SS
+     *
+     * @return
+     */
+    static public String toStdDateTimeString()
+    {
+        ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Z"));      // UTC time zone
+        return DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(zdt);
+    }
+
+    /**
+     * Helper method to convert a collection of objects to a list of the corresponding strings.
+     *
+     * @param c
+     * @return
+     */
+    static public List<String> toStrList(Collection<?> c)
+    {
+        return c.stream().map(o -> o.toString()).collect(Collectors.toList());
+    }
+
+    /**
      * A unique and anonymous id computed when JJazzLab is run for the first time on a given computer.
      * <p>
      * The id is stored as a user preference, so it might be deleted if Netbeans user directory is deleted. If user upgrades to a
@@ -273,38 +333,18 @@ public class Analytics
         @Override
         public void run()
         {
-            // Get the first start date
-            Date firstDate;
-            String strDateLong = prefs.get(PREF_FIRST_START_DATE, null);
-            if (strDateLong == null)
-            {
-                // First start ever
-                firstDate = new Date();
-                prefs.put(PREF_FIRST_START_DATE, Long.toString(firstDate.getTime()));
-
-                // Save OS info
-                String name = System.getProperty("os.name", "?");
-                String version = System.getProperty("os.version", "?");
-                String arch = System.getProperty("os.arch", "?");
-                setProperties(buildMap("OS Name", name, "OS Version", version, "OS Arch.", arch));
-                setProperties(buildMap("Country", Locale.getDefault().getCountry(), "Language", Locale.getDefault().getLanguage()));
-
-            } else
-            {
-                try
-                {
-                    firstDate = new Date(Long.parseLong(strDateLong));
-                } catch (NumberFormatException ex)
-                {
-                    LOGGER.warning("ApplicationStart.run() strDateLong=" + strDateLong + " ex=" + ex.getMessage());
-                    firstDate = new Date();
-                    prefs.put(PREF_FIRST_START_DATE, Long.toString(firstDate.getTime()));
-                }
-            }
+            // Save OS info
+            String name = System.getProperty("os.name", "?");
+            String version = System.getProperty("os.version", "?");
+            String arch = System.getProperty("os.arch", "?");
+            setProperties(buildMap("OS Name", name, "OS Version", version, "OS Arch.", arch));
+            setProperties(buildMap("Country", Locale.getDefault().getCountry(), "Language", Locale.getDefault().getLanguage()));
 
 
             // Log
-            logEvent(EVENT_START_APPLICATION, buildMap("First Start Date", firstDate));
+            logEvent("Start Application");
+            incrementProperties("Nb Start Application", 1);
+            setPropertiesOnce(buildMap("First Start Application", toStdDateTimeString()));
         }
 
     }
@@ -328,6 +368,40 @@ public class Analytics
             logEvent("Upgrade", buildMap("Old Version", oldVersion, "New Version", (version == null ? "unknown" : version)));
         }
 
+    }
+    // =====================================================================================
+    // Private methods
+    // =====================================================================================
+
+    private static void checkProperties(Map<String, ?> properties)
+    {
+        for (Object o : properties.values())
+        {
+            if (!((o instanceof String)
+                    || (o instanceof Long)
+                    || (o instanceof Float)
+                    || (o instanceof Boolean)
+                    || (o instanceof Collection)))
+            {
+                throw new IllegalArgumentException("properties=" + properties);
+            }
+
+            if (o instanceof Collection)
+            {
+                Collection c = (Collection) o;
+                for (Object item : c)
+                {
+                    if (!((item instanceof String)
+                            || (item instanceof Long)
+                            || (item instanceof Float)
+                            || (item instanceof Boolean)))
+                    {
+                        throw new IllegalArgumentException("properties=" + properties + " invalid collection item=" + item);
+                    }
+                }
+            }
+
+        }
     }
 
 }

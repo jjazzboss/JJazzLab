@@ -189,8 +189,8 @@ public final class ImportSongAction implements ActionListener
 
 
         // Log event
-        List<String> importerNames = mapFileImporter.values().stream().distinct().map(i -> i.getId()).collect(Collectors.toList());
-        Analytics.logEvent("Import Song From File", Analytics.buildMap("Importers", importerNames));
+        List<String> importerUniqueNames = mapFileImporter.values().stream().distinct().map(i -> i.getId()).collect(Collectors.toList());
+        Analytics.logEvent("Import Song From File", Analytics.buildMap("Importers", importerUniqueNames));
 
 
         // Use a different thread because possible import of many files

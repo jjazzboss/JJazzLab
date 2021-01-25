@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.quantizer.Quantization;
@@ -112,6 +113,14 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
                 editor.setDisplayQuantizationValue(aSection, q);
             }
         }
+
+
+        if (!dialog.getExitStatus().equals(ChangeQuantizationDialog.ExitStatus.CANCEL))
+        {
+            Analytics.logEvent("Quantization Change", Analytics.buildMap("Value", q.toString()));
+        }
+
+
         dialog.cleanup();
     }
 

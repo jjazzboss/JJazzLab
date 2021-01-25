@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.util.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
@@ -84,9 +85,14 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
         {
             int old = mc.getPlaybackKeyTransposition();
             mc.setPlaybackKeyTransposition(dlg.getPlaybackKeyTransposition());
+
+            
+            Analytics.setProperties(Analytics.buildMap("Playback Key Transpose", dlg.getPlaybackKeyTransposition()));
+
+            
             if (old != dlg.getPlaybackKeyTransposition() && mc.getState().equals(MusicController.State.PLAYING))
             {
-                String msg = ResUtil.getString(getClass(),"CTL_ChangeWillTakeEffectAfter");
+                String msg = ResUtil.getString(getClass(), "CTL_ChangeWillTakeEffectAfter");
                 NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
             }
@@ -121,7 +127,7 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource(iconPath)));
 
 
-        String s = ResUtil.getString(getClass(),"CTL_CurrentPlaybackTransposition", t);
+        String s = ResUtil.getString(getClass(), "CTL_CurrentPlaybackTransposition", t);
         putValue(Action.SHORT_DESCRIPTION, s);
 
     }
