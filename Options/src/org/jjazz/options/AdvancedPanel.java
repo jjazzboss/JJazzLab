@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.JComboBox;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.base.actions.ShowLogWindow;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midi.device.MidiFilter;
@@ -82,6 +83,9 @@ public final class AdvancedPanel extends javax.swing.JPanel
         cb_logMidiOut = new javax.swing.JCheckBox();
         cb_debugBuiltSequence = new javax.swing.JCheckBox();
         btn_resetSettings = new javax.swing.JButton();
+        cb_noAnalytics = new javax.swing.JCheckBox();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        helpTextArea = new org.jjazz.ui.utilities.HelpTextArea();
 
         panel_Debug.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(AdvancedPanel.class, "AdvancedPanel.panel_Debug.border.title"))); // NOI18N
 
@@ -175,7 +179,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
                 .addComponent(cb_logMidiOut)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cb_debugBuiltSequence)
-                .addGap(0, 0, 0))
+                .addGap(12, 12, 12))
         );
 
         javax.swing.GroupLayout panel_DebugLayout = new javax.swing.GroupLayout(panel_Debug);
@@ -188,9 +192,9 @@ public final class AdvancedPanel extends javax.swing.JPanel
                     .addGroup(panel_DebugLayout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(btn_showLog)
-                        .addGap(205, 205, 205)
+                        .addGap(208, 208, 208)
                         .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(41, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         panel_DebugLayout.setVerticalGroup(
             panel_DebugLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -215,6 +219,18 @@ public final class AdvancedPanel extends javax.swing.JPanel
             }
         });
 
+        org.openide.awt.Mnemonics.setLocalizedText(cb_noAnalytics, ResUtil.getString(getClass(),"AdvancedPanel.cb_noAnalytics.text", new Object[] {})); // NOI18N
+        cb_noAnalytics.setToolTipText(ResUtil.getString(getClass(),"AdvancedPanel.cb_noAnalytics.toolTipText", new Object[] {})); // NOI18N
+
+        jScrollPane1.setBackground(null);
+        jScrollPane1.setBorder(null);
+
+        helpTextArea.setBackground(null);
+        helpTextArea.setColumns(20);
+        helpTextArea.setRows(5);
+        helpTextArea.setText(ResUtil.getString(getClass(),"AdvancedPanel.helpTextArea.text", new Object[] {})); // NOI18N
+        jScrollPane1.setViewportView(helpTextArea);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -225,7 +241,11 @@ public final class AdvancedPanel extends javax.swing.JPanel
                     .addComponent(panel_Debug, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(btn_resetSettings)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(cb_noAnalytics)
+                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane1)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -233,8 +253,15 @@ public final class AdvancedPanel extends javax.swing.JPanel
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(btn_resetSettings)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 95, Short.MAX_VALUE)
-                .addComponent(panel_Debug, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(cb_noAnalytics)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 73, Short.MAX_VALUE)
+                        .addComponent(panel_Debug, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -323,6 +350,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
         // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
         cb_logMidiOut.setSelected(JJazzMidiSystem.getInstance().getMidiOutLogConfig().contains(MidiFilter.ConfigLog.LOG_PASSED_MESSAGES));
         cb_debugBuiltSequence.setSelected(MusicController.getInstance().isDebugBuiltSequence());
+        cb_noAnalytics.setSelected(!Analytics.getInstance().isEnabled());
 
     }
 
@@ -344,6 +372,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
         }
         MusicController.getInstance().setDebugBuiltSequence(cb_debugBuiltSequence.isSelected());
 
+        Analytics.getInstance().setEnabled(!cb_noAnalytics.isSelected());
     }
 
     boolean valid()
@@ -395,9 +424,12 @@ public final class AdvancedPanel extends javax.swing.JPanel
     private javax.swing.JCheckBox cb_debugBuiltSequence;
     private javax.swing.JCheckBox cb_logMidiOut;
     private javax.swing.JComboBox<Level> cb_loggerLevel;
+    private javax.swing.JCheckBox cb_noAnalytics;
+    private org.jjazz.ui.utilities.HelpTextArea helpTextArea;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPanel panel_Debug;
     private javax.swing.JTextField tf_loggerName;
     // End of variables declaration//GEN-END:variables

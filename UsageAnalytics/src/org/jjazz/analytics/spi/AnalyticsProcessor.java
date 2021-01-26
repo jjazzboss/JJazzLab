@@ -46,7 +46,7 @@ public interface AnalyticsProcessor
      * Generic event with properties.
      *
      * @param eventName
-     * @param properties Authorized value classes: String, Long, Float, Boolean, or a Collection of one these classes.
+     * @param properties Authorized value classes:  String, Integer, Long, Float, Boolean, or a Collection of one these classes.
      */
     void logEvent(String eventName, Map<String, ?> properties);
 
@@ -54,7 +54,7 @@ public interface AnalyticsProcessor
      * Update the properties of the current JJazzLab computer.
      * <p>
      *
-     * @param properties Authorized value classes: String, Long, Float, Boolean, or a Collection of one these classes.
+     * @param properties Authorized value classes: String, Integer, Long, Float, Boolean, or a Collection of one these classes.
      * @see Analytics#getJJazzLabComputerId()
      */
     void setProperties(Map<String, ?> properties);
@@ -63,7 +63,7 @@ public interface AnalyticsProcessor
      * Update the properties of the current JJazzLab computer only if they are not already set.
      * <p>
      *
-     * @param properties Authorized value classes: String, Long, Float, Boolean, or a Collection of one these classes.
+     * @param properties Authorized value classes: String, Integer, Long, Float, Boolean, or a Collection of one these classes.
      * @see Analytics#getJJazzLabComputerId()
      */
     void setPropertiesOnce(Map<String, ?> properties);

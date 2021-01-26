@@ -48,7 +48,6 @@ import org.openide.windows.OnShowing;
  * present in the global lookup.
  * <p>
  * Properties/event names examples: "Upgrade" or "New Version"<br>
- * Authorized property value classes: String, Long, Float, Boolean, or a Collection of one these classes.
  * <p>
  */
 public class Analytics
@@ -80,15 +79,6 @@ public class Analytics
     {
         processors = new ArrayList<>(Lookup.getDefault().lookupAll(AnalyticsProcessor.class));
         enabled = prefs.getBoolean(PREF_ANALYTICS_ENABLED, true);
-        if (System.getProperty("jjazzlab.version") == null)
-        {
-            // By default no analytics if run from IDE, except if "use.analytics" property is set
-            String ideAnalytics = System.getProperty("ide.analytics");
-            enabled = "true".equalsIgnoreCase(ideAnalytics);
-            LOGGER.info("Analytics() Application is run from Netbeans IDE");
-            LOGGER.info("Analytics() ide.analytics=" + ideAnalytics);
-
-        }
     }
 
     public void setEnabled(boolean b)
@@ -135,7 +125,7 @@ public class Analytics
      * Generic event with properties.
      *
      * @param eventName
-     * @param properties Authorized value classes: String, Long, Float, Boolean, or a Collection of one these classes..
+     * @param properties Authorized value classes:  String, Integer, Long, Float, Boolean, or a Collection of one these classes.
      */
     static public void logEvent(String eventName, Map<String, ?> properties)
     {
@@ -150,7 +140,7 @@ public class Analytics
      * Update the properties of the current JJazzLab computer.
      * <p>
      *
-     * @param properties Authorized value classes: String, Long, Float, Boolean, or a Collection of one these classes..
+     * @param properties Authorized value classes: String, Integer, Long, Float, Boolean, or a Collection of one these classes.
      * @see Analytics#getJJazzLabComputerId()
      */
     static public void setProperties(Map<String, ?> properties)
@@ -166,7 +156,7 @@ public class Analytics
      * Update the properties of the current JJazzLab computer only if they are not already set.
      * <p>
      *
-     * @param properties Authorized value classes: String, Long, Float, Boolean, or a Collection of one these classes..
+     * @param properties Authorized value classes: String, Integer, Long, Float, Boolean, or a Collection of one these classes.
      * @see Analytics#getJJazzLabComputerId()
      */
     static public void setPropertiesOnce(Map<String, ?> properties)
@@ -312,7 +302,7 @@ public class Analytics
      *
      * @return
      */
-    public String getJJazzLabComputerId()
+    static public String getJJazzLabComputerId()
     {
         String id = prefs.get(PREF_JJAZZLAB_COMPUTER_ID, null);
         if (id == null)
@@ -365,7 +355,7 @@ public class Analytics
 
 
             String version = System.getProperty("jjazzlab.version");
-            logEvent("Upgrade", buildMap("Old Version", oldVersion, "New Version", (version == null ? "unknown" : version)));
+            logEvent("Upgrade", buildMap("Old Version", (oldVersion == null ? "unknown" : oldVersion), "New Version", (version == null ? "unknown" : version)));
         }
 
     }
@@ -378,6 +368,7 @@ public class Analytics
         for (Object o : properties.values())
         {
             if (!((o instanceof String)
+                    || (o instanceof Integer)
                     || (o instanceof Long)
                     || (o instanceof Float)
                     || (o instanceof Boolean)
@@ -392,6 +383,7 @@ public class Analytics
                 for (Object item : c)
                 {
                     if (!((item instanceof String)
+                            || (item instanceof Integer)
                             || (item instanceof Long)
                             || (item instanceof Float)
                             || (item instanceof Boolean)))

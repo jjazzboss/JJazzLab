@@ -691,7 +691,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         
         Analytics.logEvent("Save Song", map);
         Analytics.incrementProperties("Nb Save Song", 1);
-        Analytics.setPropertiesOnce(Analytics.buildMap("First Save Date", Analytics.toStdDateTimeString()));
+        Analytics.setPropertiesOnce(Analytics.buildMap("First Save", Analytics.toStdDateTimeString()));
     }
 
 //    private static boolean checkRhythmVoiceExists(Song s, RhythmVoice rv)
