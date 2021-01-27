@@ -37,6 +37,7 @@ import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
+import org.openide.modules.OnStop;
 import org.openide.util.*;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.OnShowing;
@@ -53,8 +54,18 @@ import org.openide.windows.OnShowing;
 public class Analytics
 {
 
-    public static final String EVENT_ENABLED_CHANGE = "Analytics Enabled";
+    /**
+     * This event is fired by the Analytics instance upon start, with no properties.
+     */
+    public static final String EVENT_START_APPLICATION = "Start Application";
+    /**
+     * This event is fired by the Analytics instance upon shutdown, with no properties.
+     * <p>
+     * AnalyticsProcessors must be process the event quickly in order to not block the shutdown sequence.
+     */
+    public static final String EVENT_STOP_APPLICATION = "Stop Application";
 
+    private static final String EVENT_ENABLED_CHANGE = "Analytics Enabled";
     private static final String PREF_JJAZZLAB_COMPUTER_ID = "JJazzLabComputerId";
     private static final String PREF_ANALYTICS_ENABLED = "AnalyticsEnabled";
     private static Analytics INSTANCE;
@@ -125,7 +136,7 @@ public class Analytics
      * Generic event with properties.
      *
      * @param eventName
-     * @param properties Authorized value classes:  String, Integer, Long, Float, Boolean, or a Collection of one these classes.
+     * @param properties Authorized value classes: String, Integer, Long, Float, Boolean, or a Collection of one these classes.
      */
     static public void logEvent(String eventName, Map<String, ?> properties)
     {
@@ -314,8 +325,11 @@ public class Analytics
     }
 
     // =====================================================================================
-    // Log the start application event
+    // Inner classes
     // =====================================================================================    
+    /**
+     * Log the start application event
+     */
     @OnShowing
     static public class ApplicationStart implements Runnable
     {
@@ -332,16 +346,33 @@ public class Analytics
 
 
             // Log
-            logEvent("Start Application");
+            logEvent(EVENT_START_APPLICATION);
             incrementProperties("Nb Start Application", 1);
             setPropertiesOnce(buildMap("First Start Application", toStdDateTimeString()));
         }
 
     }
 
-    // =====================================================================================
-    // Upgrade Task
-    // =====================================================================================
+    /**
+     * Log the application stop event.
+     * <p>
+     * IMPORTANT: AnalyticsProcessors which will process the event must make sure that the processing is done quickly enough in
+     * order to NOT block the shutdown sequence.
+     */
+    @OnStop
+    static public class ApplicationStop implements Runnable
+    {
+
+        @Override
+        public void run()
+        {
+            logEvent(EVENT_STOP_APPLICATION);
+        }
+    }
+
+    /**
+     * Log the upgrade event.
+     */
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
@@ -357,7 +388,6 @@ public class Analytics
             String version = System.getProperty("jjazzlab.version");
             logEvent("Upgrade", buildMap("Old Version", (oldVersion == null ? "unknown" : oldVersion), "New Version", (version == null ? "unknown" : version)));
         }
-
     }
     // =====================================================================================
     // Private methods

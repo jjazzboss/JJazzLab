@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
@@ -668,27 +669,27 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      */
     private void doAnalytics()
     {
-        var criStream = chordLeadSheet.getItems(CLI_ChordSymbol.class).stream().map(cli -> cli.getData().getRenderingInfo()); // Stream of ChordRenderingInfos        
-        var ecsStream = chordLeadSheet.getItems(CLI_ChordSymbol.class).stream().map(cli -> cli.getData()); // Stream of ExtChordSymbols        
+        var ecss = chordLeadSheet.getItems(CLI_ChordSymbol.class).stream().map(cli -> cli.getData()).collect(Collectors.toList());
+        var cris = ecss.stream().map(ecs -> ecs.getRenderingInfo()).collect(Collectors.toList());
 
         HashMap<String, Object> map = new HashMap<>();
         map.put("Memo Char Size", getComments().length());
-        map.put("Nb Chord Symbols", criStream.count());
+        map.put("Nb Chord Symbols", cris.stream().count());
         map.put("Nb Song Parts", songStructure.getSongParts().size());
         map.put("LeadSheet Bar Size", chordLeadSheet.getSize());
         map.put("Song Structure Bar Size", songStructure.getSizeInBars());
-        map.put("Use Bass Pedal Chord",  criStream.anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.PEDAL_BASS)));
-        map.put("Use Accent Chord", criStream.anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.ACCENT)));
-        map.put("Use Stronger Accent Chord", criStream.anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.ACCENT_STRONGER)));
-        map.put("Use Crash Chord", criStream.anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.CRASH)));
-        map.put("Use No Crash Chord", criStream.anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.NO_CRASH)));
-        map.put("Use Extended Hold/Shot Chord", criStream.anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.EXTENDED_HOLD_SHOT)));
-        map.put("Use Shot Chord", criStream.anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.SHOT)));
-        map.put("Use Hold Chord", criStream.anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.HOLD)));
-        map.put("Use Scale Chord", criStream.anyMatch(cri -> cri.getScaleInstance() != null));
-        map.put("Use Substitute Chord", ecsStream.anyMatch(ecs -> ecs.getAlternateChordSymbol() != null));
+        map.put("Use Bass Pedal Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.PEDAL_BASS)));
+        map.put("Use Accent Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.ACCENT)));
+        map.put("Use Stronger Accent Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.ACCENT_STRONGER)));
+        map.put("Use Crash Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.CRASH)));
+        map.put("Use No Crash Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.NO_CRASH)));
+        map.put("Use Extended Hold/Shot Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.EXTENDED_HOLD_SHOT)));
+        map.put("Use Shot Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.SHOT)));
+        map.put("Use Hold Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.HOLD)));
+        map.put("Use Scale Chord", cris.stream().anyMatch(cri -> cri.getScaleInstance() != null));
+        map.put("Use Substitute Chord", ecss.stream().anyMatch(ecs -> ecs.getAlternateChordSymbol() != null));
 
-        
+
         Analytics.logEvent("Save Song", map);
         Analytics.incrementProperties("Nb Save Song", 1);
         Analytics.setPropertiesOnce(Analytics.buildMap("First Save", Analytics.toStdDateTimeString()));
