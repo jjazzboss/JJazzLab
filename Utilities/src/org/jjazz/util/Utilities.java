@@ -45,6 +45,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.openide.*;
 import org.openide.filesystems.FileObject;
+import org.openide.util.Exceptions;
 
 /**
  * Various convenience functions.
@@ -62,7 +63,7 @@ public class Utilities
         String str = System.getProperty("user.dir");
         return str;
     }
-    
+
     /**
      * Check if a directory is empty.
      * <p>
@@ -837,13 +838,47 @@ public class Utilities
             try
             {
                 Desktop.getDesktop().browse(url.toURI());
-            } catch (URISyntaxException | IOException ex)
+            } catch (URISyntaxException | IOException | UnsupportedOperationException ex)
             {
                 errMsg = ex.getLocalizedMessage();
             }
         } else
         {
-            errMsg = java.util.ResourceBundle.getBundle("org/jjazz/util/Bundle").getString("OPEN HYPERLINK IN BROWSER NOT SUPPORTED");
+            errMsg = org.openide.util.NbBundle.getBundle(org.jjazz.util.Utilities.class).getString("ErrNoExternalCommand");
+        }
+        if (!silentError && errMsg != null)
+        {
+            NotifyDescriptor d = new NotifyDescriptor.Message(errMsg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+        }
+
+        return errMsg == null;
+    }
+
+    /**
+     * Open a file in an external editor.
+     * <p>
+     * Unless silentError is true, user is notified if an error occured.
+     *
+     * @param file
+     * @param silentError Do not notify user if error occured
+     * @return False if an error occured
+     */
+    public static boolean openFile(File file, boolean silentError)
+    {
+        String errMsg = null;
+        if (Desktop.isDesktopSupported())
+        {
+            try
+            {
+                Desktop.getDesktop().open(file);
+            } catch (IOException | UnsupportedOperationException ex)
+            {
+                errMsg = ex.getLocalizedMessage();
+            }
+        } else
+        {
+            errMsg = org.openide.util.NbBundle.getBundle(org.jjazz.util.Utilities.class).getString("ErrNoExternalCommand");
         }
         if (!silentError && errMsg != null)
         {
