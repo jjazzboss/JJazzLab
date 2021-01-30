@@ -37,17 +37,23 @@ import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.songstructure.api.SongStructureFactory;
@@ -498,6 +504,10 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             throw new IllegalArgumentException("songFile=" + songFile + " isCopy=" + isCopy);   //NOI18N
         }
 
+
+        doAnalytics();
+
+
         if (!isCopy)
         {
             file = songFile;
@@ -630,7 +640,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     }
 
     // ----------------------------------------------------------------------------
-    // Private functions 
+    // Private methods 
     // ----------------------------------------------------------------------------
     /**
      * Fire a PROP_MODIFIED_OR_SAVED property change event, oldValue=false, newValue=true
@@ -652,6 +662,37 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         {
             l.undoableEditHappened(event);
         }
+    }
+
+    /**
+     * Compute some anonymous stats about feature usage.
+     */
+    private void doAnalytics()
+    {
+        var ecss = chordLeadSheet.getItems(CLI_ChordSymbol.class).stream().map(cli -> cli.getData()).collect(Collectors.toList());
+        var cris = ecss.stream().map(ecs -> ecs.getRenderingInfo()).collect(Collectors.toList());
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("Memo Char Size", getComments().length());
+        map.put("Nb Chord Symbols", cris.stream().count());
+        map.put("Nb Song Parts", songStructure.getSongParts().size());
+        map.put("LeadSheet Bar Size", chordLeadSheet.getSize());
+        map.put("Song Structure Bar Size", songStructure.getSizeInBars());
+        map.put("Use Bass Pedal Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.PEDAL_BASS)));
+        map.put("Use Accent Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.ACCENT)));
+        map.put("Use Stronger Accent Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.ACCENT_STRONGER)));
+        map.put("Use Crash Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.CRASH)));
+        map.put("Use No Crash Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.NO_CRASH)));
+        map.put("Use Extended Hold/Shot Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.EXTENDED_HOLD_SHOT)));
+        map.put("Use Shot Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.SHOT)));
+        map.put("Use Hold Chord", cris.stream().anyMatch(cri -> cri.hasOneFeature(ChordRenderingInfo.Feature.HOLD)));
+        map.put("Use Scale Chord", cris.stream().anyMatch(cri -> cri.getScaleInstance() != null));
+        map.put("Use Substitute Chord", ecss.stream().anyMatch(ecs -> ecs.getAlternateChordSymbol() != null));
+
+
+        Analytics.logEvent("Save Song", map);
+        Analytics.incrementProperties("Nb Save Song", 1);
+        Analytics.setPropertiesOnce(Analytics.buildMap("First Save", Analytics.toStdDateTimeString()));
     }
 
 //    private static boolean checkRhythmVoiceExists(Song s, RhythmVoice rv)

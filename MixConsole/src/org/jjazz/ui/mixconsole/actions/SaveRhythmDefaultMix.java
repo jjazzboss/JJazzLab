@@ -32,6 +32,7 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import static javax.swing.Action.SHORT_DESCRIPTION;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
@@ -117,6 +118,8 @@ public class SaveRhythmDefaultMix extends AbstractAction
         {
             StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "SAVED RHYTHM DEFAULT MIX", savedFiles));
         }
+        
+        Analytics.logEvent("Save As Default Rhythm Mix");
     }
 
     // =================================================================

@@ -26,9 +26,14 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.SwingUtilities;
@@ -123,7 +128,9 @@ public class SongEditorManager implements PropertyChangeListener
     /**
      * Do what's required to show a song in the application.
      * <p>
-     * Create undomanager, create and show editors, etc. If song is already shown in an editor, just make its TopComponent active.
+     * Create undomanager, create and show editors. Also open the possible links in song memo is makeActive is true.
+     * <p>
+     * If song is already shown in an editor, just make its TopComponent active.
      *
      *
      * @param song
@@ -146,7 +153,7 @@ public class SongEditorManager implements PropertyChangeListener
             }
         }
 
-        Runnable run = () ->
+        Runnable openEditorsTask = () ->
         {
             // Create the undo managers
             JJazzUndoManager undoManager = new JJazzUndoManager();
@@ -201,9 +208,31 @@ public class SongEditorManager implements PropertyChangeListener
             }
         };
 
-
         // Make sure everything is run on the EDT
-        SwingUtilities.invokeLater(run);
+        SwingUtilities.invokeLater(openEditorsTask);
+
+
+        // Open the memo links
+        Runnable openLinksTask = () ->
+        {
+            // Open possible links
+            for (URL url : extractURLsFromComments(song))
+            {
+                LOGGER.info("showSong() song=" + song.getName() + " opening song memo internet link: " + url);
+                org.jjazz.util.Utilities.openInBrowser(url, true);         // No user notifying
+            }
+            for (File file : extractFilesFromComments(song))
+            {
+                LOGGER.info("showSong() song=" + song.getName() + " opening song memo file link: " + file);
+                org.jjazz.util.Utilities.openFile(file, true);              // No user notifying
+            }
+        };
+        if (makeActive)
+        {
+            new Thread(openLinksTask).start();
+        }
+
+
     }
 
     /**
@@ -215,9 +244,10 @@ public class SongEditorManager implements PropertyChangeListener
      * @param makeActive
      * @param updateLastSongDirectory If true and the file is not already shown, update the LastSongDirectory in
      * FileDirectoryManager.
+     * @return The created song from file f
      * @throws org.jjazz.song.api.SongCreationException
      */
-    public void showSong(File f, boolean makeActive, boolean updateLastSongDirectory) throws SongCreationException
+    public Song showSong(File f, boolean makeActive, boolean updateLastSongDirectory) throws SongCreationException
     {
 
         // Check if file is already opened, if yes just activate it
@@ -243,7 +273,7 @@ public class SongEditorManager implements PropertyChangeListener
                         }
                     }
                 }
-                return;
+                return s;
             }
         }
 
@@ -262,6 +292,7 @@ public class SongEditorManager implements PropertyChangeListener
         showSong(song, makeActive);
 
 
+        return song;
     }
 
     public List<Song> getOpenedSongs()
@@ -382,6 +413,66 @@ public class SongEditorManager implements PropertyChangeListener
         };
         SwingUtilities.invokeLater(r);
 
+    }
+
+    /**
+     * Get all http://xxx or https://xxx strings in the song memo as URLs.
+     * <p>
+     * Malformed URLs are ignored.
+     *
+     * @param song
+     * @return List of URL corresponding to the found string.
+     */
+    private List<URL> extractURLsFromComments(Song song)
+    {
+        List<URL> res = new ArrayList<>();
+
+        Scanner s = new Scanner(song.getComments());
+        s.findAll("https?://.*").forEach(r ->
+        {
+            String str = r.group();
+            try
+            {
+                URL url = new URL(str);
+                res.add(url);
+            } catch (MalformedURLException ex)
+            {
+                LOGGER.warning("extractURLsFromComments() Invalid internet link in song memo: " + str + " (song=" + song.getName() + ")");
+            }
+        });
+        s.close();
+
+        return res;
+    }
+
+    /**
+     * Get all file:/xxx strings in the song memo as Files.
+     * <p>
+     * Malformed URIs are ignored.
+     *
+     * @param song
+     * @return List of URL corresponding to the found string.
+     */
+    private List<File> extractFilesFromComments(Song song)
+    {
+        List<File> res = new ArrayList<>();
+
+        Scanner s = new Scanner(song.getComments());
+        s.findAll("file:/.*").forEach(r ->
+        {
+            String str = r.group();
+            try
+            {
+                File f = new File(new URI(str));
+                res.add(f);
+            } catch (URISyntaxException ex)
+            {
+                LOGGER.warning("extractFilesFromComments() Invalid file link in song memo: " + str + " (song=" + song.getName() + ")");
+            }
+        });
+        s.close();
+
+        return res;
     }
 
     private void activateSong(Song song)

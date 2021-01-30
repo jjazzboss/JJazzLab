@@ -39,7 +39,7 @@
                       <Component id="lbl_image" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="scrollPane_helpArea" pref="270" max="32767" attributes="0"/>
+                          <Component id="scrollPane_helpArea" max="32767" attributes="0"/>
                           <Component id="jPanel1" max="32767" attributes="0"/>
                       </Group>
                   </Group>
@@ -62,11 +62,14 @@
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="scrollPane_helpArea" pref="22" max="32767" attributes="0"/>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="btn_No" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="btn_Yes" alignment="3" min="-2" max="-2" attributes="0"/>
+              <Component id="scrollPane_helpArea" pref="78" max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="btn_Yes" min="-2" max="-2" attributes="0"/>
+                  <Group type="102" alignment="1" attributes="0">
+                      <Component id="btn_No" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                  </Group>
               </Group>
           </Group>
       </Group>
@@ -95,7 +98,8 @@
         <Component class="org.jjazz.ui.utilities.HelpTextArea" name="hlp_area">
           <Properties>
             <Property name="columns" type="int" value="20"/>
-            <Property name="rows" type="int" value="5"/>
+            <Property name="rows" type="int" value="4"/>
+            <Property name="text" type="java.lang.String" value="Sample" noResource="true"/>
           </Properties>
         </Component>
       </SubComponents>
@@ -128,7 +132,7 @@
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="jLabel1" max="32767" attributes="0"/>
+                      <Component id="jLabel1" pref="384" max="32767" attributes="0"/>
                       <Component id="lbl_title" max="32767" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>

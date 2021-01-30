@@ -202,7 +202,7 @@ public class RhythmTable extends JTable implements PropertyChangeListener
         public void setHighlighted(RhythmInfo ri, boolean b)
         {
             int mIndex = model.getRhythms().indexOf(ri);
-            LOGGER.severe("setHighlighted() ri=" + ri + " b=" + b + " mIndex=" + mIndex);   //NOI18N
+            LOGGER.fine("setHighlighted() ri=" + ri + " b=" + b + " mIndex=" + mIndex);   //NOI18N
 
             if (mIndex == -1)
             {

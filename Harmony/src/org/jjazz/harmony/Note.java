@@ -184,7 +184,7 @@ public class Note implements Comparable<Note>, Cloneable
 
         if (str.length() == 0)
         {
-            throw new ParseException(ResUtil.getString(getClass(), "ERR_EmptyString"), 0);
+            throw new ParseException(ResUtil.getString(getClass(), "Note.ERR_EmptyString"), 0);
         }
 
 
@@ -201,7 +201,7 @@ public class Note implements Comparable<Note>, Cloneable
         if (octaveIndex == str.length() - 1)
         {
             // "!" on last position, missing octave number !
-            throw new ParseException(ResUtil.getString(getClass(), "ERR_InvalidNote", str), str.length() - 1);
+            throw new ParseException(ResUtil.getString(getClass(), "Note.ERR_InvalidNote", str), str.length() - 1);
         }
         if (octaveIndex != -1)
         {
@@ -253,7 +253,7 @@ public class Note implements Comparable<Note>, Cloneable
 
         if (relPitch == -1)
         {
-            throw new ParseException(ResUtil.getString(getClass(), "ERR_InvalidNote", str), 0);
+            throw new ParseException(ResUtil.getString(getClass(), "Note.ERR_InvalidNote", str), 0);
         }
 
         // Get the octave
@@ -266,12 +266,12 @@ public class Note implements Comparable<Note>, Cloneable
                 o = Integer.parseInt(octaveStr);
             } catch (NumberFormatException e)
             {
-                throw new ParseException(ResUtil.getString(getClass(), "ERR_InvalidNote", str) + " : " + e.getLocalizedMessage(), 0);
+                throw new ParseException(ResUtil.getString(getClass(), "Note.ERR_InvalidNote", str) + " : " + e.getLocalizedMessage(), 0);
             }
         }
         if (!checkOctave(o))
         {
-            throw new ParseException(ResUtil.getString(getClass(), "ERR_InvalidNote", str), 0);
+            throw new ParseException(ResUtil.getString(getClass(), "Note.ERR_InvalidNote", str), 0);
         }
 
         // Build the note

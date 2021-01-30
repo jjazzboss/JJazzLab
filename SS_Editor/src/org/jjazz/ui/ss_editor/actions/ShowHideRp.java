@@ -27,6 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.songstructure.api.SgsChangeListener;
@@ -93,6 +94,10 @@ public class ShowHideRp extends AbstractAction implements SgsChangeListener
             {
                 editor.setVisibleRps(r, res.get(r));
             }
+            
+            // Only first rhythm visible parameters
+            Analytics.logEvent("Show Hide Rps", Analytics.buildMap("Visible Rps", Analytics.toStrList(res.values().iterator().next())));
+            
         }
     }
 

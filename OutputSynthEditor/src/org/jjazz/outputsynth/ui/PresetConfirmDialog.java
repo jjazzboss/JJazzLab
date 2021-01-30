@@ -120,7 +120,8 @@ public class PresetConfirmDialog extends javax.swing.JDialog
         scrollPane_helpArea.setBorder(null);
 
         hlp_area.setColumns(20);
-        hlp_area.setRows(5);
+        hlp_area.setRows(4);
+        hlp_area.setText("Sample"); // NOI18N
         scrollPane_helpArea.setViewportView(hlp_area);
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_No, org.openide.util.NbBundle.getMessage(PresetConfirmDialog.class, "PresetConfirmDialog.btn_No.text")); // NOI18N
@@ -152,7 +153,7 @@ public class PresetConfirmDialog extends javax.swing.JDialog
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(0, 0, 0)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 384, Short.MAX_VALUE)
                     .addComponent(lbl_title, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -182,7 +183,7 @@ public class PresetConfirmDialog extends javax.swing.JDialog
                         .addComponent(lbl_image)
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(scrollPane_helpArea, javax.swing.GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE)
+                            .addComponent(scrollPane_helpArea)
                             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
@@ -200,11 +201,13 @@ public class PresetConfirmDialog extends javax.swing.JDialog
                         .addContainerGap()
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(scrollPane_helpArea, javax.swing.GroupLayout.DEFAULT_SIZE, 22, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btn_No)
-                    .addComponent(btn_Yes)))
+                .addComponent(scrollPane_helpArea, javax.swing.GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btn_Yes)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(btn_No)
+                        .addContainerGap())))
         );
 
         pack();

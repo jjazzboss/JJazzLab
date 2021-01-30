@@ -35,8 +35,10 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.song.api.SongCreationException;
@@ -184,6 +186,11 @@ public final class ImportSongAction implements ActionListener
             mapFileImporter.put(f, importer);
             mapExtImporter.put(ext, importer);
         }
+
+
+        // Log event
+        List<String> importerUniqueNames = mapFileImporter.values().stream().distinct().map(i -> i.getId()).collect(Collectors.toList());
+        Analytics.logEvent("Import Song From File", Analytics.buildMap("Importers", importerUniqueNames));
 
 
         // Use a different thread because possible import of many files

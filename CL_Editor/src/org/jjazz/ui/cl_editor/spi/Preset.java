@@ -25,8 +25,13 @@ package org.jjazz.ui.cl_editor.spi;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 
 /**
- * a CL_BarEditorDialog can be preset depending on the way it has been triggered : - bar edit action - ChordSymbol edit action -
- * TimeSignature edit action - Section's name edit action
+ * A CL_BarEditorDialog can be preset depending on the way it has been triggered.
+ * <p>
+ * Possibilities:<br>
+ * - bar edit action <br>
+ * - ChordSymbol edit action <br>
+ * - TimeSignature edit action <br>
+ * - Section's name edit action<br>
  */
 public class Preset
 {

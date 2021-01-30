@@ -43,6 +43,7 @@ import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import javax.swing.SwingUtilities;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.harmony.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -377,6 +378,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         // Check that all listeners are OK to start playback
         vcs.fireVetoableChange(PROPVETO_PRE_PLAYBACK, null, mgContext);  // can raise PropertyVetoException
 
+
+        // Log the play event        
+        Analytics.logEvent("Play", Analytics.buildMap("Bar Range", mgContext.getBarRange().toString(), "Rhythms", Analytics.toStrList(mgContext.getUniqueRhythms())));
+        Analytics.incrementProperties("Nb Play", 1);
+        Analytics.setPropertiesOnce(Analytics.buildMap("First Play", Analytics.toStdDateTimeString()));
+        
 
         // Regenerate the sequence and the related data if needed
         if (playbackContext.isDirty())
@@ -811,8 +818,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             if (e.getPropertyName().equals(ClickManager.PROP_PLAYBACK_CLICK_ENABLED))
             {
                 // Click track is always there, just unmute/mute it when needed
-                    boolean isClickEnabled = (Boolean) e.getNewValue();
-                    sequencer.setTrackMute(playbackContext.playbackClickTrack, !isClickEnabled);
+                boolean isClickEnabled = (Boolean) e.getNewValue();
+                sequencer.setTrackMute(playbackContext.playbackClickTrack, !isClickEnabled);
             } else
             {
                 // Make sure click track is recalculated (click channel, instrument, etc. might have changed)      

@@ -39,6 +39,7 @@ import javax.sound.midi.SysexMessage;
 import javax.sound.midi.Track;
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
@@ -70,7 +71,6 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 
 /**
@@ -147,6 +147,11 @@ public class ExportToMidiFile extends AbstractAction
                 return;
             }
         }
+        
+        
+        // Log event
+        Analytics.logEvent("Export Midi");
+        
 
         // Generate the sequence    
         MidiMix midiMix = null;

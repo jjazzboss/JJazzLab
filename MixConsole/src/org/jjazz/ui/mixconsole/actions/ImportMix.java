@@ -35,6 +35,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.ui.utilities.Utilities;
 import org.jjazz.util.ResUtil;
+import org.jjazz.analytics.api.Analytics;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
@@ -82,6 +83,8 @@ public class ImportMix extends AbstractAction
             songMidiMix.importInstrumentMixes(mm);
             StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_FileImported", mixFile.getAbsolutePath()));
         }
+        
+        Analytics.logEvent("Import Mix");
     }
 
     /**
