@@ -25,10 +25,18 @@ package org.jjazz.songeditormanager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
+import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -38,6 +46,7 @@ import org.jjazz.ui.utilities.Utilities;
 import org.jjazz.util.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 import org.openide.windows.WindowManager;
 
 @ActionID(category = "File", id = "org.jjazz.songeditormanager.OpenSong")
@@ -64,7 +73,9 @@ public final class OpenSong implements ActionListener
         chooser.setMultiSelectionEnabled(true);
         chooser.setCurrentDirectory(FileDirectoryManager.getInstance().getLastSongDirectory());
         chooser.setSelectedFile(new File(""));
-        chooser.setDialogTitle(ResUtil.getString(getClass(),"CTL_OpenSongFromFile", new Object[] {}));
+        chooser.setDialogTitle(ResUtil.getString(getClass(), "CTL_OpenSongFromFile", new Object[]
+        {
+        }));
         chooser.showOpenDialog(WindowManager.getDefault().getMainWindow());
 
 
@@ -81,6 +92,8 @@ public final class OpenSong implements ActionListener
 
     /**
      * Call SongEditorManager.showSong() and notify user if problem.
+     * <p>
+     * Also open the possible file or internet links embedded in the song comments.
      *
      * @param songFile
      * @param makeActive
@@ -92,10 +105,12 @@ public final class OpenSong implements ActionListener
         boolean b = true;
         try
         {
+            // Show the song in the editors
             SongEditorManager.getInstance().showSong(songFile, makeActive, updateLastSongDir);
+    
         } catch (SongCreationException ex)
         {
-            String msg = ResUtil.getString(OpenSong.class,"ERR_CantOpenSongFile", songFile.getAbsolutePath(), ex.getLocalizedMessage());
+            String msg = ResUtil.getString(OpenSong.class, "ERR_CantOpenSongFile", songFile.getAbsolutePath(), ex.getLocalizedMessage());
             LOGGER.warning("openSong() " + msg);   //NOI18N
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
@@ -103,4 +118,6 @@ public final class OpenSong implements ActionListener
         }
         return b;
     }
+
+   
 }

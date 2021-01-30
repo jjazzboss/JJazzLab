@@ -846,11 +846,18 @@ public class Utilities
         {
             errMsg = org.openide.util.NbBundle.getBundle(org.jjazz.util.Utilities.class).getString("ErrNoExternalCommand");
         }
-        if (!silentError && errMsg != null)
+
+        if (errMsg != null)
         {
-            NotifyDescriptor d = new NotifyDescriptor.Message(errMsg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
+            LOGGER.warning("openInBrowser() url=" + url + "  ex=" + errMsg);
+
+            if (!silentError)
+            {
+                NotifyDescriptor d = new NotifyDescriptor.Message(errMsg, NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+            }
         }
+
 
         return errMsg == null;
     }
@@ -880,10 +887,16 @@ public class Utilities
         {
             errMsg = org.openide.util.NbBundle.getBundle(org.jjazz.util.Utilities.class).getString("ErrNoExternalCommand");
         }
-        if (!silentError && errMsg != null)
+        
+        if (errMsg != null)
         {
-            NotifyDescriptor d = new NotifyDescriptor.Message(errMsg, NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
+            LOGGER.warning("openFile() file=" + file + "  ex=" + errMsg);
+
+            if (!silentError)
+            {
+                NotifyDescriptor d = new NotifyDescriptor.Message(errMsg, NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+            }
         }
 
         return errMsg == null;

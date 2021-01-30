@@ -352,6 +352,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
         org.openide.awt.Mnemonics.setLocalizedText(lbl_songName, "-"); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_insertLink, org.openide.util.NbBundle.getBundle(SongMemoEditor.class).getString("SongMemoEditor.btn_insertLink.text")); // NOI18N
+        btn_insertLink.setToolTipText(org.openide.util.NbBundle.getBundle(SongMemoEditor.class).getString("SongMemoEditor.btn_insertLink.toolTipText")); // NOI18N
         btn_insertLink.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -367,7 +368,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 545, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 549, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(lbl_songName)
                         .addGap(0, 0, Short.MAX_VALUE))
@@ -383,11 +384,11 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
                 .addContainerGap()
                 .addComponent(lbl_songName)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 352, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btn_insertLink)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 348, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(btn_insertLink, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -400,21 +401,8 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
         URL url = dlg.getLink();
         if (url != null)
         {
-            if (url.toString().startsWith("http"))
-            {
-                org.jjazz.util.Utilities.openInBrowser(url, true);
-            } else
-            {
-                try
-                {
-                    File file = new File(url.toURI());
-                    org.jjazz.util.Utilities.openFile(file, true);
-                } catch (URISyntaxException ex)
-                {
-                    Exceptions.printStackTrace(ex);
-                }
-                LOGGER.severe("btn_insertLinkActionPerformed() TO BE COMPLETED!!!");
-            }
+            String str = songModel.getComments() + "\n" + dlg.getLink().toString() + " ";
+            songModel.setComments(str);
         }
 
     }//GEN-LAST:event_btn_insertLinkActionPerformed
