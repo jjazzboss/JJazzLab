@@ -1,8 +1,8 @@
 # JJazzLab-X
 
-JJazzLab-X is a Midi-based framework dedicated to backing tracks generation -some people talk about "play-along songs" or “auto-accompaniment applications”. You type in chord symbols, select a rhythm, then the application generates a complete backing track with drums, bass, guitar, piano, strings, etc. 
+JJazzLab-X is a Midi-based framework dedicated to backing tracks generation -some people talk about "play-along songs" or “auto-accompaniment applications”. You type in chord symbols, select a rhythm (style), then the application generates a complete backing track with drums, bass, guitar, piano, strings, etc. 
 
-The ultimate objective is to develop a jam buddy able to quickly generate intelligent and interesting backing tracks: realistic and non-boring backing tracks which you can easily adjust to song specificities.
+The objective is to develop a jam buddy able to quickly generate intelligent and interesting backing tracks: realistic and non-boring backing tracks which you can easily adjust to a specific song.
 
 *The JJazzLab-X UI:* 
 ![JJazzLab-X screenshot](https://github.com/jjazzboss/JJazzLab-X/blob/master/Graphics/JJazzLabScreenShot.png)
