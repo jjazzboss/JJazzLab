@@ -27,6 +27,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import org.jjazz.analytics.spi.AnalyticsProcessor;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -318,7 +319,9 @@ public class Analytics
         String id = prefs.get(PREF_JJAZZLAB_COMPUTER_ID, null);
         if (id == null)
         {
-            id = Long.toHexString(System.currentTimeMillis() - 100000000000l + (long) (Math.random() * 100000));
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(2021, 1, 1);
+            id = Long.toHexString(System.currentTimeMillis() - calendar.getTimeInMillis() + (long) (Math.random() * 10));
             prefs.put(PREF_JJAZZLAB_COMPUTER_ID, id);
         }
         return id;
