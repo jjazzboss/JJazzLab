@@ -36,11 +36,11 @@
                   <Component id="textfield_internetLink" max="32767" attributes="0"/>
                   <Group type="102" alignment="1" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="jScrollPane2" pref="384" max="32767" attributes="0"/>
+                          <Component id="jScrollPane2" pref="398" max="32767" attributes="0"/>
                           <Component id="textfield_fileLink" max="32767" attributes="0"/>
                       </Group>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Component id="btn_select" linkSize="1" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="10" max="-2" attributes="0"/>
+                      <Component id="btn_select" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
@@ -50,10 +50,10 @@
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="1" attributes="0">
-                      <Component id="btn_testLink" linkSize="1" min="-2" max="-2" attributes="0"/>
+                      <Component id="btn_testLink" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
-                      <Component id="btn_insert" min="-2" pref="64" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="btn_insert" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="btn_cancel" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
@@ -77,7 +77,7 @@
               <Component id="rbtn_external" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Component id="textfield_internetLink" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="25" max="32767" attributes="0"/>
+              <EmptySpace pref="21" max="32767" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="btn_cancel" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="btn_insert" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -136,7 +136,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="textfield_internetLink">
       <Properties>
-        <Property name="text" type="java.lang.String" value="http://www.lyrics.com/layla_lyrics" noResource="true"/>
+        <Property name="text" type="java.lang.String" value="http://xyz" noResource="true"/>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/songmemoviewer/Bundle.properties" key="InsertLinkDialog.textfield_internetLink.toolTipText" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
         </Property>

@@ -100,7 +100,7 @@ public class InsertLinkDialog extends javax.swing.JDialog
         URL url = null;
         try
         {
-            url = new URL(textfield_internetLink.getText());
+            url = new URL(txt);
         } catch (MalformedURLException ex)
         {
             String msg = ResUtil.getString(getClass(), "InsertLinkDialog.ERR_InvalidURL");
@@ -195,7 +195,7 @@ public class InsertLinkDialog extends javax.swing.JDialog
             }
         });
 
-        textfield_internetLink.setText("http://www.lyrics.com/layla_lyrics"); // NOI18N
+        textfield_internetLink.setText("http://xyz"); // NOI18N
         textfield_internetLink.setToolTipText(org.openide.util.NbBundle.getBundle(InsertLinkDialog.class).getString("InsertLinkDialog.textfield_internetLink.toolTipText")); // NOI18N
         textfield_internetLink.setEnabled(false);
 
@@ -244,9 +244,9 @@ public class InsertLinkDialog extends javax.swing.JDialog
                     .addComponent(textfield_internetLink)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 384, Short.MAX_VALUE)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 398, Short.MAX_VALUE)
                             .addComponent(textfield_fileLink))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGap(10, 10, 10)
                         .addComponent(btn_select))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -256,14 +256,11 @@ public class InsertLinkDialog extends javax.swing.JDialog
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(btn_testLink)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btn_insert, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_insert)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btn_cancel)))
                 .addContainerGap())
         );
-
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btn_select, btn_testLink});
-
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
@@ -279,7 +276,7 @@ public class InsertLinkDialog extends javax.swing.JDialog
                 .addComponent(rbtn_external)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(textfield_internetLink, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btn_cancel)
                     .addComponent(btn_insert)
