@@ -318,7 +318,7 @@ public class Analytics
         String id = prefs.get(PREF_JJAZZLAB_COMPUTER_ID, null);
         if (id == null)
         {
-            id = Long.toHexString(System.currentTimeMillis() + (long) (Math.random() * 100000));
+            id = Long.toHexString(System.currentTimeMillis() - 100000000000l + (long) (Math.random() * 100000));
             prefs.put(PREF_JJAZZLAB_COMPUTER_ID, id);
         }
         return id;
