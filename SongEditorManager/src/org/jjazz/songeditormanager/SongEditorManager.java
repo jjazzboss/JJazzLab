@@ -27,7 +27,6 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -216,12 +215,12 @@ public class SongEditorManager implements PropertyChangeListener
         Runnable openLinksTask = () ->
         {
             // Open possible links
-            for (URL url : extractURLsFromComments(song))
+            for (URL url : org.jjazz.util.Utilities.extractHttpURLs(song.getComments()))
             {
                 LOGGER.info("showSong() song=" + song.getName() + " opening song memo internet link: " + url);
                 org.jjazz.util.Utilities.openInBrowser(url, true);         // No user notifying
             }
-            for (File file : extractFilesFromComments(song))
+            for (File file : org.jjazz.util.Utilities.extractFileURLsAsFiles(song.getComments()))
             {
                 LOGGER.info("showSong() song=" + song.getName() + " opening song memo file link: " + file);
                 org.jjazz.util.Utilities.openFile(file, true);              // No user notifying
@@ -414,66 +413,7 @@ public class SongEditorManager implements PropertyChangeListener
         SwingUtilities.invokeLater(r);
 
     }
-
-    /**
-     * Get all http://xxx or https://xxx strings in the song memo as URLs.
-     * <p>
-     * Malformed URLs are ignored.
-     *
-     * @param song
-     * @return List of URL corresponding to the found string.
-     */
-    private List<URL> extractURLsFromComments(Song song)
-    {
-        List<URL> res = new ArrayList<>();
-
-        Scanner s = new Scanner(song.getComments());
-        s.findAll("https?://.*").forEach(r ->
-        {
-            String str = r.group();
-            try
-            {
-                URL url = new URL(str);
-                res.add(url);
-            } catch (MalformedURLException ex)
-            {
-                LOGGER.warning("extractURLsFromComments() Invalid internet link in song memo: " + str + " (song=" + song.getName() + ")");
-            }
-        });
-        s.close();
-
-        return res;
-    }
-
-    /**
-     * Get all file:/xxx strings in the song memo as Files.
-     * <p>
-     * Malformed URIs are ignored.
-     *
-     * @param song
-     * @return List of URL corresponding to the found string.
-     */
-    private List<File> extractFilesFromComments(Song song)
-    {
-        List<File> res = new ArrayList<>();
-
-        Scanner s = new Scanner(song.getComments());
-        s.findAll("file:/.*").forEach(r ->
-        {
-            String str = r.group();
-            try
-            {
-                File f = new File(new URI(str));
-                res.add(f);
-            } catch (URISyntaxException ex)
-            {
-                LOGGER.warning("extractFilesFromComments() Invalid file link in song memo: " + str + " (song=" + song.getName() + ")");
-            }
-        });
-        s.close();
-
-        return res;
-    }
+   
 
     private void activateSong(Song song)
     {

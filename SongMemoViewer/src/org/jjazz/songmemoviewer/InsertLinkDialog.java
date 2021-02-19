@@ -195,7 +195,7 @@ public class InsertLinkDialog extends javax.swing.JDialog
             }
         });
 
-        textfield_internetLink.setText("http://xyz"); // NOI18N
+        textfield_internetLink.setText("http://"); // NOI18N
         textfield_internetLink.setToolTipText(org.openide.util.NbBundle.getBundle(InsertLinkDialog.class).getString("InsertLinkDialog.textfield_internetLink.toolTipText")); // NOI18N
         textfield_internetLink.setEnabled(false);
 

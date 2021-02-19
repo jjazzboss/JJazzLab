@@ -77,12 +77,72 @@ public class Utilities
     {
         if (Files.isDirectory(dirPath))
         {
-            try (Stream<Path> entries = Files.list(dirPath))
+            try ( Stream<Path> entries = Files.list(dirPath))
             {
                 return !entries.findFirst().isPresent();
             }
         }
         return false;
+    }
+
+    /**
+     * Extract from text all http://xxx or https://xxx URL strings as URLs.
+     * <p>
+     * Malformed URLs are ignored.
+     *
+     * @param text
+     * @return
+     */
+    public static List<URL> extractHttpURLs(String text)
+    {
+        List<URL> res = new ArrayList<>();
+
+        Scanner s = new Scanner(text);
+        s.findAll("https?://.*").forEach(r ->
+        {
+            String str = r.group();
+            try
+            {
+                URL url = new URL(str);
+                res.add(url);
+            } catch (MalformedURLException ex)
+            {
+                LOGGER.warning("extractHttpURLs() Invalid internet link=" + str + " in text=" + text + ". ex=" + ex.getMessage());
+            }
+        });
+        s.close();
+
+        return res;
+    }
+
+    /**
+     * Extract from text all file:/xxx URL strings as Files.
+     * <p>
+     * Malformed URLs are ignored.
+     *
+     * @param text
+     * @return
+     */
+    public static List<File> extractFileURLsAsFiles(String text)
+    {
+        List<File> res = new ArrayList<>();
+
+        Scanner s = new Scanner(text);
+        s.findAll("file:/.*").forEach(r ->
+        {
+            String str = r.group();
+            try
+            {
+                File f = new File(new URL(str).toURI());
+                res.add(f);
+            } catch (MalformedURLException | URISyntaxException ex)
+            {
+                LOGGER.warning("extractFileURIsAsFiles() Invalid file URL/URI=" + str + " in text=" + text + ", ex=" + ex.getMessage());
+            }
+        });
+        s.close();
+
+        return res;
     }
 
     /**
@@ -418,9 +478,7 @@ public class Utilities
 
         LOGGER.fine("extractZipResource() -- myClass=" + myClass + " zipResource=" + zipResource + " destDir=" + destDir);   //NOI18N
         ArrayList<File> res = new ArrayList<>();
-        try (InputStream is = myClass.getResourceAsStream(zipResource);
-                BufferedInputStream bis = new BufferedInputStream(is);
-                ZipInputStream zis = new ZipInputStream(bis))
+        try ( InputStream is = myClass.getResourceAsStream(zipResource);  BufferedInputStream bis = new BufferedInputStream(is);  ZipInputStream zis = new ZipInputStream(bis))
         {
             ZipEntry entry;
             byte[] buffer = new byte[2048];
@@ -446,8 +504,7 @@ public class Utilities
                 {
                     continue;
                 }
-                try (FileOutputStream fos = new FileOutputStream(destFile);
-                        BufferedOutputStream bos = new BufferedOutputStream(fos, buffer.length))
+                try ( FileOutputStream fos = new FileOutputStream(destFile);  BufferedOutputStream bos = new BufferedOutputStream(fos, buffer.length))
                 {
                     int len;
                     while ((len = zis.read(buffer)) > 0)
@@ -482,7 +539,7 @@ public class Utilities
             throw new IllegalArgumentException("c=" + c + " resourceFilePath=" + resourceFilePath + " targetFile=" + targetFile);   //NOI18N
         }
         boolean b = false;
-        try (InputStream in = c.getResourceAsStream(resourceFilePath))
+        try ( InputStream in = c.getResourceAsStream(resourceFilePath))
         {
             if (in != null)
             {
@@ -714,7 +771,7 @@ public class Utilities
     {
         StringWriter result = new StringWriter();
         int curChar;
-        try (InputStream is = fo.getInputStream(); BufferedReader in = new BufferedReader(new InputStreamReader(is)))
+        try ( InputStream is = fo.getInputStream();  BufferedReader in = new BufferedReader(new InputStreamReader(is)))
         {
             while ((curChar = in.read()) != -1)
             {
@@ -887,7 +944,7 @@ public class Utilities
         {
             errMsg = org.openide.util.NbBundle.getBundle(org.jjazz.util.Utilities.class).getString("ErrNoExternalCommand");
         }
-        
+
         if (errMsg != null)
         {
             LOGGER.warning("openFile() file=" + file + "  ex=" + errMsg);

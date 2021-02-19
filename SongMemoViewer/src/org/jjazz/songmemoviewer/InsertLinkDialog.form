@@ -136,7 +136,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="textfield_internetLink">
       <Properties>
-        <Property name="text" type="java.lang.String" value="http://xyz" noResource="true"/>
+        <Property name="text" type="java.lang.String" value="http://" noResource="true"/>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/songmemoviewer/Bundle.properties" key="InsertLinkDialog.textfield_internetLink.toolTipText" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
         </Property>
