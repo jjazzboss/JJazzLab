@@ -563,7 +563,7 @@ final public class ChordType
             Degree dTmp;
             switch (d)
             {
-                case NINTH_FLAT:
+                case NINTH_FLAT:        // Handled below
                 case NINTH:
                 case NINTH_SHARP:
                     // If we are are, this chord has no 9 defined
@@ -575,7 +575,7 @@ final public class ChordType
                     }
                     break;
 
-                case THIRD_FLAT:
+                case THIRD_FLAT:    // Handled below
                 case THIRD:
                     // This chord type has no third defined (otherwise we wouldn't be here), then this chord must be a sus chord
                     destDegree = Degree.FOURTH_OR_ELEVENTH;
@@ -607,7 +607,7 @@ final public class ChordType
                         destDegree = getDegree(Degree.Natural.FIFTH);         // go to 5 or #5
                     }
                     break;
-                case FIFTH_FLAT:
+                case FIFTH_FLAT:    // Handled below
                 case FIFTH:
                 case FIFTH_SHARP:
                     // We should never be here : all chord types have a fifth defined
@@ -629,17 +629,42 @@ final public class ChordType
                         destDegree = Degree.SIXTH_OR_THIRTEENTH;                       // 13th ok with all majors, minors, diminished, seventh
                     }
                     break;
-                case SEVENTH_FLAT:      // Same as below
+                case SEVENTH_FLAT:     
+                    // Seventh can only be naturally mapped on 7M, 7 or dim7M chords. 
+                    // If we're here this chord type is different: minor triad or m6, a major triad or 6, a sus triad, a dim triad or dim7.
+
+                    destDegree = Degree.SEVENTH_FLAT;  // 7 by default, exceptions below
+
+                     if (family == Family.MAJOR && getDegree(9)!=null)
+                    {
+                        // 6 chord
+                        destDegree = Degree.SEVENTH;    // Assume that a 6 chord is a I-chord
+                    } else if (extension.equals("dim7"))
+                    {
+                        destDegree = Degree.SIXTH_OR_THIRTEENTH;  // In dim7 7 is actually a bb7=13
+                    } 
+                    
+                    break;
                 case SEVENTH:
-                    // Seventh can only be naturally mapped on 7, b7 or dim7M chords. If we're here this chord type is different.                             
-                    destDegree = Degree.SEVENTH;  // 7M by default OK for maj/min triad or 6 chords. Exceptions below.
-                    if (family == Family.SUS)
+                    // Seventh can only be naturally mapped on 7M, 7 or dim7M chords. 
+                    // If we're here this chord type is different: minor triad or m6, a major triad or 6, a dim triad or dim7.
+                    
+                    destDegree = Degree.SEVENTH;  // 7M by default, exceptions below
+                                        
+                    if (family == Family.SUS)   
                     {
-                        destDegree = Degree.SEVENTH_FLAT;
-                    } else if (family == Family.DIMINISHED)
+                        // Sus triad
+                        destDegree = Degree.SEVENTH_FLAT;       
+                    } else if (family == Family.MINOR && getDegree(9) == null)
                     {
-                        destDegree = Degree.SIXTH_OR_THIRTEENTH;      // Exception: in dim7 (or dim) the b7 is actually a bb7=13 
-                    }
+                        // Minor triad but not m6
+                        destDegree = Degree.SEVENTH_FLAT;      // Assume dorian mode by default, this might be wrong sometimes
+                    }else if (family == Family.DIMINISHED)
+                    {
+                        // If dim triad assume it's a semi-diminished chord
+                        // if dim7 convert 7 to "diminished 7"=bb7=13
+                        destDegree = getDegree(9)!= null ? Degree.SIXTH_OR_THIRTEENTH : Degree.SEVENTH_FLAT; 
+                    } 
                     break;
                 default:
                     throw new IllegalStateException("d=" + d + " this=" + this + " scales=" + optScale);   //NOI18N
