@@ -47,6 +47,8 @@ import org.jjazz.ui.ss_editor.SS_EditorImpl;
 import org.jjazz.ui.ss_editor.SS_EditorToolBar;
 import org.jjazz.ui.utilities.Zoomable;
 import org.jjazz.util.ResUtil;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 
 /**
  * Top component for the SongStructure editor.
@@ -156,8 +158,9 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     }
 
     /**
-     * Bind this TopComponent to another TopComponent. Show/Close operations initiated on this TopComponent will be replicated on
-     * the paired TopComponent.
+     * Bind this TopComponent to another TopComponent.
+     * <p>
+     * Show/Close operations initiated on this TopComponent will be replicated on the paired TopComponent.
      *
      * @param tc
      */
@@ -275,6 +278,20 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         };
         // If invokeLater is not used layout is not yet performed and components size are = 0 !
         SwingUtilities.invokeLater(r);
+    }
+
+
+    @Override
+    public boolean canClose()
+    {
+        if (pairedTc != null)
+        {
+            // If CL_Editor is first closed, just let this TopComponent be closed
+            // If CL_Editor is still here, user is closing this TopComponent first, rely on CL_Editor canClose() logic
+            return pairedTc.isOpened() ? pairedTc.canClose() : true;
+        }
+
+        return true;
     }
 
     /**

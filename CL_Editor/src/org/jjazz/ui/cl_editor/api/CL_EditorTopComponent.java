@@ -141,6 +141,13 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     @Override
     public boolean canClose()
     {
+        
+        if (pairedTc != null && !pairedTc.isOpened())
+        {
+            // SS_Editor was closed first, just let this TopComponent be closed
+            return true;
+        }
+                
         SavableSong ss = getLookup().lookup(SavableSong.class);
         if (ss != null)
         {
