@@ -51,7 +51,7 @@ public class Panic extends AbstractAction
 
     public Panic()
     {
-        putValue(NAME, undoText);
+        putValue(NAME, " " + undoText + " ");       // " " quick hack because small font small button
         putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_PanicTooltip"));
     }
 

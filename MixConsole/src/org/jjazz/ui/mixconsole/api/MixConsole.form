@@ -89,8 +89,10 @@
             </Component>
             <Component class="javax.swing.JLabel" name="lbl_Master">
               <Properties>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Arial Narrow" size="10" style="1"/>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+                  <FontInfo relative="true">
+                    <Font bold="true" component="lbl_Master" property="font" relativeSize="true" size="-1"/>
+                  </FontInfo>
                 </Property>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/api/Bundle.properties" key="MixConsole.lbl_Master.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -133,6 +135,11 @@
                 <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/api/Bundle.properties" key="MixConsole.fbtn_switchAllMute.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+                  <FontInfo relative="true">
+                    <Font component="fbtn_switchAllMute" property="font" relativeSize="true" size="-1"/>
+                  </FontInfo>
+                </Property>
               </Properties>
             </Component>
             <Component class="javax.swing.Box$Filler" name="filler4">
@@ -157,6 +164,11 @@
                 <Property name="text" type="java.lang.String" value=" S " noResource="true"/>
                 <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/api/Bundle.properties" key="MixConsole.fbtn_allSoloOff.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                </Property>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+                  <FontInfo relative="true">
+                    <Font component="fbtn_allSoloOff" property="font" relativeSize="true" size="-1"/>
+                  </FontInfo>
                 </Property>
               </Properties>
             </Component>
@@ -183,8 +195,10 @@
                 <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/api/Bundle.properties" key="MixConsole.fbtn_panic.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Arial Narrow" size="11" style="0"/>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+                  <FontInfo relative="true">
+                    <Font component="fbtn_panic" property="font" relativeSize="true" size="-1"/>
+                  </FontInfo>
                 </Property>
               </Properties>
             </Component>

@@ -380,7 +380,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         knob_panoramic.setFont(FONT);
         knob_panoramic.setInheritsPopupMenu(true);
         knob_panoramic.setKnobDiameter(20);
-        knob_panoramic.setLabel(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.knob_panoramic.label")); // NOI18N
+        knob_panoramic.setLabel("pan"); // NOI18N
         knob_panoramic.setTooltipLabel(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.knob_panoramic.tooltipLabel")); // NOI18N
         pnl_pan.add(knob_panoramic);
 
@@ -390,7 +390,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         knob_reverb.setFont(knob_panoramic.getFont());
         knob_reverb.setInheritsPopupMenu(true);
         knob_reverb.setKnobDiameter(20);
-        knob_reverb.setLabel(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.knob_reverb.label")); // NOI18N
+        knob_reverb.setLabel("rev"); // NOI18N
         knob_reverb.setTooltipLabel(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.knob_reverb.tooltipLabel")); // NOI18N
         pnl_rev.add(knob_reverb);
 
@@ -400,7 +400,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         knob_chorus.setFont(knob_panoramic.getFont());
         knob_chorus.setInheritsPopupMenu(true);
         knob_chorus.setKnobDiameter(20);
-        knob_chorus.setLabel(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.knob_chorus.label")); // NOI18N
+        knob_chorus.setLabel("cho"); // NOI18N
         knob_chorus.setTooltipLabel(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.knob_chorus.tooltipLabel")); // NOI18N
         pnl_cho.add(knob_chorus);
 

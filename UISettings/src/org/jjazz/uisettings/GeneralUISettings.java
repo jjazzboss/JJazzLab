@@ -375,7 +375,7 @@ public class GeneralUISettings
             } catch (IOException | FontFormatException e)
             {
                 CONDENSED_FONT_10 = Font.getFont("Arial-PLAIN-10");
-                LOGGER.log(Level.SEVERE, "Can't get font from " + CONDENSED_FONT_PATH + ". Using default font instead=" + CONDENSED_FONT_10);   //NOI18N
+                LOGGER.severe("Can't get font from " + CONDENSED_FONT_PATH + ". Using default font instead=" + CONDENSED_FONT_10);   //NOI18N
             }
         }
         assert CONDENSED_FONT_10 != null;   //NOI18N

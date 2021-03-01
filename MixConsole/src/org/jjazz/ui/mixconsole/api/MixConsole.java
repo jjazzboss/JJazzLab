@@ -330,7 +330,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         panel_MasterControls.add(cb_viewRhythms);
         panel_MasterControls.add(filler6);
 
-        lbl_Master.setFont(new java.awt.Font("Arial Narrow", 1, 10)); // NOI18N
+        lbl_Master.setFont(lbl_Master.getFont().deriveFont(lbl_Master.getFont().getStyle() | java.awt.Font.BOLD, lbl_Master.getFont().getSize()-1));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_Master, org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.lbl_Master.text")); // NOI18N
         panel_MasterControls.add(lbl_Master);
 
@@ -343,19 +343,21 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         fbtn_switchAllMute.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         org.openide.awt.Mnemonics.setLocalizedText(fbtn_switchAllMute, " M "); // NOI18N
         fbtn_switchAllMute.setToolTipText(org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.fbtn_switchAllMute.toolTipText")); // NOI18N
+        fbtn_switchAllMute.setFont(fbtn_switchAllMute.getFont().deriveFont(fbtn_switchAllMute.getFont().getSize()-1f));
         panel_MasterControls.add(fbtn_switchAllMute);
         panel_MasterControls.add(filler4);
 
         fbtn_allSoloOff.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         org.openide.awt.Mnemonics.setLocalizedText(fbtn_allSoloOff, " S "); // NOI18N
         fbtn_allSoloOff.setToolTipText(org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.fbtn_allSoloOff.toolTipText")); // NOI18N
+        fbtn_allSoloOff.setFont(fbtn_allSoloOff.getFont().deriveFont(fbtn_allSoloOff.getFont().getSize()-1f));
         panel_MasterControls.add(fbtn_allSoloOff);
         panel_MasterControls.add(filler5);
 
         fbtn_panic.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         org.openide.awt.Mnemonics.setLocalizedText(fbtn_panic, " PANIC "); // NOI18N
         fbtn_panic.setToolTipText(org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.fbtn_panic.toolTipText")); // NOI18N
-        fbtn_panic.setFont(new java.awt.Font("Arial Narrow", 0, 11)); // NOI18N
+        fbtn_panic.setFont(fbtn_panic.getFont().deriveFont(fbtn_panic.getFont().getSize()-1f));
         panel_MasterControls.add(fbtn_panic);
         panel_MasterControls.add(filler2);
 

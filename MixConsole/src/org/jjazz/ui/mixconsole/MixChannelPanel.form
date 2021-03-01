@@ -323,9 +323,7 @@
                 </Property>
                 <Property name="inheritsPopupMenu" type="boolean" value="true"/>
                 <Property name="knobDiameter" type="int" value="20"/>
-                <Property name="label" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.knob_panoramic.label" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
+                <Property name="label" type="java.lang.String" value="pan" noResource="true"/>
                 <Property name="tooltipLabel" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.knob_panoramic.tooltipLabel" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
@@ -354,9 +352,7 @@
                 </Property>
                 <Property name="inheritsPopupMenu" type="boolean" value="true"/>
                 <Property name="knobDiameter" type="int" value="20"/>
-                <Property name="label" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.knob_reverb.label" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
+                <Property name="label" type="java.lang.String" value="rev" noResource="true"/>
                 <Property name="tooltipLabel" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.knob_reverb.tooltipLabel" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
@@ -385,9 +381,7 @@
                 </Property>
                 <Property name="inheritsPopupMenu" type="boolean" value="true"/>
                 <Property name="knobDiameter" type="int" value="20"/>
-                <Property name="label" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.knob_chorus.label" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
+                <Property name="label" type="java.lang.String" value="cho" noResource="true"/>
                 <Property name="tooltipLabel" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.knob_chorus.tooltipLabel" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
