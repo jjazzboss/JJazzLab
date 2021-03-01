@@ -38,8 +38,10 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongCreationException;
 import org.jjazz.util.ResUtil;
 import org.openide.awt.StatusDisplayer;
+import org.openide.util.Exceptions;
 
 /**
  * Global instance to obtain MidiMixes for songs and rhythms.
@@ -93,27 +95,43 @@ public class MidiMixManager implements PropertyChangeListener
         {
             // No MidiMix associated with the song, need to load or create it
             File mixFile = FileDirectoryManager.getInstance().getSongMixFile(s.getFile());
+
+
             if (mixFile != null && mixFile.canRead())
             {
+                // Mix file exists, read it
                 try
                 {
                     // Try to get it from the song mix file
                     mm = MidiMix.loadFromFile(mixFile);
                     StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "LoadedSongMix", mixFile.getAbsolutePath()));
+
                 } catch (IOException ex)
                 {
                     LOGGER.warning("findMix(Song) Problem reading mix file: " + mixFile.getAbsolutePath() + " : " + ex.getMessage());   //NOI18N
                 }
-                if (mm == null)
+
+                if (mm != null)
                 {
-                    // Problem loading song mix file, create a new mix
-                    mm = createMix(s);          // throw MidiUnavailableException
+                    try
+                    {
+                        // Robustness : check that mm is still valid (files might have been changed independently)
+                        mm.checkConsistency(s, true);
+                    } catch (SongCreationException ex)
+                    {
+                        LOGGER.warning("findMix(Song) song mix file: " + mixFile.getAbsolutePath() + " not consistent with song, ignored. ex=" + ex.getMessage());  //NOI18N
+                        mm = null;
+                    }
                 }
-            } else
-            {
-                // Song has never been saved, need to create from scratch
-                mm = createMix(s);          // throw MidiUnavailableException
             }
+
+
+            if (mm == null)
+            {
+                // If mix could not be created from file, create one from scratch
+                mm = createMix(s);          // throws MidiUnavailableException
+            }
+
             mm.setSong(s);
             registerSong(mm, s);
         }
@@ -260,4 +278,5 @@ public class MidiMixManager implements PropertyChangeListener
         song.removePropertyChangeListener(this);
         mapSongMix.remove(song);
     }
+
 }

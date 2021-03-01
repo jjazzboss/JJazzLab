@@ -71,6 +71,7 @@ import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongCreationException;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
@@ -190,9 +191,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
      * Associate a song to this MidiMix : rhythm changes in the song's songStructure are listened to keep our instrumentMix up to
      * date.
      * <p>
-     * Throw an exception if one of the current RhythmVoice keys does not belong to specified song.
      *
      * @param sg Can be null.
+     * @throws IllegalArgumentException If checkConsistency(sg, false) fails.
      */
     public final void setSong(Song sg)
     {
@@ -206,32 +207,69 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         }
 
         this.song = sg;
+
+
         if (song != null)
         {
             SongStructure sgs = song.getSongStructure();
 
-            // Check consistency with current MidiMix data            
-            List<RhythmVoice> songRvs = sgs.getUniqueRhythmVoices(false);
-            for (Integer channel : getUsedChannels())
+            try
             {
-                RhythmVoice rvKey = getRhythmVoice(channel);
-                if (!(rvKey instanceof UserChannelRvKey)
-                        && !songRvs.contains(rvKey))
-                {
-                    throw new IllegalArgumentException("channel=" + channel + " rvKey=" + rvKey + " songRvs=" + songRvs);   //NOI18N
-                }
-            }
-            for (RhythmVoiceDelegate rvd : getRhythmVoiceDelegates())
+                checkConsistency(song, false);
+            } catch (SongCreationException ex)
             {
-                if (!songRvs.contains(rvd))
-                {
-                    throw new IllegalArgumentException("rvd=" + rvd + " songRvs=" + songRvs);   //NOI18N
-                }
+                throw new IllegalArgumentException(ex);
             }
 
             // Register for changes
             sgs.addSgsChangeListener(this);
         }
+    }
+
+    /**
+     * Check if this MidiMix is consistent with the specified song.
+     * <p>
+     * Check that al RhythmVoices of this MidiMix belong to song rhythms.
+     *
+     * @param sg
+     * @param fullCheck If true also check that all song RhythmVoices are used in this MidiMix.
+     * @throws org.jjazz.song.api.SongCreationException If an inconsistency is detected
+     *
+     */
+    public void checkConsistency(Song sg, boolean fullCheck) throws SongCreationException
+    {
+        List<RhythmVoice> sgRvs = sg.getSongStructure().getUniqueRhythmVoices(false);
+
+        for (Integer channel : getUsedChannels())
+        {
+            RhythmVoice rvKey = getRhythmVoice(channel);
+            if (!(rvKey instanceof UserChannelRvKey)
+                    && !sgRvs.contains(rvKey))
+            {
+                throw new SongCreationException("channel=" + channel + " rvKey=" + rvKey + " sgRvs=" + sgRvs);   //NOI18N
+            }
+        }
+
+        for (RhythmVoiceDelegate rvd : getRhythmVoiceDelegates())
+        {
+            if (!sgRvs.contains(rvd))
+            {
+                throw new SongCreationException("rvd=" + rvd + " sgRvs=" + sgRvs);   //NOI18N
+            }
+        }
+
+        if (fullCheck)
+        {
+            for (RhythmVoice rvKey : sgRvs)
+            {
+                if (getChannel(rvKey) == -1)
+                {
+                    throw new SongCreationException("song rvKey=" + rvKey + " not found in MidiMix " + toString());   //NOI18N
+                }
+            }
+        }
+
+
     }
 
     public Song getSong()
