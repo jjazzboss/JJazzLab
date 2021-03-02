@@ -294,7 +294,7 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
 
     private void updateUIComponents()
     {
-        lbl_RpName.setFont(settings.getNameFont());
+        lbl_RpName.setFont(settings.getNameFont());        
         lbl_RpName.setForeground(settings.getNameFontColor());
         Color c = settings.getDefaultBackgroundColor();
         lbl_RpName.setBackground(new Color(c.getRed(), c.getGreen(), c.getBlue(), 110)); // a bit Transparent

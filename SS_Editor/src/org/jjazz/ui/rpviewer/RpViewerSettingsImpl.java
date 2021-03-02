@@ -27,8 +27,11 @@ import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.rpviewer.api.RpViewerSettings;
@@ -59,6 +62,7 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
      * The listeners for changes of this object.
      */
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private static final Logger LOGGER = Logger.getLogger(RpViewerSettingsImpl.class.getSimpleName());
 
     @Override
     public Color getSelectedBackgroundColor()
@@ -175,9 +179,28 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
     @Override
     public Font getNameFont()
     {
-        Font defFont = GeneralUISettings.getInstance().getStdFont().deriveFont(9f);
+
+        Font font = null;
         String strFont = prefs.get(PROP_NAME_FONT, null);
-        return strFont != null ? Font.decode(strFont) : defFont;
+        if (strFont == null)
+        {
+            if (GeneralUISettings.isLatin(Locale.getDefault()))
+            {
+                font = GeneralUISettings.getInstance().getStdFont().deriveFont(9f);
+            } else
+            {
+                // Must use default font for chinese etc.
+                font = UIManager.getDefaults().getFont("Label.font");
+                font = font.deriveFont(font.getSize2D() - 1);
+            }
+        } else
+        {
+            font = Font.decode(strFont);
+        }
+
+        assert font != null;
+        return font;
+
     }
 
     @Override

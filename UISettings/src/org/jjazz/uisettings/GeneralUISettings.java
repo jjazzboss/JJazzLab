@@ -335,7 +335,7 @@ public class GeneralUISettings
     }
 
     /**
-     * Get the JJazzLab standard font with size=10pt and style=PLAIN.
+     * Get the JJazzLab standard font (for latin locales only) with size=10pt and style=PLAIN.
      *
      * @return
      */
@@ -348,6 +348,7 @@ public class GeneralUISettings
 
                 FONT_10 = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(10f);
                 GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(FONT_10); // So it is available in getAvailableFontFamilyNames() etc.
+                
             } catch (IOException | FontFormatException e)
             {
                 FONT_10 = Font.getFont("Arial-PLAIN-10");
@@ -359,7 +360,7 @@ public class GeneralUISettings
     }
 
     /**
-     * Get the JJazzLab standard condensed font with size=10pt and style=PLAIN.
+     * Get the JJazzLab standard condensed font (for latin locales only) with size=10pt and style=PLAIN.
      *
      * @return
      */
