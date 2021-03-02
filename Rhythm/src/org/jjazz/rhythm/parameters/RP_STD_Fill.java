@@ -23,7 +23,6 @@
 package org.jjazz.rhythm.parameters;
 
 import org.jjazz.rhythm.api.Rhythm;
-import static org.jjazz.rhythm.parameters.Bundle.*;
 import org.jjazz.util.ResUtil;
 
 /**

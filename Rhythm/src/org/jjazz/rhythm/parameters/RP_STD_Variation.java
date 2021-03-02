@@ -23,17 +23,11 @@
 package org.jjazz.rhythm.parameters;
 
 import org.jjazz.rhythm.api.Rhythm;
-import org.openide.util.NbBundle;
-import static org.jjazz.rhythm.parameters.Bundle.*;
+import org.jjazz.util.ResUtil;
 
 /**
  * Standard RhythmParameter
  */
-@NbBundle.Messages(
-        {
-            "CTL_StdVariationName=Variation",
-            "CTL_StdVariationDesc=Rhythm variation",
-        })
 public class RP_STD_Variation extends RP_State
 {
 
@@ -41,12 +35,12 @@ public class RP_STD_Variation extends RP_State
 
     public RP_STD_Variation()
     {
-        super(ID, CTL_StdVariationName(), CTL_StdVariationDesc(), "V1", "V1", "V2", "V3");
+        super(ID, ResUtil.getString(RP_STD_Variation.class, "CTL_StdVariationName"), ResUtil.getString(RP_STD_Variation.class, "CTL_StdVariationDesc"), "V1", "V1", "V2", "V3");
     }
 
     public RP_STD_Variation(String defaultVal, String... possibleValues)
     {
-        super(ID, CTL_StdVariationName(), CTL_StdVariationDesc(), defaultVal, possibleValues);
+        super(ID, ResUtil.getString(RP_STD_Variation.class, "CTL_StdVariationName"), ResUtil.getString(RP_STD_Variation.class, "CTL_StdVariationDesc"), defaultVal, possibleValues);
     }
     
        /**
