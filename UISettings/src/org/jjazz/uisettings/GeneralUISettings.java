@@ -72,11 +72,6 @@ public class GeneralUISettings
         new Locale("zh", "CN")
     };
 
-    public static final boolean isLatin(Locale locale)
-    {
-        return !(locale.getLanguage().equals("zh") || locale.getLanguage().equals("ja"));
-    }
-
     /**
      * The supported Look & Feels.
      */
@@ -97,6 +92,7 @@ public class GeneralUISettings
     public static final String PREF_THEME_UPON_RESTART = "ThemeUponRestart";   //NOI18N 
     public static final String PREF_LAF_ID_UPON_RESTART = "LafIdUponRestart";   //NOI18N 
     public static final String PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL = "ChangeWithMouseWheel";   //NOI18N 
+    public static final String PROP_LOCALE_UPON_RESTART = "LocaleUponRestart";  //NOI18N
     private static GeneralUISettings INSTANCE;
     private Theme currentTheme;
     private final HashMap<WeakReference<JComponent>, MouseWheelListener> mouseWheelInstalledComponents = new HashMap<>();
@@ -148,7 +144,10 @@ public class GeneralUISettings
     /**
      * Set the locale to use upon next restart.
      * <p>
-     * Add or replace the --locale code in the user conf file. Note: can't be used while running from IDE!
+     * Add or replace the --locale code in the user conf file. <br>
+     * Note: can't be used while running from IDE!
+     * <br>
+     * Fire a PROP_LOCALE_UPON_RESTART change event.
      *
      * @param locale
      * @throws java.io.IOException If a problem occured
@@ -220,8 +219,10 @@ public class GeneralUISettings
             throw new IOException("Unexpected error: no 'default_options' property found in " + userConfigFile.getAbsolutePath());
         }
         Files.write(userConfigFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
-
+        
         LOGGER.info("setLocaleUponRestart() Set next locale upon restart=" + code);
+
+        pcs.firePropertyChange(PROP_LOCALE_UPON_RESTART, Locale.getDefault(), locale);
     }
 
     /**
@@ -288,6 +289,8 @@ public class GeneralUISettings
      * <p>
      * Because these devices don't have a "unitary" scroll unit, therefore usually values change much too fast with these devices.
      * Register/unregister all installed components via installChangeValueWithMouseWheelSupport().
+     * <p>
+     * Fire a PREF_VALUE_CHANGE_WITH_MOUSE_WHEEL change event.
      *
      * @param b
      */
@@ -348,7 +351,7 @@ public class GeneralUISettings
 
                 FONT_10 = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(10f);
                 GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(FONT_10); // So it is available in getAvailableFontFamilyNames() etc.
-                
+
             } catch (IOException | FontFormatException e)
             {
                 FONT_10 = Font.getFont("Arial-PLAIN-10");
@@ -391,6 +394,11 @@ public class GeneralUISettings
     public synchronized void removePropertyChangeListener(PropertyChangeListener listener)
     {
         pcs.removePropertyChangeListener(listener);
+    }
+
+    public static final boolean isLatin(Locale locale)
+    {
+        return !(locale.getLanguage().equals("zh") || locale.getLanguage().equals("ja"));
     }
 
     //=============================================================================
