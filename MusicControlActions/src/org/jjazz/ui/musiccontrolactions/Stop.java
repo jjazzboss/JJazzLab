@@ -35,6 +35,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.FlatToggleButton;
 import org.jjazz.util.ResUtil;
 import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.HelpCtx;
@@ -52,7 +53,7 @@ import org.openide.util.actions.Presenter;
 @ActionRegistration(displayName = "#CTL_Stop", lazy = false)
 @ActionReferences(
         {
-            // 
+            @ActionReference(path = "Shortcuts", name = "S-SPACE")
         })
 public class Stop extends BooleanStateAction implements PropertyChangeListener, LookupListener, Presenter.Toolbar
 {
@@ -88,7 +89,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
         setSelected(!getBooleanState());
     }
 
-    public void setSelected(boolean newState)
+    public synchronized void setSelected(boolean newState)
     {
         if (newState == getBooleanState())
         {
@@ -129,7 +130,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
     }
 
     @Override
-    public void resultChanged(LookupEvent ev)
+    public synchronized void resultChanged(LookupEvent ev)
     {
         int i = 0;
         Song newSong = null;
@@ -184,7 +185,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
     // PropertyChangeListener interface
     // ======================================================================    
     @Override
-    public void propertyChange(PropertyChangeEvent evt)
+    public synchronized void propertyChange(PropertyChangeEvent evt)
     {
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)

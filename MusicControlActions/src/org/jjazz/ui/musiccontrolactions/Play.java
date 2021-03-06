@@ -96,13 +96,18 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
         currentSongChanged();
     }
 
+    /**
+     * Just toggle the selected state.
+     *
+     * @param e
+     */
     @Override
     public void actionPerformed(ActionEvent e)
     {
         setSelected(!getBooleanState());
     }
 
-    public void setSelected(boolean newState)
+    public synchronized void setSelected(boolean newState)
     {
         if (newState == getBooleanState())
         {
@@ -192,7 +197,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
     }
 
     @Override
-    public void resultChanged(LookupEvent ev)
+    public synchronized void resultChanged(LookupEvent ev)
     {
         int i = 0;
         Song newSong = null;
@@ -235,7 +240,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
     // PropertyChangeListener interface
     // ======================================================================    
     @Override
-    public void propertyChange(PropertyChangeEvent evt)
+    public synchronized void propertyChange(PropertyChangeEvent evt)
     {
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
