@@ -349,12 +349,18 @@ public class RhythmTable extends JTable implements PropertyChangeListener
             @Override
             public int compare(RhythmInfo ri1, RhythmInfo ri2)
             {
-                File pf1 = ri1.getFile().getParentFile();
-                File pf2 = ri2.getFile().getParentFile();
-                if (pf1.equals(pf2))
+                File pf1 = ri1.getFile().getParentFile();   // Can be null for builtin rhythms
+                File pf2 = ri2.getFile().getParentFile();   // Can be null for builtin rhythms 
+                if ((pf1 == null && pf2 == null) || (pf1 != null && pf1.equals(pf2)))
                 {
                     // Sort by name if same directory
                     return ri1.getName().compareTo(ri2.getName());
+                } else if (pf1 == null)
+                {
+                    return -1;
+                } else if (pf2 == null)
+                {
+                    return 1;
                 } else
                 {
                     // Sort by directory
