@@ -701,7 +701,7 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * @return E.g "D-1" or "Eb3". This is the Midi octave convention: pitch=0-11 corresponds to Midi octave -1, C!0 is Midi pitch=12.
+     * @return E.g "D-1" or "Eb3". This is the Midi octave convention: pitch=0-11 corresponds to Midi octave -1, C0 is Midi pitch=12.
      */
     public String toAbsoluteNoteString()
     {

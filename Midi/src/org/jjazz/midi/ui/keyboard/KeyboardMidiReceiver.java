@@ -91,13 +91,13 @@ public class KeyboardMidiReceiver implements Receiver
             case ShortMessage.NOTE_ON:
                 pitch = Math.min(sm.getData1() + pitchShift, Note.PITCH_MAX);
                 pitch = Math.max(pitch, Note.PITCH_MIN);
-                keyboard.pressNote(pitch, sm.getData2());
+                keyboard.setPressed(pitch, sm.getData2());
                 break;
 
             case ShortMessage.NOTE_OFF:
                 pitch = Math.min(sm.getData1() + pitchShift, Note.PITCH_MAX);
                 pitch = Math.max(pitch, Note.PITCH_MIN);
-                keyboard.pressNote(pitch, 0);
+                keyboard.setPressed(pitch, 0);
                 break;
 
         }

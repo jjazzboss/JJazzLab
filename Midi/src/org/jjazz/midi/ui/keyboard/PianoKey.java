@@ -24,17 +24,21 @@ package org.jjazz.midi.ui.keyboard;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.beans.PropertyChangeListener;
+import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.Note;
 
 /**
  * A piano keyboard key.
+ * <p>
+ * Can show if key is selected, or if pressed with an indication of the velocity.
  */
 public class PianoKey extends JComponent
 {
@@ -64,11 +68,11 @@ public class PianoKey extends JComponent
 
     // Key colors depending on state
     public static final Color DEFAULT_WKEY_COLOR = Color.WHITE;
-    public static final Color DEFAULT_WKEY_PRESSED_COLOR = Color.ORANGE;
+    public static final Color DEFAULT_WKEY_PRESSED_COLOR = Color.RED;
     public static final Color DEFAULT_BKEY_COLOR = Color.BLACK;
-    public static final Color DEFAULT_BKEY_PRESSED_COLOR = Color.ORANGE;
+    public static final Color DEFAULT_BKEY_PRESSED_COLOR = Color.RED;
     public static final Color DEFAULT_KEY_CONTOUR_COLOR = Color.BLACK;
-    public static final Color DEFAULT_KEY_CONTOUR_SELECTED_COLOR = Color.RED.brighter();
+    public static final Color DEFAULT_KEY_CONTOUR_SELECTED_COLOR = Color.BLUE.brighter();
     public static final Color DISABLED_KEY_COLOR = Color.LIGHT_GRAY;
 
     /**
@@ -120,6 +124,8 @@ public class PianoKey extends JComponent
      */
     private boolean rightMost;
 
+    private static final Logger LOGGER = Logger.getLogger(PianoKey.class.getSimpleName());
+
     private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
 
     public PianoKey(int p)
@@ -131,17 +137,19 @@ public class PianoKey extends JComponent
      * Construct a piano key for a specified pitch.
      *
      * @param p The pitch of the key.
+     * @param leftMost If true this the leftmost key of the keyboard (different shape)
+     * @param rightMost If true this the rightmost key of the keyboard (different shape)
      */
-    public PianoKey(int p, boolean left, boolean right)
+    public PianoKey(int p, boolean leftMost, boolean rightMost)
     {
-        if (!Note.checkPitch(p) || (left == true && right == true))
+        if (!Note.checkPitch(p) || (leftMost == true && rightMost == true))
         {
-            throw new IllegalArgumentException("pitch=" + pitch + " left=" + left + " right=" + right);
+            throw new IllegalArgumentException("pitch=" + pitch + " leftMost=" + leftMost + " rightMost=" + rightMost);
         }
 
         pitch = p;
-        leftMost = left;
-        rightMost = right;
+        this.leftMost = leftMost;
+        this.rightMost = rightMost;
 
         keyContourColor = DEFAULT_KEY_CONTOUR_COLOR;
         keyContourSelectedColor = DEFAULT_KEY_CONTOUR_SELECTED_COLOR;
@@ -149,12 +157,42 @@ public class PianoKey extends JComponent
         keyPressedColor = Note.isWhiteKey(pitch) ? DEFAULT_WKEY_PRESSED_COLOR : DEFAULT_BKEY_PRESSED_COLOR;
 
 
-        // Default size
-        setSize(WW, WH);
+        // Preferred size
+        setPreferredSize(new Dimension(WW, WH));
 
         // Tooltip
         Note n = new Note(pitch);
-        setToolTipText(n.toAbsoluteNoteString());
+        setToolTipText(n.toAbsoluteNoteString() + " (Midi pitch=" + pitch + ")");
+    }
+
+    /**
+     * Set the key in the "pressed" state or not with the specified velocity.
+     * <p>
+     * Key is pressed if velocity &gt; 0. Fire a changed event if velocity was changed.
+     *
+     *
+     *
+     * @param v
+     */
+    public void setPressed(int v)
+    {
+        if (!Note.checkVelocity(v))
+        {
+            throw new IllegalArgumentException("v=" + v);
+        }
+        if (!isEnabled())
+        {
+            velocity = v;           // But don't update UI
+            return;
+        }
+        if (v != velocity)
+        {
+            int old = velocity;
+            velocity = v;
+            pcs.firePropertyChange(PROP_PRESSED, old, velocity);
+            repaint();
+
+        }
     }
 
     public void setSelected(boolean b)
@@ -170,6 +208,39 @@ public class PianoKey extends JComponent
     public boolean isSelected()
     {
         return isSelected;
+    }
+
+    /**
+     * If velocity is &gt; 0 then it means the key is being pressed.
+     *
+     * @return
+     */
+    public int getVelocity()
+    {
+        return velocity;
+    }
+
+    /**
+     * Convenience method, same as setPressed(0).
+     */
+    public void release()
+    {
+        setPressed(0);
+    }
+
+    /**
+     * Convenience method, same as getVelocity() &gt; 0.
+     *
+     * @return
+     */
+    public boolean isPressed()
+    {
+        return velocity > 0;
+    }
+
+    public int getPitch()
+    {
+        return pitch;
     }
 
     /**
@@ -195,8 +266,8 @@ public class PianoKey extends JComponent
             if (velocity > 0)
             {
                 // Show pressed color adjusted to velocity
-                float f = ((Note.VELOCITY_MAX - velocity) / ((float) Note.VELOCITY_MAX - Note.VELOCITY_MIN));
-                int alpha = 255 - Math.round(200 * f);
+                float f = ((Note.VELOCITY_MAX - (float) velocity) / (Note.VELOCITY_MAX - Note.VELOCITY_MIN));
+                int alpha = 255 - Math.round(220 * f);
                 g2.setColor(new Color(keyPressedColor.getRed(), keyPressedColor.getGreen(), keyPressedColor.getBlue(), alpha));
 
 //                int boundedLuminance = Math.min(luminance, getLuminanceNoEvent());
@@ -465,51 +536,6 @@ public class PianoKey extends JComponent
         };
 
         return colors;
-    }
-
-    /**
-     * Set the key in the "pressed" state or not with the specified velocity.
-     * <p>
-     * Key is pressed if velocity &gt; 0. Fire a changed event if velocity was changed.
-     *
-     *
-     *
-     * @param v
-     */
-    public void pressNote(int v)
-    {
-        if (!Note.checkVelocity(v))
-        {
-            throw new IllegalArgumentException("v=" + v);
-        }
-        if (!isEnabled())
-        {
-            velocity = v;           // But don't update UI
-            return;
-        }
-        if (v != velocity)
-        {
-            int old = velocity;
-            velocity = v;
-            pcs.firePropertyChange(PROP_PRESSED, old, velocity);
-            repaint();
-
-        }
-    }
-
-    /**
-     * If velocity is &gt; 0 then it means the key is being pressed.
-     *
-     * @return
-     */
-    public int getVelocity()
-    {
-        return velocity;
-    }
-
-    public int getPitch()
-    {
-        return pitch;
     }
 
     /**

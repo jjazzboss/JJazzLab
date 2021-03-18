@@ -28,10 +28,9 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jjazz.harmony.Chord;
 import org.jjazz.harmony.Note;
@@ -42,12 +41,13 @@ import org.jjazz.harmony.Note;
  * Pressed notes can be represented with their velocity.
  * <p>
  */
-public class KeyboardComponent extends JPanel implements MouseListener
+public class KeyboardComponent extends JPanel
 {
 
     private Size kbdSize;
 
     private List<PianoKey> pianoKeys = new ArrayList<>();
+    private static final Logger LOGGER = Logger.getLogger(KeyboardComponent.class.getSimpleName());
 
     /**
      * Create a component with 88 notes.
@@ -65,21 +65,19 @@ public class KeyboardComponent extends JPanel implements MouseListener
     public KeyboardComponent(Size sz)
     {
 
-        // Add PianoKeys and register them
+        // Add PianoKeys 
         kbdSize = sz;
         for (int i = kbdSize.getLowestPitch(); i <= kbdSize.getHighestPitch(); i++)
         {
             boolean leftmost = (i == kbdSize.getLowestPitch());
             boolean rightmost = (i == kbdSize.getHighestPitch());
             PianoKey key = new PianoKey(i, leftmost, rightmost);
+            pianoKeys.add(key);
             add(key);
-
-            // Listen to the mouse clickes
-            key.addMouseListener(this);
         }
 
         // Set preferred size
-        Dimension newDimension = new Dimension(getWidthFromHeight(PianoKey.WH), PianoKey.WH);
+        Dimension newDimension = new Dimension(computeWidthFromKeyHeight(PianoKey.WH), PianoKey.WH);
         setPreferredSize(newDimension);
         setMinimumSize(new Dimension(kbdSize.getNbWhiteKeys() * PianoKey.WW_MIN, PianoKey.WH_MIN));
     }
@@ -93,6 +91,16 @@ public class KeyboardComponent extends JPanel implements MouseListener
     public Size getKbdSize()
     {
         return kbdSize;
+    }
+
+    /**
+     * Get all the PianoKeys.
+     *
+     * @return
+     */
+    public List<PianoKey> getPianoKeys()
+    {
+        return new ArrayList<>(pianoKeys);
     }
 
     /**
@@ -122,7 +130,7 @@ public class KeyboardComponent extends JPanel implements MouseListener
      */
     public void releaseAllNotes()
     {
-        pianoKeys.forEach(pk -> pk.pressNote(0));
+        pianoKeys.forEach(pk -> pk.setPressed(0));
     }
 
     /**
@@ -145,19 +153,19 @@ public class KeyboardComponent extends JPanel implements MouseListener
     /**
      * Set the pressed status of specified key.
      * <p>
-     * Method delegates to setVelocity() of the relevant PianoKey.
+     * Method just delegates to setVelocity() of the relevant PianoKey.
      *
      * @param pitch
      * @param velocity If 0 it means the key must be released.
      */
-    public void pressNote(int pitch, int velocity)
+    public void setPressed(int pitch, int velocity)
     {
         kbdSize.checkPitch(pitch);
         if (!Note.checkVelocity(velocity))
         {
             throw new IllegalArgumentException("pitch=" + pitch + " velocity=" + velocity);
         }
-        getPianoKey(pitch).pressNote(velocity);
+        getPianoKey(pitch).setPressed(velocity);
     }
 
     /**
@@ -219,23 +227,19 @@ public class KeyboardComponent extends JPanel implements MouseListener
         Rectangle r = new Rectangle(in.left, in.top, getWidth() - in.left - in.right,
                 getHeight() - in.top - in.bottom);
 
-        // Size of a white key.
+        // Size of a white key
         int wKeyWidth = (r.width - 1) / kbdSize.getNbWhiteKeys();
         int wKeyHeight = (r.height - 1);
 
         // Calculate X so the keyboard will be centered (because of integer rounding we may have differences
-        // between the object size and the real keyboard size).
+        // between the object size and the real keyboard size)
         int realSize = wKeyWidth * kbdSize.getNbWhiteKeys();
         int x_pos = ((r.width - realSize) / 2) + r.x;
-        // System.out.println("PianoDisplay.doLayout() wKeyWidth=" + wKeyWidth + " realSize=" + realSize + " r.width=" + r.width +
-        //                   " r.x=" + r.x + " x_pos=" + x_pos);
 
         int y_pos = r.y;
 
-        for (Component c : getComponents())
+        for (PianoKey key : pianoKeys)
         {
-            PianoKey key = (PianoKey) c;
-
             // adjust size
             key.setRelativeSize(wKeyWidth, wKeyHeight);
 
@@ -247,86 +251,21 @@ public class KeyboardComponent extends JPanel implements MouseListener
         }
     }
 
-    /**
-     * Overriden so mouse clicks NOT on keys (e.g. on the border) does not trigger any event.
-     *
-     * @param e A MouseEvent.
-     */
-    @Override
-    protected void processMouseEvent(MouseEvent e)
-    {
-        if (e.getID() == MouseEvent.MOUSE_PRESSED)
-        {
-            // Nothing.
-            // System.out.println("PianoDisplay Trapped ! MouseEvent e=" + e);
-
-            return;
-        }
-
-        super.processMouseEvent(e);
-    }
-
-    //--------------------------------------------------------------------
-    // Implement the MouseListener interface
-    //--------------------------------------------------------------------
-    @Override
-    public void mousePressed(MouseEvent e)
-    {
-        PianoKey key = (PianoKey) e.getSource();
-
-        if (!key.isEnabled())
-        {
-            return;
-        }
-
-        key.setSelected(!key.isSelected());
-
-//        // Translate coordinates and dispatch the event to the PianoDisplay MouseListeners...
-//        MouseEvent newEvent = new MouseEvent(this, e.getID(), e.getWhen(), e.getModifiers(),
-//                e.getX() + key.getX(), e.getY() + key.getY(),
-//                e.getClickCount(), false, e.getButton());
-//
-//        // Fire the event
-//        super.processMouseEvent(newEvent);
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e)
-    {
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e)
-    {
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e)
-    {
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e)
-    {
-    }
-
     //--------------------------------------------------------------------
     // Private methods
     //--------------------------------------------------------------------
     /**
      * Calculate the best width (best width/height ratio) corresponding to a specific height.
      *
-     * @param h The required height.
-     * @return The width.
+     * @param keyHeight The required piano key height.
+     * @return The resulting width of the keyboard, including insets.
      */
-    private int getWidthFromHeight(int h)
+    private int computeWidthFromKeyHeight(int keyHeight)
     {
         // Adapt to minimize integer rounding errors : MUST BE UPTODATE WITH DOLAYOUT() !!!
         Insets in = getInsets();
-        int rh = h - in.top - in.bottom;
-        int wKeyWidth = (int) (rh * ((float) PianoKey.WW / PianoKey.WH));
+        int wKeyWidth = (int) (keyHeight * ((float) PianoKey.WW / PianoKey.WH));
         int w = (wKeyWidth * kbdSize.getNbWhiteKeys()) + in.left + in.right + 1;
-        // System.out.println("PianoDisplay.getWidthFromHeight() h=" + h + " wKeyWidth=" + wKeyWidth + " w=" + w); ;
         return w;
     }
 
@@ -336,7 +275,7 @@ public class KeyboardComponent extends JPanel implements MouseListener
      * @param w The required width.
      * @return The height.
      */
-    private int getHeightFromWidth(int w)
+    private int computeHeightFromWidth(int w)
     {
         // Adapt to minimize integer rounding errors
         Insets in = getInsets();

@@ -20,15 +20,15 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.realtimeviewer;
+package org.jjazz.realtimeviewer.api;
 
 import java.util.logging.Logger;
-import org.jjazz.midi.ui.keyboard.KeyboardComponent;
+import org.jjazz.realtimeviewer.RtViewerPanel;
+import org.jjazz.util.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.windows.TopComponent;
-import org.openide.util.NbBundle.Messages;
 import org.openide.windows.WindowManager;
 
 /**
@@ -45,36 +45,39 @@ import org.openide.windows.WindowManager;
 )
 @TopComponent.Registration(mode = "jlnavigator", openAtStartup = false)
 @ActionID(category = "Window", id = "org.jjazz.realtimeviewer.RtViewerTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
+@ActionReference(path = "Menu/Window", position = 5, separatorAfter = 10)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_RtViewerAction",
         preferredID = "RtViewerTopComponent"
 )
-@Messages(
-        {
-            "CTL_RtViewerAction=RtViewer",
-            "CTL_RtViewerTopComponent=RtViewer Window",
-            "HINT_RtViewerTopComponent=This is a RtViewer window"
-        })
 public final class RtViewerTopComponent extends TopComponent
 {
 
     private static final Logger LOGGER = Logger.getLogger(RtViewerTopComponent.class.getSimpleName());
+    private RtViewerPanel viewer;
 
     public RtViewerTopComponent()
     {
-        initComponents();
-
-        pnl_piano.add(new KeyboardComponent());
-
-        setName(Bundle.CTL_RtViewerTopComponent());
-        setToolTipText(Bundle.HINT_RtViewerTopComponent());
+        setName(ResUtil.getString(getClass(), "CTL_RtViewerTopComponent"));
+        setToolTipText(ResUtil.getString(getClass(), "CTL_RtViewerTopComponentDesc"));
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         // putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.TRUE);
 
-        var modes = WindowManager.getDefault().getModes();
-        modes.forEach(m -> LOGGER.severe(m.getName()));
+        
+        initComponents();
+        
+        viewer = new RtViewerPanel();
+        add(viewer);
 
+    }
+
+    /**
+     *
+     * @return Can be null
+     */
+    static public RtViewerTopComponent getInstance()
+    {
+        return (RtViewerTopComponent) WindowManager.getDefault().findTopComponent("RtViewerTopComponent");
     }
 
     /**
@@ -85,40 +88,10 @@ public final class RtViewerTopComponent extends TopComponent
     private void initComponents()
     {
 
-        pnl_piano = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-
-        pnl_piano.setBorder(new javax.swing.border.MatteBorder(null));
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getBundle(RtViewerTopComponent.class).getString("RtViewerTopComponent.jLabel1.text")); // NOI18N
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(pnl_piano, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(0, 424, Short.MAX_VALUE)))
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pnl_piano, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(128, Short.MAX_VALUE))
-        );
+        setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JPanel pnl_piano;
     // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened()
