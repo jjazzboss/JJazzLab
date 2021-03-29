@@ -74,7 +74,7 @@ public class LongRange
      * @param x
      * @return
      */
-    public boolean contains(int x)
+    public boolean contains(long x)
     {
         return this == EMPTY_LONG_RANGE ? false : x >= from && x <= to;
     }

@@ -27,7 +27,8 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 /**
  * Listener of events occuring during song playback.
  * <p>
- * There can be many events fired during a plyaback, so event handling must be time-efficient.
+ * There can be many events fired during a playback, so event handling must be time-efficient. Events are fired out of the Event
+ * Dispatching Thread, so event handlers must use SwingUtilities.invokeLater() to trigger any UI-related work.
  */
 public interface PlaybackListener
 {
@@ -35,6 +36,8 @@ public interface PlaybackListener
     void beatChanged(Position oldPos, Position newPos);
 
     void barChanged(int oldBar, int newBar);
+
+    void chordSymbolChanged(String chordSymbol);
 
     /**
      * Indicates some musical activity on specified channel at specified time.

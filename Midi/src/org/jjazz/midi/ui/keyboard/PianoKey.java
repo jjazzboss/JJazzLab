@@ -59,7 +59,7 @@ public class PianoKey extends JComponent
     /**
      * Minimum White Key Width.
      */
-    public static final int WW_MIN = 5;
+    public static final int WW_MIN = 4;
 
     /**
      * Minimum White Key Height.
@@ -540,6 +540,9 @@ public class PianoKey extends JComponent
 
     /**
      * Determine whether the key polygon contains a specified point x,y.
+     *
+     * @param x
+     * @param y
      */
     @Override
     public boolean contains(int x, int y)

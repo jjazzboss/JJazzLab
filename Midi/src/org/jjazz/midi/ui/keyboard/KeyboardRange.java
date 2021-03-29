@@ -22,18 +22,28 @@
  */
 package org.jjazz.midi.ui.keyboard;
 
-public enum Size
+public enum KeyboardRange
 {
     _128_KEYS(0, 127, 75), _88_KEYS(21, 108, 52), _76_KEYS(28, 103, 45), _61_KEYS(36, 96, 36), _49_KEYS(36, 84, 29), _37_KEYS(48, 84, 22);
     int lowPitch;
     int highPitch;
     int nbWhiteKeys;
 
-    Size(int low, int high, int nbWhiteKeys)
+    KeyboardRange(int low, int high, int nbWhiteKeys)
     {
         this.lowPitch = low;
         this.highPitch = high;
         this.nbWhiteKeys = nbWhiteKeys;
+    }
+
+    public KeyboardRange next()
+    {
+        int i = ordinal() + 1;
+        if (i >= KeyboardRange.values().length)
+        {
+            i = 0;
+        }
+        return KeyboardRange.values()[i];
     }
 
     public int getLowestPitch()
@@ -56,11 +66,13 @@ public enum Size
         return nbWhiteKeys;
     }
 
-    public void checkPitch(int pitch)
+    /**
+     *
+     * @param pitch
+     * @return True if pitch is valid for this keyboard range.
+     */
+    public boolean isValid(int pitch)
     {
-        if (pitch < lowPitch || pitch > highPitch)
-        {
-            throw new IllegalArgumentException("pitch=" + pitch + " lowPitch=" + lowPitch + " highPitch=" + highPitch);
-        }
+        return pitch >= lowPitch && pitch <= highPitch;
     }
 }

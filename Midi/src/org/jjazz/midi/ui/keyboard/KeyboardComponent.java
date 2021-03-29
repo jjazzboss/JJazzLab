@@ -32,21 +32,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
-import org.jjazz.harmony.Chord;
-import org.jjazz.harmony.Note;
 
 /**
  * A JPanel representing a Piano keyboard with selectable keys.
  * <p>
- * Pressed notes can be represented with their velocity.
+ * Pressed notes can be shown taking account the velocity value.
  * <p>
  */
 public class KeyboardComponent extends JPanel
 {
 
-    private Size kbdSize;
+    private KeyboardRange keyboardRange;
 
-    private List<PianoKey> pianoKeys = new ArrayList<>();
+    private final List<PianoKey> pianoKeys = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(KeyboardComponent.class.getSimpleName());
 
     /**
@@ -55,42 +53,75 @@ public class KeyboardComponent extends JPanel
      */
     public KeyboardComponent()
     {
-        this(Size._88_KEYS);
+        this(KeyboardRange._88_KEYS);
     }
 
     /**
      *
-     * @param sz KbdSize
+     * @param kbdSize KbdSize
      */
-    public KeyboardComponent(Size sz)
+    public KeyboardComponent(KeyboardRange kbdSize)
     {
+        setKeyboardRange(kbdSize);
+    }
 
-        // Add PianoKeys 
-        kbdSize = sz;
-        for (int i = kbdSize.getLowestPitch(); i <= kbdSize.getHighestPitch(); i++)
+    @Override
+    public String toString()
+    {
+        return "Keyboard[" + keyboardRange + "]";
+    }
+
+    public KeyboardRange getKeyboardRange()
+    {
+        return keyboardRange;
+    }
+
+    /**
+     * Set the keyboard size.
+     * <p>
+     * All notes are released. New PianoKeys are created. This updates also the preferred and minimum size. Caller must
+     * synchronize this method if other threads update this keyboard in parallel.
+     *
+     * @param kbdRange
+     */
+    public final void setKeyboardRange(KeyboardRange kbdRange)
+    {
+        if (kbdRange == null)
         {
-            boolean leftmost = (i == kbdSize.getLowestPitch());
-            boolean rightmost = (i == kbdSize.getHighestPitch());
+            throw new NullPointerException("kbdRange");
+        }
+
+        if (kbdRange.equals(keyboardRange))
+        {
+            return;
+        }
+
+        releaseAllNotes();
+        keyboardRange = kbdRange;
+
+        pianoKeys.forEach(pk -> remove(pk));
+        pianoKeys.clear();
+
+        for (int i = keyboardRange.getLowestPitch(); i <= keyboardRange.getHighestPitch(); i++)
+        {
+            boolean leftmost = (i == keyboardRange.getLowestPitch());
+            boolean rightmost = (i == keyboardRange.getHighestPitch());
             PianoKey key = new PianoKey(i, leftmost, rightmost);
             pianoKeys.add(key);
             add(key);
         }
 
         // Set preferred size
-        Dimension newDimension = new Dimension(computeWidthFromKeyHeight(PianoKey.WH), PianoKey.WH);
-        setPreferredSize(newDimension);
-        setMinimumSize(new Dimension(kbdSize.getNbWhiteKeys() * PianoKey.WW_MIN, PianoKey.WH_MIN));
-    }
+        Insets in = getInsets();
+        int w = (PianoKey.WH * keyboardRange.getNbWhiteKeys()) + in.left + in.right + 1;
+        setPreferredSize(new Dimension(w, PianoKey.WH));
 
-    @Override
-    public String toString()
-    {
-        return "Keyboard[" + kbdSize + "]";
-    }
-
-    public Size getKbdSize()
-    {
-        return kbdSize;
+        // Set minimum size
+        setMinimumSize(new Dimension(getKeyboardRange().getNbWhiteKeys() * PianoKey.WW_MIN, PianoKey.WH_MIN));
+        
+        
+        revalidate();
+        repaint();
     }
 
     /**
@@ -105,14 +136,14 @@ public class KeyboardComponent extends JPanel
 
     /**
      * Get the PianoKey for specified pitch.
+     * <p>
      *
      * @param pitch
-     * @return
+     * @return Can be null if pitch is out of range.
      */
     public PianoKey getPianoKey(int pitch)
     {
-        kbdSize.checkPitch(pitch);
-        return pianoKeys.get(pitch - kbdSize.lowPitch);
+        return keyboardRange.isValid(pitch) ? pianoKeys.get(pitch - keyboardRange.lowPitch) : null;
     }
 
     @Override
@@ -134,67 +165,37 @@ public class KeyboardComponent extends JPanel
     }
 
     /**
-     * Set colors used to draw all the keys of the keyboard.
-     * <p>
-     * If one of the color argument is null, we don't change this color.
-     *
-     * @param wKey Color of a white key not pressed.
-     * @param wPressedKey Color of a white key pressed.
-     * @param bKey Color of a black key not pressed.
-     * @param bPressedKey Color of a black key pressed.
-     * @param contour Color of a key contour when not selected.
-     * @param selectedContour Color of a key contour when selected.
-     */
-    public void setColors(Color wKey, Color wPressedKey, Color bKey, Color bPressedKey, Color contour, Color selectedContour)
-    {
-        pianoKeys.forEach(pk -> pk.setColors(wKey, wPressedKey, bKey, bPressedKey, contour, selectedContour));
-    }
-
-    /**
      * Set the pressed status of specified key.
      * <p>
-     * Method just delegates to setVelocity() of the relevant PianoKey.
+     * Method just delegates to setVelocity() of the relevant PianoKey. Do nothing if pitch is not valid for this KeyboardRange.
      *
      * @param pitch
      * @param velocity If 0 it means the key must be released.
      */
     public void setPressed(int pitch, int velocity)
     {
-        kbdSize.checkPitch(pitch);
-        if (!Note.checkVelocity(velocity))
+        if (keyboardRange.isValid(pitch))
         {
-            throw new IllegalArgumentException("pitch=" + pitch + " velocity=" + velocity);
+            getPianoKey(pitch).setPressed(velocity);
         }
-        getPianoKey(pitch).setPressed(velocity);
     }
 
     /**
-     * Get the pressed status of a specific key.
+     * Get the pressed velocity of a specific key.
      * <p>
      * Method delegates to getVelocity() of the relevant PianoKey.
      *
-     * @param pitch The pitch of the key.
+     * @param pitch The pitch of the key. Must be a valid pitch for the KeyboardRange.
      *
      * @return If 0 it means the key is released.
      */
-    public int getVelocity(int pitch)
+    public int getPressedVelocity(int pitch)
     {
-        kbdSize.checkPitch(pitch);
+        if (!keyboardRange.isValid(pitch))
+        {
+            throw new IllegalArgumentException("pitch=" + pitch + " keyboardRange=" + keyboardRange);
+        }
         return getPianoKey(pitch).getVelocity();
-    }
-
-    /**
-     * Return the chord shown by the pressed notes.
-     *
-     * @return A Chord object.
-     */
-    public Chord getChord()
-    {
-        Chord c = new Chord();
-        pianoKeys.stream()
-                .filter(pk -> pk.getVelocity() > 0)
-                .forEach(pk -> c.add(new Note(pk.getPitch(), 1.0f, pk.getVelocity())));
-        return c;
     }
 
     /**
@@ -215,6 +216,23 @@ public class KeyboardComponent extends JPanel
     }
 
     /**
+     * Set colors used to draw all the keys of the keyboard.
+     * <p>
+     * If one of the color argument is null, we don't change this color.
+     *
+     * @param wKey Color of a white key not pressed.
+     * @param wPressedKey Color of a white key pressed.
+     * @param bKey Color of a black key not pressed.
+     * @param bPressedKey Color of a black key pressed.
+     * @param contour Color of a key contour when not selected.
+     * @param selectedContour Color of a key contour when selected.
+     */
+    public void setColors(Color wKey, Color wPressedKey, Color bKey, Color bPressedKey, Color contour, Color selectedContour)
+    {
+        pianoKeys.forEach(pk -> pk.setColors(wKey, wPressedKey, bKey, bPressedKey, contour, selectedContour));
+    }
+
+    /**
      * Layout the keys to fit the size.
      * <p>
      * Because of integer rounding errors, it may not fit exactly the required dimensions. The keyboard is centered inside the
@@ -224,19 +242,28 @@ public class KeyboardComponent extends JPanel
     public void doLayout()
     {
         Insets in = getInsets();
-        Rectangle r = new Rectangle(in.left, in.top, getWidth() - in.left - in.right,
-                getHeight() - in.top - in.bottom);
+        Rectangle r = new Rectangle(in.left, in.top, getWidth() - in.left - in.right, getHeight() - in.top - in.bottom);
+
+
+        // Keyboard takes all the horizontal space
+        int wKeyHeight = computeKeyboardHeightFromWidth(r.width);
+        wKeyHeight = Math.max(wKeyHeight, getMinimumSize().height);  // Can't be smaller than minimal height
+        wKeyHeight = Math.min(wKeyHeight, r.height);      // Can't be taller than available height
+
 
         // Size of a white key
-        int wKeyWidth = (r.width - 1) / kbdSize.getNbWhiteKeys();
-        int wKeyHeight = (r.height - 1);
+        int wKeyWidth = (r.width - 1) / keyboardRange.getNbWhiteKeys();
+
 
         // Calculate X so the keyboard will be centered (because of integer rounding we may have differences
         // between the object size and the real keyboard size)
-        int realSize = wKeyWidth * kbdSize.getNbWhiteKeys();
+        int realSize = wKeyWidth * keyboardRange.getNbWhiteKeys();
         int x_pos = ((r.width - realSize) / 2) + r.x;
 
+        // Y centered
+        // int y_pos = r.y + (r.height - wKeyHeight) / 2;
         int y_pos = r.y;
+
 
         for (PianoKey key : pianoKeys)
         {
@@ -255,34 +282,17 @@ public class KeyboardComponent extends JPanel
     // Private methods
     //--------------------------------------------------------------------
     /**
-     * Calculate the best width (best width/height ratio) corresponding to a specific height.
+     * Calculate the keyboard height from specified keyboard width in order to maintain the optimal aspect ratio.
      *
-     * @param keyHeight The required piano key height.
-     * @return The resulting width of the keyboard, including insets.
+     * @param w The target keyboard width.
+     * @return The keyboard height.
      */
-    private int computeWidthFromKeyHeight(int keyHeight)
-    {
-        // Adapt to minimize integer rounding errors : MUST BE UPTODATE WITH DOLAYOUT() !!!
-        Insets in = getInsets();
-        int wKeyWidth = (int) (keyHeight * ((float) PianoKey.WW / PianoKey.WH));
-        int w = (wKeyWidth * kbdSize.getNbWhiteKeys()) + in.left + in.right + 1;
-        return w;
-    }
-
-    /**
-     * Calculate the best height (best width/height ratio) corresponding to a specific width.
-     *
-     * @param w The required width.
-     * @return The height.
-     */
-    private int computeHeightFromWidth(int w)
+    private int computeKeyboardHeightFromWidth(int w)
     {
         // Adapt to minimize integer rounding errors
-        Insets in = getInsets();
-        int rw = w - in.left - in.right;
-        int wKeyWidth = (rw - 1) / kbdSize.getNbWhiteKeys();
+        int wKeyWidth = (w - 1) / keyboardRange.getNbWhiteKeys();
         int h = (int) (wKeyWidth * ((float) PianoKey.WH / PianoKey.WW));
-        return (h < getMinimumSize().height) ? getMinimumSize().height : h;
+        return h;
     }
 
 }

@@ -51,6 +51,7 @@ import org.jjazz.rhythm.parameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.util.FloatRange;
 import org.jjazz.util.ResUtil;
 
@@ -88,11 +89,13 @@ public class MidiSequenceBuilder
     /**
      * Build the music accompaniment sequence for the defined context.
      * <p>
-     * 1/ Create a first empty track with song name.<br>
-     * 2/ Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation.
+     * - Create a first track with no notes but MidiEvents for song name, time signature changes, CTRL_CHG_JJAZZ_TEMPO_FACTOR
+     * controller messages based on the RP_SYS_TempoFactor value (if used by a rhythm). <br>
+     * - Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation.
      * <br>
-     * 3/ Perform some checks and assemble the produced phrases into a sequence.<br>
-     * 4/ Add CTRL_CHG_JJAZZ_TEMPO_FACTOR Midi controller messages based on the RP_SYS_TempoFactor value (if used by a rhythm)
+     * - Run the optional post-processors.<br>
+     * - Apply on each channel possible instrument transpositions, velocity shift, mute (RP_SYS_Mute).<br>
+     * - Perform some checks and assemble the produced phrases into a sequence.<br>
      * <p>
      * If context range start bar is &gt; 0, the Midi events are shifted to start at sequence tick 0.
      *
@@ -128,7 +131,7 @@ public class MidiSequenceBuilder
     }
 
     /**
-     * A map giving the track id (i7ndex in the sequence) for each rhythm voice, in the current context.
+     * A map giving the track id (index in the sequence) for each rhythm voice, in the current context.
      * <p>
      * Must be called AFTER call to buildSequence(). The returned map contains data only for the generated tracks in the given
      * context. In a song with 2 rhythms R1 and R2, if context only uses R2, then only the id and tracks for R2 are returned.
@@ -211,7 +214,7 @@ public class MidiSequenceBuilder
             if (existingCliCs != null)
             {
                 StringBuilder sb = new StringBuilder();
-                sb.append(ResUtil.getString(getClass(),"ERR_ChordSymbolPositionConflict"));
+                sb.append(ResUtil.getString(getClass(), "ERR_ChordSymbolPositionConflict"));
                 sb.append(cliCs.getData().toString()).append(cliCs.getPosition().toUserString());
                 sb.append(" - ");
                 sb.append(existingCliCs.getData().toString()).append(existingCliCs.getPosition().toUserString());
@@ -342,7 +345,7 @@ public class MidiSequenceBuilder
                 if (!inRange)
                 {
                     // context.getPosition(0)
-                    String msg = ResUtil.getString(getClass(),"ERR_InvalidNotePosition", ne.toString(), r.getName());
+                    String msg = ResUtil.getString(getClass(), "ERR_InvalidNotePosition", ne.toString(), r.getName());
                     LOGGER.log(Level.INFO, "checkRhythmPhrasesScope() " + msg);   //NOI18N
                     LOGGER.fine("DEBUG!  rv=" + rv.getName() + " ne=" + ne + " p=" + p);   //NOI18N
                     throw new MusicGenerationException(msg);
@@ -418,7 +421,7 @@ public class MidiSequenceBuilder
         }
     }
 
-    /**
+      /**
      * Adjust the EndOfTrack Midi marker for all tracks.
      *
      * @param seq

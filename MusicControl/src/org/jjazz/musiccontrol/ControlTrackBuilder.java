@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Sequence;
@@ -69,8 +70,9 @@ public class ControlTrackBuilder
     /**
      * Add a control track for the given context with the following events:
      * <p>
-     * - a CTRL_CHG_JJAZZ_CHORD_CHANGE Midi Event at every chord change<br>
-     * - a CTRL_CHG_JJAZZ_BEAT_CHANGE Midi Event at every beat change<br>
+     * - a marker event for each chord symbol (text=original name of the chord symbol)<br>
+     * - a CTRL_CHG_JJAZZ_BEAT_CHANGE Midi event at every beat change<br>
+     * - a CTRL_CHG_JJAZZ_ACTIVITY Midi event for most of NOTE_ON messages on each channel. <br>
      *
      * @param sequence The sequence for which we add the control track.
      * @return the index of the track in the sequence.
@@ -126,7 +128,7 @@ public class ControlTrackBuilder
      * Update the naturalBeatPositions list.
      *
      * @param track
-     * @param tickOffset
+     * @param tickOffset Will be 0 for the first SongPart
      * @param spt
      * @return The tick position corresponding to the start of next spt.
      */
@@ -151,23 +153,43 @@ public class ControlTrackBuilder
             track.add(new MidiEvent(sm, tick));
         }
 
-        // Add CTRL_CHG_JJAZZ_CHORD_CHANGE events every chord
+
+        // Add Marker Meta events for all chord symbol in the context range
+        // Make sure that there is a marker at the beginning of the context range 
+        // (this might be required only for the first song part, if context range.from is > spt.startBarIndex
         CLI_Section section = spt.getParentSection();
         ChordLeadSheet cls = section.getContainer();
-        for (CLI_ChordSymbol cli : cls.getItems(section, CLI_ChordSymbol.class))
+        var items = cls.getItems(section, CLI_ChordSymbol.class);
+        assert !items.isEmpty();
+        CLI_ChordSymbol prevCli = null;
+        boolean firstChordSymbolInRange = true;
+
+        for (CLI_ChordSymbol cli : items)
         {
             Position ssPos = context.getSong().getSongStructure().getSptItemPosition(spt, cli);
-            long tick = context.getRelativeTick(ssPos); 
+            long tick = context.getRelativeTick(ssPos);
             LOGGER.log(Level.FINE, "fillControlTrack() cli={0} tick={1} ssPos={2}", new Object[]   //NOI18N
             {
                 cli, tick, ssPos
             });
             if (tick != -1)
             {
-                ShortMessage sm = MidiUtilities.getJJazzChordChangeControllerMessage(MidiConst.CHANNEL_MIN);
-                track.add(new MidiEvent(sm, tick));
+                MetaMessage mm = MidiUtilities.getMarkerMetaMessage(cli.getData().getOriginalName());
+                // tick+1 is a hack, otherwise when tick==0 the first Meta event is sometimes not fired! Don't know why
+                track.add(new MidiEvent(mm, tick + 1));
+                if (firstChordSymbolInRange && tickOffset == 0 && tick > 0)
+                {
+                    assert prevCli != null : "spt=" + spt + " cli=" + cli + " tick=" + tick;
+                    // Need to add an initial chord symbol (context range might start in the middle of the section)
+                    mm = MidiUtilities.getMarkerMetaMessage(prevCli.getData().getOriginalName());
+                    track.add(new MidiEvent(mm, 1));            // 1 instead of 0, see hack explanation above 
+                }
+                firstChordSymbolInRange = false;
             }
+
+            prevCli = cli;
         }
+
 
         return (long) (tickOffset + nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
     }
@@ -175,9 +197,10 @@ public class ControlTrackBuilder
     /**
      * Add CTRL_CHG_JJAZZ_ACTIVITY controller messages for each NOTE_ON on each channel.
      * <p>
-     * For a given channel add a single CTRL_CHG_JJAZZ_ACTIVITY message if several NOTE_ONs start within the same ACTIVITY_MIN_PERIOD.
+     * For a given channel add a single CTRL_CHG_JJAZZ_ACTIVITY message if several NOTE_ONs start within the same
+     * ACTIVITY_MIN_PERIOD.
      *
-     * @param sequence  The track to analyze
+     * @param sequence The track to analyze
      * @param ctrlTrack Where CTRL_CHG_JJAZZ_ACTIVITY messages will be added
      */
     private void addActivityMessages(Sequence sequence, Track ctrlTrack)

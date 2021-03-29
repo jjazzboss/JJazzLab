@@ -305,6 +305,23 @@ public class MusicGenerationContext
     }
 
     /**
+     * Convert a tick position relative to this context into an absolute Position.
+     *
+     * @param relativeTick 0 for the start of this context bar range.
+     * @return Null if tick is out of the bounds of this context.
+     */
+    public Position getPosition(long relativeTick)
+    {
+        FloatRange br = getBeatRange();
+        float absPosInBeats = br.from + (float) relativeTick / MidiConst.PPQ_RESOLUTION;
+        if (!br.contains(absPosInBeats, true))
+        {
+            return null;
+        }
+        return song.getSongStructure().getPosition(absPosInBeats);
+    }
+
+    /**
      * Compute the tick relative to this context for the given absolute position expressed in bar/beat.
      * <p>
      *

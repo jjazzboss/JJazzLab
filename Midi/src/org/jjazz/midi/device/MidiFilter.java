@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 import org.jjazz.midi.MidiUtilities;
 
 /**
- * This MidiDevice simply forwards MidiMessages from in to out, except for messages that are filtered out (discarded).
+ * This MidiDevice forwards MidiMessages from in to out, except for messages that are filtered out (discarded).
  * <p>
  */
 public class MidiFilter extends JJazzMidiDevice
@@ -76,12 +76,12 @@ public class MidiFilter extends JJazzMidiDevice
         return rcv;
     }
 
-    public synchronized EnumSet<Config> getFilterConfig()
+    public EnumSet<Config> getFilterConfig()
     {
         return EnumSet.copyOf(configFilter);
     }
 
-    public synchronized void setFilterConfig(EnumSet<Config> newConfig)
+    public void setFilterConfig(EnumSet<Config> newConfig)
     {
         configFilter = EnumSet.copyOf(newConfig);
     }
@@ -92,7 +92,7 @@ public class MidiFilter extends JJazzMidiDevice
     /**
      * Operation called when a MidiMessage has been filtered
      */
-    private synchronized void filtered(MidiMessage msg, long timestamp)
+    private void filtered(MidiMessage msg, long timestamp)
     {
         if (configLog.contains(ConfigLog.LOG_FILTERED_MESSAGES))
         {
@@ -107,7 +107,7 @@ public class MidiFilter extends JJazzMidiDevice
     /**
      * Operation called when a MidiMessage has not been filtered
      */
-    private synchronized void passed(MidiMessage msg, long timestamp)
+    private void passed(MidiMessage msg, long timestamp)
     {
         // Forward the message to transmitters
         for (Transmitter t : transmitters.toArray(new Transmitter[0]))
@@ -175,8 +175,7 @@ public class MidiFilter extends JJazzMidiDevice
                 {
                     ShortMessage sm = (ShortMessage) msg;
 
-                    if ((sm.getCommand() == ShortMessage.NOTE_ON)
-                            || (sm.getCommand() == ShortMessage.NOTE_OFF))
+                    if ((sm.getCommand() == ShortMessage.NOTE_ON) || (sm.getCommand() == ShortMessage.NOTE_OFF))
                     {
                         passed(msg, timestamp);
                         return;

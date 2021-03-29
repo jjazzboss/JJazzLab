@@ -264,6 +264,7 @@ public class MidiUtilities
     }
 
     /**
+     * Build a ShortMessage.
      *
      * @param command
      * @param channel
@@ -382,7 +383,7 @@ public class MidiUtilities
         int pc = ins.getMidiAddress().getProgramChange();
         if (bsm == null || bankMSB > 127 || bankLSB > 127)
         {
-            throw new IllegalArgumentException(   //NOI18N
+            throw new IllegalArgumentException( //NOI18N
                     "bsm=" + bsm + " bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " channel=" + channel + " ins=" + ins + " ins.bank=" + ins.
                             getBank());
         }
@@ -391,7 +392,7 @@ public class MidiUtilities
             case MSB_LSB:
                 if (bankMSB < 0 || bankLSB < 0)
                 {
-                    throw new IllegalArgumentException(   //NOI18N
+                    throw new IllegalArgumentException( //NOI18N
                             "bsm=" + bsm + " bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " channel=" + channel + " ins=" + ins + " ins.bank=" + ins.
                                     getBank());
                 }
@@ -406,7 +407,7 @@ public class MidiUtilities
             case MSB_ONLY:
                 if (bankMSB < 0)
                 {
-                    throw new IllegalArgumentException(   //NOI18N
+                    throw new IllegalArgumentException( //NOI18N
                             "bsm=" + bsm + " bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " channel=" + channel + " ins=" + ins + " ins.bank=" + ins.
                                     getBank());
                 }
@@ -419,7 +420,7 @@ public class MidiUtilities
             case LSB_ONLY:
                 if (bankLSB < 0)
                 {
-                    throw new IllegalArgumentException(   //NOI18N
+                    throw new IllegalArgumentException( //NOI18N
                             "bsm=" + bsm + " bankMSB=" + bankMSB + " bankLSB=" + bankLSB + " channel=" + channel + " ins=" + ins + " ins.bank=" + ins.
                                     getBank());
                 }
@@ -500,11 +501,6 @@ public class MidiUtilities
     static public ShortMessage getJJazzBeatChangeControllerMessage(int channel)
     {
         return buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_JJAZZ_BEAT_CHANGE, 0);
-    }
-
-    static public ShortMessage getJJazzChordChangeControllerMessage(int channel)
-    {
-        return buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_JJAZZ_CHORD_CHANGE, 0);
     }
 
     static public ShortMessage getJJazzActivityControllerMessage(int channel)
@@ -617,7 +613,7 @@ public class MidiUtilities
         MetaMessage mm = null;
         try
         {
-            mm = new MetaMessage(0x03, txt.getBytes(), txt.length());
+            mm = new MetaMessage(MidiConst.META_TRACKNAME, txt.getBytes(), txt.length());
         } catch (InvalidMidiDataException ex)
         {
             Exceptions.printStackTrace(ex);
@@ -634,7 +630,7 @@ public class MidiUtilities
         MetaMessage mm = null;
         try
         {
-            mm = new MetaMessage(0x01, txt.getBytes(), txt.length());
+            mm = new MetaMessage(MidiConst.META_TEXT, txt.getBytes(), txt.length());
         } catch (InvalidMidiDataException ex)
         {
             Exceptions.printStackTrace(ex);
@@ -651,7 +647,7 @@ public class MidiUtilities
         MetaMessage mm = null;
         try
         {
-            mm = new MetaMessage(0x06, txt.getBytes(), txt.length());
+            mm = new MetaMessage(MidiConst.META_MARKER, txt.getBytes(), txt.length());
         } catch (InvalidMidiDataException ex)
         {
             Exceptions.printStackTrace(ex);
@@ -668,7 +664,7 @@ public class MidiUtilities
         MetaMessage mm = null;
         try
         {
-            mm = new MetaMessage(0x02, txt.getBytes(), txt.length());
+            mm = new MetaMessage(MidiConst.META_COPYRIGHT, txt.getBytes(), txt.length());
         } catch (InvalidMidiDataException ex)
         {
             Exceptions.printStackTrace(ex);
@@ -804,31 +800,31 @@ public class MidiUtilities
             MetaMessage mm = (MetaMessage) msg;
             switch (mm.getType())
             {
-                case 1:  // Text
+                case MidiConst.META_TEXT:  // Text
                     sb.append(" text=").append(Utilities.toString(mm.getData()));
                     break;
-                case 2:  // Copyright
+                case MidiConst.META_COPYRIGHT:  // Copyright
                     sb.append(" copyright=").append(Utilities.toString(mm.getData()));
                     break;
-                case 3:  // TrackName
+                case MidiConst.META_TRACKNAME:  // TrackName
                     sb.append(" trackname=").append(Utilities.toString(mm.getData()));
                     break;
-                case 4:  // Instrument Name
+                case MidiConst.META_INSTRUMENT:  // Instrument Name
                     sb.append(" instrumentName=").append(Utilities.toString(mm.getData()));
                     break;
-                case 5:  // Lyrics
+                case MidiConst.META_LYRICS:  // Lyrics
                     sb.append(" lyrics=").append(Utilities.toString(mm.getData()));
                     break;
-                case 6:  // Marker
+                case MidiConst.META_MARKER:  // Marker
                     sb.append(" marker=").append(Utilities.toString(mm.getData()));
                     break;
-                case 88:  // TimeSignature        
+                case MidiConst.META_TIME_SIGNATURE:  // TimeSignature        
                     int upper = mm.getData()[0];
                     int lower = (int) Math.pow(2, mm.getData()[1]);
                     TimeSignature ts = TimeSignature.get(upper, lower);
                     sb.append(" timeSignature=").append(ts);
                     break;
-                case 81:  // Tempo
+                case MidiConst.META_TEMPO:  // Tempo
                     sb.append(" tempo=").append(getTempoInBPM(mm));
                     break;
                 default:
@@ -903,7 +899,7 @@ public class MidiUtilities
         assert tick >= 0 && t != null && t.size() > 0 : "t=" + t + " tick=" + tick;   //NOI18N
         MidiEvent me = t.get(t.size() - 1);
         MidiMessage mm = me.getMessage();
-        if ((mm instanceof MetaMessage) && ((MetaMessage) mm).getType() == 47)
+        if ((mm instanceof MetaMessage) && ((MetaMessage) mm).getType() == MidiConst.META_END_OF_TRACK)
         {
             me.setTick(tick);
             res = (me.getTick() == tick);      // Check position was correctly set

@@ -56,14 +56,26 @@ public class MidiConst
     public static final int CTRL_CHG_SUSTAIN = 64;
     public static final int CTRL_CHG_REVERB_DEPTH = 91;
     public static final int CTRL_CHG_CHORUS_DEPTH = 93;
-    public static final int CTRL_CHG_JJAZZ_MARKER_SYNC = 110;   // Used for the internal JJazz control track
-    public static final int CTRL_CHG_JJAZZ_CHORD_CHANGE = 111;  // Used for the internal JJazz control track
     public static final int CTRL_CHG_JJAZZ_BEAT_CHANGE = 112;    // Used for the internal JJazz control track
     public static final int CTRL_CHG_JJAZZ_ACTIVITY = 113;      // Used for the internal JJazz control track
     public static final int CTRL_CHG_JJAZZ_TEMPO_FACTOR = 114;  // Used for tempo changes during song
     public static final int CTRL_CHG_ALL_SOUND_OFF = 120;
     public static final int CTRL_CHG_RESET_ALL_CONTROLLERS = 121;
     public static final int CTRL_CHG_ALL_NOTES_OFF = 123;
+    
+    
+    // Meta event type values
+    public static final int META_TEXT = 1;
+    public static final int META_COPYRIGHT = 2;
+    public static final int META_TRACKNAME = 3;
+    public static final int META_INSTRUMENT = 4;
+    public static final int META_LYRICS = 5;
+    public static final int META_MARKER = 6;
+    public static final int META_END_OF_TRACK = 47;
+    public static final int META_TEMPO = 81;    
+    public static final int META_TIME_SIGNATURE = 88;
+    
+    
     // SysEx
     public static final int VOLUME_MIN = 0;
     public static final int VOLUME_STD = 100;

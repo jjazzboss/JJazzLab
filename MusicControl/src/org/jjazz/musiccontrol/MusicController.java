@@ -63,6 +63,7 @@ import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.util.ResUtil;
+import org.jjazz.util.Utilities;
 import org.openide.util.NbPreferences;
 
 /**
@@ -122,7 +123,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * The current beat position during playback.
      */
     Position currentBeatPosition = new Position();
-    // private final Sequencer sequencer;
     private int loopCount;
 
     /**
@@ -370,7 +370,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         // If we're here then playbackState = PAUSE or STOPPED
         if (mgContext.getBarRange().isEmpty())
         {
-            // Throw an exception to let the UI roll back (eg play button)
+            // Throw an exception to let the UI roll back (eg play stateful button)
             throw new MusicGenerationException(ResUtil.getString(getClass(), "NOTHING TO PLAY"));
         }
 
@@ -383,7 +383,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         Analytics.logEvent("Play", Analytics.buildMap("Bar Range", mgContext.getBarRange().toString(), "Rhythms", Analytics.toStrList(mgContext.getUniqueRhythms())));
         Analytics.incrementProperties("Nb Play", 1);
         Analytics.setPropertiesOnce(Analytics.buildMap("First Play", Analytics.toStdDateTimeString()));
-        
+
 
         // Regenerate the sequence and the related data if needed
         if (playbackContext.isDirty())
@@ -548,6 +548,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         return postProcessors;
     }
 
+    /**
+     * The current playback position updated at every beat (beat is an integer).
+     *
+     * @return
+     */
     public Position getBeatPosition()
     {
         return currentBeatPosition;
@@ -701,12 +706,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         int data1 = event.getData1();
         switch (data1)
         {
-            case MidiConst.CTRL_CHG_JJAZZ_MARKER_SYNC:
-                // Not used for now
-                break;
-            case MidiConst.CTRL_CHG_JJAZZ_CHORD_CHANGE:
-                // Not used for now
-                break;
             case MidiConst.CTRL_CHG_JJAZZ_ACTIVITY:
                 fireMidiActivity(event.getChannel(), tick);
                 break;
@@ -719,7 +718,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                     index = playbackContext.naturalBeatPositions.size() - 1;
                 }
                 Position newPos = playbackContext.naturalBeatPositions.get(index);
-                setCurrentBeatPosition(newPos.getBar(), newPos.getBeat());
+                updateCurrentBeatPosition(newPos.getBar(), newPos.getBeat());
                 break;
             case MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR:
                 songPartTempoFactor = MidiUtilities.getTempoFactor(event);
@@ -741,16 +740,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             // This method  is called from the Sequencer thread, NOT from the EDT !
             // So if this method impacts the UI, it must use SwingUtilities.InvokeLater() (or InvokeAndWait())
-            LOGGER.fine("Sequence end reached");  //NOI18N
-            Runnable doRun = new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    stop();
-                }
-            };
-            SwingUtilities.invokeLater(doRun);
+            LOGGER.fine("Sequence end reached");  //NOI18N        
+            SwingUtilities.invokeLater(() -> stop());
+        } else if (meta.getType() == 6)     // Marker for chord symbols
+        {
+            fireChordSymbolChanged(Utilities.toString(meta.getData()));
         }
     }
 
@@ -870,7 +864,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private void setPosition(int fromBar)
     {
-        assert !state.equals(State.DISABLED);   //NOI18N
+        assert !state.equals(State.DISABLED);
 
         long tick = 0;       // Default when fromBar==0 and click precount is true
         if (mgContext != null)
@@ -885,7 +879,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         sequencer.setTickPosition(tick);
 
-        setCurrentBeatPosition(fromBar, 0);
+        updateCurrentBeatPosition(fromBar, 0);
     }
 
     /**
@@ -923,6 +917,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
     }
 
+    private void fireChordSymbolChanged(String chordSymbol)
+    {
+        for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
+        {
+            pl.chordSymbolChanged(chordSymbol);
+        }
+    }
+
     private void fireBeatChanged(Position oldPos, Position newPos)
     {
         for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
@@ -948,11 +950,24 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Start the sequencer with the bug fix (tempo reset at 120 upon each start).
+     * Start the sequencer with the bug fix (tempo reset at 120 upon each start) + possibly fire a chord change event.
+     * <p>
+     * If there is no chord symbol at current position, then fire a chord change event using the previous chord symbol (ie the
+     * current chord symbol at this start position).
      */
     private void seqStart()
     {
         assert !state.equals(State.DISABLED);   //NOI18N
+
+
+        // Fire chord symbol change if no chord symbol at current position
+        if (mgContext != null && playbackContext != null)
+        {
+            long relativeTick = sequencer.getTickPosition() - playbackContext.songTickStart;
+            Position pos = mgContext.getPosition(relativeTick);
+            assert pos != null : "  relativeTick=" + relativeTick + " playbackContext.songTickStart=" + playbackContext.songTickStart;
+            lkj
+        }
 
         sequencer.start();
 
@@ -961,7 +976,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
     }
 
-    private void setCurrentBeatPosition(int bar, float beat)
+    private void updateCurrentBeatPosition(int bar, float beat)
     {
         assert !state.equals(State.DISABLED);   //NOI18N
 
@@ -1041,7 +1056,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         private HashMap<RhythmVoice, Integer> mapRvTrackId;
 
         /**
-         * Create a "dirty" object (needs to be updated) and build the sequence.
+         * Save context data and build the sequence.
+         * <p>
+         * Object will be "clean" if sequence was successfully built, otherwise it's "dirty" (sequence needs to be updated).
          *
          * @param context
          * @param MusicGenerator.PostProcessor[] Optional postprocessors
@@ -1062,7 +1079,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         /**
          * Prepare the sequencer to play the specified song.
          * <p>
-         * Create the sequence and load it in the sequencer. Store all the other related sequence-dependent data in this object.
+         * Create the sequence and load it into the sequencer. Store all the other related sequence-dependent data in this object.
          * Object is now "clean".
          *
          * @param song

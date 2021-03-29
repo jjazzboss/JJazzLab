@@ -110,8 +110,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
 
 
         // Disabled by default
-        setEditorEnabled(false);
-
+        setEditorEnabled(false);        
 
         songPresenceChanged(null);
     }

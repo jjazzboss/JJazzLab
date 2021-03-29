@@ -23,7 +23,9 @@
 package org.jjazz.realtimeviewer.api;
 
 import java.util.logging.Logger;
+import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.realtimeviewer.RtViewerPanel;
+import org.jjazz.song.api.Song;
 import org.jjazz.util.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
@@ -45,7 +47,7 @@ import org.openide.windows.WindowManager;
 )
 @TopComponent.Registration(mode = "jlnavigator", openAtStartup = false)
 @ActionID(category = "Window", id = "org.jjazz.realtimeviewer.RtViewerTopComponent")
-@ActionReference(path = "Menu/Window", position = 5, separatorAfter = 10)
+@ActionReference(path = "Menu/Window", position = 5, separatorAfter = 7)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_RtViewerAction",
         preferredID = "RtViewerTopComponent"
@@ -58,16 +60,31 @@ public final class RtViewerTopComponent extends TopComponent
 
     public RtViewerTopComponent()
     {
-        setName(ResUtil.getString(getClass(), "CTL_RtViewerTopComponent"));
+
         setToolTipText(ResUtil.getString(getClass(), "CTL_RtViewerTopComponentDesc"));
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         // putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.TRUE);
 
-        
+
         initComponents();
-        
+
+
         viewer = new RtViewerPanel();
         add(viewer);
+
+
+        // Set tab name and keep it updated
+        var asm = ActiveSongManager.getInstance();
+        Song song = asm.getActiveSong();
+        updateTabName(song);
+        asm.addPropertyListener(evt ->
+        {
+            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
+            {
+                updateTabName((Song) evt.getNewValue());
+            }
+        }
+        );
 
     }
 
@@ -117,5 +134,15 @@ public final class RtViewerTopComponent extends TopComponent
     {
         String version = p.getProperty("version");
         // TODO read your settings according to their version
+    }
+
+    /**
+     *
+     * @param song Can be null
+     */
+    private void updateTabName(Song song)
+    {
+        String tabNameBase = ResUtil.getString(getClass(), "CTL_RtViewerTopComponent");
+        setName(tabNameBase + (song == null ? "" : " - " + song.getName()));
     }
 }
