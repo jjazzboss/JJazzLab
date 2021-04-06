@@ -111,7 +111,7 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
     @Override
     public void chordSymbolChanged(String cs)
     {
-        LOGGER.severe("chordSymbolChanged() cs=" + cs);
+        // LOGGER.severe("chordSymbolChanged() cs=" + cs);
         SwingUtilities.invokeLater(() -> lbl_chordScale.setText(cs));
     }
 
@@ -273,8 +273,7 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
 
         // Reset everything by default
         song = null;
-        midiMix = null;
-        LOGGER.severe("activeSongChanged() reset lbl_chordScale");
+        midiMix = null;        
         lbl_chordScale.setText(" ");
 
         if (sg != null && mm != null)

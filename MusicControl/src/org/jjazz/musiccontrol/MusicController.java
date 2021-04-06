@@ -867,14 +867,19 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         assert !state.equals(State.DISABLED);
 
         long tick = 0;       // Default when fromBar==0 and click precount is true
-        if (mgContext != null)
+        if (ClickManager.getInstance().isClickPrecountEnabled())
         {
-            int relativeBar = fromBar - mgContext.getBarRange().from;
-            if (relativeBar > 0 || !ClickManager.getInstance().isClickPrecountEnabled())
+            // Start from 0 to get the precount notes
+        } else if (mgContext != null )
+        {            
+            tick = playbackContext.songTickStart;   // Bar 0 of the range            
+            if (fromBar > mgContext.getBarRange().from)
             {
-                // No precount
-                tick = playbackContext.songTickStart + mgContext.getRelativeTick(new Position(relativeBar, 0));
+                tick += mgContext.getRelativeTick(new Position(fromBar, 0));
             }
+        } else
+        {
+            throw new IllegalStateException("setPosition() fromBar="+fromBar);
         }
 
         sequencer.setTickPosition(tick);
@@ -960,16 +965,43 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         assert !state.equals(State.DISABLED);   //NOI18N
 
 
-        // Fire chord symbol change if no chord symbol at current position
+        // Fire a chord symbol change if no chord symbol at current position (current chord symbol is the previous one)
         if (mgContext != null && playbackContext != null)
         {
             long relativeTick = sequencer.getTickPosition() - playbackContext.songTickStart;
-            Position pos = mgContext.getPosition(relativeTick);
+            Position pos = mgContext.getClsPosition(relativeTick);
             assert pos != null : "  relativeTick=" + relativeTick + " playbackContext.songTickStart=" + playbackContext.songTickStart;
-            lkj
+
+
+            CLI_ChordSymbol lastCliCs = null;
+            for (CLI_ChordSymbol cliCs : mgContext.getSong().getChordLeadSheet().getItems(0, pos.getBar(), CLI_ChordSymbol.class))
+            {
+                if (cliCs.getPosition().equals(pos))
+                {
+                    // Found a chord symbol at the exact position, do nothing
+                    lastCliCs = null;
+                    break;
+                } else if (cliCs.getPosition().compareTo(pos) < 0)
+                {
+                    // Save the previous chord symbol
+                    lastCliCs = cliCs;
+                } else
+                {
+                    // We're past the target position, don't search anymore
+                    break;
+                }
+            }
+
+            if (lastCliCs != null)
+            {
+                // Fire the event
+                fireChordSymbolChanged(lastCliCs.getData().getOriginalName());
+            }
         }
 
+
         sequencer.start();
+
 
         // JDK -11 BUG: start() resets tempo at 120 !
         sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
@@ -1147,7 +1179,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
                 // Set position and loop points
                 sequencer.setLoopStartPoint(songTickStart);
-                songTickEnd = (long) (songTickStart + workMgContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
+                songTickEnd = songTickStart + Math.round(workMgContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
                 sequencer.setLoopEndPoint(songTickEnd);
 
 
