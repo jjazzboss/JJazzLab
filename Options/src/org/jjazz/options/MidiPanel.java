@@ -62,6 +62,7 @@ final class MidiPanel extends javax.swing.JPanel
     private boolean saveRemoteControlEnabled;          // For cancel operation
     private int saveStartPitch;          // For cancel operation
     private int saveStopPitch;          // For cancel operation
+    private int saveOutLatency;          // For cancel operation
     private static final Logger LOGGER = Logger.getLogger(MidiPanel.class.getSimpleName());
 
     MidiPanel(MidiOptionsPanelController controller)
@@ -97,6 +98,9 @@ final class MidiPanel extends javax.swing.JPanel
         loadInProgress = true; // To avoid calling controller.changed() via list_In/OutDevices change event handlers.           
 
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
+
+        saveOutLatency = jms.getOutLatency();
+        spn_latency.setValue(saveOutLatency);
 
         // In devices : easy
         list_InDevices.setListData(jms.getInDeviceList().toArray(new MidiDevice[0]));
@@ -145,6 +149,7 @@ final class MidiPanel extends javax.swing.JPanel
         jms.setThruMode(saveMidiThru);
         openInDevice(saveInDevice);
         openOutDevice(saveOutDevice);
+        spn_latency.setValue(saveOutLatency);
 
         RemoteController rc = RemoteController.getInstance();
         rc.setEnabled(saveRemoteControlEnabled);
@@ -169,7 +174,7 @@ final class MidiPanel extends javax.swing.JPanel
         MidiDevice outDevice = list_OutDevices.getSelectedValue();
         openOutDevice(outDevice);
         UserChannelRvKey.getInstance().setPreferredUserChannel(((Integer) spn_preferredUserChannel.getValue()) - 1);
-
+        jms.setOutLatency((Integer) spn_latency.getValue());
 
         RemoteController rc = RemoteController.getInstance();
         rc.setEnabled(cb_enableRemoteControl.isSelected());
@@ -274,6 +279,8 @@ final class MidiPanel extends javax.swing.JPanel
         lbl_stop = new javax.swing.JLabel();
         lbl_inNote = new javax.swing.JLabel();
         lbl_midiInNote = new javax.swing.JLabel();
+        spn_latency = new org.jjazz.ui.utilities.WheelSpinner();
+        jLabel1 = new javax.swing.JLabel();
 
         jScrollPane1.setViewportView(midiInDeviceList1);
 
@@ -464,6 +471,17 @@ final class MidiPanel extends javax.swing.JPanel
         org.openide.awt.Mnemonics.setLocalizedText(lbl_midiInNote, org.openide.util.NbBundle.getBundle(MidiPanel.class).getString("MidiPanel.lbl_midiInNote.text")); // NOI18N
         lbl_midiInNote.setToolTipText(org.openide.util.NbBundle.getBundle(MidiPanel.class).getString("MidiPanel.lbl_midiInNote.toolTipText")); // NOI18N
 
+        spn_latency.setModel(new javax.swing.SpinnerNumberModel(0, 0, 5000, 1));
+        spn_latency.addChangeListener(new javax.swing.event.ChangeListener()
+        {
+            public void stateChanged(javax.swing.event.ChangeEvent evt)
+            {
+                spn_latencyStateChanged(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getBundle(MidiPanel.class).getString("MidiPanel.jLabel1.text")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -483,7 +501,11 @@ final class MidiPanel extends javax.swing.JPanel
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(lbl_preferredUserChannel))
                     .addComponent(cb_midiThru)
-                    .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(spn_latency, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel1)))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -520,7 +542,11 @@ final class MidiPanel extends javax.swing.JPanel
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(21, 21, 21)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(spn_latency, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel1))
+                        .addGap(11, 11, 11)
                         .addComponent(cb_midiThru)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -666,6 +692,12 @@ final class MidiPanel extends javax.swing.JPanel
 
     }//GEN-LAST:event_cmb_stopNoteActionPerformed
 
+    private void spn_latencyStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_latencyStateChanged
+    {//GEN-HEADEREND:event_spn_latencyStateChanged
+        controller.applyChanges();
+        controller.changed();
+    }//GEN-LAST:event_spn_latencyStateChanged
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_changeSoundbankFile;
@@ -677,6 +709,7 @@ final class MidiPanel extends javax.swing.JPanel
     private javax.swing.JCheckBox cb_midiThru;
     private javax.swing.JComboBox<String> cmb_startPauseNote;
     private javax.swing.JComboBox<String> cmb_stopNote;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
@@ -692,6 +725,7 @@ final class MidiPanel extends javax.swing.JPanel
     private org.jjazz.midi.ui.MidiInDeviceList midiInDeviceList1;
     private javax.swing.JPanel pnl_remoteControl;
     private javax.swing.JPanel pnl_soundbankFile;
+    private org.jjazz.ui.utilities.WheelSpinner spn_latency;
     private org.jjazz.ui.utilities.WheelSpinner spn_preferredUserChannel;
     private javax.swing.JTextField txtf_soundbankFile;
     // End of variables declaration//GEN-END:variables

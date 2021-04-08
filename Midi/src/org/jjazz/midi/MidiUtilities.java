@@ -503,11 +503,6 @@ public class MidiUtilities
         return buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_JJAZZ_BEAT_CHANGE, 0);
     }
 
-    static public ShortMessage getJJazzActivityControllerMessage(int channel)
-    {
-        return buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_JJAZZ_ACTIVITY, 0);
-    }
-
     /**
      * Get the Midi controller message to code a tempo factor.
      *

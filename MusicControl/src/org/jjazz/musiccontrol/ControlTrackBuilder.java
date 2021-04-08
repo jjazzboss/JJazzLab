@@ -29,7 +29,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
-import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
@@ -49,7 +48,6 @@ import org.jjazz.util.IntRange;
 public class ControlTrackBuilder
 {
 
-    public static final int ACTIVITY_MIN_PERIOD = MidiConst.PPQ_RESOLUTION / 4;
     public static String TRACK_NAME = "JJazzControlTrack";
     private MusicGenerationContext context;
     /**
@@ -72,7 +70,6 @@ public class ControlTrackBuilder
      * <p>
      * - a marker event for each chord symbol (text=original name of the chord symbol)<br>
      * - a CTRL_CHG_JJAZZ_BEAT_CHANGE Midi event at every beat change<br>
-     * - a CTRL_CHG_JJAZZ_ACTIVITY Midi event for most of NOTE_ON messages on each channel. <br>
      *
      * @param sequence The sequence for which we add the control track.
      * @return the index of the track in the sequence.
@@ -97,9 +94,6 @@ public class ControlTrackBuilder
         {
             tick = fillControlTrack(track, tick, spt);
         }
-
-        // Add the Midi Activity controller messages
-        addActivityMessages(sequence, track);
 
         // Set EndOfTrack
         long lastTick = (long) (context.getBeatRange().size() * MidiConst.PPQ_RESOLUTION) + 1;
@@ -194,44 +188,4 @@ public class ControlTrackBuilder
         return (long) (tickOffset + nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
     }
 
-    /**
-     * Add CTRL_CHG_JJAZZ_ACTIVITY controller messages for each NOTE_ON on each channel.
-     * <p>
-     * For a given channel add a single CTRL_CHG_JJAZZ_ACTIVITY message if several NOTE_ONs start within the same
-     * ACTIVITY_MIN_PERIOD.
-     *
-     * @param sequence The track to analyze
-     * @param ctrlTrack Where CTRL_CHG_JJAZZ_ACTIVITY messages will be added
-     */
-    private void addActivityMessages(Sequence sequence, Track ctrlTrack)
-    {
-        int nbChannels = MidiConst.CHANNEL_MAX - MidiConst.CHANNEL_MIN + 1;
-        long[] lastActivityTick = new long[nbChannels];
-
-        for (Track track : sequence.getTracks())
-        {
-            for (int i = 0; i < nbChannels; i++)
-            {
-                lastActivityTick[i] = -2 * ACTIVITY_MIN_PERIOD;
-            }
-            for (int i = 0; i < track.size(); i++)
-            {
-                MidiEvent me = track.get(i);
-                MidiMessage mm = me.getMessage();
-                if (!(mm instanceof ShortMessage) || ((ShortMessage) mm).getCommand() != ShortMessage.NOTE_ON)
-                {
-                    continue;
-                }
-                int channel = ((ShortMessage) mm).getChannel();
-                long tick = me.getTick();
-                if (tick - lastActivityTick[channel] > ACTIVITY_MIN_PERIOD)
-                {
-                    ShortMessage controlSm = MidiUtilities.getJJazzActivityControllerMessage(channel);
-                    MidiEvent ctrlMe = new MidiEvent(controlSm, tick);
-                    ctrlTrack.add(ctrlMe);
-                    lastActivityTick[channel] = tick;
-                }
-            }
-        }
-    }
 }

@@ -57,7 +57,6 @@ public class MidiConst
     public static final int CTRL_CHG_REVERB_DEPTH = 91;
     public static final int CTRL_CHG_CHORUS_DEPTH = 93;
     public static final int CTRL_CHG_JJAZZ_BEAT_CHANGE = 112;    // Used for the internal JJazz control track
-    public static final int CTRL_CHG_JJAZZ_ACTIVITY = 113;      // Used for the internal JJazz control track
     public static final int CTRL_CHG_JJAZZ_TEMPO_FACTOR = 114;  // Used for tempo changes during song
     public static final int CTRL_CHG_ALL_SOUND_OFF = 120;
     public static final int CTRL_CHG_RESET_ALL_CONTROLLERS = 121;

@@ -74,6 +74,7 @@ public final class JJazzMidiSystem
     public final static String PROP_MIDI_THRU = "MidiThruProp";
     public final static String PROP_MASTER_VOL_FACTOR = "MasterVolumeFactor";
     public final static String PROP_MIDI_OUT_FILTERING = "MidiOutFiltering";
+    public final static String PROP_OUT_LATENCY_MS = "OutLatencyMs";
     public final static String PREF_JAVA_SYNTH_SOUNDFONT_FILE = "JavaSynthSoundFontFile";
 
     /**
@@ -364,6 +365,29 @@ public final class JJazzMidiSystem
     public Synthesizer getDefaultJavaSynth()
     {
         return defaultSynth;
+    }
+
+    public int getOutLatency()
+    {
+        return prefs.getInt(PROP_OUT_LATENCY_MS, 0);
+    }
+
+    /**
+     * Set the output synth latency.
+     * <p>
+     * Fire a PROP_OUT_LATENCY_MS change event.
+     *
+     * @param latencyMs In milliseconds.
+     */
+    public void setOutLatency(int latencyMs)
+    {
+        if (latencyMs < 0 || latencyMs > 10000)
+        {
+            throw new IllegalArgumentException("latencyMs=" + latencyMs);
+        }
+        int old = getOutLatency();
+        prefs.putInt(PROP_OUT_LATENCY_MS, latencyMs);
+        pcs.firePropertyChange(PROP_OUT_LATENCY_MS, old, latencyMs);
     }
 
     /**
