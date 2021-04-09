@@ -25,9 +25,6 @@ package org.jjazz.realtimeviewer;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiMessage;
-import javax.sound.midi.Receiver;
-import javax.sound.midi.ShortMessage;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import org.jjazz.activesong.ActiveSongManager;
@@ -173,10 +170,22 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
         {
             if (evt.getPropertyName().equals(MusicController.PROP_STATE))
             {
-                if (!MusicController.getInstance().getState().equals(MusicController.State.PLAYING)
-                        && !MusicController.getInstance().getState().equals(MusicController.State.PAUSED))
+                MusicController.State state = (MusicController.State) evt.getNewValue();
+                switch (state)
                 {
-                    org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(() -> lbl_chordScale.setText(""));
+                    case DISABLED:  // Fall down
+                    case STOPPED:
+                        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(() -> lbl_chordScale.setText(""));
+                        resetKeyboard();
+                        break;
+                    case PAUSED:
+                        // Nothing
+                        break;
+                    case PLAYING:
+                        // Nothing
+                        break;
+                    default:
+                        throw new AssertionError(state.name());
                 }
             }
         }
@@ -204,6 +213,7 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getBundle(RtViewerPanel.class).getString("RtViewerPanel.jLabel1.text")); // NOI18N
 
+        lbl_chordScale.setFont(lbl_chordScale.getFont().deriveFont(lbl_chordScale.getFont().getStyle() | java.awt.Font.BOLD));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_chordScale, org.openide.util.NbBundle.getBundle(RtViewerPanel.class).getString("RtViewerPanel.lbl_chordScale.text")); // NOI18N
 
         jScrollPane1.setBorder(null);
@@ -270,20 +280,18 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
                         .addComponent(lbl_chordScale))
                     .addComponent(fbtn_changeSize, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(9, 9, 9)
-                .addComponent(pnl_piano, javax.swing.GroupLayout.DEFAULT_SIZE, 107, Short.MAX_VALUE)
+                .addComponent(pnl_piano, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void fbtn_changeSizeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_fbtn_changeSizeActionPerformed
     {//GEN-HEADEREND:event_fbtn_changeSizeActionPerformed
+
         enableListening = false;
         keyboard.setKeyboardRange(keyboard.getKeyboardRange().next());
-        keyboard.releaseAllNotes();
-        reset();
-        enableListening = true;
+        resetKeyboard();            // Will restore enableListening=true
     }//GEN-LAST:event_fbtn_changeSizeActionPerformed
 
     private void spn_channelStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_channelStateChanged
@@ -324,26 +332,23 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
             RhythmVoice rv = midiMix.getRhythmVoice(channel);
             if (rv != null)
             {
-                s = rv.getName() + " / " + midiMix.getInstrumentMixFromKey(rv).getInstrument().getPatchName();
+                s = rv.getContainer().getName() + "/" + rv.getName();
             }
         }
         lbl_trackName.setText(s);
 
-        enableListening = false;
-        keyboard.releaseAllNotes();
-        reset();
-        enableListening = true;
+        resetKeyboard();
     }
 
-    /**
-     * Reset internal state.
-     */
-    private void reset()
+    private void resetKeyboard()
     {
+        enableListening = false;
+        keyboard.releaseAllNotes();
         for (int i = 0; i < 128; i++)
         {
             noteOnTick[i] = -1;
         }
+        enableListening = true;
     }
 
     // =================================================================================

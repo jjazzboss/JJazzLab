@@ -60,6 +60,7 @@ import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.UserChannelRvKey;
+import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
@@ -136,7 +137,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * Sequencer lock by an external entity.
      */
     private Object sequencerLockHolder;
-    private int outLatency;
+    private int audioLatency;
     /**
      * The tempo factor to go from MidiConst.SEQUENCER_REF_TEMPO to song tempo.
      */
@@ -207,9 +208,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         ClickManager.getInstance().addPropertyChangeListener(this);
 
         // Listen to latency changes
-        var jms = JJazzMidiSystem.getInstance();
-        jms.addPropertyChangeListener(this);
-        outLatency = jms.getOutLatency();
+        var osm = OutputSynthManager.getInstance();
+        osm.addPropertyChangeListener(this);
+        audioLatency = osm.getOutputSynth().getAudioLatency();
 
 
     }
@@ -806,11 +807,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         LOGGER.log(Level.FINE, "propertyChange() e={0}", e);  //NOI18N
 
         // Always enabled changes
-        if (e.getSource() == JJazzMidiSystem.getInstance())
+        if (e.getSource() == OutputSynthManager.getInstance())
         {
-            if (e.getPropertyName().equals(JJazzMidiSystem.PROP_OUT_LATENCY_MS))
+            if (e.getPropertyName().equals(OutputSynthManager.PROP_AUDIO_LATENCY))
             {
-                outLatency = (int) e.getNewValue();
+                audioLatency = (int) e.getNewValue();
             }
         }
         
@@ -1051,12 +1052,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private void fireLatencyAwareEvent(Runnable r)
     {
-        if (outLatency == 0)
+        if (audioLatency == 0)
         {
             r.run();
         } else
         {
-            Timer t = new Timer(outLatency, evt -> r.run());
+            Timer t = new Timer(audioLatency, evt -> r.run());
             t.setRepeats(false);
             t.start();
         }

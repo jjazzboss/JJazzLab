@@ -43,7 +43,6 @@ import java.util.prefs.Preferences;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
-import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.FileDirectoryManager;
 import org.jjazz.ui.utilities.SingleRootFileSystemView;
 import org.jjazz.upgrade.UpgradeManager;
@@ -63,6 +62,10 @@ public class OutputSynthManager implements PropertyChangeListener
 {
 
     public final static String PROP_DEFAULT_OUTPUTSYNTH = "OutputSynth";
+    /**
+     * Convenience property which replicates the audio latency changes of the current output synth.
+     */
+    public final static String PROP_AUDIO_LATENCY = "AudioLatency";
     public final static String DEFAULT_OUTPUT_SYNTH_FILENAME = "Default.cfg";
 
     public final static String OUTPUT_SYNTH_FILES_DIR = "OutputSynthFiles";
@@ -136,19 +139,29 @@ public class OutputSynthManager implements PropertyChangeListener
         {
             throw new IllegalArgumentException("outSynth=" + outSynth);   //NOI18N
         }
+        int oldLatency = 0;
         OutputSynth old = this.outputSynth;
         if (old != null)
         {
+            oldLatency = old.getAudioLatency();
             old.removePropertyChangeListener(this);
         }
         outputSynth = outSynth;
-        outputSynth.addPropertyChangeListener(this);        // Listen to file changes
+        outputSynth.addPropertyChangeListener(this);        // Listen to file and audio latency changes
+        
+
         if (outputSynth.getFile() != null)
         {
             prefs.put(PROP_DEFAULT_OUTPUTSYNTH, outputSynth.getFile().getName());
         }
         pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, old, outputSynth);
         
+        
+        if (outputSynth.getAudioLatency() != oldLatency)
+        {
+            pcs.firePropertyChange(PROP_AUDIO_LATENCY, oldLatency, outputSynth.getAudioLatency());
+        }
+
     }
 
     /**
@@ -245,13 +258,16 @@ public class OutputSynthManager implements PropertyChangeListener
     {
         if (evt.getSource() == outputSynth)
         {
-            if (evt.getPropertyName() == OutputSynth.PROP_FILE)
+            if (evt.getPropertyName().equals(OutputSynth.PROP_FILE))
             {
                 File f = (File) evt.getNewValue();
                 if (f != null)
                 {
                     prefs.put(PROP_DEFAULT_OUTPUTSYNTH, f.getName());
                 }
+            } else if (evt.getPropertyName().equals(OutputSynth.PROP_AUDIO_LATENCY_MS))
+            {
+                pcs.firePropertyChange(OutputSynthManager.PROP_AUDIO_LATENCY, (int)evt.getOldValue(), (int)evt.getNewValue());
             }
         }
     }
