@@ -22,6 +22,8 @@
  */
 package org.jjazz.musiccontrol;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -30,7 +32,10 @@ import java.beans.VetoableChangeListener;
 import java.beans.VetoableChangeSupport;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -147,6 +152,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private float songPartTempoFactor = 1;
 
+    /**
+     * Keep track of active timers used to compensate the audio latency.
+     * <p>
+     * Needed to force stop them when sequencer is stopped/paused by user.
+     */
+    private Set<Timer> audioLatencyTimers = new HashSet<>();
+    /**
+     * Our MidiReceiver to be able to fire events to NoteListeners and PlaybackListener (midiActivity).
+     */
     private McReceiver receiver;
     /**
      * The list of the controller changes listened to
@@ -509,6 +523,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 break;
             case PLAYING:
                 sequencer.stop();
+                clearPendingEvents();                
                 break;
             default:
                 throw new AssertionError(state.name());
@@ -549,7 +564,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
 
         sequencer.stop();
-
+        clearPendingEvents();
+        
         State old = getState();
         state = State.PAUSED;
         pcs.firePropertyChange(PROP_STATE, old, state);
@@ -814,7 +830,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 audioLatency = (int) e.getNewValue();
             }
         }
-        
+
         // Below property changes are meaningless if no context or if state is DISABLED
         if (mgContext == null || state.equals(State.DISABLED))
         {
@@ -875,7 +891,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 playbackContext.setDirty();
             }
 
-        } 
+        }
 
         if (playbackContext.isDirty() && state == State.PAUSED)
         {
@@ -1046,7 +1062,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Fire an event delayed to take into account the current output synth latency.
+     * Fire an event after a time delay to take into account the current output synth latency.
+     * <p>
+     * Active timers are available in audioLatencyTimers.
      *
      * @param r
      */
@@ -1057,9 +1075,26 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             r.run();
         } else
         {
-            Timer t = new Timer(audioLatency, evt -> r.run());
+            Timer t = new Timer(audioLatency, evt ->
+            {
+                r.run();
+            });
+            t.addActionListener(evt -> audioLatencyTimers.remove(t));
             t.setRepeats(false);
+            audioLatencyTimers.add(t);
             t.start();
+        }
+    }
+
+    /**
+     * When sequencer is stopped or paused, make sure there is no pending events.
+     */
+    private void clearPendingEvents()
+    {
+        for (Iterator<Timer> it = audioLatencyTimers.iterator(); it.hasNext();)
+        {
+            it.next().stop();
+            it.remove();
         }
     }
 

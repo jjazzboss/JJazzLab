@@ -22,6 +22,7 @@
  */
 package org.jjazz.realtimeviewer;
 
+import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
@@ -38,23 +39,25 @@ import org.jjazz.musiccontrol.NoteListener;
 import org.jjazz.musiccontrol.PlaybackListener;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
+import org.jjazz.uisettings.GeneralUISettings;
 
 /**
  * Real time viewer panel
  */
 public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeListener, PlaybackListener, NoteListener
 {
-
+    
     public static final long MIN_TICK_DURATION = MidiConst.PPQ_RESOLUTION / 6;
     private static final String NO_TRACKNAME = " - ";
-    private KeyboardComponent keyboard;
+    private final KeyboardComponent keyboard;
     private Song song;
     private MidiMix midiMix;
     private int channel;
     private boolean enableListening;
+    private final Font chordSymbolFont;
     // Store the last Note On tick position for each note. Use -1 if initialized.
-    private long noteOnTick[] = new long[128];
-
+    private final long noteOnTick[] = new long[128];
+    
     private static final Logger LOGGER = Logger.getLogger(RtViewerPanel.class.getSimpleName());
 
     /**
@@ -62,8 +65,12 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
      */
     public RtViewerPanel()
     {
-
+        
+        // Used by initComponents
+        chordSymbolFont = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(Font.BOLD, 16f);
+        
         initComponents();
+        
 
         enableListening = true;
 
@@ -101,7 +108,7 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
         noteOnTick[pitch] = tick;
         SwingUtilities.invokeLater(() -> keyboard.setPressed(pitch, velocity));
     }
-
+    
     @Override
     public void noteOff(long tick, int channel, int pitch)
     {
@@ -122,7 +129,7 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
             // Normal case, directly release the key
             SwingUtilities.invokeLater(() -> keyboard.setPressed(pitch, 0));
         }
-
+        
         noteOnTick[pitch] = -1;
     }
 
@@ -134,20 +141,20 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
     {
         // Nothing
     }
-
+    
     @Override
     public void chordSymbolChanged(String cs)
     {
         // LOGGER.severe("chordSymbolChanged() cs=" + cs);
         SwingUtilities.invokeLater(() -> lbl_chordScale.setText(cs));
     }
-
+    
     @Override
     public void barChanged(int oldBar, int newBar)
     {
         // Nothing
     }
-
+    
     @Override
     public void midiActivity(int channel, long tick)
     {
@@ -175,7 +182,7 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
                 {
                     case DISABLED:  // Fall down
                     case STOPPED:
-                        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(() -> lbl_chordScale.setText(""));
+                        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(() -> lbl_chordScale.setText(" "));
                         resetKeyboard();
                         break;
                     case PAUSED:
@@ -200,26 +207,36 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
     private void initComponents()
     {
 
+        jPanel1 = new javax.swing.JPanel();
         pnl_piano = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        lbl_chordScale = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
         spn_channel = new org.jjazz.ui.utilities.WheelSpinner();
         lbl_trackName = new javax.swing.JLabel();
         fbtn_changeSize = new org.jjazz.ui.flatcomponents.FlatButton();
+        pnl_chordSymbol = new javax.swing.JPanel();
+        lbl_chordScale = new javax.swing.JLabel();
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
+        );
 
         pnl_piano.setLayout(new javax.swing.BoxLayout(pnl_piano, javax.swing.BoxLayout.LINE_AXIS));
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getBundle(RtViewerPanel.class).getString("RtViewerPanel.jLabel1.text")); // NOI18N
 
-        lbl_chordScale.setFont(lbl_chordScale.getFont().deriveFont(lbl_chordScale.getFont().getStyle() | java.awt.Font.BOLD));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_chordScale, org.openide.util.NbBundle.getBundle(RtViewerPanel.class).getString("RtViewerPanel.lbl_chordScale.text")); // NOI18N
-
         jScrollPane1.setBorder(null);
 
         helpTextArea1.setColumns(20);
-        helpTextArea1.setRows(3);
+        helpTextArea1.setRows(4);
         helpTextArea1.setText(org.openide.util.NbBundle.getBundle(RtViewerPanel.class).getString("RtViewerPanel.helpTextArea1.text")); // NOI18N
         jScrollPane1.setViewportView(helpTextArea1);
 
@@ -245,6 +262,12 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
             }
         });
 
+        pnl_chordSymbol.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
+
+        lbl_chordScale.setFont(chordSymbolFont);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_chordScale, org.openide.util.NbBundle.getBundle(RtViewerPanel.class).getString("RtViewerPanel.lbl_chordScale.text")); // NOI18N
+        pnl_chordSymbol.add(lbl_chordScale);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -252,20 +275,17 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(pnl_chordSymbol, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(spn_channel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(lbl_trackName)
-                        .addGap(18, 18, 18)
-                        .addComponent(lbl_chordScale)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 138, Short.MAX_VALUE)
                         .addComponent(fbtn_changeSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(pnl_piano, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 298, Short.MAX_VALUE)
-                        .addGap(49, 49, 49)))
+                    .addComponent(jScrollPane1)
+                    .addComponent(pnl_piano, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -276,19 +296,21 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel1)
                         .addComponent(spn_channel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(lbl_trackName)
-                        .addComponent(lbl_chordScale))
+                        .addComponent(lbl_trackName))
                     .addComponent(fbtn_changeSize, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(9, 9, 9)
-                .addComponent(pnl_piano, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(pnl_chordSymbol, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(4, 4, 4)
+                .addComponent(pnl_piano, javax.swing.GroupLayout.DEFAULT_SIZE, 27, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void fbtn_changeSizeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_fbtn_changeSizeActionPerformed
     {//GEN-HEADEREND:event_fbtn_changeSizeActionPerformed
-
+        
         enableListening = false;
         keyboard.setKeyboardRange(keyboard.getKeyboardRange().next());
         resetKeyboard();            // Will restore enableListening=true
@@ -314,16 +336,16 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
         song = null;
         midiMix = null;
         lbl_chordScale.setText(" ");
-
+        
         if (sg != null && mm != null)
         {
             song = sg;
             midiMix = mm;
         }
-
+        
         channelOrTrackChanged();
     }
-
+    
     private void channelOrTrackChanged()
     {
         String s = NO_TRACKNAME;
@@ -336,10 +358,10 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
             }
         }
         lbl_trackName.setText(s);
-
+        
         resetKeyboard();
     }
-
+    
     private void resetKeyboard()
     {
         enableListening = false;
@@ -359,9 +381,11 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
     private org.jjazz.ui.flatcomponents.FlatButton fbtn_changeSize;
     private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbl_chordScale;
     private javax.swing.JLabel lbl_trackName;
+    private javax.swing.JPanel pnl_chordSymbol;
     private javax.swing.JPanel pnl_piano;
     private org.jjazz.ui.utilities.WheelSpinner spn_channel;
     // End of variables declaration//GEN-END:variables

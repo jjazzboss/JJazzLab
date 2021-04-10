@@ -460,7 +460,7 @@
                               </Group>
                               <Component id="jScrollPane4" alignment="0" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <EmptySpace pref="292" max="32767" attributes="0"/>
+                          <EmptySpace pref="279" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -507,7 +507,7 @@
                 <Component class="org.jjazz.ui.utilities.WheelSpinner" name="spn_audioLatency">
                   <Properties>
                     <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
-                      <SpinnerModel initial="0" maximum="5000" minimum="0" numberType="java.lang.Integer" stepSize="5" type="number"/>
+                      <SpinnerModel initial="0" maximum="2000" minimum="0" numberType="java.lang.Integer" stepSize="5" type="number"/>
                     </Property>
                   </Properties>
                   <Events>
@@ -523,9 +523,6 @@
                 </Component>
                 <Container class="javax.swing.JScrollPane" name="jScrollPane4">
                   <Properties>
-                    <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                      <Color type="null"/>
-                    </Property>
                     <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                       <Border info="null"/>
                     </Property>
@@ -538,11 +535,8 @@
                   <SubComponents>
                     <Component class="org.jjazz.ui.utilities.HelpTextArea" name="helpTextArea2">
                       <Properties>
-                        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                          <Color type="null"/>
-                        </Property>
                         <Property name="columns" type="int" value="20"/>
-                        <Property name="rows" type="int" value="3"/>
+                        <Property name="rows" type="int" value="4"/>
                         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                           <ResourceString bundle="org/jjazz/outputsynth/ui/Bundle.properties" key="OutputSynthEditor.helpTextArea2.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
                         </Property>

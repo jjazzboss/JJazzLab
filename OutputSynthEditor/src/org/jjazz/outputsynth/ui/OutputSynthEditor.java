@@ -671,7 +671,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel6, org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.jLabel6.text")); // NOI18N
 
-        spn_audioLatency.setModel(new javax.swing.SpinnerNumberModel(0, 0, 5000, 5));
+        spn_audioLatency.setModel(new javax.swing.SpinnerNumberModel(0, 0, 2000, 5));
         spn_audioLatency.addChangeListener(new javax.swing.event.ChangeListener()
         {
             public void stateChanged(javax.swing.event.ChangeEvent evt)
@@ -682,12 +682,10 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel5, org.openide.util.NbBundle.getBundle(OutputSynthEditor.class).getString("OutputSynthEditor.jLabel5.text")); // NOI18N
 
-        jScrollPane4.setBackground(null);
         jScrollPane4.setBorder(null);
 
-        helpTextArea2.setBackground(null);
         helpTextArea2.setColumns(20);
-        helpTextArea2.setRows(3);
+        helpTextArea2.setRows(4);
         helpTextArea2.setText(org.openide.util.NbBundle.getBundle(OutputSynthEditor.class).getString("OutputSynthEditor.helpTextArea2.text")); // NOI18N
         jScrollPane4.setViewportView(helpTextArea2);
 
@@ -731,7 +729,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
                         .addComponent(spn_audioLatency, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(jLabel5))
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(292, Short.MAX_VALUE))
+                .addContainerGap(279, Short.MAX_VALUE))
         );
 
         tabPane.addTab(org.openide.util.NbBundle.getMessage(OutputSynthEditor.class, "OutputSynthEditor.pnl_advanced.TabConstraints.tabTitle"), pnl_advanced); // NOI18N
