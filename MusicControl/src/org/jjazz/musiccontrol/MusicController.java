@@ -22,8 +22,6 @@
  */
 package org.jjazz.musiccontrol;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -232,8 +230,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Try to temporarily acquire the java sequencer opened and connected to the default Midi out device.
      * <p>
-     * You can acquire the sequencer only if MusicController is not in the PLAYING state. If acquisition is successful the
-     * MusicController is put in DISABLED state. When done with the sequencer, caller must call releaseSequencer(lockHolder).
+     * You can acquire the sequencer only if MusicController is in the STOPPED state. If acquisition is successful the
+     * MusicController is put in DISABLED state since it can't use the sequencer anymore. When the caller is done with the
+     * sequencer, he must call releaseSequencer(lockHolder) so that the MusicController can use it again.
      *
      * @param lockHolder Must be non-null
      * @return Null if sequencer has already a different lock or if MusicController is in the PLAYING state.
@@ -251,7 +250,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             // lock already acquired
             return sequencer;
-        } else if (sequencerLockHolder == null)
+        } else if (sequencerLockHolder == null && state.equals(State.STOPPED))
         {
             // lock acquired by external entity: get disabled
             sequencerLockHolder = lockHolder;
@@ -276,6 +275,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Release the external sequencer lock.
      * <p>
+     * Once released MusicController becomes able to take the Sequencer lock when playing music.
      *
      * @param lockHolder
      * @throws IllegalArgumentException If lockHolder does not match
@@ -523,7 +523,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 break;
             case PLAYING:
                 sequencer.stop();
-                clearPendingEvents();                
+                clearPendingEvents();
                 break;
             default:
                 throw new AssertionError(state.name());
@@ -565,7 +565,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         sequencer.stop();
         clearPendingEvents();
-        
+
         State old = getState();
         state = State.PAUSED;
         pcs.firePropertyChange(PROP_STATE, old, state);
