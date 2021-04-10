@@ -26,6 +26,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.MusicController;
@@ -66,7 +67,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
 
         // The model for the PositionViewer
         posModel = new Position();
-        
+
         // Listen to playbackState and position changes
         MusicController.getInstance().addPropertyChangeListener(this);
         MusicController.getInstance().addPlaybackListener(this);
@@ -119,20 +120,18 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     @Override
     public void beatChanged(final Position oldPos, final Position newPos)
     {
-        // Changes can be generated outside the EDT
-        Runnable run = new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                posModel.set(newPos);   // PositionViewer listens to posModel changes
-            }
-        };
-        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(run);
+        // Changes are generated outside the EDT
+        SwingUtilities.invokeLater(() -> posModel.set(newPos)); // PositionViewer listens to posModel changes
     }
 
     @Override
     public void barChanged(int oldBar, int newBar)
+    {
+        // Nothing
+    }
+
+    @Override
+    public void chordSymbolChanged(String cs)
     {
         // Nothing
     }

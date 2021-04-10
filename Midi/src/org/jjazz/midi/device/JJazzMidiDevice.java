@@ -32,7 +32,6 @@ import javax.sound.midi.*;
  */
 public class JJazzMidiDevice implements MidiDevice
 {
-
     protected String name;
     protected DeviceInfo devInfo;
     protected boolean isOpen = true;
@@ -123,13 +122,13 @@ public class JJazzMidiDevice implements MidiDevice
     @Override
     public List<Transmitter> getTransmitters()
     {
-        return transmitters;
+        return Collections.unmodifiableList(transmitters);
     }
 
     @Override
     public List<Receiver> getReceivers()
     {
-        return receivers;
+        return Collections.unmodifiableList(receivers);
     }
 
     //~ Classes =====================================================================================

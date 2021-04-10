@@ -234,7 +234,7 @@ public final class Position implements Comparable<Position>, Serializable
     {
         return beat >= (ts.getNbNaturalBeats() - 1);
     }
-
+        
     /**
      * True if position is at the half of the bar for the specified TimeSignature.
      * <p>

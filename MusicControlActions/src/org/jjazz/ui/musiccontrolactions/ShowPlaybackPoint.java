@@ -29,6 +29,7 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.SwingUtilities;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -264,25 +265,27 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
     @Override
     public void beatChanged(final Position oldPos, final Position newPos)
     {
-        // Changes can be generated outside the EDT
-        Runnable run = new Runnable()
+        // Changes are generated outside the EDT
+        SwingUtilities.invokeLater(() ->
         {
-            @Override
-            public void run()
+            if (currentCL_Editor != null)
             {
-                if (currentCL_Editor != null)
+                newSgsPos.set(newPos);
+                Position newClsPos = convertToClsPosition(newSgsPos);
+                if (newClsPos != null)
                 {
-                    newSgsPos.set(newPos);
-                    Position newClsPos = convertToClsPosition(newSgsPos);
-                    if (newClsPos != null)
-                    {
-                        currentCL_Editor.showPlaybackPoint(true, newClsPos);
-                    }
-                    currentRL_Editor.showPlaybackPoint(true, newSgsPos);
+                    currentCL_Editor.showPlaybackPoint(true, newClsPos);
                 }
+                currentRL_Editor.showPlaybackPoint(true, newSgsPos);
             }
-        };
-        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(run);
+        }
+        );
+    }
+
+    @Override
+    public void chordSymbolChanged(String cs)
+    {
+        // Nothing
     }
 
     @Override
@@ -427,7 +430,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                 case STOPPED:
                 case DISABLED:
                     songWasModifiedDuringPlayback = false;
-                    break;                                    
+                    break;
                 default:
                     throw new IllegalStateException("state=" + state + " currentCL_Editor=" + currentCL_Editor + " songWasModified=" + songWasModifiedDuringPlayback + " isEnabled()=" + isEnabled() + " getBooleanState()=" + getBooleanState());   //NOI18N
             }

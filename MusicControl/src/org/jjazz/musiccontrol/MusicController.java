@@ -22,6 +22,8 @@
  */
 package org.jjazz.musiccontrol;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -30,7 +32,10 @@ import java.beans.VetoableChangeListener;
 import java.beans.VetoableChangeSupport;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -38,11 +43,16 @@ import javax.sound.midi.ControllerEventListener;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaEventListener;
 import javax.sound.midi.MetaMessage;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Receiver;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
+import javax.sound.midi.Transmitter;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.harmony.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -55,6 +65,7 @@ import org.jjazz.midi.MidiUtilities;
 import org.jjazz.midi.JJazzMidiSystem;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.midimix.UserChannelRvKey;
+import org.jjazz.outputsynth.OutputSynthManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
@@ -63,6 +74,8 @@ import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.util.ResUtil;
+import org.jjazz.util.Utilities;
+import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 
 /**
@@ -72,8 +85,9 @@ import org.openide.util.NbPreferences;
  * - start/pause/stop/disabled state changes<br>
  * - pre-playing : vetoable change, ie listeners can fire a PropertyVetoException to prevent playback to start<br>
  * <p>
- * Use PlaybackListener to get notified of other events (bar/beat changes etc.) during playback. Note that PlaybackListeners will
- * be notified out of the Swing EDT.
+ * Use NoteListener to get notified of note ON/OFF events. Use PlaybackListener to get notified of other events (e.g. bar/beat
+ * changes) during playback. Note that listeners will be notified out of the Swing EDT.<br>
+ * The current output synth latency is taken into account to fire events to NoteListeners and PlaybackListeners.
  * <p>
  */
 public class MusicController implements PropertyChangeListener, MetaEventListener, ControllerEventListener
@@ -122,13 +136,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * The current beat position during playback.
      */
     Position currentBeatPosition = new Position();
-    // private final Sequencer sequencer;
     private int loopCount;
 
     /**
      * Sequencer lock by an external entity.
      */
     private Object sequencerLockHolder;
+    private int audioLatency;
     /**
      * The tempo factor to go from MidiConst.SEQUENCER_REF_TEMPO to song tempo.
      */
@@ -139,12 +153,21 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private float songPartTempoFactor = 1;
 
     /**
+     * Keep track of active timers used to compensate the audio latency.
+     * <p>
+     * Needed to force stop them when sequencer is stopped/paused by user.
+     */
+    private Set<Timer> audioLatencyTimers = new HashSet<>();
+    /**
+     * Our MidiReceiver to be able to fire events to NoteListeners and PlaybackListener (midiActivity).
+     */
+    private McReceiver receiver;
+    /**
      * The list of the controller changes listened to
      */
     private static final int[] listenedControllers =
     {
         MidiConst.CTRL_CHG_JJAZZ_BEAT_CHANGE,
-        MidiConst.CTRL_CHG_JJAZZ_ACTIVITY,
         MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR
     };
     /**
@@ -154,6 +177,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private final VetoableChangeSupport vcs = new VetoableChangeSupport(this);
     private final List<PlaybackListener> playbackListeners = new ArrayList<>();
+    private final List<NoteListener> noteListeners = new ArrayList<>();
     private static Preferences prefs = NbPreferences.forModule(MusicController.class);
     private static final Logger LOGGER = Logger.getLogger(MusicController.class.getSimpleName());  //NOI18N
 
@@ -178,14 +202,31 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         state = State.STOPPED;
         sequencer = JJazzMidiSystem.getInstance().getDefaultSequencer();
+        receiver = new McReceiver();
         initSequencer();
         sequencerLockHolder = null;
+
+
+        // Get notified of the notes sent by the Sequencer
+        try
+        {
+            Transmitter t = sequencer.getTransmitter();
+            t.setReceiver(receiver);
+        } catch (MidiUnavailableException ex)
+        {
+            // Should never occur
+            Exceptions.printStackTrace(ex);
+        }
 
         // Listen to click settings changes
         ClickManager.getInstance().addPropertyChangeListener(this);
 
-        // Listen to sequencer lock changes
-        JJazzMidiSystem.getInstance().addPropertyChangeListener(this);
+        // Listen to latency changes
+        var osm = OutputSynthManager.getInstance();
+        osm.addPropertyChangeListener(this);
+        audioLatency = osm.getOutputSynth().getAudioLatency();
+
+
     }
 
     /**
@@ -370,7 +411,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         // If we're here then playbackState = PAUSE or STOPPED
         if (mgContext.getBarRange().isEmpty())
         {
-            // Throw an exception to let the UI roll back (eg play button)
+            // Throw an exception to let the UI roll back (eg play stateful button)
             throw new MusicGenerationException(ResUtil.getString(getClass(), "NOTHING TO PLAY"));
         }
 
@@ -383,7 +424,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         Analytics.logEvent("Play", Analytics.buildMap("Bar Range", mgContext.getBarRange().toString(), "Rhythms", Analytics.toStrList(mgContext.getUniqueRhythms())));
         Analytics.incrementProperties("Nb Play", 1);
         Analytics.setPropertiesOnce(Analytics.buildMap("First Play", Analytics.toStdDateTimeString()));
-        
+
 
         // Regenerate the sequence and the related data if needed
         if (playbackContext.isDirty())
@@ -482,6 +523,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 break;
             case PLAYING:
                 sequencer.stop();
+                clearPendingEvents();                
                 break;
             default:
                 throw new AssertionError(state.name());
@@ -522,7 +564,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
 
         sequencer.stop();
-
+        clearPendingEvents();
+        
         State old = getState();
         state = State.PAUSED;
         pcs.firePropertyChange(PROP_STATE, old, state);
@@ -548,6 +591,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         return postProcessors;
     }
 
+    /**
+     * The current playback position updated at every beat (beat is an integer).
+     *
+     * @return
+     */
     public Position getBeatPosition()
     {
         return currentBeatPosition;
@@ -638,6 +686,26 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
+     * Add a listener of note ON/OFF events.
+     * <p>
+     * Listeners will be called out of the Swing EDT (Event Dispatch Thread).
+     *
+     * @param listener
+     */
+    public synchronized void addNoteListener(NoteListener listener)
+    {
+        if (!noteListeners.contains(listener))
+        {
+            noteListeners.add(listener);
+        }
+    }
+
+    public synchronized void removeNoteListener(NoteListener listener)
+    {
+        noteListeners.remove(listener);
+    }
+
+    /**
      * Add a listener to be notified of playback bar/beat changes events etc.
      * <p>
      * Listeners will be called out of the Swing EDT (Event Dispatch Thread).
@@ -701,15 +769,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         int data1 = event.getData1();
         switch (data1)
         {
-            case MidiConst.CTRL_CHG_JJAZZ_MARKER_SYNC:
-                // Not used for now
-                break;
-            case MidiConst.CTRL_CHG_JJAZZ_CHORD_CHANGE:
-                // Not used for now
-                break;
-            case MidiConst.CTRL_CHG_JJAZZ_ACTIVITY:
-                fireMidiActivity(event.getChannel(), tick);
-                break;
             case MidiConst.CTRL_CHG_JJAZZ_BEAT_CHANGE:
                 int index = (int) (tick / MidiConst.PPQ_RESOLUTION);
                 long remainder = tick % MidiConst.PPQ_RESOLUTION;
@@ -719,12 +778,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                     index = playbackContext.naturalBeatPositions.size() - 1;
                 }
                 Position newPos = playbackContext.naturalBeatPositions.get(index);
-                setCurrentBeatPosition(newPos.getBar(), newPos.getBeat());
+                updateCurrentBeatPosition(newPos.getBar(), newPos.getBeat());
                 break;
+
             case MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR:
                 songPartTempoFactor = MidiUtilities.getTempoFactor(event);
                 updateTempoFactor();
                 break;
+
             default:
                 LOGGER.log(Level.WARNING, "controlChange() controller event not managed data1={0}", data1);  //NOI18N
                 break;
@@ -741,16 +802,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             // This method  is called from the Sequencer thread, NOT from the EDT !
             // So if this method impacts the UI, it must use SwingUtilities.InvokeLater() (or InvokeAndWait())
-            LOGGER.fine("Sequence end reached");  //NOI18N
-            Runnable doRun = new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    stop();
-                }
-            };
-            SwingUtilities.invokeLater(doRun);
+            LOGGER.fine("Sequence end reached");  //NOI18N        
+            SwingUtilities.invokeLater(() -> stop());
+        } else if (meta.getType() == 6)     // Marker for chord symbols
+        {
+            fireChordSymbolChanged(Utilities.toString(meta.getData()));
         }
     }
 
@@ -765,6 +821,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     public void propertyChange(PropertyChangeEvent e)
     {
         LOGGER.log(Level.FINE, "propertyChange() e={0}", e);  //NOI18N
+
+        // Always enabled changes
+        if (e.getSource() == OutputSynthManager.getInstance())
+        {
+            if (e.getPropertyName().equals(OutputSynthManager.PROP_AUDIO_LATENCY))
+            {
+                audioLatency = (int) e.getNewValue();
+            }
+        }
 
         // Below property changes are meaningless if no context or if state is DISABLED
         if (mgContext == null || state.equals(State.DISABLED))
@@ -849,6 +914,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             LOGGER.severe("This sequencer implementation is limited, music playback may not work");  //NOI18N
         }
         sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
+        receiver.setEnabled(true);
     }
 
     /**
@@ -858,6 +924,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         sequencer.removeMetaEventListener(this);
         sequencer.removeControllerEventListener(this, listenedControllers);
+        receiver.setEnabled(false);
     }
 
     /**
@@ -870,22 +937,27 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private void setPosition(int fromBar)
     {
-        assert !state.equals(State.DISABLED);   //NOI18N
+        assert !state.equals(State.DISABLED);
 
         long tick = 0;       // Default when fromBar==0 and click precount is true
-        if (mgContext != null)
+        if (ClickManager.getInstance().isClickPrecountEnabled())
         {
-            int relativeBar = fromBar - mgContext.getBarRange().from;
-            if (relativeBar > 0 || !ClickManager.getInstance().isClickPrecountEnabled())
+            // Start from 0 to get the precount notes
+        } else if (mgContext != null)
+        {
+            tick = playbackContext.songTickStart;   // Bar 0 of the range            
+            if (fromBar > mgContext.getBarRange().from)
             {
-                // No precount
-                tick = playbackContext.songTickStart + mgContext.getRelativeTick(new Position(relativeBar, 0));
+                tick += mgContext.getRelativeTick(new Position(fromBar, 0));
             }
+        } else
+        {
+            throw new IllegalStateException("setPosition() fromBar=" + fromBar);
         }
 
         sequencer.setTickPosition(tick);
 
-        setCurrentBeatPosition(fromBar, 0);
+        updateCurrentBeatPosition(fromBar, 0);
     }
 
     /**
@@ -923,45 +995,165 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
     }
 
+    private void fireChordSymbolChanged(String chordSymbol)
+    {
+        fireLatencyAwareEvent(() ->
+        {
+            for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
+            {
+                pl.chordSymbolChanged(chordSymbol);
+            }
+        });
+    }
+
     private void fireBeatChanged(Position oldPos, Position newPos)
     {
-        for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
+        fireLatencyAwareEvent(() ->
         {
-            pl.beatChanged(oldPos, newPos);
-        }
+            for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
+            {
+                pl.beatChanged(oldPos, newPos);
+            }
+        });
+    }
+
+    private void fireNoteOn(long tick, int channel, int pitch, int velocity)
+    {
+        fireLatencyAwareEvent(() ->
+        {
+            for (NoteListener l : noteListeners.toArray(new NoteListener[0]))
+            {
+                l.noteOn(tick, channel, pitch, velocity);
+            }
+        });
+    }
+
+    private void fireNoteOff(long tick, int channel, int pitch)
+    {
+        fireLatencyAwareEvent(() ->
+        {
+            for (NoteListener l : noteListeners.toArray(new NoteListener[0]))
+            {
+                l.noteOff(tick, channel, pitch);
+            }
+        });
     }
 
     private void fireBarChanged(int oldBar, int newBar)
     {
-        for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
+        fireLatencyAwareEvent(() ->
         {
-            pl.barChanged(oldBar, newBar);
-        }
+            for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
+            {
+                pl.barChanged(oldBar, newBar);
+            }
+        });
     }
 
     private void fireMidiActivity(int channel, long tick)
     {
-        for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
+        fireLatencyAwareEvent(() ->
         {
-            pl.midiActivity(channel, tick);
+            for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
+            {
+                pl.midiActivity(channel, tick);
+            }
+        });
+    }
+
+    /**
+     * Fire an event after a time delay to take into account the current output synth latency.
+     * <p>
+     * Active timers are available in audioLatencyTimers.
+     *
+     * @param r
+     */
+    private void fireLatencyAwareEvent(Runnable r)
+    {
+        if (audioLatency == 0)
+        {
+            r.run();
+        } else
+        {
+            Timer t = new Timer(audioLatency, evt ->
+            {
+                r.run();
+            });
+            t.addActionListener(evt -> audioLatencyTimers.remove(t));
+            t.setRepeats(false);
+            audioLatencyTimers.add(t);
+            t.start();
         }
     }
 
     /**
-     * Start the sequencer with the bug fix (tempo reset at 120 upon each start).
+     * When sequencer is stopped or paused, make sure there is no pending events.
+     */
+    private void clearPendingEvents()
+    {
+        for (Iterator<Timer> it = audioLatencyTimers.iterator(); it.hasNext();)
+        {
+            it.next().stop();
+            it.remove();
+        }
+    }
+
+    /**
+     * Start the sequencer with the bug fix (tempo reset at 120 upon each start) + possibly fire a chord change event.
+     * <p>
+     * If there is no chord symbol at current position, then fire a chord change event using the previous chord symbol (ie the
+     * current chord symbol at this start position).
      */
     private void seqStart()
     {
         assert !state.equals(State.DISABLED);   //NOI18N
 
+
+        // Fire a chord symbol change if no chord symbol at current position (current chord symbol is the previous one)
+        if (mgContext != null && playbackContext != null)
+        {
+            long relativeTick = sequencer.getTickPosition() - playbackContext.songTickStart;    // Can be negative if precount is ON
+            Position pos = mgContext.getClsPosition(relativeTick);
+            if (pos != null)
+            {
+                CLI_ChordSymbol lastCliCs = null;
+                for (CLI_ChordSymbol cliCs : mgContext.getSong().getChordLeadSheet().getItems(0, pos.getBar(), CLI_ChordSymbol.class
+                ))
+                {
+                    if (cliCs.getPosition().equals(pos))
+                    {
+                        // Found a chord symbol at the exact position, do nothing
+                        lastCliCs = null;
+                        break;
+                    } else if (cliCs.getPosition().compareTo(pos) < 0)
+                    {
+                        // Save the previous chord symbol
+                        lastCliCs = cliCs;
+                    } else
+                    {
+                        // We're past the target position, don't search anymore
+                        break;
+                    }
+                }
+
+                if (lastCliCs != null)
+                {
+                    // Fire the event
+                    fireChordSymbolChanged(lastCliCs.getData().getOriginalName());
+                }
+            }
+        }
+
+
         sequencer.start();
+
 
         // JDK -11 BUG: start() resets tempo at 120 !
         sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
 
     }
 
-    private void setCurrentBeatPosition(int bar, float beat)
+    private void updateCurrentBeatPosition(int bar, float beat)
     {
         assert !state.equals(State.DISABLED);   //NOI18N
 
@@ -1002,6 +1194,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         if (JJazzMidiSystem.getInstance().getDefaultOutDevice() == null)
         {
             throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_NoMidiOutputDeviceSet"));
+
+
         }
     }
 
@@ -1041,7 +1235,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         private HashMap<RhythmVoice, Integer> mapRvTrackId;
 
         /**
-         * Create a "dirty" object (needs to be updated) and build the sequence.
+         * Save context data and build the sequence.
+         * <p>
+         * Object will be "clean" if sequence was successfully built, otherwise it's "dirty" (sequence needs to be updated).
          *
          * @param context
          * @param MusicGenerator.PostProcessor[] Optional postprocessors
@@ -1062,7 +1258,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         /**
          * Prepare the sequencer to play the specified song.
          * <p>
-         * Create the sequence and load it in the sequencer. Store all the other related sequence-dependent data in this object.
+         * Create the sequence and load it into the sequencer. Store all the other related sequence-dependent data in this object.
          * Object is now "clean".
          *
          * @param song
@@ -1130,7 +1326,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
                 // Set position and loop points
                 sequencer.setLoopStartPoint(songTickStart);
-                songTickEnd = (long) (songTickStart + workMgContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
+                songTickEnd = songTickStart + Math.round(workMgContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
                 sequencer.setLoopEndPoint(songTickEnd);
 
 
@@ -1291,4 +1487,146 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
     }
 
+    /**
+     * Our Midi Receiver used to fire events to NoteListeners and PlaybackListener.midiActivity().
+     * <p>
+     * Events are fired taking into account the current output synth latency.
+     * <p>
+     */
+    private class McReceiver implements Receiver
+    {
+
+        /**
+         * Fire only one Activity event for this period of time, even if there are several notes.
+         */
+        public static final int ACTIVITY_MIN_PERIOD = MidiConst.PPQ_RESOLUTION / 4;
+
+        // Store the last Note On tick position for each note. Use -1 if initialized.
+        private long lastNoteOnTick[] = new long[16];
+        private boolean enabled;
+
+        public McReceiver()
+        {
+            setEnabled(true);
+        }
+
+        /**
+         * @return the enabled
+         */
+        public boolean isEnabled()
+        {
+            return enabled;
+        }
+
+        /**
+         * Enable or disable this receiver.
+         *
+         *
+         * @param enabled the enabled to set
+         */
+        public void setEnabled(boolean enabled)
+        {
+            if (this.enabled != enabled)
+            {
+                this.enabled = enabled;
+                reset();
+            }
+        }
+
+        @Override
+        public void send(MidiMessage msg, long timeStamp)
+        {
+            if (!enabled)
+            {
+                return;
+            }
+
+            if (msg instanceof ShortMessage)
+            {
+                ShortMessage sm = (ShortMessage) msg;
+
+                if (playbackListeners.isEmpty() && noteListeners.isEmpty())
+                {
+                    return;
+                }
+
+
+                if (sm.getCommand() == ShortMessage.NOTE_ON)
+                {
+                    int pitch = sm.getData1();
+                    int velocity = sm.getData2();
+                    if (velocity > 0)
+                    {
+                        noteOnReceived(sm.getChannel(), pitch, velocity);
+                    } else
+                    {
+                        noteOffReceived(sm.getChannel(), pitch);
+                    }
+
+
+                } else if (sm.getCommand() == ShortMessage.NOTE_OFF)
+                {
+                    int pitch = sm.getData1();
+                    noteOffReceived(sm.getChannel(), pitch);
+                }
+            }
+        }
+
+        @Override
+        public void close()
+        {
+            // Do nothing
+        }
+
+        /**
+         * Reset internal state.
+         */
+        private void reset()
+        {
+            for (int i = 0; i < 16; i++)
+            {
+                lastNoteOnTick[i] = -1;
+            }
+        }
+
+        /**
+         * Get the tick from the Sequencer.
+         * <p>
+         * NOTE: do NOT call if sequencer has just been stopped: DEADLOCK! See RealTimeSequencer.java/PlayThread.run()
+         * comment.<br>
+         * When Sequencer.stop() (synchronized) is called, its PlayThread may be in the process of sending a last noteevent, so
+         * this receiver gets the note, and getTickPosition() is called, but getTickPosition() is synchronized so it waits for the
+         * lock, and the app freezes.
+         *
+         * @return -1 if sequencer is not running
+         */
+        private long getTick()
+        {
+            return sequencer.isRunning() ? sequencer.getTickPosition() - playbackContext.songTickStart : -1;
+        }
+
+        private void noteOnReceived(int channel, int pitch, int velocity)
+        {
+            long tick = getTick();
+            long lastTick = lastNoteOnTick[channel];
+            if (lastTick > -1 && tick - lastTick > ACTIVITY_MIN_PERIOD)
+            {
+                fireMidiActivity(channel, tick);
+            }
+            lastNoteOnTick[channel] = tick;
+            if (enabled)
+            {
+                fireNoteOn(tick, channel, pitch, velocity);
+            }
+        }
+
+        private void noteOffReceived(int channel, int pitch)
+        {
+            if (enabled)
+            {
+                fireNoteOff(getTick(), channel, pitch);
+            }
+        }
+
+    }
 }

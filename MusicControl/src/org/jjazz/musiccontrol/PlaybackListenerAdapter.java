@@ -49,4 +49,10 @@ public class PlaybackListenerAdapter implements PlaybackListener
     {
         // Do nothing
     }
+
+    @Override
+    public void chordSymbolChanged(String chordSymbol)
+    {
+        // Do nothing
+    }
 }

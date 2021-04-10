@@ -86,12 +86,14 @@ public class OutputSynth implements Serializable
      * oldValue=old UserInstrument, newValue=new UserInstrument
      */
     public static final String PROP_USER_INSTRUMENT = "PROP_USER_INSTRUMENT";   //NOI18N 
+    public final static String PROP_AUDIO_LATENCY_MS = "PropAudioLatencyMs";
 
     private final List<InstrumentBank<?>> compatibleStdBanks;
     private final List<MidiSynth> customSynths;
     protected GMRemapTable remapTable;
     private Instrument userInstrument;
     private SendModeOnUponStartup sendModeOnUponPlay;
+    private int audioLatency;
     private File file;
     private static final Logger LOGGER = Logger.getLogger(OutputSynth.class.getSimpleName());
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
@@ -108,6 +110,7 @@ public class OutputSynth implements Serializable
         remapTable.setContainer(this);
         userInstrument = StdSynth.getInstance().getGM1Bank().getInstrument(0);  // Piano
         sendModeOnUponPlay = SendModeOnUponStartup.GM;
+        audioLatency = 0;    // ms
     }
 
     /**
@@ -127,6 +130,7 @@ public class OutputSynth implements Serializable
         customSynths.addAll(os.customSynths);
         userInstrument = os.userInstrument;
         sendModeOnUponPlay = os.getSendModeOnUponPlay();
+        audioLatency = os.audioLatency;
     }
 
     public GMRemapTable getGMRemapTable()
@@ -157,6 +161,30 @@ public class OutputSynth implements Serializable
         remapTable.clear();
         setUserInstrument(StdSynth.getInstance().getGM1Bank().getInstrument(0));
         setSendModeOnUponPlay(SendModeOnUponStartup.GM);
+        setAudioLatency(0);
+    }
+
+    public int getAudioLatency()
+    {
+        return audioLatency;
+    }
+
+    /**
+     * Set the output synth latency.
+     * <p>
+     * Fire a PROP_AUDIO_LATENCY_MS change event.
+     *
+     * @param latencyMs In milliseconds [0-9999]
+     */
+    public void setAudioLatency(int latencyMs)
+    {
+        if (latencyMs < 0 || latencyMs >= 10000)
+        {
+            throw new IllegalArgumentException("latencyMs=" + latencyMs);
+        }
+        int old = audioLatency;
+        audioLatency = latencyMs;
+        pcs.firePropertyChange(PROP_AUDIO_LATENCY_MS, old, latencyMs);
     }
 
     /**
@@ -870,6 +898,7 @@ public class OutputSynth implements Serializable
         private GMRemapTable spRemapTable;
         private Instrument spUserInstrument;
         private SendModeOnUponStartup spSendModeOnUponPlay;
+        private int spAudioLatency;
 
         protected SerializationProxy(OutputSynth outSynth)
         {
@@ -895,6 +924,7 @@ public class OutputSynth implements Serializable
             spRemapTable = new GMRemapTable(outSynth.getGMRemapTable());
             spUserInstrument = outSynth.getUserInstrument();
             spSendModeOnUponPlay = outSynth.getSendModeOnUponPlay();
+            spAudioLatency = outSynth.getAudioLatency();
         }
 
         private Object readResolve() throws ObjectStreamException
@@ -943,6 +973,7 @@ public class OutputSynth implements Serializable
                 outSynth.setUserInstrument(spUserInstrument);
             }
             outSynth.setSendModeOnUponPlay(spSendModeOnUponPlay);
+            outSynth.setAudioLatency(spAudioLatency);
             return outSynth;
         }
     }

@@ -27,8 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
-import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
@@ -48,7 +48,6 @@ import org.jjazz.util.IntRange;
 public class ControlTrackBuilder
 {
 
-    public static final int ACTIVITY_MIN_PERIOD = MidiConst.PPQ_RESOLUTION / 4;
     public static String TRACK_NAME = "JJazzControlTrack";
     private MusicGenerationContext context;
     /**
@@ -69,8 +68,8 @@ public class ControlTrackBuilder
     /**
      * Add a control track for the given context with the following events:
      * <p>
-     * - a CTRL_CHG_JJAZZ_CHORD_CHANGE Midi Event at every chord change<br>
-     * - a CTRL_CHG_JJAZZ_BEAT_CHANGE Midi Event at every beat change<br>
+     * - a marker event for each chord symbol (text=original name of the chord symbol)<br>
+     * - a CTRL_CHG_JJAZZ_BEAT_CHANGE Midi event at every beat change<br>
      *
      * @param sequence The sequence for which we add the control track.
      * @return the index of the track in the sequence.
@@ -95,9 +94,6 @@ public class ControlTrackBuilder
         {
             tick = fillControlTrack(track, tick, spt);
         }
-
-        // Add the Midi Activity controller messages
-        addActivityMessages(sequence, track);
 
         // Set EndOfTrack
         long lastTick = (long) (context.getBeatRange().size() * MidiConst.PPQ_RESOLUTION) + 1;
@@ -126,7 +122,7 @@ public class ControlTrackBuilder
      * Update the naturalBeatPositions list.
      *
      * @param track
-     * @param tickOffset
+     * @param tickOffset Will be 0 for the first SongPart
      * @param spt
      * @return The tick position corresponding to the start of next spt.
      */
@@ -151,64 +147,45 @@ public class ControlTrackBuilder
             track.add(new MidiEvent(sm, tick));
         }
 
-        // Add CTRL_CHG_JJAZZ_CHORD_CHANGE events every chord
+
+        // Add Marker Meta events for all chord symbol in the context range
+        // Make sure that there is a marker at the beginning of the context range 
+        // (this might be required only for the first song part, if context range.from is > spt.startBarIndex
         CLI_Section section = spt.getParentSection();
         ChordLeadSheet cls = section.getContainer();
-        for (CLI_ChordSymbol cli : cls.getItems(section, CLI_ChordSymbol.class))
+        var items = cls.getItems(section, CLI_ChordSymbol.class);
+        assert !items.isEmpty();
+        CLI_ChordSymbol prevCli = null;
+        boolean firstChordSymbolInRange = true;
+
+        for (CLI_ChordSymbol cli : items)
         {
             Position ssPos = context.getSong().getSongStructure().getSptItemPosition(spt, cli);
-            long tick = context.getRelativeTick(ssPos); 
+            long tick = context.getRelativeTick(ssPos);
             LOGGER.log(Level.FINE, "fillControlTrack() cli={0} tick={1} ssPos={2}", new Object[]   //NOI18N
             {
                 cli, tick, ssPos
             });
             if (tick != -1)
             {
-                ShortMessage sm = MidiUtilities.getJJazzChordChangeControllerMessage(MidiConst.CHANNEL_MIN);
-                track.add(new MidiEvent(sm, tick));
+                MetaMessage mm = MidiUtilities.getMarkerMetaMessage(cli.getData().getOriginalName());
+                // tick+1 is a hack, otherwise when tick==0 the first Meta event is sometimes not fired! Don't know why
+                track.add(new MidiEvent(mm, tick + 1));
+                if (firstChordSymbolInRange && tickOffset == 0 && tick > 0)
+                {
+                    assert prevCli != null : "spt=" + spt + " cli=" + cli + " tick=" + tick;
+                    // Need to add an initial chord symbol (context range might start in the middle of the section)
+                    mm = MidiUtilities.getMarkerMetaMessage(prevCli.getData().getOriginalName());
+                    track.add(new MidiEvent(mm, 1));            // 1 instead of 0, see hack explanation above 
+                }
+                firstChordSymbolInRange = false;
             }
+
+            prevCli = cli;
         }
+
 
         return (long) (tickOffset + nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
     }
 
-    /**
-     * Add CTRL_CHG_JJAZZ_ACTIVITY controller messages for each NOTE_ON on each channel.
-     * <p>
-     * For a given channel add a single CTRL_CHG_JJAZZ_ACTIVITY message if several NOTE_ONs start within the same ACTIVITY_MIN_PERIOD.
-     *
-     * @param sequence  The track to analyze
-     * @param ctrlTrack Where CTRL_CHG_JJAZZ_ACTIVITY messages will be added
-     */
-    private void addActivityMessages(Sequence sequence, Track ctrlTrack)
-    {
-        int nbChannels = MidiConst.CHANNEL_MAX - MidiConst.CHANNEL_MIN + 1;
-        long[] lastActivityTick = new long[nbChannels];
-
-        for (Track track : sequence.getTracks())
-        {
-            for (int i = 0; i < nbChannels; i++)
-            {
-                lastActivityTick[i] = -2 * ACTIVITY_MIN_PERIOD;
-            }
-            for (int i = 0; i < track.size(); i++)
-            {
-                MidiEvent me = track.get(i);
-                MidiMessage mm = me.getMessage();
-                if (!(mm instanceof ShortMessage) || ((ShortMessage) mm).getCommand() != ShortMessage.NOTE_ON)
-                {
-                    continue;
-                }
-                int channel = ((ShortMessage) mm).getChannel();
-                long tick = me.getTick();
-                if (tick - lastActivityTick[channel] > ACTIVITY_MIN_PERIOD)
-                {
-                    ShortMessage controlSm = MidiUtilities.getJJazzActivityControllerMessage(channel);
-                    MidiEvent ctrlMe = new MidiEvent(controlSm, tick);
-                    ctrlTrack.add(ctrlMe);
-                    lastActivityTick[channel] = tick;
-                }
-            }
-        }
-    }
 }

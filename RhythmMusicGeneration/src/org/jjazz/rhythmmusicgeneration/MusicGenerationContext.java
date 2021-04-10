@@ -25,6 +25,7 @@ package org.jjazz.rhythmmusicgeneration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midimix.MidiMix;
@@ -302,6 +303,41 @@ public class MusicGenerationContext
             rvs.addAll(r.getRhythmVoices());
         }
         return rvs;
+    }
+
+    /**
+     * Convert a tick position relative to this context into an absolute SongStructure Position.
+     *
+     * @param relativeTick 0 for the start of this context bar range.
+     * @return Null if tick is out of the bounds of this context.
+     */
+    public Position getPosition(long relativeTick)
+    {
+        FloatRange br = getBeatRange();
+        float absPosInBeats = br.from + (float) relativeTick / MidiConst.PPQ_RESOLUTION;
+        if (!br.contains(absPosInBeats, true))
+        {
+            return null;
+        }
+        return song.getSongStructure().getPosition(absPosInBeats);
+    }
+
+    /**
+     * Convert a tick position relative to this context into a ChordLeadSheet Position.
+     *
+     * @param relativeTick
+     * @return Null if tick is out of the bounds of this context.
+     */
+    public Position getClsPosition(long relativeTick)
+    {
+        Position ssPos = getPosition(relativeTick);
+        if (ssPos == null)
+        {
+            return null;
+        }
+        SongPart spt = song.getSongStructure().getSongPart(ssPos.getBar());
+        int sectionBar = spt.getParentSection().getPosition().getBar();
+        return new Position(ssPos.getBar() - spt.getStartBarIndex() + sectionBar, ssPos.getBeat());
     }
 
     /**

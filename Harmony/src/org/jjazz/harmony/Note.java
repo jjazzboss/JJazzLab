@@ -33,7 +33,6 @@ import org.jjazz.util.ResUtil;
  */
 public class Note implements Comparable<Note>, Cloneable
 {
-
     public static final int VELOCITY_MIN = 0;
     public static final int VELOCITY_STD = 100;
     public static final int VELOCITY_MAX = 127;
@@ -702,11 +701,11 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * @return "D!-1" "D!3". This is the Midi octave convention: pitch=0-11 corresponds to Midi octave -1, C!0 is Midi pitch=12.
+     * @return E.g "D-1" or "Eb3". This is the Midi octave convention: pitch=0-11 corresponds to Midi octave -1, C0 is Midi pitch=12.
      */
     public String toAbsoluteNoteString()
     {
-        return toRelativeNoteString() + "!" + (getOctave() - 1);
+        return toRelativeNoteString() + (getOctave() - 1);
     }
 
     //----------------------------------------------------------------------------------------------

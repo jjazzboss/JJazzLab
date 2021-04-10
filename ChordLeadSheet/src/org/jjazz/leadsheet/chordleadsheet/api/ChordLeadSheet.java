@@ -193,7 +193,7 @@ public interface ChordLeadSheet
     public List<ChordLeadSheetItem<?>> getItems();
 
     /**
-     * Get all the items of this leadsheet which match a specicic class.
+     * Get all the items of this leadsheet which match a specific class.
      *
      * @param <T>
      * @param aClass Return only items which are instance of class cl. If null all items are returned.

@@ -52,22 +52,16 @@ import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Manage the Midi IN and OUT devices for the JJazz application, plus some
- * convenience methods.
+ * Manage the Midi IN and OUT devices for the JJazz application, plus some convenience methods.
  * <p>
- * Scan the available Midi IN/OUT devices at startup. Restore the default Midi
- * IN/OUT devices when possible using Preferences.
+ * Scan the available Midi IN/OUT devices at startup. Restore the default Midi IN/OUT devices when possible using Preferences.
  * <p>
- * The application should only connect to JJazzMidiIn and JJazzMidiOut virtual
- * devices. These devices are implemented by a
- * MidiFilter object, enabling filtering and dumping. These devices are
- * connected internally to the selected physical MIDI In/Out
+ * The application should only connect to JJazzMidiIn and JJazzMidiOut virtual devices. These devices are implemented by a
+ * MidiFilter object, enabling filtering and dumping. These devices are connected internally to the selected physical MIDI In/Out
  * devices.
  * <p>
- * Manage a Midi master volume: a factor between 0 and 2 (default=1) which is
- * used on all volume Midi messages.
+ * Manage a Midi master volume: a factor between 0 and 2 (default=1) which is used on all volume Midi messages.
  */
-
 public final class JJazzMidiSystem
 {
 
@@ -146,8 +140,7 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * Collect midi devices information, open the default sequencer, restore the
-     * default Midi devices, thru mode, send startup
+     * Collect midi devices information, open the default sequencer, restore the default Midi devices, thru mode, send startup
      * initialization messages, etc.
      */
     private JJazzMidiSystem()
@@ -259,8 +252,7 @@ public final class JJazzMidiSystem
     /**
      * Scan the MidiSystem for IN MidiDevices.
      *
-     * @return A List containing the MIDI out devices. Java Sequencer is
-     * excluded.
+     * @return A List containing the MIDI out devices. Java Sequencer is excluded.
      */
     public List<MidiDevice> getInDeviceList()
     {
@@ -289,8 +281,7 @@ public final class JJazzMidiSystem
     /**
      * Scan the MidiSystem for OUT MidiDevices.
      *
-     * @return A List containing the available MIDI out devices, excluding the
-     * Java synth and the Java Sequencer.
+     * @return A List containing the available MIDI out devices, excluding the Java synth and the Java Sequencer.
      */
     public List<MidiDevice> getOutDeviceList()
     {
@@ -426,13 +417,11 @@ public final class JJazzMidiSystem
     /**
      * Try to load the soundfont2 (or DLS) file in the default Java synth.
      * <p>
-     * Previous soundbank instruments are unloaded first. This triggers a
-     * specific task since loading a soundfont can take some
+     * Previous soundbank instruments are unloaded first. This triggers a specific task since loading a soundfont can take some
      * time.
      *
      * @param f
-     * @param silentRun If false wait until completion of the task and show
-     * progress bar. If true nothing is shown and method
+     * @param silentRun If false wait until completion of the task and show progress bar. If true nothing is shown and method
      * immediatly returns true.
      * @return true If success. If silentRun=true always return true.
      */
@@ -472,12 +461,12 @@ public final class JJazzMidiSystem
                 LOGGER.log(Level.WARNING, "loadSoundbankFileOnSynth() {0}", ex.getMessage());   //NOI18N
                 return;
             }
-            
+
             if (!synth.isSoundbankSupported(newSb))
             {
                 return;
             }
-            
+
             if (lastLoadedSoundbank != null)
             {
                 try
@@ -524,12 +513,10 @@ public final class JJazzMidiSystem
     /**
      * Connect the output of JJazzMidiOut device to this device.
      * <p>
-     * Fire a PROP_MIDI_OUT property chane event.property change event if device
-     * is modified.
+     * Fire a PROP_MIDI_OUT property chane event.property change event if device is modified.
      *
      * @param md Can be null.
-     * @throws javax.sound.midi.MidiUnavailableException If exception occurs,
-     * the default IN device is unchanged.
+     * @throws javax.sound.midi.MidiUnavailableException If exception occurs, the default IN device is unchanged.
      */
     public void setDefaultOutDevice(MidiDevice md) throws MidiUnavailableException
     {
@@ -590,8 +577,7 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * Close the default out device. Special handling of the Java Internal
-     * Synth.
+     * Close the default out device. Special handling of the Java Internal Synth.
      */
     public void closeDefaultOutDevice()
     {
@@ -625,8 +611,7 @@ public final class JJazzMidiSystem
      * Fire a PROP_MIDI_IN property change event if device is modified.
      *
      * @param md Can be null.
-     * @throws javax.sound.midi.MidiUnavailableException If exception occurs,
-     * the default IN device is unchanged.
+     * @throws javax.sound.midi.MidiUnavailableException If exception occurs, the default IN device is unchanged.
      */
     public void setDefaultInDevice(MidiDevice md) throws MidiUnavailableException
     {
@@ -726,8 +711,7 @@ public final class JJazzMidiSystem
     /**
      * The Midi panic method.
      * <p>
-     * Send ALL_NOTES_OFF + SUSTAIN OFF + RESET_ALL_CONTROLLERS on all channels
-     * on the default JJazz midi out device.
+     * Send ALL_NOTES_OFF + SUSTAIN OFF + RESET_ALL_CONTROLLERS on all channels on the default JJazz midi out device.
      */
     public void panic()
     {
@@ -776,8 +760,7 @@ public final class JJazzMidiSystem
     /**
      * Get the default Jazz Midi Out device MidiFilter log config.
      * <p>
-     * Can be used to adjust Midi Out log settings, e.g:
-     * getMidiOutLogConfig().add(MidiFilter.ConfigLog.LOG_ALL_PASSED);
+     * Can be used to adjust Midi Out log settings, e.g: getMidiOutLogConfig().add(MidiFilter.ConfigLog.LOG_ALL_PASSED);
      *
      * @return
      */
@@ -822,8 +805,7 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * Send the specified MidiMessages on the JJazzMidiOut device with timing -1
-     * (immediate play).
+     * Send the specified MidiMessages on the JJazzMidiOut device with timing -1 (immediate play).
      * <p>
      * Midi volume messages are multiplicated by the master volume factor.
      *
@@ -850,7 +832,7 @@ public final class JJazzMidiSystem
                             sm.setMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_VOLUME_MSB, newVol);
                         } catch (InvalidMidiDataException ex)
                         {
-                            LOGGER.warning("sendMidiMessagesOnJJazzMidiOut() problem applying master volume :" + ex.getMessage());   //NOI18N
+                            LOGGER.log(Level.WARNING, "sendMidiMessagesOnJJazzMidiOut() problem applying master volume :{0}", ex.getMessage());   //NOI18N
                         }
                     }
                 }
@@ -875,8 +857,7 @@ public final class JJazzMidiSystem
     /**
      * Get a friendly name for a MidiDevice.
      * <p>
-     * For now only used to rename the Java default synth (sometimes "Gervill")
-     * to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name
+     * For now only used to rename the Java default synth (sometimes "Gervill") to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name
      * otherwise.
      *
      * @param md
@@ -911,8 +892,7 @@ public final class JJazzMidiSystem
     }
 
     /**
-     * Find the MidiDevice whose Device.Info.name() is equals to mdName in the
-     * devices list.
+     * Find the MidiDevice whose Device.Info.name() is equals to mdName in the devices list.
      *
      * @param midiDevices
      * @param mdName

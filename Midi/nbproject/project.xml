@@ -113,6 +113,7 @@
                 <package>org.jjazz.midi.spi</package>
                 <package>org.jjazz.midi.synths</package>
                 <package>org.jjazz.midi.ui</package>
+                <package>org.jjazz.midi.ui.keyboard</package>
             </public-packages>
         </data>
     </configuration>
