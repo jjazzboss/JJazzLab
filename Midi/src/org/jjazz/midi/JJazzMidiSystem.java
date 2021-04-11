@@ -152,15 +152,18 @@ public final class JJazzMidiSystem
         receiverJJazzOut = jjazzMidiOut.getReceiver();
         receiverPhysicalIn2JJazzIn = jjazzMidiIn.getReceiver();
 
+        
         // Connect MidiIn to MidiOut to manage MidiThru
         thruFilter = new MidiFilter("[Midi Thru filter]");
         jjazzMidiIn.getTransmitter().setReceiver(thruFilter.getReceiver());
         thruFilter.getTransmitter().setReceiver(jjazzMidiOut.getReceiver());
 
+
         // Restore thru mode
         thruFilter.setFilterConfig(isThruMode() ? EnumSet.noneOf(MidiFilter.Config.class) : EnumSet.of(MidiFilter.Config.FILTER_EVERYTHING));
 
-        // Get the sequencer
+
+        // Get the sequencer : should get our implementation=JJazzLabSequencer (see JJazzLabSequencerProvider)        
         try
         {
             // Open the default sequencer which must be here.
@@ -175,6 +178,7 @@ public final class JJazzMidiSystem
             defaultSequencer = null;
         }
 
+        
         // Get the default synth         
         try
         {
@@ -186,6 +190,7 @@ public final class JJazzMidiSystem
             defaultSynth = null;
         }
 
+        
         // Try to restore default Midi OUT
         List<MidiDevice> outDevices = getOutDeviceList();
         LOGGER.info("JJazzMidiSystem() Midi out devices=" + getDeviceListAsString(outDevices));   //NOI18N
@@ -212,6 +217,7 @@ public final class JJazzMidiSystem
             });
         }
 
+        
         // Try to restore default Midi IN
         List<MidiDevice> inDevices = getInDeviceList();
         defaultInDevice = null;
@@ -231,6 +237,7 @@ public final class JJazzMidiSystem
             }
         }
 
+        
         // Load Java synth soundfont file if any
         lastLoadedSoundbank = null;
         lastLoadedSoundbankFile = null;

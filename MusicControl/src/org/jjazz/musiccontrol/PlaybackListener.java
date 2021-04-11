@@ -27,10 +27,9 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 /**
  * Listener of events occuring during song playback.
  * <p>
- * Event handling must be time-efficient. Events are fired by the MusicController out of the Event Dispatching Thread, so event
- * handlers must use SwingUtilities.invokeLater() to trigger any UI-related work.
+ * MusicController will fire the events taking into account the user-defined output synth latency. Events are fired by the
+ * MusicController on the Event Dispatching Thread, event handling must be time-efficient.
  * <p>
- * MusicController will fire the events taking into account the user-defined output synth latency.
  */
 public interface PlaybackListener
 {
@@ -48,7 +47,7 @@ public interface PlaybackListener
      * only one event will be fired.
      *
      * @param channel
-     * @param tick Teh approximate tick of the Midi activity.
+     * @param tick The approximate tick of the Midi activity. Can be -1 if no tick information available.
      */
     void midiActivity(int channel, long tick);
 }

@@ -25,10 +25,8 @@ package org.jjazz.musiccontrol;
 /**
  * A listener to Note ON/OFF events fired by the MusicController.
  * <p>
- * Event handling must be time-efficient. Events are fired by the MusicController out of the Event Dispatching Thread, so event
- * handlers must use SwingUtilities.invokeLater() to trigger any UI-related work.
- * <p>
- * MusicController will fire the events taking into account the user-defined output synth latency.
+ * MusicController will fire the events taking into account the user-defined output synth latency. Events are fired by the
+ * MusicController on the Event Dispatching Thread, event handling must be time-efficient.
  */
 public interface NoteListener
 {
@@ -40,7 +38,7 @@ public interface NoteListener
      * @param channel
      * @param pitch
      * @param velocity
-     * @param tick The approximate tick at which the event occured. Can be -1 if no tick available.
+     * @param tick The approximate tick at which the event occured. Can be -1 if no tick information available.
      */
     void noteOn(long tick, int channel, int pitch, int velocity);
 
@@ -50,7 +48,7 @@ public interface NoteListener
      *
      * @param channel
      * @param pitch
-     * @param tick The approximate tick at which the event occured. Can be -1 if no tick available.
+     * @param tick The approximate tick at which the event occured. Can be -1 if no tick information available.
      */
     void noteOff(long tick, int channel, int pitch);
 }

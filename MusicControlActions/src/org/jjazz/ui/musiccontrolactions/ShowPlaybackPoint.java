@@ -265,21 +265,16 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
     @Override
     public void beatChanged(final Position oldPos, final Position newPos)
     {
-        // Changes are generated outside the EDT
-        SwingUtilities.invokeLater(() ->
+        if (currentCL_Editor != null)
         {
-            if (currentCL_Editor != null)
+            newSgsPos.set(newPos);
+            Position newClsPos = convertToClsPosition(newSgsPos);
+            if (newClsPos != null)
             {
-                newSgsPos.set(newPos);
-                Position newClsPos = convertToClsPosition(newSgsPos);
-                if (newClsPos != null)
-                {
-                    currentCL_Editor.showPlaybackPoint(true, newClsPos);
-                }
-                currentRL_Editor.showPlaybackPoint(true, newSgsPos);
+                currentCL_Editor.showPlaybackPoint(true, newClsPos);
             }
+            currentRL_Editor.showPlaybackPoint(true, newSgsPos);
         }
-        );
     }
 
     @Override

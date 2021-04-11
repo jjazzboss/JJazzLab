@@ -981,13 +981,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         if (trackIndex != null)
         {
             sequencer.setTrackMute(trackIndex, b);
-            if (sequencer.getTrackMute(trackIndex) != b)
-            {
-                LOGGER.log(Level.SEVERE, "updateTrackMuteState() can''t mute on/off track number: {0} mute={1} insMix={2}", new Object[]  //NOI18N
-                {
-                    trackIndex, b, insMix
-                });
-            }
+//            if (sequencer.getTrackMute(trackIndex) != b)
+//            {
+//                LOGGER.log(Level.SEVERE, "updateTrackMuteState() can''t mute on/off track number: {0} mute={1} insMix={2}", new Object[]  //NOI18N
+//                {
+//                    trackIndex, b, insMix
+//                });
+//            }
         } else
         {
             // Might be null if mapRvTrack was reset because of a MidiMix change and sequence has not been rebuilt yet.
@@ -1050,7 +1050,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         });
     }
 
-    private void fireMidiActivity(int channel, long tick)
+    private void fireMidiActivity(long tick, int channel)
     {
         fireLatencyAwareEvent(() ->
         {
@@ -1062,7 +1062,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Fire an event after a time delay to take into account the current output synth latency.
+     * Fire an event on the EDT after a time delay to take into account the current output synth latency.
      * <p>
      * Active timers are available in audioLatencyTimers.
      *
@@ -1072,16 +1072,25 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         if (audioLatency == 0)
         {
-            r.run();
+            SwingUtilities.invokeLater(r);
         } else
         {
             Timer t = new Timer(audioLatency, evt ->
             {
-                r.run();
+                r.run();            // Will be run on the EDT
             });
-            t.addActionListener(evt -> audioLatencyTimers.remove(t));
-            t.setRepeats(false);
-            audioLatencyTimers.add(t);
+            t.addActionListener(evt ->
+            {
+                synchronized (audioLatencyTimers)
+                {
+                    audioLatencyTimers.remove(t);
+                }
+            });
+            synchronized (audioLatencyTimers)
+            {
+                audioLatencyTimers.add(t);
+            }
+            t.setRepeats(false);            
             t.start();
         }
     }
@@ -1499,10 +1508,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         /**
          * Fire only one Activity event for this period of time, even if there are several notes.
          */
-        public static final int ACTIVITY_MIN_PERIOD = MidiConst.PPQ_RESOLUTION / 4;
+        public static final int ACTIVITY_MIN_PERIOD_MS = 100;
 
-        // Store the last Note On tick position for each note. Use -1 if initialized.
-        private long lastNoteOnTick[] = new long[16];
+        // Store the last Note On millisecond position for each note. Use -1 if initialized.
+        private long lastNoteOnMs[] = new long[16];
         private boolean enabled;
 
         public McReceiver()
@@ -1585,38 +1594,25 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             for (int i = 0; i < 16; i++)
             {
-                lastNoteOnTick[i] = -1;
+                lastNoteOnMs[i] = -1;
             }
-        }
-
-        /**
-         * Get the tick from the Sequencer.
-         * <p>
-         * NOTE: do NOT call if sequencer has just been stopped: DEADLOCK! See RealTimeSequencer.java/PlayThread.run()
-         * comment.<br>
-         * When Sequencer.stop() (synchronized) is called, its PlayThread may be in the process of sending a last noteevent, so
-         * this receiver gets the note, and getTickPosition() is called, but getTickPosition() is synchronized so it waits for the
-         * lock, and the app freezes.
-         *
-         * @return -1 if sequencer is not running
-         */
-        private long getTick()
-        {
-            return sequencer.isRunning() ? sequencer.getTickPosition() - playbackContext.songTickStart : -1;
         }
 
         private void noteOnReceived(int channel, int pitch, int velocity)
         {
-            long tick = getTick();
-            long lastTick = lastNoteOnTick[channel];
-            if (lastTick > -1 && tick - lastTick > ACTIVITY_MIN_PERIOD)
-            {
-                fireMidiActivity(channel, tick);
-            }
-            lastNoteOnTick[channel] = tick;
             if (enabled)
             {
-                fireNoteOn(tick, channel, pitch, velocity);
+                // Midi activity only once for a given channel in the ACTIVITY_MIN_PERIOD_MS period 
+                long pos = System.currentTimeMillis();
+                long lastPos = lastNoteOnMs[channel];
+                if (lastPos > -1 && pos - lastPos > ACTIVITY_MIN_PERIOD_MS)
+                {
+                    fireMidiActivity(-1, channel);
+                }
+                lastNoteOnMs[channel] = pos;
+
+
+                fireNoteOn(-1, channel, pitch, velocity);
             }
         }
 
@@ -1624,7 +1620,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             if (enabled)
             {
-                fireNoteOff(getTick(), channel, pitch);
+                lastNoteOnMs[channel] = -1;
+                fireNoteOff(-1, channel, pitch);
             }
         }
 

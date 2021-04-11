@@ -29,14 +29,12 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import org.jjazz.activesong.ActiveSongManager;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.ui.keyboard.KeyboardComponent;
 import org.jjazz.midi.ui.keyboard.KeyboardRange;
 import org.jjazz.midimix.MidiMix;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.musiccontrol.NoteListener;
-import org.jjazz.musiccontrol.PlaybackListener;
+import org.jjazz.musiccontrol.PlaybackListenerAdapter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.uisettings.GeneralUISettings;
@@ -44,20 +42,18 @@ import org.jjazz.uisettings.GeneralUISettings;
 /**
  * Real time viewer panel
  */
-public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeListener, PlaybackListener, NoteListener
+public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
-    
-    public static final long MIN_TICK_DURATION = MidiConst.PPQ_RESOLUTION / 6;
+
     private static final String NO_TRACKNAME = " - ";
     private final KeyboardComponent keyboard;
     private Song song;
     private MidiMix midiMix;
     private int channel;
+    private ViewerNoteListener noteListener;
     private boolean enableListening;
     private final Font chordSymbolFont;
-    // Store the last Note On tick position for each note. Use -1 if initialized.
-    private final long noteOnTick[] = new long[128];
-    
+
     private static final Logger LOGGER = Logger.getLogger(RtViewerPanel.class.getSimpleName());
 
     /**
@@ -65,18 +61,37 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
      */
     public RtViewerPanel()
     {
-        
+
         // Used by initComponents
         chordSymbolFont = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(Font.BOLD, 16f);
-        
+
         initComponents();
-        
+
 
         enableListening = true;
 
         // Viewer
         keyboard = new KeyboardComponent(KeyboardRange._76_KEYS);
         pnl_piano.add(keyboard);
+
+
+        // Get the chord symbols changes
+        MusicController mc = MusicController.getInstance();
+        mc.addPlaybackListener(new PlaybackListenerAdapter()
+        {
+            @Override
+            public void chordSymbolChanged(String cs)
+            {
+                lbl_chordScale.setText(cs);
+            }
+        });
+
+        // Get the playback state changes
+        mc.addPropertyChangeListener(this);
+
+        // Get the incoming notes
+        noteListener = new ViewerNoteListener();
+        mc.addNoteListener(noteListener);
 
 
         // keyboard must be created
@@ -88,77 +103,7 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
         asm.addPropertyListener(this);
         activeSongChanged(asm.getActiveSong(), asm.getActiveMidiMix());
 
-        // Get the chord symbols
-        MusicController mc = MusicController.getInstance();
-        mc.addPropertyChangeListener(this);
-        mc.addPlaybackListener(this);
-        mc.addNoteListener(this);
-    }
 
-    // ======================================================================
-    // NoteListener interface
-    // ====================================================================== 
-    @Override
-    public void noteOn(long tick, int channel, int pitch, int velocity)
-    {
-        if (!enableListening || this.channel != channel)
-        {
-            return;
-        }
-        noteOnTick[pitch] = tick;
-        SwingUtilities.invokeLater(() -> keyboard.setPressed(pitch, velocity));
-    }
-    
-    @Override
-    public void noteOff(long tick, int channel, int pitch)
-    {
-        if (!enableListening || this.channel != channel)
-        {
-            return;
-        }
-        long tickDuration;
-        if (noteOnTick[pitch] >= 0 && (tickDuration = tick - noteOnTick[pitch]) < MIN_TICK_DURATION)
-        {
-            // LOGGER.severe("noteOffReceived() pitch="+pitch+" noteOnTime[pitch]="+noteOnTime[pitch]+" msDuration="+msDuration);
-            // Onset time is too short to be visible, make it longer
-            Timer t = new Timer((int) (MIN_TICK_DURATION - tickDuration), evt -> keyboard.setPressed(pitch, 0));
-            t.setRepeats(false);
-            t.start();
-        } else
-        {
-            // Normal case, directly release the key
-            SwingUtilities.invokeLater(() -> keyboard.setPressed(pitch, 0));
-        }
-        
-        noteOnTick[pitch] = -1;
-    }
-
-    // ======================================================================
-    // PlaybackListener interface
-    // ======================================================================  
-    @Override
-    public void beatChanged(final Position oldPos, final Position newPos)
-    {
-        // Nothing
-    }
-    
-    @Override
-    public void chordSymbolChanged(String cs)
-    {
-        // LOGGER.severe("chordSymbolChanged() cs=" + cs);
-        SwingUtilities.invokeLater(() -> lbl_chordScale.setText(cs));
-    }
-    
-    @Override
-    public void barChanged(int oldBar, int newBar)
-    {
-        // Nothing
-    }
-    
-    @Override
-    public void midiActivity(int channel, long tick)
-    {
-        // Nothing
     }
 
     // =================================================================================
@@ -310,7 +255,7 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
 
     private void fbtn_changeSizeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_fbtn_changeSizeActionPerformed
     {//GEN-HEADEREND:event_fbtn_changeSizeActionPerformed
-        
+
         enableListening = false;
         keyboard.setKeyboardRange(keyboard.getKeyboardRange().next());
         resetKeyboard();            // Will restore enableListening=true
@@ -336,16 +281,16 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
         song = null;
         midiMix = null;
         lbl_chordScale.setText(" ");
-        
+
         if (sg != null && mm != null)
         {
             song = sg;
             midiMix = mm;
         }
-        
+
         channelOrTrackChanged();
     }
-    
+
     private void channelOrTrackChanged()
     {
         String s = NO_TRACKNAME;
@@ -358,24 +303,101 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
             }
         }
         lbl_trackName.setText(s);
-        
+
         resetKeyboard();
     }
-    
+
     private void resetKeyboard()
     {
         enableListening = false;
         keyboard.releaseAllNotes();
-        for (int i = 0; i < 128; i++)
-        {
-            noteOnTick[i] = -1;
-        }
+        noteListener.reset();
         enableListening = true;
     }
 
     // =================================================================================
     // Private classes
     // =================================================================================
+    private class ViewerNoteListener implements NoteListener
+    {
+
+        public static final long MIN_DURATION_MS = 100;
+
+        // Store the last Note On position in milliseconds for each note and each channel. Use -1 if initialized.
+        private final long noteOnPosMs[][] = new long[16][128];
+        // Cache the created Timers
+        private final Timer timersCache[][] = new Timer[16][128];
+
+        public ViewerNoteListener()
+        {
+            reset();
+        }
+
+        public void reset()
+        {
+            for (int i = 0; i < 16; i++)
+            {
+                for (int j = 0; j < 128; j++)
+                {
+                    noteOnPosMs[i][j] = -1;
+                    Timer t = timersCache[i][j];
+                    if (t != null)
+                    {
+                        t.stop();
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void noteOn(long tick, int channel, int pitch, int velocity)
+        {
+            if (!enableListening || RtViewerPanel.this.channel != channel)
+            {
+                return;
+            }
+            noteOnPosMs[channel][pitch] = System.currentTimeMillis();
+            keyboard.setPressed(pitch, velocity);
+        }
+
+        @Override
+        public void noteOff(long tick, int channel, int pitch)
+        {
+            if (!enableListening || RtViewerPanel.this.channel != channel)
+            {
+                return;
+            }
+            long durationMs;
+            long noteOnPos = noteOnPosMs[channel][pitch];
+            if (noteOnPos >= 0 && (durationMs = System.currentTimeMillis() - noteOnPos) < MIN_DURATION_MS)
+            {
+                // Onset time is too short to be visible, make it longer
+                Timer t = timersCache[channel][pitch];
+                if (t == null)
+                {
+                    // This is the first time this note goes off
+                    t = new Timer((int) (MIN_DURATION_MS - durationMs), evt ->
+                    {
+                        keyboard.setPressed(pitch, 0);
+                    });
+                    timersCache[channel][pitch] = t;        // Save the timer for reuse               
+                    t.setRepeats(false);
+                    t.start();
+                } else
+                {
+                    // This is not the first time this note goes OFF
+                    t.stop(); // Needed if 2 very short consecutive notes
+                    t.setInitialDelay((int) (MIN_DURATION_MS - durationMs));
+                    t.start();
+                }
+            } else
+            {
+                // Normal case, directly release the key
+                SwingUtilities.invokeLater(() -> keyboard.setPressed(pitch, 0));
+            }
+        }
+    }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.jjazz.ui.flatcomponents.FlatButton fbtn_changeSize;
