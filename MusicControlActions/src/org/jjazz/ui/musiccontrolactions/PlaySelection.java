@@ -144,7 +144,7 @@ public class PlaySelection extends AbstractAction
         if (lastValidActivatedTc == clTc && clSelection.isContiguousBarboxSelectionWithinCls())
         {
             // Focus in the CL_Editor            
-            rg = toSgsRange(ss, cls, new IntRange(clSelection.getMinBarIndexWithinCls(), clSelection.getMaxBarIndexWithinCls()));   // Can be null
+            rg = toSgsRange(ss, cls, new IntRange(clSelection.getMinBarIndexWithinCls(), clSelection.getMaxBarIndexWithinCls()), ssSelection);   // Can be null
             if (rg == null)
             {
                 errMsg = ResUtil.getString(getClass(), "ERR_BadSelection");
@@ -236,7 +236,7 @@ public class PlaySelection extends AbstractAction
      * @param clsRange
      * @return Null if no valid range could be constructed
      */
-    private IntRange toSgsRange(SongStructure ss, ChordLeadSheet cls, IntRange clsRange)
+    private IntRange toSgsRange(SongStructure ss, ChordLeadSheet cls, IntRange clsRange, SS_SelectionUtilities ssSelection)
     {
         if (ss == null || cls == null || clsRange.to > cls.getSize() - 1)
         {
@@ -246,8 +246,9 @@ public class PlaySelection extends AbstractAction
         int fromBar = -1;
         CLI_Section toSection = cls.getSection(clsRange.to);
         int toBar = -1;
-        IntRange r = null;
-        for (SongPart spt : ss.getSongParts())
+        IntRange r = null;        
+        List<SongPart> spts = ssSelection.isEmpty() || !ssSelection.isOneSectionSptSelection() ? ss.getSongParts() : ssSelection.getIndirectlySelectedSongParts();
+        for (SongPart spt : spts)
         {
             if (fromBar == -1 && spt.getParentSection() == fromSection)
             {

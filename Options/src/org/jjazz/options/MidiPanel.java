@@ -52,7 +52,7 @@ import org.openide.windows.WindowManager;
 
 final class MidiPanel extends javax.swing.JPanel
 {
-
+    
     private static final String NO_INCOMING_NOTE = "-";
     private final MidiOptionsPanelController controller;
     private boolean loadInProgress;
@@ -63,12 +63,12 @@ final class MidiPanel extends javax.swing.JPanel
     private int saveStartPitch;          // For cancel operation
     private int saveStopPitch;          // For cancel operation
     private static final Logger LOGGER = Logger.getLogger(MidiPanel.class.getSimpleName());
-
+    
     MidiPanel(MidiOptionsPanelController controller)
     {
         this.controller = controller;
         initComponents();
-
+        
         String[] notes = new String[128];
         for (int i = 0; i < 128; i++)
         {
@@ -76,13 +76,13 @@ final class MidiPanel extends javax.swing.JPanel
         }
         cmb_startPauseNote.setModel(new DefaultComboBoxModel<>(notes));
         cmb_stopNote.setModel(new DefaultComboBoxModel<>(notes));
-
+        
         btn_test.setEnabled(false);
         spn_preferredUserChannel.addChangeListener(cl -> controller.changed());
-
+        
         JJazzMidiSystem.getInstance().getJJazzMidiInDevice().getTransmitter().setReceiver(new LastNoteDisplayer());
     }
-
+    
     void load()
     {
         LOGGER.log(Level.FINE, "load() --");   //NOI18N
@@ -126,32 +126,32 @@ final class MidiPanel extends javax.swing.JPanel
         // Other stuff
         saveMidiThru = jms.isThruMode();
         cb_midiThru.setSelected(saveMidiThru);
-
+        
         btn_test.setEnabled(saveOutDevice != null);
 
         // Soundbank enabled only if Out device is a synth
         boolean b = (saveOutDevice instanceof Synthesizer);
         org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, pnl_soundbankFile);
         updateSoundbankText();
-
+        
         spn_preferredUserChannel.setValue(UserChannelRvKey.getInstance().getPreferredUserChannel() + 1);
-
+        
         loadInProgress = false;
     }
-
+    
     public void cancel()
     {
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
         jms.setThruMode(saveMidiThru);
         openInDevice(saveInDevice);
         openOutDevice(saveOutDevice);
-
+        
         RemoteController rc = RemoteController.getInstance();
         rc.setEnabled(saveRemoteControlEnabled);
         rc.setStartPauseNote(saveStartPitch);
         rc.setStopNote(saveStopPitch);
     }
-
+    
     void store()
     {
         LOGGER.log(Level.FINE, "store() --");   //NOI18N
@@ -169,13 +169,13 @@ final class MidiPanel extends javax.swing.JPanel
         MidiDevice outDevice = list_OutDevices.getSelectedValue();
         openOutDevice(outDevice);
         UserChannelRvKey.getInstance().setPreferredUserChannel(((Integer) spn_preferredUserChannel.getValue()) - 1);
-
+        
         RemoteController rc = RemoteController.getInstance();
         rc.setEnabled(cb_enableRemoteControl.isSelected());
         rc.setStartPauseNote(cmb_startPauseNote.getSelectedIndex());
         rc.setStopNote(cmb_stopNote.getSelectedIndex());
-
-
+        
+        
         if (outDevice != saveOutDevice)
         {
             Analytics.setProperties(Analytics.buildMap("Midi Out", outDevice.getDeviceInfo().getName()));
@@ -231,7 +231,7 @@ final class MidiPanel extends javax.swing.JPanel
         }
         return true;
     }
-
+    
     boolean valid()
     {
         // LOGGER.log(Level.INFO, "valid()");
@@ -439,7 +439,7 @@ final class MidiPanel extends javax.swing.JPanel
                         .addComponent(cmb_stopNote, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(lbl_stop)))
-                .addContainerGap(142, Short.MAX_VALUE))
+                .addContainerGap(32, Short.MAX_VALUE))
         );
         pnl_remoteControlLayout.setVerticalGroup(
             pnl_remoteControlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -505,8 +505,8 @@ final class MidiPanel extends javax.swing.JPanel
                     .addComponent(lbl_InDevices))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 108, Short.MAX_VALUE)
-                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 108, Short.MAX_VALUE))
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -572,7 +572,7 @@ final class MidiPanel extends javax.swing.JPanel
        {
            return;
        }
-
+       
        boolean b = jms.loadSoundbankFileOnSynth(f, false);
        if (!b)
        {
@@ -580,9 +580,9 @@ final class MidiPanel extends javax.swing.JPanel
            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
            DialogDisplayer.getDefault().notify(d);
        }
-
+       
        Analytics.logEvent("Load SoundBank File", Analytics.buildMap("File", f.getName()));
-
+       
        updateSoundbankText();
    }//GEN-LAST:event_btn_changeSoundbankFileActionPerformed
 
@@ -646,7 +646,7 @@ final class MidiPanel extends javax.swing.JPanel
         cmb_stopNote.setEnabled(b);
         lbl_startPause.setEnabled(b);
         lbl_stop.setEnabled(b);
-
+        
         controller.applyChanges();
         controller.changed();
     }//GEN-LAST:event_cb_enableRemoteControlActionPerformed
@@ -721,7 +721,7 @@ final class MidiPanel extends javax.swing.JPanel
                 list_OutDevices.setEnabled(true);
             }
         };
-
+        
         TestPlayer tp = TestPlayer.getInstance();
         try
         {
@@ -732,14 +732,18 @@ final class MidiPanel extends javax.swing.JPanel
             DialogDisplayer.getDefault().notify(d);
         }
     }
-
+    
     private void enableRemoteControlUI(boolean b)
     {
         org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, pnl_remoteControl);
+        if (b)
+        {
+            cb_enableRemoteControlActionPerformed(null);
+        }
         lbl_inNote.setEnabled(b);
         lbl_midiInNote.setEnabled(b);
     }
-
+    
     private String pitchString(int pitch)
     {
         Note n = new Note(pitch);
@@ -751,9 +755,9 @@ final class MidiPanel extends javax.swing.JPanel
     // ===========================================================================================
     private class LastNoteDisplayer implements Receiver, ActionListener
     {
-
+        
         Timer t = new Timer(1000, this);
-
+        
         @Override
         public void send(MidiMessage msg, long timeStamp)
         {
@@ -767,19 +771,19 @@ final class MidiPanel extends javax.swing.JPanel
                 }
             }
         }
-
+        
         @Override
         public void close()
         {
             // Nothing
         }
-
+        
         @Override
         public void actionPerformed(ActionEvent e)
         {
             lbl_inNote.setText(NO_INCOMING_NOTE);
         }
-
+        
     }
-
+    
 }

@@ -76,8 +76,8 @@
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="jScrollPane3" pref="108" max="32767" attributes="0"/>
-                  <Component id="jScrollPane4" pref="108" max="32767" attributes="0"/>
+                  <Component id="jScrollPane3" pref="142" max="32767" attributes="0"/>
+                  <Component id="jScrollPane4" pref="142" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
@@ -325,7 +325,7 @@
                           <Component id="lbl_stop" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
-                  <EmptySpace pref="142" max="32767" attributes="0"/>
+                  <EmptySpace pref="32" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
