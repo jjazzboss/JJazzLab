@@ -46,8 +46,8 @@ public interface PlaybackListener
      * Should be used only for non-accurate "musical activity " indicators : if several notes are played in a brief period time,
      * only one event will be fired.
      *
-     * @param channel
      * @param tick The approximate tick of the Midi activity. Can be -1 if no tick information available.
+     * @param channel
      */
-    void midiActivity(int channel, long tick);
+    void midiActivity(long tick, int channel);
 }

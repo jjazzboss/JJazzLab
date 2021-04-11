@@ -189,7 +189,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     }
 
     @Override
-    public void midiActivity(int channel, long tick)
+    public void midiActivity(long tick, int channel)
     {
         if (model.getChannelId() == channel)
         {

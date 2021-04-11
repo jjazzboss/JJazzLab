@@ -137,7 +137,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     }
 
     @Override
-    public void midiActivity(int channel, long tick)
+    public void midiActivity(long tick, int channel)
     {
         // Nothing
     }

@@ -1056,7 +1056,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
             {
-                pl.midiActivity(channel, tick);
+                pl.midiActivity(tick, channel);
             }
         });
     }
@@ -1090,7 +1090,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             {
                 audioLatencyTimers.add(t);
             }
-            t.setRepeats(false);            
+            t.setRepeats(false);
             t.start();
         }
     }
@@ -1605,7 +1605,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 // Midi activity only once for a given channel in the ACTIVITY_MIN_PERIOD_MS period 
                 long pos = System.currentTimeMillis();
                 long lastPos = lastNoteOnMs[channel];
-                if (lastPos > -1 && pos - lastPos > ACTIVITY_MIN_PERIOD_MS)
+                if (lastPos < 0 || (pos - lastPos) > ACTIVITY_MIN_PERIOD_MS)
                 {
                     fireMidiActivity(-1, channel);
                 }

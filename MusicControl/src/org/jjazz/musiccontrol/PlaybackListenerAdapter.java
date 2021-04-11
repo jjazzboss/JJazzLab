@@ -45,7 +45,7 @@ public class PlaybackListenerAdapter implements PlaybackListener
     }
 
     @Override
-    public void midiActivity(int channel, long tick)
+    public void midiActivity(long tick, int channel)
     {
         // Do nothing
     }

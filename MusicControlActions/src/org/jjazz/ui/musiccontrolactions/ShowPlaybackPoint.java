@@ -290,7 +290,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
     }
 
     @Override
-    public void midiActivity(int channel, long tick)
+    public void midiActivity(long tick, int channel)
     {
         // Nothing
     }
