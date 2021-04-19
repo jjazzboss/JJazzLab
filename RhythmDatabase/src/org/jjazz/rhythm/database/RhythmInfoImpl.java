@@ -38,7 +38,7 @@ import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.RhythmParameterInfo;
 import org.jjazz.rhythm.database.api.RhythmVoiceInfo;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.spi.RhythmProvider;
 
 public class RhythmInfoImpl implements RhythmInfo, Serializable

@@ -22,15 +22,17 @@
  */
 package org.jjazz.rhythm.parameters;
 
+import org.jjazz.rhythm.api.Enumerable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import org.jjazz.rhythm.api.RhythmParameter;
 
 /**
  * A RhythmParemeter whose value can be some specified strings.
  */
-public class RP_State implements RhythmParameter<String>
+public class RP_State implements RhythmParameter<String>, Enumerable<String>
 {
 
     private String id;
@@ -39,7 +41,7 @@ public class RP_State implements RhythmParameter<String>
     private String defaultValue;
     private String minValue;
     private String maxValue;
-    private String[] possibleValues;
+    private String[] possibleValues;   
     protected static final Logger LOGGER = Logger.getLogger(RP_State.class.getName());
 
     /**
@@ -53,7 +55,7 @@ public class RP_State implements RhythmParameter<String>
     {
         if (id == null || name == null || defaultValue == null || possibleValues == null || possibleValues.length == 0)
         {
-            throw new IllegalArgumentException(   //NOI18N
+            throw new IllegalArgumentException( //NOI18N
                     "id=" + id + " name=" + name + " defaultVal=" + defaultValue + " possibleValues=" + Arrays.asList(possibleValues));
         }
         this.id = id;
@@ -67,7 +69,6 @@ public class RP_State implements RhythmParameter<String>
             throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + Arrays.asList(possibleValues));   //NOI18N
         }
         this.defaultValue = defaultValue;
-
     }
 
     @Override
@@ -207,7 +208,7 @@ public class RP_State implements RhythmParameter<String>
     {
         return valueToString(s);
     }
-    
+
     @Override
     public String getValueDescription(String value)
     {
@@ -231,4 +232,5 @@ public class RP_State implements RhythmParameter<String>
         }
         return -1;
     }
+
 }

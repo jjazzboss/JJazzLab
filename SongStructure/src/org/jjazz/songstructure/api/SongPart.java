@@ -27,7 +27,7 @@ import java.awt.datatransfer.Transferable;
 import java.beans.PropertyChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.util.IntRange;
 
 /**

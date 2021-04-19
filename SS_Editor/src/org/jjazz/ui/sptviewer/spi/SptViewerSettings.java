@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.sptviewer.api;
+package org.jjazz.ui.sptviewer.spi;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -28,7 +28,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
-import org.jjazz.ui.rpviewer.api.RpViewerSettings;
+import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
 import org.openide.util.Lookup;
 
 /**

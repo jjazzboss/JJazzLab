@@ -25,12 +25,11 @@ package org.jjazz.rhythmmusicgeneration.spi;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import java.util.HashMap;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.Phrase;
 
 /**
- * A music generator for a given rhythm.
+ * Define the music generation capability of a Rhythm.
  */
 public interface MusicGenerator
 {
@@ -75,11 +74,6 @@ public interface MusicGenerator
     }
 
     /**
-     * @return The Rhythm for which we generate music.
-     */
-    Rhythm getRhythm();
-
-    /**
      * Generate the note Phrases which correspond to a musical accompaniment for a given rhythm.
      * <p>
      * The service provider must compute notes for the specified context, one Phrase per RhythmVoice/Midi channel. Phrases must be
@@ -94,7 +88,8 @@ public interface MusicGenerator
      * If the context song contains several rhythms, the method must add notes ONLY for bars which use this MidiMusicGenerator's
      * rhythm.
      * <p>
-     * Note that some features are directly managed by the JJazzLab framework :<br>
+     * Note that some features are directly managed by the JJazzLab framework (by postprocessing the output of generateMusic())
+     * :<br>
      * - Instrument selection and settings (Program changes, Midi controller messages such as bank select, volume, reverb,
      * panoramic, etc.)
      * <br>

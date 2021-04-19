@@ -27,7 +27,7 @@ import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import javax.swing.AbstractAction;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
@@ -72,7 +72,7 @@ public class MoveSelectionLeft extends AbstractAction
         if (index > 0)
         {
             SongPart prevSpt = spts.get(index - 1);
-            RhythmParameter<?> prevRp = RhythmParameter.Utilities.findFirstCompatibleRp(prevSpt.getRhythm().getRhythmParameters(), rp);
+            RhythmParameter<?> prevRp = RhythmParameter.findFirstCompatibleRp(prevSpt.getRhythm().getRhythmParameters(), rp);
             if (prevRp == null)
             {
                 // Use Rp at same index

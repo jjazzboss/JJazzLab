@@ -24,7 +24,7 @@ package org.jjazz.rhythm.database.api;
 
 import java.io.Serializable;
 import java.util.Objects;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 
 
 /**

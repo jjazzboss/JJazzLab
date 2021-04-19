@@ -23,10 +23,10 @@
 package org.jjazz.ui.ss_editor;
 
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.sptviewer.api.SptViewerFactory;
+import org.jjazz.ui.sptviewer.spi.SptViewerFactory;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.api.SS_EditorFactory;
-import org.jjazz.ui.ss_editor.api.SS_EditorSettings;
+import org.jjazz.ui.ss_editor.spi.SS_EditorFactory;
+import org.jjazz.ui.ss_editor.spi.SS_EditorSettings;
 
 public class SS_EditorFactoryImpl extends SS_EditorFactory
 {

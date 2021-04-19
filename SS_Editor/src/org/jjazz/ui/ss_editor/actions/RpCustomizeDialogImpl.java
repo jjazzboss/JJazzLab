@@ -29,7 +29,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.ss_editor.api.RpCustomizeDialog;
 import org.openide.util.NbBundle;
 import org.openide.util.lookup.ServiceProvider;

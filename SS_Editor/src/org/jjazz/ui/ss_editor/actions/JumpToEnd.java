@@ -24,7 +24,7 @@ package org.jjazz.ui.ss_editor.actions;
 
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
@@ -51,7 +51,7 @@ public class JumpToEnd extends AbstractAction
             SongPartParameter sptp = selection.getSelectedSongPartParameters().get(selection.getSelectedSongPartParameters().size() - 1);
             selection.unselectAll(editor);
             // Find first compatible rp
-            RhythmParameter<?> rp = RhythmParameter.Utilities.findFirstCompatibleRp(spt.getRhythm().getRhythmParameters(), sptp.getRp());
+            RhythmParameter<?> rp = RhythmParameter.findFirstCompatibleRp(spt.getRhythm().getRhythmParameters(), sptp.getRp());
             if (rp != null)
             {
                 editor.selectRhythmParameter(spt, rp, true);

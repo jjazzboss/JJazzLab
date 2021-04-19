@@ -38,7 +38,7 @@ import javax.swing.KeyStroke;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.util.ResUtil;

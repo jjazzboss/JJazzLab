@@ -23,7 +23,8 @@
 package org.jjazz.songstructure.api;
 
 import java.util.Objects;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythm.api.Enumerable;
 
 /**
  * Store a RP and its associated SongPart.
@@ -54,6 +55,16 @@ public class SongPartParameter
     public RhythmParameter<?> getRp()
     {
         return rp;
+    }
+
+    /**
+     * True if the RhythmParameter is an instance of RP_Enumerable.
+     *
+     * @return
+     */
+    public boolean isEnumerableRp()
+    {
+        return rp instanceof Enumerable<?>;
     }
 
     @Override

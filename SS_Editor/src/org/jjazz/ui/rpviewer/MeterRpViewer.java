@@ -31,14 +31,15 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.RenderingHints;
 import org.jjazz.rhythm.parameters.RP_Integer;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.rpviewer.api.RpViewerSettings;
+import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
+import org.jjazz.rhythm.api.Enumerable;
 
 /**
  * Display the value as a vertical meter with max 10 leds of 3 colors.
  * <p>
- * Sensitive to zoomVFactor.
+ * Accept only RP_Enumerables instances. Sensitive to zoomVFactor.
  */
 public class MeterRpViewer extends RpViewer
 {
@@ -55,6 +56,10 @@ public class MeterRpViewer extends RpViewer
     public MeterRpViewer(SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings)
     {
         super(spt, rp, settings);
+        if (!(rp instanceof Enumerable))
+        {
+            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " settings=" + settings);
+        }
     }
 
     @Override
@@ -93,10 +98,10 @@ public class MeterRpViewer extends RpViewer
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        RhythmParameter rp = getRpModel();
         SongPart spt = getSptModel();
+        RhythmParameter rp = getRpModel();
         Object value = spt.getRPValue(rp);
-        double pValue = rp.calculatePercentage(value);
+        double pValue = ((Enumerable) rp).calculatePercentage(value);
 
         final int LED_WIDTH = 28;
         final int LED_HEIGHT = 2;
@@ -238,6 +243,4 @@ public class MeterRpViewer extends RpViewer
     // ---------------------------------------------------------------
     // Private functions
     // ---------------------------------------------------------------    
-
-
 }

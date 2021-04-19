@@ -33,7 +33,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RP_State;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.songstructure.api.SongPart;
 
@@ -64,7 +64,7 @@ public class RpEditorCombo extends RpEditor implements ActionListener, PropertyC
         // Prepare our editor component
         combo_rpValue = new JComboBox<>();
         combo_rpValue.addActionListener(this);
-        RhythmParameter<?> rpModel = getRpModel();
+        RP_State rpModel = (RP_State) getRpModel();
         SongPart sptModel = getSptModel();
         ComboBoxModel<String> cbModel = new DefaultComboBoxModel<>(rpModel.getPossibleValues().toArray(new String[0]));
         combo_rpValue.setModel(cbModel);

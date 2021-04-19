@@ -31,8 +31,7 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.parameters.RhythmParameter;
-import org.openide.util.Lookup;
+import org.jjazz.rhythm.api.RhythmParameter;
 
 /**
  * An adapted rhythm stub whatever the time signature.
@@ -89,12 +88,7 @@ public class STUBAdaptedRhythm implements AdaptedRhythm
         return sourceRhythm.getRhythmParameters();
     }
 
-    @Override
-    public Lookup getLookup()
-    {
-        return sourceRhythm.getLookup();
-    }
-
+ 
     @Override
     public TimeSignature getTimeSignature()
     {

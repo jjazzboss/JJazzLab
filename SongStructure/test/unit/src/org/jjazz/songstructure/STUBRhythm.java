@@ -39,7 +39,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.parameters.RP_STD_Variation;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.openide.util.Lookup;
 
 /**
@@ -51,7 +51,6 @@ public class STUBRhythm implements Rhythm
 
     protected String uniqueId;
     protected TimeSignature timeSignature;
-    protected Lookup lookup;
 
     /**
      * The default RhythmParameters associated to this rhythm.
@@ -128,12 +127,7 @@ public class STUBRhythm implements Rhythm
     {
         return new ArrayList<>(rhythmParameters);
     }
-
-    @Override
-    public Lookup getLookup()
-    {
-        return lookup;
-    }
+  
 
     @Override
     public TimeSignature getTimeSignature()

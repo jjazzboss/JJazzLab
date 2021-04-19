@@ -24,7 +24,7 @@ package org.jjazz.ui.sptviewer.api;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
 
 /**

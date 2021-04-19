@@ -22,7 +22,7 @@
  */
 package org.jjazz.ui.rpviewer;
 
-import org.jjazz.ui.rpviewer.api.StringRpViewerSettings;
+import org.jjazz.ui.rpviewer.spi.StringRpViewerSettings;
 import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;

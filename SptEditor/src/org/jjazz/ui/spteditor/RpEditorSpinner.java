@@ -32,7 +32,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.rhythm.parameters.RP_Integer;
 import org.jjazz.rhythm.parameters.RP_State;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.ui.utilities.WheelSpinner;
 import org.jjazz.songstructure.api.SongPart;
@@ -68,7 +68,7 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
             sm = new MySpinnerNumberModel(value, minValue, maxValue, step);
         } else if (rpModel instanceof RP_State)
         {
-            sm = new SpinnerListModel(rpModel.getPossibleValues());
+            sm = new SpinnerListModel(((RP_State)rpModel).getPossibleValues());
         } else
         {
             throw new IllegalArgumentException("RhythmParameter type not supported for this editor. rp=" + rp);   //NOI18N

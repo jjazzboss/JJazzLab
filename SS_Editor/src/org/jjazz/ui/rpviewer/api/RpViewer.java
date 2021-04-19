@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.rpviewer.api;
 
+import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -38,7 +39,7 @@ import javax.swing.JPanel;
 import static javax.swing.SwingConstants.CENTER;
 import javax.swing.border.Border;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.utilities.RedispatchingMouseAdapter;
 import org.jjazz.songstructure.api.SongPart;
 

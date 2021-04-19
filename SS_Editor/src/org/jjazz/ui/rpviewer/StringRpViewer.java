@@ -32,11 +32,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.function.Function;
 import java.util.logging.Logger;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.rpviewer.api.RpViewer;
-import org.jjazz.ui.rpviewer.api.RpViewerSettings;
-import org.jjazz.ui.rpviewer.api.StringRpViewerSettings;
+import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
+import org.jjazz.ui.rpviewer.spi.StringRpViewerSettings;
 
 /**
  * A simple editor: just display RP value as a string.

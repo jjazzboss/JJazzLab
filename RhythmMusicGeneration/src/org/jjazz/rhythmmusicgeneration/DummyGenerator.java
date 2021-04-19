@@ -50,12 +50,7 @@ public class DummyGenerator implements MusicGenerator
         }
         rhythm = r;
     }
-
-    @Override
-    public Rhythm getRhythm()
-    {
-        return rhythm;
-    }
+  
 
     @Override
     public HashMap<RhythmVoice, Phrase> generateMusic(MusicGenerationContext context)
@@ -118,7 +113,7 @@ public class DummyGenerator implements MusicGenerator
      * @param startPosInBeats
      * @param nbBars
      * @param ts
-     * @param channel         The channel of the returned phrase
+     * @param channel The channel of the returned phrase
      * @return
      */
     static public Phrase getBasicDrumPhrase(float startPosInBeats, int nbBars, TimeSignature ts, int channel)
@@ -133,20 +128,35 @@ public class DummyGenerator implements MusicGenerator
         {
             for (int beat = 0; beat < ts.getNbNaturalBeats(); beat++)
             {
-                int pitch = MidiConst.CLOSED_HI_HAT;
+                // 2 Hi Hat per beat
+                NoteEvent ne = new NoteEvent(MidiConst.CLOSED_HI_HAT, duration, 80, startPosInBeats);
+                p.addOrdered(ne);
+                ne = new NoteEvent(MidiConst.CLOSED_HI_HAT, duration, 80, startPosInBeats + 0.5f);
+                p.addOrdered(ne);
+
+                // Bass drums or Snare
+                int pitch;
+                int velocity = 70;
                 switch (beat)
                 {
                     case 0:
                         pitch = MidiConst.ACOUSTIC_BASS_DRUM;
+                        velocity = 120;
                         break;
                     case 1:
+                    case 3:
+                    case 5:
+                    case 7:
                         pitch = MidiConst.ACOUSTIC_SNARE;
                         break;
                     default:
-                    // Nothing
-                    }
-                NoteEvent ne = new NoteEvent(pitch, duration, 70, startPosInBeats++);
+                        pitch = MidiConst.ACOUSTIC_BASS_DRUM;
+                }
+                ne = new NoteEvent(pitch, duration, velocity, startPosInBeats);
                 p.addOrdered(ne);
+
+                // Next beat
+                startPosInBeats++;
             }
         }
         return p;
@@ -158,7 +168,7 @@ public class DummyGenerator implements MusicGenerator
      * @param startPosInBeats
      * @param cSeq
      * @param ts
-     * @param channel         The channel of the returned phrase
+     * @param channel The channel of the returned phrase
      * @return
      */
     static public Phrase getBasicBassPhrase(float startPosInBeats, ChordSequence cSeq, TimeSignature ts, int channel)

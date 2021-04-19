@@ -57,7 +57,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RP_SYS_Marker;
 import org.jjazz.rhythm.parameters.RP_SYS_TempoFactor;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.RpChangedEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
@@ -66,9 +66,9 @@ import org.jjazz.songstructure.api.event.SptRenamedEvent;
 import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.ui.sptviewer.api.SptViewer;
-import org.jjazz.ui.sptviewer.api.SptViewerFactory;
+import org.jjazz.ui.sptviewer.spi.SptViewerFactory;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.api.SS_EditorSettings;
+import org.jjazz.ui.ss_editor.spi.SS_EditorSettings;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.ui.utilities.Zoomable;
@@ -852,7 +852,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                             {
                                 List<RhythmParameter<?>> newRps = newSpt.getRhythm().getRhythmParameters();
                                 assert !newRps.isEmpty() : "no RhythmParameters ! newSpt=" + newSpt;   //NOI18N
-                                RhythmParameter<?> newRp = RhythmParameter.Utilities.findFirstCompatibleRp(newRps, rp);
+                                RhythmParameter<?> newRp = RhythmParameter.findFirstCompatibleRp(newRps, rp);
                                 if (newRp != null)
                                 {
                                     selectRhythmParameter(newSpt, newRp, true);
@@ -1020,7 +1020,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     private void addSptViewer(SongPart spt)
     {
         assert spt != null;   //NOI18N
-        SptViewer sptv = sptViewerFactory.createDefaultEditor(spt, settings.getSptViewerSettings(), sptViewerFactory.getRpViewerFactory());
+        SptViewer sptv = sptViewerFactory.createDefaultEditor(spt, settings.getSptViewerSettings(), sptViewerFactory.getDefaultRpViewerFactory());
         sptv.setZoomHFactor(zoomHFactor);
         sptv.setZoomVFactor(zoomVFactor);
         List<RhythmParameter<?>> rps = this.getVisibleRps(spt.getRhythm());

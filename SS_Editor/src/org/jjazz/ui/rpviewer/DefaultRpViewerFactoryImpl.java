@@ -23,35 +23,64 @@
 package org.jjazz.ui.rpviewer;
 
 import org.jjazz.rhythm.parameters.RP_SYS_TempoFactor;
-import org.jjazz.rhythm.parameters.RhythmParameter;
-import org.jjazz.ui.rpviewer.api.RpViewerFactory;
+import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythm.parameters.RP_StringSet;
 import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.rpviewer.api.RpViewerSettings;
+import org.jjazz.ui.rpviewer.spi.DefaultRpViewerFactory;
+import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
 
-public class RpViewerFactoryImpl implements RpViewerFactory
+public class DefaultRpViewerFactoryImpl implements DefaultRpViewerFactory
 {
 
-    private static RpViewerFactoryImpl INSTANCE;
+    private static DefaultRpViewerFactoryImpl INSTANCE;
 
-    public static RpViewerFactoryImpl getInstance()
+    /**
+     * The types of RPs supported by this factory.
+     */
+    public enum Type
     {
-        synchronized (RpViewerFactoryImpl.class)
+        Meter, String, Percentage
+    }
+
+    public static DefaultRpViewerFactoryImpl getInstance()
+    {
+        synchronized (DefaultRpViewerFactoryImpl.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new RpViewerFactoryImpl();
+                INSTANCE = new DefaultRpViewerFactoryImpl();
             }
         }
         return INSTANCE;
     }
 
-    private RpViewerFactoryImpl()
+    private DefaultRpViewerFactoryImpl()
     {
     }
 
     @Override
-    public RpViewer createRpViewer(Type type, SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings)
+    public RpViewer createRpViewer(SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings)
+    {
+        RpViewer rpv;
+        Object value = spt.getRPValue(rp);
+        if (rp instanceof RP_SYS_TempoFactor)
+        {
+            rpv = createRpViewer(Type.Percentage, spt, rp, settings);
+        } else if (value instanceof Integer)
+        {
+            rpv = createRpViewer(Type.Meter, spt, rp, settings);
+        } else
+        {
+            rpv = createRpViewer(Type.String, spt, rp, settings);
+        }
+        return rpv;
+    }
+
+    // =================================================================================
+    // Private methods
+    // =================================================================================    
+    private RpViewer createRpViewer(Type type, SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings)
     {
         if (!spt.getRhythm().getRhythmParameters().contains(rp))
         {
@@ -67,7 +96,7 @@ public class RpViewerFactoryImpl implements RpViewerFactory
                 e = new StringRpViewer(spt, rp, rpValue ->
                 {
                     String res = rpValue.toString();
-                    if (res.equals("[]"))
+                    if (rp instanceof RP_StringSet && res.equals("[]"))
                     {
                         // This can happen if rpValue is an empty collection
                         res = "";
@@ -87,27 +116,9 @@ public class RpViewerFactoryImpl implements RpViewerFactory
                 }, settings);
                 break;
             default:
-                throw new IllegalStateException("type=" + type);   //NOI18N
+                throw new AssertionError(type.name());
         }
         return e;
-    }
-
-    @Override
-    public RpViewer createRpViewer(SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings)
-    {
-        RpViewer rpv;
-        Object value = spt.getRPValue(rp);
-        if (rp instanceof RP_SYS_TempoFactor)
-        {
-            rpv = createRpViewer(Type.Percentage, spt, rp, settings);
-        } else if (value instanceof Integer)
-        {
-            rpv = createRpViewer(Type.Meter, spt, rp, settings);
-        } else
-        {
-            rpv = createRpViewer(Type.String, spt, rp, settings);
-        }
-        return rpv;
     }
 
 }

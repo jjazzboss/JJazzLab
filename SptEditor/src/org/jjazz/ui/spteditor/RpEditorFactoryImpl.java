@@ -32,7 +32,7 @@ import org.jjazz.rhythm.parameters.RP_Integer;
 import org.jjazz.rhythm.parameters.RP_SYS_Mute;
 import org.jjazz.rhythm.parameters.RP_State;
 import org.jjazz.rhythm.parameters.RP_StringSet;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.ui.spteditor.spi.RpEditorFactory;

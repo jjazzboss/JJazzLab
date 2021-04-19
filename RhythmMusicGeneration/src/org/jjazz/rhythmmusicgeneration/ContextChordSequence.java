@@ -35,7 +35,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.leadsheet.chordleadsheet.api.item.VoidAltExtChordSymbol;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RP_SYS_Marker;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.IntRange;
 

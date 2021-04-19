@@ -24,21 +24,20 @@ package org.jjazz.rhythm.api;
 
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import org.jjazz.rhythm.parameters.RhythmParameter;
 import java.util.List;
 import org.jjazz.harmony.TimeSignature;
-import org.openide.util.Lookup;
 
 /**
- * A rhythm can generate music tracks for each of its supported rhythm voices.
+ * A rhythm descriptor.
  * <p>
- * The class is used as a descriptor of the rhythm, the actual rhythm's capabilites are MidiMusicGenerator object(s) which must be
- * put in the rhythm's lookup.<p>
+ * This interface provides all the descriptive attributes of a rhythm. In order to be able to actually generate music, a Rhythm
+ * instance must also implement the MusicGenerator interface.
+ * <p>
  * The framework will call the rhythm's loadResources() before accessing the MidiMusicGenerator object(s). This allow to save
  * memory usage when rhythm object is only used in catalogs.
  * <p>
  */
-public interface Rhythm extends Lookup.Provider, Comparable<Rhythm>
+public interface Rhythm extends Comparable<Rhythm>
 {
 
     public static final String PROP_RESOURCES_LOADED = "ResourcesLoaded";   //NOI18N 

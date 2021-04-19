@@ -30,13 +30,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.openide.util.Lookup;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * Provide convenience functions to get information about a selection in a lookup.
+ * Provide convenience methods to get information about a selection in a lookup.
  * <p>
  * Selected items can be either SongPart or RhythmParameters, but not both in the same time. Returned SongParts or
  * SongPartParameters are ordered by startBarIndex.
@@ -81,7 +81,7 @@ final public class SS_SelectionUtilities
         }
         @SuppressWarnings("unchecked")
         ArrayList<SongPart> spts = (ArrayList<SongPart>) new ArrayList<>(lookup.lookupAll(SongPart.class));
-        @SuppressWarnings("unchecked")        
+        @SuppressWarnings("unchecked")
         ArrayList<SongPartParameter> sptps = (ArrayList<SongPartParameter>) new ArrayList<>(lookup.lookupAll(SongPartParameter.class));
         if (!spts.isEmpty() && !sptps.isEmpty())
         {
@@ -172,7 +172,7 @@ final public class SS_SelectionUtilities
             {
                 isSameRhythm = false;
             }
-            if (!RhythmParameter.Utilities.checkCompatibility(refRp, sptp.getRp()))
+            if (!RhythmParameter.checkCompatibility(refRp, sptp.getRp()))
             {
                 isRhythmParameterCompatible = false;
             }
@@ -266,8 +266,18 @@ final public class SS_SelectionUtilities
     }
 
     /**
-     * Get the first SongPart of the selection.
+     * True if the first selected RhythmParameter is an instanceof RP_Enumerabl.
      *
+     * @return
+     */
+    public boolean isEnumerableRhythmParameterSelected()
+    {
+        return !songPartParameters.isEmpty() && songPartParameters.get(0).isEnumerableRp();
+    }
+
+    /**
+     * Get the first SongPart of the selection.
+     * <p>
      * Works independently of the selection mode (SongParts or RhythmParameters). Return a meaningful value only if selection is
      * not empty.
      *
@@ -280,7 +290,7 @@ final public class SS_SelectionUtilities
 
     /**
      * Get the last SongPart of the selection.
-     *
+     * <p>
      * Works independently of the selection mode (SongParts or RhythmParameters). Return a meaningful value only if selection is
      * not empty.
      *

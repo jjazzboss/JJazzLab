@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythm.parameters;
 
+import org.jjazz.rhythm.api.Enumerable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -29,11 +30,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
+import org.jjazz.rhythm.api.RhythmParameter;
 
 /**
  * A RhythmParemeter whose is a set of strings.
  */
-public class RP_StringSet implements RhythmParameter<Set<String>>
+public class RP_StringSet implements RhythmParameter<Set<String>>, Enumerable<Set<String>>
 {
 
     public static final int MAX_SET_SIZE = 10;
@@ -58,7 +60,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>
     {
         if (id == null || name == null || defaultValue == null || possibleValues == null || possibleValues.length == 0 || possibleValues.length > MAX_SET_SIZE)
         {
-            throw new IllegalArgumentException(   //NOI18N
+            throw new IllegalArgumentException( //NOI18N
                     "id=" + id + " name=" + name + " defaultVal=" + defaultValue + " possibleValues=" + Arrays.asList(possibleValues));
         }
         this.id = id;
@@ -335,8 +337,8 @@ public class RP_StringSet implements RhythmParameter<Set<String>>
         }
         return res;
     }
-    
-        @Override
+
+    @Override
     public String getValueDescription(Set<String> value)
     {
         return null;

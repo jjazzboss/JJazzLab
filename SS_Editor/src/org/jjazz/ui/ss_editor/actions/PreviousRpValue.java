@@ -29,7 +29,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
@@ -45,6 +45,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.ResUtil;
+import org.jjazz.rhythm.api.Enumerable;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.previousrpvalue")
 @ActionRegistration(displayName = "#CTL_PreviousRpValue", lazy = false)
@@ -86,9 +87,12 @@ public final class PreviousRpValue extends AbstractAction implements ContextAwar
         for (SongPartParameter sptp : selection.getSelectedSongPartParameters())
         {
             RhythmParameter rp = sptp.getRp();
-            SongPart spt = sptp.getSpt();
-            Object newValue = rp.getPreviousValue(spt.getRPValue(rp));
-            sgs.setRhythmParameterValue(spt, rp, newValue);
+            if (rp instanceof Enumerable<?>)
+            {
+                SongPart spt = sptp.getSpt();
+                Object newValue = ((Enumerable) rp).getPreviousValue(spt.getRPValue(rp));
+                sgs.setRhythmParameterValue(spt, rp, newValue);
+            }
         }
         JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(undoText);
     }
@@ -96,7 +100,7 @@ public final class PreviousRpValue extends AbstractAction implements ContextAwar
     @Override
     public void selectionChange(SS_SelectionUtilities selection)
     {
-        setEnabled(selection.isRhythmParameterSelected());
+        setEnabled(selection.isEnumerableRhythmParameterSelected());
     }
 
     @Override

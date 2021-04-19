@@ -22,15 +22,17 @@
  */
 package org.jjazz.rhythm.parameters;
 
+import org.jjazz.rhythm.api.Enumerable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import org.jjazz.rhythm.api.RhythmParameter;
 
 /**
  * A RhythmParemeter representing positive integer values.
  */
-public class RP_Integer implements RhythmParameter<Integer>
+public class RP_Integer implements RhythmParameter<Integer>, Enumerable<Integer>
 {
 
     private String id;

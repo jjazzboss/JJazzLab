@@ -25,7 +25,6 @@ package org.jjazz.rhythmmusicgeneration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import org.jjazz.harmony.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midimix.MidiMix;

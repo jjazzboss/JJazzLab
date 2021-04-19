@@ -35,9 +35,6 @@ import org.jjazz.midi.synths.GM1Bank;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.rhythm.api.RhythmVoice.Type;
 import org.jjazz.rhythm.parameters.RP_STD_Variation;
-import org.jjazz.rhythm.parameters.RhythmParameter;
-import org.openide.util.Lookup;
-import org.openide.util.lookup.Lookups;
 
 /**
  * A dummy rhythm which does nothing.
@@ -47,7 +44,6 @@ public class DummyRhythm implements Rhythm
 
     protected String name;
     protected TimeSignature timeSignature;
-    protected Lookup lookup;
     protected RhythmFeatures features;
 
     /**
@@ -84,8 +80,6 @@ public class DummyRhythm implements Rhythm
 
         features = new RhythmFeatures();
 
-        // The music generator
-        lookup = Lookups.fixed("dummy lookup");
     }
 
     @Override
@@ -125,12 +119,6 @@ public class DummyRhythm implements Rhythm
     public List<RhythmParameter<?>> getRhythmParameters()
     {
         return new ArrayList<>(rhythmParameters);
-    }
-
-    @Override
-    public Lookup getLookup()
-    {
-        return lookup;
     }
 
     @Override

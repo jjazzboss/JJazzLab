@@ -24,7 +24,7 @@ package org.jjazz.ui.ss_editor.api;
 
 import java.util.List;
 import javax.swing.JDialog;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;
 

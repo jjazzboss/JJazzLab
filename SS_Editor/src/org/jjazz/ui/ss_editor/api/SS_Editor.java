@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.ss_editor.api;
 
+import org.jjazz.ui.ss_editor.spi.SS_EditorSettings;
 import org.jjazz.songstructure.api.SongPartParameter;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -30,13 +31,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.JPanel;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.sptviewer.api.SptViewerFactory;
+import org.jjazz.ui.sptviewer.spi.SptViewerFactory;
 
 /**
  * A SongStructure editor.

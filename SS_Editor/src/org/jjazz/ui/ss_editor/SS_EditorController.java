@@ -43,7 +43,7 @@ import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.ss_editor.actions.ExtendSelectionLeft;
 import org.jjazz.ui.ss_editor.actions.ExtendSelectionRight;
 import org.jjazz.ui.ss_editor.actions.JumpToEnd;
@@ -67,12 +67,14 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_EditorMouseListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.ResUtil;
+import org.jjazz.rhythm.api.Enumerable;
 
 /**
  * Controller implementation of a SS_Editor.
  */
 public class SS_EditorController implements SS_EditorMouseListener
 {
+
     /**
      * The graphical editor we control.
      */
@@ -148,7 +150,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         editor.getActionMap().put("JumpToHome", new JumpToHome());
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "JumpToEnd");  //NOI18N
         editor.getActionMap().put("JumpToEnd", new JumpToEnd());
-     
+
     }
 
     @Override
@@ -412,7 +414,7 @@ public class SS_EditorController implements SS_EditorMouseListener
 
         if (e.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(e))
         {
-            if (selection.isSongPartSelected() || selection.isEmpty() || focusedRp == null || !RhythmParameter.Utilities.
+            if (selection.isSongPartSelected() || selection.isEmpty() || focusedRp == null || !RhythmParameter.
                     checkCompatibility(rp, focusedRp)
                     || (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
             {
@@ -445,7 +447,7 @@ public class SS_EditorController implements SS_EditorMouseListener
                 for (int i = minIndex; i <= maxIndex; i++)
                 {
                     SongPart spti = spts.get(i);
-                    RhythmParameter<?> rpi = RhythmParameter.Utilities.findFirstCompatibleRp(spti.getRhythm().getRhythmParameters(), rp);
+                    RhythmParameter<?> rpi = RhythmParameter.findFirstCompatibleRp(spti.getRhythm().getRhythmParameters(), rp);
                     if (rpi != null)
                     {
                         editor.selectRhythmParameter(spti, rpi, true);
@@ -516,10 +518,11 @@ public class SS_EditorController implements SS_EditorMouseListener
         }
 
         SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
-        if (!selection.isRhythmParameterSelected(spt, rp))
+        if (!selection.isRhythmParameterSelected(spt, rp) || !(rp instanceof Enumerable))
         {
             return;
         }
+
         // Make sure our TopComponent is active so that global lookup represents our editor's selection. 
         // Because wheel action can be enabled even if the TopComponent is inactive, if editor's selection was indirectly 
         // changed while editor was not active (e.g. rhythm was changed from another TopComponent, or a chordleadsheet section was removed)
@@ -529,19 +532,23 @@ public class SS_EditorController implements SS_EditorMouseListener
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(sgs);
         ssTc.requestActive();
 
+
+        // If we're here rp is an instance of Enumerable
         if (shift)
         {
             // First align the RhythmParameters values
-            double dValue = rp.calculatePercentage(spt.getRPValue(rp));
+            double dValue = ((Enumerable) rp).calculatePercentage(spt.getRPValue(rp));
             String editName = ResUtil.getString(getClass(), "CTL_SetRpValue");
+
+
             JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(editName);
-            for (SongPartParameter srb : selection.getSelectedSongPartParameters())
+            for (SongPartParameter sptp : selection.getSelectedSongPartParameters())
             {
-                SongPart spti = srb.getSpt();
-                RhythmParameter rpi = srb.getRp();
+                SongPart spti = sptp.getSpt();
+                RhythmParameter rpi = sptp.getRp();
                 if (spti != spt)
                 {
-                    Object compatibleValue = rpi.calculateValue(dValue); // selected RPs might be different types (but compatible)
+                    Object compatibleValue = ((Enumerable) rpi).calculateValue(dValue); // selected RPs might be different types (but compatible)
                     editor.getModel().setRhythmParameterValue(spti, rpi, compatibleValue);
                 }
             }
@@ -594,7 +601,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             for (int i = minIndex; i <= maxIndex; i++)
             {
                 SongPart spti = spts.get(i);
-                RhythmParameter<?> rpi = RhythmParameter.Utilities.
+                RhythmParameter<?> rpi = RhythmParameter.
                         findFirstCompatibleRp(spti.getRhythm().getRhythmParameters(), dragStartRp);
                 if (rpi != null)
                 {

@@ -39,7 +39,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.song.api.Song;

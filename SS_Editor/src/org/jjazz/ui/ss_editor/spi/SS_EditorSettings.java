@@ -20,22 +20,22 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.rpviewer.api;
+package org.jjazz.ui.ss_editor.spi;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.beans.PropertyChangeListener;
+import org.jjazz.ui.sptviewer.spi.SptViewerSettings;
 import org.openide.util.Lookup;
 
-public interface StringRpViewerSettings
+public interface SS_EditorSettings
 {
 
-    public static String PROP_FONT = "StringRpViewerFont";
-    public static String PROP_FONT_COLOR = "StringRpViewerFontColor";
+    public static String PROP_BACKGROUND_COLOR = "BackgroundColor";
+    public static String PROP_TOP_BACKGROUND_COLOR = "TopBackgroundColor";
 
-    public static StringRpViewerSettings getDefault()
+    public static SS_EditorSettings getDefault()
     {
-        StringRpViewerSettings result = Lookup.getDefault().lookup(StringRpViewerSettings.class);
+        SS_EditorSettings result = Lookup.getDefault().lookup(SS_EditorSettings.class);
         if (result == null)
         {
             throw new NullPointerException("result=" + result);   //NOI18N
@@ -43,15 +43,20 @@ public interface StringRpViewerSettings
         return result;
     }
 
-     void setFont(Font font);
+    default SptViewerSettings getSptViewerSettings()
+    {
+        return SptViewerSettings.getDefault();
+    }
 
-     Font getFont();
+    Color getBackgroundColor();
 
-     void setFontColor(Color color);
+    void setBackgroundColor(Color color);
 
-     Color getFontColor();
+    Color getTopBackgroundColor();
 
-     void addPropertyChangeListener(PropertyChangeListener listener);
+    void setTopBackgroundColor(Color color);
 
-     void removePropertyChangeListener(PropertyChangeListener listener);
+    void addPropertyChangeListener(PropertyChangeListener listener);
+
+    void removePropertyChangeListener(PropertyChangeListener listener);
 }

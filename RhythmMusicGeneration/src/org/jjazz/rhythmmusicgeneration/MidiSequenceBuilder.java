@@ -162,21 +162,21 @@ public class MidiSequenceBuilder
     // Private methods
     // =========================================================================
     /**
-     * Get the rhythm's MidiMusicGenerator and ask him to generate music.
+     * Ask specified rhythm to generate music.
      *
      * @param r
      */
     private HashMap<RhythmVoice, Phrase> generateRhythmPhrases(Rhythm r) throws MusicGenerationException
     {
-        MusicGenerator generator = r.getLookup().lookup(MusicGenerator.class);
-        if (generator != null)
+        if (r instanceof MusicGenerator)
         {
             LOGGER.fine("fillRhythmTracks() calling generateMusic() for rhythm r=" + r.getName());   //NOI18N
             r.loadResources();
-            return generator.generateMusic(context);
+            return ((MusicGenerator) r).generateMusic(context);
         } else
         {
-            throw new MusicGenerationException("No MidiMusicGenerator object found in rhythm's lookup. rhythm=" + r.getName());
+            LOGGER.warning("generateRhythmPhrases() r=" + r + " is not a MusicGenerator instance");
+            throw new MusicGenerationException("Rhythm " + r.getName() + " is not able to generate music");
         }
     }
 
@@ -421,7 +421,7 @@ public class MidiSequenceBuilder
         }
     }
 
-      /**
+    /**
      * Adjust the EndOfTrack Midi marker for all tracks.
      *
      * @param seq

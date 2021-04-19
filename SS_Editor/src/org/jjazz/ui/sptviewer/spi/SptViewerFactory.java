@@ -20,25 +20,34 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.ss_editor.api;
+package org.jjazz.ui.sptviewer.spi;
 
-import org.jjazz.song.api.Song;
-import org.jjazz.ui.sptviewer.api.SptViewerFactory;
-import org.jjazz.ui.ss_editor.SS_EditorFactoryImpl;
+import org.jjazz.ui.sptviewer.SptViewerFactoryImpl;
 import org.openide.util.Lookup;
+import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.rpviewer.spi.DefaultRpViewerFactory;
+import org.jjazz.ui.sptviewer.api.SptViewer;
 
-public abstract class SS_EditorFactory
+/**
+ * A factory for SongPartEditors.
+ */
+public interface SptViewerFactory
 {
 
-    public static SS_EditorFactory getDefault()
+    public static SptViewerFactory getDefault()
     {
-        SS_EditorFactory rlef = Lookup.getDefault().lookup(SS_EditorFactory.class);
-        if (rlef == null)
+        SptViewerFactory rpef = Lookup.getDefault().lookup(SptViewerFactory.class);
+        if (rpef == null)
         {
-            rlef = SS_EditorFactoryImpl.getInstance();
+            rpef = SptViewerFactoryImpl.getInstance();
         }
-        return rlef;
+        return rpef;
     }
 
-    abstract public SS_Editor createEditor(Song song, SS_EditorSettings settings, SptViewerFactory factory);
+    default DefaultRpViewerFactory getDefaultRpViewerFactory()
+    {
+        return DefaultRpViewerFactory.getDefault();
+    }
+
+    SptViewer createDefaultEditor(SongPart spt, SptViewerSettings settings, DefaultRpViewerFactory factory);
 }

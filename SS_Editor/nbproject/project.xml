@@ -266,11 +266,13 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
+                <package>org.jjazz.ui.rpviewer.api</package>
+                <package>org.jjazz.ui.rpviewer.spi</package>
+                <package>org.jjazz.ui.sptviewer.api</package>
+                <package>org.jjazz.ui.sptviewer.spi</package>
                 <package>org.jjazz.ui.ss_editor.actions</package>
                 <package>org.jjazz.ui.ss_editor.api</package>
                 <package>org.jjazz.ui.ss_editor.spi</package>
-                <package>org.jjazz.ui.sptviewer.api</package>
-                <package>org.jjazz.ui.rpviewer.api</package>
             </public-packages>
         </data>
     </configuration>

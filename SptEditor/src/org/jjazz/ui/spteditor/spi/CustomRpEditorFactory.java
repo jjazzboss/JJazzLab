@@ -23,7 +23,7 @@
 package org.jjazz.ui.spteditor.spi;
 
 import org.jjazz.ui.spteditor.api.RpEditor;
-import org.jjazz.rhythm.parameters.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.openide.util.Lookup;
 import org.jjazz.songstructure.api.SongPart;

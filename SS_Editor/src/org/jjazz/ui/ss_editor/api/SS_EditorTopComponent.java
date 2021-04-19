@@ -22,6 +22,8 @@
  */
 package org.jjazz.ui.ss_editor.api;
 
+import org.jjazz.ui.ss_editor.spi.SS_EditorSettings;
+import org.jjazz.ui.ss_editor.spi.SS_EditorFactory;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -42,7 +44,7 @@ import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.ui.sptviewer.api.SptViewerFactory;
+import org.jjazz.ui.sptviewer.spi.SptViewerFactory;
 import org.jjazz.ui.ss_editor.SS_EditorImpl;
 import org.jjazz.ui.ss_editor.SS_EditorToolBar;
 import org.jjazz.ui.utilities.Zoomable;
