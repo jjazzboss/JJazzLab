@@ -36,7 +36,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.JPanel;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -57,17 +56,11 @@ import org.jjazz.ui.spteditor.spi.RpEditorFactory;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.spteditor.api.SptEditorTopComponent;
+import org.jjazz.ui.spteditor.api.SptEditor;
+import org.jjazz.ui.spteditor.spi.DefaultRpEditorFactory;
 import org.jjazz.util.ResUtil;
 
-/**
- * Edit one or more selected SongParts.
- * <p>
- * Lookup contains:<br>
- * - edited SongStructure<br>
- * - edited Song (container of the SongStructure if there is one)<br>
- */
-public class SptEditor extends JPanel implements PropertyChangeListener
+public class SptEditorImpl extends SptEditor implements PropertyChangeListener
 {
 
     private Lookup.Result<SongPartParameter> sptpLkpResult;
@@ -84,20 +77,20 @@ public class SptEditor extends JPanel implements PropertyChangeListener
     private List<SongPart> songParts;
     private Rhythm previousRhythm;
     private Song songModel;
-    private SS_Editor rlEditor;
+    private SS_Editor ssEditor;
     private SptEditorSettings settings;
-    private SptEditorTopComponent tcContainer;
+    private DefaultRpEditorFactory defaultRpEditorFactory;
+    private static final Logger LOGGER = Logger.getLogger(SptEditorImpl.class.getSimpleName());
 
-    private static final Logger LOGGER = Logger.getLogger(SptEditor.class.getSimpleName());
-
-    public SptEditor(SptEditorTopComponent tc)
+    public SptEditorImpl(SptEditorSettings settings, DefaultRpEditorFactory factory)
     {
-        tcContainer = tc;
         songParts = new ArrayList<>();
 
         // Listen to settings change
-        settings = SptEditorSettings.getDefault();
-        settings.addPropertyChangeListener(this);
+        this.settings = settings;
+        this.settings.addPropertyChangeListener(this);
+
+        this.defaultRpEditorFactory = factory;
 
         // UI initialization
         initComponents();
@@ -144,6 +137,18 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         songPresenceChanged();
     }
 
+    @Override
+    public SptEditorSettings getSettings()
+    {
+        return settings;
+    }
+
+    @Override
+    public DefaultRpEditorFactory getDefaultRpEditorFactory()
+    {
+        return defaultRpEditorFactory;
+    }
+
     public void cleanup()
     {
         settings.removePropertyChangeListener(this);
@@ -184,7 +189,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         panel_RhythmParameters.setLayout(new javax.swing.BoxLayout(panel_RhythmParameters, javax.swing.BoxLayout.Y_AXIS));
 
         tf_name.setText("Name"); // NOI18N
-        tf_name.setToolTipText(org.openide.util.NbBundle.getMessage(SptEditor.class, "SptEditor.tf_name.toolTipText")); // NOI18N
+        tf_name.setToolTipText(org.openide.util.NbBundle.getMessage(SptEditorImpl.class, "SptEditorImpl.tf_name.toolTipText")); // NOI18N
         tf_name.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -194,7 +199,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_Rhythm, "Rhythm"); // NOI18N
-        btn_Rhythm.setToolTipText(org.openide.util.NbBundle.getMessage(SptEditor.class, "SptEditor.btn_Rhythm.toolTipText")); // NOI18N
+        btn_Rhythm.setToolTipText(org.openide.util.NbBundle.getMessage(SptEditorImpl.class, "SptEditorImpl.btn_Rhythm.toolTipText")); // NOI18N
         btn_Rhythm.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -206,7 +211,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         lbl_ParentSection.setFont(lbl_ParentSection.getFont().deriveFont(lbl_ParentSection.getFont().getSize()-2f));
         lbl_ParentSection.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         org.openide.awt.Mnemonics.setLocalizedText(lbl_ParentSection, "A (4/4)"); // NOI18N
-        lbl_ParentSection.setToolTipText(org.openide.util.NbBundle.getMessage(SptEditor.class, "SptEditor.lbl_ParentSection.toolTipText")); // NOI18N
+        lbl_ParentSection.setToolTipText(org.openide.util.NbBundle.getMessage(SptEditorImpl.class, "SptEditorImpl.lbl_ParentSection.toolTipText")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -345,6 +350,8 @@ public class SptEditor extends JPanel implements PropertyChangeListener
      * Refresh the editor based on the selection (SongPart and SongPartParameters) found in the provided context.
      * <p>
      * Register the selected SongParts and call updateUIComponents().
+     *
+     * @param context The lookup of the SS_Editor.
      */
     private void refresh(Lookup context)
     {
@@ -380,7 +387,6 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         {
             // No good, just disable the editor
             setEditorEnabled(false);
-            updateTabName(songParts);
         } else
         {
             // Ok, register the songparts and update the editor
@@ -413,7 +419,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
     private void sptPresenceChanged()
     {
         LOGGER.log(Level.FINE, "sptPresenceChanged()");   //NOI18N
-        refresh(rlEditor.getLookup());
+        refresh(ssEditor.getLookup());
     }
 
     /**
@@ -422,7 +428,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
     private void sptpPresenceChanged()
     {
         LOGGER.log(Level.FINE, "sptpPresenceChanged()");   //NOI18N
-        refresh(rlEditor.getLookup());
+        refresh(ssEditor.getLookup());
     }
 
     /**
@@ -448,13 +454,13 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         songModel = song;
         songModel.addPropertyChangeListener(this); // Listen to closed events
         instanceContent.add(songModel);
-        instanceContent.add(songModel.getChordLeadSheet());
+        // instanceContent.add(songModel.getChordLeadSheet());          // Commented out april 2021: seems useless
 
-        rlEditor = SS_EditorTopComponent.get(songModel.getSongStructure()).getSS_Editor();
-        assert rlEditor != null : "songModel=" + songModel;   //NOI18N
+        ssEditor = SS_EditorTopComponent.get(songModel.getSongStructure()).getSS_Editor();
+        assert ssEditor != null : "songModel=" + songModel;   //NOI18N
 
         // Directly listen to the sgsModel editor selection changes
-        Lookup context = rlEditor.getLookup();
+        Lookup context = ssEditor.getLookup();
         sptLkpResult = context.lookupResult(SongPart.class);
         sptLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, sptLkpListener, sptLkpResult));
         sptpLkpResult = context.lookupResult(SongPartParameter.class);
@@ -476,7 +482,6 @@ public class SptEditor extends JPanel implements PropertyChangeListener
 
         // SongParts can have different rhythms
         // Reference is SongPart(0), initialize UI with its values
-        updateTabName(songParts);
         SongPart spt0 = songParts.get(0);
         Rhythm rhythm0 = spt0.getRhythm();
         btn_Rhythm.setText(rhythm0.getName().toLowerCase());
@@ -596,7 +601,12 @@ public class SptEditor extends JPanel implements PropertyChangeListener
         for (var rp : rps)
         {
             // Get the editor      
-            RpEditor rpe = RpEditorFactory.getCustomOrGenericRpEditor(songModel, spt, rp);
+            RpEditorFactory factory = RpEditorFactory.findFactory(rp);
+            if (factory == null)
+            {
+                factory = defaultRpEditorFactory;
+            }
+            RpEditor rpe = factory.createRpEditor(songModel, spt, rp);
             rpes.add(rpe);
             rpe.addPropertyChangeListener(RpEditor.PROP_RPVALUE, this);     // To avoid getting all UI property change events
             rpe.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
@@ -639,36 +649,6 @@ public class SptEditor extends JPanel implements PropertyChangeListener
                 + ResUtil.getString(getClass(), "CTL_Start") + (spt.getStartBarIndex() + 1) + " " + ResUtil.getString(getClass(), "CTL_Size") + spt.getNbBars();
     }
 
-    /**
-     * Update the TopComponent tab name depending on the specified song parts.
-     * <p>
-     * @param spts The song parts
-     */
-    private void updateTabName(List<SongPart> spts)
-    {
-        if (tcContainer != null)
-        {
-            String tabName = ResUtil.getString(getClass(), "CTL_SongParts");
-            if (!spts.isEmpty())
-            {
-                SongPart spt0 = spts.get(0);
-                int spt0Index = songModel.getSongStructure().getSongParts().indexOf(spts.get(0));
-                if (spts.size() > 1)
-                {
-                    String spt0Name = org.jjazz.util.Utilities.truncate(spt0.getName(), 4) + "(" + (spt0Index + 1) + ")";
-                    SongPart lastSpt = spts.get(spts.size() - 1);
-                    int lastSptIndex = songModel.getSongStructure().getSongParts().indexOf(lastSpt);
-                    String lastSptName = org.jjazz.util.Utilities.truncate(lastSpt.getName(), 4) + "(" + (lastSptIndex + 1) + ")";
-                    tabName += " " + spt0Name + "..." + lastSptName;
-                } else
-                {
-                    tabName += " " + org.jjazz.util.Utilities.truncateWithDots(spt0.getName(), 10) + "(" + (spt0Index + 1) + ")";
-                }
-            }
-            tcContainer.setDisplayName(tabName);
-        }
-    }
-
     private List<RpEditor> getRpEditors()
     {
         ArrayList<RpEditor> rpes = new ArrayList<>();
@@ -690,7 +670,7 @@ public class SptEditor extends JPanel implements PropertyChangeListener
     private void resetModel()
     {
         instanceContent.remove(songModel);
-        instanceContent.remove(songModel.getChordLeadSheet());
+        // instanceContent.remove(songModel.getChordLeadSheet());      
         songModel.removePropertyChangeListener(this);
         songModel = null;
     }

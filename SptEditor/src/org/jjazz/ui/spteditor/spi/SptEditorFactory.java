@@ -20,38 +20,35 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.ss_editor;
+package org.jjazz.ui.spteditor.spi;
 
-import org.jjazz.song.api.Song;
-import org.jjazz.ui.sptviewer.spi.SptViewerFactory;
-import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.spi.SS_EditorFactory;
-import org.jjazz.ui.ss_editor.spi.SS_EditorSettings;
+import org.jjazz.ui.spteditor.SptEditorFactoryImpl;
+import org.jjazz.ui.spteditor.api.SptEditor;
+import org.jjazz.ui.spteditor.api.SptEditorSettings;
+import org.openide.util.Lookup;
 
-public class SS_EditorFactoryImpl implements SS_EditorFactory
+public interface SptEditorFactory
 {
 
-    static private SS_EditorFactoryImpl INSTANCE;
-
-    static public SS_EditorFactoryImpl getInstance()
+    public static SptEditorFactory getDefault()
     {
-        synchronized (SS_EditorFactoryImpl.class)
+        SptEditorFactory rlef = Lookup.getDefault().lookup(SptEditorFactory.class);
+        if (rlef == null)
         {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new SS_EditorFactoryImpl();
-            }
+            rlef = SptEditorFactoryImpl.getInstance();
         }
-        return INSTANCE;
+        return rlef;
     }
 
-    private SS_EditorFactoryImpl()
+    default DefaultRpEditorFactory getDefaultRpEditorFactory()
     {
+        return DefaultRpEditorFactory.getDefault();
     }
 
-    @Override
-    public SS_Editor createEditor(Song song, SS_EditorSettings settings, SptViewerFactory factory)
+    default SptEditorSettings getDefaultSptEditorSettings()
     {
-        return new SS_EditorImpl(song, settings, factory);
+        return SptEditorSettings.getDefault();
     }
+
+    SptEditor createEditor(SptEditorSettings settings, DefaultRpEditorFactory factory);
 }

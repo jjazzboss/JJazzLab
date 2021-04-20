@@ -23,18 +23,16 @@
 package org.jjazz.rhythm.api;
 
 import java.util.List;
-import org.openide.util.Lookup;
 
 /**
  * Define a parameter that influences the way a Rhythm generates music.
  * <p>
- * A parameter may have additional capabilities: the relevant interfaces must be stored in the RhythmParameter lookup.<br>
- * Example:
+ * An implementation might have additional capabilities by implementing additional interfaces, such as Enumerable.
  *
  *
  * @param <E> The type of value of this RhythmParameter.
  */
-public interface RhythmParameter<E> extends Lookup.Provider
+public interface RhythmParameter<E>
 {
 
     /**
@@ -71,20 +69,6 @@ public interface RhythmParameter<E> extends Lookup.Provider
         return null;
     }
 
-    /**
-     * The lookup contains the optional additional capabilities of this RhythmParameter.
-     * <p>
-     * The default implementation returns an empty lookup. Implementations which have additional capabilities (e.g. Enumerable)
-     * should override this method to return a non-empty lookup.
-     *
-     * @return
-     * @see org.openide.util.lookup.Lookups
-     */
-    @Override
-    default Lookup getLookup()
-    {
-        return Lookup.EMPTY;
-    }
 
     /**
      * @return A unique identifier. Usually the english name.

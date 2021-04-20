@@ -1020,7 +1020,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     private void addSptViewer(SongPart spt)
     {
         assert spt != null;   //NOI18N
-        SptViewer sptv = sptViewerFactory.createDefaultEditor(spt, settings.getSptViewerSettings(), sptViewerFactory.getDefaultRpViewerFactory());
+        SptViewer sptv = sptViewerFactory.createSptViewer(spt, sptViewerFactory.getDefaultSptViewerSettings(), sptViewerFactory.getDefaultRpViewerFactory());
         sptv.setZoomHFactor(zoomHFactor);
         sptv.setZoomVFactor(zoomVFactor);
         List<RhythmParameter<?>> rps = this.getVisibleRps(spt.getRhythm());

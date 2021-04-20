@@ -49,8 +49,6 @@ import org.jjazz.ui.ss_editor.SS_EditorImpl;
 import org.jjazz.ui.ss_editor.SS_EditorToolBar;
 import org.jjazz.ui.utilities.Zoomable;
 import org.jjazz.util.ResUtil;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 
 /**
  * Top component for the SongStructure editor.

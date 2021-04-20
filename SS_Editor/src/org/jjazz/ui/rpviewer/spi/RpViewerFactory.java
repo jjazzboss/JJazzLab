@@ -36,12 +36,11 @@ public interface RpViewerFactory
     /**
      * Try to find the relevant RpViewerFactory for the specified RhythmParameter.
      * <p>
-     * First, return rp if rp is an instanceof RpViewerFactory. If not, scan all the RpViewerFactory service provider instances
-     * available on the global lookup, and return the first one which supports rp. If no valid factory found, return
-     * DefaultRpViewerFactory.getDefault().
+     * First, return rp if rp is an instanceof RpViewerFactory. If not, scan all the RpViewerFactory instances available on the
+     * global lookup, and return the first one which supports rp and is not a DefaultRpViewerFactory.
      *
      * @param rp
-     * @return Can't be null.
+     * @return Can be null if no relevant RpViewerFactory found.
      */
     static public RpViewerFactory findFactory(RhythmParameter<?> rp)
     {
@@ -49,9 +48,9 @@ public interface RpViewerFactory
         {
             return (RpViewerFactory) rp;
         }
-        
+
         DefaultRpViewerFactory defaultFactory = DefaultRpViewerFactory.getDefault();
-        
+
         for (var rvf : Lookup.getDefault().lookupAll(RpViewerFactory.class))
         {
             if (rvf.isSupported(rp) && rvf != defaultFactory)
@@ -59,8 +58,8 @@ public interface RpViewerFactory
                 return rvf;
             }
         }
-        
-        return defaultFactory;
+
+        return null;
     }
 
     /**

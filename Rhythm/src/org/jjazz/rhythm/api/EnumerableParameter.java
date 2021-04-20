@@ -29,7 +29,7 @@ import java.util.List;
  *
  * @param <E> The type of value of this RhythmParameter.
  */
-public interface Enumerable<E> 
+public interface EnumerableParameter<E> 
 {
   
     E getMaxValue();

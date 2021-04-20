@@ -22,7 +22,6 @@
  */
 package org.jjazz.rhythm.parameters;
 
-import org.jjazz.rhythm.api.Enumerable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -31,11 +30,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythm.api.EnumerableParameter;
 
 /**
  * A RhythmParemeter whose is a set of strings.
  */
-public class RP_StringSet implements RhythmParameter<Set<String>>, Enumerable<Set<String>>
+public class RP_StringSet implements RhythmParameter<Set<String>>, EnumerableParameter<Set<String>>
 {
 
     public static final int MAX_SET_SIZE = 10;

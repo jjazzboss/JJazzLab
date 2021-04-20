@@ -42,8 +42,8 @@ public class RP_STD_Variation extends RP_State
     {
         super(ID, ResUtil.getString(RP_STD_Variation.class, "CTL_StdVariationName"), ResUtil.getString(RP_STD_Variation.class, "CTL_StdVariationDesc"), defaultVal, possibleValues);
     }
-    
-       /**
+
+    /**
      * Find the first RP_STD_Variation instance in the rhythm parameters of r.
      *
      * @param rhythm
@@ -57,7 +57,7 @@ public class RP_STD_Variation extends RP_State
         }
         return (RP_STD_Variation) rhythm.getRhythmParameters()
                 .stream()
-                .filter(r-> (r instanceof RP_STD_Variation))
+                .filter(r -> (r instanceof RP_STD_Variation))
                 .findAny()
                 .orElse(null);
     }

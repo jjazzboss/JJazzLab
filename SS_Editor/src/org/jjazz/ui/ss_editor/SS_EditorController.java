@@ -67,7 +67,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_EditorMouseListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.ResUtil;
-import org.jjazz.rhythm.api.Enumerable;
+import org.jjazz.rhythm.api.EnumerableParameter;
 
 /**
  * Controller implementation of a SS_Editor.
@@ -518,7 +518,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         }
 
         SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
-        if (!selection.isRhythmParameterSelected(spt, rp) || !(rp instanceof Enumerable))
+        if (!selection.isRhythmParameterSelected(spt, rp) || !(rp instanceof EnumerableParameter))
         {
             return;
         }
@@ -537,7 +537,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         if (shift)
         {
             // First align the RhythmParameters values
-            double dValue = ((Enumerable) rp).calculatePercentage(spt.getRPValue(rp));
+            double dValue = ((EnumerableParameter) rp).calculatePercentage(spt.getRPValue(rp));
             String editName = ResUtil.getString(getClass(), "CTL_SetRpValue");
 
 
@@ -548,7 +548,7 @@ public class SS_EditorController implements SS_EditorMouseListener
                 RhythmParameter rpi = sptp.getRp();
                 if (spti != spt)
                 {
-                    Object compatibleValue = ((Enumerable) rpi).calculateValue(dValue); // selected RPs might be different types (but compatible)
+                    Object compatibleValue = ((EnumerableParameter) rpi).calculateValue(dValue); // selected RPs might be different types (but compatible)
                     editor.getModel().setRhythmParameterValue(spti, rpi, compatibleValue);
                 }
             }

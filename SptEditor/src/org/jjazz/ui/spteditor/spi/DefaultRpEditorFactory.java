@@ -20,36 +20,36 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.ui.rpviewer.spi;
+package org.jjazz.ui.spteditor.spi;
 
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.ui.rpviewer.DefaultRpViewerFactoryImpl;
+import org.jjazz.ui.spteditor.DefaultRpEditorFactoryImpl;
 import org.openide.util.Lookup;
 
 /**
- * A special RpViewerFactory only for the default RhythmParameters.
+ * A special RpEditorFactory only for the default RhythmParameters.
  */
-public interface DefaultRpViewerFactory extends RpViewerFactory
+public interface DefaultRpEditorFactory extends RpEditorFactory
 {
     /**
-     * The default RpViewerFactory.
+     * The default RpEditorFactory.
      * <p>
      * If an instance is available in the global lookup, return it, otherwise return a default implementation.
      *
      * @return
      */
-    static public DefaultRpViewerFactory getDefault()
+    static public DefaultRpEditorFactory getDefault()
     {
-        DefaultRpViewerFactory result = Lookup.getDefault().lookup(DefaultRpViewerFactory.class);
+        DefaultRpEditorFactory result = Lookup.getDefault().lookup(DefaultRpEditorFactory.class);
         if (result == null)
         {
-            result = DefaultRpViewerFactoryImpl.getInstance();
+            result = DefaultRpEditorFactoryImpl.getInstance();
         }
         return result;
     }  
 
     /**
-     * The DefaultRpViewerFactory must provide a RpViewer for all rps.
+     * The DefaultRpViewerFactory must provide a RpEditor for all rps.
      *
      * @param rp
      * @return True

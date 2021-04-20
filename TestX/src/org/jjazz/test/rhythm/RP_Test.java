@@ -1,0 +1,84 @@
+package org.jjazz.test.rhythm;
+
+import java.text.ParseException;
+import java.util.logging.Logger;
+import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmVoice;
+
+/**
+ *
+ * @author Administrateur
+ */
+public class RP_Test implements RhythmParameter<RP_TestValue>
+{
+
+    private RhythmVoice rhythmVoice;
+    private RP_TestValue value = new RP_TestValue();
+    private static final Logger LOGGER = Logger.getLogger(RP_Test.class.getSimpleName());
+
+    public RP_Test(RhythmVoice rv)
+    {
+        if (rv == null)
+        {
+            throw new NullPointerException("rv");
+        }
+        rhythmVoice = rv;
+    }
+
+    /**
+     * @return The RhythmVoices impacted by this
+     */
+    public RhythmVoice getRhythmVoice()
+    {
+        return rhythmVoice;
+    }
+
+    @Override
+    public String getId()
+    {
+        return "RP_TestId";
+    }
+
+    @Override
+    public String getDisplayName()
+    {
+        return "RP_Test";
+    }
+
+    @Override
+    public String getDescription()
+    {
+        return "RP_Test-desc";
+    }
+
+    @Override
+    public String getValueDescription(RP_TestValue value)
+    {
+        return rhythmVoice.getName() + ": " + value.toDescriptionString();
+    }
+
+    @Override
+    public RP_TestValue getDefaultValue()
+    {
+        return new RP_TestValue();
+    }
+
+    @Override
+    public String valueToString(RP_TestValue v)
+    {
+        return RP_TestValue.saveAsString(v);
+    }
+
+    @Override
+    public RP_TestValue stringToValue(String s)
+    {
+        return RP_TestValue.loadFromString(s);
+    }
+
+    @Override
+    public boolean isValidValue(RP_TestValue value)
+    {
+        return value instanceof RP_TestValue;
+    }
+
+}

@@ -42,7 +42,7 @@ import org.jjazz.ui.sptviewer.spi.SptViewerFactory;
 /**
  * A SongStructure editor.
  * <p>
- * his Lookup contains :<br>
+ * Its Lookup must contain :<br>
  * - editor's ActionMap<br>
  * - edited SongStructure<br>
  * - edited Song (container of the SongStructure if there is one) <br>
@@ -64,7 +64,6 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
      * @return The UndoManager used but this editor.
      */
     abstract public UndoRedo getUndoManager();
-
 
     abstract public SS_EditorSettings getSettings();
 

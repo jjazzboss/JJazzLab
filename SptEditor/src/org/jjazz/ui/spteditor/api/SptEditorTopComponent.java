@@ -23,7 +23,9 @@
 package org.jjazz.ui.spteditor.api;
 
 import java.awt.Dimension;
-import org.jjazz.ui.spteditor.SptEditor;
+import java.util.List;
+import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.spteditor.spi.SptEditorFactory;
 import org.jjazz.util.ResUtil;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
@@ -49,7 +51,7 @@ import org.openide.windows.WindowManager;
         preferredID = "SptEditorTopComponent"
 )
 /**
- * A TopComponent to edit one SongPart.
+ * A TopComponent to edit one or more SongParts.
  * <p>
  * TopComponent's lookup is the SptEditor's lookup.
  */
@@ -72,9 +74,11 @@ public final class SptEditorTopComponent extends TopComponent
 
         initComponents();
 
-        sptEditor = new SptEditor(this);
+        SptEditorFactory factory = SptEditorFactory.getDefault();
+        sptEditor = factory.createEditor(factory.getDefaultSptEditorSettings(), factory.getDefaultRpEditorFactory());
         sptEditor.setPreferredSize(new Dimension(80, 100));
         add(sptEditor);
+
 
     }
 
@@ -149,4 +153,32 @@ public final class SptEditorTopComponent extends TopComponent
         String version = p.getProperty("version");
         // TODO read your settings according to their version
     }
+
+    /**
+     * Update the TopComponent tab name depending on the specified song parts.
+     * <p>
+     * @param spts The song parts
+     */
+    private void updateTabName(List<SongPart> spts)
+    {
+//        String tabName = ResUtil.getString(getClass(), "CTL_SongParts");
+//        if (!spts.isEmpty())
+//        {
+//            SongPart spt0 = spts.get(0);
+//            int spt0Index = songModel.getSongStructure().getSongParts().indexOf(spts.get(0));
+//            if (spts.size() > 1)
+//            {
+//                String spt0Name = org.jjazz.util.Utilities.truncate(spt0.getName(), 4) + "(" + (spt0Index + 1) + ")";
+//                SongPart lastSpt = spts.get(spts.size() - 1);
+//                int lastSptIndex = songModel.getSongStructure().getSongParts().indexOf(lastSpt);
+//                String lastSptName = org.jjazz.util.Utilities.truncate(lastSpt.getName(), 4) + "(" + (lastSptIndex + 1) + ")";
+//                tabName += " " + spt0Name + "..." + lastSptName;
+//            } else
+//            {
+//                tabName += " " + org.jjazz.util.Utilities.truncateWithDots(spt0.getName(), 10) + "(" + (spt0Index + 1) + ")";
+//            }
+//        }
+//        setDisplayName(tabName);
+    }
 }
+

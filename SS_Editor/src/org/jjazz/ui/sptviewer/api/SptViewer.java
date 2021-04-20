@@ -28,7 +28,7 @@ import javax.swing.JPanel;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.rpviewer.spi.RpViewerFactory;
+import org.jjazz.ui.rpviewer.spi.DefaultRpViewerFactory;
 
 /**
  * A base class for SongPart viewers.
@@ -42,7 +42,7 @@ public abstract class SptViewer extends JPanel
 
     public abstract SptViewerSettings getSettings();
 
-    public abstract RpViewerFactory getRpViewerFactory();
+    public abstract DefaultRpViewerFactory getDefaultRpViewerFactory();
 
     public abstract void setController(SptViewerMouseListener controller);
 

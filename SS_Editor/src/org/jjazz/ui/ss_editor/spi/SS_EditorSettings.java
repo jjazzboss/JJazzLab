@@ -43,11 +43,6 @@ public interface SS_EditorSettings
         return result;
     }
 
-    default SptViewerSettings getSptViewerSettings()
-    {
-        return SptViewerSettings.getDefault();
-    }
-
     Color getBackgroundColor();
 
     void setBackgroundColor(Color color);

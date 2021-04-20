@@ -35,27 +35,27 @@ import org.jjazz.rhythm.parameters.RP_StringSet;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.spteditor.api.RpEditor;
-import org.jjazz.ui.spteditor.spi.RpEditorFactory;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.spteditor.spi.DefaultRpEditorFactory;
 
-public class RpEditorFactoryImpl implements RpEditorFactory
+public class DefaultRpEditorFactoryImpl implements DefaultRpEditorFactory
 {
 
-    private static RpEditorFactoryImpl INSTANCE;
+    private static DefaultRpEditorFactoryImpl INSTANCE;
 
-    public static RpEditorFactoryImpl getInstance()
+    public static DefaultRpEditorFactoryImpl getInstance()
     {
-        synchronized (RpEditorFactoryImpl.class)
+        synchronized (DefaultRpEditorFactoryImpl.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new RpEditorFactoryImpl();
+                INSTANCE = new DefaultRpEditorFactoryImpl();
             }
         }
         return INSTANCE;
     }
 
-    private RpEditorFactoryImpl()
+    private DefaultRpEditorFactoryImpl()
     {
     }
 
@@ -81,7 +81,7 @@ public class RpEditorFactoryImpl implements RpEditorFactory
             rpe = new RpEditorList(spt, rp, null);
         } else
         {
-            throw new IllegalArgumentException("No RpEditor found for this rp type. rp=" + rp);   //NOI18N
+            rpe = new RpEditorStub(spt, rp);
         }
         return rpe;
     }

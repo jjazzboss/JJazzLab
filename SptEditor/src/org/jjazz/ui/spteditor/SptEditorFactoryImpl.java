@@ -20,38 +20,37 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.ss_editor;
+package org.jjazz.ui.spteditor;
 
-import org.jjazz.song.api.Song;
-import org.jjazz.ui.sptviewer.spi.SptViewerFactory;
-import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.ui.ss_editor.spi.SS_EditorFactory;
-import org.jjazz.ui.ss_editor.spi.SS_EditorSettings;
+import org.jjazz.ui.spteditor.api.SptEditor;
+import org.jjazz.ui.spteditor.api.SptEditorSettings;
+import org.jjazz.ui.spteditor.spi.DefaultRpEditorFactory;
+import org.jjazz.ui.spteditor.spi.SptEditorFactory;
 
-public class SS_EditorFactoryImpl implements SS_EditorFactory
+public class SptEditorFactoryImpl implements SptEditorFactory
 {
 
-    static private SS_EditorFactoryImpl INSTANCE;
+    static private SptEditorFactoryImpl INSTANCE;
 
-    static public SS_EditorFactoryImpl getInstance()
+    static public SptEditorFactoryImpl getInstance()
     {
-        synchronized (SS_EditorFactoryImpl.class)
+        synchronized (SptEditorFactoryImpl.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new SS_EditorFactoryImpl();
+                INSTANCE = new SptEditorFactoryImpl();
             }
         }
         return INSTANCE;
     }
 
-    private SS_EditorFactoryImpl()
+    private SptEditorFactoryImpl()
     {
     }
 
     @Override
-    public SS_Editor createEditor(Song song, SS_EditorSettings settings, SptViewerFactory factory)
+    public SptEditor createEditor(SptEditorSettings settings, DefaultRpEditorFactory factory)
     {
-        return new SS_EditorImpl(song, settings, factory);
+        return new SptEditorImpl(settings, factory);
     }
 }

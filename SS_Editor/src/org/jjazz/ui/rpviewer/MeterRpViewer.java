@@ -34,7 +34,7 @@ import org.jjazz.rhythm.parameters.RP_Integer;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
-import org.jjazz.rhythm.api.Enumerable;
+import org.jjazz.rhythm.api.EnumerableParameter;
 
 /**
  * Display the value as a vertical meter with max 10 leds of 3 colors.
@@ -56,7 +56,7 @@ public class MeterRpViewer extends RpViewer
     public MeterRpViewer(SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings)
     {
         super(spt, rp, settings);
-        if (!(rp instanceof Enumerable))
+        if (!(rp instanceof EnumerableParameter))
         {
             throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " settings=" + settings);
         }
@@ -101,7 +101,7 @@ public class MeterRpViewer extends RpViewer
         SongPart spt = getSptModel();
         RhythmParameter rp = getRpModel();
         Object value = spt.getRPValue(rp);
-        double pValue = ((Enumerable) rp).calculatePercentage(value);
+        double pValue = ((EnumerableParameter) rp).calculatePercentage(value);
 
         final int LED_WIDTH = 28;
         final int LED_HEIGHT = 2;

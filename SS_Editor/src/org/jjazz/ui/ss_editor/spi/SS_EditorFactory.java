@@ -28,9 +28,8 @@ import org.jjazz.ui.ss_editor.SS_EditorFactoryImpl;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.openide.util.Lookup;
 
-public abstract class SS_EditorFactory
+public interface SS_EditorFactory
 {
-
     public static SS_EditorFactory getDefault()
     {
         SS_EditorFactory rlef = Lookup.getDefault().lookup(SS_EditorFactory.class);
@@ -41,5 +40,5 @@ public abstract class SS_EditorFactory
         return rlef;
     }
 
-    abstract public SS_Editor createEditor(Song song, SS_EditorSettings settings, SptViewerFactory factory);
+    SS_Editor createEditor(Song song, SS_EditorSettings settings, SptViewerFactory factory);
 }

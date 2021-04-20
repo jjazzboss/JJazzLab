@@ -54,7 +54,7 @@ public class SptViewerFactoryImpl implements SptViewerFactory
     }
 
     @Override
-    public SptViewer createDefaultEditor(SongPart spt, SptViewerSettings settings, DefaultRpViewerFactory factory)
+    public SptViewer createSptViewer(SongPart spt, SptViewerSettings settings, DefaultRpViewerFactory factory)
     {
         SptViewer sptv = new SptViewerImpl(spt, settings, factory);
         return sptv;

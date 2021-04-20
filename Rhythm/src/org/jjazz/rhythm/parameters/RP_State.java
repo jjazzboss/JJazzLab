@@ -22,17 +22,17 @@
  */
 package org.jjazz.rhythm.parameters;
 
-import org.jjazz.rhythm.api.Enumerable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythm.api.EnumerableParameter;
 
 /**
  * A RhythmParemeter whose value can be some specified strings.
  */
-public class RP_State implements RhythmParameter<String>, Enumerable<String>
+public class RP_State implements RhythmParameter<String>, EnumerableParameter<String>
 {
 
     private String id;

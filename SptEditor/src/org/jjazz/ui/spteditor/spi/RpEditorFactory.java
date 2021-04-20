@@ -27,7 +27,6 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.openide.util.Lookup;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.spteditor.RpEditorFactoryImpl;
 
 /**
  *
@@ -37,62 +36,41 @@ public interface RpEditorFactory
 {
 
     /**
-     * The default implementation.
-     *
-     * @return
-     */
-    public static RpEditorFactory getDefault()
-    {
-        return RpEditorFactoryImpl.getInstance();
-    }
-
-    /**
-     * Try to get a generic RpEditor from one of the RpEditorFactory service providers.
+     * Try to find the relevant RpEditorFactory for the specified RhythmParameter.
      * <p>
-     * The method calls createRpEditor() on each service provider found in the global lookup until it gets a non-null
-     * RpEditor. If no RpEditor returned then use getDefault().
+     * First, return rp if rp is an instanceof RpEditorFactory. If not, scan all the RpEditorFactory instances available on the
+     * global lookup, and return the first one which supports rp and is not a DefaultRpEditorFactory.
      *
-     * @param song
-     * @param spt
      * @param rp
-     * @return Can't be null
+     * @return Can be null if no relevant RpEditorFactory found.
      */
-    public static RpEditor getRpEditor(Song song, SongPart spt, RhythmParameter<?> rp)
+    static public RpEditorFactory findFactory(RhythmParameter<?> rp)
     {
-        for (RpEditorFactory f : Lookup.getDefault().lookupAll(RpEditorFactory.class))
+        if (rp instanceof RpEditorFactory)
         {
-            RpEditor rpe = f.createRpEditor(song, spt, rp);
-            if (rpe != null)
+            return (RpEditorFactory) rp;
+        }
+
+        DefaultRpEditorFactory defaultFactory = DefaultRpEditorFactory.getDefault();
+
+        for (var rvf : Lookup.getDefault().lookupAll(RpEditorFactory.class))
+        {
+            if (rvf.isSupported(rp) && rvf != defaultFactory)
             {
-                return rpe;
+                return rvf;
             }
         }
-        return getDefault().createRpEditor(song, spt, rp);
-    }
 
+        return null;
+    }
 
     /**
-     * Get a custom RpEditor if possible, otherwise a generic one.
-     * <p>
-     * The method first tries to get a custom editor using CustomRpEditorFactory.getCustomRpEditor(), if null it returns
-     * getRpEditor().
+     * Check if this RhythmParameter is handled by this factory.
      *
-     * @param song
-     * @param spt
      * @param rp
-     * @return Can't be null
+     * @return
      */
-    public static RpEditor getCustomOrGenericRpEditor(Song song, SongPart spt, RhythmParameter<?> rp)
-    {
-        RpEditor rpe = CustomRpEditorFactory.getCustomRpEditor(song, spt, rp);
-        if (rpe != null)
-        {
-            return rpe;
-        } else
-        {
-            return getRpEditor(song, spt, rp);
-        }
-    }
+    boolean isSupported(RhythmParameter<?> rp);
 
     /**
      * Create a generic RpEditor adapted to rp class (whatever the containing rhythm).
@@ -100,7 +78,7 @@ public interface RpEditorFactory
      * @param song
      * @param spt
      * @param rp
-     * @return
+     * @return Can be null if rp is not supported.
      */
     public RpEditor createRpEditor(Song song, SongPart spt, RhythmParameter<?> rp);
 

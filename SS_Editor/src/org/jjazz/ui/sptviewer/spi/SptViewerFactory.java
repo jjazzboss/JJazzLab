@@ -49,5 +49,10 @@ public interface SptViewerFactory
         return DefaultRpViewerFactory.getDefault();
     }
 
-    SptViewer createDefaultEditor(SongPart spt, SptViewerSettings settings, DefaultRpViewerFactory factory);
+    default SptViewerSettings getDefaultSptViewerSettings()
+    {
+        return SptViewerSettings.getDefault();
+    }
+
+    SptViewer createSptViewer(SongPart spt, SptViewerSettings settings, DefaultRpViewerFactory factory);
 }
