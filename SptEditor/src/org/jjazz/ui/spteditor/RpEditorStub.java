@@ -56,7 +56,7 @@ public class RpEditorStub extends RpEditor
     }
 
     @Override
-    public Object getRpValue()
+    public Object getEditorValue()
     {
         return value;
     }
@@ -68,13 +68,13 @@ public class RpEditorStub extends RpEditor
     }
 
     @Override
-    protected JComponent getEditor()
+    protected JComponent getEditorComponent()
     {
         return label;
     }
 
     @Override
-    public void setRpValue(Object value, boolean firePropChangeEvent)
+    public void updateEditorValue(Object value)
     {
         this.value = value;
         label.setText(value.toString());

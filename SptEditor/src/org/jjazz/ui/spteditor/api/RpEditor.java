@@ -33,15 +33,14 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * The base class for RpEditors.
+ * The base class for RpEditors,c ombine a label with an editor component adapted to the type of RhythmParameter.<br>
  * <p>
- * Combine a label with an editor component adapted to the type of RhythmParameter.<br>
- * RpEditor must fire a PROP_RPVALUE change event when modified.<br>
+ * <p>
+ * RpEditor subclass must fire a PROP_RPVALUE change event when value was modified by the user.<br>
  * Framework will update the editor value using setRpValue().
  */
 public abstract class RpEditor extends JPanel
 {
-    
     public static final Color MULTI_FOREGROUND_COLOR = new Color(121, 21, 42);      // Dark brown/red
 
     /**
@@ -52,7 +51,7 @@ public abstract class RpEditor extends JPanel
     private RhythmParameter<?> rpModel;
     private boolean isMultiValueMode = false;
     private static final Logger LOGGER = Logger.getLogger(RpEditor.class.getSimpleName());
-    
+
     private RpEditor()
     {
         initComponents();
@@ -79,24 +78,24 @@ public abstract class RpEditor extends JPanel
         lbl_rpName.setText(rpModel.getDisplayName().toLowerCase());
         lbl_rpName.setToolTipText(rpModel.getDescription());
     }
-    
+
     @Override
     public void setEnabled(boolean b)
     {
         super.setEnabled(b);
-        getEditor().setEnabled(b);
+        getEditorComponent().setEnabled(b);
     }
-    
+
     public final SongPart getSptModel()
     {
         return sptModel;
     }
-    
+
     public final RhythmParameter<?> getRpModel()
     {
         return rpModel;
     }
-    
+
     public JLabel getRpNameLabel()
     {
         return lbl_rpName;
@@ -111,21 +110,22 @@ public abstract class RpEditor extends JPanel
     {
         pnl_rpName.setFixedPreferredWidth(w);
     }
-    
-    abstract protected JComponent getEditor();
-    
-    abstract public Object getRpValue();
+
+    abstract protected JComponent getEditorComponent();
+
+    abstract public Object getEditorValue();
 
     /**
      * Update the value in the editor.
+     * <p>
+     * This update should NOT trigger a property change event.
      *
      * @param value
-     * @param firePropChangeEvent If false don't fire a change event.
      */
-    abstract public void setRpValue(Object value, boolean firePropChangeEvent);
-    
+    abstract public void updateEditorValue(Object value);
+
     abstract public void cleanup();
-    
+
     abstract protected void showMultiValueMode(boolean b);
 
     /**
@@ -142,12 +142,12 @@ public abstract class RpEditor extends JPanel
         isMultiValueMode = b;
         showMultiValueMode(isMultiValueMode);
     }
-    
+
     public boolean isMultiValueMode()
     {
         return isMultiValueMode;
     }
-    
+
     public void setHighlighted(boolean b)
     {
         String txt = lbl_rpName.getText();
@@ -161,12 +161,12 @@ public abstract class RpEditor extends JPanel
             lbl_rpName.setText(txt);
         }
     }
-    
+
     public boolean isHighlighted()
     {
         return lbl_rpName.getText().contains("</U></HTML>");
     }
-    
+
     protected final void setEditor(JComponent editor)
     {
         // Replace the placeHolder by this editor      

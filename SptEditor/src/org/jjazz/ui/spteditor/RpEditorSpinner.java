@@ -68,7 +68,7 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
             sm = new MySpinnerNumberModel(value, minValue, maxValue, step);
         } else if (rpModel instanceof RP_State)
         {
-            sm = new SpinnerListModel(((RP_State)rpModel).getPossibleValues());
+            sm = new SpinnerListModel(((RP_State) rpModel).getPossibleValues());
         } else
         {
             throw new IllegalArgumentException("RhythmParameter type not supported for this editor. rp=" + rp);   //NOI18N
@@ -82,31 +82,19 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
     }
 
     @Override
-    protected JComponent getEditor()
+    protected JComponent getEditorComponent()
     {
         return spinner_rpValue;
     }
 
-    /**
-     * Update the value in the editor.
-     *
-     * @param value
-     * @param firePropChangeEvent If false don't fire a change event.
-     */
     @Override
-    public void setRpValue(Object value, boolean firePropChangeEvent)
+    public void updateEditorValue(Object value)
     {
-        if (value != null && !value.equals(getRpValue()))
+        if (value != null && !value.equals(getEditorValue()))
         {
-            if (!firePropChangeEvent)
-            {
-                spinner_rpValue.removeChangeListener(this);
-            }
+            spinner_rpValue.removeChangeListener(this);
             spinner_rpValue.setValue(value);
-            if (!firePropChangeEvent)
-            {
-                spinner_rpValue.addChangeListener(this);
-            }
+            spinner_rpValue.addChangeListener(this);
         }
     }
 
@@ -117,7 +105,7 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
     }
 
     @Override
-    public Object getRpValue()
+    public Object getEditorValue()
     {
         return spinner_rpValue.getValue();
     }
@@ -137,7 +125,7 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
         Object newValue = spinner_rpValue.getValue();
         @SuppressWarnings("rawtypes")
         RhythmParameter rp = getRpModel();      // Needed to get rid of the unbounded wildcard <?>
-        @SuppressWarnings("unchecked")         
+        @SuppressWarnings("unchecked")
         String valueDesc = rp.getValueDescription(newValue);
         spinner_rpValue.setToolTipText(valueDesc == null ? newValue.toString() : valueDesc);
         firePropertyChange(PROP_RPVALUE, null, newValue);

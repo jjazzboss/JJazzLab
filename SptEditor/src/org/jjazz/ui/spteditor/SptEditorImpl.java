@@ -323,10 +323,10 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
             {
                 if (spt == songParts.get(0))
                 {
-                    // If change if for the 1st spt, update the corresponding RpEditor
+                    // If change is for the 1st spt, update the corresponding RpEditor
                     RhythmParameter rp = (RhythmParameter) e.getOldValue();
                     RpEditor rpe = getRpEditor(rp);
-                    rpe.setRpValue(e.getNewValue(), false);
+                    rpe.updateEditorValue(e.getNewValue());
                 }
                 updateUIComponents();
             }
@@ -506,7 +506,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         for (RhythmParameter<?> rp : rhythm0.getRhythmParameters())
         {
             RpEditor rpe = this.getRpEditor(rp);
-            rpe.setRpValue(spt0.getRPValue(rp), false);
+            rpe.updateEditorValue(spt0.getRPValue(rp));
         }
 
         //

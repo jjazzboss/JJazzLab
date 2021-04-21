@@ -73,31 +73,19 @@ public class RpEditorCombo extends RpEditor implements ActionListener, PropertyC
     }
 
     @Override
-    protected JComponent getEditor()
+    protected JComponent getEditorComponent()
     {
         return combo_rpValue;
     }
 
-    /**
-     * Update the value in the editor.
-     *
-     * @param value
-     * @param firePropChangeEvent If false don't fire a change event.
-     */
     @Override
-    public void setRpValue(Object value, boolean firePropChangeEvent)
+    public void updateEditorValue(Object value)
     {
-        if (value != null && !value.equals(getRpValue()))
+        if (value != null && !value.equals(getEditorValue()))
         {
-            if (!firePropChangeEvent)
-            {
-                combo_rpValue.removeActionListener(this);
-            }
+            combo_rpValue.removeActionListener(this);
             combo_rpValue.setSelectedItem(value);
-            if (!firePropChangeEvent)
-            {
-                combo_rpValue.addActionListener(this);
-            }
+            combo_rpValue.addActionListener(this);
         }
     }
 
@@ -108,7 +96,7 @@ public class RpEditorCombo extends RpEditor implements ActionListener, PropertyC
     }
 
     @Override
-    public Object getRpValue()
+    public Object getEditorValue()
     {
         return combo_rpValue.getSelectedItem();
     }

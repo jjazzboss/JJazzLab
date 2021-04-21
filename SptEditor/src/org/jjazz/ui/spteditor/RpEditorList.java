@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
@@ -88,45 +89,27 @@ public class RpEditorList extends RpEditor implements ListSelectionListener
     }
 
     @Override
-    protected JComponent getEditor()
+    protected JComponent getEditorComponent()
     {
         return scrollPane;
     }
 
-    /**
-     * Update the value in the editor.
-     *
-     * @param value
-     * @param firePropChangeEvent If false don't fire a change event.
-     */
     @Override
-    public void setRpValue(Object value, boolean firePropChangeEvent)
+    public void updateEditorValue(Object value)
     {
         if (!(value instanceof Set<?>))
         {
             throw new IllegalArgumentException("value=" + value);   //NOI18N
         }
-        if (value != null && !value.equals(getRpValue()))
+        if (value != null && !value.equals(getEditorValue()))
         {
-            if (!firePropChangeEvent)
-            {
-                list_rpValue.removeListSelectionListener(this);
-            }
+            list_rpValue.removeListSelectionListener(this);
             @SuppressWarnings("unchecked")
             Set<String> values = (Set<String>) value;
-            list_rpValue.clearSelection();
-            int[] indices = new int[values.size()];
-            int i = 0;
-            for (String v : values)
-            {
-                indices[i] = possibleValues.indexOf(v);
-                i++;
-            }
+            list_rpValue.clearSelection();            
+            int[] indices  = values.stream().mapToInt(v -> possibleValues.indexOf(value)).toArray();                    
             list_rpValue.setSelectedIndices(indices);
-            if (!firePropChangeEvent)
-            {
-                list_rpValue.addListSelectionListener(this);
-            }
+            list_rpValue.addListSelectionListener(this);
         }
     }
 
@@ -137,7 +120,7 @@ public class RpEditorList extends RpEditor implements ListSelectionListener
     }
 
     @Override
-    public Object getRpValue()
+    public Object getEditorValue()
     {
         HashSet<String> set = new HashSet<>();
         List<String> selValues = list_rpValue.getSelectedValuesList();
@@ -159,7 +142,7 @@ public class RpEditorList extends RpEditor implements ListSelectionListener
     {
         if (!e.getValueIsAdjusting())
         {
-            Object newValue = getRpValue();
+            Object newValue = getEditorValue();
             firePropertyChange(PROP_RPVALUE, null, newValue);
         }
     }
