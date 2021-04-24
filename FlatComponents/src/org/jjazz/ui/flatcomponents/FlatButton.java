@@ -66,8 +66,7 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
         this();
         setAction(a);
     }
-      
-               
+
     /**
      * Add an ActionListener which will be called each time button is pressed.
      * <p>
@@ -145,8 +144,12 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
      */
     public void setBorderDefault(Border borderDefault)
     {
+        Border old = this.borderDefault;
         this.borderDefault = borderDefault;
-        setBorder(borderDefault);
+        if (getBorder().equals(old))
+        {
+            setBorder(this.borderDefault);
+        }
     }
 
     /**
@@ -162,8 +165,12 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
      */
     public void setBorderEntered(Border borderEntered)
     {
+        Border old = this.borderEntered;
         this.borderEntered = borderEntered;
-        repaint();
+        if (getBorder().equals(old))
+        {
+            setBorder(this.borderEntered);
+        }
     }
 
     /**
@@ -179,8 +186,12 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
      */
     public void setBorderPressed(Border borderPressed)
     {
+        Border old = this.borderPressed;
         this.borderPressed = borderPressed;
-        repaint();
+        if (getBorder().equals(old))
+        {
+            setBorder(this.borderPressed);
+        }
     }
 
     @Override
@@ -288,7 +299,7 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
     protected void buttonClicked(MouseEvent e)
     {
         ActionEvent ae = new ActionEvent(this, 0, "Click", e.getModifiersEx());
-        fireActionPerformed(ae);    
+        fireActionPerformed(ae);
         if (action != null)
         {
             action.actionPerformed(ae);
@@ -306,5 +317,5 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
         {
             l.actionPerformed(e);
         }
-    }  
+    }
 }

@@ -27,15 +27,18 @@ import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import org.openide.util.Lookup;
 
-public interface StringRpViewerSettings
+/**
+ * The settings of the default RpRenderer which just display value as a String.
+ */
+public interface StringRpRendererSettings
 {
 
-    public static String PROP_FONT = "StringRpViewerFont";
-    public static String PROP_FONT_COLOR = "StringRpViewerFontColor";
+    public static String PROP_FONT = "StringRpRendererFont";
+    public static String PROP_FONT_COLOR = "StringRpRendererFontColor";
 
-    public static StringRpViewerSettings getDefault()
+    public static StringRpRendererSettings getDefault()
     {
-        StringRpViewerSettings result = Lookup.getDefault().lookup(StringRpViewerSettings.class);
+        StringRpRendererSettings result = Lookup.getDefault().lookup(StringRpRendererSettings.class);
         if (result == null)
         {
             throw new NullPointerException("result=" + result);   //NOI18N
@@ -43,15 +46,15 @@ public interface StringRpViewerSettings
         return result;
     }
 
-     void setFont(Font font);
+    void setFont(Font font);
 
-     Font getFont();
+    Font getFont();
 
-     void setFontColor(Color color);
+    void setFontColor(Color color);
 
-     Color getFontColor();
+    Color getFontColor();
 
-     void addPropertyChangeListener(PropertyChangeListener listener);
+    void addPropertyChangeListener(PropertyChangeListener listener);
 
-     void removePropertyChangeListener(PropertyChangeListener listener);
+    void removePropertyChangeListener(PropertyChangeListener listener);
 }

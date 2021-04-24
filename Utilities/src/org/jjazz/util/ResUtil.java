@@ -22,6 +22,7 @@
  */
 package org.jjazz.util;
 
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 
@@ -46,33 +47,10 @@ public class ResUtil
      */
     static public String getString(Class<?> cl, String key, Object... params)
     {
-        String res;
-
-
+        
         ResourceBundle bundle = getBundle(cl);
         String s = bundle.getString(key);
-        res = java.text.MessageFormat.format(s, params);   // Return OK even if é è IF ONLY it's not a lazy=true declarations
-//
-// Using NbBundle: it NEVER works if é è, I guess it must always expects ISO !
-//        if (params == null || params.length == 0)
-//        {
-//            res = NbBundle.getMessage(cl, key);
-//        } else if (params.length == 1)
-//        {
-//            res = NbBundle.getMessage(cl, key, params[0]);
-//        } else if (params.length == 2)
-//        {
-//            res = NbBundle.getMessage(cl, key, params[0], params[1]);
-//        } else if (params.length == 3)
-//        {
-//            res = NbBundle.getMessage(cl, key, params[0], params[1], params[2]);
-//        } else if (params.length == 4)
-//        {
-//            res = NbBundle.getMessage(cl, key, params[0], params[1], params[2], params[3]);
-//        } else
-//        {
-//            throw new IllegalStateException("arg");
-//        }
+        String res = java.text.MessageFormat.format(s, params);   // Return OK even if é è IF ONLY it's not a lazy=true declarations
 
         return res;
     }

@@ -27,12 +27,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.api.EnumerableParameter;
+import org.jjazz.rhythm.api.RpEnumerable;
 
 /**
  * A RhythmParemeter whose value can be some specified strings.
  */
-public class RP_State implements RhythmParameter<String>, EnumerableParameter<String>
+public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
 {
 
     private String id;

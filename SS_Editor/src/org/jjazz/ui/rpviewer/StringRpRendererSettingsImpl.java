@@ -22,7 +22,6 @@
  */
 package org.jjazz.ui.rpviewer;
 
-import org.jjazz.ui.rpviewer.spi.StringRpViewerSettings;
 import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
@@ -39,27 +38,28 @@ import org.jjazz.util.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
+import org.jjazz.ui.rpviewer.spi.StringRpRendererSettings;
 
 @ServiceProviders(value =
 {
-    @ServiceProvider(service = StringRpViewerSettings.class),
+    @ServiceProvider(service = StringRpRendererSettings.class),
     @ServiceProvider(service = FontColorUserSettingsProvider.class)
 }
 )
-public class StringRpViewerSettingsImpl implements StringRpViewerSettings, FontColorUserSettingsProvider
+public class StringRpRendererSettingsImpl implements StringRpRendererSettings, FontColorUserSettingsProvider
 {
 
     /**
      * The Preferences of this object.
      */
-    private static Preferences prefs = NbPreferences.forModule(StringRpViewerSettingsImpl.class);
+    private static Preferences prefs = NbPreferences.forModule(StringRpRendererSettingsImpl.class);
     /**
      * The listeners for changes of this object.
      */
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-    private static final Logger LOGGER = Logger.getLogger(StringRpViewerSettingsImpl.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(StringRpRendererSettingsImpl.class.getName());
 
-    public StringRpViewerSettingsImpl()
+    public StringRpRendererSettingsImpl()
     {
     }
 
@@ -134,13 +134,13 @@ public class StringRpViewerSettingsImpl implements StringRpViewerSettings, FontC
             @Override
             public Font getFont()
             {
-                return StringRpViewerSettingsImpl.this.getFont();
+                return StringRpRendererSettingsImpl.this.getFont();
             }
 
             @Override
             public void setFont(Font f)
             {
-                StringRpViewerSettingsImpl.this.setFont(f);
+                StringRpRendererSettingsImpl.this.setFont(f);
             }
 
         };

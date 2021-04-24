@@ -26,8 +26,8 @@ package org.jjazz.ui.sptviewer;
 import org.jjazz.ui.sptviewer.api.SptViewer;
 import org.jjazz.ui.sptviewer.spi.SptViewerFactory;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.rpviewer.spi.DefaultRpViewerFactory;
 import org.jjazz.ui.sptviewer.spi.SptViewerSettings;
+import org.jjazz.ui.rpviewer.spi.DefaultRpRendererFactory;
 
 /**
  *
@@ -54,7 +54,7 @@ public class SptViewerFactoryImpl implements SptViewerFactory
     }
 
     @Override
-    public SptViewer createSptViewer(SongPart spt, SptViewerSettings settings, DefaultRpViewerFactory factory)
+    public SptViewer createSptViewer(SongPart spt, SptViewerSettings settings, DefaultRpRendererFactory factory)
     {
         SptViewer sptv = new SptViewerImpl(spt, settings, factory);
         return sptv;

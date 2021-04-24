@@ -23,35 +23,34 @@
 package org.jjazz.ui.rpviewer.spi;
 
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.rpviewer.api.RpViewer;
+import org.jjazz.ui.rpviewer.api.RpRenderer;
 import org.openide.util.Lookup;
 
 /**
- * Provide RpViewer implementations for the SS_Editor window.
+ * Provide RpRenderers implementations.
  */
-public interface RpViewerFactory
+public interface RpRendererFactory
 {
 
     /**
-     * Try to find the relevant RpViewerFactory for the specified RhythmParameter.
+     * Try to find the relevant RpRendererFactory for the specified RhythmParameter.
      * <p>
-     * First, return rp if rp is an instanceof RpViewerFactory. If not, scan all the RpViewerFactory instances available on the
-     * global lookup, and return the first one which supports rp and is not a DefaultRpViewerFactory.
+     * First, return rp if rp is an instanceof RpRendererFactory. If not, scan all the RpRendererFactory instances available on
+     * the global lookup, and return the first one which supports rp and is not a DefaultRpRendererFactory.
      *
      * @param rp
      * @return Can be null if no relevant RpViewerFactory found.
      */
-    static public RpViewerFactory findFactory(RhythmParameter<?> rp)
+    static public RpRendererFactory findFactory(RhythmParameter<?> rp)
     {
-        if (rp instanceof RpViewerFactory)
+        if (rp instanceof RpRendererFactory)
         {
-            return (RpViewerFactory) rp;
+            return (RpRendererFactory) rp;
         }
 
-        DefaultRpViewerFactory defaultFactory = DefaultRpViewerFactory.getDefault();
+        var defaultFactory = DefaultRpRendererFactory.getDefault();
 
-        for (var rvf : Lookup.getDefault().lookupAll(RpViewerFactory.class))
+        for (var rvf : Lookup.getDefault().lookupAll(RpRendererFactory.class))
         {
             if (rvf.isSupported(rp) && rvf != defaultFactory)
             {
@@ -63,20 +62,24 @@ public interface RpViewerFactory
     }
 
     /**
+     * Check if this factory can create a renderer for the specified RhythmParameter.
      *
      * @param rp
-     * @return True if this factory can create a RpViewer for this RhythmParameter.
+     * @return Default implementation returns true.
      */
-    boolean isSupported(RhythmParameter<?> rp);
+    default boolean isSupported(RhythmParameter<?> rp)
+    {
+        return true;
+    }
 
     /**
-     * Automatically create a RpViewer adapted to the RhyhtmParameter type.
+     * Get a RpRenderer instance adapted to the specified RhyhtmParameter.
+     * <p>
      *
-     * @param spt
      * @param rp
      * @param settings
      * @return Null if rp is not supported.
      */
-    RpViewer createRpViewer(SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings);
+    RpRenderer getRpRenderer(RhythmParameter<?> rp, RpViewerSettings settings);
 
 }

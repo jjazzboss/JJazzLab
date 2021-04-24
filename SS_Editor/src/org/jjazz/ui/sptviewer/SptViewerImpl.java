@@ -53,11 +53,12 @@ import org.jjazz.ui.sptviewer.api.SptViewer;
 import org.jjazz.ui.sptviewer.api.SptViewerMouseListener;
 import org.jjazz.ui.sptviewer.spi.SptViewerSettings;
 import org.jjazz.ui.rpviewer.api.RpViewer;
-import org.jjazz.ui.rpviewer.spi.RpViewerFactory;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.rpviewer.spi.DefaultRpViewerFactory;
+import org.jjazz.ui.rpviewer.api.RpRenderer;
 import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.util.ResUtil;
+import org.jjazz.ui.rpviewer.spi.RpRendererFactory;
+import org.jjazz.ui.rpviewer.spi.DefaultRpRendererFactory;
 
 /**
  * An implementation of a SptViewer.
@@ -90,10 +91,10 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
      * Our graphical settings.
      */
     private SptViewerSettings settings;
-    private DefaultRpViewerFactory defaultRpViewerFactory;
+    private DefaultRpRendererFactory defaultRpRendererFactory;
     private static final Logger LOGGER = Logger.getLogger(SptViewerImpl.class.getSimpleName());
 
-    public SptViewerImpl(SongPart spt, SptViewerSettings settings, DefaultRpViewerFactory factory)
+    public SptViewerImpl(SongPart spt, SptViewerSettings settings, DefaultRpRendererFactory factory)
     {
         if (spt == null || settings == null || factory == null)
         {
@@ -109,7 +110,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         settings.addPropertyChangeListener(this);
 
 
-        defaultRpViewerFactory = factory;
+        defaultRpRendererFactory = factory;
 
 
         // Keep track if section colors change
@@ -140,6 +141,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     public void setController(SptViewerMouseListener controller)
     {
         this.controller = controller;
+        getRpViewers().forEach(rpv -> rpv.setController(controller));
     }
 
     @Override
@@ -149,9 +151,9 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     }
 
     @Override
-    public DefaultRpViewerFactory getDefaultRpViewerFactory()
+    public DefaultRpRendererFactory getDefaultRpRendererFactory()
     {
-        return defaultRpViewerFactory;
+        return defaultRpRendererFactory;
     }
 
     @Override
@@ -318,24 +320,27 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         {
             unregisterRpViewer(rpv);
             rpv.cleanup();
-        }        
+        }
         pnl_RpEditors.removeAll();
-        
-        
+
+
         for (RhythmParameter<?> rp : rps)
         {
             if (sptModel.getRhythm().getRhythmParameters().contains(rp))
             {
                 // Try to get first a specific factory for this rp
-                RpViewerFactory f = RpViewerFactory.findFactory(rp);
-                if (f == null)
+                RpRendererFactory factory = RpRendererFactory.findFactory(rp);
+                if (factory == null)
                 {
                     // Use default
-                    f = defaultRpViewerFactory;
+                    factory = defaultRpRendererFactory;
                 }
-                RpViewer rpv = f.createRpViewer(sptModel, rp, settings.getRpViewerSettings());
-                
-                
+                RpRenderer renderer = factory.getRpRenderer(rp, settings.getRpViewerSettings());
+                RpViewer rpv = new RpViewer(sptModel, rp, settings.getRpViewerSettings(), renderer);
+                rpv.setController(controller);
+                renderer.setRpViewer(rpv);
+
+
                 registerRpViewer(rpv);
                 rpv.setZoomVFactor(zoomVFactor);
                 pnl_RpEditors.add((Component) rpv);

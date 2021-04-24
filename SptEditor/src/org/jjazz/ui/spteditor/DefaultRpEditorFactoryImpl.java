@@ -62,26 +62,55 @@ public class DefaultRpEditorFactoryImpl implements DefaultRpEditorFactory
     @Override
     public RpEditor createRpEditor(Song song, SongPart spt, RhythmParameter<?> rp)
     {
-        if (song == null || spt == null || rp == null)
+        Type type;
+        if (rp instanceof RP_Integer)
         {
-            throw new NullPointerException("song=" + song + " spt=" + spt + " rp=" + rp);   //NOI18N
-        }
-        RpEditor rpe;
-        if (rp instanceof RP_Integer) // || rp instanceof RP_State)
-        {
-            rpe = new RpEditorSpinner(spt, rp);
+            type = Type.SPINNER;
         } else if (rp instanceof RP_State)
         {
-            rpe = new RpEditorCombo(spt, rp);
-        } else if (rp instanceof RP_SYS_Mute)
+            type = Type.COMBO;
+        } else if (rp instanceof RP_SYS_Mute || rp instanceof RP_StringSet)
         {
-            rpe = new RpEditorList(spt, rp, new RpMuteCellRenderer(song, spt, (RP_SYS_Mute) rp));
-        } else if (rp instanceof RP_StringSet)
-        {
-            rpe = new RpEditorList(spt, rp, null);
+            type = Type.LIST;
         } else
         {
-            rpe = new RpEditorStub(spt, rp);
+            type = Type.STUB;
+        }
+        RpEditor rpe = createRpEditor(type, song, spt, rp);
+        return rpe;
+    }
+
+    @Override
+    public RpEditor createRpEditor(Type type, Song song, SongPart spt, RhythmParameter<?> rp)
+    {
+        if (type == null || song == null || spt == null || rp == null)
+        {
+            throw new NullPointerException("type=" + type + " song=" + song + " spt=" + spt + " rp=" + rp);   //NOI18N
+        }
+        RpEditor rpe;
+        switch (type)
+        {
+            case LIST:
+                if (rp instanceof RP_SYS_Mute)
+                {
+                    rpe = new RpEditorList(spt, rp, new RpMuteCellRenderer(song, spt, (RP_SYS_Mute) rp));
+                } else
+                {
+                    rpe = new RpEditorList(spt, rp, null);
+                }
+                break;
+            case SPINNER:
+                rpe = new RpEditorSpinner(spt, rp);
+                break;
+            case COMBO:
+                rpe = new RpEditorCombo(spt, rp);
+                break;
+            case STUB:
+                rpe = new RpEditorStub(spt, rp);
+                break;
+            default:
+                throw new AssertionError(type.name());
+
         }
         return rpe;
     }

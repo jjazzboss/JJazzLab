@@ -30,18 +30,20 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Logger;
-import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.songstructure.api.SongPart;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.jjazz.ui.rpviewer.api.RpViewer;
-import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
-import org.jjazz.ui.rpviewer.spi.StringRpViewerSettings;
+import org.jjazz.ui.rpviewer.spi.StringRpRendererSettings;
+import org.jjazz.ui.rpviewer.api.RpRenderer;
 
 /**
  * A simple editor: just display RP value as a string.
  */
-public class StringRpViewer extends RpViewer implements PropertyChangeListener
+public class StringRpRenderer implements RpRenderer, PropertyChangeListener
 {
 
     private static final int STRING_HBORDER_PREF_SIZE = 10;
@@ -50,26 +52,33 @@ public class StringRpViewer extends RpViewer implements PropertyChangeListener
      */
     private static final int TOP_BORDER = 2;
     // UI variables
-    private final StringRpViewerSettings settings;
+    private final StringRpRendererSettings settings;
     private final Function<Object, String> formatter;
-    private static final Logger LOGGER = Logger.getLogger(StringRpViewer.class.getSimpleName());
+    private RpViewer rpViewer;
+    private Set<ChangeListener> listeners = new HashSet<>();
+    private static final Logger LOGGER = Logger.getLogger(StringRpRenderer.class.getSimpleName());
 
-    /**
-     *
-     * @param spt
-     * @param rp
-     * @param formatter The string formatter of the rp value
-     */
-    public StringRpViewer(SongPart spt, RhythmParameter<?> rp, Function<Object, String> formatter, RpViewerSettings settings)
+    public StringRpRenderer(Function<Object, String> formatter, StringRpRendererSettings settings)
     {
-        super(spt, rp, settings);
-        if (formatter == null)
+        if (formatter == null || settings == null)
         {
-            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " formatter=" + formatter);   //NOI18N
+            throw new IllegalArgumentException("formatter=" + formatter + " settings=" + settings);   //NOI18N
         }
-        this.settings = settings.getStringRpViewerSettings();
+        this.settings = settings;
         this.settings.addPropertyChangeListener(this);
         this.formatter = formatter;
+    }
+
+    @Override
+    public void setRpViewer(RpViewer rpViewer)
+    {
+        this.rpViewer = rpViewer;
+    }
+
+    @Override
+    public RpViewer getRpViewer()
+    {
+        return rpViewer;
     }
 
     /**
@@ -81,9 +90,9 @@ public class StringRpViewer extends RpViewer implements PropertyChangeListener
     public Dimension getPreferredSize()
     {
         // Calculate preferred size from string bounds
-        Insets ins = this.getInsets();
-        String strValue = formatter.apply(getSptModel().getRPValue(getRpModel()));
-        FontMetrics fontMetrics = getFontMetrics(settings.getFont());
+        Insets ins = rpViewer.getInsets();
+        String strValue = formatter.apply(rpViewer.getSptModel().getRPValue(rpViewer.getRpModel()));
+        FontMetrics fontMetrics = rpViewer.getFontMetrics(settings.getFont());
         int strWidth = fontMetrics.stringWidth(strValue);
         int strHeight = fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
         int stringVborderSize = strHeight;
@@ -91,27 +100,12 @@ public class StringRpViewer extends RpViewer implements PropertyChangeListener
         Dimension prefSize = new Dimension();
         prefSize.width = strWidth + ins.left + ins.right + 2 * STRING_HBORDER_PREF_SIZE;
         prefSize.height = strHeight + TOP_BORDER + ins.top + ins.bottom;
-        prefSize.height += Math.round(1.5f * stringVborderSize * getZoomVFactor() / 100f) + 0.75f * stringVborderSize;
+        prefSize.height += Math.round(1.5f * stringVborderSize * rpViewer.getZoomVFactor() / 100f) + 0.75f * stringVborderSize;
 
-        // Make sure size is not smaller than super's preferred size
-        Dimension superPrefSize = super.getPreferredSize();
-        prefSize.width = Math.max(superPrefSize.width, prefSize.width);
-        prefSize.height = Math.max(superPrefSize.height, prefSize.height);
+        prefSize.width = Math.max(25, prefSize.width);
+        prefSize.height = Math.max(20, prefSize.height);
 
         return prefSize;
-    }
-
-    @Override
-    public void cleanup()
-    {
-        super.cleanup();
-        settings.removePropertyChangeListener(this);
-    }
-
-    @Override
-    protected void valueChanged()
-    {
-        repaint();
     }
 
     /**
@@ -122,27 +116,37 @@ public class StringRpViewer extends RpViewer implements PropertyChangeListener
     @Override
     public void paintComponent(Graphics g)
     {
-        super.paintComponent(g);
-
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setFont(settings.getFont());
         g2.setColor(settings.getFontColor());
 
-        Insets ins = getInsets();
-        String strValue = formatter.apply(getSptModel().getRPValue(getRpModel()));
-        FontMetrics fontMetrics = getFontMetrics(settings.getFont());
+        Insets ins = rpViewer.getInsets();
+        String strValue = formatter.apply(rpViewer.getSptModel().getRPValue(rpViewer.getRpModel()));
+        FontMetrics fontMetrics = rpViewer.getFontMetrics(settings.getFont());
         int strWidth = fontMetrics.stringWidth(strValue);
         int strHeight = fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
-        float x = ins.left + (getWidth() - strWidth - ins.left - ins.right) / 2f;
+        float x = ins.left + (rpViewer.getWidth() - strWidth - ins.left - ins.right) / 2f;
         if (x < ins.left)
         {
             x = ins.left;
         }
-        float y = ins.top + TOP_BORDER + (getHeight() - strHeight - ins.top - ins.bottom) / 2f;
+        float y = ins.top + TOP_BORDER + (rpViewer.getHeight() - strHeight - ins.top - ins.bottom) / 2f;
         y += fontMetrics.getMaxAscent();
         g2.drawString(strValue, x, y);
+    }
+
+    @Override
+    public void addChangeListener(ChangeListener l)
+    {
+        listeners.add(l);
+    }
+
+    @Override
+    public void removeChangeListener(ChangeListener l)
+    {
+        listeners.remove(l);
     }
 
     // ---------------------------------------------------------------
@@ -151,16 +155,19 @@ public class StringRpViewer extends RpViewer implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        super.propertyChange(evt);
         if (evt.getSource() == settings)
         {
-            revalidate();
-            repaint();
+            fireChanged();
         }
     }
 
     // ---------------------------------------------------------------
     // Private methods
     // ---------------------------------------------------------------  
- 
+    public void fireChanged()
+    {
+        ChangeEvent evt = new ChangeEvent(this);
+        listeners.stream().forEach(l -> l.stateChanged(evt));
+    }
+
 }

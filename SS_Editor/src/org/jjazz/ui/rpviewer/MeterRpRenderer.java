@@ -30,18 +30,22 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.util.HashSet;
+import java.util.Set;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.jjazz.rhythm.parameters.RP_Integer;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
-import org.jjazz.rhythm.api.EnumerableParameter;
+import org.jjazz.rhythm.api.RpEnumerable;
+import org.jjazz.ui.rpviewer.api.RpRenderer;
 
 /**
  * Display the value as a vertical meter with max 10 leds of 3 colors.
  * <p>
  * Accept only RP_Enumerables instances. Sensitive to zoomVFactor.
  */
-public class MeterRpViewer extends RpViewer
+public class MeterRpRenderer implements RpRenderer
 {
 
     private final static Color GREEN = Color.GREEN;
@@ -52,20 +56,23 @@ public class MeterRpViewer extends RpViewer
      * Extra height added to the minimum size when vertical zoom is at default value.
      */
     private static final int EXTRA_HEIGHT_ZOOM_50 = 15;
+    private Set<ChangeListener> listeners = new HashSet<>();
+    private RpViewer rpViewer;
 
-    public MeterRpViewer(SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings)
+    @Override
+    public void setRpViewer(RpViewer rpViewer)
     {
-        super(spt, rp, settings);
-        if (!(rp instanceof EnumerableParameter))
+        if (rpViewer == null || !(rpViewer.getRpModel() instanceof RpEnumerable))
         {
-            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " settings=" + settings);
+            throw new IllegalArgumentException("rpViewer=" + rpViewer);
         }
+        this.rpViewer = rpViewer;
     }
 
     @Override
-    protected void valueChanged()
+    public RpViewer getRpViewer()
     {
-        repaint();
+        return rpViewer;
     }
 
     /**
@@ -82,7 +89,7 @@ public class MeterRpViewer extends RpViewer
     {
         Dimension d = new Dimension();
         d.width = STD_SIZE.width;
-        d.height = STD_SIZE.height + (int) ((getZoomVFactor() * 2f * EXTRA_HEIGHT_ZOOM_50) / 100f);
+        d.height = STD_SIZE.height + (int) ((rpViewer.getZoomVFactor() * 2f * EXTRA_HEIGHT_ZOOM_50) / 100f);
         return d;
     }
 
@@ -93,15 +100,13 @@ public class MeterRpViewer extends RpViewer
     @Override
     public void paintComponent(Graphics g)
     {
-        super.paintComponent(g);
-
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        SongPart spt = getSptModel();
-        RhythmParameter rp = getRpModel();
+        SongPart spt = rpViewer.getSptModel();
+        RhythmParameter rp = rpViewer.getRpModel();
         Object value = spt.getRPValue(rp);
-        double pValue = ((EnumerableParameter) rp).calculatePercentage(value);
+        double pValue = ((RpEnumerable) rp).calculatePercentage(value);
 
         final int LED_WIDTH = 28;
         final int LED_HEIGHT = 2;
@@ -111,18 +116,18 @@ public class MeterRpViewer extends RpViewer
         final Color PROP_COLOR_BOTTOM = new Color(0, 135, 255);
         final Color PROP_COLOR_TOP = new Color(253, 0, 255);
 
-        Insets in = getInsets();
-        int h = this.getHeight() - in.bottom - in.top - 2 * V_BORDER;     // available height
-        int w = this.getWidth() - in.left - in.right - 2 * H_BORDER;      // available width
+        Insets in = rpViewer.getInsets();
+        int h = rpViewer.getHeight() - in.bottom - in.top - 2 * V_BORDER;     // available height
+        int w = rpViewer.getWidth() - in.left - in.right - 2 * H_BORDER;      // available width
         int ledWidth = Math.min(LED_WIDTH, w);
         int ledHeight = LED_HEIGHT;
 
         int x = in.left + H_BORDER + w / 2 - ledWidth / 2;       // Centered
-        int yFirstLed = getHeight() - in.bottom - V_BORDER - 1 - ledHeight;    // y for the first bottom lead
+        int yFirstLed = rpViewer.getHeight() - in.bottom - V_BORDER - 1 - ledHeight;    // y for the first bottom lead
         int maxNbLeds = h / (ledHeight + V_LED_GAP);
         int nbLeds = (int) Math.round(pValue * maxNbLeds);
 
-        GradientPaint gp = new GradientPaint(0, getHeight() - in.bottom - V_BORDER, PROP_COLOR_BOTTOM, 0, in.top + V_BORDER, PROP_COLOR_TOP);
+        GradientPaint gp = new GradientPaint(0, rpViewer.getHeight() - in.bottom - V_BORDER, PROP_COLOR_BOTTOM, 0, in.top + V_BORDER, PROP_COLOR_TOP);
 
         if (rp instanceof RP_Integer)
         {
@@ -141,7 +146,7 @@ public class MeterRpViewer extends RpViewer
                 int x1line0 = x - 10;
                 x1line0 = Math.max(x1line0, in.left + 1);
                 int x2line0 = x + ledWidth + 10;
-                x2line0 = Math.min(x2line0, getWidth() - in.right - 2);
+                x2line0 = Math.min(x2line0, rpViewer.getWidth() - in.right - 2);
                 g2.setColor(Color.LIGHT_GRAY.darker());
                 g2.drawLine(x1line0, yline0, x2line0, yline0);
                 g2.setPaint(gp);
@@ -193,54 +198,27 @@ public class MeterRpViewer extends RpViewer
         }
     }
 
-//    @Override
-//    public void paintComponent2(Graphics g)
-//    {
-//        super.paintComponent(g);
-//
-//        Graphics2D g2 = (Graphics2D) g;
-//        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-//        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-//        RhythmParameter rp = getRpModel();
-//        SongPart spt = getSptModel();
-//        double pValue = rp.calculatePercentage(spt.getRPValue(rp));
-//
-//        final int V_BORDER = 4;
-//        final int H_BORDER = 5;
-//        final int V_LED_GAP = 1;
-//        Insets in = getInsets();
-//        in.bottom += V_BORDER;
-//        in.top += V_BORDER;
-//        in.left += H_BORDER;
-//        in.right += H_BORDER;
-//        int h = this.getHeight() - in.bottom - in.top;
-//        int w = this.getWidth() - in.left - in.top;
-//        double ledH = (h - 9f * V_LED_GAP) / 10f;
-//        double ledW = w;
-//        Rectangle2D.Double led = new Rectangle2D.Double(in.left, getHeight() - in.bottom - 1, ledW, ledH);
-//
-//        int count = 1;
-//        Color c;
-//        while (pValue > 0)
-//        {
-//            if (count <= 4)
-//            {
-//                c = GREEN;
-//            } else if (count <= 7)
-//            {
-//                c = YELLOW;
-//            } else
-//            {
-//                c = RED;
-//            }
-//            g2.setColor(c);
-//            g2.fill(led);
-//            led.y -= led.height + V_LED_GAP;
-//            count++;
-//            pValue -= 0.1;
-//        }
-//    }
     // ---------------------------------------------------------------
     // Private functions
     // ---------------------------------------------------------------    
+    @Override
+    public void addChangeListener(ChangeListener l)
+    {
+        listeners.add(l);
+    }
+
+    @Override
+    public void removeChangeListener(ChangeListener l)
+    {
+        listeners.remove(l);
+    }
+
+    // ---------------------------------------------------------------
+    // Private methods
+    // ---------------------------------------------------------------  
+    public void fireChanged()
+    {
+        ChangeEvent evt = new ChangeEvent(this);
+        listeners.stream().forEach(l -> l.stateChanged(evt));
+    }
 }

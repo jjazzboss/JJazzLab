@@ -22,44 +22,63 @@
  */
 package org.jjazz.ui.rpviewer.api;
 
-import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
+import java.awt.AWTEvent;
 import java.awt.BorderLayout;
+import org.jjazz.ui.rpviewer.RpViewerLayoutManager;
+import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
 import java.awt.Color;
-import java.awt.FlowLayout;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JLayer;
 import javax.swing.JPanel;
 import static javax.swing.SwingConstants.CENTER;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
+import javax.swing.plaf.LayerUI;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythm.api.RpEditorDialogProvider;
 import org.jjazz.ui.utilities.RedispatchingMouseAdapter;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.flatcomponents.FlatButton;
+import org.jjazz.util.ResUtil;
 
 /**
- * A base class for RpViewers.
+ * A RhythmParameter viewer.
  * <p>
- * Display RP name and manage selected/focused status using background and border.
+ * Display RP name and manage selected/focused status using background and border. Show an edit button if RhythmParameter model
+ * supports a custom edit dialog.
+ * <p>
+ * The actual rendering and preferred size setting is delegated to a RpRenderer.
  */
-public abstract class RpViewer extends JPanel implements PropertyChangeListener, FocusListener
+public class RpViewer extends JPanel implements PropertyChangeListener, FocusListener
 {
 
-    // UI variables
+    // UI variables   
+    private JLayer<RenderingPanel> layer;
+    private RenderingPanel renderingPanel;
     private JLabel lbl_RpName;
+    private FlatButton fbtn_edit;
 
     // Application variables
+    private RpRenderer renderer;
     private RhythmParameter<?> rpModel;
     private SongPart sptModel;
     private RpViewerSettings settings;
     private boolean isSelected = false;
-    private boolean showName = true;
+    private RpViewerController controller;
     /**
      * The vertical zoom factor, zoom min=0, zoom max=100.
      */
@@ -67,15 +86,31 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
 
     private static final Logger LOGGER = Logger.getLogger(RpViewer.class.getSimpleName());
 
-    public RpViewer(SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings)
+    /**
+     *
+     * @param spt
+     * @param rp
+     * @param settings
+     * @param renderer
+     */
+    public RpViewer(SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings, RpRenderer renderer)
     {
-        if (rp == null || spt == null || settings == null)
+        if (rp == null || spt == null || settings == null || renderer == null)
         {
-            throw new NullPointerException("spt=" + spt + " rp=" + rp + " settings=" + settings);   //NOI18N
+            throw new NullPointerException("controller=" + controller + " spt=" + spt + " rp=" + rp + " settings=" + settings + " renderer=" + renderer);   //NOI18N
         }
         this.rpModel = rp;
         this.sptModel = spt;
         this.settings = settings;
+
+        this.renderer = renderer;
+        this.renderer.addChangeListener(e ->
+        {
+            // Renderer configuration has changed
+            renderingPanel.revalidate();
+            renderingPanel.repaint();
+        });
+
 
         // Register graphical settings changes
         this.settings.addPropertyChangeListener(this);
@@ -100,6 +135,11 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
         updateUIComponents();
     }
 
+    public void setController(RpViewerController controller)
+    {
+        this.controller = controller;
+    }
+
     /**
      * Vertical zoom factor.
      * <p>
@@ -116,8 +156,8 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
         if (factor != zoomVFactor)
         {
             zoomVFactor = factor;
-            revalidate();
-            repaint();
+            renderingPanel.revalidate();
+            renderingPanel.repaint();
         }
     }
 
@@ -141,6 +181,7 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
         settings.removePropertyChangeListener(this);
         sptModel.removePropertyChangeListener(this);
         sptModel.getRhythm().removePropertyChangeListener(this);
+        controller = null;
         removeFocusListener(this);
     }
 
@@ -172,36 +213,31 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
         return isSelected;
     }
 
-    public void showRpName(boolean b)
+    public boolean isRpNameVisible()
     {
-        if (b == showName)
+        return lbl_RpName.isShowing();
+    }
+
+    public void setRpNameVisible(boolean b)
+    {
+        if (b && !lbl_RpName.isShowing())
         {
-            return;
-        }
-        showName = b;
-        if (showName)
+            renderingPanel.add(lbl_RpName, RpViewerLayoutManager.NORTH_EAST);
+            renderingPanel.revalidate();
+            renderingPanel.repaint();
+        } else if (!b && lbl_RpName.isShowing())
         {
-            add(lbl_RpName, BorderLayout.NORTH);
-        } else
-        {
-            remove(this.lbl_RpName);
+            renderingPanel.remove(lbl_RpName);
+            renderingPanel.revalidate();
+            renderingPanel.repaint();
         }
     }
 
-    /**
-     * The position of the RP name label.
-     *
-     * @return
-     */
-    protected Rectangle getRpNameBounds()
+    @Override
+    public String toString()
     {
-        return lbl_RpName.getBounds();
+        return "RpViewer[spt=" + getSptModel().getName() + " rp=" + getRpModel().getDisplayName() + " renderer=" + renderer + "]";
     }
-
-    /**
-     * Called when RhythmParameter value has changed.
-     */
-    abstract protected void valueChanged();
 
     // ---------------------------------------------------------------
     // Implements the PropertyChangeListener interface
@@ -219,7 +255,7 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
                 if (evt.getOldValue() == rpModel)
                 {
                     updateToolTip();
-                    valueChanged();
+                    renderingPanel.repaint();
                 }
             }
         } else if (evt.getSource() == sptModel.getRhythm())
@@ -257,6 +293,16 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
     // ---------------------------------------------------------------
     // Private functions
     // ---------------------------------------------------------------    
+    /**
+     * The position of the RP name label.
+     *
+     * @return
+     */
+    protected Rectangle getRpNameBounds()
+    {
+        return lbl_RpName.getBounds();
+    }
+
     private void updateToolTip()
     {
         Object value = sptModel.getRPValue(rpModel);
@@ -269,33 +315,66 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
         {
             tt += ", " + valueDesc;
         }
-        setToolTipText(tt);
+        renderingPanel.setToolTipText(tt);
     }
 
     private void initUIComponents()
     {
         setOpaque(true);
+
+        // RhythmParameter name
         lbl_RpName = new JLabel();
         lbl_RpName.addMouseListener(new RedispatchingMouseAdapter(this));
         lbl_RpName.setText(rpModel.getDisplayName().toLowerCase());
         lbl_RpName.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2));
         lbl_RpName.setToolTipText(rpModel.getDescription());
         lbl_RpName.setHorizontalAlignment(CENTER);
-        lbl_RpName.setOpaque(true); // but we make it slightly transparent below
+        lbl_RpName.setOpaque(true); // but we make it slightly transparent see updateUIComponents()
 
-        // Put the label on the right
-        JPanel pnl_Top = new JPanel(new FlowLayout(FlowLayout.RIGHT, 3, 1));
-        pnl_Top.setOpaque(false);
-        pnl_Top.add(lbl_RpName);
+
+        // Optional edit button
+        fbtn_edit = new FlatButton();
+        fbtn_edit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/rpviewer/api/resources/OpenPopup.png"))); // NOI18N
+        fbtn_edit.addActionListener(e -> showRpCustomEditDialog());
+        fbtn_edit.setBorderEntered(BorderFactory.createLineBorder(Color.GRAY));
+        fbtn_edit.setToolTipText(ResUtil.getString(getClass(), "TooltipRpEditCustomDialog"));
+
+
+        // Our custom layout 
+        renderingPanel = new RenderingPanel();
+        renderingPanel.setOpaque(false);
+        renderingPanel.addMouseListener(new RedispatchingMouseAdapter(this));
+        renderingPanel.setLayout(new RpViewerLayoutManager());
+        renderingPanel.add(lbl_RpName, RpViewerLayoutManager.NORTH_EAST);
+
+
+        // We use a JLayer because when using a simple MouseListener to listen to mouseEntered/mouseExited events (to show/hide edit button), sometimes
+        // when moving the mouse fast across RpViewers, we miss an exit event and end up with the edit button not correctly removed.
+        // Don't know really why, but this problem never happens when using the JLayer.
+        MyLayerUI layerUI = new MyLayerUI();
+        layer = new JLayer<>(renderingPanel, layerUI);
         setLayout(new BorderLayout());
-        add(pnl_Top, BorderLayout.NORTH);
+        add(layer, BorderLayout.CENTER);
+    }
 
-        // setPreferredSize(DEFAULT_PREFERRED_SIZE);
+    private void setEditButtonVisible(boolean b)
+    {
+        if (b && !fbtn_edit.isShowing())
+        {
+            renderingPanel.add(fbtn_edit, RpViewerLayoutManager.NORTH_WEST);
+            renderingPanel.revalidate();
+            renderingPanel.repaint();
+        } else if (!b && fbtn_edit.isShowing())
+        {
+            renderingPanel.remove(fbtn_edit);
+            renderingPanel.revalidate();
+            renderingPanel.repaint();
+        }
     }
 
     private void updateUIComponents()
     {
-        lbl_RpName.setFont(settings.getNameFont());        
+        lbl_RpName.setFont(settings.getNameFont());
         lbl_RpName.setForeground(settings.getNameFontColor());
         Color c = settings.getDefaultBackgroundColor();
         lbl_RpName.setBackground(new Color(c.getRed(), c.getGreen(), c.getBlue(), 110)); // a bit Transparent
@@ -318,10 +397,70 @@ public abstract class RpViewer extends JPanel implements PropertyChangeListener,
         updateToolTip();
     }
 
-    @Override
-    public String toString()
+    private void showRpCustomEditDialog()
     {
-        return "RpViewer[spt=" + getSptModel().getName() + " rp=" + getRpModel().getDisplayName() + "]";
+        if (controller != null)
+        {
+            controller.rhythmParameterCustomEditDialog(sptModel, rpModel);
+        }
     }
 
+    // ---------------------------------------------------------------
+    // Private classes
+    // ---------------------------------------------------------------        
+    private class RenderingPanel extends JPanel
+    {
+
+        @Override
+        public Dimension getPreferredSize()
+        {
+            return renderer.getPreferredSize();
+        }
+
+        @Override
+        public void paintComponent(Graphics g)
+        {
+            super.paintComponent(g);
+            renderer.paintComponent(g);
+        }
+
+    }
+
+    /**
+     * Used to track mouse entered/exit avoiding the problems with children components.
+     * <p>
+     * This is actually used only for RpEditorDialogProvider instances, see installUI().
+     */
+    private class MyLayerUI extends LayerUI<RenderingPanel>
+    {
+
+        @Override
+        public void installUI(JComponent c)
+        {
+            super.installUI(c);
+            if (rpModel instanceof RpEditorDialogProvider)
+            {
+                JLayer jlayer = (JLayer) c;
+                jlayer.setLayerEventMask(AWTEvent.MOUSE_EVENT_MASK);
+            }
+        }
+
+        @Override
+        public void uninstallUI(JComponent c)
+        {
+            JLayer jlayer = (JLayer) c;
+            jlayer.setLayerEventMask(0);
+            super.uninstallUI(c);
+        }
+
+        @Override
+        protected void processMouseEvent(MouseEvent e, JLayer l)
+        {
+            if (e.getID() == MouseEvent.MOUSE_ENTERED || e.getID() == MouseEvent.MOUSE_EXITED)
+            {
+                Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), l);
+                setEditButtonVisible(l.contains(p));
+            }
+        }
+    }
 }

@@ -23,7 +23,6 @@
 package org.jjazz.outputsynth.ui;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
@@ -67,15 +66,8 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
     {
         var mc = MusicController.getInstance();
         var dlg = TransposePlaybackKeyDialog.getInstance();
-
-
-        boolean ctrl = (e.getModifiers() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
-        if (ctrl)
-        {
-            // Directly toggle 
-        }
-
-
+        
+        
         dlg.preset(mc.getPlaybackKeyTransposition());
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
@@ -108,7 +100,7 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
         var mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_PLAYBACK_KEY_TRANSPOSITION)
+            if (evt.getPropertyName().equals(MusicController.PROP_PLAYBACK_KEY_TRANSPOSITION))
             {
                 updateButtonUI();
             }

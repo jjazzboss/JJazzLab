@@ -1,7 +1,6 @@
 package org.jjazz.test.rhythm;
 
 import java.beans.PropertyChangeSupport;
-import java.text.ParseException;
 import java.util.logging.Logger;
 
 /**
@@ -23,6 +22,13 @@ public class RP_TestValue
     public RP_TestValue()
     {
         reset();
+    }
+
+    public RP_TestValue(int bd, int sn, int hh)
+    {
+        bassDrumOffset = bd;
+        snareOffset = sn;
+        hiHatOffset = hh;
     }
 
     public void reset()
@@ -116,13 +122,13 @@ public class RP_TestValue
         {
             try
             {
-                v = new RP_TestValue();                
+                v = new RP_TestValue();
                 v.bassDrumOffset = Integer.parseInt(strs[0]);
                 v.snareOffset = Integer.parseInt(strs[1]);
                 v.hiHatOffset = Integer.parseInt(strs[2]);
             } catch (NumberFormatException ex)
             {
-                LOGGER.severe("loadFromString() ex="+ex.getMessage());
+                LOGGER.severe("loadFromString() ex=" + ex.getMessage());
                 v = null;
             }
         }

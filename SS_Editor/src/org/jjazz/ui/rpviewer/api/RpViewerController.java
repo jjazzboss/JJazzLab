@@ -1,3 +1,5 @@
+package org.jjazz.ui.rpviewer.api;
+
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
@@ -20,39 +22,20 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.sptviewer.spi;
-
-import org.jjazz.ui.sptviewer.SptViewerFactoryImpl;
-import org.openide.util.Lookup;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.sptviewer.api.SptViewer;
-import org.jjazz.ui.rpviewer.spi.DefaultRpRendererFactory;
 
 /**
- * A factory for SongPartEditors.
+ * The edit operations which can be triggered directly by a RpViewer.
  */
-public interface SptViewerFactory
+public interface RpViewerController
 {
 
-    public static SptViewerFactory getDefault()
-    {
-        SptViewerFactory rpef = Lookup.getDefault().lookup(SptViewerFactory.class);
-        if (rpef == null)
-        {
-            rpef = SptViewerFactoryImpl.getInstance();
-        }
-        return rpef;
-    }
-
-    default DefaultRpRendererFactory getDefaultRpViewerFactory()
-    {
-        return DefaultRpRendererFactory.getDefault();
-    }
-
-    default SptViewerSettings getDefaultSptViewerSettings()
-    {
-        return SptViewerSettings.getDefault();
-    }
-
-    SptViewer createSptViewer(SongPart spt, SptViewerSettings settings, DefaultRpRendererFactory factory);
+    /**
+     * User wants to use the custom edit dialog of the specified RhythmParameter.
+     *
+     * @param spt
+     * @param rp The RhythmParameter implements the RpEditorDialogProvider interface
+     */
+    void rhythmParameterCustomEditDialog(SongPart spt, RhythmParameter<?> rp);
 }

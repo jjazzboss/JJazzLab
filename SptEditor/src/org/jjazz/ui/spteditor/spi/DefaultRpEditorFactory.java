@@ -23,7 +23,10 @@
 package org.jjazz.ui.spteditor.spi;
 
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.song.api.Song;
+import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.DefaultRpEditorFactoryImpl;
+import org.jjazz.ui.spteditor.api.RpEditor;
 import org.openide.util.Lookup;
 
 /**
@@ -31,6 +34,15 @@ import org.openide.util.Lookup;
  */
 public interface DefaultRpEditorFactory extends RpEditorFactory
 {
+
+    /**
+     * The types of RP editors supported by this factory.
+     */
+    public enum Type
+    {
+        LIST, SPINNER, COMBO, CUSTOM_DIALOG, STUB
+    };
+
     /**
      * The default RpEditorFactory.
      * <p>
@@ -46,7 +58,7 @@ public interface DefaultRpEditorFactory extends RpEditorFactory
             result = DefaultRpEditorFactoryImpl.getInstance();
         }
         return result;
-    }  
+    }
 
     /**
      * The DefaultRpViewerFactory must provide a RpEditor for all rps.
@@ -59,5 +71,17 @@ public interface DefaultRpEditorFactory extends RpEditorFactory
     {
         return true;
     }
+
+    /**
+     * Create a RpEditor of the specified type for rp.
+     *
+     * @param type
+     * @param song
+     * @param spt
+     * @param rp
+     * @return Can be null if rp is not supported.
+     * @throws IllegalArgumentException If rp class does not match to RpEditor type.
+     */
+    public RpEditor createRpEditor(Type type, Song song, SongPart spt, RhythmParameter<?> rp);
 
 }

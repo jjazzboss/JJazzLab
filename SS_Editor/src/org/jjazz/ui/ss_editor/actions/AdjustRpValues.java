@@ -53,7 +53,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.util.ResUtil;
-import org.jjazz.rhythm.api.EnumerableParameter;
+import org.jjazz.rhythm.api.RpEnumerable;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.adjustrpvalues")
 @ActionRegistration(displayName = "#CTL_AdjustRpValues", lazy = false)
@@ -147,7 +147,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
         for (SongPartParameter sptp : rpData.enumerableSptps)
         {
             RhythmParameter rp = sptp.getRp();
-            Object value = ((EnumerableParameter<?>) rp).calculateValue(rpData.doubleValue0);
+            Object value = ((RpEnumerable<?>) rp).calculateValue(rpData.doubleValue0);
             rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
         }
 
@@ -165,7 +165,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
         for (SongPartParameter sptp : rpData.enumerableSptps)
         {
             RhythmParameter rp = sptp.getRp();
-            Object value = ((EnumerableParameter) rp).calculateValue(enforceBounds(v));
+            Object value = ((RpEnumerable) rp).calculateValue(enforceBounds(v));
             rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
             v += step;
         }
@@ -188,7 +188,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
             double y = (1.0 - ((1 + Math.log((10 - x) * 10 + 0.37)) / 5.7)) * yDiff;
             LOGGER.log(Level.FINE, "upSlow() rpData.doubleValue0=" + rpData.doubleValue0 + " rpData.doubleValue1=" + rpData.doubleValue1 + " x=" + x + " y=" + y);   //NOI18N
             double d = enforceBounds(rpData.doubleValue0 + y);
-            Object value = ((EnumerableParameter) rp).calculateValue(d);
+            Object value = ((RpEnumerable) rp).calculateValue(d);
             rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
             x += 10f / (rpData.enumerableSptps.size() - 1f);
         }
@@ -211,7 +211,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
             LOGGER.log(Level.FINER, "rpData.doubleValue0=" + rpData.doubleValue0 + " rpData.doubleValue1=" + rpData.doubleValue1 + " x=" + x + " y=" + y);   //NOI18N
             RhythmParameter rp = sptp.getRp();
             double d = enforceBounds(rpData.doubleValue0 + y);
-            Object value = ((EnumerableParameter) rp).calculateValue(d);
+            Object value = ((RpEnumerable) rp).calculateValue(d);
             rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
             x += 10f / (rpData.enumerableSptps.size() - 1f);
         }
@@ -234,7 +234,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
             RhythmParameter rp = sptp.getRp();
 
             double d = enforceBounds(rpData.doubleValue1 + y);
-            Object value = ((EnumerableParameter) rp).calculateValue(d);
+            Object value = ((RpEnumerable) rp).calculateValue(d);
             rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
 
             x += 10f / (rpData.enumerableSptps.size() - 1f);
@@ -258,7 +258,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
             LOGGER.log(Level.FINER, "rpData.doubleValue0=" + rpData.doubleValue0 + " rpData.doubleValue1=" + rpData.doubleValue1 + " x=" + x + " y=" + y);   //NOI18N
             RhythmParameter rp = sptp.getRp();
             double d = enforceBounds(rpData.doubleValue0 - y);
-            Object value = ((EnumerableParameter) rp).calculateValue(d);
+            Object value = ((RpEnumerable) rp).calculateValue(d);
             rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
             x += 10f / (rpData.enumerableSptps.size() - 1f);
         }
@@ -418,10 +418,10 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
                 rp0 = sptps.get(0).getRp();
                 spt1 = sptps.get(sptps.size() - 1).getSpt();
                 rp1 = sptps.get(sptps.size() - 1).getRp();
-                if (rp0 instanceof EnumerableParameter && rp1 instanceof EnumerableParameter)
+                if (rp0 instanceof RpEnumerable && rp1 instanceof RpEnumerable)
                 {
-                    doubleValue0 = ((EnumerableParameter) rp0).calculatePercentage(spt0.getRPValue(rp0));
-                    doubleValue1 = ((EnumerableParameter) rp1).calculatePercentage(spt1.getRPValue(rp1));
+                    doubleValue0 = ((RpEnumerable) rp0).calculatePercentage(spt0.getRPValue(rp0));
+                    doubleValue1 = ((RpEnumerable) rp1).calculatePercentage(spt1.getRPValue(rp1));
                     enumerableSptps = sptps.stream().filter(sptp -> sptp.isEnumerableRp()).collect(Collectors.toList());
                     b = enumerableSptps.size() > 2;
                 }

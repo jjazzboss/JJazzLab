@@ -22,42 +22,52 @@
  */
 package org.jjazz.ui.rpviewer.spi;
 
-import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.ui.rpviewer.DefaultRpViewerFactoryImpl;
+import org.jjazz.ui.rpviewer.DefaultRpRendererFactoryImpl;
+import org.jjazz.ui.rpviewer.api.RpRenderer;
 import org.openide.util.Lookup;
 
 /**
- * A special RpViewerFactory only for the default RhythmParameters.
+ * The default RpRenderer factory.
+ * <p>
+ * This factory must handle the default JJazzLab RhythmParameters (RP_State, RP_Integer, RP_StringSet, etc.), and provide a
+ * default renderer for unknown RhythmParameters.
+ * <p>
  */
-public interface DefaultRpViewerFactory extends RpViewerFactory
+public interface DefaultRpRendererFactory extends RpRendererFactory
 {
+
     /**
-     * The default RpViewerFactory.
+     * The types of renderers supported by this factory.
+     */
+    public enum Type
+    {
+        METER, STRING, STRING_SET, PERCENTAGE
+    }
+
+    /**
+     * The default RpRendererFactory.
      * <p>
      * If an instance is available in the global lookup, return it, otherwise return a default implementation.
      *
      * @return
      */
-    static public DefaultRpViewerFactory getDefault()
+    static public DefaultRpRendererFactory getDefault()
     {
-        DefaultRpViewerFactory result = Lookup.getDefault().lookup(DefaultRpViewerFactory.class);
+        DefaultRpRendererFactory result = Lookup.getDefault().lookup(DefaultRpRendererFactory.class);
         if (result == null)
         {
-            result = DefaultRpViewerFactoryImpl.getInstance();
+            result = DefaultRpRendererFactoryImpl.getInstance();
         }
         return result;
-    }  
+    }    
 
     /**
-     * The DefaultRpViewerFactory must provide a RpViewer for all rps.
+     * Get the RpRenderer of the specified type.
      *
-     * @param rp
-     * @return True
+     * @param type
+     * @param settings
+     * @return
      */
-    @Override
-    default boolean isSupported(RhythmParameter<?> rp)
-    {
-        return true;
-    }
+    RpRenderer getRpRenderer(Type type, RpViewerSettings settings);
 
 }

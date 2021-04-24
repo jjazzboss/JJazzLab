@@ -47,7 +47,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.ResUtil;
-import org.jjazz.rhythm.api.EnumerableParameter;
+import org.jjazz.rhythm.api.RpEnumerable;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.nextrpvalue")
 @ActionRegistration(displayName = "#CTL_NextRpValue", lazy = false)
@@ -91,10 +91,10 @@ public final class NextRpValue extends AbstractAction implements ContextAwareAct
         for (SongPartParameter sptp : selection.getSelectedSongPartParameters())
         {
             RhythmParameter rp = sptp.getRp();
-            if (rp instanceof EnumerableParameter)
+            if (rp instanceof RpEnumerable)
             {
                 SongPart spt = sptp.getSpt();
-                Object newValue = ((EnumerableParameter) rp).getNextValue(spt.getRPValue(rp));
+                Object newValue = ((RpEnumerable) rp).getNextValue(spt.getRPValue(rp));
                 sgs.setRhythmParameterValue(spt, rp, newValue);
             }
         }

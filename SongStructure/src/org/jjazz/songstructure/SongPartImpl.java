@@ -47,7 +47,7 @@ import org.openide.NotifyDescriptor;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.ResUtil;
-import org.jjazz.rhythm.api.EnumerableParameter;
+import org.jjazz.rhythm.api.RpEnumerable;
 
 public class SongPartImpl implements SongPart, Serializable
 {
@@ -259,10 +259,10 @@ public class SongPartImpl implements SongPart, Serializable
                 {
                     newRpValue = newRp.stringToValue(crpStringValue);     // May return null
                 }
-                if (newRpValue == null && newRp instanceof EnumerableParameter && crp instanceof EnumerableParameter)
+                if (newRpValue == null && newRp instanceof RpEnumerable && crp instanceof RpEnumerable)
                 {
-                    double crpPercentageValue = ((EnumerableParameter) crp).calculatePercentage(crpValue);
-                    newRpValue = ((EnumerableParameter) newRp).calculateValue(crpPercentageValue);
+                    double crpPercentageValue = ((RpEnumerable) crp).calculatePercentage(crpValue);
+                    newRpValue = ((RpEnumerable) newRp).calculateValue(crpPercentageValue);
                 }
                 if (newRpValue != null)
                 {
@@ -459,7 +459,7 @@ public class SongPartImpl implements SongPart, Serializable
             for (RhythmParameter rp : spt.getRhythm().getRhythmParameters())
             {
                 Object value = spt.getRPValue(rp);
-                double percentage = rp instanceof EnumerableParameter ? ((EnumerableParameter) rp).calculatePercentage(value) : -1;
+                double percentage = rp instanceof RpEnumerable ? ((RpEnumerable) rp).calculatePercentage(value) : -1;
                 spMapRpIdPercentageValue.putValue(rp.getId(), percentage);
                 spMapRpIdDisplayName.putValue(rp.getId(), rp.getDisplayName());
                 String strValue = rp.valueToString(value);
@@ -520,12 +520,12 @@ public class SongPartImpl implements SongPart, Serializable
                     {
                         newValue = newRp.stringToValue(savedRpStringValue);      // newValue can still be null after this
                     }
-                    if (newValue == null && newRp instanceof EnumerableParameter)
+                    if (newValue == null && newRp instanceof RpEnumerable)
                     {
                         double savedRpPercentageValue = spMapRpIdPercentageValue.getValue(savedRpId);
                         if (savedRpPercentageValue >= 0 && savedRpPercentageValue <= 1)
                         {
-                            newValue = ((EnumerableParameter) newRp).calculateValue(savedRpPercentageValue);
+                            newValue = ((RpEnumerable) newRp).calculateValue(savedRpPercentageValue);
                         }
                     }
                     if (newValue == null)

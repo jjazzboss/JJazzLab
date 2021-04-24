@@ -31,12 +31,12 @@ import org.openide.util.Lookup;
 public interface RpViewerSettings
 {
 
-    public static String PROP_NAME_FONT = "SptrViewerNameFont";
-    public static String PROP_NAME_FONT_COLOR = "SptrViewerFontColor";
-    public static String PROP_SELECTED_BACKGROUND_COLOR = "SptrViewerSelectedBackgroundColor";
-    public static String PROP_BACKGROUND_COLOR = "SptrViewerDefaultBackgroundColor";
-    public static String PROP_FOCUS_BORDER_COLOR = "SptrViewerFocusedBorderColor";
-    public static String PROP_DEFAULT_BORDER_COLOR = "SptrViewerDefaultBorderColor";
+    public static String PROP_NAME_FONT = "ViewerNameFont";
+    public static String PROP_NAME_FONT_COLOR = "ViewerFontColor";
+    public static String PROP_SELECTED_BACKGROUND_COLOR = "ViewerSelectedBackgroundColor";
+    public static String PROP_BACKGROUND_COLOR = "ViewerDefaultBackgroundColor";
+    public static String PROP_FOCUS_BORDER_COLOR = "ViewerFocusedBorderColor";
+    public static String PROP_DEFAULT_BORDER_COLOR = "ViewerDefaultBorderColor";
 
     public static RpViewerSettings getDefault()
     {
@@ -48,9 +48,9 @@ public interface RpViewerSettings
         return result;
     }
 
-    default StringRpViewerSettings getStringRpViewerSettings()
+    default StringRpRendererSettings getStringRpRendererSettings()
     {
-        return StringRpViewerSettings.getDefault();
+        return StringRpRendererSettings.getDefault();
     }
 
     void setNameFont(Font font);

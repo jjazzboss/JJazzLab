@@ -30,12 +30,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.api.EnumerableParameter;
+import org.jjazz.rhythm.api.RpEnumerable;
 
 /**
  * A RhythmParemeter whose is a set of strings.
  */
-public class RP_StringSet implements RhythmParameter<Set<String>>, EnumerableParameter<Set<String>>
+public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<Set<String>>
 {
 
     public static final int MAX_SET_SIZE = 10;

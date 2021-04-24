@@ -44,6 +44,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythm.api.RpEditorDialogProvider;
 import org.jjazz.ui.ss_editor.actions.ExtendSelectionLeft;
 import org.jjazz.ui.ss_editor.actions.ExtendSelectionRight;
 import org.jjazz.ui.ss_editor.actions.JumpToEnd;
@@ -67,7 +68,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_EditorMouseListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.ResUtil;
-import org.jjazz.rhythm.api.EnumerableParameter;
+import org.jjazz.rhythm.api.RpEnumerable;
 
 /**
  * Controller implementation of a SS_Editor.
@@ -457,12 +458,18 @@ public class SS_EditorController implements SS_EditorMouseListener
         } else if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
         {
             // DOUBLE CLICK 
-            // Show the SptViewer TopComponent
-            TopComponent tcSptEditor = WindowManager.getDefault().findTopComponent("SptEditorTopComponent");
-            if (tcSptEditor != null)
+            if (rp instanceof RpEditorDialogProvider)
             {
-                tcSptEditor.requestVisible();
-                tcSptEditor.requestAttention(true);
+                rhythmParameterCustomEditDialog(spt, rp);
+            } else
+            {
+                // Show the SptViewer TopComponent
+                TopComponent tcSptEditor = WindowManager.getDefault().findTopComponent("SptEditorTopComponent");
+                if (tcSptEditor != null)
+                {
+                    tcSptEditor.requestVisible();
+                    tcSptEditor.requestAttention(true);
+                }
             }
         } else if (e.getClickCount() == 1 && SwingUtilities.isRightMouseButton(e))
         {
@@ -518,7 +525,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         }
 
         SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
-        if (!selection.isRhythmParameterSelected(spt, rp) || !(rp instanceof EnumerableParameter))
+        if (!selection.isRhythmParameterSelected(spt, rp) || !(rp instanceof RpEnumerable))
         {
             return;
         }
@@ -537,7 +544,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         if (shift)
         {
             // First align the RhythmParameters values
-            double dValue = ((EnumerableParameter) rp).calculatePercentage(spt.getRPValue(rp));
+            double dValue = ((RpEnumerable) rp).calculatePercentage(spt.getRPValue(rp));
             String editName = ResUtil.getString(getClass(), "CTL_SetRpValue");
 
 
@@ -548,7 +555,7 @@ public class SS_EditorController implements SS_EditorMouseListener
                 RhythmParameter rpi = sptp.getRp();
                 if (spti != spt)
                 {
-                    Object compatibleValue = ((EnumerableParameter) rpi).calculateValue(dValue); // selected RPs might be different types (but compatible)
+                    Object compatibleValue = ((RpEnumerable) rpi).calculateValue(dValue); // selected RPs might be different types (but compatible)
                     editor.getModel().setRhythmParameterValue(spti, rpi, compatibleValue);
                 }
             }
@@ -616,6 +623,24 @@ public class SS_EditorController implements SS_EditorMouseListener
     {
         LOGGER.log(Level.FINE, "rhythmParameterReleased() spt=" + spt + " rp=" + rp);   //NOI18N
         dragStartSpt = null;
+    }
+
+    @Override
+    public void rhythmParameterCustomEditDialog(SongPart spt, RhythmParameter<?> rp)
+    {
+        RpEditorDialogProvider provider = (RpEditorDialogProvider) rp;
+        Object oldValue = spt.getRPValue(rp);
+        Object newValue = provider.editValueWithCustomDialog(oldValue);
+        if (newValue != null && !newValue.equals(oldValue))
+        {
+            SongStructure sgs = editor.getModel();
+            String editName = ResUtil.getString(getClass(), "CTL_SetRpValue");
+            JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(editName);
+
+            sgs.setRhythmParameterValue(spt, (RhythmParameter) rp, newValue);
+
+            JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(editName);
+        }
     }
 
     /**

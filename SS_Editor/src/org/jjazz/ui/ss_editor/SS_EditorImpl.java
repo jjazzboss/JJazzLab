@@ -1021,11 +1021,11 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     {
         assert spt != null;   //NOI18N
         SptViewer sptv = sptViewerFactory.createSptViewer(spt, sptViewerFactory.getDefaultSptViewerSettings(), sptViewerFactory.getDefaultRpViewerFactory());
+        registerSptViewer(sptv);        
         sptv.setZoomHFactor(zoomHFactor);
         sptv.setZoomVFactor(zoomVFactor);
         List<RhythmParameter<?>> rps = this.getVisibleRps(spt.getRhythm());
         sptv.setVisibleRps(rps);
-        registerSptViewer(sptv);
         int index = sgsModel.getSongParts().indexOf(spt);
         assert index >= 0 : "spt=" + spt + " model.getSongParts()=" + sgsModel.getSongParts();   //NOI18N
         LOGGER.log(Level.FINE, "addSptViewer() spt=" + spt + " +index=" + index + " panel_SongParts.size=" + panel_SongParts.   //NOI18N

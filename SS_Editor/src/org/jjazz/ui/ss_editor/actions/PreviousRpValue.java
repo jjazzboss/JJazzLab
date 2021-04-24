@@ -45,7 +45,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.ResUtil;
-import org.jjazz.rhythm.api.EnumerableParameter;
+import org.jjazz.rhythm.api.RpEnumerable;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.previousrpvalue")
 @ActionRegistration(displayName = "#CTL_PreviousRpValue", lazy = false)
@@ -87,10 +87,10 @@ public final class PreviousRpValue extends AbstractAction implements ContextAwar
         for (SongPartParameter sptp : selection.getSelectedSongPartParameters())
         {
             RhythmParameter rp = sptp.getRp();
-            if (rp instanceof EnumerableParameter<?>)
+            if (rp instanceof RpEnumerable<?>)
             {
                 SongPart spt = sptp.getSpt();
-                Object newValue = ((EnumerableParameter) rp).getPreviousValue(spt.getRPValue(rp));
+                Object newValue = ((RpEnumerable) rp).getPreviousValue(spt.getRPValue(rp));
                 sgs.setRhythmParameterValue(spt, rp, newValue);
             }
         }

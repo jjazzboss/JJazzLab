@@ -29,13 +29,12 @@ import java.util.List;
  *
  * @param <E> The type of value of this RhythmParameter.
  */
-public interface EnumerableParameter<E> 
+public interface RpEnumerable<E extends Object>
 {
-  
+
     E getMaxValue();
 
     E getMinValue();
-
 
     /**
      * @param value
@@ -69,14 +68,14 @@ public interface EnumerableParameter<E>
      * @return Object
      */
     E getPreviousValue(E value);
-  
+
     /**
-     * Get the list of possible values for this RhythmParameter. 
-     * 
+     * Get the list of possible values for this RhythmParameter.
+     * <p>
      * Only the first 10000 values are returned.
      *
      * @return
      */
     List<E> getPossibleValues();
-  
+
 }
