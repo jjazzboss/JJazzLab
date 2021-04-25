@@ -162,11 +162,21 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
     abstract public SongPartParameter getSongPartParameterFromPoint(Point editorPoint, AtomicBoolean sptLeft);
 
     /**
+     * Get the bounds of the component representing the specified SongPart.
      *
      * @param spt
      * @return The bounds in the screen coordinates space.
      */
     abstract public Rectangle getSptViewerRectangle(SongPart spt);
+
+    /**
+     * Get the bounds of the component representing the specified RhythmParameter.
+     *
+     * @param spt
+     * @param rp
+     * @return The bounds in the screen coordinates space.
+     */
+    abstract public Rectangle getRpViewerRectangle(SongPart spt, RhythmParameter<?> rp);
 
     abstract public void makeSptViewerVisible(SongPart spt);
 

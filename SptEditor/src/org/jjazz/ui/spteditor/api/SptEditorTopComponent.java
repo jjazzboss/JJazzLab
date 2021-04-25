@@ -153,32 +153,6 @@ public final class SptEditorTopComponent extends TopComponent
         String version = p.getProperty("version");
         // TODO read your settings according to their version
     }
-
-    /**
-     * Update the TopComponent tab name depending on the specified song parts.
-     * <p>
-     * @param spts The song parts
-     */
-    private void updateTabName(List<SongPart> spts)
-    {
-//        String tabName = ResUtil.getString(getClass(), "CTL_SongParts");
-//        if (!spts.isEmpty())
-//        {
-//            SongPart spt0 = spts.get(0);
-//            int spt0Index = songModel.getSongStructure().getSongParts().indexOf(spts.get(0));
-//            if (spts.size() > 1)
-//            {
-//                String spt0Name = org.jjazz.util.Utilities.truncate(spt0.getName(), 4) + "(" + (spt0Index + 1) + ")";
-//                SongPart lastSpt = spts.get(spts.size() - 1);
-//                int lastSptIndex = songModel.getSongStructure().getSongParts().indexOf(lastSpt);
-//                String lastSptName = org.jjazz.util.Utilities.truncate(lastSpt.getName(), 4) + "(" + (lastSptIndex + 1) + ")";
-//                tabName += " " + spt0Name + "..." + lastSptName;
-//            } else
-//            {
-//                tabName += " " + org.jjazz.util.Utilities.truncateWithDots(spt0.getName(), 10) + "(" + (spt0Index + 1) + ")";
-//            }
-//        }
-//        setDisplayName(tabName);
-    }
+   
 }
 

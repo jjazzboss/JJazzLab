@@ -45,7 +45,6 @@ import org.jjazz.song.api.Song;
 import org.jjazz.ui.ss_editor.actions.EditRhythm;
 import org.jjazz.ui.spteditor.api.SptEditorSettings;
 import org.openide.util.Lookup;
-import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
 import org.openide.util.Utilities;
 import org.openide.util.WeakListeners;
@@ -100,35 +99,17 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
 
         setEditorEnabled(false);
 
-        sptpLkpListener = new LookupListener()
-        {
-            @Override
-            public void resultChanged(LookupEvent le)
-            {
-                sptpPresenceChanged();
-            }
-        };
-        sptLkpListener = new LookupListener()
-        {
-            @Override
-            public void resultChanged(LookupEvent le)
-            {
-                sptPresenceChanged();
-            }
-        };
-        songLkpListener = new LookupListener()
-        {
-            @Override
-            public void resultChanged(LookupEvent le)
-            {
-                songPresenceChanged();
-            }
-        };
+        // Prepare the lookup listeners
+        sptpLkpListener = lookupEvent -> sptpPresenceChanged();
+        sptLkpListener = lookupEvent -> sptPresenceChanged();
+        songLkpListener = lookupEvent -> songPresenceChanged();
+
 
         // Our general lookup : store our action map, the edited song and songStructure and the edited songparts.
         instanceContent = new InstanceContent();
         instanceContent.add(getActionMap());
         lookup = new AbstractLookup(instanceContent);
+
 
         // Listen to Song presence in the global context    
         Lookup context = Utilities.actionsGlobalContext();
@@ -149,6 +130,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         return defaultRpEditorFactory;
     }
 
+    @Override
     public void cleanup()
     {
         settings.removePropertyChangeListener(this);
@@ -161,11 +143,13 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         sptpLkpListener = null;
     }
 
+    @Override
     public Lookup getLookup()
     {
         return this.lookup;
     }
 
+    @Override
     public JJazzUndoManager getUndoManager()
     {
         return songParts.isEmpty() ? null : JJazzUndoManagerFinder.getDefault().get(songParts.get(0).getContainer());
@@ -355,11 +339,13 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
      */
     private void refresh(Lookup context)
     {
-        Collection<? extends SongPart> spts = context.lookupAll(SongPart.class);
+        Collection<? extends SongPart> spts = context.lookupAll(SongPart.class
+        );
         if (spts.isEmpty())
         {
             // Possible SongPartParameter selection
-            Collection<? extends SongPartParameter> sptps = context.lookupAll(SongPartParameter.class);
+            Collection<? extends SongPartParameter> sptps = context.lookupAll(SongPartParameter.class
+            );
             ArrayList<SongPart> spts2 = new ArrayList<>();
             // Get the list of SongParts corresponding to these RhythmParameters
             for (Iterator<? extends SongPartParameter> it = sptps.iterator(); it.hasNext();)
@@ -439,7 +425,8 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
     private void songPresenceChanged()
     {
         LOGGER.log(Level.FINE, "songPresenceChanged()");   //NOI18N
-        Song song = Utilities.actionsGlobalContext().lookup(Song.class);
+        Song song = Utilities.actionsGlobalContext().lookup(Song.class
+        );
         if (song == songModel || song == null)
         {
             // Do nothing
@@ -487,7 +474,12 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         btn_Rhythm.setText(rhythm0.getName().toLowerCase());
         btn_Rhythm.setToolTipText(rhythm0.getDescription());
         tf_name.setText(spt0.getName());
-        lbl_ParentSection.setText(getParentSectionText(spt0));
+        String parentSectionText = getParentSectionText(spt0);
+        if (songParts.size() > 1)
+        {
+            parentSectionText += " " + ResUtil.getString(getClass(), "CTL_OtherSpts", songParts.size() - 1);
+        }
+        lbl_ParentSection.setText(parentSectionText);
         if (rhythm0 != previousRhythm)
         {
             // Need to update the RpEditors
@@ -567,6 +559,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         RpEditor.showMultiModeUsingFont(rhythmValue == null, btn_Rhythm);
         RpEditor.showMultiModeUsingFont(nameValue == null, tf_name);
         RpEditor.showMultiModeUsingFont(parentSectionNameValue == null, lbl_ParentSection);
+
 
         // Set the multivalue modes on RpEditors 
         int j = 0;
@@ -673,6 +666,8 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         // instanceContent.remove(songModel.getChordLeadSheet());      
         songModel.removePropertyChangeListener(this);
         songModel = null;
+
+
     }
 
     private class NoAction extends AbstractAction

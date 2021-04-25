@@ -22,11 +22,13 @@
  */
 package org.jjazz.ui.ss_editor;
 
+import org.jjazz.rpcustomeditor.api.RpCustomEditDialog;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -44,7 +46,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.api.RpEditorDialogProvider;
 import org.jjazz.ui.ss_editor.actions.ExtendSelectionLeft;
 import org.jjazz.ui.ss_editor.actions.ExtendSelectionRight;
 import org.jjazz.ui.ss_editor.actions.JumpToEnd;
@@ -69,6 +70,8 @@ import org.jjazz.ui.ss_editor.api.SS_EditorMouseListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.ResUtil;
 import org.jjazz.rhythm.api.RpEnumerable;
+import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
+import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
 
 /**
  * Controller implementation of a SS_Editor.
@@ -458,19 +461,8 @@ public class SS_EditorController implements SS_EditorMouseListener
         } else if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
         {
             // DOUBLE CLICK 
-            if (rp instanceof RpEditorDialogProvider)
-            {
-                rhythmParameterCustomEditDialog(spt, rp);
-            } else
-            {
-                // Show the SptViewer TopComponent
-                TopComponent tcSptEditor = WindowManager.getDefault().findTopComponent("SptEditorTopComponent");
-                if (tcSptEditor != null)
-                {
-                    tcSptEditor.requestVisible();
-                    tcSptEditor.requestAttention(true);
-                }
-            }
+            editRhythmParameter();
+
         } else if (e.getClickCount() == 1 && SwingUtilities.isRightMouseButton(e))
         {
             // Right click        
@@ -628,19 +620,7 @@ public class SS_EditorController implements SS_EditorMouseListener
     @Override
     public void rhythmParameterCustomEditDialog(SongPart spt, RhythmParameter<?> rp)
     {
-        RpEditorDialogProvider provider = (RpEditorDialogProvider) rp;
-        Object oldValue = spt.getRPValue(rp);
-        Object newValue = provider.editValueWithCustomDialog(oldValue);
-        if (newValue != null && !newValue.equals(oldValue))
-        {
-            SongStructure sgs = editor.getModel();
-            String editName = ResUtil.getString(getClass(), "CTL_SetRpValue");
-            JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(editName);
-
-            sgs.setRhythmParameterValue(spt, (RhythmParameter) rp, newValue);
-
-            JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(editName);
-        }
+        editRhythmParameter();
     }
 
     /**
@@ -684,4 +664,10 @@ public class SS_EditorController implements SS_EditorMouseListener
     //----------------------------------------------------------------------------------
     // Private methods
     //----------------------------------------------------------------------------------    
+    private void editRhythmParameter()
+    {
+        // The action will rely on the current selection
+        Action action = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editrhythmparameter");   //NOI18N
+        action.actionPerformed(null);
+    }
 }

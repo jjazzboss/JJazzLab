@@ -441,6 +441,13 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         r.height = sptv.getHeight();
         return r;
     }
+    
+    @Override
+    public Rectangle getRpViewerRectangle(SongPart spt, RhythmParameter<?> rp)
+    {
+        SptViewer sptv = getSptViewer(spt);
+        return sptv.getRpViewerRectangle(rp);
+    }
 
     @Override
     public SongPartParameter getSongPartParameterFromPoint(Point editorPoint, AtomicBoolean sptLeft)

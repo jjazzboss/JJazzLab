@@ -33,7 +33,7 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * The base class for RpEditors,c ombine a label with an editor component adapted to the type of RhythmParameter.<br>
+ * The base class for RpEditors,combine a label with an editor component adapted to the type of RhythmParameter.<br>
  * <p>
  * <p>
  * RpEditor subclass must fire a PROP_RPVALUE change event when value was modified by the user.<br>
@@ -55,6 +55,7 @@ public abstract class RpEditor extends JPanel
     private RpEditor()
     {
         initComponents();
+        LOGGER.severe("Remove RpEditor subclass system, do like RpViewers");
     }
 
     /**

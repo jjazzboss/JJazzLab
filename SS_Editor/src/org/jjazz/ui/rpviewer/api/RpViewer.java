@@ -49,7 +49,7 @@ import javax.swing.border.Border;
 import javax.swing.plaf.LayerUI;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.api.RpEditorDialogProvider;
+import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
 import org.jjazz.ui.utilities.RedispatchingMouseAdapter;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.flatcomponents.FlatButton;
@@ -156,8 +156,8 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         if (factor != zoomVFactor)
         {
             zoomVFactor = factor;
-            renderingPanel.revalidate();
-            renderingPanel.repaint();
+            layer.revalidate();
+            layer.repaint();
         }
     }
 
@@ -223,13 +223,13 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         if (b && !lbl_RpName.isShowing())
         {
             renderingPanel.add(lbl_RpName, RpViewerLayoutManager.NORTH_EAST);
-            renderingPanel.revalidate();
-            renderingPanel.repaint();
+            layer.revalidate();
+            layer.repaint();
         } else if (!b && lbl_RpName.isShowing())
         {
             renderingPanel.remove(lbl_RpName);
-            renderingPanel.revalidate();
-            renderingPanel.repaint();
+            layer.revalidate();
+            layer.repaint();
         }
     }
 
@@ -255,7 +255,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
                 if (evt.getOldValue() == rpModel)
                 {
                     updateToolTip();
-                    renderingPanel.repaint();
+                    layer.repaint();
                 }
             }
         } else if (evt.getSource() == sptModel.getRhythm())
@@ -276,7 +276,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         Border border = settings.getFocusedBorder();
         if (border != null)
         {
-            setBorder(border);
+            renderingPanel.setBorder(border);
         }
     }
 
@@ -286,7 +286,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         Border border = settings.getNonFocusedBorder();
         if (border != null)
         {
-            setBorder(border);
+            renderingPanel.setBorder(border);
         }
     }
 
@@ -362,13 +362,13 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         if (b && !fbtn_edit.isShowing())
         {
             renderingPanel.add(fbtn_edit, RpViewerLayoutManager.NORTH_WEST);
-            renderingPanel.revalidate();
-            renderingPanel.repaint();
+            layer.revalidate();
+            layer.repaint();
         } else if (!b && fbtn_edit.isShowing())
         {
             renderingPanel.remove(fbtn_edit);
-            renderingPanel.revalidate();
-            renderingPanel.repaint();
+            layer.revalidate();
+            layer.repaint();
         }
     }
 
@@ -429,7 +429,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     /**
      * Used to track mouse entered/exit avoiding the problems with children components.
      * <p>
-     * This is actually used only for RpEditorDialogProvider instances, see installUI().
+     * This is used only for RpCustomEditorProvider instances, see installUI().
      */
     private class MyLayerUI extends LayerUI<RenderingPanel>
     {
@@ -438,8 +438,10 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         public void installUI(JComponent c)
         {
             super.installUI(c);
-            if (rpModel instanceof RpEditorDialogProvider)
+
+            if (rpModel instanceof RpCustomEditorProvider)
             {
+                // Track mouse events only if we need to display the edit button
                 JLayer jlayer = (JLayer) c;
                 jlayer.setLayerEventMask(AWTEvent.MOUSE_EVENT_MASK);
             }

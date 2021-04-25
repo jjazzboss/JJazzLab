@@ -33,6 +33,7 @@ import org.jjazz.rhythm.parameters.RP_SYS_Mute;
 import org.jjazz.rhythm.parameters.RP_State;
 import org.jjazz.rhythm.parameters.RP_StringSet;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.songstructure.api.SongPart;
@@ -63,7 +64,10 @@ public class DefaultRpEditorFactoryImpl implements DefaultRpEditorFactory
     public RpEditor createRpEditor(Song song, SongPart spt, RhythmParameter<?> rp)
     {
         Type type;
-        if (rp instanceof RP_Integer)
+        if (rp instanceof RpCustomEditorProvider)
+        {
+            type = Type.CUSTOM_DIALOG;
+        } else if (rp instanceof RP_Integer)
         {
             type = Type.SPINNER;
         } else if (rp instanceof RP_State)
@@ -107,6 +111,9 @@ public class DefaultRpEditorFactoryImpl implements DefaultRpEditorFactory
                 break;
             case STUB:
                 rpe = new RpEditorStub(spt, rp);
+                break;
+            case CUSTOM_DIALOG:
+                rpe = new RpEditorCustomDialog(spt, rp);
                 break;
             default:
                 throw new AssertionError(type.name());

@@ -25,6 +25,8 @@ package org.jjazz.ui.sptviewer;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
@@ -290,26 +292,20 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     @Override
     public void setSelected(RhythmParameter<?> rp, boolean b)
     {
-        for (RpViewer rpv : getRpViewers())
+        RpViewer rpv = getRpViewer(rp);
+        if (rpv != null)
         {
-            if (rpv.getRpModel() == rp)
-            {
-                rpv.setSelected(b);
-                return;
-            }
+            rpv.setSelected(b);
         }
     }
 
     @Override
     public void setFocusOnRpViewer(RhythmParameter<?> rp)
     {
-        for (RpViewer rpv : getRpViewers())
+        RpViewer rpv = getRpViewer(rp);
+        if (rpv != null)
         {
-            if (rpv.getRpModel() == rp)
-            {
-                rpv.requestFocusInWindow();
-                return;
-            }
+            rpv.requestFocusInWindow();
         }
     }
 
@@ -376,6 +372,18 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         }
 
         updateUIComponents();
+    }
+
+    @Override
+    public Rectangle getRpViewerRectangle(RhythmParameter<?> rp)
+    {
+        RpViewer rpv = getRpViewer(rp);
+        Point p = rpv.getLocationOnScreen();
+        Rectangle r = new Rectangle(p);
+        r.width = rpv.getWidth();
+        r.height = rpv.getHeight();
+        return r;        
+        
     }
 
     @Override
@@ -740,11 +748,26 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         {
             if (c instanceof RpViewer)
             {
-                RpViewer rpv = (RpViewer) c;
-                rpvs.add(rpv);
+                rpvs.add((RpViewer) c);
             }
         }
         return rpvs;
+    }
+
+    private RpViewer getRpViewer(RhythmParameter<?> rp)
+    {
+        for (Component c : pnl_RpEditors.getComponents())
+        {
+            if (c instanceof RpViewer)
+            {
+                RpViewer rpv = (RpViewer) c;
+                if (rpv.getRpModel() == rp)
+                {
+                    return rpv;
+                }
+            }
+        }
+        return null;
     }
 
     private void registerRpViewer(RpViewer rpv)

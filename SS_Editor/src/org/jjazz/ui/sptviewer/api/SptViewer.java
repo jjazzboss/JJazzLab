@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.sptviewer.api;
 
+import java.awt.Rectangle;
 import org.jjazz.ui.sptviewer.spi.SptViewerSettings;
 import java.util.List;
 import javax.swing.JPanel;
@@ -71,6 +72,8 @@ public abstract class SptViewer extends JPanel
     public abstract void setFocusOnRpViewer(RhythmParameter<?> rp);
 
     public abstract void setVisibleRps(List<RhythmParameter<?>> rps);
+    
+    public abstract Rectangle getRpViewerRectangle(RhythmParameter<?> rp);
 
     /**
      * True by default.

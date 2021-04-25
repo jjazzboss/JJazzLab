@@ -20,63 +20,73 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.ss_editor.actions;
+package org.jjazz.rpcustomeditor.api;
 
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
-import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.ui.ss_editor.api.RpCustomizeDialog;
-import org.openide.util.NbBundle;
-import org.openide.util.lookup.ServiceProvider;
+import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
+import org.jjazz.song.api.Song;
+import org.jjazz.songstructure.api.SongPart;
+import org.openide.windows.WindowManager;
 
-@ServiceProvider(service = RpCustomizeDialog.class)
-@NbBundle.Messages(
-        {
-            "CTL_Descripti=Description"
-        })
-public class RpCustomizeDialogImpl extends RpCustomizeDialog
+/**
+ * A dialog to show a RpCustomEditor panel.
+ */
+public class RpCustomEditDialog extends javax.swing.JDialog
 {
 
-    private RhythmParameter<?> rp;
-    private int nbValues;
-    private ArrayList<Double> rpValues;
+    private static RpCustomEditDialog INSTANCE;
+    private RpCustomEditor rpEditor;
+    private boolean exitOk;
+
+    public static RpCustomEditDialog getInstance()
+    {
+        synchronized (RpCustomEditDialog.class)
+        {
+            if (INSTANCE == null)
+            {
+                INSTANCE = new RpCustomEditDialog(WindowManager.getDefault().getMainWindow(), true);
+            }
+        }
+        return INSTANCE;
+    }
 
     /**
-     * Creates new form RpCustomizeDialogImpl
+     * Creates new form RpCustomEditDialog
      */
-    public RpCustomizeDialogImpl()
+    private RpCustomEditDialog(java.awt.Frame parent, boolean modal)
     {
+        super(parent, modal);
         initComponents();
-        rpValues = new ArrayList<>();
     }
 
-    @Override
-    public void preset(RhythmParameter<?> rp, int n)
+    public void preset(RpCustomEditor editor, SongPart spt)
     {
-        if (rp == null || n < 2)
-        {
-            throw new IllegalArgumentException("rp=" + rp + " n=" + n);   //NOI18N
-        }
-        this.rp = rp;
-        this.nbValues = n;
+        rpEditor = editor;
+        pnl_editor.removeAll();
+        pnl_editor.add(rpEditor, BorderLayout.CENTER);
+        lbl_title.setText("Song part=" + spt.getName() + " start=bar " + spt.getStartBarIndex() + " size=" + spt.getNbBars() + " bars");
+        exitOk = false;
+        pack();
     }
 
-    public void cleanup()
+    /**
+     * Check if dialog was exited using OK
+     *
+     * @return False means user cancelled the operation.
+     */
+    public boolean isExitOk()
     {
-        this.rp = null;
+        return exitOk;
     }
 
-    @Override
-    public List<Double> getRpValues()
-    {
-        return rpValues;
-    }
-
+    // ======================================================================================
+    // Private methods
+    // ======================================================================================
     /**
      * Overridden to add global key bindings
      *
@@ -93,7 +103,7 @@ public class RpCustomizeDialogImpl extends RpCustomizeDialog
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                actionOK();
+                btn_OKActionPerformed(null);
             }
         });
 
@@ -104,21 +114,10 @@ public class RpCustomizeDialogImpl extends RpCustomizeDialog
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                actionCancel();
+                btn_CancelActionPerformed(null);
             }
         });
         return contentPane;
-    }
-
-    private void actionOK()
-    {
-        setVisible(false);
-    }
-
-    private void actionCancel()
-    {
-        rpValues.clear();
-        setVisible(false);
     }
 
     /**
@@ -130,22 +129,12 @@ public class RpCustomizeDialogImpl extends RpCustomizeDialog
     private void initComponents()
     {
 
-        btn_Ok = new javax.swing.JButton();
         btn_Cancel = new javax.swing.JButton();
-        jPanel1 = new javax.swing.JPanel();
+        btn_OK = new javax.swing.JButton();
+        pnl_editor = new javax.swing.JPanel();
+        lbl_title = new javax.swing.JLabel();
 
-        setModal(true);
-
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(RpCustomizeDialogImpl.class, "RpCustomizeDialogImpl.btn_Ok.text")); // NOI18N
-        btn_Ok.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                btn_OkActionPerformed(evt);
-            }
-        });
-
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(RpCustomizeDialogImpl.class, "RpCustomizeDialogImpl.btn_Cancel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getBundle(RpCustomEditDialog.class).getString("RpCustomEditDialog.btn_Cancel.text")); // NOI18N
         btn_Cancel.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -154,16 +143,18 @@ public class RpCustomizeDialogImpl extends RpCustomizeDialog
             }
         });
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 249, Short.MAX_VALUE)
-        );
+        org.openide.awt.Mnemonics.setLocalizedText(btn_OK, org.openide.util.NbBundle.getBundle(RpCustomEditDialog.class).getString("RpCustomEditDialog.btn_OK.text")); // NOI18N
+        btn_OK.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_OKActionPerformed(evt);
+            }
+        });
+
+        pnl_editor.setLayout(new java.awt.BorderLayout());
+
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_title, "jLabel1"); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -173,41 +164,53 @@ public class RpCustomizeDialogImpl extends RpCustomizeDialog
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 240, Short.MAX_VALUE)
-                        .addComponent(btn_Ok, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 183, Short.MAX_VALUE)
+                        .addComponent(btn_OK)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btn_Cancel))
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(pnl_editor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lbl_title)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
+
+        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btn_Cancel, btn_OK});
+
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(lbl_title)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(pnl_editor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btn_Ok)
-                    .addComponent(btn_Cancel))
+                    .addComponent(btn_Cancel)
+                    .addComponent(btn_OK))
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btn_OkActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_OkActionPerformed
-    {//GEN-HEADEREND:event_btn_OkActionPerformed
-        actionOK();
-    }//GEN-LAST:event_btn_OkActionPerformed
+    private void btn_OKActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_OKActionPerformed
+    {//GEN-HEADEREND:event_btn_OKActionPerformed
+        exitOk = true;
+        setVisible(false);
+    }//GEN-LAST:event_btn_OKActionPerformed
 
     private void btn_CancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_CancelActionPerformed
     {//GEN-HEADEREND:event_btn_CancelActionPerformed
-        actionCancel();
+        exitOk = false;
+        setVisible(false);
     }//GEN-LAST:event_btn_CancelActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_Cancel;
-    private javax.swing.JButton btn_Ok;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JButton btn_OK;
+    private javax.swing.JLabel lbl_title;
+    private javax.swing.JPanel pnl_editor;
     // End of variables declaration//GEN-END:variables
 }
