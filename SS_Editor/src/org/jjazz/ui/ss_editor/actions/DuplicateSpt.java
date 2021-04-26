@@ -148,7 +148,7 @@ public class DuplicateSpt extends AbstractAction implements ContextAwareAction, 
     @Override
     public void selectionChange(SS_SelectionUtilities selection)
     {
-        boolean b = selection.isOneSectionSptSelection();  // True whatever the selection SongParts or RhythmParameters
+        boolean b = selection.isContiguousSptSelection();  // True whatever the selection SongParts or RhythmParameters
         LOGGER.log(Level.FINE, "selectionChange() b=" + b);   //NOI18N
         setEnabled(b);
     }

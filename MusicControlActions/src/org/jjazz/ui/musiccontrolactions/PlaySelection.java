@@ -150,7 +150,7 @@ public class PlaySelection extends AbstractAction
                 errMsg = ResUtil.getString(getClass(), "ERR_BadSelection");
             }
 
-        } else if (lastValidActivatedTc == ssTc && ssSelection.isOneSectionSptSelection())
+        } else if (lastValidActivatedTc == ssTc && ssSelection.isContiguousSptSelection())
         {
             // Focus in the SS_Editor
             List<SongPart> spts = ssSelection.getIndirectlySelectedSongParts();
@@ -247,7 +247,7 @@ public class PlaySelection extends AbstractAction
         CLI_Section toSection = cls.getSection(clsRange.to);
         int toBar = -1;
         IntRange r = null;        
-        List<SongPart> spts = ssSelection.isEmpty() || !ssSelection.isOneSectionSptSelection() ? ss.getSongParts() : ssSelection.getIndirectlySelectedSongParts();
+        List<SongPart> spts = ssSelection.isEmpty() || !ssSelection.isContiguousSptSelection() ? ss.getSongParts() : ssSelection.getIndirectlySelectedSongParts();
         for (SongPart spt : spts)
         {
             if (fromBar == -1 && spt.getParentSection() == fromSection)

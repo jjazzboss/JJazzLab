@@ -28,7 +28,7 @@ import java.util.List;
  * Define a parameter that influences the way a Rhythm generates music.
  * <p>
  * A RhythmParameter implementation can have additional capabilities by implementing additional interfaces, such as RpEnumerable,
- * RpCustomEditorProvider, RpRendererFactory, etc.
+ * RpCustomEditorProvider, RpViewerRendererFactory, etc.
  * <p>
  *
  * @param <E> The type of value of this RhythmParameter. E.toString() should return a short (max ~30 characters) user-readable

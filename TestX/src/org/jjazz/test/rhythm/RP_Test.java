@@ -5,16 +5,12 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
-import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
-import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
-import org.jjazz.ui.rpviewer.spi.RpViewerRendererFactory;
-import org.jjazz.ui.rpviewer.spi.DefaultRpViewerRendererFactory;
 
 /**
  *
  * @author Administrateur
  */
-public class RP_Test implements RhythmParameter<RP_TestValue>, RpCustomEditorProvider<RP_TestValue>, RpViewerRendererFactory
+public class RP_Test implements RhythmParameter<RP_TestValue>, RpCustomEditorProvider<RP_TestValue>
 {
 
     private RhythmVoice rhythmVoice;
@@ -92,19 +88,6 @@ public class RP_Test implements RhythmParameter<RP_TestValue>, RpCustomEditorPro
     public RpCustomEditor<RP_TestValue> getCustomEditor()
     {
         return new RP_TestCustomEditor(this);
-    }
-
-    // ======================================================================================
-    // RpViewerRendererFactory interface
-    // ======================================================================================  
-    @Override
-    public RpViewerRenderer getRpViewerRenderer(RhythmParameter<?> rp, RpViewerSettings settings)
-    {
-        if (rp != this || settings == null)
-        {
-            throw new IllegalArgumentException("rp=" + rp + " is different than this=" + this + " settings=" + settings);
-        }
-        return DefaultRpViewerRendererFactory.getDefault().getRpViewerRenderer(DefaultRpViewerRendererFactory.Type.STRING, RpViewerSettings.getDefault());
     }
 
 }

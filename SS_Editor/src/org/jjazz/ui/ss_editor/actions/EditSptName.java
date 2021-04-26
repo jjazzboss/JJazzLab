@@ -112,7 +112,7 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, S
     @Override
     public void selectionChange(SS_SelectionUtilities selection)
     {
-        boolean b = selection.isOneSectionSptSelection();
+        boolean b = selection.isContiguousSptSelection();
         LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   //NOI18N
         setEnabled(b);
     }

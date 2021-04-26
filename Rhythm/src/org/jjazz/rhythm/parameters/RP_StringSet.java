@@ -132,12 +132,15 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     public final boolean isValidValue(Set<String> value)
     {
         boolean b = true;
-        for (String s : value)
+        if (!value.isEmpty())
         {
-            if (possibleValues.indexOf(s) == -1)
+            for (String s : value)
             {
-                b = false;
-                break;
+                if (possibleValues.indexOf(s) == -1)
+                {
+                    b = false;
+                    break;
+                }
             }
         }
         return b;
@@ -248,7 +251,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         double maxPercentage = (Math.pow(2, possibleValues.size()) - 1) / 10000d;
         double p = calculatePercentage(value);
         p += (1 / 10000d);
-        if (p > (maxPercentage+0.000001d))      // Because 0.0002 + 0.0001 = 0.000300000003!!!
+        if (p > (maxPercentage + 0.000001d))      // Because 0.0002 + 0.0001 = 0.000300000003!!!
         {
             p = 0;
         }
@@ -320,7 +323,10 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     public Set<String> stringToValue(String s)
     {
         Set<String> res = null;
-        if (s != null && s.length() > 1)
+        if (s != null && "[]".equals(s.trim()))
+        {
+            res = new HashSet<>();
+        } else if (s != null && s.length() > 1)
         {
             res = new HashSet<>();
             String[] strs = s.substring(1, s.length() - 1).split(",");

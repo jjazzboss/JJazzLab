@@ -25,12 +25,15 @@ package org.jjazz.ui.ss_editor.actions;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
-import org.jjazz.ui.ss_editor.api.SongPartCopyBuffer;
+import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
@@ -42,29 +45,32 @@ import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.SongPartParameter;
+import org.jjazz.ui.ss_editor.api.RpValueCopyBuffer;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.ResUtil;
 
-@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.copy")
-@ActionRegistration(displayName = "#CTL_Copy", lazy = false)
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.copyrpvalue")
+@ActionRegistration(displayName = "#CTL_CopyRpValue", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/SongPart", position = 1100),
+            @ActionReference(path = "Actions/RhythmParameter", position = 20),
         })
-public class Copy extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
+public class CopyRpValue extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_Copy");
+    private String undoText = ResUtil.getString(getClass(), "CTL_CopyRpValue");
+    private static final Logger LOGGER = Logger.getLogger(CopyRpValue.class.getSimpleName());
 
-    public Copy()
+    public CopyRpValue()
     {
         this(Utilities.actionsGlobalContext());
     }
 
-    private Copy(Lookup context)
+    private CopyRpValue(Lookup context)
     {
         this.context = context;
         cap = SS_ContextActionSupport.getInstance(this.context);
@@ -77,29 +83,57 @@ public class Copy extends AbstractAction implements ContextAwareAction, SS_Conte
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
-        return new Copy(context);
+        return new CopyRpValue(context);
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
         SS_SelectionUtilities selection = cap.getSelection();
-        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
-        List<SongPart> spts = selection.getSelectedSongParts();
-        buffer.put(spts);
+        assert selection.isRhythmParameterSelected() : "selection=" + selection;
+        var sptps = selection.getSelectedSongPartParameters();
+
+        // Collect data
+        List<Object> values = new ArrayList<>();
+        RhythmParameter<?> rp0 = sptps.get(0).getRp();
+        SongPart spt0 = sptps.get(0).getSpt();
+        for (SongPartParameter sptp : sptps)
+        {
+            RhythmParameter<?> rpi = sptp.getRp();
+            SongPart spt = sptp.getSpt();
+            values.add(spt.getRPValue(rpi));
+        }
+
+
+        // Copy in the buffer
+        RpValueCopyBuffer buffer = RpValueCopyBuffer.getInstance();
+        buffer.put(spt0.getRhythm(), (RhythmParameter) rp0, values);
 
 
         // Force a selection change so that the Paste action enabled status can be updated 
-        // (otherwise Paste action will not see that SongPartCopyBuffer is no more empty)
+        // (otherwise Paste action will not see that the CopyBuffer is no more empty)
         SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
-        editor.selectSongPart(spts.get(0), false);
-        editor.selectSongPart(spts.get(0), true);
+        editor.selectRhythmParameter(spt0, rp0, false);
+        editor.selectRhythmParameter(spt0, rp0, true);
     }
 
     @Override
     public void selectionChange(SS_SelectionUtilities selection)
     {
-        setEnabled(selection.isSongPartSelected() && selection.isContiguousSptSelection());
+        boolean b = false;
+        if (selection.isRhythmParameterSelected())
+        {
+            var sptps = selection.getSelectedSongPartParameters();
+            Rhythm r0 = sptps.get(0).getSpt().getRhythm();
+            var opt = sptps.stream()
+                    .skip(1)
+                    .map(sptp -> sptp.getSpt().getRhythm())
+                    .filter(r -> r != r0)
+                    .findAny();
+            b = opt.isEmpty();
+        }
+
+        setEnabled(b);
     }
 
 }

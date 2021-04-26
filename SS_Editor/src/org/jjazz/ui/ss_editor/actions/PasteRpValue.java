@@ -25,7 +25,6 @@ package org.jjazz.ui.ss_editor.actions;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.util.Arrays;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -33,8 +32,8 @@ import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.ui.ss_editor.api.SongPartCopyBuffer;
+import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManager;
@@ -47,42 +46,42 @@ import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.SongPartParameter;
+import org.jjazz.ui.ss_editor.api.RpValueCopyBuffer;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.ResUtil;
 
 /**
- * Paste SongParts.
- *
- * @author Administrateur
+ * Paste RhythmParameter values.
+ * <p>
  */
-@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.paste")
-@ActionRegistration(displayName = "#CTL_Paste", lazy = false)
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.pasterpvalue")
+@ActionRegistration(displayName = "#CTL_PasteRpValue", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/SongPart", position = 1200),
+            @ActionReference(path = "Actions/RhythmParameter", position = 30, separatorAfter = 31),
         })
-public class Paste extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, ChangeListener
+public class PasteRpValue extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, ChangeListener
 {
 
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_Paste");
+    private String undoText = ResUtil.getString(getClass(), "CTL_PasteRpValue");
 
-    public Paste()
+    public PasteRpValue()
     {
         this(Utilities.actionsGlobalContext());
     }
 
-    private Paste(Lookup context)
+    private PasteRpValue(Lookup context)
     {
         this.context = context;
         cap = SS_ContextActionSupport.getInstance(this.context);
         cap.addListener(this);
         putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_V));
-        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
+        RpValueCopyBuffer buffer = RpValueCopyBuffer.getInstance();
         buffer.addChangeListener(this);
         selectionChange(cap.getSelection());
     }
@@ -90,41 +89,66 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
-        return new Paste(context);
+        return new PasteRpValue(context);
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         SS_SelectionUtilities selection = cap.getSelection();
-        SongStructure targetSgs = selection.getModel();
-        List<SongPart> spts = targetSgs.getSongParts();
-        // Paste before first selected spt
-        int startBarIndex = spts.get(selection.getMinStartSptIndex()).getStartBarIndex();
-        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(targetSgs);
+        SongStructure sgs = selection.getModel();
+        List<SongPartParameter> sptps = selection.getSelectedSongPartParameters();
+
+        RpValueCopyBuffer buffer = RpValueCopyBuffer.getInstance();
+        List<Object> values = buffer.get();
+        Object lastValue = values.get(values.size() - 1);
+
+
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
         um.startCEdit(undoText);
-        for (SongPart spt : buffer.get(targetSgs, startBarIndex))
+
+        int i = 0;
+        for (Object value : values)
         {
-            try
+            if (i >= sptps.size())
             {
-                targetSgs.addSongParts(Arrays.asList(spt));
-            } catch (UnsupportedEditException ex)
-            {
-                String msg = ResUtil.getString(getClass(), "ERR_Paste");
-                msg += "\n" + ex.getLocalizedMessage();
-                um.handleUnsupportedEditException(undoText, msg);
-                return;
+                break;
             }
+            var sptp = sptps.get(i);
+            sgs.setRhythmParameterValue(sptp.getSpt(), (RhythmParameter) sptp.getRp(), value);
+            i++;
         }
+
+        for (; i < sptps.size(); i++)
+        {
+            // There are more to go, use the last value
+            var sptp = sptps.get(i);
+            sgs.setRhythmParameterValue(sptp.getSpt(), (RhythmParameter) sptp.getRp(), lastValue);
+        }
+
         um.endCEdit(undoText);
     }
 
     @Override
     public void selectionChange(SS_SelectionUtilities selection)
     {
-        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
-        setEnabled(selection.isContiguousSptSelection() && !buffer.isEmpty());
+        RpValueCopyBuffer buffer = RpValueCopyBuffer.getInstance();
+        boolean b = false;
+        if (!buffer.isEmpty() && selection.isRhythmParameterSelected())
+        {
+            RhythmParameter<?> rpBuffer = buffer.getRhythmParameter();
+            Rhythm rBuffer = buffer.getRhythm();
+            var sptps = selection.getSelectedSongPartParameters();
+            if (sptps.get(0).getRp() == rpBuffer)
+            {
+                var opt = sptps.stream()
+                        .map(sptp -> sptp.getSpt().getRhythm())
+                        .filter(r -> r != rBuffer)
+                        .findAny();
+                b = opt.isEmpty();
+            }
+        }
+        setEnabled(b);
     }
 
     @Override

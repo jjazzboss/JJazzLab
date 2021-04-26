@@ -48,7 +48,7 @@ final public class SS_SelectionUtilities
     private List<SongPartParameter> songPartParameters = new ArrayList<>();
     private int minStartSptIndex;
     private int maxStartSptIndex;
-    private boolean isOneSectionSptSelection;
+    private boolean isContiguousSptSelection;
     private boolean isRhythmParameterCompatible;
     private boolean isSameRhythm;
     private static final Logger LOGGER = Logger.getLogger(SS_SelectionUtilities.class.getSimpleName());
@@ -129,7 +129,7 @@ final public class SS_SelectionUtilities
             maxStartSptIndex = Math.max(index, maxStartSptIndex);
         }
         // Sum of all indexes must match the sum of arithmetic progression
-        isOneSectionSptSelection = songParts.size() == (maxStartSptIndex - minStartSptIndex + 1)
+        isContiguousSptSelection = songParts.size() == (maxStartSptIndex - minStartSptIndex + 1)
                 && indexSum == songParts.size() * (minStartSptIndex + maxStartSptIndex) / 2;
         // Sort our buffer by startBarIndex
         Collections.sort(songParts, new Comparator<SongPart>()
@@ -140,7 +140,7 @@ final public class SS_SelectionUtilities
                 return spt1.getStartBarIndex() - spt2.getStartBarIndex();
             }
         });
-        LOGGER.log(Level.FINE, "refreshSongParts() minStartSptIndex=" + minStartSptIndex + " maxStartSptIndex=" + maxStartSptIndex + " isOneSection=" + isOneSectionSptSelection);   //NOI18N
+        LOGGER.log(Level.FINE, "refreshSongParts() minStartSptIndex=" + minStartSptIndex + " maxStartSptIndex=" + maxStartSptIndex + " isOneSection=" + isContiguousSptSelection);   //NOI18N
     }
 
     private void refreshRhythmParameters(List<SongPartParameter> sptps)
@@ -182,7 +182,7 @@ final public class SS_SelectionUtilities
             maxStartSptIndex = Math.max(index, maxStartSptIndex);
         }
         // Sum of all indexes must match the sum of arithmetic progression
-        isOneSectionSptSelection = songPartParameters.size() == (maxStartSptIndex - minStartSptIndex + 1)
+        isContiguousSptSelection = songPartParameters.size() == (maxStartSptIndex - minStartSptIndex + 1)
                 && indexSum == songPartParameters.size() * (minStartSptIndex + maxStartSptIndex) / 2;
         // Sort our buffer by startBarIndex
         Collections.sort(songPartParameters, new Comparator<SongPartParameter>()
@@ -245,9 +245,9 @@ final public class SS_SelectionUtilities
      *
      * @return
      */
-    public boolean isOneSectionSptSelection()
+    public boolean isContiguousSptSelection()
     {
-        return isOneSectionSptSelection;
+        return isContiguousSptSelection;
     }
 
     public boolean isEmpty()

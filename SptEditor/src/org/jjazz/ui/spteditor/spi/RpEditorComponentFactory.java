@@ -22,9 +22,7 @@
  */
 package org.jjazz.ui.spteditor.spi;
 
-import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.song.api.Song;
 import org.openide.util.Lookup;
 import org.jjazz.songstructure.api.SongPart;
 
@@ -55,7 +53,7 @@ public interface RpEditorComponentFactory
 
         for (var rvf : Lookup.getDefault().lookupAll(RpEditorComponentFactory.class))
         {
-            if (rvf.isSupported(rp) && rvf != defaultFactory)
+            if (rvf.isRpSupported(rp) && rvf != defaultFactory)
             {
                 return rvf;
             }
@@ -70,7 +68,7 @@ public interface RpEditorComponentFactory
      * @param rp
      * @return
      */
-    boolean isSupported(RhythmParameter<?> rp);
+    boolean isRpSupported(RhythmParameter<?> rp);
 
     /**
      * Create a RpEditorComponent adapted to rp class (whatever the containing rhythm).

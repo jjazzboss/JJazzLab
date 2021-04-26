@@ -23,10 +23,8 @@
 package org.jjazz.ui.spteditor.spi;
 
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.DefaultRpEditorComponentFactoryImpl;
-import org.jjazz.ui.spteditor.api.RpEditor;
 import org.openide.util.Lookup;
 
 /**
@@ -67,7 +65,7 @@ public interface DefaultRpEditorComponentFactory extends RpEditorComponentFactor
      * @return True
      */
     @Override
-    default boolean isSupported(RhythmParameter<?> rp)
+    default boolean isRpSupported(RhythmParameter<?> rp)
     {
         return true;
     }

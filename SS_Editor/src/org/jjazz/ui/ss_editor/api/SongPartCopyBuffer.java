@@ -36,12 +36,14 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * Singleton class to manage SongParts copy/cut/paste operations. SongParts must be contiguous.
+ * Singleton class to manage SongParts copy/cut/paste operations.
+ * <p>
+ * SongParts must be contiguous.
  */
-public class CopyBuffer
+public class SongPartCopyBuffer
 {
 
-    static private CopyBuffer INSTANCE;
+    static private SongPartCopyBuffer INSTANCE;
     /**
      * The buffer for SongParts, kept ordered by startBarIndex.
      */
@@ -50,17 +52,17 @@ public class CopyBuffer
     private int sptMaxStartBarIndex;
     private ArrayList<ChangeListener> listeners = new ArrayList<>();
 
-    private CopyBuffer()
+    private SongPartCopyBuffer()
     {
     }
 
-    public static CopyBuffer getInstance()
+    public static SongPartCopyBuffer getInstance()
     {
-        synchronized (CopyBuffer.class)
+        synchronized (SongPartCopyBuffer.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new CopyBuffer();
+                INSTANCE = new SongPartCopyBuffer();
             }
         }
         return INSTANCE;
@@ -153,7 +155,7 @@ public class CopyBuffer
     /**
      * The SongStructure from which the songparts have been put in the buffer.
      *
-     * @return Can be null if CopyBuffer is empty.
+     * @return Can be null if SongPartCopyBuffer is empty.
      */
     public SongStructure getSourceSongStructure()
     {

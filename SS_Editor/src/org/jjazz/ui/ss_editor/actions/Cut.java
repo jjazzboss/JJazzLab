@@ -30,7 +30,7 @@ import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.ui.ss_editor.api.CopyBuffer;
+import org.jjazz.ui.ss_editor.api.SongPartCopyBuffer;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
@@ -84,7 +84,7 @@ public class Cut extends AbstractAction implements ContextAwareAction, SS_Contex
     public void actionPerformed(ActionEvent e)
     {
         SS_SelectionUtilities selection = cap.getSelection();
-        CopyBuffer buffer = CopyBuffer.getInstance();
+        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         buffer.put(selection.getSelectedSongParts());
         SongStructure sgs = selection.getModel();
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
@@ -105,6 +105,6 @@ public class Cut extends AbstractAction implements ContextAwareAction, SS_Contex
     @Override
     public void selectionChange(SS_SelectionUtilities selection)
     {
-        setEnabled(selection.isSongPartSelected() && selection.isOneSectionSptSelection());
+        setEnabled(selection.isSongPartSelected() && selection.isContiguousSptSelection());
     }
 }
