@@ -30,30 +30,30 @@ import org.jjazz.songstructure.api.SongPart;
 
 /**
  *
- * A factory for RhythmParameter editors (whatever the rhythm) to be used in the SongPart editor.
+ * A factory for RhythmParameter component editors (whatever the rhythm) to be used with a RpEditor in the SongPart editor.
  */
-public interface RpEditorFactory
+public interface RpEditorComponentFactory
 {
 
     /**
-     * Try to find the relevant RpEditorFactory for the specified RhythmParameter.
+     * Try to find the relevant RpEditorComponentFactory for the specified RhythmParameter.
      * <p>
-     * First, return rp if rp is an instanceof RpEditorFactory. If not, scan all the RpEditorFactory instances available on the
-     * global lookup, and return the first one which supports rp and is not a DefaultRpEditorFactory.
+     * First, return rp if rp is an instanceof RpEditorComponentFactory. If not, scan all the RpEditorComponentFactory instances
+     * available on the global lookup, and return the first one which supports rp and is not a DefaultRpEditorComponentFactory.
      *
      * @param rp
-     * @return Can be null if no relevant RpEditorFactory found.
+     * @return Can be null if no relevant RpEditorComponentFactory found.
      */
-    static public RpEditorFactory findFactory(RhythmParameter<?> rp)
+    static public RpEditorComponentFactory findFactory(RhythmParameter<?> rp)
     {
-        if (rp instanceof RpEditorFactory)
+        if (rp instanceof RpEditorComponentFactory)
         {
-            return (RpEditorFactory) rp;
+            return (RpEditorComponentFactory) rp;
         }
 
-        DefaultRpEditorFactory defaultFactory = DefaultRpEditorFactory.getDefault();
+        DefaultRpEditorComponentFactory defaultFactory = DefaultRpEditorComponentFactory.getDefault();
 
-        for (var rvf : Lookup.getDefault().lookupAll(RpEditorFactory.class))
+        for (var rvf : Lookup.getDefault().lookupAll(RpEditorComponentFactory.class))
         {
             if (rvf.isSupported(rp) && rvf != defaultFactory)
             {
@@ -73,13 +73,12 @@ public interface RpEditorFactory
     boolean isSupported(RhythmParameter<?> rp);
 
     /**
-     * Create a generic RpEditor adapted to rp class (whatever the containing rhythm).
+     * Create a RpEditorComponent adapted to rp class (whatever the containing rhythm).
      *
-     * @param song
      * @param spt
      * @param rp
      * @return Can be null if rp is not supported.
      */
-    public RpEditor createRpEditor(Song song, SongPart spt, RhythmParameter<?> rp);
+    public RpEditorComponent createComponent(SongPart spt, RhythmParameter<?> rp);
 
 }

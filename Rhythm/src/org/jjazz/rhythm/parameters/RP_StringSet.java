@@ -33,7 +33,7 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RpEnumerable;
 
 /**
- * A RhythmParemeter whose is a set of strings.
+ * A RhythmParemeter composed of a set of strings.
  */
 public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<Set<String>>
 {
@@ -43,8 +43,8 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     private String displayName;
     private String description;
     private Set<String> defaultValue;
-    private String minValue;
-    private String maxValue;
+    private Set<String> minValue;
+    private Set<String> maxValue;
     private List<String> possibleValues;
     protected static final Logger LOGGER = Logger.getLogger(RP_StringSet.class.getName());
 
@@ -66,8 +66,6 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         this.id = id;
         this.displayName = name;
         this.description = description;
-        this.minValue = possibleValues[0];
-        this.maxValue = possibleValues[possibleValues.length - 1];
         this.possibleValues = Arrays.asList(possibleValues);
         if (this.possibleValues.indexOf("") != -1)
         {
@@ -78,6 +76,9 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         {
             throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + this.possibleValues);   //NOI18N
         }
+        this.minValue = new HashSet<>();
+        this.maxValue = new HashSet<>(this.possibleValues);
+
     }
 
     @Override
@@ -213,20 +214,22 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         return description;
     }
 
+    /**
+     * @return A set with all the possible items.
+     */
     @Override
     public final Set<String> getMaxValue()
     {
-        HashSet<String> set = new HashSet<>();
-        set.add(maxValue);
-        return set;
+        return maxValue;
     }
 
+    /**
+     * @return An empty set.
+     */
     @Override
     public final Set<String> getMinValue()
     {
-        HashSet<String> set = new HashSet<>();
-        set.add(minValue);
-        return set;
+        return minValue;
     }
 
     @Override
@@ -245,7 +248,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         double maxPercentage = (Math.pow(2, possibleValues.size()) - 1) / 10000d;
         double p = calculatePercentage(value);
         p += (1 / 10000d);
-        if (p > maxPercentage)
+        if (p > (maxPercentage+0.000001d))      // Because 0.0002 + 0.0001 = 0.000300000003!!!
         {
             p = 0;
         }
@@ -263,7 +266,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         double maxPercentage = (Math.pow(2, possibleValues.size()) - 1) / 10000d;
         double p = this.calculatePercentage(value);
         p -= (1 / 10000d);
-        if (p < 0)
+        if (p < -0.0000001d)        // See double rounding error in getNextValue()
         {
             p = maxPercentage;
         }
@@ -281,11 +284,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     @Override
     public final List<Set<String>> getPossibleValues()
     {
-        HashSet<String> set = new HashSet<>();
-        set.addAll(possibleValues);
-        ArrayList<Set<String>> res = new ArrayList<>();
-        res.add(set);
-        return res;
+        return Arrays.asList(getMaxValue());
     }
 
     /**

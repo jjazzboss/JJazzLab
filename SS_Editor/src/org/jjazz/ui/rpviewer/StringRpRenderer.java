@@ -38,12 +38,12 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.ui.rpviewer.spi.StringRpRendererSettings;
-import org.jjazz.ui.rpviewer.api.RpRenderer;
+import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
 
 /**
  * A simple editor: just display RP value as a string.
  */
-public class StringRpRenderer implements RpRenderer, PropertyChangeListener
+public class StringRpRenderer implements RpViewerRenderer, PropertyChangeListener
 {
 
     private static final int STRING_HBORDER_PREF_SIZE = 10;

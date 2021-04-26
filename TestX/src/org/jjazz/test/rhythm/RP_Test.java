@@ -5,16 +5,16 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
-import org.jjazz.ui.rpviewer.api.RpRenderer;
-import org.jjazz.ui.rpviewer.spi.DefaultRpRendererFactory;
-import org.jjazz.ui.rpviewer.spi.RpRendererFactory;
 import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
+import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
+import org.jjazz.ui.rpviewer.spi.RpViewerRendererFactory;
+import org.jjazz.ui.rpviewer.spi.DefaultRpViewerRendererFactory;
 
 /**
  *
  * @author Administrateur
  */
-public class RP_Test implements RhythmParameter<RP_TestValue>, RpCustomEditorProvider<RP_TestValue>, RpRendererFactory
+public class RP_Test implements RhythmParameter<RP_TestValue>, RpCustomEditorProvider<RP_TestValue>, RpViewerRendererFactory
 {
 
     private RhythmVoice rhythmVoice;
@@ -95,16 +95,16 @@ public class RP_Test implements RhythmParameter<RP_TestValue>, RpCustomEditorPro
     }
 
     // ======================================================================================
-    // RpRendererFactory interface
+    // RpViewerRendererFactory interface
     // ======================================================================================  
     @Override
-    public RpRenderer getRpRenderer(RhythmParameter<?> rp, RpViewerSettings settings)
+    public RpViewerRenderer getRpViewerRenderer(RhythmParameter<?> rp, RpViewerSettings settings)
     {
         if (rp != this || settings == null)
         {
             throw new IllegalArgumentException("rp=" + rp + " is different than this=" + this + " settings=" + settings);
         }
-        return DefaultRpRendererFactory.getDefault().getRpRenderer(DefaultRpRendererFactory.Type.STRING, RpViewerSettings.getDefault());
+        return DefaultRpViewerRendererFactory.getDefault().getRpViewerRenderer(DefaultRpViewerRendererFactory.Type.STRING, RpViewerSettings.getDefault());
     }
 
 }

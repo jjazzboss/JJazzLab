@@ -25,14 +25,14 @@ package org.jjazz.ui.spteditor.spi;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.spteditor.DefaultRpEditorFactoryImpl;
+import org.jjazz.ui.spteditor.DefaultRpEditorComponentFactoryImpl;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.openide.util.Lookup;
 
 /**
- * A special RpEditorFactory only for the default RhythmParameters.
+ * A special RpEditorComponentFactory only for the default RhythmParameters.
  */
-public interface DefaultRpEditorFactory extends RpEditorFactory
+public interface DefaultRpEditorComponentFactory extends RpEditorComponentFactory
 {
 
     /**
@@ -44,24 +44,24 @@ public interface DefaultRpEditorFactory extends RpEditorFactory
     };
 
     /**
-     * The default RpEditorFactory.
+     * The default RpEditorComponentFactory.
      * <p>
      * If an instance is available in the global lookup, return it, otherwise return a default implementation.
      *
      * @return
      */
-    static public DefaultRpEditorFactory getDefault()
+    static public DefaultRpEditorComponentFactory getDefault()
     {
-        DefaultRpEditorFactory result = Lookup.getDefault().lookup(DefaultRpEditorFactory.class);
+        DefaultRpEditorComponentFactory result = Lookup.getDefault().lookup(DefaultRpEditorComponentFactory.class);
         if (result == null)
         {
-            result = DefaultRpEditorFactoryImpl.getInstance();
+            result = DefaultRpEditorComponentFactoryImpl.getInstance();
         }
         return result;
     }
 
     /**
-     * The DefaultRpViewerFactory must provide a RpEditor for all rps.
+     * The DefaultRpEditorComponentFactory must provide a RpEditor for all rps.
      *
      * @param rp
      * @return True
@@ -73,15 +73,14 @@ public interface DefaultRpEditorFactory extends RpEditorFactory
     }
 
     /**
-     * Create a RpEditor of the specified type for rp.
+     * Create a RpEditorComponent of the specified type.
      *
      * @param type
-     * @param song
      * @param spt
      * @param rp
      * @return Can be null if rp is not supported.
      * @throws IllegalArgumentException If rp class does not match to RpEditor type.
      */
-    public RpEditor createRpEditor(Type type, Song song, SongPart spt, RhythmParameter<?> rp);
+    public RpEditorComponent createComponent(Type type, SongPart spt, RhythmParameter<?> rp);
 
 }

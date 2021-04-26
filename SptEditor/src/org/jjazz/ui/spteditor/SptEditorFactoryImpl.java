@@ -24,8 +24,8 @@ package org.jjazz.ui.spteditor;
 
 import org.jjazz.ui.spteditor.api.SptEditor;
 import org.jjazz.ui.spteditor.api.SptEditorSettings;
-import org.jjazz.ui.spteditor.spi.DefaultRpEditorFactory;
 import org.jjazz.ui.spteditor.spi.SptEditorFactory;
+import org.jjazz.ui.spteditor.spi.DefaultRpEditorComponentFactory;
 
 public class SptEditorFactoryImpl implements SptEditorFactory
 {
@@ -49,7 +49,7 @@ public class SptEditorFactoryImpl implements SptEditorFactory
     }
 
     @Override
-    public SptEditor createEditor(SptEditorSettings settings, DefaultRpEditorFactory factory)
+    public SptEditor createEditor(SptEditorSettings settings, DefaultRpEditorComponentFactory factory)
     {
         return new SptEditorImpl(settings, factory);
     }

@@ -27,10 +27,12 @@ import java.util.List;
 /**
  * Define a parameter that influences the way a Rhythm generates music.
  * <p>
- * An implementation might have additional capabilities by implementing additional interfaces, such as Enumerable.
+ * A RhythmParameter implementation can have additional capabilities by implementing additional interfaces, such as RpEnumerable,
+ * RpCustomEditorProvider, RpRendererFactory, etc.
+ * <p>
  *
- *
- * @param <E> The type of value of this RhythmParameter.
+ * @param <E> The type of value of this RhythmParameter. E.toString() should return a short (max ~30 characters) user-readable
+ * string. @see also RhythmParameter.getValueDescription() to provide more information about a specific value.
  */
 public interface RhythmParameter<E>
 {
@@ -68,7 +70,6 @@ public interface RhythmParameter<E>
         }
         return null;
     }
-
 
     /**
      * @return A unique identifier. Usually the english name.

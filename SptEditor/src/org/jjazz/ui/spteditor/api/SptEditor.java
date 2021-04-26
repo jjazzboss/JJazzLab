@@ -23,9 +23,9 @@
 package org.jjazz.ui.spteditor.api;
 
 import javax.swing.JPanel;
-import org.jjazz.ui.spteditor.spi.DefaultRpEditorFactory;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
+import org.jjazz.ui.spteditor.spi.DefaultRpEditorComponentFactory;
 
 /**
  * A JPanel which lets user edit the currently selected SongParts.
@@ -42,7 +42,7 @@ public abstract class SptEditor extends JPanel implements Lookup.Provider
 
     abstract public SptEditorSettings getSettings();
 
-    abstract public DefaultRpEditorFactory getDefaultRpEditorFactory();
+    abstract public DefaultRpEditorComponentFactory getDefaultRpEditorComponentFactory();
 
     /**
      * Clean up everything so component can be garbaged.

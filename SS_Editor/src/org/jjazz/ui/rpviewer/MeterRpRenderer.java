@@ -38,14 +38,14 @@ import org.jjazz.rhythm.parameters.RP_Integer;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.rhythm.api.RpEnumerable;
-import org.jjazz.ui.rpviewer.api.RpRenderer;
+import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
 
 /**
  * Display the value as a vertical meter with max 10 leds of 3 colors.
  * <p>
  * Accept only RP_Enumerables instances. Sensitive to zoomVFactor.
  */
-public class MeterRpRenderer implements RpRenderer
+public class MeterRpRenderer implements RpViewerRenderer
 {
 
     private final static Color GREEN = Color.GREEN;

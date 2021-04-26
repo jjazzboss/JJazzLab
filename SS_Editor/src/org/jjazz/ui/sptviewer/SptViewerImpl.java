@@ -56,11 +56,11 @@ import org.jjazz.ui.sptviewer.api.SptViewerMouseListener;
 import org.jjazz.ui.sptviewer.spi.SptViewerSettings;
 import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.rpviewer.api.RpRenderer;
 import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.util.ResUtil;
-import org.jjazz.ui.rpviewer.spi.RpRendererFactory;
-import org.jjazz.ui.rpviewer.spi.DefaultRpRendererFactory;
+import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
+import org.jjazz.ui.rpviewer.spi.RpViewerRendererFactory;
+import org.jjazz.ui.rpviewer.spi.DefaultRpViewerRendererFactory;
 
 /**
  * An implementation of a SptViewer.
@@ -93,10 +93,10 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
      * Our graphical settings.
      */
     private SptViewerSettings settings;
-    private DefaultRpRendererFactory defaultRpRendererFactory;
+    private DefaultRpViewerRendererFactory defaultRpRendererFactory;
     private static final Logger LOGGER = Logger.getLogger(SptViewerImpl.class.getSimpleName());
 
-    public SptViewerImpl(SongPart spt, SptViewerSettings settings, DefaultRpRendererFactory factory)
+    public SptViewerImpl(SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory)
     {
         if (spt == null || settings == null || factory == null)
         {
@@ -153,7 +153,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     }
 
     @Override
-    public DefaultRpRendererFactory getDefaultRpRendererFactory()
+    public DefaultRpViewerRendererFactory getDefaultRpRendererFactory()
     {
         return defaultRpRendererFactory;
     }
@@ -325,13 +325,13 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             if (sptModel.getRhythm().getRhythmParameters().contains(rp))
             {
                 // Try to get first a specific factory for this rp
-                RpRendererFactory factory = RpRendererFactory.findFactory(rp);
+                RpViewerRendererFactory factory = RpViewerRendererFactory.findFactory(rp);
                 if (factory == null)
                 {
                     // Use default
                     factory = defaultRpRendererFactory;
                 }
-                RpRenderer renderer = factory.getRpRenderer(rp, settings.getRpViewerSettings());
+                RpViewerRenderer renderer = factory.getRpViewerRenderer(rp, settings.getRpViewerSettings());
                 RpViewer rpv = new RpViewer(sptModel, rp, settings.getRpViewerSettings(), renderer);
                 rpv.setController(controller);
                 renderer.setRpViewer(rpv);

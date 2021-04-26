@@ -28,10 +28,10 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.parameters.RP_Integer;
 import org.jjazz.rhythm.parameters.RP_StringSet;
 import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
-import org.jjazz.ui.rpviewer.spi.DefaultRpRendererFactory;
-import org.jjazz.ui.rpviewer.api.RpRenderer;
+import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
+import org.jjazz.ui.rpviewer.spi.DefaultRpViewerRendererFactory;
 
-public class DefaultRpRendererFactoryImpl implements DefaultRpRendererFactory
+public class DefaultRpRendererFactoryImpl implements DefaultRpViewerRendererFactory
 {
 
     private static DefaultRpRendererFactoryImpl INSTANCE;
@@ -54,9 +54,9 @@ public class DefaultRpRendererFactoryImpl implements DefaultRpRendererFactory
     }
 
     @Override
-    public RpRenderer getRpRenderer(Type type, RpViewerSettings settings)
+    public RpViewerRenderer getRpViewerRenderer(Type type, RpViewerSettings settings)
     {
-        RpRenderer renderer = null;
+        RpViewerRenderer renderer = null;
         switch (type)
         {
             case METER:
@@ -91,22 +91,22 @@ public class DefaultRpRendererFactoryImpl implements DefaultRpRendererFactory
     }
 
     @Override
-    public RpRenderer getRpRenderer(RhythmParameter<?> rp, RpViewerSettings settings)
+    public RpViewerRenderer getRpViewerRenderer(RhythmParameter<?> rp, RpViewerSettings settings)
     {
-        RpRenderer rpr;
+        RpViewerRenderer rpr;
 
         if (rp instanceof RP_SYS_TempoFactor)
         {
-            rpr = getRpRenderer(Type.PERCENTAGE, settings);
+            rpr = getRpViewerRenderer(Type.PERCENTAGE, settings);
         } else if (rp instanceof RP_Integer)
         {
-            rpr = getRpRenderer(Type.METER, settings);
+            rpr = getRpViewerRenderer(Type.METER, settings);
         } else if (rp instanceof RP_StringSet)
         {
-            rpr = getRpRenderer(Type.STRING_SET, settings);
+            rpr = getRpViewerRenderer(Type.STRING_SET, settings);
         } else
         {
-            rpr = getRpRenderer(Type.STRING, settings);
+            rpr = getRpViewerRenderer(Type.STRING, settings);
         }
         return rpr;
     }

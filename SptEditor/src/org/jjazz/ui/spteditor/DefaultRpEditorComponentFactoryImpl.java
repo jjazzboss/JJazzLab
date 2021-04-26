@@ -34,34 +34,33 @@ import org.jjazz.rhythm.parameters.RP_State;
 import org.jjazz.rhythm.parameters.RP_StringSet;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
-import org.jjazz.song.api.Song;
-import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.spteditor.spi.DefaultRpEditorFactory;
+import org.jjazz.ui.spteditor.spi.DefaultRpEditorComponentFactory;
+import org.jjazz.ui.spteditor.spi.RpEditorComponent;
 
-public class DefaultRpEditorFactoryImpl implements DefaultRpEditorFactory
+public class DefaultRpEditorComponentFactoryImpl implements DefaultRpEditorComponentFactory
 {
 
-    private static DefaultRpEditorFactoryImpl INSTANCE;
+    private static DefaultRpEditorComponentFactoryImpl INSTANCE;
 
-    public static DefaultRpEditorFactoryImpl getInstance()
+    public static DefaultRpEditorComponentFactoryImpl getInstance()
     {
-        synchronized (DefaultRpEditorFactoryImpl.class)
+        synchronized (DefaultRpEditorComponentFactoryImpl.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new DefaultRpEditorFactoryImpl();
+                INSTANCE = new DefaultRpEditorComponentFactoryImpl();
             }
         }
         return INSTANCE;
     }
 
-    private DefaultRpEditorFactoryImpl()
+    private DefaultRpEditorComponentFactoryImpl()
     {
     }
 
     @Override
-    public RpEditor createRpEditor(Song song, SongPart spt, RhythmParameter<?> rp)
+    public RpEditorComponent createComponent(SongPart spt, RhythmParameter<?> rp)
     {
         Type type;
         if (rp instanceof RpCustomEditorProvider)
@@ -73,53 +72,68 @@ public class DefaultRpEditorFactoryImpl implements DefaultRpEditorFactory
         } else if (rp instanceof RP_State)
         {
             type = Type.COMBO;
-        } else if (rp instanceof RP_SYS_Mute || rp instanceof RP_StringSet)
+        } else if (rp instanceof RP_StringSet)
         {
             type = Type.LIST;
         } else
         {
             type = Type.STUB;
         }
-        RpEditor rpe = createRpEditor(type, song, spt, rp);
-        return rpe;
+        RpEditorComponent c = createComponent(type, spt, rp);
+        return c;
     }
 
     @Override
-    public RpEditor createRpEditor(Type type, Song song, SongPart spt, RhythmParameter<?> rp)
+    public RpEditorComponent createComponent(Type type, SongPart spt, RhythmParameter<?> rp)
     {
-        if (type == null || song == null || spt == null || rp == null)
+        if (type == null || spt == null || rp == null)
         {
-            throw new NullPointerException("type=" + type + " song=" + song + " spt=" + spt + " rp=" + rp);   //NOI18N
+            throw new NullPointerException("type=" + type + " spt=" + spt + " rp=" + rp);   //NOI18N
         }
-        RpEditor rpe;
+        RpEditorComponent c = null;
         switch (type)
         {
             case LIST:
                 if (rp instanceof RP_SYS_Mute)
                 {
-                    rpe = new RpEditorList(spt, rp, new RpMuteCellRenderer(song, spt, (RP_SYS_Mute) rp));
-                } else
+                    c = new RpEditorList(spt, (RP_SYS_Mute) rp, new RpMuteCellRenderer(spt));
+                } else if (rp instanceof RP_StringSet)
                 {
-                    rpe = new RpEditorList(spt, rp, null);
+                    c = new RpEditorList(spt, (RP_StringSet) rp, null);
                 }
                 break;
             case SPINNER:
-                rpe = new RpEditorSpinner(spt, rp);
+                if (rp instanceof RP_Integer)
+                {
+                    c = new RpEditorSpinner(spt, (RP_Integer) rp);
+                }
                 break;
             case COMBO:
-                rpe = new RpEditorCombo(spt, rp);
-                break;
-            case STUB:
-                rpe = new RpEditorStub(spt, rp);
+                if (rp instanceof RP_State)
+                {
+                    c = new RpEditorCombo(spt, (RP_State) rp);
+                }
                 break;
             case CUSTOM_DIALOG:
-                rpe = new RpEditorCustomDialog(spt, rp);
+                if (rp instanceof RpCustomEditorProvider)
+                {
+                    c = new RpEditorCustom(spt, rp);
+                }
+                break;
+            case STUB:
+                c = new RpEditorStub(spt, rp);
                 break;
             default:
                 throw new AssertionError(type.name());
 
         }
-        return rpe;
+
+        if (c == null)
+        {
+            throw new IllegalArgumentException("rp=" + rp + " has an unsupported class for RpEditorComponent type=" + type);
+        }
+
+        return c;
     }
 
     /**
@@ -128,17 +142,10 @@ public class DefaultRpEditorFactoryImpl implements DefaultRpEditorFactory
     private class RpMuteCellRenderer extends DefaultListCellRenderer
     {
 
-        Song song;
-        SongPart spt;
-        RP_SYS_Mute rp;
         HashMap<String, RhythmVoice> mapNameRv = new HashMap<>();
 
-        RpMuteCellRenderer(Song song, SongPart spt, RP_SYS_Mute rp)
+        RpMuteCellRenderer(SongPart spt)
         {
-            this.song = song;
-            this.spt = spt;
-            this.rp = rp;
-
             spt.getRhythm().getRhythmVoices().forEach(rv -> mapNameRv.put(rv.getName(), rv));
         }
 

@@ -22,63 +22,55 @@
  */
 package org.jjazz.ui.spteditor;
 
-import java.awt.FlowLayout;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.util.logging.Logger;
-import javax.swing.Box;
 import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rpcustomeditor.api.RpCustomEditDialog;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
-import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.util.ResUtil;
 import org.jjazz.util.Utilities;
+import org.jjazz.ui.spteditor.spi.RpEditorComponent;
 
 /**
- * A RpEditor for RhythmParameters which implement RpCustomEditorProvider.
+ * An editor component for RhythmParameters which implement RpCustomEditorProvider.
  * <p>
  */
-public class RpEditorCustomDialog extends RpEditor
+public class RpEditorCustom extends RpEditorComponent
 {
 
-    JPanel panel;
-    JLabel label;
     JButton btn_edit;
     Object value;
-    private static final Logger LOGGER = Logger.getLogger(RpEditorCustomDialog.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(RpEditorCustom.class.getSimpleName());
 
-    public RpEditorCustomDialog(SongPart spt, RhythmParameter<?> rp)
+    public RpEditorCustom(SongPart spt, RhythmParameter<?> rp)
     {
         super(spt, rp);
 
         if (!(rp instanceof RpCustomEditorProvider))
         {
-            throw new IllegalArgumentException("rp=" + rp + " is not an instance of RpCustomEditorProvider (spt=" + spt + ")");
+            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " is not an instanceof RpCustomEditorProvider");
         }
 
-        // Prepare our editor component        
-        FlowLayout layout = new FlowLayout(FlowLayout.LEADING, 0, 0);   // alignment, hgap, vgap
-        panel = new JPanel(layout);
-        panel.setOpaque(false);
-        label = new JLabel();
         btn_edit = new JButton(ResUtil.getString(getClass(), "CTL_Edit"));
         btn_edit.addActionListener(ae -> showCustomEditDialog());
-        panel.add(btn_edit);
-        panel.add(Box.createHorizontalStrut(5));
-        panel.add(label);
-        setEditor(panel);
-
         updateEditorValue(spt.getRPValue(rp));
+
+        setLayout(new BorderLayout());
+        add(btn_edit, BorderLayout.CENTER);
     }
 
     @Override
-    protected void showMultiValueMode(boolean b)
+    public void showMultiValueMode(boolean b)
     {
-        showMultiModeUsingFont(isMultiValueMode(), label);
+        RpEditor.showMultiModeUsingFont(b, btn_edit);
     }
 
     @Override
@@ -88,23 +80,11 @@ public class RpEditorCustomDialog extends RpEditor
     }
 
     @Override
-    public void cleanup()
-    {
-        // Nothing
-    }
-
-    @Override
-    protected JComponent getEditorComponent()
-    {
-        return panel;
-    }
-
-    @Override
     public void updateEditorValue(Object value)
     {
         this.value = value;
-        label.setText(Utilities.truncateWithDots(value.toString(), 30));
-        label.setToolTipText(((RhythmParameter) getRpModel()).getValueDescription(value));
+        btn_edit.setText(Utilities.truncateWithDots(value.toString(), 30));
+        btn_edit.setToolTipText(rp.getValueDescription(value) + " - Click to edit");
     }
 
     // ===========================================================================
@@ -112,20 +92,24 @@ public class RpEditorCustomDialog extends RpEditor
     // ===========================================================================
     private void showCustomEditDialog()
     {
-        RhythmParameter rp = getRpModel();
-        SongPart spt = getSptModel();
-
 
         // Prepare the CustomEditor
-        RpCustomEditorProvider provider = (RpCustomEditorProvider) getRpModel();
+        RpCustomEditorProvider provider = (RpCustomEditorProvider) rp;
         RpCustomEditor rpEditor = provider.getCustomEditor();
-        rpEditor.preset(value, spt);
+        rpEditor.preset(value, songPart);
 
 
         // Prepare our dialog
         RpCustomEditDialog dlg = RpCustomEditDialog.getInstance();
-        dlg.preset(rpEditor, spt);
-        dlg.setLocationRelativeTo(btn_edit);
+        dlg.preset(rpEditor, songPart);
+        Rectangle r = btn_edit.getBounds();
+        Point p = r.getLocation();
+        int x = Math.max(10, p.x + dlg.getWidth() + 5);
+        int y = Math.max(10, p.y + r.height / 2 - dlg.getHeight() / 2);
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        x = Math.min(x, screen.width - dlg.getWidth());
+        y = Math.min(y, screen.height - dlg.getHeight());
+        dlg.setLocation(x, y);
         dlg.setVisible(true);
 
 
@@ -135,7 +119,7 @@ public class RpEditorCustomDialog extends RpEditor
         {
             Object old = value;
             value = newValue;
-            firePropertyChange(PROP_RPVALUE, old, value);
+            firePropertyChange(RpEditor.PROP_RP_VALUE, old, value);
         }
     }
 

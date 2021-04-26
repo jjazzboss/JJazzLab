@@ -61,7 +61,7 @@ import org.jjazz.util.ResUtil;
  * Display RP name and manage selected/focused status using background and border. Show an edit button if RhythmParameter model
  * supports a custom edit dialog.
  * <p>
- * The actual rendering and preferred size setting is delegated to a RpRenderer.
+ * The actual rendering and preferred size setting is delegated to a RpViewerRenderer.
  */
 public class RpViewer extends JPanel implements PropertyChangeListener, FocusListener
 {
@@ -73,7 +73,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     private FlatButton fbtn_edit;
 
     // Application variables
-    private RpRenderer renderer;
+    private RpViewerRenderer renderer;
     private RhythmParameter<?> rpModel;
     private SongPart sptModel;
     private RpViewerSettings settings;
@@ -93,7 +93,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
      * @param settings
      * @param renderer
      */
-    public RpViewer(SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings, RpRenderer renderer)
+    public RpViewer(SongPart spt, RhythmParameter<?> rp, RpViewerSettings settings, RpViewerRenderer renderer)
     {
         if (rp == null || spt == null || settings == null || renderer == null)
         {
@@ -156,8 +156,8 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         if (factor != zoomVFactor)
         {
             zoomVFactor = factor;
-            layer.revalidate();
-            layer.repaint();
+            renderingPanel.revalidate();
+            renderingPanel.repaint();
         }
     }
 
@@ -223,13 +223,13 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         if (b && !lbl_RpName.isShowing())
         {
             renderingPanel.add(lbl_RpName, RpViewerLayoutManager.NORTH_EAST);
-            layer.revalidate();
-            layer.repaint();
+            renderingPanel.revalidate();
+            renderingPanel.repaint();
         } else if (!b && lbl_RpName.isShowing())
         {
             renderingPanel.remove(lbl_RpName);
-            layer.revalidate();
-            layer.repaint();
+            renderingPanel.revalidate();
+            renderingPanel.repaint();
         }
     }
 
@@ -276,7 +276,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         Border border = settings.getFocusedBorder();
         if (border != null)
         {
-            renderingPanel.setBorder(border);
+            setBorder(border);
         }
     }
 
@@ -286,7 +286,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         Border border = settings.getNonFocusedBorder();
         if (border != null)
         {
-            renderingPanel.setBorder(border);
+            setBorder(border);
         }
     }
 
@@ -320,8 +320,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
 
     private void initUIComponents()
     {
-        setOpaque(true);
-
+        
         // RhythmParameter name
         lbl_RpName = new JLabel();
         lbl_RpName.addMouseListener(new RedispatchingMouseAdapter(this));
@@ -350,7 +349,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
 
         // We use a JLayer because when using a simple MouseListener to listen to mouseEntered/mouseExited events (to show/hide edit button), sometimes
         // when moving the mouse fast across RpViewers, we miss an exit event and end up with the edit button not correctly removed.
-        // Don't know really why, but this problem never happens when using the JLayer.
+        // Don't know really why, but this problem never happens when using the JLayer.        
         MyLayerUI layerUI = new MyLayerUI();
         layer = new JLayer<>(renderingPanel, layerUI);
         setLayout(new BorderLayout());
@@ -362,13 +361,13 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         if (b && !fbtn_edit.isShowing())
         {
             renderingPanel.add(fbtn_edit, RpViewerLayoutManager.NORTH_WEST);
-            layer.revalidate();
-            layer.repaint();
+            renderingPanel.revalidate();
+            renderingPanel.repaint();
         } else if (!b && fbtn_edit.isShowing())
         {
             renderingPanel.remove(fbtn_edit);
-            layer.revalidate();
-            layer.repaint();
+            renderingPanel.revalidate();
+            renderingPanel.repaint();
         }
     }
 

@@ -26,7 +26,7 @@ import org.jjazz.ui.sptviewer.SptViewerFactoryImpl;
 import org.openide.util.Lookup;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.sptviewer.api.SptViewer;
-import org.jjazz.ui.rpviewer.spi.DefaultRpRendererFactory;
+import org.jjazz.ui.rpviewer.spi.DefaultRpViewerRendererFactory;
 
 /**
  * A factory for SongPartEditors.
@@ -44,9 +44,9 @@ public interface SptViewerFactory
         return rpef;
     }
 
-    default DefaultRpRendererFactory getDefaultRpViewerFactory()
+    default DefaultRpViewerRendererFactory getDefaultRpViewerFactory()
     {
-        return DefaultRpRendererFactory.getDefault();
+        return DefaultRpViewerRendererFactory.getDefault();
     }
 
     default SptViewerSettings getDefaultSptViewerSettings()
@@ -54,5 +54,5 @@ public interface SptViewerFactory
         return SptViewerSettings.getDefault();
     }
 
-    SptViewer createSptViewer(SongPart spt, SptViewerSettings settings, DefaultRpRendererFactory factory);
+    SptViewer createSptViewer(SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory);
 }

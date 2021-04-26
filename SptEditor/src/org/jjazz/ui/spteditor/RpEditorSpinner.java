@@ -22,73 +22,54 @@
  */
 package org.jjazz.ui.spteditor;
 
+import java.awt.BorderLayout;
 import java.util.logging.Logger;
-import javax.swing.JComponent;
 import javax.swing.JTextField;
-import javax.swing.SpinnerListModel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.rhythm.parameters.RP_Integer;
-import org.jjazz.rhythm.parameters.RP_State;
-import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.ui.utilities.WheelSpinner;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.spteditor.spi.RpEditorComponent;
 
 /**
- * A RpEditor using a JSpinner for RP_Integer and RP_State parameters.
+ * A RpEditor using a JSpinner for RP_Integer.
  * <p>
  */
-public class RpEditorSpinner extends RpEditor implements ChangeListener
+public class RpEditorSpinner extends RpEditorComponent<Integer> implements ChangeListener
 {
 
     private final WheelSpinner spinner_rpValue;
     private static final Logger LOGGER = Logger.getLogger(RpEditorSpinner.class.getSimpleName());
 
-    public RpEditorSpinner(SongPart spt, RhythmParameter<?> rp)
+    public RpEditorSpinner(SongPart spt, RP_Integer rp)
     {
         super(spt, rp);
 
-        // Prepare our editor component
+        
         spinner_rpValue = new WheelSpinner();
         spinner_rpValue.addChangeListener(this);
-
         SpinnerModel sm;
-        RhythmParameter<?> rpModel = getRpModel();
-        SongPart sptModel = getSptModel();
-        if (rpModel instanceof RP_Integer)
-        {
-            RP_Integer rpi = (RP_Integer) rpModel;
-            int minValue = rpi.getMinValue();
-            int maxValue = rpi.getMaxValue();
-            int step = rpi.getStep();
-            int value = sptModel.getRPValue(rpi);
-            sm = new MySpinnerNumberModel(value, minValue, maxValue, step);
-        } else if (rpModel instanceof RP_State)
-        {
-            sm = new SpinnerListModel(((RP_State) rpModel).getPossibleValues());
-        } else
-        {
-            throw new IllegalArgumentException("RhythmParameter type not supported for this editor. rp=" + rp);   //NOI18N
-        }
+        int minValue = rp.getMinValue();
+        int maxValue = rp.getMaxValue();
+        int step = rp.getStep();
+        int value = songPart.getRPValue(rp);
+        sm = new MySpinnerNumberModel(value, minValue, maxValue, step);
         spinner_rpValue.setModel(sm);
-        spinner_rpValue.setValue(sptModel.getRPValue(rpModel));
-        spinner_rpValue.getDefaultEditor().getTextField().setHorizontalAlignment(JTextField.TRAILING);
-        // ((DefaultEditor) spinner_rpValue.getEditor()).getTextField().setEditable(false);
+        spinner_rpValue.getDefaultEditor().getTextField().setHorizontalAlignment(JTextField.TRAILING);                
+        spinner_rpValue.setValue(songPart.getRPValue(rp));
 
-        setEditor(spinner_rpValue);
+        
+        
+        setLayout(new BorderLayout());
+        add(spinner_rpValue);
     }
 
     @Override
-    protected JComponent getEditorComponent()
-    {
-        return spinner_rpValue;
-    }
-
-    @Override
-    public void updateEditorValue(Object value)
+    public void updateEditorValue(Integer value)
     {
         if (value != null && !value.equals(getEditorValue()))
         {
@@ -99,20 +80,21 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
     }
 
     @Override
-    protected void showMultiValueMode(boolean b)
+    public void showMultiValueMode(boolean b)
     {
-        showMultiModeUsingFont(isMultiValueMode(), spinner_rpValue.getDefaultEditor().getTextField());
+        RpEditor.showMultiModeUsingFont(b, spinner_rpValue.getDefaultEditor().getTextField());
     }
 
     @Override
-    public Object getEditorValue()
+    public Integer getEditorValue()
     {
-        return spinner_rpValue.getValue();
+        return (Integer)spinner_rpValue.getValue();
     }
 
     @Override
     public void cleanup()
     {
+        super.cleanup();
         spinner_rpValue.removeChangeListener(this);
     }
 
@@ -122,13 +104,10 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
     @Override
     public void stateChanged(ChangeEvent e)
     {
-        Object newValue = spinner_rpValue.getValue();
-        @SuppressWarnings("rawtypes")
-        RhythmParameter rp = getRpModel();      // Needed to get rid of the unbounded wildcard <?>
-        @SuppressWarnings("unchecked")
+        Integer newValue = (Integer) spinner_rpValue.getValue();
         String valueDesc = rp.getValueDescription(newValue);
         spinner_rpValue.setToolTipText(valueDesc == null ? newValue.toString() : valueDesc);
-        firePropertyChange(PROP_RPVALUE, null, newValue);
+        firePropertyChange(RpEditor.PROP_RP_VALUE, null, newValue);
     }
 
     // -----------------------------------------------------------------------------
@@ -150,7 +129,7 @@ public class RpEditorSpinner extends RpEditor implements ChangeListener
         @Override
         public void setValue(Object val)
         {
-            if (!(val instanceof Integer) || !((RP_Integer) getRpModel()).isValidValue((Integer) val))
+            if (!(val instanceof Integer) || !rp.isValidValue((Integer) val))
             {
                 throw new IllegalArgumentException(); // Will be catched by the JSpinner code to revert to previous value   //NOI18N
             }

@@ -28,11 +28,11 @@ import javax.swing.event.ChangeListener;
 
 /**
  * A renderer for a RpViewer.
+ * 
  * <p>
  */
-public interface RpRenderer
+public interface RpViewerRenderer
 {
-
     /**
      * Set the target RpViewer for which we perform the rendering.
      *

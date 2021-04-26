@@ -51,13 +51,14 @@ import org.openide.util.WeakListeners;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ui.spteditor.spi.RpEditorFactory;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.api.SptEditor;
-import org.jjazz.ui.spteditor.spi.DefaultRpEditorFactory;
 import org.jjazz.util.ResUtil;
+import org.jjazz.ui.spteditor.spi.RpEditorComponentFactory;
+import org.jjazz.ui.spteditor.spi.DefaultRpEditorComponentFactory;
+import org.jjazz.ui.spteditor.spi.RpEditorComponent;
 
 public class SptEditorImpl extends SptEditor implements PropertyChangeListener
 {
@@ -78,10 +79,10 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
     private Song songModel;
     private SS_Editor ssEditor;
     private SptEditorSettings settings;
-    private DefaultRpEditorFactory defaultRpEditorFactory;
+    private DefaultRpEditorComponentFactory defaultRpEditorComponentFactory;
     private static final Logger LOGGER = Logger.getLogger(SptEditorImpl.class.getSimpleName());
 
-    public SptEditorImpl(SptEditorSettings settings, DefaultRpEditorFactory factory)
+    public SptEditorImpl(SptEditorSettings settings, DefaultRpEditorComponentFactory factory)
     {
         songParts = new ArrayList<>();
 
@@ -89,7 +90,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         this.settings = settings;
         this.settings.addPropertyChangeListener(this);
 
-        this.defaultRpEditorFactory = factory;
+        this.defaultRpEditorComponentFactory = factory;
 
         // UI initialization
         initComponents();
@@ -125,9 +126,9 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
     }
 
     @Override
-    public DefaultRpEditorFactory getDefaultRpEditorFactory()
+    public DefaultRpEditorComponentFactory getDefaultRpEditorComponentFactory()
     {
-        return defaultRpEditorFactory;
+        return defaultRpEditorComponentFactory;
     }
 
     @Override
@@ -169,6 +170,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         tf_name.setFont(settings.getNameFont());
         btn_Rhythm = new javax.swing.JButton();
         lbl_ParentSection = new javax.swing.JLabel();
+        lbl_SptSelection = new javax.swing.JLabel();
 
         panel_RhythmParameters.setLayout(new javax.swing.BoxLayout(panel_RhythmParameters, javax.swing.BoxLayout.Y_AXIS));
 
@@ -197,6 +199,10 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         org.openide.awt.Mnemonics.setLocalizedText(lbl_ParentSection, "A (4/4)"); // NOI18N
         lbl_ParentSection.setToolTipText(org.openide.util.NbBundle.getMessage(SptEditorImpl.class, "SptEditorImpl.lbl_ParentSection.toolTipText")); // NOI18N
 
+        lbl_SptSelection.setFont(lbl_ParentSection.getFont());
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_SptSelection, "song part #1..."); // NOI18N
+        lbl_SptSelection.setToolTipText(org.openide.util.NbBundle.getBundle(SptEditorImpl.class).getString("SptEditorImpl.lbl_SptSelection.toolTipText")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -204,10 +210,13 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lbl_ParentSection, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(tf_name, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(panel_RhythmParameters, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btn_Rhythm, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE))
+                    .addComponent(btn_Rhythm, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(lbl_SptSelection)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(lbl_ParentSection)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -216,7 +225,9 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
                 .addContainerGap()
                 .addComponent(tf_name, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(lbl_ParentSection, javax.swing.GroupLayout.PREFERRED_SIZE, 13, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lbl_ParentSection, javax.swing.GroupLayout.PREFERRED_SIZE, 13, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lbl_SptSelection))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btn_Rhythm, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
@@ -247,6 +258,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_Rhythm;
     private javax.swing.JLabel lbl_ParentSection;
+    private javax.swing.JLabel lbl_SptSelection;
     private javax.swing.JPanel panel_RhythmParameters;
     private javax.swing.JTextField tf_name;
     // End of variables declaration//GEN-END:variables
@@ -274,21 +286,21 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         } else if (e.getSource() instanceof RpEditor)
         {
             // User has modified a value using our editor
-            if (e.getPropertyName() == RpEditor.PROP_RPVALUE)
+            if (e.getPropertyName().equals(RpEditor.PROP_RP_VALUE))
             {
                 RpEditor rpe = (RpEditor) e.getSource();
                 RhythmParameter rp = rpe.getRpModel();
                 Object newValue = e.getNewValue();
+                getUndoManager().startCEdit(ResUtil.getString(getClass(), "CTL_SetRpValue"));
                 for (SongPart spt : songParts.toArray(new SongPart[0]))
                 {
                     Object value = spt.getRPValue(rp);
                     if (!value.equals(newValue))
                     {
-                        getUndoManager().startCEdit(ResUtil.getString(getClass(), "CTL_SetRpValue"));
                         songModel.getSongStructure().setRhythmParameterValue(spt, rp, newValue);
-                        getUndoManager().endCEdit(ResUtil.getString(getClass(), "CTL_SetRpValue"));
                     }
                 }
+                getUndoManager().endCEdit(ResUtil.getString(getClass(), "CTL_SetRpValue"));
             }
         } else if (e.getSource() instanceof SongPart)
         {
@@ -298,25 +310,18 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
             {
                 throw new IllegalStateException("spt=" + spt + " songParts=" + songParts);   //NOI18N
             }
-            if (e.getPropertyName() == SongPart.PROPERTY_NAME
-                    || e.getPropertyName() == SongPart.PROPERTY_NB_BARS
-                    || e.getPropertyName() == SongPart.PROPERTY_START_BAR_INDEX)
+            if (e.getPropertyName().equals(SongPart.PROPERTY_NAME)
+                    || e.getPropertyName().equals(SongPart.PROPERTY_NB_BARS)
+                    || e.getPropertyName().equals(SongPart.PROPERTY_START_BAR_INDEX))
             {
                 updateUIComponents();
-            } else if (e.getPropertyName() == SongPart.PROPERTY_RP_VALUE)
+            } else if (e.getPropertyName().equals(SongPart.PROPERTY_RP_VALUE))
             {
-                if (spt == songParts.get(0))
-                {
-                    // If change is for the 1st spt, update the corresponding RpEditor
-                    RhythmParameter rp = (RhythmParameter) e.getOldValue();
-                    RpEditor rpe = getRpEditor(rp);
-                    rpe.updateEditorValue(e.getNewValue());
-                }
                 updateUIComponents();
             }
         } else if (e.getSource() == songModel)
         {
-            if (e.getPropertyName() == Song.PROP_CLOSED)
+            if (e.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 setEditorEnabled(false);
                 if (songModel != null)
@@ -458,7 +463,8 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
     /**
      * Update the UI Components to match the 1st selected SongPart stored in songParts (must be non empty).
      * <p>
-     * Alter the rendering if there is a multi-songpart selection.
+     * SongParts might use different rhythms. Alter the rendering on compatible RhythmParameters if there is a multi-songpart
+     * selection.
      */
     private void updateUIComponents()
     {
@@ -467,22 +473,32 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
             throw new IllegalStateException("isEnabled()=" + isEnabled() + " songParts=" + songParts);   //NOI18N
         }
 
-        // SongParts can have different rhythms
+        // 
+        // ==> SongParts can have different rhythms
+        // 
         // Reference is SongPart(0), initialize UI with its values
         SongPart spt0 = songParts.get(0);
         Rhythm rhythm0 = spt0.getRhythm();
         btn_Rhythm.setText(rhythm0.getName().toLowerCase());
         btn_Rhythm.setToolTipText(rhythm0.getDescription());
         tf_name.setText(spt0.getName());
-        String parentSectionText = getParentSectionText(spt0);
+
+
+        // Update the labels
+        lbl_ParentSection.setText(getParentSectionText(spt0));
+        int spt0index = songModel.getSongStructure().getSongParts().indexOf(spt0) + 1;
+        String sptText = ResUtil.getString(getClass(), "CTL_SongParts") + " #" + spt0index;
         if (songParts.size() > 1)
         {
-            parentSectionText += " " + ResUtil.getString(getClass(), "CTL_OtherSpts", songParts.size() - 1);
+            int sptLastIndex = songModel.getSongStructure().getSongParts().indexOf(songParts.get(songParts.size() - 1)) + 1;
+            sptText += "...#" + sptLastIndex;
         }
-        lbl_ParentSection.setText(parentSectionText);
+        lbl_SptSelection.setText(sptText);
+
+
+        // Update the RpEditors if needed
         if (rhythm0 != previousRhythm)
         {
-            // Need to update the RpEditors
             for (RpEditor rpe : getRpEditors())
             {
                 removeRpEditor(rpe);
@@ -494,12 +510,14 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
             previousRhythm = rhythm0;
         }
 
-        // Update the RpEditors value
+
+        // Update the RpEditors value with spt0 values
         for (RhythmParameter<?> rp : rhythm0.getRhythmParameters())
         {
-            RpEditor rpe = this.getRpEditor(rp);
+            RpEditor rpe = getRpEditor(rp);
             rpe.updateEditorValue(spt0.getRPValue(rp));
         }
+
 
         //
         // Handle the multi-value cases 
@@ -509,12 +527,12 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         String nameValue = spt0.getName();
         String parentSectionNameValue = spt0.getParentSection().getData().getName();
         Object[] spt0Values = new Object[rhythm0.getRhythmParameters().size()];
-        boolean[] changedRps = new boolean[spt0Values.length];
+        boolean[] changedRpValues = new boolean[spt0Values.length];
         int i = 0;
         for (RhythmParameter<?> rp : rhythm0.getRhythmParameters())
         {
             spt0Values[i] = spt0.getRPValue(rp);
-            changedRps[i] = false;
+            changedRpValues[i] = false;
             i++;
         }
 
@@ -541,14 +559,14 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
             }
             if (rhythmValue != null)
             {
-                // Check RhythmParameters only if we have the same shared rhythm
+                // Check RhythmParameters value only if we have the same shared rhythm
                 int j = 0;
                 for (RhythmParameter<?> rp : rhythm0.getRhythmParameters())
                 {
                     if (!spt.getRPValue(rp).equals(spt0Values[j]))
                     {
                         // There is at least 1 different rp value
-                        changedRps[j] = true;
+                        changedRpValues[j] = true;
                     }
                     j++;
                 }
@@ -570,7 +588,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
             {
                 // RP editor is enabled only when all song parts share the same rhythm
                 rpe.setEnabled(true);
-                rpe.setMultiValueMode(changedRps[j] == true);
+                rpe.setMultiValueMode(changedRpValues[j] == true);
                 j++;
             } else
             {
@@ -594,14 +612,15 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         for (var rp : rps)
         {
             // Get the editor      
-            RpEditorFactory factory = RpEditorFactory.findFactory(rp);
+            RpEditorComponentFactory factory = RpEditorComponentFactory.findFactory(rp);
             if (factory == null)
             {
-                factory = defaultRpEditorFactory;
+                factory = defaultRpEditorComponentFactory;
             }
-            RpEditor rpe = factory.createRpEditor(songModel, spt, rp);
+            RpEditorComponent c = factory.createComponent(spt, rp);
+            RpEditor rpe = new RpEditor(spt, rp, c);
             rpes.add(rpe);
-            rpe.addPropertyChangeListener(RpEditor.PROP_RPVALUE, this);     // To avoid getting all UI property change events
+            rpe.addPropertyChangeListener(RpEditor.PROP_RP_VALUE, this);     // To avoid getting all UI property change events
             rpe.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
 
@@ -636,10 +655,8 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
 
     private String getParentSectionText(SongPart spt)
     {
-        assert spt != null;   //NOI18N
         Section section = spt.getParentSection().getData();
-        return section.getName() + " [" + section.getTimeSignature() + "] "
-                + ResUtil.getString(getClass(), "CTL_Start") + (spt.getStartBarIndex() + 1) + " " + ResUtil.getString(getClass(), "CTL_Size") + spt.getNbBars();
+        return ResUtil.getString(getClass(), "CTL_Parent") + ": " + section.getName() + " [" + section.getTimeSignature() + "]";
     }
 
     private List<RpEditor> getRpEditors()

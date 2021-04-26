@@ -40,9 +40,9 @@ public interface SptEditorFactory
         return rlef;
     }
 
-    default DefaultRpEditorFactory getDefaultRpEditorFactory()
+    default DefaultRpEditorComponentFactory getDefaultRpEditorFactory()
     {
-        return DefaultRpEditorFactory.getDefault();
+        return DefaultRpEditorComponentFactory.getDefault();
     }
 
     default SptEditorSettings getDefaultSptEditorSettings()
@@ -50,5 +50,5 @@ public interface SptEditorFactory
         return SptEditorSettings.getDefault();
     }
 
-    SptEditor createEditor(SptEditorSettings settings, DefaultRpEditorFactory factory);
+    SptEditor createEditor(SptEditorSettings settings, DefaultRpEditorComponentFactory factory);
 }

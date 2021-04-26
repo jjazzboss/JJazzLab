@@ -22,13 +22,11 @@
  */
 package org.jjazz.ui.ss_editor;
 
-import org.jjazz.rpcustomeditor.api.RpCustomEditDialog;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -62,16 +60,12 @@ import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.awt.Actions;
 import org.openide.util.Utilities;
-import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_EditorMouseListener;
 import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.ResUtil;
 import org.jjazz.rhythm.api.RpEnumerable;
-import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
-import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
 
 /**
  * Controller implementation of a SS_Editor.
@@ -461,7 +455,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         } else if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
         {
             // DOUBLE CLICK 
-            editRhythmParameter();
+            editRpWithCustomEditor();
 
         } else if (e.getClickCount() == 1 && SwingUtilities.isRightMouseButton(e))
         {
@@ -620,7 +614,14 @@ public class SS_EditorController implements SS_EditorMouseListener
     @Override
     public void rhythmParameterCustomEditDialog(SongPart spt, RhythmParameter<?> rp)
     {
-        editRhythmParameter();
+        // First set selection on this RP
+        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
+        selection.unselectAll(editor);
+        editor.selectRhythmParameter(spt, rp, true);
+        editor.setFocusOnRhythmParameter(spt, rp);
+
+        // Edit
+        editRpWithCustomEditor();
     }
 
     /**
@@ -664,10 +665,13 @@ public class SS_EditorController implements SS_EditorMouseListener
     //----------------------------------------------------------------------------------
     // Private methods
     //----------------------------------------------------------------------------------    
-    private void editRhythmParameter()
+    private void editRpWithCustomEditor()
     {
         // The action will rely on the current selection
-        Action action = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editrhythmparameter");   //NOI18N
-        action.actionPerformed(null);
+        Action action = Actions.forID("JJazz", "org.jjazz.ui.ss_editor.actions.editrpwithcustomeditor");   //NOI18N
+        if (action.isEnabled())     // Sanity check
+        {
+            action.actionPerformed(null);
+        }
     }
 }

@@ -23,17 +23,17 @@
 package org.jjazz.ui.rpviewer.spi;
 
 import org.jjazz.ui.rpviewer.DefaultRpRendererFactoryImpl;
-import org.jjazz.ui.rpviewer.api.RpRenderer;
 import org.openide.util.Lookup;
+import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
 
 /**
- * The default RpRenderer factory.
+ * The default RpViewerRenderer factory.
  * <p>
  * This factory must handle the default JJazzLab RhythmParameters (RP_State, RP_Integer, RP_StringSet, etc.), and provide a
  * default renderer for unknown RhythmParameters.
  * <p>
  */
-public interface DefaultRpRendererFactory extends RpRendererFactory
+public interface DefaultRpViewerRendererFactory extends RpViewerRendererFactory
 {
 
     /**
@@ -45,29 +45,29 @@ public interface DefaultRpRendererFactory extends RpRendererFactory
     }
 
     /**
-     * The default RpRendererFactory.
+     * The default RpViewerRendererFactory.
      * <p>
      * If an instance is available in the global lookup, return it, otherwise return a default implementation.
      *
      * @return
      */
-    static public DefaultRpRendererFactory getDefault()
+    static public DefaultRpViewerRendererFactory getDefault()
     {
-        DefaultRpRendererFactory result = Lookup.getDefault().lookup(DefaultRpRendererFactory.class);
+        DefaultRpViewerRendererFactory result = Lookup.getDefault().lookup(DefaultRpViewerRendererFactory.class);
         if (result == null)
         {
             result = DefaultRpRendererFactoryImpl.getInstance();
         }
         return result;
-    }    
+    }
 
     /**
-     * Get the RpRenderer of the specified type.
+     * Get the RpViewerRenderer of the specified type.
      *
      * @param type
      * @param settings
      * @return
      */
-    RpRenderer getRpRenderer(Type type, RpViewerSettings settings);
+    RpViewerRenderer getRpViewerRenderer(Type type, RpViewerSettings settings);
 
 }

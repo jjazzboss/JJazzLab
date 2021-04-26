@@ -54,7 +54,7 @@ public class DarkTheme implements Theme
         uiDefaults.put("bar.selected.background", new Color(188, 233, 237));
         uiDefaults.put("item.selected.background", new Color(131, 209, 229));
         uiDefaults.put("default.focused.border.color", new Color(16, 65, 242));    
-        uiDefaults.put("songpart.focused.border.color", Color.WHITE);                
+        uiDefaults.put("songpart.focused.border.color", Color.BLUE);                
         uiDefaults.put("songpart.selected.background", new Color(188, 233, 237));                
     }
 

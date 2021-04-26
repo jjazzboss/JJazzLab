@@ -22,20 +22,21 @@
  */
 package org.jjazz.ui.spteditor;
 
+import java.awt.BorderLayout;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.spteditor.spi.RpEditorComponent;
 
 /**
  * A RpEditor stub.
  * <p>
  */
-public class RpEditorStub extends RpEditor
+public class RpEditorStub extends RpEditorComponent
 {
-
     JLabel label;
     Object value;
     private static final Logger LOGGER = Logger.getLogger(RpEditorStub.class.getSimpleName());
@@ -45,32 +46,24 @@ public class RpEditorStub extends RpEditor
         super(spt, rp);
 
         // Prepare our editor component
-        label = new JLabel(spt.getRPValue(rp).toString());
-        setEditor(label);
+        value = spt.getRPValue(rp);
+        label = new JLabel(value.toString());
+
+        // Add it
+        setLayout(new BorderLayout());
+        add(label, BorderLayout.CENTER);
     }
 
     @Override
-    protected void showMultiValueMode(boolean b)
+    public void showMultiValueMode(boolean b)
     {
-        showMultiModeUsingFont(isMultiValueMode(), label);
+        RpEditor.showMultiModeUsingFont(b, label);
     }
 
     @Override
     public Object getEditorValue()
     {
         return value;
-    }
-
-    @Override
-    public void cleanup()
-    {
-        // Nothing
-    }
-
-    @Override
-    protected JComponent getEditorComponent()
-    {
-        return label;
     }
 
     @Override

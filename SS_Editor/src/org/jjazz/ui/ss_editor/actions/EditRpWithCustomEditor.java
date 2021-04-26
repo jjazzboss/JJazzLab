@@ -53,25 +53,25 @@ import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
-@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.editrhythmparameter")
+@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.editrpwithcustomeditor")
 @ActionRegistration(displayName = "#CTL_EditRhythmParameter", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/RhythmParameter", position = 10),
         })
-public final class EditRhythmParameter extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
+public final class EditRpWithCustomEditor extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
     private Lookup context;
     private SS_ContextActionSupport cap;
     private String undoText = ResUtil.getString(getClass(), "CTL_EditRhythmParameter");
 
-    public EditRhythmParameter()
+    public EditRpWithCustomEditor()
     {
         this(Utilities.actionsGlobalContext());
     }
 
-    public EditRhythmParameter(Lookup context)
+    public EditRpWithCustomEditor(Lookup context)
     {
         this.context = context;
         cap = SS_ContextActionSupport.getInstance(this.context);
@@ -152,7 +152,7 @@ public final class EditRhythmParameter extends AbstractAction implements Context
     @Override
     public Action createContextAwareInstance(Lookup context)
     {
-        return new EditRhythmParameter(context);
+        return new EditRpWithCustomEditor(context);
     }
 
 }

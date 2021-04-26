@@ -23,34 +23,34 @@
 package org.jjazz.ui.rpviewer.spi;
 
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.ui.rpviewer.api.RpRenderer;
 import org.openide.util.Lookup;
+import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
 
 /**
- * Provide RpRenderers implementations.
+ * Provide RpVIewerRenderers implementations.
  */
-public interface RpRendererFactory
+public interface RpViewerRendererFactory
 {
 
     /**
-     * Try to find the relevant RpRendererFactory for the specified RhythmParameter.
+     * Try to find the relevant RpViewerRendererFactory for the specified RhythmParameter.
      * <p>
-     * First, return rp if rp is an instanceof RpRendererFactory. If not, scan all the RpRendererFactory instances available on
-     * the global lookup, and return the first one which supports rp and is not a DefaultRpRendererFactory.
+     * First, return rp if rp is an instanceof RpViewerRendererFactory. If not, scan all the RpViewerRendererFactory instances
+     * available on the global lookup, and return the first one which supports rp and is not a DefaultRpViewerRendererFactory.
      *
      * @param rp
      * @return Can be null if no relevant RpViewerFactory found.
      */
-    static public RpRendererFactory findFactory(RhythmParameter<?> rp)
+    static public RpViewerRendererFactory findFactory(RhythmParameter<?> rp)
     {
-        if (rp instanceof RpRendererFactory)
+        if (rp instanceof RpViewerRendererFactory)
         {
-            return (RpRendererFactory) rp;
+            return (RpViewerRendererFactory) rp;
         }
 
-        var defaultFactory = DefaultRpRendererFactory.getDefault();
+        var defaultFactory = DefaultRpViewerRendererFactory.getDefault();
 
-        for (var rvf : Lookup.getDefault().lookupAll(RpRendererFactory.class))
+        for (var rvf : Lookup.getDefault().lookupAll(RpViewerRendererFactory.class))
         {
             if (rvf.isSupported(rp) && rvf != defaultFactory)
             {
@@ -73,13 +73,13 @@ public interface RpRendererFactory
     }
 
     /**
-     * Get a RpRenderer instance adapted to the specified RhyhtmParameter.
+     * Get a RpViewerRenderer instance adapted to the specified RhyhtmParameter.
      * <p>
      *
      * @param rp
      * @param settings
      * @return Null if rp is not supported.
      */
-    RpRenderer getRpRenderer(RhythmParameter<?> rp, RpViewerSettings settings);
+    RpViewerRenderer getRpViewerRenderer(RhythmParameter<?> rp, RpViewerSettings settings);
 
 }
