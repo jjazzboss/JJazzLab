@@ -179,7 +179,7 @@ final public class ChordType
         if (i11 != NOT_PRESENT && !(i11 == 0 && i3 == NOT_PRESENT))
         {
             // ELEVENTH, Cm11, C7M#11
-            assert i11 != -1   //NOI18N
+            assert i11 != -1 //NOI18N
                     && !(i3 == 0 && i11 == 0) // Can't have a 3rd degree with a sus4 chord
                     && !(i3 == NOT_PRESENT && i11 != 0);        // if no 3rd then it must be a sus4
             chord.add(new Note(5 + i11));
@@ -431,8 +431,6 @@ final public class ChordType
      * Ex: C13#11(9)=&gt; [THIRD_OR_FOURTH, SEVENTH, EXTENSION1, FIFTH, ROOT, EXTENSION2, EXTENSION3]<br>
      *
      * @return
-     *
-     * should be getMostImportantDegreeIndexes(int nbDegrees) =&gt; si seulement 3 notes choix différent de si 4 degrees
      */
     public List<DegreeIndex> getMostImportantDegreeIndexes()
     {
@@ -440,7 +438,7 @@ final public class ChordType
         {
             mostImportantDegrees = new ArrayList<>();
             mostImportantDegrees.add(DegreeIndex.THIRD_OR_FOURTH);
-            if (!getDegree(DegreeIndex.FIFTH).equals(Degree.FIFTH))
+            if (!getDegree(DegreeIndex.FIFTH).equals(Degree.FIFTH))         // If altered 5 it's important
             {
                 mostImportantDegrees.add(DegreeIndex.FIFTH);
             }
@@ -519,7 +517,8 @@ final public class ChordType
     /**
      * Fit harmonically degree d to this chord type.
      * <p>
-     * 1/ Try natural degree match using fitDegree().<br>
+     * 1/ Try natural degree match using fitDegree()
+     * .<p>
      * 2/ If no natural match is possible, fitDegree() on provided optScale (if non null).<br>
      * ex: d=NINTH_SHARP, scale=DORIAN =&gt; return NINTH<br>
      * ex: d=NINTH, scale=LOCRIAN =&gt; return NINTH_FLAT<p>
@@ -629,42 +628,42 @@ final public class ChordType
                         destDegree = Degree.SIXTH_OR_THIRTEENTH;                       // 13th ok with all majors, minors, diminished, seventh
                     }
                     break;
-                case SEVENTH_FLAT:     
+                case SEVENTH_FLAT:
                     // Seventh can only be naturally mapped on 7M, 7 or dim7M chords. 
                     // If we're here this chord type is different: minor triad or m6, a major triad or 6, a sus triad, a dim triad or dim7.
 
                     destDegree = Degree.SEVENTH_FLAT;  // 7 by default, exceptions below
 
-                     if (family == Family.MAJOR && getDegree(9)!=null)
+                    if (family == Family.MAJOR && getDegree(9) != null)
                     {
                         // 6 chord
                         destDegree = Degree.SEVENTH;    // Assume that a 6 chord is a I-chord
                     } else if (extension.equals("dim7"))
                     {
                         destDegree = Degree.SIXTH_OR_THIRTEENTH;  // In dim7 7 is actually a bb7=13
-                    } 
-                    
+                    }
+
                     break;
                 case SEVENTH:
                     // Seventh can only be naturally mapped on 7M, 7 or dim7M chords. 
                     // If we're here this chord type is different: minor triad or m6, a major triad or 6, a dim triad or dim7.
-                    
+
                     destDegree = Degree.SEVENTH;  // 7M by default, exceptions below
-                                        
-                    if (family == Family.SUS)   
+
+                    if (family == Family.SUS)
                     {
                         // Sus triad
-                        destDegree = Degree.SEVENTH_FLAT;       
+                        destDegree = Degree.SEVENTH_FLAT;
                     } else if (family == Family.MINOR && getDegree(9) == null)
                     {
                         // Minor triad but not m6
                         destDegree = Degree.SEVENTH_FLAT;      // Assume dorian mode by default, this might be wrong sometimes
-                    }else if (family == Family.DIMINISHED)
+                    } else if (family == Family.DIMINISHED)
                     {
                         // If dim triad assume it's a semi-diminished chord
                         // if dim7 convert 7 to "diminished 7"=bb7=13
-                        destDegree = getDegree(9)!= null ? Degree.SIXTH_OR_THIRTEENTH : Degree.SEVENTH_FLAT; 
-                    } 
+                        destDegree = getDegree(9) != null ? Degree.SIXTH_OR_THIRTEENTH : Degree.SEVENTH_FLAT;
+                    }
                     break;
                 default:
                     throw new IllegalStateException("d=" + d + " this=" + this + " scales=" + optScale);   //NOI18N
@@ -679,6 +678,9 @@ final public class ChordType
 
     /**
      * Rely on fitDegreeAdvanced(Degree d, optScales).
+     * <p>
+     * If di does not directly correspond to one of these ChordType degrees, make some assumptions, e.g. if
+     * di==DegreeIndex.SIXTH_OR_SEVENTH then try to fit to th seventh degree of this ChordType.
      *
      * @param di
      * @param optScale Optional, can be null.

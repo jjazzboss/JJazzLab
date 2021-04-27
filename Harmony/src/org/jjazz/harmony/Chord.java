@@ -152,7 +152,7 @@ public class Chord implements Cloneable
      *
      * @param relPitches A list of relative pitch [0-11]. Size must be equal to this chord's number of unique notes.
      * @param startBelow If true the first (lowest) note is created equals or below the first note of this chord.
-     * @return
+     * @return A Chord whose size is equals or less than this Chord size.
      */
     public Chord computeParallelChord(List<Integer> relPitches, boolean startBelow)
     {

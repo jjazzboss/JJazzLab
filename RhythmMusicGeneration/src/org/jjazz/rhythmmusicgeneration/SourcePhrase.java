@@ -254,7 +254,7 @@ public class SourcePhrase extends Phrase
      * <p>
      * Based on the use of the most important degrees of the destination chord symbol. Sizes may differ between the nb of source
      * degrees and the nb of destination degrees. If a direct map sourceDegree=>destDegree is not possible, try to find the
-     * "closest" note depending on the closestToTransposedSrcNote parameter.
+     * "closest" note.
      * <p>
      * 3 cases:<br>
      * 1/ Destination chord is identical or more complex than source chord symbol (C=>C7): use the first most important degrees of
@@ -327,6 +327,7 @@ public class SourcePhrase extends Phrase
                     srcDegrees.remove(srcDegree); // should not reuse it
                 }
             }
+            
             // Handle the remaining unmapped degrees: find the closest remaining destination degrees
             for (Degree srcDegree : srcDegrees)
             {
@@ -355,14 +356,15 @@ public class SourcePhrase extends Phrase
                 degreeIndexes.remove(closestDegreeIndex);     // should not reuse it            
             }
 
+            
         } else
         {
             // Special case : a "complex" source phrase needs to be adapted to a simpler destination chord
             // Ex: ecsSrc=C7M, pSrc=C,E,G,B, and ecsDest=C
             // ==> some dest degrees must be reused 
 
-            // Handle the "most important notes"
-            List<DegreeIndex> degreeIndexes = miDestDegreeIndexes.subList(0, nbDestDegrees);
+            // Take all the "most important notes" of the destination degrees
+            List<DegreeIndex> degreeIndexes = miDestDegreeIndexes;
 
             for (DegreeIndex di : degreeIndexes.toArray(new DegreeIndex[0]))
             {
@@ -385,6 +387,7 @@ public class SourcePhrase extends Phrase
                     srcPitch = ecsDest.getRootNote().getPitch() + srcDegree.getPitch();
                 }
                 Note srcNote = new Note(srcPitch);
+                
                 // Search the destination degreeIndex closest from the remaining source note
                 ChordType.DegreeIndex closestDegreeIndex = null;
                 int smallestPitchDelta = 100000;

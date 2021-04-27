@@ -75,7 +75,6 @@ public class Phrases
         return p;
     }
 
-
     /**
      * Adapt the notes from a melody-oriented source phrase to a destination chord symbol.
      * <p>
@@ -239,7 +238,6 @@ public class Phrases
         return pDest;
     }
 
-
     /**
      * Adapt the notes from a chord-oriented source phrase to a destination chord symbol.
      * <p>
@@ -283,7 +281,7 @@ public class Phrases
         // Code added for robustness (LimboRock.S749.prs!), eg if a rhythm uses a glissando in a chord-oriented source phrase -which is an error.
         if (mapSrcDestDegrees.size() > 9)
         {
-            LOGGER.log(Level.INFO, "fitChordPhrase2ChordSymbol() Unusual high nb of degrees ({0}) used in source phrase (channel={1}). Fixing source phrase...",   //NOI18N
+            LOGGER.log(Level.INFO, "fitChordPhrase2ChordSymbol() Unusual high nb of degrees ({0}) used in source phrase (channel={1}). Fixing source phrase...", //NOI18N
                     new Object[]
                     {
                         mapSrcDestDegrees.size(), pSrc.getChannel()
@@ -327,7 +325,7 @@ public class Phrases
 
 
             // Try with startnote below
-            Chord destChord = pSrcChord.computeParallelChord(relPitches, false);
+            Chord destChord = pSrcChord.computeParallelChord(relPitches, false);   // in some cases destChord size may be smaller than relPitches size
             int score = computeChordMatchingScore(pSrcChord, destChord, ecsDest);
             if (bestDestChord == null || score < bestScore)
             {
@@ -357,19 +355,19 @@ public class Phrases
             int srcPitch = srcNote.getPitch();
             int srcIndex = pSrcChord.indexOfPitch(srcPitch);
             assert srcIndex != -1 : "srcPitch=" + srcPitch + " pSrcChord=" + pSrcChord + " pSrcWork=" + pSrcWork;   //NOI18N
-            int destPitch = bestDestChord.getNote(srcIndex).getPitch();
-
-
-            NoteEvent destNote = new NoteEvent(srcNote, destPitch);
-            destNote.putClientProperty(PARENT_NOTE, srcNote);
-            pDest.add(destNote);     // Don't need addOrdered here
+            if (srcIndex < bestDestChord.size())            // Because of computeParallelChord(), bestDestChord size might be smaller
+            {                
+                int destPitch = bestDestChord.getNote(srcIndex).getPitch();
+                NoteEvent destNote = new NoteEvent(srcNote, destPitch);
+                destNote.putClientProperty(PARENT_NOTE, srcNote);
+                pDest.add(destNote);     // Don't need addOrdered here
+            }
         }
 
 
         return pDest;
 
     }
-
 
     /**
      * Get the relative pitches corresponding to the degrees for a chord symbol whose root=rootPitch.
