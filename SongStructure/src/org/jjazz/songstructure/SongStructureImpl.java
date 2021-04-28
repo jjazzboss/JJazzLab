@@ -606,13 +606,16 @@ public class SongStructureImpl implements SongStructure, Serializable
 
         LOGGER.fine("setRhythmParameterValue() -- spt=" + spt + " rp=" + rp + " newValue=" + newValue);   //NOI18N
 
-        if (spt.getRPValue(rp) == newValue)
+        final T oldValue = spt.getRPValue(rp);
+        if (oldValue.equals(newValue))
         {
             return;
         }
-        final T oldValue = spt.getRPValue(rp);
+
+        // Update the value
         final SongPartImpl wspt = (SongPartImpl) spt;
         wspt.setRPValue(rp, newValue);
+        
 
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("set Rhythm Parameter Value")

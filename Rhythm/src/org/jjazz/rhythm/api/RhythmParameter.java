@@ -123,4 +123,18 @@ public interface RhythmParameter<E>
      */
     boolean isValidValue(E value);
 
+    /**
+     * Clone the specified value.
+     * <p>
+     * The default implementation just return value, which is fine is E is an immutable class. If E is mutable, this method must
+     * be overridden.
+     *
+     * @param value
+     * @return A copy of the specified value.
+     */
+    default E cloneValue(E value)
+    {
+        return value;
+    }
+
 }

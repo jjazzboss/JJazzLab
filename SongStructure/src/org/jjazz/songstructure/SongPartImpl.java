@@ -151,7 +151,7 @@ public class SongPartImpl implements SongPart, Serializable
     }
 
     /**
-     * Get the value of a RhythmParameter at a specified barIndex.
+     * Get a copy of the value of a RhythmParameter at a specified barIndex.
      *
      * @param rp
      * @return the java.lang.Object
@@ -164,15 +164,17 @@ public class SongPartImpl implements SongPart, Serializable
             throw new IllegalArgumentException("this=" + this + " rp=" + rp);   //NOI18N
         }
         @SuppressWarnings("unchecked")
-        T value = (T) mapRpValue.getValue(rp);
+        T value = rp.cloneValue((T) mapRpValue.getValue(rp));
         assert value != null : "rp=" + rp + " mapRpValueProfile=" + mapRpValue;   //NOI18N
         return value;
     }
 
     /**
-     * Change the v for a given RhythmParameter. Fire a PropertyChangeEvent with OldValue=rp, NewValue=vp.
+     * Change the value for a given RhythmParameter. 
+     * 
+     * Fire a PropertyChangeEvent with OldValue=rp, NewValue=vp.
      *
-     * @param rp
+     * @param rp 
      * @param value Must be a valid value for rp
      */
     public <T> void setRPValue(RhythmParameter<T> rp, T value)
@@ -184,9 +186,9 @@ public class SongPartImpl implements SongPart, Serializable
         @SuppressWarnings("unchecked")
         T oldValue = (T) mapRpValue.getValue(rp);
         assert oldValue != null : "rpValueProfileMap=" + mapRpValue + " rp=" + rp + " value=" + value;   //NOI18N
-        if (oldValue != value)
+        if (!oldValue.equals(value))
         {
-            mapRpValue.putValue(rp, value);
+            mapRpValue.putValue(rp, rp.cloneValue(value));
             pcs.firePropertyChange(PROPERTY_RP_VALUE, rp, value);
         }
     }

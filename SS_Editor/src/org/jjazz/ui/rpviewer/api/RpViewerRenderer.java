@@ -32,7 +32,7 @@ import javax.swing.event.ChangeListener;
  * <p>
  */
 public interface RpViewerRenderer
-{
+{       
     /**
      * Set the target RpViewer for which we perform the rendering.
      *

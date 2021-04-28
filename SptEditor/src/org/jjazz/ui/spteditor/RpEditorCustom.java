@@ -81,7 +81,7 @@ public class RpEditorCustom extends RpEditorComponent
 
     @Override
     public void updateEditorValue(Object value)
-    {
+    {       
         this.value = value;
         btn_edit.setText(Utilities.truncateWithDots(value.toString(), 30));
         btn_edit.setToolTipText(rp.getValueDescription(value) + " - Click to edit");

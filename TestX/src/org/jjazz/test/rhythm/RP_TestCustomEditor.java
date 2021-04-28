@@ -1,7 +1,6 @@
 package org.jjazz.test.rhythm;
 
 import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
-import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 
 /**

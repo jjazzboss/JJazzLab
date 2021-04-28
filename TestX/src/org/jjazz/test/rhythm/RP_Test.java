@@ -5,12 +5,15 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
+import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
+import org.jjazz.ui.rpviewer.spi.RpViewerRendererFactory;
+import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
 
 /**
  *
  * @author Administrateur
  */
-public class RP_Test implements RhythmParameter<RP_TestValue>, RpCustomEditorProvider<RP_TestValue>
+public class RP_Test implements RhythmParameter<RP_TestValue>, RpCustomEditorProvider<RP_TestValue>, RpViewerRendererFactory
 {
 
     private RhythmVoice rhythmVoice;
@@ -81,6 +84,12 @@ public class RP_Test implements RhythmParameter<RP_TestValue>, RpCustomEditorPro
         return value instanceof RP_TestValue;
     }
 
+    @Override
+    public RP_TestValue cloneValue(RP_TestValue value)
+    {
+        return new RP_TestValue(value.getBassDrumOffset(), value.getSnareOffset(), value.getHiHatOffset());
+    }
+
     // ======================================================================================
     // RpCustomEditorProvider
     // ======================================================================================    
@@ -88,6 +97,15 @@ public class RP_Test implements RhythmParameter<RP_TestValue>, RpCustomEditorPro
     public RpCustomEditor<RP_TestValue> getCustomEditor()
     {
         return new RP_TestCustomEditor(this);
+    }
+
+    // ======================================================================================
+    // RpViewerRendererFactory
+    // ======================================================================================    
+    @Override
+    public RpViewerRenderer getRpViewerRenderer(RhythmParameter<?> rp, RpViewerSettings settings)
+    {
+        return new RP_TestViewerEditableRenderer(this);
     }
 
 }

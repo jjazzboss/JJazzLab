@@ -82,7 +82,7 @@ public interface SongPart extends Transferable
     public CLI_Section getParentSection();
 
     /**
-     * Get the value of a RhythmParameter.
+     * Get a copy of the RhythmParameter value.
      *
      * @param <T>
      * @param rp

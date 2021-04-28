@@ -24,15 +24,16 @@ package org.jjazz.ui.rpviewer.api;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
-import org.jjazz.ui.rpviewer.RpViewerLayoutManager;
-import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
+import static java.awt.BorderLayout.CENTER;
 import java.awt.Color;
+import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -43,16 +44,17 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JLayer;
 import javax.swing.JPanel;
-import static javax.swing.SwingConstants.CENTER;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.plaf.LayerUI;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
-import org.jjazz.ui.utilities.RedispatchingMouseAdapter;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.flatcomponents.FlatButton;
+import org.jjazz.ui.rpviewer.RpViewerLayoutManager;
+import org.jjazz.ui.utilities.RedispatchingMouseAdapter;
 import org.jjazz.util.ResUtil;
 
 /**
@@ -133,11 +135,17 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
 
         initUIComponents();
         updateUIComponents();
+
     }
 
     public void setController(RpViewerController controller)
     {
         this.controller = controller;
+
+        if (renderer instanceof RpViewerEditableRenderer)
+        {
+            ((RpViewerEditableRenderer) renderer).setController(controller);
+        }
     }
 
     /**
@@ -188,6 +196,11 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     public RhythmParameter<?> getRpModel()
     {
         return rpModel;
+    }
+
+    public RpViewerRenderer getRenderer()
+    {
+        return renderer;
     }
 
     public SongPart getSptModel()
@@ -320,14 +333,18 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
 
     private void initUIComponents()
     {
-        
+
+        var mouseRedispatcherToThis = new RedispatchingMouseAdapter(this);
+
         // RhythmParameter name
         lbl_RpName = new JLabel();
-        lbl_RpName.addMouseListener(new RedispatchingMouseAdapter(this));
+        lbl_RpName.addMouseListener(mouseRedispatcherToThis);
+        lbl_RpName.addMouseMotionListener(mouseRedispatcherToThis);
+        lbl_RpName.addMouseWheelListener(mouseRedispatcherToThis);
         lbl_RpName.setText(rpModel.getDisplayName().toLowerCase());
         lbl_RpName.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2));
         lbl_RpName.setToolTipText(rpModel.getDescription());
-        lbl_RpName.setHorizontalAlignment(CENTER);
+        lbl_RpName.setHorizontalAlignment(SwingConstants.CENTER);
         lbl_RpName.setOpaque(true); // but we make it slightly transparent see updateUIComponents()
 
 
@@ -342,7 +359,17 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         // Our custom layout 
         renderingPanel = new RenderingPanel();
         renderingPanel.setOpaque(false);
-        renderingPanel.addMouseListener(new RedispatchingMouseAdapter(this));
+        // To let external classes listening to MouseEvents on RpViewer
+
+        renderingPanel.addMouseListener(mouseRedispatcherToThis);
+        renderingPanel.addMouseMotionListener(mouseRedispatcherToThis);
+        renderingPanel.addMouseWheelListener(mouseRedispatcherToThis);
+        if (renderer instanceof RpViewerEditableRenderer)
+        {
+            renderingPanel.addMouseListener((RpViewerEditableRenderer) renderer);
+            renderingPanel.addMouseMotionListener((RpViewerEditableRenderer) renderer);
+            renderingPanel.addMouseWheelListener((RpViewerEditableRenderer) renderer);
+        }
         renderingPanel.setLayout(new RpViewerLayoutManager());
         renderingPanel.add(lbl_RpName, RpViewerLayoutManager.NORTH_EAST);
 
@@ -400,7 +427,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     {
         if (controller != null)
         {
-            controller.rhythmParameterCustomEditDialog(sptModel, rpModel);
+            controller.rhythmParameterEditWithCustomDialog(sptModel, rpModel);
         }
     }
 

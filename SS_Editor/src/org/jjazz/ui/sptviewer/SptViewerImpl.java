@@ -56,6 +56,7 @@ import org.jjazz.ui.sptviewer.api.SptViewerMouseListener;
 import org.jjazz.ui.sptviewer.spi.SptViewerSettings;
 import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.rpviewer.api.RpViewerEditableRenderer;
 import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.util.ResUtil;
 import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
@@ -382,8 +383,8 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         Rectangle r = new Rectangle(p);
         r.width = rpv.getWidth();
         r.height = rpv.getHeight();
-        return r;        
-        
+        return r;
+
     }
 
     @Override
@@ -773,16 +774,21 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     private void registerRpViewer(RpViewer rpv)
     {
         rpv.addMouseListener(this);
-        rpv.addMouseMotionListener(this);
-        // Use mouse wheel only if enabled
-        GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(rpv, this);
+        if (rpv.getRenderer() instanceof RpViewerEditableRenderer)
+        {
+            // Nothing: drag and mousewheel events should be ignored if RpViewer is directly editable
+        } else
+        {
+            rpv.addMouseMotionListener(this);
+            GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(rpv, this);
+        }
     }
 
     private void unregisterRpViewer(RpViewer rpv)
     {
         rpv.removeMouseListener(this);
         rpv.removeMouseMotionListener(this);
-        rpv.removeMouseWheelListener(this);
+        rpv.removeMouseWheelListener(this);         // Sometimes useless but it's ok
     }
 
     private void refreshBackground()

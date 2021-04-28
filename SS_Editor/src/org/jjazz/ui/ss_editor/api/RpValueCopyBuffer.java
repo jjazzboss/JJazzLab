@@ -89,7 +89,7 @@ public class RpValueCopyBuffer
             assert s != null : "rp=" + rp + " value=" + value;
             E newValue = rp.stringToValue(s);
             assert newValue != null : " rp=" + rp + " s=" + s;
-            valueBuffer.add(cloneRpValue(rp, newValue));
+            valueBuffer.add(((RhythmParameter) rhythmParameter).cloneValue(value));
         }
         rhythmParameter = rp;
         rhythm = r;
@@ -146,7 +146,7 @@ public class RpValueCopyBuffer
         ArrayList<Object> res = new ArrayList<>();
         for (Object value : valueBuffer)
         {
-            res.add(cloneRpValue((RhythmParameter) rhythmParameter, value));
+            res.add(((RhythmParameter) rhythmParameter).cloneValue(value));
         }
         return res;
     }
@@ -170,12 +170,6 @@ public class RpValueCopyBuffer
         {
             cl.stateChanged(new ChangeEvent(this));
         }
-    }
-
-    private <E> E cloneRpValue(RhythmParameter<E> rp, E value)
-    {
-        String s = rp.valueToString(value);
-        return rp.stringToValue(s);
     }
 
 }
