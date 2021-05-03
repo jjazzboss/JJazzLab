@@ -89,7 +89,7 @@ public class RpValueCopyBuffer
             assert s != null : "rp=" + rp + " value=" + value;
             E newValue = rp.stringToValue(s);
             assert newValue != null : " rp=" + rp + " s=" + s;
-            valueBuffer.add(((RhythmParameter) rhythmParameter).cloneValue(value));
+            valueBuffer.add(rp.cloneValue(value));
         }
         rhythmParameter = rp;
         rhythm = r;

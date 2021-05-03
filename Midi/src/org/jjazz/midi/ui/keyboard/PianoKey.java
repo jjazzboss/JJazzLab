@@ -25,8 +25,10 @@ package org.jjazz.midi.ui.keyboard;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Paint;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.beans.PropertyChangeListener;
@@ -43,8 +45,26 @@ import org.jjazz.harmony.Note;
 public class PianoKey extends JComponent
 {
 
+    /**
+     * Property change fired when setSelected() is called.
+     */
     private static final String PROP_SELECTED = "PropSelected";
+    /**
+     * Property change fired when setPressed() is called.
+     */
     private static final String PROP_PRESSED = "PropPressed";
+
+    // 
+    // Client properties
+    // call repaint() after updating these clientProperties
+    private static final String COLOR_WKEY = "WKeyColor";
+    private static final String COLOR_WKEY_PRESSED = "WKeyPressedColor";
+    private static final String COLOR_BKEY_DARKEST = "WKeyDarkestColor";
+    private static final String COLOR_BKEY_LIGHTEST = "WKeyLightestColor";
+    private static final String COLOR_BKEY_PRESSED = "WKeyPressedColor";
+    private static final String COLOR_KEY_CONTOUR = "WKeyContourColor";
+    private static final String COLOR_KEY_CONTOUR_SELECTED = "WKeyContourSelectedColor";
+    private static final String COLOR_DISABLED_KEY = "WKeyDisabledColor";
 
     /**
      * Standard White Key Width.
@@ -67,14 +87,6 @@ public class PianoKey extends JComponent
     public static final int WH_MIN = WW_MIN * 5;
 
     // Key colors depending on state
-    public static final Color DEFAULT_WKEY_COLOR = Color.WHITE;
-    public static final Color DEFAULT_WKEY_PRESSED_COLOR = Color.RED;
-    public static final Color DEFAULT_BKEY_COLOR = Color.BLACK;
-    public static final Color DEFAULT_BKEY_PRESSED_COLOR = Color.RED;
-    public static final Color DEFAULT_KEY_CONTOUR_COLOR = Color.BLACK;
-    public static final Color DEFAULT_KEY_CONTOUR_SELECTED_COLOR = Color.BLUE.brighter();
-    public static final Color DISABLED_KEY_COLOR = Color.LIGHT_GRAY;
-
     /**
      * The polygon to store the shape of the key
      */
@@ -86,23 +98,6 @@ public class PianoKey extends JComponent
     private int xPosNextKey;
 
     /**
-     * Key color when released
-     */
-    private Color keyReleasedColor;
-
-    /**
-     * Key color when pressed at max velocity
-     */
-    private Color keyPressedColor;
-
-    /**
-     * Key contour color
-     */
-    private Color keyContourColor;
-
-    private Color keyContourSelectedColor;
-
-    /**
      * If velocity > 0 it means the key is pressed.
      */
     private int velocity;
@@ -110,7 +105,7 @@ public class PianoKey extends JComponent
     /**
      * Pitch of the note
      */
-    private int pitch;
+    private final int pitch;
 
     private boolean isSelected;
 
@@ -144,17 +139,22 @@ public class PianoKey extends JComponent
     {
         if (!Note.checkPitch(p) || (leftMost == true && rightMost == true))
         {
-            throw new IllegalArgumentException("pitch=" + pitch + " leftMost=" + leftMost + " rightMost=" + rightMost);
+            throw new IllegalArgumentException("p=" + p + " leftMost=" + leftMost + " rightMost=" + rightMost);
         }
 
         pitch = p;
         this.leftMost = leftMost;
         this.rightMost = rightMost;
 
-        keyContourColor = DEFAULT_KEY_CONTOUR_COLOR;
-        keyContourSelectedColor = DEFAULT_KEY_CONTOUR_SELECTED_COLOR;
-        keyReleasedColor = Note.isWhiteKey(pitch) ? DEFAULT_WKEY_COLOR : DEFAULT_BKEY_COLOR;
-        keyPressedColor = Note.isWhiteKey(pitch) ? DEFAULT_WKEY_PRESSED_COLOR : DEFAULT_BKEY_PRESSED_COLOR;
+        // Default color favlues
+        putClientProperty(COLOR_WKEY, Color.WHITE);
+        putClientProperty(COLOR_WKEY_PRESSED, Color.RED);
+        putClientProperty(COLOR_BKEY_DARKEST, Color.BLACK);
+        putClientProperty(COLOR_BKEY_LIGHTEST, new Color(55, 55, 55));
+        putClientProperty(COLOR_BKEY_PRESSED, Color.RED);
+        putClientProperty(COLOR_KEY_CONTOUR, new Color(117, 117, 117));
+        putClientProperty(COLOR_KEY_CONTOUR_SELECTED, Color.BLUE.brighter());
+        putClientProperty(COLOR_DISABLED_KEY, Color.LIGHT_GRAY);
 
 
         // Preferred size
@@ -162,7 +162,24 @@ public class PianoKey extends JComponent
 
         // Tooltip
         Note n = new Note(pitch);
+
         setToolTipText(n.toAbsoluteNoteString() + " (Midi pitch=" + pitch + ")");
+    }
+
+    public Color getColorProperty(String key)
+    {
+        return (Color) getClientProperty(key);
+    }
+
+    public void setColorProperty(String key, Color c)
+    {
+        putClientProperty(key, c);
+        repaint();
+    }
+
+    public final boolean isWhiteKey()
+    {
+        return Note.isWhiteKey(pitch);
     }
 
     /**
@@ -261,6 +278,7 @@ public class PianoKey extends JComponent
     {
         Graphics2D g2 = (Graphics2D) g;
 
+        final int CONTOUR_WIDTH = 2;
         if (isEnabled())
         {
             if (velocity > 0)
@@ -268,6 +286,7 @@ public class PianoKey extends JComponent
                 // Show pressed color adjusted to velocity
                 float f = ((Note.VELOCITY_MAX - (float) velocity) / (Note.VELOCITY_MAX - Note.VELOCITY_MIN));
                 int alpha = 255 - Math.round(220 * f);
+                Color keyPressedColor = isWhiteKey() ? getColorProperty(COLOR_WKEY_PRESSED) : getColorProperty(COLOR_BKEY_PRESSED);
                 g2.setColor(new Color(keyPressedColor.getRed(), keyPressedColor.getGreen(), keyPressedColor.getBlue(), alpha));
 
 //                int boundedLuminance = Math.min(luminance, getLuminanceNoEvent());
@@ -277,17 +296,25 @@ public class PianoKey extends JComponent
             } else
             {
                 // Easy 
-                g2.setColor(keyReleasedColor);
+                if (!isWhiteKey())
+                {
+                    GradientPaint paint = new GradientPaint(0, CONTOUR_WIDTH, getColorProperty(COLOR_BKEY_LIGHTEST),
+                            0, getHeight(), getColorProperty(COLOR_BKEY_DARKEST));
+                    g2.setPaint(paint);
+                } else
+                {
+                    g2.setColor(getColorProperty(COLOR_WKEY));
+                }
             }
         } else
         {
-            g2.setColor(DISABLED_KEY_COLOR);
+            g2.setColor(getColorProperty(COLOR_DISABLED_KEY));
         }
 
 
         g2.fill(shape);
-        g2.setColor(isSelected ? keyContourSelectedColor : keyContourColor);
-        g2.setStroke(isSelected ? new BasicStroke(2) : new BasicStroke());
+        g2.setColor(isSelected ? getColorProperty(COLOR_KEY_CONTOUR_SELECTED) : getColorProperty(COLOR_KEY_CONTOUR));
+        g2.setStroke(isSelected ? new BasicStroke(CONTOUR_WIDTH) : new BasicStroke());
         g2.draw(shape);
     }
 
@@ -492,50 +519,6 @@ public class PianoKey extends JComponent
         // Set the component size bounding box size
         Rectangle rec = shape.getBounds();
         setSize(rec.width + 1, rec.height + 1);
-    }
-
-    /**
-     * Set colors used to draw the key.
-     * <p>
-     * If one of the color argument is null, we don't change this color.
-     *
-     * @param wKey Color of a white key not pressed.
-     * @param wPressedKey Color of a white key pressed at max velocity.
-     * @param bKey Color of a black key not pressed.
-     * @param bPressedKey Color of a black key pressed at max velocity.
-     * @param contour Color of a key contour when not selected.
-     * @param selectedContour Color of a key contour when selected
-     */
-    public void setColors(Color wKey, Color wPressedKey, Color bKey, Color bPressedKey, Color contour, Color selectedContour)
-    {
-        if (Note.isWhiteKey(pitch))
-        {
-            keyReleasedColor = (wKey != null) ? wKey : keyReleasedColor;
-            keyPressedColor = (wPressedKey != null) ? wPressedKey : keyPressedColor;
-        } else
-        {
-            keyReleasedColor = (bKey != null) ? bKey : keyReleasedColor;
-            keyPressedColor = (bPressedKey != null) ? bPressedKey : keyPressedColor;
-        }
-        keyContourColor = (contour != null) ? contour : keyContourColor;
-        keyContourSelectedColor = (selectedContour != null) ? selectedContour : keyContourSelectedColor;
-
-        repaint();
-    }
-
-    /**
-     * Return the colors used to draw the key.
-     *
-     * @return An array of Colors : keyColor, keyPressedColor, keyContourColor
-     */
-    public Color[] getColors()
-    {
-        Color[] colors =
-        {
-            keyReleasedColor, keyPressedColor, keyContourColor
-        };
-
-        return colors;
     }
 
     /**

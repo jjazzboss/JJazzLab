@@ -87,7 +87,7 @@ public class GeneralUISettings
     private static Font FONT_10;
     private static final String JJAZZLAB_CONFIG_FILE_NAME = "jjazzlab.conf";
 
-    public static final String DEFAULT_THEME_NAME = LightTheme.NAME;
+    public static final String DEFAULT_THEME_NAME = DarkTheme.NAME;
     public static final LookAndFeelId DEFAULT_LAF_ID = LookAndFeelId.LOOK_AND_FEEL_SYSTEM_DEFAULT;  // Must be the laf of DEFAULT_THEME_NAME
     public static final String PREF_THEME_UPON_RESTART = "ThemeUponRestart";   //NOI18N 
     public static final String PREF_LAF_ID_UPON_RESTART = "LafIdUponRestart";   //NOI18N 
@@ -118,10 +118,13 @@ public class GeneralUISettings
 
     /**
      * Set the theme to be used on next application start.
+     * 
+     * 
      *
      * @param theme
+     * @deprecated It's too difficult to maintain 2 themes...
      */
-    public void setThemeUponRestart(Theme theme)
+    protected void setThemeUponRestart(Theme theme)
     {
         if (theme == null)
         {
@@ -219,7 +222,7 @@ public class GeneralUISettings
             throw new IOException("Unexpected error: no 'default_options' property found in " + userConfigFile.getAbsolutePath());
         }
         Files.write(userConfigFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
-        
+
         LOGGER.info("setLocaleUponRestart() Set next locale upon restart=" + code);
 
         pcs.firePropertyChange(PROP_LOCALE_UPON_RESTART, Locale.getDefault(), locale);
@@ -229,8 +232,9 @@ public class GeneralUISettings
      * Get the LAF to be used on next application start.
      *
      * @return
+     * @deprecated It's too difficult to maintain 2 themes...
      */
-    public LookAndFeelId getLafIdUponRestart()
+    protected LookAndFeelId getLafIdUponRestart()
     {
         LookAndFeelId res = DEFAULT_LAF_ID;
         String strLaf = prefs.get(PREF_LAF_ID_UPON_RESTART, DEFAULT_LAF_ID.name());
@@ -399,6 +403,11 @@ public class GeneralUISettings
     public static final boolean isLatin(Locale locale)
     {
         return !(locale.getLanguage().equals("zh") || locale.getLanguage().equals("ja"));
+    }
+
+    public static final boolean isDarkTheme()
+    {
+        return getInstance().getCurrentTheme().getName().equals(DarkTheme.NAME);
     }
 
     //=============================================================================

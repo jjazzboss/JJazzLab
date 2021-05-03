@@ -34,35 +34,37 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 
 /**
- * Manage the UI changes when a mouse is over our flat (enabled) components.
+ * Manage the border changes when a mouse is over a flat (enabled) components.
  */
-public class FlatHoverManager implements MouseListener, MouseMotionListener
+public class BorderManager implements MouseListener, MouseMotionListener
 {
 
-    private static FlatHoverManager INSTANCE;
+    private static BorderManager INSTANCE;
     private Border borderDefault;
     private Border borderEntered;
+    private Border borderAction;
     private ArrayList<JComponent> components;
     private JComponent draggedComponent = null;
-    private static final Logger LOGGER = Logger.getLogger(FlatHoverManager.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(BorderManager.class.getSimpleName());
 
-    public static FlatHoverManager getInstance()
+    public static BorderManager getInstance()
     {
-        synchronized (FlatHoverManager.class)
+        synchronized (BorderManager.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new FlatHoverManager();
+                INSTANCE = new BorderManager();
             }
         }
         return INSTANCE;
     }
 
-    private FlatHoverManager()
+    private BorderManager()
     {
         components = new ArrayList<>();
         setBorderDefault(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        setBorderEntered(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
+        setBorderEntered(BorderFactory.createLineBorder(Color.GRAY, 1));
+        setBorderAction(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
     }
 
     public void associate(JComponent component)
@@ -105,6 +107,26 @@ public class FlatHoverManager implements MouseListener, MouseMotionListener
     public final void setBorderDefault(Border borderDefault)
     {
         this.borderDefault = borderDefault;
+        for (JComponent c : components)
+        {
+            c.repaint();
+        }
+    }
+
+    /**
+     * @return the borderDefault
+     */
+    public Border getBorderAction()
+    {
+        return borderAction;
+    }
+
+    /**
+     * @param borderAction The border to use to indicate action is performed.
+     */
+    public final void setBorderAction(Border borderAction)
+    {
+        this.borderAction = borderAction;
         for (JComponent c : components)
         {
             c.repaint();
@@ -177,18 +199,34 @@ public class FlatHoverManager implements MouseListener, MouseMotionListener
     {
         if (draggedComponent != null)
         {
-            // Restore borders of our managed components
-            for (JComponent c : components)
+            if (draggedComponent.contains(e.getPoint()))
             {
-                MouseEvent e2 = SwingUtilities.convertMouseEvent(draggedComponent, e, c);
-                c.setBorder(c.contains(e2.getPoint()) ? getBorderEntered() : getBorderDefault());
+                // We landed in the same component, do nothing
+            } else
+            {
+                // We landed somewhere else            
+                draggedComponent.setBorder(getBorderDefault());
+
+
+                // Find if we landed in another managed FlatComponent
+                for (JComponent c : components)
+                {
+                    MouseEvent e2 = SwingUtilities.convertMouseEvent(draggedComponent, e, c);
+                    if (c != draggedComponent && c.contains(e2.getPoint()))
+                    {
+                        c.setBorder(getBorderEntered());
+                        break;
+                    }
+                }
+
+                draggedComponent = null;
             }
-            draggedComponent = null;
         }
     }
 
     @Override
-    public void mouseDragged(MouseEvent e)
+    public void mouseDragged(MouseEvent e
+    )
     {
         JComponent c = (JComponent) e.getSource();
         if (c.isEnabled())
@@ -198,7 +236,8 @@ public class FlatHoverManager implements MouseListener, MouseMotionListener
     }
 
     @Override
-    public void mouseMoved(MouseEvent e)
+    public void mouseMoved(MouseEvent e
+    )
     {
         // 
     }

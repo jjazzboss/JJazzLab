@@ -43,8 +43,6 @@ import javax.swing.border.Border;
 public class FlatButton extends JLabel implements MouseListener, PropertyChangeListener
 {
 
-    private Border borderDefault;
-    private Border borderEntered;
     private Border borderPressed;
     private Color saveForeground;
     private String saveTooltip;
@@ -54,10 +52,8 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
 
     public FlatButton()
     {
-        borderDefault = BorderFactory.createEmptyBorder(1, 1, 1, 1);
-        borderEntered = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1);
-        borderPressed = BorderFactory.createLineBorder(Color.GRAY, 1);
-        setBorder(borderDefault);
+        BorderManager.getInstance().associate(this);
+        borderPressed = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1);
         addMouseListener(this);
     }
 
@@ -136,20 +132,7 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
      */
     public Border getBorderDefault()
     {
-        return borderDefault;
-    }
-
-    /**
-     * @param borderDefault the borderDefault to set
-     */
-    public void setBorderDefault(Border borderDefault)
-    {
-        Border old = this.borderDefault;
-        this.borderDefault = borderDefault;
-        if (getBorder().equals(old))
-        {
-            setBorder(this.borderDefault);
-        }
+        return BorderManager.getInstance().getBorderDefault();
     }
 
     /**
@@ -157,7 +140,7 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
      */
     public Border getBorderEntered()
     {
-        return borderEntered;
+        return BorderManager.getInstance().getBorderEntered();
     }
 
     /**
@@ -165,12 +148,7 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
      */
     public void setBorderEntered(Border borderEntered)
     {
-        Border old = this.borderEntered;
-        this.borderEntered = borderEntered;
-        if (getBorder().equals(old))
-        {
-            setBorder(this.borderEntered);
-        }
+        BorderManager.getInstance().setBorderEntered(borderEntered);
     }
 
     /**
@@ -204,7 +182,7 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
             setForeground(Color.LIGHT_GRAY);
             saveTooltip = getToolTipText();
             setToolTipText("OFF");
-            setBorder(borderDefault);
+            setBorder(BorderManager.getInstance().getBorderDefault());
         } else if (!isEnabled() && b)
         {
             setForeground(saveForeground);
@@ -221,19 +199,19 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
     {
         if (evt.getSource() == action)
         {
-            if (evt.getPropertyName() == Action.SMALL_ICON)
+            if (evt.getPropertyName().equals(Action.SMALL_ICON))
             {
                 setIcon((Icon) evt.getNewValue());
-            } else if (evt.getPropertyName() == Action.NAME)
+            } else if (evt.getPropertyName().equals(Action.NAME))
             {
-                if ((Boolean) action.getValue("hideActionText") != Boolean.TRUE)
+                if (Boolean.TRUE.equals((Boolean) action.getValue("hideActionText")))
                 {
                     setText((String) evt.getNewValue());
                 }
-            } else if (evt.getPropertyName() == Action.SHORT_DESCRIPTION)
+            } else if (evt.getPropertyName().equals(Action.SHORT_DESCRIPTION))
             {
                 setToolTipText((String) evt.getNewValue());
-            } else if (evt.getPropertyName() == "enabled")
+            } else if ("enabled".equals(evt.getPropertyName()))
             {
                 setEnabled((boolean) evt.getNewValue());
             }
@@ -249,7 +227,6 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
         // Need to be on mouseClicked, not mousePressed() otherwise cause problems when action triggers a dialog sensitive to mouseevents
         if (isEnabled())
         {
-            setBorder(borderPressed);
             buttonClicked(evt);
         }
     }
@@ -257,25 +234,23 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
     @Override
     public void mouseExited(java.awt.event.MouseEvent evt)
     {
-        if (isEnabled())
-        {
-            setBorder(borderDefault);
-        }
+        // Nothing
     }
 
     @Override
     public void mouseEntered(java.awt.event.MouseEvent evt)
     {
-        if (isEnabled())
-        {
-            setBorder(borderEntered);
-        }
+        // 
     }
 
     @Override
     public void mousePressed(MouseEvent evt)
     {
         // Nothing
+        if (isEnabled())
+        {
+            setBorder(borderPressed);
+        }
     }
 
     @Override
@@ -283,7 +258,7 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
     {
         if (isEnabled() && getBorder() == borderPressed)
         {
-            setBorder(borderEntered);
+            setBorder(BorderManager.getInstance().getBorderEntered());
         }
     }
 

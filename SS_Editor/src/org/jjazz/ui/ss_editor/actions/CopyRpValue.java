@@ -121,7 +121,7 @@ public class CopyRpValue extends AbstractAction implements ContextAwareAction, S
     public void selectionChange(SS_SelectionUtilities selection)
     {
         boolean b = false;
-        if (selection.isRhythmParameterSelected())
+        if (selection.isRhythmParameterSelected() && selection.isContiguousSptSelection())
         {
             var sptps = selection.getSelectedSongPartParameters();
             Rhythm r0 = sptps.get(0).getSpt().getRhythm();

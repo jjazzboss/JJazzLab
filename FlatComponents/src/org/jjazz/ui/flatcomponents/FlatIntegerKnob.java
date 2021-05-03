@@ -22,15 +22,15 @@
  */
 package org.jjazz.ui.flatcomponents;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.Paint;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -39,57 +39,46 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Arc2D;
 import java.awt.geom.Ellipse2D;
-import java.awt.geom.Line2D;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
-import javax.swing.JComponent;
-import javax.swing.JTextField;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.border.Border;
 import org.jjazz.uisettings.GeneralUISettings;
-import org.openide.windows.WindowManager;
 
 /**
- * A flat knob
+ * A flat knob.
+ * <p>
+ * Value can be changed by dragging mouse or mouse wheel. ctrl-click reset the value.
  */
-public class FlatIntegerKnob extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener, PropertyChangeListener
+public class FlatIntegerKnob extends JPanel implements MouseMotionListener, MouseWheelListener, MouseListener
 {
 
+    /**
+     * Fire a PROP_Value property change event when user changes the value.
+     */
     public static final String PROP_VALUE = "PropValue";   //NOI18N 
-    /**
-     * Client Property: line thickness
-     */
-    public final static String PROP_LINE_THICKNESS = "PropLineThickness";
-    /**
-     * Client Property: graduation length
-     */
-    public final static String PROP_GRADUATION_LENGTH = "PropGraduationLength";
-    /**
-     * Client Property: hide value text if not active : 0=false, 1=true
-     */
-    public final static String PROP_HIDE_VALUE_IF_NOT_ACTIVE = "PropHideValueIfNotActive";
-    private static final Font FONT = new Font("Arial", Font.PLAIN, 9);
-    public static FlatTextEditDialog TEXT_EDIT_DIALOG;
-    private Color colorLine;
-    private Color colorKnobFill;
+
+    private double valueLineThickness = 4;
+    private double valueLineGap = 2;
+    private Color valueLineColor = new Color(0, 255, 255);
+    private double knobRadius = 11;
+    private double knobStartAngle = 230;
+    private Color knobUpperColor = new Color(109, 109, 109);
+    private Color knobLowerColor = new Color(64, 64, 64);
+    private Color knobRectColor = new Color(230, 230, 230);
+    private int padding = 2;
+    private boolean panoramicType = false;
     private int minValue = 0;
     private int maxValue = 127;
-    private int value;
-    private double xValue;
-    private double yValue;
-    private int width;
-    private int height;
-    private int yMax;
-    private int knobDiameter;
-    private int xKnobCenter;
-    private int yKnobCenter;
-    private String label;
+    private int value = 64;
     private String tooltipLabel;
-    private boolean hideValue = true;
+    private int startDragY = Integer.MIN_VALUE;
+    private int startDragValue;
     private Color saveForeground;
     private Color saveColorLine;
     /**
@@ -102,7 +91,7 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
         public void actionPerformed(ActionEvent e)
         {
             timer.stop();
-            hideValue = true;
+            // hideValue = true;
             timer = null;
             repaint();
         }
@@ -111,29 +100,170 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
 
     public FlatIntegerKnob()
     {
-        putClientProperty(PROP_LINE_THICKNESS, 2);
-        putClientProperty(PROP_GRADUATION_LENGTH, 2);
-        putClientProperty(PROP_HIDE_VALUE_IF_NOT_ACTIVE, 1);
-        colorLine = new Color(103, 139, 176);
-        colorKnobFill = new Color(240, 240, 240);
-        setForeground(new Color(97, 97, 97));
-        setFont(FONT);
-        setKnobDiameter(30);
-        setValue(64);
-        addComponentListener(new java.awt.event.ComponentAdapter()
-        {
-            @Override
-            public void componentResized(java.awt.event.ComponentEvent evt)
-            {
-                formComponentResized(evt);
-            }
-        });
-        addMouseListener(this);
+
+        BorderManager.getInstance().associate(this);
+
+
+        // Listen to mouse drag events to change value
         addMouseMotionListener(this);
-        // Use mouse wheel only if enabled
+        addMouseListener(this);
+
+        // Use mouse wheel to change value, only if enabled
         GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
-        addPropertyChangeListener(this);
-        FlatHoverManager.getInstance().associate(this);
+
+
+    }
+
+    @Override
+    public Dimension getPreferredSize()
+    {
+        Insets in = getInsets();
+        int w = (int) Math.ceil(getFullKnobWidth()) + 2 * padding + in.left + in.right;
+        int h = (int) Math.ceil(getFullKnobHeight()) + 2 * padding + in.top + in.bottom;
+        var d = new Dimension(w, h);
+        return d;
+    }
+
+    @Override
+    public void paintComponent(Graphics g)
+    {
+        super.paintComponent(g); // Honor the opaque property
+
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+
+        Insets in = getInsets();
+        int w = getWidth();
+        int h = getHeight();
+        double wFullKnob = getFullKnobWidth();
+        double hFullKnob = getFullKnobHeight();
+
+
+        // Degrees
+        double valuePercentage = ((double) value - minValue) / (maxValue - minValue);
+        double degFullArc = knobStartAngle + knobStartAngle - 180;
+        double degValueArc = valuePercentage * degFullArc;
+
+
+        // position the knob X/Y centered
+        double xFullKnob = (w - wFullKnob) / 2d;
+        double yFullKnob = (h - hFullKnob) / 2d;
+        double xKnobCenter = xFullKnob + valueLineThickness + valueLineGap + knobRadius;
+        double yKnobCenter = yFullKnob + valueLineThickness + valueLineGap + knobRadius;
+
+
+        // Paint the knob
+        Ellipse2D.Double knob = new Ellipse2D.Double(
+                xKnobCenter - knobRadius,
+                yKnobCenter - knobRadius,
+                2 * knobRadius,
+                2 * knobRadius
+        );
+        Paint p = new GradientPaint((float) xKnobCenter, (float) (yKnobCenter - knobRadius), knobUpperColor, (float) xKnobCenter, (float) (yKnobCenter + knobRadius), knobLowerColor);
+        g2.setPaint(p);
+        g2.fill(knob);
+        g2.setPaint(null);
+
+
+        // Add a rectangle inside the knob
+        double theta = Math.toRadians(degValueArc - knobStartAngle);
+        double wRect = knobRadius * 0.7;
+        double hRect = wRect * 0.3;
+        Rectangle2D rect = new Rectangle2D.Double(-wRect / 2., -hRect / 2., wRect, hRect);
+        AffineTransform transform = new AffineTransform();
+        double xRect = (knobRadius - wRect / 2) * Math.cos(theta);
+        double yRect = (knobRadius - wRect / 2) * Math.sin(theta);
+        transform.translate(xKnobCenter + xRect, yKnobCenter + yRect);
+        transform.rotate(theta);
+        Shape rotatedRect = transform.createTransformedShape(rect);
+        g2.setColor(knobRectColor);
+        g2.fill(rotatedRect);
+
+
+        // Paint the complete arc with knobLowerColor
+        double xArcUp = xFullKnob;
+        double yArcUp = yFullKnob;
+        double wArcUp = wFullKnob;
+        double hArcUp = wFullKnob;
+        double xArcLow = xFullKnob + valueLineThickness - 0.5;
+        double yArcLow = yFullKnob + valueLineThickness - 0.5;
+        double wArcLow = wFullKnob - 2 * valueLineThickness + 1;
+        double hArcLow = wFullKnob - 2 * valueLineThickness + 1;
+        GeneralPath fullArc = new GeneralPath();
+        fullArc.append(new Arc2D.Double(xArcUp,
+                yArcUp,
+                wArcUp,
+                hArcUp,
+                knobStartAngle,
+                -degFullArc,
+                Arc2D.OPEN),
+                false);
+        fullArc.append(new Arc2D.Double(xArcLow,
+                yArcLow,
+                wArcLow,
+                hArcLow,
+                180 - knobStartAngle,
+                degFullArc,
+                Arc2D.OPEN),
+                true);
+        g2.setColor(knobLowerColor);
+        g2.fill(fullArc);
+
+
+        // Overwrite with the value arc
+        GeneralPath valueArc = new GeneralPath();
+        if (!isPanoramicType())
+        {
+            valueArc.append(new Arc2D.Double(xArcUp,
+                    yArcUp,
+                    wArcUp,
+                    hArcUp,
+                    knobStartAngle,
+                    -degValueArc,
+                    Arc2D.OPEN),
+                    false);
+            valueArc.append(new Arc2D.Double(xArcLow,
+                    yArcLow,
+                    wArcLow,
+                    hArcLow,
+                    knobStartAngle - degValueArc,
+                    degValueArc,
+                    Arc2D.OPEN),
+                    true);
+        } else
+        {
+            double degValueAngle = knobStartAngle - degValueArc;
+            double northAngle = 90;
+            if (Math.abs(degValueAngle - northAngle) < 5)
+            {
+                // Color line is too small, make it appear a little bigger
+                degValueAngle = 94;
+                northAngle = 86;
+            }
+            valueArc.append(new Arc2D.Double(xArcUp,
+                    yArcUp,
+                    wArcUp,
+                    hArcUp,
+                    degValueAngle,
+                    -(degValueAngle - northAngle),
+                    Arc2D.OPEN),
+                    false);
+            valueArc.append(new Arc2D.Double(xArcLow,
+                    yArcLow,
+                    wArcLow,
+                    hArcLow,
+                    northAngle,
+                    degValueAngle - northAngle,
+                    Arc2D.OPEN),
+                    true);
+        }
+        g2.setColor(valueLineColor);
+        g2.fill(valueArc);
+
+
+        g2.dispose();
     }
 
     @Override
@@ -143,48 +273,51 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
         if (isEnabled() && !b)
         {
             saveForeground = getForeground();
-            saveColorLine = getColorLine();
+            saveColorLine = getValueLineColor();
             setForeground(Color.LIGHT_GRAY);
-            setColorLine(Color.LIGHT_GRAY);
+            setValueLineColor(Color.LIGHT_GRAY);
         } else if (!isEnabled() && b)
         {
             setForeground(saveForeground);
-            setColorLine(saveColorLine);
+            setValueLineColor(saveColorLine);
         }
         super.setEnabled(b);
         updateToolTipText();
     }
 
     /**
-     * @return the colorLine
+     * @return the valueLineColor
      */
-    public Color getColorLine()
+    public Color getValueLineColor()
     {
-        return colorLine;
+        return valueLineColor;
     }
 
     /**
-     * @param colorLine the colorLine to set
+     * @param valueLineColor the valueLineColor to set
      */
-    public void setColorLine(Color colorLine)
+    public void setValueLineColor(Color valueLineColor)
     {
-        this.colorLine = colorLine;
+        this.valueLineColor = valueLineColor;
+        repaint();
     }
 
     /**
-     * @return the colorKnobFill
+     * @return the valueLineThickness
      */
-    public Color getColorKnobFill()
+    public double getValueLineThickness()
     {
-        return colorKnobFill;
+        return valueLineThickness;
     }
 
     /**
-     * @param colorKnobFill the colorKnobFill to set
+     * @param valueLineThickness the valueLineThickness to set
      */
-    public void setColorKnobFill(Color colorKnobFill)
+    public void setValueLineThickness(double valueLineThickness)
     {
-        this.colorKnobFill = colorKnobFill;
+        this.valueLineThickness = valueLineThickness;
+        revalidate();
+        repaint();
     }
 
     /**
@@ -201,7 +334,7 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
     public void setMinValue(int minValue)
     {
         this.minValue = minValue;
-        formComponentResized(null);
+        repaint();
     }
 
     /**
@@ -218,23 +351,6 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
     public void setMaxValue(int maxValue)
     {
         this.maxValue = maxValue;
-        formComponentResized(null);
-    }
-
-    /**
-     * @return the label
-     */
-    public String getLabel()
-    {
-        return label;
-    }
-
-    /**
-     * @param label the label to set. Can be null.
-     */
-    public void setLabel(String label)
-    {
-        this.label = label;
         repaint();
     }
 
@@ -249,103 +365,9 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
         updateToolTipText();
     }
 
-    /**
-     * @return the knobDiameter
-     */
-    public int getKnobDiameter()
-    {
-        return knobDiameter;
-    }
-
-    /**
-     * @param knobDiameter the knobDiameter to set
-     */
-    public void setKnobDiameter(int knobDiameter)
-    {
-        this.knobDiameter = knobDiameter;
-        repaint();
-    }
-
-    @Override
-    public Dimension getPreferredSize()
-    {
-        int w = knobDiameter + getInt(PROP_GRADUATION_LENGTH) * 2 + 10;
-        int h = knobDiameter + getInt(PROP_GRADUATION_LENGTH) * 2 + 15; // More for the label
-        return new Dimension(w, h);
-    }
-
-    @Override
-    public void paintComponent(Graphics g)
-    {
-        super.paintComponent(g); // Honor the opaque property
-
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-        // The knob
-        g2.setColor(colorKnobFill);
-        g2.fill(new Ellipse2D.Double(xKnobCenter - getKnobDiameter() / 2d, yKnobCenter - getKnobDiameter() / 2d, getKnobDiameter(), getKnobDiameter()));
-        g2.setColor(colorLine);
-        g2.setStroke(new BasicStroke(getInt(PROP_LINE_THICKNESS)));
-        g2.draw(new Ellipse2D.Double(xKnobCenter - getKnobDiameter() / 2d, yKnobCenter - getKnobDiameter() / 2d, getKnobDiameter(), getKnobDiameter()));
-
-        // The point in the knob
-        double pointSize = 4;
-        double pointDiameter = getKnobDiameter() * 0.6d;
-        double valuePercentage = ((double) value - minValue) / (maxValue - minValue);
-        double radians = valuePercentage * (3 * Math.PI / 2) - Math.PI / 4;
-        xValue = xKnobCenter - pointDiameter / 2d * Math.cos(radians);
-        yValue = yKnobCenter - pointDiameter / 2d * Math.sin(radians);
-        g2.setColor(colorLine);
-        g2.fill(new Ellipse2D.Double(xValue - pointSize / 2d, yValue - pointSize / 2d, pointSize, pointSize));
-
-        // Graduation marks
-        g2.setColor(colorLine);
-        g2.setStroke(new BasicStroke(1));
-        int l = getInt(PROP_GRADUATION_LENGTH);
-        double ofs = 4;
-        for (int i = 0; i < 7; i++)
-        {
-            radians = i * Math.PI / 4 - Math.PI / 4;
-            double x1 = xKnobCenter - (getKnobDiameter() / 2d + ofs) * Math.cos(radians);
-            double y1 = yKnobCenter - (getKnobDiameter() / 2d + ofs) * Math.sin(radians);
-            double x2 = xKnobCenter - (getKnobDiameter() / 2d + ofs + l) * Math.cos(radians);
-            double y2 = yKnobCenter - (getKnobDiameter() / 2d + ofs + l) * Math.sin(radians);
-            g2.draw(new Line2D.Double(x1, y1, x2, y2));
-        }
-
-        // Write the value in knob
-        g2.setColor(getForeground());
-        String text = valueToString(getValue());
-        FontMetrics fm = g2.getFontMetrics();
-        Rectangle2D stringBounds = fm.getStringBounds(text, g2);
-        double stringHeight = stringBounds.getHeight();
-        double stringWidth = stringBounds.getWidth();
-        double xText = xKnobCenter - stringWidth / 2 + 1;
-        double yText = yKnobCenter + stringHeight / 2 - 1;
-        if (getInt(PROP_HIDE_VALUE_IF_NOT_ACTIVE) == 0 || !hideValue)
-        {
-            g2.drawString(text, (float) xText, (float) yText);
-        }
-
-        // Write the label
-        if (label != null)
-        {
-            g2.setColor(getForeground());
-            fm = g2.getFontMetrics();
-            stringBounds = fm.getStringBounds(label, g2);
-            stringWidth = stringBounds.getWidth();
-            xText = xKnobCenter - stringWidth / 2 + 1;
-            yText = yMax - 1;
-            g2.drawString(label, (float) xText, (float) yText);
-        }
-        LOGGER.finer("paintComponent() isEnabled()=" + isEnabled());   //NOI18N
-    }
-
     public void setValue(int v)
     {
-        if (v < minValue || v > maxValue)
+        if (v < getMinValue() || v > getMaxValue())
         {
             throw new IllegalArgumentException("v=" + v);   //NOI18N
         }
@@ -361,7 +383,7 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
             {
                 timer.restart();
             }
-            hideValue = false;
+            // hideValue = false;
             updateToolTipText();
             repaint();
             firePropertyChange(PROP_VALUE, old, value);
@@ -374,15 +396,180 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
     }
 
     /**
-     * Overridden to update our settings.
-     *
-     * @param b
+     * @return the knobRadius
      */
-    @Override
-    public void setBorder(Border b)
+    public double getKnobRadius()
     {
-        super.setBorder(b);
-        formComponentResized(null);
+        return knobRadius;
+    }
+
+    /**
+     * @param knobRadius the knobRadius to set
+     */
+    public void setKnobRadius(double knobRadius)
+    {
+        this.knobRadius = knobRadius;
+        revalidate();
+        repaint();
+    }
+
+    /**
+     * @return the knobStartAngle
+     */
+    public double getKnobStartAngle()
+    {
+        return knobStartAngle;
+    }
+
+    /**
+     *
+     * @param angle Between 180 and 270 degrees.
+     */
+    public void setKnobStartAngle(double angle)
+    {
+        this.knobStartAngle = angle;
+        if (angle < 180 || angle > 270)
+        {
+            throw new IllegalArgumentException("angle=" + angle);
+        }
+        repaint();
+    }
+
+    /**
+     * @return the knobUpperColor
+     */
+    public Color getKnobUpperColor()
+    {
+        return knobUpperColor;
+    }
+
+    /**
+     * @param knobUpperColor the knobUpperColor to set
+     */
+    public void setKnobUpperColor(Color knobUpperColor)
+    {
+        this.knobUpperColor = knobUpperColor;
+        repaint();
+    }
+
+    /**
+     * @return the knobLowerColor
+     */
+    public Color getKnobLowerColor()
+    {
+        return knobLowerColor;
+    }
+
+    /**
+     * @param knobLowerColor the knobLowerColor to set
+     */
+    public void setKnobLowerColor(Color knobLowerColor)
+    {
+        this.knobLowerColor = knobLowerColor;
+        repaint();
+    }
+
+    /**
+     * @return the valueLineGap
+     */
+    public double getValueLineGap()
+    {
+        return valueLineGap;
+    }
+
+    /**
+     * @param valueLineGap the valueLineGap to set
+     */
+    public void setValueLineGap(double valueLineGap)
+    {
+        this.valueLineGap = valueLineGap;
+        revalidate();
+        repaint();
+    }
+
+    /**
+     * @return the knobRectColor
+     */
+    public Color getKnobRectColor()
+    {
+        return knobRectColor;
+    }
+
+    /**
+     * @param knobRectColor the knobRectColor to set
+     */
+    public void setKnobRectColor(Color knobRectColor)
+    {
+        this.knobRectColor = knobRectColor;
+        repaint();
+    }
+
+    /**
+     * @return the padding
+     */
+    public int getPadding()
+    {
+        return padding;
+    }
+
+    /**
+     * @param padding the padding to set
+     */
+    public void setPadding(int padding)
+    {
+        this.padding = padding;
+        repaint();
+    }
+
+    /**
+     * @return the panoramicType. Default is false.
+     */
+    public boolean isPanoramicType()
+    {
+        return panoramicType;
+    }
+
+    /**
+     * @param panoramicType the panoramicType to set
+     */
+    public void setPanoramicType(boolean panoramicType)
+    {
+        this.panoramicType = panoramicType;
+        repaint();
+    }
+
+    // ==========================================================================
+    // MouseMotionListener interface
+    // ==========================================================================
+    @Override
+    public void mouseDragged(MouseEvent e)
+    {
+        if (!isEnabled() || !SwingUtilities.isLeftMouseButton(e))
+        {
+            return;
+        }
+        if (startDragY == Integer.MIN_VALUE)
+        {
+            // Start dragging
+            startDragY = e.getY();
+            startDragValue = value;
+        } else
+        {
+            // Continue dragging            
+            final int FULL_DRAG_Y = 250;
+            float yDrag = -(e.getY() - startDragY);
+            float f = yDrag / FULL_DRAG_Y;
+            int v = startDragValue + Math.round((getMaxValue() - getMinValue()) * f);
+            v = Math.max(v, minValue);
+            v = Math.min(v, maxValue);
+            setValue(v);
+        }
+
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e)
+    {
     }
 
     // ==========================================================================
@@ -391,11 +578,6 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
     @Override
     public void mouseClicked(MouseEvent e)
     {
-        if (SwingUtilities.isLeftMouseButton(e) && isEnabled() && e.getClickCount() == 2)
-        {
-            // Open editor
-            openEditor();
-        }
     }
 
     @Override
@@ -413,50 +595,24 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
     @Override
     public void mousePressed(MouseEvent e)
     {
-        // Nothing
+        if (e.isControlDown())
+        {
+            resetValue();
+        }
     }
 
     @Override
     public void mouseReleased(MouseEvent e)
     {
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e)
-    {
-        if (!isEnabled() || !SwingUtilities.isLeftMouseButton(e))
+        if (startDragY != Integer.MIN_VALUE)
         {
-            return;
+            startDragY = Integer.MIN_VALUE;
         }
-        double x = e.getX() - xKnobCenter;
-        double y = -(e.getY() - yKnobCenter);
-        double radians = 0;
-        if (x > 0)
-        {
-            double tan = y / x;
-            radians = Math.atan(tan);
-
-        } else if (x < 0)
-        {
-            double tan = y / -x;
-            radians = Math.PI - Math.atan(tan);
-        } else
-        {
-            // x=0;
-            radians = (y >= 0) ? Math.PI / 2 : -Math.PI / 4d;
-        }
-        radians = Math.min(radians, Math.PI * 5 / 4);
-        radians = Math.max(radians, -Math.PI / 4);
-        double v = maxValue - (radians + Math.PI / 4) / (3 * Math.PI / 2) * (maxValue - minValue);
-        setValue((int) Math.rint(v));
     }
 
-    @Override
-
-    public void mouseMoved(MouseEvent e)
-    {
-    }
-
+    // ==========================================================================
+    // MouseWheelListener interface
+    // ==========================================================================
     @Override
     public void mouseWheelMoved(MouseWheelEvent e)
     {
@@ -465,117 +621,58 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
             return;
         }
         boolean ctrl = (e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
-        int step = ctrl ? 5 : 1;
+        int step = ctrl ? 6 : 2;
         if (e.getWheelRotation() < 0)
         {
-            if (value + step <= maxValue)
+            if (getValue() + step <= getMaxValue())
             {
-                setValue(value + step);
+                setValue(getValue() + step);
             } else
             {
-                setValue(maxValue);
+                setValue(getMaxValue());
             }
 
         } else if (e.getWheelRotation() > 0)
         {
-            if (value - step >= minValue)
+            if (getValue() - step >= getMinValue())
             {
-                setValue(value - step);
+                setValue(getValue() - step);
             } else
             {
-                setValue(minValue);
+                setValue(getMinValue());
             }
-        }
-    }
-
-    // ================================================================================
-    // PropertyChangeListener interface
-    // ================================================================================
-    @Override
-    public void propertyChange(PropertyChangeEvent evt)
-    {
-        String key = evt.getPropertyName();
-        if (key == PROP_LINE_THICKNESS || key == PROP_GRADUATION_LENGTH)
-        {
-            revalidate();
-            repaint();
         }
     }
 
     // ==========================================================================
     // Private fucntions
     // ==========================================================================
-    private Integer getInt(String key)
+    private double getFullKnobWidth()
     {
-        return (Integer) getClientProperty(key);
+        double res = knobRadius * 2 + 2 * valueLineGap + 2 * valueLineThickness;
+        return res;
     }
 
-    private void formComponentResized(java.awt.event.ComponentEvent evt)
+    private double getFullKnobHeight()
     {
-        if (getInt(PROP_LINE_THICKNESS) == null)
-        {
-            // We're in the JPanel constructor, no problem, we'll be called again later when object will be constructed.
-            return;
-        }
-        Insets in = getInsets();
-        width = getWidth() - in.left - in.right;
-        height = getHeight() - in.top - in.bottom;
-        yMax = in.top + height - 1;
-        xKnobCenter = in.left + width / 2;
-        yKnobCenter = in.top + height / 2 - 2;  // -2 : leave more room for the text
-        repaint();
-    }
-
-    private void openEditor()
-    {
-        if (TEXT_EDIT_DIALOG == null)
-        {
-            TEXT_EDIT_DIALOG = new FlatTextEditDialog(WindowManager.getDefault().getMainWindow(), true);
-            TEXT_EDIT_DIALOG.setBackground(colorKnobFill);
-            TEXT_EDIT_DIALOG.setForeground(getForeground());
-            TEXT_EDIT_DIALOG.setHorizontalAlignment(JTextField.CENTER);
-            TEXT_EDIT_DIALOG.setColumns(3);
-        }
-        String strOldValue = valueToString(value);
-        TEXT_EDIT_DIALOG.setText(strOldValue);
-        TEXT_EDIT_DIALOG.pack();
-        TEXT_EDIT_DIALOG.setPositionCenter(this);
-
-        TEXT_EDIT_DIALOG.setVisible(true);
-        String text = TEXT_EDIT_DIALOG.getText().trim();
-        if (TEXT_EDIT_DIALOG.isExitOk() && text.length() > 0 && !text.equals(strOldValue))
-        {
-            int newValue = stringToValue(text);
-            if (newValue != -1)
-            {
-                setValue(newValue);
-            }
-        }
+        double hUpper = knobRadius + valueLineGap + valueLineThickness;
+        double res = hUpper - Math.cos(Math.toRadians(knobStartAngle)) * hUpper;
+        return res;
     }
 
     /**
-     * Get the value from the specified text.
      *
-     * @param text
-     * @return -1 if no valid value found in text.
      */
-    protected int stringToValue(String text)
+    private void resetValue()
     {
-        int r = -1;
-        try
+        if (!panoramicType)
         {
-            r = Integer.parseUnsignedInt(text);
-            r = Math.max(minValue, r);
-            r = Math.min(maxValue, r);
-        } catch (NumberFormatException e)
+            setValue(minValue);
+        } else
         {
-            // Nothing leave value unchanged
+            // Compute the value associated to the north direction
+            setValue((maxValue - minValue) / 2);
         }
-        if (r == -1)
-        {
-            LOGGER.fine("parseString() text=" + text);   //NOI18N
-        }
-        return r;
     }
 
     /**
@@ -593,8 +690,8 @@ public class FlatIntegerKnob extends JComponent implements MouseListener, MouseM
 
     private void updateToolTipText()
     {
-        String valueAstring = isEnabled() ? valueToString(value) : "OFF";
-        setToolTipText(tooltipLabel == null ? valueAstring : tooltipLabel + "=" + valueAstring);
+        String valueAstring = isEnabled() ? valueToString(getValue()) : "OFF";
+        setToolTipText(getTooltipLabel() == null ? valueAstring : getTooltipLabel() + "=" + valueAstring);
     }
 
 }

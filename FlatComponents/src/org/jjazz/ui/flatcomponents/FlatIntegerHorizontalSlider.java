@@ -161,7 +161,7 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
         // Use mouse wheel only if enabled
         GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
         addPropertyChangeListener(this);
-        FlatHoverManager.getInstance().associate(this);
+        BorderManager.getInstance().associate(this);
     }
 
     /**

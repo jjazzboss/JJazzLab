@@ -274,9 +274,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         // Colors
         Color c = settings.getMixChannelBackgroundColor();
         roundedPanel.setBackground(c);
-        this.knob_chorus.setColorKnobFill(c);
-        this.knob_panoramic.setColorKnobFill(c);
-        this.knob_reverb.setColorKnobFill(c);
         this.fslider_volume.setColorKnobFill(c);
     }
 
@@ -299,11 +296,9 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         pnl_solo = new javax.swing.JPanel();
         fbtn_solo = new org.jjazz.ui.flatcomponents.FlatToggleButton();
         pnl_pan = new javax.swing.JPanel();
-        knob_panoramic = new org.jjazz.ui.mixconsole.PanoramicKnob();
         pnl_rev = new javax.swing.JPanel();
-        knob_reverb = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
+        flatIntegerKnob1 = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
         pnl_cho = new javax.swing.JPanel();
-        knob_chorus = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
         pnl_inst_volume = new javax.swing.JPanel();
         fslider_volume = new org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider();
         fbtn_Instrument = new org.jjazz.ui.mixconsole.VInstrumentButton();
@@ -314,9 +309,11 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         pnl_channelId = new javax.swing.JPanel();
         fbtn_channelId = new org.jjazz.ui.flatcomponents.FlatButton();
 
+        setBackground(new java.awt.Color(26, 26, 26));
         setMinimumSize(new java.awt.Dimension(10, 53));
         setOpaque(false);
 
+        roundedPanel.setBackground(new java.awt.Color(26, 26, 26));
         roundedPanel.setArcDiameter(20);
         roundedPanel.setInheritsPopupMenu(true);
         roundedPanel.setMinimumSize(new java.awt.Dimension(20, 53));
@@ -383,32 +380,12 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         pnl_pan.setOpaque(false);
         pnl_pan.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        knob_panoramic.setFont(FONT);
-        knob_panoramic.setInheritsPopupMenu(true);
-        knob_panoramic.setKnobDiameter(20);
-        knob_panoramic.setLabel("pan"); // NOI18N
-        knob_panoramic.setTooltipLabel(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.knob_panoramic.tooltipLabel")); // NOI18N
-        pnl_pan.add(knob_panoramic);
-
         pnl_rev.setOpaque(false);
         pnl_rev.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
-
-        knob_reverb.setFont(knob_panoramic.getFont());
-        knob_reverb.setInheritsPopupMenu(true);
-        knob_reverb.setKnobDiameter(20);
-        knob_reverb.setLabel("rev"); // NOI18N
-        knob_reverb.setTooltipLabel(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.knob_reverb.tooltipLabel")); // NOI18N
-        pnl_rev.add(knob_reverb);
+        pnl_rev.add(flatIntegerKnob1);
 
         pnl_cho.setOpaque(false);
         pnl_cho.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
-
-        knob_chorus.setFont(knob_panoramic.getFont());
-        knob_chorus.setInheritsPopupMenu(true);
-        knob_chorus.setKnobDiameter(20);
-        knob_chorus.setLabel("cho"); // NOI18N
-        knob_chorus.setTooltipLabel(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.knob_chorus.tooltipLabel")); // NOI18N
-        pnl_cho.add(knob_chorus);
 
         pnl_inst_volume.setOpaque(false);
         pnl_inst_volume.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 3, 0));
@@ -485,14 +462,17 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(pnl_led_close, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addComponent(pnl_mute, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(pnl_solo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(pnl_pan, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(pnl_rev, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(pnl_cho, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(pnl_inst_volume, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addComponent(pnl_name, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(pnl_icon, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(pnl_channelId, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(roundedPanelLayout.createSequentialGroup()
+                .addGap(55, 55, 55)
+                .addGroup(roundedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(pnl_solo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pnl_pan, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pnl_cho, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pnl_inst_volume, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+            .addComponent(pnl_rev, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         roundedPanelLayout.setVerticalGroup(
             roundedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -502,13 +482,12 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
                     .addComponent(fbtn_Settings, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pnl_mute, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
                 .addComponent(pnl_solo, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(7, 7, 7)
-                .addComponent(pnl_pan, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
-                .addComponent(pnl_rev, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
+                .addGroup(roundedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(pnl_pan, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(pnl_rev, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pnl_cho, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(3, 3, 3)
                 .addComponent(pnl_inst_volume, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -518,18 +497,23 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
                 .addComponent(pnl_name, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(pnl_channelId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(3, 3, 3))
+                .addContainerGap(147, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(roundedPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(roundedPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(roundedPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(roundedPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 40, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -598,11 +582,9 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_mute;
     private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_solo;
     private javax.swing.Box.Filler filler1;
+    private org.jjazz.ui.flatcomponents.FlatIntegerKnob flatIntegerKnob1;
     private org.jjazz.ui.flatcomponents.FlatLedIndicator fled_midiActivity;
     private org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider fslider_volume;
-    private org.jjazz.ui.flatcomponents.FlatIntegerKnob knob_chorus;
-    private org.jjazz.ui.mixconsole.PanoramicKnob knob_panoramic;
-    private org.jjazz.ui.flatcomponents.FlatIntegerKnob knob_reverb;
     private javax.swing.JLabel lbl_Icon;
     private javax.swing.JLabel lbl_name;
     private javax.swing.JPanel pnl_channelId;

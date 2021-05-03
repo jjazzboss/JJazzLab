@@ -153,7 +153,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
         // Use mouse wheel only if enabled
         GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
         addPropertyChangeListener(this);
-        FlatHoverManager.getInstance().associate(this);
+        BorderManager.getInstance().associate(this);
     }
 
     /**

@@ -38,20 +38,26 @@ public class StringMetrics
         context = g2.getFontRenderContext();
     }
 
-    public Rectangle2D getBounds(String message)
+    /**
+     * Return a baseline relative coordinates, include the leading (interline spacing).
+     *
+     * @param message
+     * @return
+     */
+    public Rectangle2D getLogicalBounds(String message)
     {
         return font.getStringBounds(message, context);
     }
 
     public double getWidth(String message)
     {
-        Rectangle2D bounds = getBounds(message);
+        Rectangle2D bounds = getLogicalBounds(message);
         return bounds.getWidth();
     }
 
     public double getHeight(String message)
     {
-        Rectangle2D bounds = getBounds(message);
+        Rectangle2D bounds = getLogicalBounds(message);
         return bounds.getHeight();
     }
 

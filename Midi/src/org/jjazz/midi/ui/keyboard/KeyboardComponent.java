@@ -31,6 +31,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.JPanel;
 
 /**
@@ -118,8 +119,8 @@ public class KeyboardComponent extends JPanel
 
         // Set minimum size
         setMinimumSize(new Dimension(getKeyboardRange().getNbWhiteKeys() * PianoKey.WW_MIN, PianoKey.WH_MIN));
-        
-        
+
+
         revalidate();
         repaint();
     }
@@ -132,6 +133,16 @@ public class KeyboardComponent extends JPanel
     public List<PianoKey> getPianoKeys()
     {
         return new ArrayList<>(pianoKeys);
+    }
+
+    public List<PianoKey> getBlackKeys()
+    {
+        return pianoKeys.stream().filter(pk -> !pk.isWhiteKey()).collect(Collectors.toList());
+    }
+
+    public List<PianoKey> getWhiteKeys()
+    {
+        return pianoKeys.stream().filter(pk -> pk.isWhiteKey()).collect(Collectors.toList());
     }
 
     /**
@@ -214,24 +225,7 @@ public class KeyboardComponent extends JPanel
         }
         return null;
     }
-
-    /**
-     * Set colors used to draw all the keys of the keyboard.
-     * <p>
-     * If one of the color argument is null, we don't change this color.
-     *
-     * @param wKey Color of a white key not pressed.
-     * @param wPressedKey Color of a white key pressed.
-     * @param bKey Color of a black key not pressed.
-     * @param bPressedKey Color of a black key pressed.
-     * @param contour Color of a key contour when not selected.
-     * @param selectedContour Color of a key contour when selected.
-     */
-    public void setColors(Color wKey, Color wPressedKey, Color bKey, Color bPressedKey, Color contour, Color selectedContour)
-    {
-        pianoKeys.forEach(pk -> pk.setColors(wKey, wPressedKey, bKey, bPressedKey, contour, selectedContour));
-    }
-
+ 
     /**
      * Layout the keys to fit the size.
      * <p>

@@ -34,6 +34,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.undomanager.JJazzUndoManager;
@@ -97,33 +98,32 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
     {
         SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
-        List<SongPartParameter> sptps = selection.getSelectedSongPartParameters();
+        List<SongPart> spts = sgs.getSongParts();
+        int sptIndex = spts.indexOf(selection.getSelectedSongPartParameters().get(0).getSpt());
+        assert sptIndex > -1 : "spts=" + spts + " " + selection.getSelectedSongPartParameters();
 
-        RpValueCopyBuffer buffer = RpValueCopyBuffer.getInstance();
+
+        var buffer = RpValueCopyBuffer.getInstance();
+        Rhythm r = buffer.getRhythm();
+        RhythmParameter<?> rp = buffer.getRhythmParameter();
         List<Object> values = buffer.get();
-        Object lastValue = values.get(values.size() - 1);
 
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
         um.startCEdit(undoText);
 
-        int i = 0;
         for (Object value : values)
         {
-            if (i >= sptps.size())
+            if (sptIndex >= spts.size())
             {
                 break;
             }
-            var sptp = sptps.get(i);
-            sgs.setRhythmParameterValue(sptp.getSpt(), (RhythmParameter) sptp.getRp(), value);
-            i++;
-        }
-
-        for (; i < sptps.size(); i++)
-        {
-            // There are more to go, use the last value
-            var sptp = sptps.get(i);
-            sgs.setRhythmParameterValue(sptp.getSpt(), (RhythmParameter) sptp.getRp(), lastValue);
+            SongPart spt = spts.get(sptIndex);
+            if (spt.getRhythm() == r)
+            {
+                sgs.setRhythmParameterValue(spt, (RhythmParameter) rp, value);
+            }
+            sptIndex++;
         }
 
         um.endCEdit(undoText);
@@ -134,19 +134,9 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
     {
         RpValueCopyBuffer buffer = RpValueCopyBuffer.getInstance();
         boolean b = false;
-        if (!buffer.isEmpty() && selection.isRhythmParameterSelected())
+        if (!buffer.isEmpty() && selection.isRhythmParameterSelected() && selection.isContiguousSptSelection())
         {
-            RhythmParameter<?> rpBuffer = buffer.getRhythmParameter();
-            Rhythm rBuffer = buffer.getRhythm();
-            var sptps = selection.getSelectedSongPartParameters();
-            if (sptps.get(0).getRp() == rpBuffer)
-            {
-                var opt = sptps.stream()
-                        .map(sptp -> sptp.getSpt().getRhythm())
-                        .filter(r -> r != rBuffer)
-                        .findAny();
-                b = opt.isEmpty();
-            }
+            b = selection.getSelectedSongPartParameters().get(0).getRp() == buffer.getRhythmParameter();
         }
         setEnabled(b);
     }

@@ -29,7 +29,7 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * A JJazzLab theme using light colors.
  */
-@ServiceProvider(service = Theme.class)
+// @ServiceProvider(service = Theme.class)
 public class LightTheme implements Theme
 {
     
