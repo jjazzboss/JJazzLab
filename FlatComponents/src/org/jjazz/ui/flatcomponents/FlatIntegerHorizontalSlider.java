@@ -328,7 +328,7 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
 
         
         // Graduation marks
-        int nbMarks = getInt(PROP_NB_GRADUATION_MARKS);
+        int nbMarks = getInt(PROP_NB_GRADUATION_MARKS); 
         if (nbMarks > 0)
         {
             g2.setColor(getColorLine());
