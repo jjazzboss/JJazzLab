@@ -25,140 +25,179 @@ package org.jjazz.ui.flatcomponents;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Rectangle2D;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.awt.geom.Line2D;
+import java.awt.geom.RoundRectangle2D;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
-import javax.swing.border.Border;
 import org.jjazz.uisettings.GeneralUISettings;
-import org.openide.windows.WindowManager;
 
 /**
  * A vertical flat slider.
+ * <p>
+ * Whatever the actual component size, the drawing is done at preferred size.
  */
-public class FlatIntegerVerticalSlider extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener, PropertyChangeListener
+public class FlatIntegerVerticalSlider extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener
 {
 
     public static final String PROP_VALUE = "PropValue";   //NOI18N 
-    /**
-     * Client Property: top color, used to created the gradient
-     */
-    public final static String PROP_COLOR_TOP = "PropColorTop";
-    /**
-     * Client Property: bottom color, used to created the gradient
-     */
-    public final static String PROP_COLOR_BOTTOM = "PropColorBottom2";
-    /**
-     * Client Property: line thickness
-     */
-    public final static String PROP_LINE_THICKNESS = "PropLineThickness";
-    /**
-     * Client Property: number of graduation marks
-     */
-    public final static String PROP_NB_GRADUATION_MARKS = "PropNbGraduationMarks";
-    /**
-     * Client Property: hide value text if not active : 0=false, 1=true
-     */
-    public final static String PROP_HIDE_VALUE_IF_NOT_ACTIVE = "PropHideValueIfNotActive";
-    private static final Font FONT = new Font("Arial", Font.PLAIN, 8);
-    public static FlatTextEditDialog TEXT_EDIT_DIALOG;
-    private MouseEvent lastMouseEvent;
-    private Color colorLine;
-    private Color colorKnobFill;
+
+    // UI variables
+    private int padding = 5;
+    private int buttonHeight = 30;
+    private Color valueLineColor = new Color(185, 69, 24);
+    private Color buttonColor = new Color(176, 176, 176);
+    private Color buttonContourColor = new Color(48, 48, 48);
+    private Color grooveUpperColor = new Color(109, 109, 109);
+    private Color grooveLowerColor = new Color(64, 64, 64);
+
+    // Model
     private int minValue = 0;
     private int maxValue = 127;
     private int value = 64;
-    private int yValue;
-    private int width;
-    private int faderLength;
-    private int height;
-    private int yMin;
-    private int yMax;
-    private int faderWidth;
-    private int knobDiameter;
-    private int graduationLength;
-    private double yFactor;
-    private int xLine;
-    private boolean isDragging = false;
-    private int yDragStart;
-    private int yValueDragStart;
-    private boolean hideValue = true;
-    private Color saveColorLine;
+    private String tooltipLabel;
 
-    /**
-     * Used to hide the value some time after value has been set.
-     */
-    private Timer timer;
-    private ActionListener timerAction = new ActionListener()
-    {
-        @Override
-        public void actionPerformed(ActionEvent e)
-        {
-            timer.stop();
-            hideValue = true;
-            timer = null;
-            repaint();
-        }
-    };
+    // State variables    
+    private MouseEvent lastMouseEvent;
+    private int yDragStart = Integer.MIN_VALUE;
+    private int yValueDragStart;
+
     private static final Logger LOGGER = Logger.getLogger(FlatIntegerVerticalSlider.class.getSimpleName());
 
-    /**
-     * Creates new form PanoramicPanel
-     */
     public FlatIntegerVerticalSlider()
     {
-        colorLine = new Color(103, 139, 176);
-        colorKnobFill = new Color(240, 240, 240);
-        putClientProperty(PROP_COLOR_BOTTOM, new Color(0, 135, 255));
-        putClientProperty(PROP_COLOR_TOP, new Color(255, 0, 255));
-        putClientProperty(PROP_NB_GRADUATION_MARKS, 13);
-        putClientProperty(PROP_LINE_THICKNESS, 1);
-        putClientProperty(PROP_HIDE_VALUE_IF_NOT_ACTIVE, 1);
-        setFont(FONT);
-        setForeground(new Color(97, 97, 97));
-        setFaderWidth(8);
-        setKnobDiameter(20);
-        setGraduationLength(2);
-        formComponentResized(null);
-        addComponentListener(new java.awt.event.ComponentAdapter()
-        {
-            @Override
-            public void componentResized(java.awt.event.ComponentEvent evt)
-            {
-                formComponentResized(evt);
-            }
-        });
         addMouseListener(this);
         addMouseMotionListener(this);
+
+
         // Use mouse wheel only if enabled
         GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
-        addPropertyChangeListener(this);
-        BorderManager.getInstance().associate(this);
+
+        BorderManager.getInstance().register(this, false, false, true);
+    }
+
+    @Override
+    public Dimension getPreferredSize()
+    {
+        int w = (int) Math.ceil(calcButtonWidth() + calcDoubleMarkLength() / 2 + 2 * padding);
+        int h = (int) Math.ceil(calcHeight() + 2 * padding);
+        return new Dimension(w, h);
+    }
+
+    @Override
+    public void paintComponent(Graphics g)
+    {
+        super.paintComponent(g); // Honor the opaque property
+
+        final int arc = 6;
+
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+
+        Insets in = getInsets();
+        int w = getWidth();
+        int h = getHeight();
+        var pd = getPreferredSize();
+        double x0 = (w - pd.getWidth()) / 2;
+        double y0 = (h - pd.getHeight()) / 2;
+        double wDoubleMark = calcDoubleMarkLength();
+        double xButton = x0 + padding + wDoubleMark / 2;
+        double wButton = calcButtonWidth();
+        double wGroove = calcGrooveWidth();
+        double hGroove = calcHeight();
+        double hValue = hGroove - buttonHeight;
+        double xGroove = xButton + wButton / 2 - wGroove / 2;
+        double yGroove = y0 + padding;
+        double yValue0 = yGroove + buttonHeight / 2;
+        double valuePercentage = ((double) value - minValue) / (maxValue - minValue);
+        double yValue = yValue0 + hValue - hValue * valuePercentage;
+
+
+        // Draw groove
+        RoundRectangle2D.Double groove = new RoundRectangle2D.Double(xGroove, yGroove,
+                wGroove, hGroove,
+                arc, arc
+        );
+        GradientPaint paint = new GradientPaint((float) x0, (float) yGroove, grooveUpperColor, (float) x0, (float) (yGroove + hGroove), grooveLowerColor);
+        g2.setPaint(paint);
+        g2.fill(groove);
+        g2.setPaint(null);
+
+
+        // Draw marks
+        if (wDoubleMark > 0)
+        {
+            g2.setColor(buttonColor);
+            g2.setStroke(new BasicStroke(1));
+            final int nbMarks = 5;
+            for (int i = 0; i < nbMarks; i++)
+            {
+                double yMark = yValue0 + i * (hGroove - buttonHeight) / (nbMarks - 1);
+                double length = (i == 0 || i == 2 || i == 4) ? wDoubleMark : wDoubleMark / 2;
+                Line2D.Double line = new Line2D.Double(x0, yMark, x0 + length, yMark);
+                g2.draw(line);
+            }
+        }
+
+
+        // Draw value line
+        if (isEnabled() && valueLineColor != null)
+        {
+            RoundRectangle2D.Double valueLine = new RoundRectangle2D.Double(xGroove, yValue,
+                    wGroove, valuePercentage * hValue + buttonHeight / 2,
+                    arc, arc
+            );
+            g2.setColor(valueLineColor);
+            g2.fill(valueLine);
+        }
+
+
+        // Draw the button
+        RoundRectangle2D.Double button = new RoundRectangle2D.Double(xButton, yValue - buttonHeight / 2,
+                wButton, buttonHeight,
+                arc, arc
+        );
+        g2.setColor(buttonColor);
+        g2.fill(button);
+        if (buttonContourColor != null)
+        {
+            g2.setStroke(new BasicStroke(2));
+            g2.setColor(buttonContourColor);
+            g2.draw(button);
+        }
+        final int hPadding = 4;
+        double x0Line = xButton + hPadding;
+        double x1Line = xButton + wButton - hPadding;
+        double vGap = buttonHeight / 5;
+        Line2D.Double lineMiddle = new Line2D.Double(x0Line, yValue, x1Line, yValue);
+        Line2D.Double lineUpper = new Line2D.Double(x0Line, yValue - vGap, x1Line, yValue - vGap);
+        Line2D.Double lineLower = new Line2D.Double(x0Line, yValue + vGap, x1Line, yValue + vGap);
+        g2.setColor(grooveUpperColor);
+        g2.setStroke(new BasicStroke(1));
+        g2.draw(lineUpper);
+        g2.draw(lineMiddle);
+        g2.draw(lineLower);
+
+
+        g2.dispose();
     }
 
     /**
-     * The last MouseEvent corresponding to the last mouse drag or wheel user action to change the slider value. Can be used by
-     * listeners to retrieve the shift/ctrl/alt modifiers after having received a value property change.
+     * The last MouseEvent corresponding to the last mouse drag or wheel user action to change the slider value.
+     * <p>
+     * Can be used by listeners to retrieve the shift/ctrl/alt modifiers after having received a value property change.
      *
      * @return Can be null if last user action was not a mouse drag/wheel (e.g. if he used the inline editor)
      */
@@ -168,68 +207,56 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     }
 
     /**
-     * @return the colorLine
+     * @return the valueLineColor
      */
-    public Color getColorLine()
+    public Color getValueLineColor()
     {
-        return colorLine;
+        return valueLineColor;
     }
 
     /**
-     * @param colorLine the colorLine to set
+     * @param valueLineColor the valueLineColor to set
      */
-    public void setColorLine(Color colorLine)
+    public void setValueLineColor(Color valueLineColor)
     {
-        this.colorLine = colorLine;
-    }
-
-    /**
-     * @return the knobDiameter
-     */
-    public int getKnobDiameter()
-    {
-        return knobDiameter;
-    }
-
-    /**
-     * @param knobDiameter the knobDiameter to set
-     */
-    public void setKnobDiameter(int knobDiameter)
-    {
-        this.knobDiameter = knobDiameter;
+        this.valueLineColor = valueLineColor;
         repaint();
     }
 
     /**
-     * @return the colorKnobFill
+     * @return the buttonHeight
      */
-    public Color getColorKnobFill()
+    public int getButtonHeight()
     {
-        return colorKnobFill;
+        return buttonHeight;
     }
 
     /**
-     * @param colorKnobFill the colorKnobFill to set
+     * The unique data to compute the preferred size.
+     *
+     * @param buttonHeight
      */
-    public void setColorKnobFill(Color colorKnobFill)
+    public void setButtonHeight(int buttonHeight)
     {
-        this.colorKnobFill = colorKnobFill;
+        this.buttonHeight = buttonHeight;
+        revalidate();
+        repaint();
     }
 
     /**
-     * @return the faderWidth
+     * @return the buttonColor
      */
-    public int getFaderWidth()
+    public Color getButtonColor()
     {
-        return faderWidth;
+        return buttonColor;
     }
 
     /**
-     * @param faderWidth the faderWidth to set
+     * @param buttonColor the buttonColor to set
      */
-    public void setFaderWidth(int faderWidth)
+    public void setButtonColor(Color buttonColor)
     {
-        this.faderWidth = faderWidth;
+        this.buttonColor = buttonColor;
         repaint();
     }
 
@@ -247,7 +274,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     public void setMinValue(int minValue)
     {
         this.minValue = minValue;
-        formComponentResized(null);
+        repaint();
     }
 
     /**
@@ -264,94 +291,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     public void setMaxValue(int maxValue)
     {
         this.maxValue = maxValue;
-        formComponentResized(null);
-    }
-
-    /**
-     * @return the graduationLength
-     */
-    public int getGraduationLength()
-    {
-        return graduationLength;
-    }
-
-    /**
-     * @param graduationLength the graduationLength to set
-     */
-    public void setGraduationLength(int graduationLength)
-    {
-        this.graduationLength = graduationLength;
         repaint();
-    }
-
-    @Override
-    public void paintComponent(Graphics g)
-    {
-        super.paintComponent(g); // Honor the opaque property
-
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-        yValue = yMax - (int) Math.rint((double) value * yFactor);
-        int lineThickness = getInt(PROP_LINE_THICKNESS);
-
-        // The fader       
-        g2.setColor(getColorKnobFill());
-        g2.fillRoundRect(xLine - faderWidth / 2, yMin - faderWidth / 2 + 1, faderWidth, faderLength + faderWidth, faderWidth, faderWidth);
-        g2.setColor(getColorLine());
-        g2.setStroke(new BasicStroke(lineThickness));
-        g2.drawRoundRect(xLine - faderWidth / 2, yMin - faderWidth / 2 + 1, faderWidth, faderLength + faderWidth, faderWidth, faderWidth);
-
-        // Fill the lower part of the fader with a gradient
-        if (isEnabled())
-        {
-            GradientPaint gp = new GradientPaint(xLine, yMax, getColor(PROP_COLOR_BOTTOM), xLine, yMin, getColor(PROP_COLOR_TOP));
-            g2.setPaint(gp);
-            g2.fillRoundRect(xLine - faderWidth / 2, yValue - faderWidth / 2 + 1, faderWidth + 1, yMax - yValue + faderWidth + 2, faderWidth, faderWidth);
-        }
-
-        // Graduation marks
-        int nbMarks = getInt(PROP_NB_GRADUATION_MARKS);
-        if (nbMarks > 0)
-        {
-            g2.setColor(getColorLine());
-            g2.setStroke(new BasicStroke(1));
-
-            int x = xLine + faderWidth / 2 + lineThickness + 3;
-            for (int i = 0; i <= nbMarks; i++)
-            {
-                int y = (int) Math.rint(i * faderLength / (double) nbMarks) + yMin;
-                g2.drawLine(x, y, x + graduationLength - 1, y);
-            }
-        }
-
-        // The knob
-        if (isEnabled())
-        {
-            g2.setColor(getColorKnobFill());
-            g2.setStroke(new BasicStroke(lineThickness + 1));
-            g2.fill(new Ellipse2D.Double(xLine - getKnobDiameter() / 2d, yValue - getKnobDiameter() / 2d, getKnobDiameter(), getKnobDiameter()));
-            g2.setColor(getColorLine());
-            g2.draw(new Ellipse2D.Double(xLine - getKnobDiameter() / 2d, yValue - getKnobDiameter() / 2d, getKnobDiameter(), getKnobDiameter()));
-        }
-
-        // Write the value in knob
-        g2.setColor(getForeground());
-        g2.setStroke(new BasicStroke(1));
-        String text = String.valueOf(value);
-        FontMetrics fm = g2.getFontMetrics();
-        Rectangle2D stringBounds = fm.getStringBounds(text, g2);
-        double stringHeight = stringBounds.getHeight();
-        double stringWidth = stringBounds.getWidth();
-        double xText = xLine - stringWidth / 2 + 1;
-        double yText = yValue + stringHeight / 2 - 1;
-        if (getInt(PROP_HIDE_VALUE_IF_NOT_ACTIVE) == 0 || !hideValue)
-        {
-            g2.drawString(text, (float) xText, (float) yText);
-        }
-//        g2.setColor(Color.RED);
-//        g2.draw(new Rectangle2D.Double(xText, yText - stringHeight + 1, stringWidth, stringHeight));
     }
 
     public void setValue(int v)
@@ -364,16 +304,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
         {
             int old = value;
             value = v;
-            if (timer == null)
-            {
-                timer = new Timer(1000, timerAction);
-                timer.start();
-            } else
-            {
-                timer.restart();
-            }
-            hideValue = false;
-            this.updateToolTipText();
+            updateToolTipText();
             repaint();
             firePropertyChange(PROP_VALUE, old, value);
         }
@@ -384,40 +315,106 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
         return value;
     }
 
-    /**
-     * Overridden to update our settings.
-     *
-     * @param b
-     */
-    @Override
-    public void setBorder(Border b)
-    {
-        super.setBorder(b);
-        formComponentResized(null);
-    }
-
-    @Override
-    public Dimension getPreferredSize()
-    {
-        int w = getKnobDiameter() + 10;
-        int h = (int) (w * 4.5d);
-        return new Dimension(w, h);
-    }
-
     @Override
     public void setEnabled(boolean b)
     {
         LOGGER.fine("setEnabled() b=" + b);   //NOI18N
         if (isEnabled() && !b)
         {
-            saveColorLine = getColorLine();
-            setColorLine(Color.LIGHT_GRAY);
+            setValueLineColor(null);
         } else if (!isEnabled() && b)
         {
-            setColorLine(saveColorLine);
+            setValueLineColor(valueLineColor);
         }
         super.setEnabled(b);
         updateToolTipText();
+    }
+
+    public String getTooltipLabel()
+    {
+        return tooltipLabel;
+    }
+
+    public void setTooltipLabel(String tooltipLabel)
+    {
+        this.tooltipLabel = tooltipLabel;
+        updateToolTipText();
+    }
+
+    /**
+     * @return the buttonContourColor
+     */
+    public Color getButtonContourColor()
+    {
+        return buttonContourColor;
+    }
+
+    /**
+     * @param buttonContourColor the buttonContourColor to set
+     */
+    public void setButtonContourColor(Color buttonContourColor)
+    {
+        this.buttonContourColor = buttonContourColor;
+        repaint();
+    }
+
+    /**
+     * @return the grooveUpperColor
+     */
+    public Color getGrooveUpperColor()
+    {
+        return grooveUpperColor;
+    }
+
+    /**
+     * @param grooveUpperColor the grooveUpperColor to set
+     */
+    public void setGrooveUpperColor(Color grooveUpperColor)
+    {
+        this.grooveUpperColor = grooveUpperColor;
+        repaint();
+    }
+
+    /**
+     * @return the grooveLowerColor
+     */
+    public Color getGrooveLowerColor()
+    {
+        return grooveLowerColor;
+    }
+
+    /**
+     * @param grooveLowerColor the grooveLowerColor to set
+     */
+    public void setGrooveLowerColor(Color grooveLowerColor)
+    {
+        this.grooveLowerColor = grooveLowerColor;
+        repaint();
+    }
+
+    /**
+     * @return the padding
+     */
+    public int getPadding()
+    {
+        return padding;
+    }
+
+    /**
+     * @param padding the padding to set
+     */
+    public void setPadding(int padding)
+    {
+        this.padding = padding;
+        revalidate();
+        repaint();
+    }
+
+    protected String prepareToolTipText()
+    {
+        String valueAstring = isEnabled() ? String.valueOf(getValue()) : "OFF";
+        String text = (getTooltipLabel() == null) ? valueAstring : getTooltipLabel() + "=" + valueAstring;
+        return text;
     }
 
     // ==========================================================================
@@ -426,23 +423,23 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     @Override
     public void mouseClicked(MouseEvent e)
     {
-        if (isEnabled() && e.getClickCount() == 2)
-        {
-            openEditor();
-        }
+
     }
 
     @Override
     public void mousePressed(MouseEvent e)
     {
-        // Nothing
+        if (e.isControlDown())
+        {
+            setValue((minValue + maxValue) / 2);
+        }
     }
 
     @Override
     public void mouseReleased(MouseEvent e)
     {
-        // Nothing
-        isDragging = false;
+        // Possibly dragging end
+        yDragStart = Integer.MIN_VALUE;
     }
 
     @Override
@@ -459,24 +456,27 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     public void mouseDragged(MouseEvent e)
     {
         int y = e.getY();
-        LOGGER.fine("mouseDragged() y=" + y + " yValue=" + yValue + " value=" + value);   //NOI18N
         if (!isEnabled() || !SwingUtilities.isLeftMouseButton(e))
         {
             return;
         }
-        if (isDragging)
-        {   // Continue current drag operation        
-            lastMouseEvent = e;
-            setValue(getValue(yValueDragStart + (y - yDragStart)));
-            lastMouseEvent = null;
-        } else if (y > yValue - getKnobDiameter() && y < yValue + getKnobDiameter())
+
+        if (yDragStart == Integer.MIN_VALUE)
         {
-            // We're dragging inside the knob, start the dragging operation
-            isDragging = true;
-            yDragStart = y;
-            yValueDragStart = yValue;
+            // Start dragging
+            yDragStart = e.getY();
+            yValueDragStart = value;
+        } else
+        {
+            // Continue dragging            
+            final int FULL_DRAG_Y = 200;
+            float yDrag = -(e.getY() - yDragStart);
+            float f = yDrag / FULL_DRAG_Y;
+            int v = yValueDragStart + Math.round((getMaxValue() - getMinValue()) * f);
+            v = Math.max(v, minValue);
+            v = Math.min(v, maxValue);
+            setValue(v);
         }
-        repaint();
     }
 
     @Override
@@ -495,7 +495,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
         }
         lastMouseEvent = e;
         boolean ctrl = (e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
-        int step = ctrl ? 5 : 1;
+        int step = ctrl ? 6 : 2;
         if (e.getWheelRotation() < 0)
         {
             if (value + step <= maxValue)
@@ -519,128 +519,32 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
         lastMouseEvent = null;
     }
 
-    // ================================================================================
-    // PropertyChangeListener interface
-    // ================================================================================
-    @Override
-    public void propertyChange(PropertyChangeEvent evt)
-    {
-        String key = evt.getPropertyName();
-        if (key == PROP_LINE_THICKNESS || key == PROP_NB_GRADUATION_MARKS)
-        {
-            repaint();
-        }
-    }
-
     // ==========================================================================
     // Private fucntions
     // ==========================================================================
-    private Color getColor(String key)
-    {
-        return (Color) getClientProperty(key);
-    }
-
-    private Integer getInt(String key)
-    {
-        return (Integer) getClientProperty(key);
-    }
-
-    private Border getBorder(String key)
-    {
-        return (Border) getClientProperty(key);
-    }
-
-    /**
-     * Return the value between minValue and maxValue based on the yPos in the component coordinates.
-     *
-     * @param y
-     * @return
-     */
-    private int getValue(int yPos)
-    {
-        double v = (yMax - yPos) / yFactor;
-        int iv = (int) Math.rint(v);
-        iv = Math.max(iv, getMinValue());
-        iv = Math.min(iv, getMaxValue());
-        return iv;
-    }
-
-    private void formComponentResized(java.awt.event.ComponentEvent evt)
-    {
-        Insets in = getInsets();
-        width = getWidth() - in.left - in.right;
-        height = getHeight() - in.top - in.bottom;
-        // Knob diameter must be > fader width. Does not take into account the rounded end
-        yMin = in.top + getKnobDiameter() / 2 + 2;
-        faderLength = height - getKnobDiameter() - 4;
-        yMax = yMin + faderLength - 1;
-        xLine = in.left + width / 2;
-        yFactor = (yMax - yMin + 1d) / (getMaxValue() - getMinValue() + 1d);
-        isDragging = false;
-        repaint();
-    }
-
-    private void openEditor()
-    {
-        if (TEXT_EDIT_DIALOG == null)
-        {
-            TEXT_EDIT_DIALOG = new FlatTextEditDialog(WindowManager.getDefault().getMainWindow(), true);
-            TEXT_EDIT_DIALOG.setBackground(getColorKnobFill());
-            TEXT_EDIT_DIALOG.setForeground(getForeground());
-            TEXT_EDIT_DIALOG.setHorizontalAlignment(JTextField.CENTER);
-            TEXT_EDIT_DIALOG.setColumns(3);
-        }
-        String strOldValue = valueToString(value);
-        TEXT_EDIT_DIALOG.setText(strOldValue);
-        TEXT_EDIT_DIALOG.pack();
-        TEXT_EDIT_DIALOG.setPositionCenter(this);
-
-        TEXT_EDIT_DIALOG.setVisible(true);
-        String text = TEXT_EDIT_DIALOG.getText().trim();
-        if (TEXT_EDIT_DIALOG.isExitOk() && text.length() > 0 && !text.equals(strOldValue))
-        {
-            int newValue = stringToValue(text);
-            if (newValue != -1)
-            {
-                setValue(newValue);
-            }
-        }
-    }
-
-    /**
-     * Get the String reprensentation of the specified value. By default return String.valueOf(getValue()).
-     *
-     * @param v
-     * @return The text used to represent the value in the knob.
-     */
-    protected String valueToString(int v)
-    {
-        return String.valueOf(v);
-    }
-
-    private int stringToValue(String text)
-    {
-        int r = -1;
-        try
-        {
-            r = Integer.parseUnsignedInt(text);
-            r = Math.max(0, r);
-            r = Math.min(127, r);
-        } catch (NumberFormatException e)
-        {
-            // Nothing leave value unchanged
-        }
-        if (r == -1)
-        {
-            LOGGER.fine("parseString() text=" + text);   //NOI18N
-        }
-        return r;
-    }
-
     private void updateToolTipText()
     {
-        String valueAstring = isEnabled() ? valueToString(value) : "OFF";
-        setToolTipText(valueAstring);
+        setToolTipText(prepareToolTipText());
     }
 
+    private double calcButtonWidth()
+    {
+        return buttonHeight / 1.867;
+    }
+
+    private double calcHeight()
+    {
+        return buttonHeight * 4.8;
+    }
+
+    private double calcGrooveWidth()
+    {
+        return buttonHeight / 4;
+    }
+
+    private double calcDoubleMarkLength()
+    {
+        // return buttonHeight / 9;
+        return 0;
+    }
 }

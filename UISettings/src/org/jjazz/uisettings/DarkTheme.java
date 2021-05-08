@@ -23,7 +23,6 @@
 package org.jjazz.uisettings;
 
 import java.awt.Color;
-import javax.swing.ImageIcon;
 import javax.swing.UIDefaults;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -51,8 +50,8 @@ public class DarkTheme implements Theme
 //        uiDefaults.put("speaker.icon.disabled", value);   // Better to return null: let the L&F create the disabled icon   
 
         uiDefaults.put("background.white", new Color(235, 232, 225));
-        uiDefaults.put("mixconsole.background", new Color(82, 82, 82));
-        uiDefaults.put("mixchannel.background", new Color(212, 211, 209));
+        uiDefaults.put("mixconsole.background", new Color(26, 26, 26));
+        uiDefaults.put("mixchannel.background", new Color(51, 51, 51));
         uiDefaults.put("bar.selected.background", new Color(188, 233, 237));
         uiDefaults.put("item.selected.background", new Color(131, 209, 229));
         uiDefaults.put("default.focused.border.color", new Color(16, 65, 242));    

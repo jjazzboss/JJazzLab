@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<Form version="1.5" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
+<Form version="1.3" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="1"/>
     <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
@@ -16,7 +16,7 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Component id="knb_bassDrum" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
@@ -33,8 +33,8 @@
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="knb_hihat" min="-2" max="-2" attributes="0"/>
-                  <Component id="knb_bassDrum" min="-2" max="-2" attributes="0"/>
                   <Component id="knb_snare" min="-2" max="-2" attributes="0"/>
+                  <Component id="knb_bassDrum" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
@@ -43,42 +43,48 @@
   </Layout>
   <SubComponents>
     <Container class="org.jjazz.ui.flatcomponents.FlatIntegerKnob" name="knb_bassDrum">
-      <Properties>
-        <Property name="label" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/test/rhythm/Bundle.properties" key="RP_TestCustomEditor.knb_bassDrum.label" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
-        </Property>
-        <Property name="maxValue" type="int" value="64"/>
-        <Property name="minValue" type="int" value="-64"/>
-      </Properties>
 
-      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
-        <Property name="useNullLayout" type="boolean" value="true"/>
+      <Layout>
+        <DimensionLayout dim="0">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <EmptySpace min="0" pref="38" max="32767" attributes="0"/>
+          </Group>
+        </DimensionLayout>
+        <DimensionLayout dim="1">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <EmptySpace min="0" pref="32" max="32767" attributes="0"/>
+          </Group>
+        </DimensionLayout>
       </Layout>
     </Container>
     <Container class="org.jjazz.ui.flatcomponents.FlatIntegerKnob" name="knb_snare">
-      <Properties>
-        <Property name="label" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/test/rhythm/Bundle.properties" key="RP_TestCustomEditor.knb_snare.label" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
-        </Property>
-        <Property name="maxValue" type="int" value="64"/>
-        <Property name="minValue" type="int" value="-64"/>
-      </Properties>
 
-      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
-        <Property name="useNullLayout" type="boolean" value="true"/>
+      <Layout>
+        <DimensionLayout dim="0">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <EmptySpace min="0" pref="38" max="32767" attributes="0"/>
+          </Group>
+        </DimensionLayout>
+        <DimensionLayout dim="1">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <EmptySpace min="0" pref="32" max="32767" attributes="0"/>
+          </Group>
+        </DimensionLayout>
       </Layout>
     </Container>
     <Container class="org.jjazz.ui.flatcomponents.FlatIntegerKnob" name="knb_hihat">
-      <Properties>
-        <Property name="label" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/test/rhythm/Bundle.properties" key="RP_TestCustomEditor.knb_hihat.label" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
-        </Property>
-        <Property name="maxValue" type="int" value="64"/>
-        <Property name="minValue" type="int" value="-64"/>
-      </Properties>
 
-      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
-        <Property name="useNullLayout" type="boolean" value="true"/>
+      <Layout>
+        <DimensionLayout dim="0">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <EmptySpace min="0" pref="38" max="32767" attributes="0"/>
+          </Group>
+        </DimensionLayout>
+        <DimensionLayout dim="1">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <EmptySpace min="0" pref="32" max="32767" attributes="0"/>
+          </Group>
+        </DimensionLayout>
       </Layout>
     </Container>
   </SubComponents>

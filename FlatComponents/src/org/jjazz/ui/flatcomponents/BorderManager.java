@@ -26,7 +26,9 @@ import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.util.ArrayList;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.HashMap;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -34,16 +36,19 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 
 /**
- * Manage the border changes when a mouse is over a flat (enabled) components.
+ * Manage the border changes when a mouse is over registered (flat) components, and when component is enabled/disabled.
+ * <p>
+ * This manager allows to disable the border change on mouseEntered for a component if this is actually a mouse drag on another
+ * component.
  */
-public class BorderManager implements MouseListener, MouseMotionListener
+public class BorderManager implements MouseListener, MouseMotionListener, PropertyChangeListener
 {
 
     private static BorderManager INSTANCE;
-    private Border borderDefault;
-    private Border borderEntered;
-    private Border borderAction;
-    private ArrayList<JComponent> components;
+    private Border defaultBorderNothing;
+    private Border defaultBorderEntered;
+    private Border defaultBorderPressed;
+    private HashMap<JComponent, CompBorders> mapCompBorders;
     private JComponent draggedComponent = null;
     private static final Logger LOGGER = Logger.getLogger(BorderManager.class.getSimpleName());
 
@@ -61,96 +66,234 @@ public class BorderManager implements MouseListener, MouseMotionListener
 
     private BorderManager()
     {
-        components = new ArrayList<>();
-        setBorderDefault(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        setBorderEntered(BorderFactory.createLineBorder(Color.GRAY, 1));
-        setBorderAction(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
+        mapCompBorders = new HashMap<>();
+        defaultBorderNothing = BorderFactory.createEmptyBorder(1, 1, 1, 1);
+        defaultBorderEntered = BorderFactory.createLineBorder(Color.GRAY, 1);
+        defaultBorderPressed = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1);
     }
 
-    public void associate(JComponent component)
+    /**
+     * Register the component with no special handling for mouse pressed or mouse enter/exit, and can not be dragged.
+     *
+     * @param component
+     * @see register(JComponent, boolean, boolean)
+     */
+    public void register(JComponent component)
+    {
+        register(component, false, false, false);
+    }
+
+    /**
+     * Register the component so this object will manage its border changes.
+     *
+     * @param component
+     * @param enablePressedBorder if true border changes while button is pressed
+     * @param enableEnteredBorder if true border changes when mouse enters/exits
+     * @param enableDrag if true this component can be dragged
+     */
+    public void register(JComponent component, boolean enablePressedBorder, boolean enableEnteredBorder, boolean enableDrag)
     {
         if (component == null)
         {
             throw new NullPointerException("component");   //NOI18N
         }
-        if (!components.contains(component))
+        CompBorders cb = mapCompBorders.get(component);
+        if (cb == null)
         {
-            components.add(component);
-            component.setBorder(getBorderDefault());
             component.addMouseListener(this);
+            component.addPropertyChangeListener(this);
+            if (enableDrag)
+            {
+                component.addMouseMotionListener(this);
+            }
+        } else if (enableDrag && !cb.enableDrag)
+        {
             component.addMouseMotionListener(this);
+        } else if (!enableDrag && cb.enableDrag)
+        {
+            component.removeMouseMotionListener(this);
         }
+
+        cb = new CompBorders(enablePressedBorder, enableEnteredBorder, enableDrag);
+        mapCompBorders.put(component, cb);
+        component.setBorder(defaultBorderNothing);
     }
 
-    public void unassociate(JComponent component)
+    public void unregister(JComponent component)
     {
-        if (component == null || !components.contains(component))
+        if (component == null)
         {
-            throw new IllegalArgumentException("component=" + component + " components=" + components);   //NOI18N
+            throw new IllegalArgumentException("component=" + component);
         }
         component.removeMouseListener(this);
         component.removeMouseMotionListener(this);
-        components.remove(component);
+        component.removePropertyChangeListener(this);
+        mapCompBorders.remove(component);
     }
 
     /**
+     * The border to be used for component c when not in pressed or entered state.
+     *
+     * @param c
+     * @return Can be null
+     */
+    public Border getBorderNothing(JComponent c)
+    {
+        CompBorders cb = mapCompBorders.get(c);
+        Border res = null;
+        if (cb != null)
+        {
+            res = cb.borderNothing;
+        }
+        return res;
+    }
+
+    /**
+     *
+     * @param c
+     * @param b
+     */
+    public final void setBorderNothing(JComponent c, Border b)
+    {
+        CompBorders cb = mapCompBorders.get(c);
+        if (cb == null)
+        {
+            throw new IllegalArgumentException("c=" + c + " b=" + b + " mapCompBorders.keySet()=" + mapCompBorders.keySet());
+        }
+        if (c.getBorder() == cb.borderNothing)
+        {
+            c.setBorder(b);
+        }
+        cb.borderNothing = b;
+    }
+
+    /**
+     * The border to be used for component c when in the pressed state.
+     *
+     * @param c
+     * @return Can be null
+     */
+    public Border getBorderPressed(JComponent c)
+    {
+        CompBorders cb = mapCompBorders.get(c);
+        Border res = null;
+        if (cb != null)
+        {
+            res = cb.borderPressed;
+        }
+        return res;
+    }
+
+    /**
+     *
+     * @param c
+     * @param b
+     */
+    public final void setBorderPressed(JComponent c, Border b)
+    {
+        CompBorders cb = mapCompBorders.get(c);
+        if (cb == null)
+        {
+            throw new IllegalArgumentException("c=" + c + " b=" + b + " mapCompBorders.keySet()=" + mapCompBorders.keySet());
+        }
+        if (c.getBorder() == cb.borderPressed)
+        {
+            c.setBorder(b);
+        }
+        cb.borderPressed = b;
+    }
+
+    /**
+     * The border to be used for component c when in the entered state.
+     *
+     * @param c
+     * @return Can be null
+     */
+    public Border getBorderEntered(JComponent c)
+    {
+        CompBorders cb = mapCompBorders.get(c);
+        Border res = null;
+        if (cb != null)
+        {
+            res = cb.borderEntered;
+        }
+        return res;
+    }
+
+    /**
+     *
+     * @param c
+     * @param b
+     */
+    public final void setBorderEntered(JComponent c, Border b)
+    {
+        CompBorders cb = mapCompBorders.get(c);
+        if (cb == null)
+        {
+            throw new IllegalArgumentException("c=" + c + " b=" + b + " mapCompBorders.keySet()=" + mapCompBorders.keySet());
+        }
+        if (c.getBorder() == cb.borderEntered)
+        {
+            c.setBorder(b);
+        }
+        cb.borderEntered = b;
+    }
+
+    /**
+     * The default border "nothing" to be used when no specific per-component border is set.
+     *
      * @return the borderDefault
      */
-    public Border getBorderDefault()
+    public Border getDefaultBorderNothing()
     {
-        return borderDefault;
+        return defaultBorderNothing;
+    }
+
+    public final void setDefaultBorderNothing(Border b)
+    {
+        mapCompBorders.keySet().stream()
+                .filter(c -> mapCompBorders.get(c).borderNothing == defaultBorderNothing)
+                .forEach(c -> setBorderNothing(c, b));
+        this.defaultBorderNothing = b;
     }
 
     /**
-     * @param borderDefault the borderDefault to set
-     */
-    public final void setBorderDefault(Border borderDefault)
-    {
-        this.borderDefault = borderDefault;
-        for (JComponent c : components)
-        {
-            c.repaint();
-        }
-    }
-
-    /**
+     * The default border "pressed" to be used when no specific per-component border is set.
+     *
      * @return the borderDefault
      */
-    public Border getBorderAction()
+    public Border getDefaultBorderPressed()
     {
-        return borderAction;
+        return defaultBorderPressed;
+    }
+
+    public final void setDefaultBorderPressed(Border b)
+    {
+        mapCompBorders.keySet().stream()
+                .filter(c -> mapCompBorders.get(c).borderPressed == defaultBorderPressed)
+                .forEach(c -> setBorderPressed(c, b));
+        this.defaultBorderPressed = b;
     }
 
     /**
-     * @param borderAction The border to use to indicate action is performed.
+     * The default border "entered" to be used when no specific per-component border is set.
+     *
+     * @return the borderDefault
      */
-    public final void setBorderAction(Border borderAction)
+    public Border getDefaultBorderEntered()
     {
-        this.borderAction = borderAction;
-        for (JComponent c : components)
-        {
-            c.repaint();
-        }
+        return defaultBorderEntered;
     }
 
     /**
-     * @return the borderEntered
+     * @param b the defaultBorderEntered to set
      */
-    public Border getBorderEntered()
+    public final void setDefaultBorderEntered(Border b)
     {
-        return borderEntered;
-    }
-
-    /**
-     * @param borderEntered the borderEntered to set
-     */
-    public final void setBorderEntered(Border borderEntered)
-    {
-        this.borderEntered = borderEntered;
-        for (JComponent c : components)
-        {
-            c.repaint();
-        }
+        mapCompBorders.keySet().stream()
+                .filter(c -> mapCompBorders.get(c).borderEntered == defaultBorderEntered)
+                .forEach(c -> setBorderPressed(c, b));
+        this.defaultBorderEntered = b;
     }
 
     // ==========================================================================
@@ -159,74 +302,103 @@ public class BorderManager implements MouseListener, MouseMotionListener
     @Override
     public void mouseEntered(MouseEvent e)
     {
-        if (draggedComponent == null)
+        if (draggedComponent != null)
         {
-            JComponent c = (JComponent) e.getSource();
-            if (c.isEnabled())
-            {
-                c.setBorder(getBorderEntered());
-            }
+            return;
         }
+
+        JComponent c = (JComponent) e.getSource();
+        CompBorders bc = mapCompBorders.get(c);
+        if (c.isEnabled() && bc.enableEntered)
+        {
+            c.setBorder(bc.borderEntered);
+        }
+
     }
 
     @Override
     public void mouseExited(MouseEvent e)
     {
-        if (draggedComponent == null)
+        if (draggedComponent != null)
         {
-            JComponent c = (JComponent) e.getSource();
-            if (c.isEnabled())
-            {
-                c.setBorder(getBorderDefault());
-            }
+            return;
         }
+
+        JComponent c = (JComponent) e.getSource();
+        CompBorders bc = mapCompBorders.get(c);
+        if (c.isEnabled() && bc.enableEntered)
+        {
+            c.setBorder(bc.borderNothing);
+        }
+
     }
 
     @Override
     public void mouseClicked(MouseEvent e)
     {
-        // 
+        // Nothing
     }
 
     @Override
     public void mousePressed(MouseEvent e)
     {
-        //
+        JComponent c = (JComponent) e.getSource();
+        CompBorders bc = mapCompBorders.get(c);
+        if (c.isEnabled() && bc.enablePressed)
+        {
+            c.setBorder(bc.borderPressed);
+        }
     }
 
+    /**
+     *
+     * @param e Source component is always the original component for which mouse was initally pressed (event if release point is
+     * outside this component)
+     */
     @Override
     public void mouseReleased(MouseEvent e)
     {
+        JComponent c = (JComponent) e.getSource();
         if (draggedComponent != null)
         {
-            if (draggedComponent.contains(e.getPoint()))
+            // End of the drag: draggedComponent = c
+            // Find if we landed on one of the managed components
+            for (JComponent ci : mapCompBorders.keySet())
             {
-                // We landed in the same component, do nothing
-            } else
-            {
-                // We landed somewhere else            
-                draggedComponent.setBorder(getBorderDefault());
-
-
-                // Find if we landed in another managed FlatComponent
-                for (JComponent c : components)
+                if (ci == c)
                 {
-                    MouseEvent e2 = SwingUtilities.convertMouseEvent(draggedComponent, e, c);
-                    if (c != draggedComponent && c.contains(e2.getPoint()))
+                    // source component is managed below
+                    continue;
+                }
+                MouseEvent e2 = SwingUtilities.convertMouseEvent(c, e, ci);
+                CompBorders cb = mapCompBorders.get(ci);
+                if (ci.contains(e2.getPoint()))
+                {
+                    if (cb.enableEntered)
                     {
-                        c.setBorder(getBorderEntered());
+                        ci.setBorder(defaultBorderEntered);
                         break;
                     }
                 }
-
-                draggedComponent = null;
             }
+
+            draggedComponent = null;
+        }
+
+
+        // Update the source component
+        CompBorders cb = mapCompBorders.get(c);
+        if (c.contains(e.getPoint()) && c.isEnabled() && cb.enableEntered)
+        {
+            c.setBorder(cb.borderEntered);
+        } else
+        {
+            c.setBorder(cb.borderNothing);
         }
     }
 
     @Override
-    public void mouseDragged(MouseEvent e
-    )
+    public void mouseDragged(MouseEvent e)
     {
         JComponent c = (JComponent) e.getSource();
         if (c.isEnabled())
@@ -236,10 +408,43 @@ public class BorderManager implements MouseListener, MouseMotionListener
     }
 
     @Override
-    public void mouseMoved(MouseEvent e
-    )
+    public void mouseMoved(MouseEvent e)
     {
-        // 
+        // nothing
+    }
+
+    // ----------------------------------------------------------------------------
+    // PropertyChangeListener interface
+    // ----------------------------------------------------------------------------
+    @Override
+    public void propertyChange(PropertyChangeEvent e)
+    {
+        // Listen to enable state changes
+        if ("enabled".equals(e.getPropertyName()))
+        {
+            JComponent c = (JComponent) e.getSource();
+            c.setBorder(mapCompBorders.get(c).borderNothing);
+        }
+    }
+
+    // ===============================================================================
+    // Inner classes
+    // ===============================================================================
+    private class CompBorders
+    {
+
+        boolean enablePressed, enableEntered, enableDrag;
+        Border borderPressed, borderNothing, borderEntered;
+
+        CompBorders(boolean enablePressedBorder, boolean enableEnteredBorder, boolean enableDrag)
+        {
+            this.enablePressed = enablePressedBorder;
+            this.enableEntered = enableEnteredBorder;
+            this.enableDrag = enableDrag;
+            this.borderNothing = defaultBorderNothing;
+            this.borderPressed = defaultBorderPressed;
+            this.borderEntered = defaultBorderEntered;
+        }
     }
 
 }

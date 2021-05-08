@@ -33,9 +33,10 @@ public class FlatKnobFactory
 
     public static final Font FONT = new Font("Arial", Font.PLAIN, 9);
     public static final Color FONT_COLOR = new Color(242, 242, 242);
-    public static final Color BACKGROUND = new Color(46, 46, 46);
+    public static final Color BACKGROUND_DARK = new Color(46, 46, 46);
+    public static final Color BACKGROUND_BRIGHT = new Color(28, 28, 28);
 
-    static FlatIntegerKnob getSmallKnob()
+    static FlatIntegerKnob getSmallDarkKnob()
     {
         FlatIntegerKnob knob = new FlatIntegerKnob();
         knob.setKnobUpperColor(new Color(115, 115, 115));
@@ -44,12 +45,12 @@ public class FlatKnobFactory
         knob.setKnobRadius(11);
         knob.setKnobStartAngle(220);
         knob.setValueLineColor(new Color(80, 241, 255));        // Cyan
-        knob.setValueLineGap(2);
-        knob.setValueLineThickness(4);
+        knob.setValueLineGap(3);
+        knob.setValueLineThickness(2);
         return knob;
     }
 
-    static FlatIntegerKnob getLargeKnob()
+    static FlatIntegerKnob getLargeBrightKnob()
     {
         FlatIntegerKnob knob = new FlatIntegerKnob();
         knob.setKnobUpperColor(new Color(241, 242, 241));

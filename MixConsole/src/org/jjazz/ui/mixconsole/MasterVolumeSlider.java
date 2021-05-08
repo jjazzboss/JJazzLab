@@ -47,8 +47,9 @@ public class MasterVolumeSlider extends FlatIntegerHorizontalSlider implements P
         setMinValue(0);
         setMaxValue(200);
         setValue(100);
-        // putClientProperty(PROP_HIDE_VALUE, 1);
+        putClientProperty(PROP_HIDE_VALUE, 1);
         putClientProperty(PROP_WH_RATIO, Float.valueOf(6));
+        putClientProperty(PROP_NB_GRADUATION_MARKS, 4);
         updateToolTipText();
 
         // Listen to ourself to get the value changes

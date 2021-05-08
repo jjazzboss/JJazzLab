@@ -26,41 +26,42 @@ public class TestFlat extends javax.swing.JPanel
     private void initComponents()
     {
 
-        knob1 = FlatKnobFactory.getSmallKnob();
-        knob2 = FlatKnobFactory.getLargeKnob();
+        knob2 = FlatKnobFactory.getLargeBrightKnob();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
+        flatIntegerVerticalSlider1 = new org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider();
 
-        javax.swing.GroupLayout knob1Layout = new javax.swing.GroupLayout(knob1);
-        knob1.setLayout(knob1Layout);
-        knob1Layout.setHorizontalGroup(
-            knob1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 38, Short.MAX_VALUE)
-        );
-        knob1Layout.setVerticalGroup(
-            knob1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 32, Short.MAX_VALUE)
-        );
+        setBackground(new java.awt.Color(51, 51, 51));
+        setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS));
 
-        add(knob1);
-
+        knob2.setKnobStartAngle(220.0);
+        knob2.setOpaque(false);
         knob2.setPanoramicType(true);
+        knob2.setValueLineGap(3.0);
+        knob2.setValueLineThickness(2.0);
 
         javax.swing.GroupLayout knob2Layout = new javax.swing.GroupLayout(knob2);
         knob2.setLayout(knob2Layout);
         knob2Layout.setHorizontalGroup(
             knob2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 38, Short.MAX_VALUE)
+            .addGap(0, 398, Short.MAX_VALUE)
         );
         knob2Layout.setVerticalGroup(
             knob2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 32, Short.MAX_VALUE)
+            .addGap(0, 107, Short.MAX_VALUE)
         );
 
         add(knob2);
+        add(filler1);
+
+        flatIntegerVerticalSlider1.setButtonContourColor(new java.awt.Color(51, 51, 51));
+        flatIntegerVerticalSlider1.setValueLineColor(new java.awt.Color(128, 164, 212));
+        add(flatIntegerVerticalSlider1);
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.ui.flatcomponents.FlatIntegerKnob knob1;
+    private javax.swing.Box.Filler filler1;
+    private org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider flatIntegerVerticalSlider1;
     private org.jjazz.ui.flatcomponents.FlatIntegerKnob knob2;
     // End of variables declaration//GEN-END:variables
 }

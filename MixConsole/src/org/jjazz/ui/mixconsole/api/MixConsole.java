@@ -115,9 +115,9 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
      */
     private static final Color[] CHANNEL_COLORS =
     {
-        new Color(0, 0, 102), // Deep blue
-        new Color(102, 0, 0), // Brown
-        new Color(0, 102, 102)  // Deep green
+        new Color(78, 235, 249), // cyan 
+        new Color(254, 142, 39), // light orange
+        new Color(157, 180, 71)  // light green
     };
     private static final Color CHANNEL_COLOR_USER = new Color(102, 102, 0);
     private static Rhythm RHYTHM_ALL;
@@ -336,7 +336,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         masterHorizontalSlider1.setColorLine(new java.awt.Color(153, 153, 153));
         masterHorizontalSlider1.setFaderHeight(4);
-        masterHorizontalSlider1.setKnobDiameter(12);
+        masterHorizontalSlider1.setKnobDiameter(10);
         panel_MasterControls.add(masterHorizontalSlider1);
         panel_MasterControls.add(filler3);
 

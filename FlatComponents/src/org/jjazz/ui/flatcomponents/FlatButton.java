@@ -25,14 +25,13 @@ package org.jjazz.ui.flatcomponents;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.border.Border;
@@ -40,10 +39,9 @@ import javax.swing.border.Border;
 /**
  * A very simple button using a JLabel.
  */
-public class FlatButton extends JLabel implements MouseListener, PropertyChangeListener
+public class FlatButton extends JLabel implements PropertyChangeListener
 {
 
-    private Border borderPressed;
     private Color saveForeground;
     private String saveTooltip;
     private Action action;
@@ -52,14 +50,34 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
 
     public FlatButton()
     {
-        BorderManager.getInstance().associate(this);
-        borderPressed = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1);
-        addMouseListener(this);
+        this(true, true, false);
+    }
+
+    public FlatButton(boolean enablePressedBorder, boolean enableEnteredBorder, boolean enableDrag)
+    {
+        BorderManager.getInstance().register(this, enablePressedBorder, enableEnteredBorder, enableDrag);
+        addMouseListener(new MouseAdapter()
+        {
+            public void mouseClicked(MouseEvent evt)
+            {
+                // Need to be on mouseClicked, not mousePressed() otherwise cause problems when action triggers a dialog sensitive to mouseevents
+                if (isEnabled())
+                {
+                    buttonClicked(evt);
+                }
+            }
+        });
     }
 
     public FlatButton(Action a)
     {
         this();
+        setAction(a);
+    }
+
+    public FlatButton(Action a, boolean enablePressedBorder, boolean enableEnteredBorder, boolean enableDrag)
+    {
+        this(enablePressedBorder, enableEnteredBorder, enableDrag);
         setAction(a);
     }
 
@@ -128,11 +146,11 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
     }
 
     /**
-     * @return the borderDefault
+     * @return 
      */
-    public Border getBorderDefault()
+    public Border getBorderNothing()
     {
-        return BorderManager.getInstance().getBorderDefault();
+        return BorderManager.getInstance().getBorderNothing(this);
     }
 
     /**
@@ -140,15 +158,7 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
      */
     public Border getBorderEntered()
     {
-        return BorderManager.getInstance().getBorderEntered();
-    }
-
-    /**
-     * @param borderEntered the borderEntered to set
-     */
-    public void setBorderEntered(Border borderEntered)
-    {
-        BorderManager.getInstance().setBorderEntered(borderEntered);
+        return BorderManager.getInstance().getBorderEntered(this);
     }
 
     /**
@@ -156,20 +166,7 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
      */
     public Border getBorderPressed()
     {
-        return borderPressed;
-    }
-
-    /**
-     * @param borderPressed the borderPressed to set
-     */
-    public void setBorderPressed(Border borderPressed)
-    {
-        Border old = this.borderPressed;
-        this.borderPressed = borderPressed;
-        if (getBorder().equals(old))
-        {
-            setBorder(this.borderPressed);
-        }
+        return BorderManager.getInstance().getBorderPressed(this);
     }
 
     @Override
@@ -182,13 +179,27 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
             setForeground(Color.LIGHT_GRAY);
             saveTooltip = getToolTipText();
             setToolTipText("OFF");
-            setBorder(BorderManager.getInstance().getBorderDefault());
         } else if (!isEnabled() && b)
         {
             setForeground(saveForeground);
             setToolTipText(saveTooltip);
         }
         super.setEnabled(b);
+    }
+
+    public void setBorderEntered(Border b)
+    {
+        BorderManager.getInstance().setBorderEntered(this, b);
+    }
+
+    public void setBorderPressed(Border b)
+    {
+        BorderManager.getInstance().setBorderPressed(this, b);
+    }
+
+    public void setBorderNothing(Border b)
+    {
+        BorderManager.getInstance().setBorderNothing(this, b);
     }
 
     // ======================================================================
@@ -215,50 +226,6 @@ public class FlatButton extends JLabel implements MouseListener, PropertyChangeL
             {
                 setEnabled((boolean) evt.getNewValue());
             }
-        }
-    }
-
-    // ================================================================================
-    // MouseListener interface
-    // ================================================================================
-    @Override
-    public void mouseClicked(java.awt.event.MouseEvent evt)
-    {
-        // Need to be on mouseClicked, not mousePressed() otherwise cause problems when action triggers a dialog sensitive to mouseevents
-        if (isEnabled())
-        {
-            buttonClicked(evt);
-        }
-    }
-
-    @Override
-    public void mouseExited(java.awt.event.MouseEvent evt)
-    {
-        // Nothing
-    }
-
-    @Override
-    public void mouseEntered(java.awt.event.MouseEvent evt)
-    {
-        // 
-    }
-
-    @Override
-    public void mousePressed(MouseEvent evt)
-    {
-        // Nothing
-        if (isEnabled())
-        {
-            setBorder(borderPressed);
-        }
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e)
-    {
-        if (isEnabled() && getBorder() == borderPressed)
-        {
-            setBorder(BorderManager.getInstance().getBorderEntered());
         }
     }
 

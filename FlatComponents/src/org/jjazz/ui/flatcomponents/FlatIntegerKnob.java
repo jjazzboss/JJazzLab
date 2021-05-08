@@ -31,8 +31,6 @@ import java.awt.Insets;
 import java.awt.Paint;
 import java.awt.RenderingHints;
 import java.awt.Shape;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -53,7 +51,8 @@ import org.jjazz.uisettings.GeneralUISettings;
 /**
  * A flat knob.
  * <p>
- * Value can be changed by dragging mouse or mouse wheel. ctrl-click reset the value.
+ * Value can be changed by dragging mouse or mouse wheel. ctrl-click reset the value. Whatever the actual component size, the drawing is
+ * done at preferred size.
  */
 public class FlatIntegerKnob extends JPanel implements MouseMotionListener, MouseWheelListener, MouseListener
 {
@@ -81,27 +80,13 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
     private int startDragValue;
     private Color saveForeground;
     private Color saveColorLine;
-    /**
-     * Used to hide the value some time after value has been set.
-     */
-    private Timer timer;
-    private ActionListener timerAction = new ActionListener()
-    {
-        @Override
-        public void actionPerformed(ActionEvent e)
-        {
-            timer.stop();
-            // hideValue = true;
-            timer = null;
-            repaint();
-        }
-    };
+
     private static final Logger LOGGER = Logger.getLogger(FlatIntegerKnob.class.getSimpleName());
 
     public FlatIntegerKnob()
     {
 
-        BorderManager.getInstance().associate(this);
+        BorderManager.getInstance().register(this, false, false, true);
 
 
         // Listen to mouse drag events to change value
@@ -173,8 +158,8 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
         double hRect = wRect * 0.3;
         Rectangle2D rect = new Rectangle2D.Double(-wRect / 2., -hRect / 2., wRect, hRect);
         AffineTransform transform = new AffineTransform();
-        double xRect = (knobRadius - wRect / 2) * Math.cos(theta);
-        double yRect = (knobRadius - wRect / 2) * Math.sin(theta);
+        double xRect = (knobRadius - wRect / 2 - 1) * Math.cos(theta);
+        double yRect = (knobRadius - wRect / 2 - 1) * Math.sin(theta);
         transform.translate(xKnobCenter + xRect, yKnobCenter + yRect);
         transform.rotate(theta);
         Shape rotatedRect = transform.createTransformedShape(rect);
@@ -374,16 +359,7 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
         if (value != v)
         {
             int old = value;
-            value = v;
-            if (timer == null)
-            {
-                timer = new Timer(1000, timerAction);
-                timer.start();
-            } else
-            {
-                timer.restart();
-            }
-            // hideValue = false;
+            value = v;        
             updateToolTipText();
             repaint();
             firePropertyChange(PROP_VALUE, old, value);
@@ -538,6 +514,13 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
         repaint();
     }
 
+    protected String prepareToolTipText()
+    {
+        String valueAstring = isEnabled() ? String.valueOf(getValue()) : "OFF";
+        String text = (getTooltipLabel() == null) ? valueAstring : getTooltipLabel() + "=" + valueAstring;
+        return text;
+    }
+
     // ==========================================================================
     // MouseMotionListener interface
     // ==========================================================================
@@ -556,7 +539,7 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
         } else
         {
             // Continue dragging            
-            final int FULL_DRAG_Y = 250;
+            final int FULL_DRAG_Y = 200;
             float yDrag = -(e.getY() - startDragY);
             float f = yDrag / FULL_DRAG_Y;
             int v = startDragValue + Math.round((getMaxValue() - getMinValue()) * f);
@@ -660,9 +643,6 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
         return res;
     }
 
-    /**
-     *
-     */
     private void resetValue()
     {
         if (!panoramicType)
@@ -675,23 +655,9 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
         }
     }
 
-    /**
-     * Get the String reprensentation of the specified value.
-     * <p>
-     * By default return String.valueOf(getValue()).
-     *
-     * @param v
-     * @return The text used to represent the value in the knob.
-     */
-    protected String valueToString(int v)
-    {
-        return String.valueOf(v);
-    }
-
     private void updateToolTipText()
     {
-        String valueAstring = isEnabled() ? valueToString(getValue()) : "OFF";
-        setToolTipText(getTooltipLabel() == null ? valueAstring : getTooltipLabel() + "=" + valueAstring);
+        setToolTipText(prepareToolTipText());
     }
 
 }

@@ -7,10 +7,10 @@ import org.jjazz.songstructure.api.SongPart;
  *
  * @author Administrateur
  */
-public class RP_TestCustomEditor extends RpCustomEditor<RP_TestValue>
+public class PanelEditor extends RpCustomEditor<RP_TestValue>
 {
 
-    public RP_TestCustomEditor(RP_Test rp)
+    public PanelEditor(RP_Test rp)
     {
         super(rp);
         initComponents();
@@ -56,17 +56,38 @@ public class RP_TestCustomEditor extends RpCustomEditor<RP_TestValue>
         knb_snare = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
         knb_hihat = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
 
-        knb_bassDrum.setLabel(org.openide.util.NbBundle.getBundle(RP_TestCustomEditor.class).getString("RP_TestCustomEditor.knb_bassDrum.label")); // NOI18N
-        knb_bassDrum.setMaxValue(64);
-        knb_bassDrum.setMinValue(-64);
+        javax.swing.GroupLayout knb_bassDrumLayout = new javax.swing.GroupLayout(knb_bassDrum);
+        knb_bassDrum.setLayout(knb_bassDrumLayout);
+        knb_bassDrumLayout.setHorizontalGroup(
+            knb_bassDrumLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 38, Short.MAX_VALUE)
+        );
+        knb_bassDrumLayout.setVerticalGroup(
+            knb_bassDrumLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 32, Short.MAX_VALUE)
+        );
 
-        knb_snare.setLabel(org.openide.util.NbBundle.getBundle(RP_TestCustomEditor.class).getString("RP_TestCustomEditor.knb_snare.label")); // NOI18N
-        knb_snare.setMaxValue(64);
-        knb_snare.setMinValue(-64);
+        javax.swing.GroupLayout knb_snareLayout = new javax.swing.GroupLayout(knb_snare);
+        knb_snare.setLayout(knb_snareLayout);
+        knb_snareLayout.setHorizontalGroup(
+            knb_snareLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 38, Short.MAX_VALUE)
+        );
+        knb_snareLayout.setVerticalGroup(
+            knb_snareLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 32, Short.MAX_VALUE)
+        );
 
-        knb_hihat.setLabel(org.openide.util.NbBundle.getBundle(RP_TestCustomEditor.class).getString("RP_TestCustomEditor.knb_hihat.label")); // NOI18N
-        knb_hihat.setMaxValue(64);
-        knb_hihat.setMinValue(-64);
+        javax.swing.GroupLayout knb_hihatLayout = new javax.swing.GroupLayout(knb_hihat);
+        knb_hihat.setLayout(knb_hihatLayout);
+        knb_hihatLayout.setHorizontalGroup(
+            knb_hihatLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 38, Short.MAX_VALUE)
+        );
+        knb_hihatLayout.setVerticalGroup(
+            knb_hihatLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 32, Short.MAX_VALUE)
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -87,8 +108,8 @@ public class RP_TestCustomEditor extends RpCustomEditor<RP_TestValue>
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(knb_hihat, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(knb_bassDrum, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(knb_snare, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(knb_snare, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(knb_bassDrum, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -99,5 +120,4 @@ public class RP_TestCustomEditor extends RpCustomEditor<RP_TestValue>
     private org.jjazz.ui.flatcomponents.FlatIntegerKnob knb_hihat;
     private org.jjazz.ui.flatcomponents.FlatIntegerKnob knb_snare;
     // End of variables declaration//GEN-END:variables
-
 }

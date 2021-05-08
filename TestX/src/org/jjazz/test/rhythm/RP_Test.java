@@ -96,7 +96,7 @@ public class RP_Test implements RhythmParameter<RP_TestValue>, RpCustomEditorPro
     @Override
     public RpCustomEditor<RP_TestValue> getCustomEditor()
     {
-        return new RP_TestCustomEditor(this);
+        return new PanelEditor(this);
     }
 
     // ======================================================================================

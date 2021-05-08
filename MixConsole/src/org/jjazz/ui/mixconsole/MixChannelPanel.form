@@ -25,19 +25,12 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" alignment="1" attributes="0">
-              <EmptySpace max="-2" attributes="0"/>
-              <Component id="roundedPanel" max="32767" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
-          </Group>
+          <Component id="roundedPanel" alignment="1" max="32767" attributes="0"/>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" alignment="1" attributes="0">
-              <Component id="roundedPanel" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="0" pref="40" max="32767" attributes="0"/>
-          </Group>
+          <Component id="roundedPanel" alignment="0" max="32767" attributes="0"/>
       </Group>
     </DimensionLayout>
   </Layout>
@@ -45,7 +38,7 @@
     <Container class="org.jjazz.ui.flatcomponents.RoundedPanel" name="roundedPanel">
       <Properties>
         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color blue="1a" green="1a" red="1a" type="rgb"/>
+          <Color blue="2e" green="2e" red="2e" type="rgb"/>
         </Property>
         <Property name="arcDiameter" type="int" value="20"/>
         <Property name="inheritsPopupMenu" type="boolean" value="true"/>
@@ -68,16 +61,14 @@
               <Component id="pnl_name" alignment="1" max="32767" attributes="0"/>
               <Component id="pnl_icon" alignment="0" max="32767" attributes="0"/>
               <Component id="pnl_channelId" alignment="1" max="32767" attributes="0"/>
-              <Group type="102" attributes="0">
-                  <EmptySpace min="-2" pref="55" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="pnl_solo" alignment="0" max="32767" attributes="0"/>
-                      <Component id="pnl_pan" alignment="0" max="32767" attributes="0"/>
-                      <Component id="pnl_cho" alignment="0" max="32767" attributes="0"/>
-                      <Component id="pnl_inst_volume" alignment="0" max="32767" attributes="0"/>
-                  </Group>
-              </Group>
-              <Component id="pnl_rev" alignment="1" max="32767" attributes="0"/>
+              <Component id="knob_panoramic" alignment="1" max="32767" attributes="0"/>
+              <Component id="pnl_solo" max="32767" attributes="0"/>
+              <Component id="knob_reverb" alignment="1" max="32767" attributes="0"/>
+              <Component id="knob_chorus" alignment="1" max="32767" attributes="0"/>
+              <Component id="pnl_inst_volume" alignment="1" max="32767" attributes="0"/>
+              <Component id="jLabel1" alignment="0" max="32767" attributes="0"/>
+              <Component id="jLabel2" alignment="1" max="32767" attributes="0"/>
+              <Component id="jLabel3" alignment="0" max="32767" attributes="0"/>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
@@ -89,15 +80,21 @@
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="pnl_mute" min="-2" max="-2" attributes="0"/>
-                  <Component id="pnl_solo" min="-2" pref="23" max="-2" attributes="0"/>
-                  <EmptySpace min="7" pref="7" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="pnl_pan" min="-2" max="-2" attributes="0"/>
-                      <Component id="pnl_rev" min="-2" max="-2" attributes="0"/>
-                  </Group>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="pnl_cho" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace min="-2" pref="3" max="-2" attributes="0"/>
+                  <Component id="pnl_solo" min="-2" pref="23" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="knob_panoramic" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+                  <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="knob_reverb" min="-2" pref="29" max="-2" attributes="0"/>
+                  <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+                  <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="knob_chorus" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+                  <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Component id="pnl_inst_volume" min="-2" max="-2" attributes="0"/>
                   <EmptySpace min="-2" pref="7" max="-2" attributes="0"/>
                   <Component id="pnl_icon" min="-2" max="-2" attributes="0"/>
@@ -105,7 +102,7 @@
                   <Component id="pnl_name" min="-2" max="-2" attributes="0"/>
                   <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                   <Component id="pnl_channelId" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace pref="147" max="32767" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -119,7 +116,7 @@
             <Container class="org.jjazz.ui.flatcomponents.FlatLedIndicator" name="fled_midiActivity">
               <Properties>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="99" green="99" red="99" type="rgb"/>
+                  <Color blue="de" green="de" red="de" type="rgb"/>
                 </Property>
                 <Property name="diameter" type="int" value="8"/>
                 <Property name="luminanceStepEventReceived" type="int" value="-35"/>
@@ -247,6 +244,11 @@
         </Container>
         <Component class="org.jjazz.ui.flatcomponents.FlatButton" name="fbtn_Settings">
           <Properties>
+            <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+              <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
+                <EmptyBorder/>
+              </Border>
+            </Property>
             <Property name="horizontalAlignment" type="int" value="0"/>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/Settings11x11.png"/>
@@ -271,9 +273,6 @@
           <SubComponents>
             <Component class="org.jjazz.ui.flatcomponents.FlatToggleButton" name="fbtn_mute">
               <Properties>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.fbtn_mute.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
                 <Property name="alignmentX" type="float" value="0.5"/>
                 <Property name="disabledIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/MuteDisabled_Icon-21x21.png"/>
@@ -304,9 +303,6 @@
             <Component class="org.jjazz.ui.flatcomponents.FlatToggleButton" name="fbtn_solo">
               <Properties>
                 <Property name="horizontalAlignment" type="int" value="0"/>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.fbtn_solo.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
                 <Property name="alignmentX" type="float" value="0.5"/>
                 <Property name="disabledIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/org/jjazz/ui/mixconsole/resources/SoloDisabled_Icon-21x21.png"/>
@@ -324,62 +320,29 @@
             </Component>
           </SubComponents>
         </Container>
-        <Container class="javax.swing.JPanel" name="pnl_pan">
-          <Properties>
-            <Property name="opaque" type="boolean" value="false"/>
-          </Properties>
-
-          <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
-            <Property name="horizontalGap" type="int" value="0"/>
-            <Property name="verticalGap" type="int" value="0"/>
-          </Layout>
-        </Container>
-        <Container class="javax.swing.JPanel" name="pnl_rev">
-          <Properties>
-            <Property name="opaque" type="boolean" value="false"/>
-          </Properties>
-
-          <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
-            <Property name="horizontalGap" type="int" value="0"/>
-            <Property name="verticalGap" type="int" value="0"/>
-          </Layout>
-          <SubComponents>
-            <Container class="org.jjazz.ui.flatcomponents.FlatIntegerKnob" name="flatIntegerKnob1">
-
-              <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
-                <Property name="useNullLayout" type="boolean" value="true"/>
-              </Layout>
-            </Container>
-          </SubComponents>
-        </Container>
-        <Container class="javax.swing.JPanel" name="pnl_cho">
-          <Properties>
-            <Property name="opaque" type="boolean" value="false"/>
-          </Properties>
-
-          <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
-            <Property name="horizontalGap" type="int" value="0"/>
-            <Property name="verticalGap" type="int" value="0"/>
-          </Layout>
-        </Container>
         <Container class="javax.swing.JPanel" name="pnl_inst_volume">
           <Properties>
             <Property name="opaque" type="boolean" value="false"/>
           </Properties>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
-            <Property name="horizontalGap" type="int" value="3"/>
+            <Property name="horizontalGap" type="int" value="0"/>
             <Property name="verticalGap" type="int" value="0"/>
           </Layout>
           <SubComponents>
             <Container class="org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider" name="fslider_volume">
               <Properties>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.fslider_volume.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                <Property name="buttonColor" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="d0" green="d0" red="d0" type="rgb"/>
                 </Property>
-                <Property name="faderWidth" type="int" value="6"/>
+                <Property name="buttonHeight" type="int" value="20"/>
                 <Property name="inheritsPopupMenu" type="boolean" value="true"/>
-                <Property name="knobDiameter" type="int" value="14"/>
+                <Property name="tooltipLabel" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.fslider_volume.tooltipLabel" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
+                </Property>
+                <Property name="valueLineColor" type="java.awt.Color" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection component="knob_panoramic" name="getValueLineColor" type="method"/>
+                </Property>
               </Properties>
 
               <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
@@ -389,7 +352,7 @@
             <Component class="org.jjazz.ui.mixconsole.VInstrumentButton" name="fbtn_Instrument">
               <Properties>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="66" green="66" red="0" type="rgb"/>
+                  <Color blue="e2" green="e2" red="e2" type="rgb"/>
                 </Property>
                 <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.fbtn_Instrument.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -419,9 +382,6 @@
           <SubComponents>
             <Component class="javax.swing.JLabel" name="lbl_Icon">
               <Properties>
-                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="66" green="66" red="0" type="rgb"/>
-                </Property>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/org/jjazz/ui/mixconsole/api/resources/Drums-48x48.png"/>
                 </Property>
@@ -453,8 +413,8 @@
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                   <Connection code="FONT" type="code"/>
                 </Property>
-                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="66" green="66" red="0" type="rgb"/>
+                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection component="fbtn_Instrument" name="getForeground" type="method"/>
                 </Property>
                 <Property name="horizontalAlignment" type="int" value="0"/>
                 <Property name="text" type="java.lang.String" value="swing latin" noResource="true"/>
@@ -480,8 +440,8 @@
           <SubComponents>
             <Component class="org.jjazz.ui.flatcomponents.FlatButton" name="fbtn_channelId">
               <Properties>
-                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="46" green="46" red="0" type="rgb"/>
+                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection component="fbtn_Instrument" name="getForeground" type="method"/>
                 </Property>
                 <Property name="horizontalAlignment" type="int" value="0"/>
                 <Property name="text" type="java.lang.String" value="12" noResource="true"/>
@@ -501,6 +461,107 @@
             </Component>
           </SubComponents>
         </Container>
+        <Container class="org.jjazz.ui.flatcomponents.FlatIntegerKnob" name="knob_panoramic">
+          <Properties>
+            <Property name="opaque" type="boolean" value="false"/>
+            <Property name="panoramicType" type="boolean" value="true"/>
+            <Property name="valueLineGap" type="double" value="3.0"/>
+            <Property name="valueLineThickness" type="double" value="2.0"/>
+          </Properties>
+
+          <Layout>
+            <DimensionLayout dim="0">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+              </Group>
+            </DimensionLayout>
+            <DimensionLayout dim="1">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <EmptySpace min="0" pref="31" max="32767" attributes="0"/>
+              </Group>
+            </DimensionLayout>
+          </Layout>
+        </Container>
+        <Container class="org.jjazz.ui.flatcomponents.FlatIntegerKnob" name="knob_chorus">
+          <Properties>
+            <Property name="opaque" type="boolean" value="false"/>
+            <Property name="valueLineGap" type="double" value="3.0"/>
+            <Property name="valueLineThickness" type="double" value="2.0"/>
+          </Properties>
+
+          <Layout>
+            <DimensionLayout dim="0">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+              </Group>
+            </DimensionLayout>
+            <DimensionLayout dim="1">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <EmptySpace min="0" pref="31" max="32767" attributes="0"/>
+              </Group>
+            </DimensionLayout>
+          </Layout>
+        </Container>
+        <Container class="org.jjazz.ui.flatcomponents.FlatIntegerKnob" name="knob_reverb">
+          <Properties>
+            <Property name="knobStartAngle" type="double" value="220.0"/>
+            <Property name="opaque" type="boolean" value="false"/>
+            <Property name="valueLineGap" type="double" value="3.0"/>
+            <Property name="valueLineThickness" type="double" value="2.0"/>
+          </Properties>
+
+          <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
+            <Property name="useNullLayout" type="boolean" value="true"/>
+          </Layout>
+        </Container>
+        <Component class="javax.swing.JLabel" name="jLabel1">
+          <Properties>
+            <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+              <FontInfo relative="true">
+                <Font component="jLabel1" property="font" relativeSize="true" size="-2"/>
+              </FontInfo>
+            </Property>
+            <Property name="foreground" type="java.awt.Color" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection component="fbtn_Instrument" name="getForeground" type="method"/>
+            </Property>
+            <Property name="horizontalAlignment" type="int" value="0"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.jLabel1.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
+            </Property>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="jLabel2">
+          <Properties>
+            <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+              <FontInfo relative="true">
+                <Font component="jLabel2" property="font" relativeSize="true" size="-2"/>
+              </FontInfo>
+            </Property>
+            <Property name="foreground" type="java.awt.Color" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection component="fbtn_Instrument" name="getForeground" type="method"/>
+            </Property>
+            <Property name="horizontalAlignment" type="int" value="0"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.jLabel2.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
+            </Property>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="jLabel3">
+          <Properties>
+            <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
+              <FontInfo relative="true">
+                <Font component="jLabel3" property="font" relativeSize="true" size="-2"/>
+              </FontInfo>
+            </Property>
+            <Property name="foreground" type="java.awt.Color" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection component="fbtn_Instrument" name="getForeground" type="method"/>
+            </Property>
+            <Property name="horizontalAlignment" type="int" value="0"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.jLabel3.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
+            </Property>
+          </Properties>
+        </Component>
       </SubComponents>
     </Container>
   </SubComponents>

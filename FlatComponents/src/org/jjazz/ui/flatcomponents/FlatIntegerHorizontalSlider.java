@@ -135,13 +135,13 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
     {
         colorLine = new Color(103, 139, 176);
         colorKnobFill = new Color(240, 240, 240);
-        putClientProperty(PROP_COLOR_LEFT, new Color(0, 135, 255));
-        putClientProperty(PROP_COLOR_RIGHT, new Color(255, 0, 255));
+        putClientProperty(PROP_COLOR_LEFT, new Color(3, 133, 255));
+        putClientProperty(PROP_COLOR_RIGHT, new Color(116, 73, 255));
         putClientProperty(PROP_NB_GRADUATION_MARKS, 13);
         putClientProperty(PROP_LINE_THICKNESS, 1);
         putClientProperty(PROP_HIDE_VALUE_IF_NOT_ACTIVE, 1);
         putClientProperty(PROP_HIDE_VALUE, 0);
-        putClientProperty(PROP_WH_RATIO, Float.valueOf(4.5f));
+        putClientProperty(PROP_WH_RATIO, 4.5f);
         setFont(FONT);
         setForeground(new Color(97, 97, 97));
         setFaderHeight(8);
@@ -161,7 +161,7 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
         // Use mouse wheel only if enabled
         GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
         addPropertyChangeListener(this);
-        BorderManager.getInstance().associate(this);
+        BorderManager.getInstance().register(this);
     }
 
     /**
@@ -302,10 +302,12 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
+        
         // yValue = yMax - (int) Math.rint((double) value * yFactor);      
         xValue = xMin + (int) Math.rint((double) value * xFactor);
         int lineThickness = getInt(PROP_LINE_THICKNESS);
 
+        
         // The fader       
         g2.setColor(getColorKnobFill());
         // g2.fillRoundRect(xLine - faderWidth / 2, yMin - faderWidth / 2 + 1, faderWidth, faderLength + faderWidth, faderWidth, faderWidth);
@@ -313,7 +315,7 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
         g2.setColor(getColorLine());
         g2.setStroke(new BasicStroke(lineThickness));
         // g2.drawRoundRect(xLine - faderWidth / 2, yMin - faderWidth / 2 + 1, faderWidth, faderLength + faderWidth, faderWidth, faderWidth);
-        g2.drawRoundRect(xMin - faderHeight / 2 + 1, yLine - faderHeight / 2, faderLength + faderHeight, faderHeight, faderHeight, faderHeight);
+        g2.drawRoundRect(xMin - faderHeight / 2 + 1, yLine - faderHeight / 2, faderLength + faderHeight, faderHeight, faderHeight, faderHeight);        
         // Fill the lower part of the fader with a gradient
         if (isEnabled())
         {
@@ -324,6 +326,7 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
             g2.fillRoundRect(xMin - faderHeight / 2 + 1, yLine - faderHeight / 2, xValue - xMin + faderHeight / 2, faderHeight + 1, faderHeight, faderHeight);
         }
 
+        
         // Graduation marks
         int nbMarks = getInt(PROP_NB_GRADUATION_MARKS);
         if (nbMarks > 0)
@@ -342,6 +345,7 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
             }
         }
 
+        
         // The knob
         if (isEnabled())
         {
@@ -354,6 +358,7 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
             g2.draw(new Ellipse2D.Double(xValue - getKnobDiameter() / 2d, yLine - getKnobDiameter() / 2d, getKnobDiameter(), getKnobDiameter()));
         }
 
+        
         // Write the value in knob
         if (getInt(PROP_HIDE_VALUE) == 0 && (getInt(PROP_HIDE_VALUE_IF_NOT_ACTIVE) == 0 || !hideValue))
         {
