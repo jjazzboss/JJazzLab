@@ -37,6 +37,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.parameters.RP_SYS_Marker;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.util.IntRange;
 
 /**
@@ -196,7 +197,7 @@ public class ContextChordSequence extends ChordSequence
         LOGGER.log(Level.FINE, "split()   mapCsSp={0}", mapCsRpValue.toString());   //NOI18N
         return mapCsRpValue;
     }
-
+   
     // ====================================================================================
     // Private methods
     // ====================================================================================

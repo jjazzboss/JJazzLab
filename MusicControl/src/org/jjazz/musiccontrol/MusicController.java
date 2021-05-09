@@ -68,6 +68,7 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.MidiSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.rhythmmusicgeneration.ContextChordSequence;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
@@ -1122,29 +1123,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         if (mgContext != null && playbackContext != null)
         {
             long relativeTick = sequencer.getTickPosition() - playbackContext.songTickStart;    // Can be negative if precount is ON
-            Position pos = mgContext.getClsPosition(relativeTick);
-            if (pos != null)
+            Position posStart = mgContext.getPosition(relativeTick);
+            if (posStart != null)
             {
-                CLI_ChordSymbol lastCliCs = null;
-                for (CLI_ChordSymbol cliCs : mgContext.getSong().getChordLeadSheet().getItems(0, pos.getBar(), CLI_ChordSymbol.class
-                ))
-                {
-                    if (cliCs.getPosition().equals(pos))
-                    {
-                        // Found a chord symbol at the exact position, do nothing
-                        lastCliCs = null;
-                        break;
-                    } else if (cliCs.getPosition().compareTo(pos) < 0)
-                    {
-                        // Save the previous chord symbol
-                        lastCliCs = cliCs;
-                    } else
-                    {
-                        // We're past the target position, don't search anymore
-                        break;
-                    }
-                }
-
+                CLI_ChordSymbol lastCliCs = playbackContext.contextChordSequence.getChordSymbol(posStart); // Process substitute chord symbols
                 if (lastCliCs != null)
                 {
                     // Fire the event
@@ -1232,6 +1214,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         long songTickStart;
         long songTickEnd;
         int controlTrackId;
+        ContextChordSequence contextChordSequence;
         private boolean dirty;
         MusicGenerator.PostProcessor[] postProcessors;
 
@@ -1337,6 +1320,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 sequencer.setLoopStartPoint(songTickStart);
                 songTickEnd = songTickStart + Math.round(workMgContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
                 sequencer.setLoopEndPoint(songTickEnd);
+
+
+                // Build a context chord sequence, needed by some methods
+                contextChordSequence = new ContextChordSequence(mgContext);
 
 
                 // We're clean

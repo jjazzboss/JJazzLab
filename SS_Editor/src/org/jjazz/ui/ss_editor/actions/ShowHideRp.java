@@ -138,6 +138,7 @@ public class ShowHideRp extends AbstractAction implements SgsChangeListener
     public void songStructureChanged(SgsChangeEvent evt)
     {
         setEnabled(!evt.getSource().getSongParts().isEmpty());
+        updateIcon();
     }
 
 }

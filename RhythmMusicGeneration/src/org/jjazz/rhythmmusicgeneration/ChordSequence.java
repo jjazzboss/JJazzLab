@@ -182,20 +182,17 @@ public class ChordSequence extends ArrayList<CLI_ChordSymbol> implements Compara
     }
 
     /**
-     * Get the CLI_ChordSymbol from this ChordSequence which is active at posInBeats for specified sgs.
+     * Get the CLI_ChordSymbol from this ChordSequence which is active at the specified position.
      *
-     * @param sgs
-     * @param posInBeats
-     * @return Can be null.
+     * @param pos
+     * @return Can be null
      */
-    public CLI_ChordSymbol getChordSymbol(SongStructure sgs, float posInBeats)
+    public CLI_ChordSymbol getChordSymbol(Position pos)
     {
         for (int i = size() - 1; i >= 0; i--)
         {
             CLI_ChordSymbol cliCs = get(i);
-            Position pos = cliCs.getPosition();
-            float cliPosInBeats = sgs.getPositionInNaturalBeats(pos.getBar()) + pos.getBeat();
-            if (posInBeats >= cliPosInBeats)
+            if (cliCs.getPosition().compareTo(pos) <= 0)
             {
                 return cliCs;
             }

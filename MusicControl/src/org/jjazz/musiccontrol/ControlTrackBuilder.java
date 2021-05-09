@@ -38,6 +38,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.midi.MidiUtilities;
+import org.jjazz.rhythmmusicgeneration.ContextChordSequence;
 import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.IntRange;
@@ -89,11 +90,16 @@ public class ControlTrackBuilder
         long tick = 0;
         naturalBeatPositions.clear();
 
-        // Scan all SongParts in context
+        // Add the beat change events
         for (SongPart spt : context.getSongParts())
         {
-            tick = fillControlTrack(track, tick, spt);
+            tick = addBeatChangeEvents(track, tick, spt);
         }
+
+
+        // Add the chord symbols
+        addChordSymbolEvents(track);
+
 
         // Set EndOfTrack
         long lastTick = (long) (context.getBeatRange().size() * MidiConst.PPQ_RESOLUTION) + 1;
@@ -126,7 +132,7 @@ public class ControlTrackBuilder
      * @param spt
      * @return The tick position corresponding to the start of next spt.
      */
-    private long fillControlTrack(Track track, long tickOffset, SongPart spt)
+    private long addBeatChangeEvents(Track track, long tickOffset, SongPart spt)
     {
         IntRange sptRange = context.getSptBarRange(spt);    // Use only the relevant bars for the context
         int sptStartBar = sptRange.from;
@@ -148,44 +154,21 @@ public class ControlTrackBuilder
         }
 
 
-        // Add Marker Meta events for all chord symbol in the context range
-        // Make sure that there is a marker at the beginning of the context range 
-        // (this might be required only for the first song part, if context range.from is > spt.startBarIndex
-        CLI_Section section = spt.getParentSection();
-        ChordLeadSheet cls = section.getContainer();
-        var items = cls.getItems(section, CLI_ChordSymbol.class);
-        assert !items.isEmpty();
-        CLI_ChordSymbol prevCli = null;
-        boolean firstChordSymbolInRange = true;
-
-        for (CLI_ChordSymbol cli : items)
-        {
-            Position ssPos = context.getSong().getSongStructure().getSptItemPosition(spt, cli);
-            long tick = context.getRelativeTick(ssPos);
-            LOGGER.log(Level.FINE, "fillControlTrack() cli={0} tick={1} ssPos={2}", new Object[]   //NOI18N
-            {
-                cli, tick, ssPos
-            });
-            if (tick != -1)
-            {
-                MetaMessage mm = MidiUtilities.getMarkerMetaMessage(cli.getData().getOriginalName());
-                // tick+1 is a hack, otherwise when tick==0 the first Meta event is sometimes not fired! Don't know why
-                track.add(new MidiEvent(mm, tick + 1));
-                if (firstChordSymbolInRange && tickOffset == 0 && tick > 0)
-                {
-                    assert prevCli != null : "spt=" + spt + " cli=" + cli + " tick=" + tick;
-                    // Need to add an initial chord symbol (context range might start in the middle of the section)
-                    mm = MidiUtilities.getMarkerMetaMessage(prevCli.getData().getOriginalName());
-                    track.add(new MidiEvent(mm, 1));            // 1 instead of 0, see hack explanation above 
-                }
-                firstChordSymbolInRange = false;
-            }
-
-            prevCli = cli;
-        }
-
-
         return (long) (tickOffset + nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
+    }
+
+    private void addChordSymbolEvents(Track track)
+    {
+        var ccSeq = new ContextChordSequence(context);      // This will process the substitute chord symbols
+        for (CLI_ChordSymbol cliCs : ccSeq)
+        {
+            long tick = context.getRelativeTick(cliCs.getPosition());
+            assert tick != -1 : "cliCs=" + cliCs + " ccSeq=" + ccSeq + " context=" + context;
+            MetaMessage mm = MidiUtilities.getMarkerMetaMessage(cliCs.getData().getOriginalName());
+            // HACK!
+            // tick+1 is a hack, otherwise when tick==0 the first Meta event is sometimes not fired! Don't know why
+            track.add(new MidiEvent(mm, tick + 1));
+        }
     }
 
 }

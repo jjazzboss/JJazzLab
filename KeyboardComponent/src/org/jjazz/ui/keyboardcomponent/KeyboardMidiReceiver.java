@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.midi.ui.keyboard;
+package org.jjazz.ui.keyboardcomponent;
 
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;

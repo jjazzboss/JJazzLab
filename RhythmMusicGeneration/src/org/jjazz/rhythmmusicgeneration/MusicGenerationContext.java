@@ -313,12 +313,29 @@ public class MusicGenerationContext
     public Position getPosition(long relativeTick)
     {
         FloatRange br = getBeatRange();
-        float absPosInBeats = br.from + (float) relativeTick / MidiConst.PPQ_RESOLUTION;
+        float absPosInBeats = getPositionInBeats(relativeTick);
         if (!br.contains(absPosInBeats, true))
         {
             return null;
         }
         return song.getSongStructure().getPosition(absPosInBeats);
+    }
+
+    /**
+     * Convert a tick position relative to this context into an absolute SongStructure position in beats.
+     *
+     * @param relativeTick 0 for the start of this context bar range.
+     * @return -1 if tick is out of the bounds of this context.
+     */
+    public float getPositionInBeats(long relativeTick)
+    {
+        FloatRange br = getBeatRange();
+        float res = br.from + (float) relativeTick / MidiConst.PPQ_RESOLUTION;
+        if (!br.contains(res, true))
+        {
+            res = -1;
+        }
+        return res;
     }
 
     /**
