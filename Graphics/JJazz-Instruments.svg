@@ -19,7 +19,7 @@
    xml:space="preserve"
    inkscape:version="1.0.2-2 (e86c870879, 2021-01-15)"
    sodipodi:docname="JJazz-Instruments.svg"
-   inkscape:export-filename="C:\Users\Administrateur.000\Documents\JJazzLab\src\JJazzLab-X\MixConsole\src\org\jjazz\ui\mixconsole\api\resources\User-48x48.png"
+   inkscape:export-filename="C:\Users\Administrateur.000\Documents\JJazzLab\src\JJazzLab-X\MixConsole\src\org\jjazz\ui\mixconsole\api\resources\Notes-48x48.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"><metadata
    id="metadata3178"><rdf:RDF><cc:Work
@@ -124,8 +124,8 @@
    id="namedview3174"
    showgrid="false"
    inkscape:zoom="2.1814014"
-   inkscape:cx="97.581178"
-   inkscape:cy="66.404222"
+   inkscape:cx="91.900032"
+   inkscape:cy="-44.946216"
    inkscape:window-x="-8"
    inkscape:window-y="-8"
    inkscape:window-maximized="1"
@@ -136,8 +136,8 @@
    id="rect2274"
    width="312.87506"
    height="287.72342"
-   x="-470.1478"
-   y="-89.926552"
+   x="100.12781"
+   y="-419.98959"
    ry="0.58900368" />
 <g
    id="g3144"
@@ -616,7 +616,7 @@
      id="g3995">
 </g></g><g
    id="g4140"
-   transform="matrix(1.1676538,0,0,1.1676538,-0.8076123,-7.5509983)"
+   transform="matrix(1.3059611,0,0,1.3059611,-3.7460465,-11.288179)"
    style="fill:#908c80;fill-opacity:1;stroke:#908c80;stroke-opacity:1"><path
      d="m 14.807027,33.243811 c -0.803607,0.09929 -1.624923,0.429617 -2.332131,0.979172 -0.803607,0.586908 -1.352457,1.370442 -1.52951,2.173637 -0.03836,0.256589 -0.03836,0.705869 0.01967,0.902485 0.176067,0.687191 0.725903,1.116809 1.548196,1.293763 0.234098,0.03835 0.82623,0.03835 1.118359,0 0.744589,-0.138615 1.509837,-0.472868 2.173773,-0.960487 0.783935,-0.586917 1.33377,-1.370449 1.510815,-2.173645 0.03837,-0.256589 0.03837,-0.705861 -0.01966,-0.921162 -0.177052,-0.644919 -0.707216,-1.079447 -1.491151,-1.255424 -0.214426,-0.03834 -0.764262,-0.058 -0.99836,-0.03834 z"
      style="fill:#908c80;fill-opacity:1;fill-rule:evenodd;stroke:#908c80;stroke-width:0;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-opacity:1"
