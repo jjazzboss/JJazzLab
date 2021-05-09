@@ -58,6 +58,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     private int buttonHeight = 30;
     private Color valueLineColor = new Color(185, 69, 24);
     private Color buttonColor = new Color(176, 176, 176);
+    private Color buttonColorDisabled = new Color(69, 69, 69);
     private Color buttonContourColor = new Color(48, 48, 48);
     private Color grooveUpperColor = new Color(109, 109, 109);
     private Color grooveLowerColor = new Color(64, 64, 64);
@@ -169,7 +170,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
                 wButton, buttonHeight,
                 arc, arc
         );
-        g2.setColor(buttonColor);
+        g2.setColor(isEnabled() ? buttonColor : buttonColorDisabled);
         g2.fill(button);
         if (buttonContourColor != null)
         {
@@ -318,14 +319,6 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     @Override
     public void setEnabled(boolean b)
     {
-        LOGGER.fine("setEnabled() b=" + b);   //NOI18N
-        if (isEnabled() && !b)
-        {
-            setValueLineColor(null);
-        } else if (!isEnabled() && b)
-        {
-            setValueLineColor(valueLineColor);
-        }
         super.setEnabled(b);
         updateToolTipText();
     }
@@ -390,6 +383,26 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     {
         this.grooveLowerColor = grooveLowerColor;
         repaint();
+    }
+
+    /**
+     * @return the buttonColorDisabled
+     */
+    public Color getButtonColorDisabled()
+    {
+        return buttonColorDisabled;
+    }
+
+    /**
+     * @param buttonColorDisabled the buttonColorDisabled to set
+     */
+    public void setButtonColorDisabled(Color buttonColorDisabled)
+    {
+        this.buttonColorDisabled = buttonColorDisabled;
+        if (!isEnabled())
+        {
+            repaint();
+        }
     }
 
     /**

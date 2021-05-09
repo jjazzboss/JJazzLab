@@ -254,8 +254,8 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
         cb_panoramic = new javax.swing.JCheckBox();
         cb_volume = new javax.swing.JCheckBox();
         cb_chorus = new javax.swing.JCheckBox();
-        cb_instrument = new javax.swing.JCheckBox();
         cb_reverb = new javax.swing.JCheckBox();
+        cb_instrument = new javax.swing.JCheckBox();
         jScrollPane1 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
         btn_ok = new javax.swing.JButton();
@@ -311,16 +311,6 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_instrument, org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_instrument.text")); // NOI18N
-        cb_instrument.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_instrument.toolTipText")); // NOI18N
-        cb_instrument.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cb_instrumentActionPerformed(evt);
-            }
-        });
-
         org.openide.awt.Mnemonics.setLocalizedText(cb_reverb, org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_reverb.text")); // NOI18N
         cb_reverb.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_reverb.toolTipText")); // NOI18N
         cb_reverb.addActionListener(new java.awt.event.ActionListener()
@@ -328,6 +318,16 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
                 cb_reverbActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(cb_instrument, org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_instrument.text")); // NOI18N
+        cb_instrument.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.cb_instrument.toolTipText")); // NOI18N
+        cb_instrument.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cb_instrumentActionPerformed(evt);
             }
         });
 
@@ -339,25 +339,26 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(cb_chorus)
-                    .addComponent(cb_instrument)
                     .addComponent(cb_volume)
                     .addComponent(cb_panoramic)
-                    .addComponent(cb_reverb))
+                    .addComponent(cb_reverb)
+                    .addComponent(cb_instrument))
                 .addContainerGap(16, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap()
                 .addComponent(cb_volume)
-                .addGap(3, 3, 3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cb_panoramic)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cb_reverb)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cb_chorus)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(cb_instrument))
+                .addComponent(cb_instrument)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jScrollPane1.setBorder(null);
@@ -375,18 +376,18 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
                 .addContainerGap()
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 266, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 306, Short.MAX_VALUE)
                 .addContainerGap())
         );
         pnl_enabledMidiMessagesLayout.setVerticalGroup(
             pnl_enabledMidiMessagesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_enabledMidiMessagesLayout.createSequentialGroup()
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-            .addGroup(pnl_enabledMidiMessagesLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jScrollPane1)
                 .addContainerGap())
+            .addGroup(pnl_enabledMidiMessagesLayout.createSequentialGroup()
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_ok, org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.btn_ok.text")); // NOI18N
@@ -444,7 +445,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
                 .addContainerGap()
                 .addComponent(cb_drumsRerouting)
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane3)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 93, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -498,8 +499,8 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
                     .addComponent(spn_velocityShift, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lbl_velocityShift))
                 .addGap(18, 18, 18)
-                .addComponent(pnl_enabledMidiMessages, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(pnl_enabledMidiMessages, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(pnl_rerouting, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)

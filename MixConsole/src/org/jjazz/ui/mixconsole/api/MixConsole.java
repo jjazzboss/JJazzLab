@@ -46,7 +46,6 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JList;
-import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
@@ -119,7 +118,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         new Color(254, 142, 39), // light orange
         new Color(157, 180, 71)  // light green
     };
-    private static final Color CHANNEL_COLOR_USER = new Color(102, 102, 0);
+    private static final Color CHANNEL_COLOR_USER = new Color(192, 115, 243);       // Light purple
     private static Rhythm RHYTHM_ALL;
     private final WeakHashMap<Rhythm, Color> mapRhythmColor = new WeakHashMap<>();
     private final InstanceContent instanceContent;

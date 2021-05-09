@@ -66,9 +66,9 @@
               <Component id="knob_reverb" alignment="1" max="32767" attributes="0"/>
               <Component id="knob_chorus" alignment="1" max="32767" attributes="0"/>
               <Component id="pnl_inst_volume" alignment="1" max="32767" attributes="0"/>
-              <Component id="jLabel1" alignment="0" max="32767" attributes="0"/>
-              <Component id="jLabel2" alignment="1" max="32767" attributes="0"/>
-              <Component id="jLabel3" alignment="0" max="32767" attributes="0"/>
+              <Component id="lbl_pan" alignment="0" max="32767" attributes="0"/>
+              <Component id="lbl_rev" alignment="1" max="32767" attributes="0"/>
+              <Component id="lbl_cho" alignment="0" max="32767" attributes="0"/>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
@@ -85,15 +85,15 @@
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="knob_panoramic" min="-2" max="-2" attributes="0"/>
                   <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                  <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                  <Component id="lbl_pan" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="knob_reverb" min="-2" pref="29" max="-2" attributes="0"/>
                   <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                  <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+                  <Component id="lbl_rev" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="knob_chorus" min="-2" max="-2" attributes="0"/>
                   <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                  <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
+                  <Component id="lbl_cho" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="pnl_inst_volume" min="-2" max="-2" attributes="0"/>
                   <EmptySpace min="-2" pref="7" max="-2" attributes="0"/>
@@ -351,9 +351,6 @@
             </Container>
             <Component class="org.jjazz.ui.mixconsole.VInstrumentButton" name="fbtn_Instrument">
               <Properties>
-                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="e2" green="e2" red="e2" type="rgb"/>
-                </Property>
                 <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                   <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.fbtn_Instrument.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
@@ -468,6 +465,9 @@
             <Property name="valueLineGap" type="double" value="3.0"/>
             <Property name="valueLineThickness" type="double" value="2.0"/>
           </Properties>
+          <Events>
+            <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="knob_panoramicPropertyChange"/>
+          </Events>
 
           <Layout>
             <DimensionLayout dim="0">
@@ -488,6 +488,9 @@
             <Property name="valueLineGap" type="double" value="3.0"/>
             <Property name="valueLineThickness" type="double" value="2.0"/>
           </Properties>
+          <Events>
+            <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="knob_chorusPropertyChange"/>
+          </Events>
 
           <Layout>
             <DimensionLayout dim="0">
@@ -509,16 +512,19 @@
             <Property name="valueLineGap" type="double" value="3.0"/>
             <Property name="valueLineThickness" type="double" value="2.0"/>
           </Properties>
+          <Events>
+            <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="knob_reverbPropertyChange"/>
+          </Events>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
             <Property name="useNullLayout" type="boolean" value="true"/>
           </Layout>
         </Container>
-        <Component class="javax.swing.JLabel" name="jLabel1">
+        <Component class="javax.swing.JLabel" name="lbl_pan">
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
               <FontInfo relative="true">
-                <Font component="jLabel1" property="font" relativeSize="true" size="-2"/>
+                <Font component="lbl_pan" property="font" relativeSize="true" size="-2"/>
               </FontInfo>
             </Property>
             <Property name="foreground" type="java.awt.Color" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
@@ -526,15 +532,15 @@
             </Property>
             <Property name="horizontalAlignment" type="int" value="0"/>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.jLabel1.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.lbl_pan.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
             </Property>
           </Properties>
         </Component>
-        <Component class="javax.swing.JLabel" name="jLabel2">
+        <Component class="javax.swing.JLabel" name="lbl_rev">
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
               <FontInfo relative="true">
-                <Font component="jLabel2" property="font" relativeSize="true" size="-2"/>
+                <Font component="lbl_rev" property="font" relativeSize="true" size="-2"/>
               </FontInfo>
             </Property>
             <Property name="foreground" type="java.awt.Color" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
@@ -542,15 +548,15 @@
             </Property>
             <Property name="horizontalAlignment" type="int" value="0"/>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.jLabel2.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.lbl_rev.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
             </Property>
           </Properties>
         </Component>
-        <Component class="javax.swing.JLabel" name="jLabel3">
+        <Component class="javax.swing.JLabel" name="lbl_cho">
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
               <FontInfo relative="true">
-                <Font component="jLabel3" property="font" relativeSize="true" size="-2"/>
+                <Font component="lbl_cho" property="font" relativeSize="true" size="-2"/>
               </FontInfo>
             </Property>
             <Property name="foreground" type="java.awt.Color" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
@@ -558,7 +564,7 @@
             </Property>
             <Property name="horizontalAlignment" type="int" value="0"/>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.jLabel3.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/ui/mixconsole/Bundle.properties" key="MixChannelPanel.lbl_cho.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
             </Property>
           </Properties>
         </Component>

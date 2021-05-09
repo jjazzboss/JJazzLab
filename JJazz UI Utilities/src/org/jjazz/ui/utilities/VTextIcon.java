@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.utilities;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -30,6 +31,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Icon;
+import javax.swing.UIManager;
 
 /**
  * VTextIcon is an Icon implementation which draws a short string vertically.
@@ -42,7 +44,7 @@ import javax.swing.Icon;
  */
 public class VTextIcon implements Icon, PropertyChangeListener
 {
-
+    
     String fLabel;
     String[] fCharStrings; // for efficiency, break the fLabel into one-char strings to be passed to drawString
     int[] fCharWidths; // Roman characters should be centered when not rotated (Japanese fonts are monospaced)
@@ -50,12 +52,13 @@ public class VTextIcon implements Icon, PropertyChangeListener
     int fWidth, fHeight, fCharHeight, fDescent; // Cached for speed
     int fRotation;
     Component fComponent;
+    private Color disabledForeground;
     private static final Logger LOGGER = Logger.getLogger(VTextIcon.class.getSimpleName());
-
+    
     static final int POSITION_NORMAL = 0;
     static final int POSITION_TOP_RIGHT = 1;
     static final int POSITION_FAR_TOP_RIGHT = 2;
-
+    
     public static final int ROTATE_DEFAULT = 0x00;
     public static final int ROTATE_NONE = 0x01;
     public static final int ROTATE_LEFT = 0x02;
@@ -80,6 +83,9 @@ public class VTextIcon implements Icon, PropertyChangeListener
      * <p>
      * It sets the orientation to the provided value if it's legal for the string
      *
+     * @param component
+     * @param label
+     * @param rotateHint
      * @see #verifyRotation
      */
     public VTextIcon(Component component, String label, int rotateHint)
@@ -87,6 +93,7 @@ public class VTextIcon implements Icon, PropertyChangeListener
         fComponent = component;
         fLabel = label;
         fRotation = verifyRotation(label, rotateHint);
+        disabledForeground = UIManager.getDefaults().getColor("Label.disabledForeground");
         calcDimensions();
         fComponent.addPropertyChangeListener(this);
     }
@@ -103,7 +110,7 @@ public class VTextIcon implements Icon, PropertyChangeListener
         fRotation = verifyRotation(label, fRotation); // Make sure the current rotation is still legal
         recalcDimensions();
     }
-
+    
     public String getLabel()
     {
         return fLabel;
@@ -125,7 +132,9 @@ public class VTextIcon implements Icon, PropertyChangeListener
     }
 
     /**
-     * Calculates the dimensions. If they've changed, invalidates the component
+     * Calculates the dimensions.
+     * <p>
+     * If they've changed, invalidates the component
      */
     void recalcDimensions()
     {
@@ -137,7 +146,7 @@ public class VTextIcon implements Icon, PropertyChangeListener
             fComponent.invalidate();
         }
     }
-
+    
     void calcDimensions()
     {
         FontMetrics fm = fComponent.getFontMetrics(fComponent.getFont());
@@ -188,15 +197,15 @@ public class VTextIcon implements Icon, PropertyChangeListener
     }
 
     /**
-     * Draw the icon at the specified location. Icon implementations may use the Component argument to get properties useful for
-     * painting, e.g. the foreground or background color.
+     * Draw the icon at the specified location.
+     * <p>
+     * Icon implementations may use the Component argument to get properties useful for painting, e.g. the foreground or
+     * background color.
      */
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y)
     {
-        // We don't insist that it be on the same Component
-        LOGGER.fine("paintIcon() c.getForeground()=" + c.getForeground());   //NOI18N
-        g.setColor(c.getForeground());
+        g.setColor(c.isEnabled() ? c.getForeground() : disabledForeground);
         g.setFont(c.getFont());
         if (fRotation == ROTATE_NONE)
         {
@@ -239,7 +248,7 @@ public class VTextIcon implements Icon, PropertyChangeListener
             ((Graphics2D) g).rotate(-NINETY_DEGREES);
             g.translate(-x, -y);
         }
-
+        
     }
 
     /**
@@ -262,6 +271,26 @@ public class VTextIcon implements Icon, PropertyChangeListener
     public int getIconHeight()
     {
         return fHeight;
+    }
+
+    /**
+     * @return the disabledForeground
+     */
+    public Color getDisabledForeground()
+    {
+        return disabledForeground;
+    }
+
+    /**
+     * @param disabledForeground the disabledForeground to set
+     */
+    public void setDisabledForeground(Color disabledForeground)
+    {
+        this.disabledForeground = disabledForeground;
+        if (!fComponent.isEnabled())
+        {
+            fComponent.repaint();
+        }
     }
 
     /**
@@ -332,7 +361,7 @@ public class VTextIcon implements Icon, PropertyChangeListener
         {
             return DEFAULT_CJK;
         }
-
+        
         int legal = hasMustRotate ? LEGAL_MUST_ROTATE : LEGAL_ROMAN;
         if ((rotateHint & legal) > 0)
         {
@@ -356,7 +385,7 @@ public class VTextIcon implements Icon, PropertyChangeListener
     static final int DEFAULT_ROMAN = ROTATE_RIGHT;
     static final int LEGAL_MUST_ROTATE = ROTATE_LEFT | ROTATE_RIGHT;
     static final int DEFAULT_MUST_ROTATE = ROTATE_LEFT;
-
+    
     static final double NINETY_DEGREES = Math.toRadians(90.0);
     static final int kBufferSpace = 5;
 }

@@ -41,8 +41,6 @@ import javax.swing.border.Border;
  */
 public class FlatButton extends JLabel implements PropertyChangeListener
 {
-
-    private Color saveForeground;
     private String saveTooltip;
     private Action action;
     private ArrayList<ActionListener> listeners = new ArrayList<>();
@@ -146,7 +144,7 @@ public class FlatButton extends JLabel implements PropertyChangeListener
     }
 
     /**
-     * @return 
+     * @return
      */
     public Border getBorderNothing()
     {
@@ -175,13 +173,10 @@ public class FlatButton extends JLabel implements PropertyChangeListener
         LOGGER.fine("setEnabled() b=" + b);   //NOI18N
         if (isEnabled() && !b)
         {
-            saveForeground = getForeground();
-            setForeground(Color.LIGHT_GRAY);
             saveTooltip = getToolTipText();
             setToolTipText("OFF");
         } else if (!isEnabled() && b)
         {
-            setForeground(saveForeground);
             setToolTipText(saveTooltip);
         }
         super.setEnabled(b);

@@ -69,5 +69,5 @@ public class VInstrumentButton extends FlatButton
         revalidate();
         repaint();
     }
-
+       
 }

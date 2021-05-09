@@ -304,9 +304,9 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         knob_panoramic = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
         knob_chorus = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
         knob_reverb = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
+        lbl_pan = new javax.swing.JLabel();
+        lbl_rev = new javax.swing.JLabel();
+        lbl_cho = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(26, 26, 26));
         setMinimumSize(new java.awt.Dimension(10, 53));
@@ -385,7 +385,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         fslider_volume.setValueLineColor(knob_panoramic.getValueLineColor());
         pnl_inst_volume.add(fslider_volume);
 
-        fbtn_Instrument.setForeground(new java.awt.Color(226, 226, 226));
         fbtn_Instrument.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanel.class, "MixChannelPanel.fbtn_Instrument.toolTipText")); // NOI18N
         fbtn_Instrument.setVerticalAlignment(javax.swing.SwingConstants.BOTTOM);
         fbtn_Instrument.setAlignmentX(0.5F);
@@ -445,6 +444,13 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         knob_panoramic.setPanoramicType(true);
         knob_panoramic.setValueLineGap(3.0);
         knob_panoramic.setValueLineThickness(2.0);
+        knob_panoramic.addPropertyChangeListener(new java.beans.PropertyChangeListener()
+        {
+            public void propertyChange(java.beans.PropertyChangeEvent evt)
+            {
+                knob_panoramicPropertyChange(evt);
+            }
+        });
 
         javax.swing.GroupLayout knob_panoramicLayout = new javax.swing.GroupLayout(knob_panoramic);
         knob_panoramic.setLayout(knob_panoramicLayout);
@@ -460,6 +466,13 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         knob_chorus.setOpaque(false);
         knob_chorus.setValueLineGap(3.0);
         knob_chorus.setValueLineThickness(2.0);
+        knob_chorus.addPropertyChangeListener(new java.beans.PropertyChangeListener()
+        {
+            public void propertyChange(java.beans.PropertyChangeEvent evt)
+            {
+                knob_chorusPropertyChange(evt);
+            }
+        });
 
         javax.swing.GroupLayout knob_chorusLayout = new javax.swing.GroupLayout(knob_chorus);
         knob_chorus.setLayout(knob_chorusLayout);
@@ -476,22 +489,29 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         knob_reverb.setOpaque(false);
         knob_reverb.setValueLineGap(3.0);
         knob_reverb.setValueLineThickness(2.0);
+        knob_reverb.addPropertyChangeListener(new java.beans.PropertyChangeListener()
+        {
+            public void propertyChange(java.beans.PropertyChangeEvent evt)
+            {
+                knob_reverbPropertyChange(evt);
+            }
+        });
         knob_reverb.setLayout(null);
 
-        jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getSize()-2f));
-        jLabel1.setForeground(fbtn_Instrument.getForeground());
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getBundle(MixChannelPanel.class).getString("MixChannelPanel.jLabel1.text")); // NOI18N
+        lbl_pan.setFont(lbl_pan.getFont().deriveFont(lbl_pan.getFont().getSize()-2f));
+        lbl_pan.setForeground(fbtn_Instrument.getForeground());
+        lbl_pan.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_pan, org.openide.util.NbBundle.getBundle(MixChannelPanel.class).getString("MixChannelPanel.lbl_pan.text")); // NOI18N
 
-        jLabel2.setFont(jLabel2.getFont().deriveFont(jLabel2.getFont().getSize()-2f));
-        jLabel2.setForeground(fbtn_Instrument.getForeground());
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getBundle(MixChannelPanel.class).getString("MixChannelPanel.jLabel2.text")); // NOI18N
+        lbl_rev.setFont(lbl_rev.getFont().deriveFont(lbl_rev.getFont().getSize()-2f));
+        lbl_rev.setForeground(fbtn_Instrument.getForeground());
+        lbl_rev.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_rev, org.openide.util.NbBundle.getBundle(MixChannelPanel.class).getString("MixChannelPanel.lbl_rev.text")); // NOI18N
 
-        jLabel3.setFont(jLabel3.getFont().deriveFont(jLabel3.getFont().getSize()-2f));
-        jLabel3.setForeground(fbtn_Instrument.getForeground());
-        jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getBundle(MixChannelPanel.class).getString("MixChannelPanel.jLabel3.text")); // NOI18N
+        lbl_cho.setFont(lbl_cho.getFont().deriveFont(lbl_cho.getFont().getSize()-2f));
+        lbl_cho.setForeground(fbtn_Instrument.getForeground());
+        lbl_cho.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_cho, org.openide.util.NbBundle.getBundle(MixChannelPanel.class).getString("MixChannelPanel.lbl_cho.text")); // NOI18N
 
         javax.swing.GroupLayout roundedPanelLayout = new javax.swing.GroupLayout(roundedPanel);
         roundedPanel.setLayout(roundedPanelLayout);
@@ -510,9 +530,9 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
             .addComponent(knob_reverb, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(knob_chorus, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(pnl_inst_volume, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lbl_pan, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lbl_rev, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lbl_cho, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         roundedPanelLayout.setVerticalGroup(
             roundedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -527,15 +547,15 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(knob_panoramic, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(jLabel1)
+                .addComponent(lbl_pan)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(knob_reverb, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(jLabel2)
+                .addComponent(lbl_rev)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(knob_chorus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(jLabel3)
+                .addComponent(lbl_cho)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pnl_inst_volume, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(7, 7, 7)
@@ -610,6 +630,30 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         }
     }//GEN-LAST:event_fbtn_channelIdActionPerformed
 
+    private void knob_panoramicPropertyChange(java.beans.PropertyChangeEvent evt)//GEN-FIRST:event_knob_panoramicPropertyChange
+    {//GEN-HEADEREND:event_knob_panoramicPropertyChange
+        if ("enabled".equals(evt.getPropertyName()))
+        {
+            lbl_pan.setEnabled(knob_panoramic.isEnabled());
+        }
+    }//GEN-LAST:event_knob_panoramicPropertyChange
+
+    private void knob_reverbPropertyChange(java.beans.PropertyChangeEvent evt)//GEN-FIRST:event_knob_reverbPropertyChange
+    {//GEN-HEADEREND:event_knob_reverbPropertyChange
+        if ("enabled".equals(evt.getPropertyName()))
+        {
+            lbl_rev.setEnabled(knob_reverb.isEnabled());
+        }
+    }//GEN-LAST:event_knob_reverbPropertyChange
+
+    private void knob_chorusPropertyChange(java.beans.PropertyChangeEvent evt)//GEN-FIRST:event_knob_chorusPropertyChange
+    {//GEN-HEADEREND:event_knob_chorusPropertyChange
+        if ("enabled".equals(evt.getPropertyName()))
+        {
+            lbl_cho.setEnabled(knob_chorus.isEnabled());
+        }
+    }//GEN-LAST:event_knob_chorusPropertyChange
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.jjazz.ui.mixconsole.VInstrumentButton fbtn_Instrument;
     private org.jjazz.ui.flatcomponents.FlatButton fbtn_Settings;
@@ -619,14 +663,14 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     private javax.swing.Box.Filler filler1;
     private org.jjazz.ui.flatcomponents.FlatLedIndicator fled_midiActivity;
     private org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider fslider_volume;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
     private org.jjazz.ui.flatcomponents.FlatIntegerKnob knob_chorus;
     private org.jjazz.ui.flatcomponents.FlatIntegerKnob knob_panoramic;
     private org.jjazz.ui.flatcomponents.FlatIntegerKnob knob_reverb;
     private javax.swing.JLabel lbl_Icon;
+    private javax.swing.JLabel lbl_cho;
     private javax.swing.JLabel lbl_name;
+    private javax.swing.JLabel lbl_pan;
+    private javax.swing.JLabel lbl_rev;
     private javax.swing.JPanel pnl_channelId;
     private javax.swing.JPanel pnl_icon;
     private javax.swing.JPanel pnl_inst_volume;

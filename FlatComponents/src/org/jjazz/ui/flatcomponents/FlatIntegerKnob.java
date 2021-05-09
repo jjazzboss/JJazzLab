@@ -45,14 +45,13 @@ import java.awt.geom.Rectangle2D;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import org.jjazz.uisettings.GeneralUISettings;
 
 /**
  * A flat knob.
  * <p>
- * Value can be changed by dragging mouse or mouse wheel. ctrl-click reset the value. Whatever the actual component size, the drawing is
- * done at preferred size.
+ * Value can be changed by dragging mouse or mouse wheel. ctrl-click reset the value. Whatever the actual component size, the
+ * drawing is done at preferred size.
  */
 public class FlatIntegerKnob extends JPanel implements MouseMotionListener, MouseWheelListener, MouseListener
 {
@@ -70,6 +69,7 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
     private Color knobUpperColor = new Color(109, 109, 109);
     private Color knobLowerColor = new Color(64, 64, 64);
     private Color knobRectColor = new Color(230, 230, 230);
+    private Color knobRectColorDisabled = new Color(69, 69, 69);
     private int padding = 2;
     private boolean panoramicType = false;
     private int minValue = 0;
@@ -163,7 +163,7 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
         transform.translate(xKnobCenter + xRect, yKnobCenter + yRect);
         transform.rotate(theta);
         Shape rotatedRect = transform.createTransformedShape(rect);
-        g2.setColor(knobRectColor);
+        g2.setColor(isEnabled() ? knobRectColor : getKnobRectColorDisabled());
         g2.fill(rotatedRect);
 
 
@@ -198,54 +198,57 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
 
 
         // Overwrite with the value arc
-        GeneralPath valueArc = new GeneralPath();
-        if (!isPanoramicType())
+        if (isEnabled())
         {
-            valueArc.append(new Arc2D.Double(xArcUp,
-                    yArcUp,
-                    wArcUp,
-                    hArcUp,
-                    knobStartAngle,
-                    -degValueArc,
-                    Arc2D.OPEN),
-                    false);
-            valueArc.append(new Arc2D.Double(xArcLow,
-                    yArcLow,
-                    wArcLow,
-                    hArcLow,
-                    knobStartAngle - degValueArc,
-                    degValueArc,
-                    Arc2D.OPEN),
-                    true);
-        } else
-        {
-            double degValueAngle = knobStartAngle - degValueArc;
-            double northAngle = 90;
-            if (Math.abs(degValueAngle - northAngle) < 5)
+            GeneralPath valueArc = new GeneralPath();
+            if (!isPanoramicType())
             {
-                // Color line is too small, make it appear a little bigger
-                degValueAngle = 94;
-                northAngle = 86;
+                valueArc.append(new Arc2D.Double(xArcUp,
+                        yArcUp,
+                        wArcUp,
+                        hArcUp,
+                        knobStartAngle,
+                        -degValueArc,
+                        Arc2D.OPEN),
+                        false);
+                valueArc.append(new Arc2D.Double(xArcLow,
+                        yArcLow,
+                        wArcLow,
+                        hArcLow,
+                        knobStartAngle - degValueArc,
+                        degValueArc,
+                        Arc2D.OPEN),
+                        true);
+            } else
+            {
+                double degValueAngle = knobStartAngle - degValueArc;
+                double northAngle = 90;
+                if (Math.abs(degValueAngle - northAngle) < 5)
+                {
+                    // Color line is too small, make it appear a little bigger
+                    degValueAngle = 94;
+                    northAngle = 86;
+                }
+                valueArc.append(new Arc2D.Double(xArcUp,
+                        yArcUp,
+                        wArcUp,
+                        hArcUp,
+                        degValueAngle,
+                        -(degValueAngle - northAngle),
+                        Arc2D.OPEN),
+                        false);
+                valueArc.append(new Arc2D.Double(xArcLow,
+                        yArcLow,
+                        wArcLow,
+                        hArcLow,
+                        northAngle,
+                        degValueAngle - northAngle,
+                        Arc2D.OPEN),
+                        true);
             }
-            valueArc.append(new Arc2D.Double(xArcUp,
-                    yArcUp,
-                    wArcUp,
-                    hArcUp,
-                    degValueAngle,
-                    -(degValueAngle - northAngle),
-                    Arc2D.OPEN),
-                    false);
-            valueArc.append(new Arc2D.Double(xArcLow,
-                    yArcLow,
-                    wArcLow,
-                    hArcLow,
-                    northAngle,
-                    degValueAngle - northAngle,
-                    Arc2D.OPEN),
-                    true);
+            g2.setColor(valueLineColor);
+            g2.fill(valueArc);
         }
-        g2.setColor(valueLineColor);
-        g2.fill(valueArc);
 
 
         g2.dispose();
@@ -254,18 +257,6 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
     @Override
     public void setEnabled(boolean b)
     {
-        LOGGER.fine("setEnabled() b=" + b);   //NOI18N
-        if (isEnabled() && !b)
-        {
-            saveForeground = getForeground();
-            saveColorLine = getValueLineColor();
-            setForeground(Color.LIGHT_GRAY);
-            setValueLineColor(Color.LIGHT_GRAY);
-        } else if (!isEnabled() && b)
-        {
-            setForeground(saveForeground);
-            setValueLineColor(saveColorLine);
-        }
         super.setEnabled(b);
         updateToolTipText();
     }
@@ -359,7 +350,7 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
         if (value != v)
         {
             int old = value;
-            value = v;        
+            value = v;
             updateToolTipText();
             repaint();
             firePropertyChange(PROP_VALUE, old, value);
@@ -495,6 +486,26 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
     {
         this.padding = padding;
         repaint();
+    }
+
+    /**
+     * @return the knobRectColorDisabled
+     */
+    public Color getKnobRectColorDisabled()
+    {
+        return knobRectColorDisabled;
+    }
+
+    /**
+     * @param knobRectColorDisabled the knobRectColorDisabled to set
+     */
+    public void setKnobRectColorDisabled(Color knobRectColorDisabled)
+    {
+        this.knobRectColorDisabled = knobRectColorDisabled;
+        if (!isEnabled())
+        {
+            repaint();
+        }
     }
 
     /**
