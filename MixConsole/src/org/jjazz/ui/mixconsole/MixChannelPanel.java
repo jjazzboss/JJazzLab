@@ -50,7 +50,6 @@ import org.jjazz.util.Utilities;
 public class MixChannelPanel extends javax.swing.JPanel implements PropertyChangeListener, PlaybackListener
 {
 
-    private static FlatTextEditDialog TEXT_EDIT_DIALOG;
     private MixChannelPanelModel model;
     private MixChannelPanelController controller;
     private MixConsoleSettings settings;
@@ -597,22 +596,15 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         {
             return;
         }
-        if (TEXT_EDIT_DIALOG == null)
-        {
-            TEXT_EDIT_DIALOG = FlatTextEditDialog.getInstance();
-            TEXT_EDIT_DIALOG.setForeground(fbtn_channelId.getForeground());
-            TEXT_EDIT_DIALOG.setBackground(Color.WHITE);
-            TEXT_EDIT_DIALOG.setFont(fbtn_channelId.getFont());
-            TEXT_EDIT_DIALOG.setHorizontalAlignment(JTextField.CENTER);
-            TEXT_EDIT_DIALOG.setColumns(2);
-        }
+        var dlg = FlatTextEditDialog.getInstance();
+        dlg.setTextNbColumns(2);
+        dlg.setTextHorizontalAlignment(JTextField.CENTER);
         String oldValue = this.fbtn_channelId.getText();
-        TEXT_EDIT_DIALOG.setText(oldValue);
-        TEXT_EDIT_DIALOG.pack();
-        TEXT_EDIT_DIALOG.setPositionCenter(fbtn_channelId);
-        TEXT_EDIT_DIALOG.setVisible(true);
-        String newValue = TEXT_EDIT_DIALOG.getText().trim();
-        if (TEXT_EDIT_DIALOG.isExitOk() && newValue.length() > 0 && !newValue.equals(oldValue))
+        dlg.setText(oldValue);
+        dlg.setPositionCenter(fbtn_channelId);
+        dlg.setVisible(true);
+        String newValue = dlg.getText().trim();
+        if (dlg.isExitOk() && newValue.length() > 0 && !newValue.equals(oldValue))
         {
             controller.editChannelId(newValue);
         }

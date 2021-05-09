@@ -31,10 +31,8 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JRootPane;
-import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
 import org.openide.windows.WindowManager;
 
 /**
@@ -65,8 +63,6 @@ public class FlatTextEditDialog extends javax.swing.JDialog
     {
         super(parent, modal);
         initComponents();
-        setFont(textField.getFont());   // To make sure getFont() is inline with textField's font
-        setOpaque(true);
     }
 
     public void setText(String text)
@@ -85,19 +81,10 @@ public class FlatTextEditDialog extends javax.swing.JDialog
      *
      * @param n
      */
-    public void setColumns(int n)
+    public void setTextNbColumns(int n)
     {
         textField.setColumns(n);
         pack();
-    }
-
-    @Override
-    public void setBackground(Color c)
-    {
-        if (textField != null)
-        {
-            textField.setBackground(c);
-        }
     }
 
     /**
@@ -105,89 +92,47 @@ public class FlatTextEditDialog extends javax.swing.JDialog
      *
      * @param alignment The JTextField constants.
      */
-    public void setHorizontalAlignment(int alignment)
+    public void setTextHorizontalAlignment(int alignment)
     {
         textField.setHorizontalAlignment(alignment);
     }
 
-    public int getHorizontalAlignment()
+    public int getTextHorizontalAlignment()
     {
         return textField.getHorizontalAlignment();
     }
 
-    @Override
-    public Color getBackground()
+    public Color getTextBackground()
     {
         return textField.getBackground();
     }
 
-    @Override
-    public void setForeground(Color c)
+    public void setTextBackground(Color c)
     {
         if (textField != null)
         {
-            textField.setForeground(c);
+            textField.setBackground(c);
         }
     }
 
-    @Override
-    public Color getForeground()
+    public void setTextForeground(Color c)
+    {
+        textField.setForeground(c);
+    }
+
+    public Color getTextForeground()
     {
         return textField.getForeground();
     }
 
-    @Override
-    public void setFont(Font f)
+    public void setTextFont(Font f)
     {
-        super.setFont(f);
-        textField.setFont(f);    
+        textField.setFont(f);
     }
 
-    @Override
-    public Font getFont()
+    public Font getTextFont()
     {
         return textField.getFont();
-    }
-
-    public void setOpaque(boolean b)
-    {
-        if (textField != null)
-        {
-            textField.setOpaque(b);
-        }
-    }
-
-    @Override
-    public boolean isOpaque()
-    {
-        return (textField != null) ? textField.isOpaque() : super.isOpaque();
-    }
-
-    /**
-     * For example use BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(1), BorderFactory.createEmptyBorder(0, 3,
-     * 0, 0)) to create a line border with a 3 pixels left margin.
-     *
-     * @param border
-     */
-    public void setBorder(Border border)
-    {
-        textField.setBorder(border);
-        pack();
-    }
-
-    public Border getBorder()
-    {
-        return textField.getBorder();
-    }
-
-    public int getLeftMargin()
-    {
-        return textField.getBorder().getBorderInsets(textField).left;
-    }
-
-    public int getTopMargin()
-    {
-        return textField.getBorder().getBorderInsets(textField).top;
     }
 
     /**
@@ -255,12 +200,11 @@ public class FlatTextEditDialog extends javax.swing.JDialog
     private void initComponents()
     {
 
-        textField = new MyJTextField();
+        textField = new javax.swing.JTextField();
 
         setUndecorated(true);
 
-        textField.setText("tt"); // NOI18N
-        textField.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(51, 51, 51), 2), javax.swing.BorderFactory.createEmptyBorder(2, 4, 2, 4)));
+        textField.setText("test"); // NOI18N
         getContentPane().add(textField, java.awt.BorderLayout.CENTER);
 
         pack();
@@ -269,16 +213,5 @@ public class FlatTextEditDialog extends javax.swing.JDialog
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField textField;
     // End of variables declaration//GEN-END:variables
-
-    private class MyJTextField extends JTextField
-    {
-
-        @Override
-        public void setBackground(Color c)
-        {
-            LOGGER.fine("MyJTextField.setBackground() c=" + c);   //NOI18N
-            super.setBackground(c);
-        }
-    }
 
 }

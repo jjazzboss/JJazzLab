@@ -35,6 +35,7 @@ import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.JDialog;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
@@ -92,10 +93,11 @@ public class EditSptName extends AbstractAction implements ContextAwareAction, S
         SongPart spt0 = spts.get(0);
         SongStructure sgs = selection.getModel();
         FlatTextEditDialog dlg = FlatTextEditDialog.getInstance();
-        adjustDialogPosition(dlg, spt0);
+        dlg.setTextHorizontalAlignment(JTextField.LEADING);
         String name = spt0.getName();
+        dlg.setTextNbColumns(Math.max(name.length() + 2, 8));
         dlg.setText(name);
-        dlg.setColumns(Math.max(name.length() + 2, 8));
+        adjustDialogPosition(dlg, spt0);
         dlg.setVisible(true);
         String text = dlg.getText().trim();
         if (dlg.isExitOk() && text.length() > 0 && !(spts.size() == 1 && text.equals(spt0.getName())))

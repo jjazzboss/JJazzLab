@@ -22,6 +22,8 @@
  */
 package org.jjazz.rhythmselectiondialog;
 
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLaf;
 import org.jjazz.rhythmselectiondialog.ui.RhythmProviderList;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
@@ -95,8 +97,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
     public RhythmSelectionDialogImpl()
     {
-        initComponents();
-
+        initComponents();       
 
         // Update UI
         Utilities.installSelectAllWhenFocused(tf_filter);

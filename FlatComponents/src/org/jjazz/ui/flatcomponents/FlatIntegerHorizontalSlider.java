@@ -25,7 +25,6 @@ package org.jjazz.ui.flatcomponents;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
@@ -46,12 +45,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 import org.jjazz.uisettings.GeneralUISettings;
-import org.openide.windows.WindowManager;
 
 /**
  * An horizontal flat slider.
@@ -89,8 +86,6 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
      */
     public final static String PROP_WH_RATIO = "PropWidth2HeightRatio";
 
-    private static final Font FONT = new Font("Arial", Font.PLAIN, 8);
-    public static FlatTextEditDialog TEXT_EDIT_DIALOG;
     private MouseEvent lastMouseEvent;
     private Color colorLine;
     private Color colorKnobFill;
@@ -142,7 +137,6 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
         putClientProperty(PROP_HIDE_VALUE_IF_NOT_ACTIVE, 1);
         putClientProperty(PROP_HIDE_VALUE, 0);
         putClientProperty(PROP_WH_RATIO, 4.5f);
-        setFont(FONT);
         setForeground(new Color(97, 97, 97));
         setFaderHeight(8);
         setKnobDiameter(20);
@@ -156,7 +150,6 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
                 formComponentResized(evt);
             }
         });
-        addMouseListener(this);
         addMouseMotionListener(this);
         // Use mouse wheel only if enabled
         GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
@@ -454,10 +447,6 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
     @Override
     public void mouseClicked(MouseEvent e)
     {
-        if (isEnabled() && e.getClickCount() == 2)
-        {
-            openEditor();
-        }
     }
 
     @Override
@@ -620,33 +609,6 @@ public class FlatIntegerHorizontalSlider extends JComponent implements MouseList
         xFactor = (xMax - xMin + 1d) / (getMaxValue() - getMinValue() + 1d);
         isDragging = false;
         repaint();
-    }
-
-    private void openEditor()
-    {
-        if (TEXT_EDIT_DIALOG == null)
-        {
-            TEXT_EDIT_DIALOG = new FlatTextEditDialog(WindowManager.getDefault().getMainWindow(), true);
-            TEXT_EDIT_DIALOG.setBackground(getColorKnobFill());
-            TEXT_EDIT_DIALOG.setForeground(getForeground());
-            TEXT_EDIT_DIALOG.setHorizontalAlignment(JTextField.CENTER);
-            TEXT_EDIT_DIALOG.setColumns(3);
-        }
-        String strOldValue = valueToString(value);
-        TEXT_EDIT_DIALOG.setText(strOldValue);
-        TEXT_EDIT_DIALOG.pack();
-        TEXT_EDIT_DIALOG.setPositionCenter(this);
-
-        TEXT_EDIT_DIALOG.setVisible(true);
-        String text = TEXT_EDIT_DIALOG.getText().trim();
-        if (TEXT_EDIT_DIALOG.isExitOk() && text.length() > 0 && !text.equals(strOldValue))
-        {
-            int newValue = stringToValue(text);
-            if (newValue != -1)
-            {
-                setValue(newValue);
-            }
-        }
     }
 
     /**

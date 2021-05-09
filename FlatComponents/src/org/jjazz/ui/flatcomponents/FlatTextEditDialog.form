@@ -25,25 +25,8 @@
   <SubComponents>
     <Component class="javax.swing.JTextField" name="textField">
       <Properties>
-        <Property name="text" type="java.lang.String" value="tt" noResource="true"/>
-        <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-          <Border info="org.netbeans.modules.form.compat2.border.CompoundBorderInfo">
-            <CompoundBorder>
-              <Border PropertyName="outside" info="org.netbeans.modules.form.compat2.border.LineBorderInfo">
-                <LineBorder thickness="2">
-                  <Color PropertyName="color" blue="33" green="33" red="33" type="rgb"/>
-                </LineBorder>
-              </Border>
-              <Border PropertyName="inside" info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                <EmptyBorder bottom="2" left="4" right="4" top="2"/>
-              </Border>
-            </CompoundBorder>
-          </Border>
-        </Property>
+        <Property name="text" type="java.lang.String" value="test" noResource="true"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new MyJTextField();"/>
-      </AuxValues>
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription">
           <BorderConstraints direction="Center"/>
