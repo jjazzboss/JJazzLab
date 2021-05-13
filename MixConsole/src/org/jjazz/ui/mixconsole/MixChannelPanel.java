@@ -84,6 +84,10 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
         initComponents();
 
+        knob_panoramic.addPropertyChangeListener(this);
+        knob_reverb.addPropertyChangeListener(this);
+        knob_chorus.addPropertyChangeListener(this);
+
         this.fbtn_mute.setEnabled(!model.isUserChannel());
         this.fbtn_solo.setEnabled(!model.isUserChannel());
         this.lbl_Icon.setText(null);
@@ -202,16 +206,28 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     public void propertyChange(PropertyChangeEvent evt)
     {
         // UI changed, update model
-        if (evt.getSource() == this.knob_chorus && evt.getPropertyName() == FlatIntegerKnob.PROP_VALUE)
+        if (evt.getSource() == this.knob_chorus && evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
         {
             model.setChorus(knob_chorus.getValue());
-        } else if (evt.getSource() == this.knob_reverb && evt.getPropertyName() == FlatIntegerKnob.PROP_VALUE)
+            if ("enabled".equals(evt.getPropertyName()))
+            {
+                lbl_cho.setEnabled(knob_chorus.isEnabled());
+            }
+        } else if (evt.getSource() == this.knob_reverb && evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
         {
             model.setReverb(knob_reverb.getValue());
-        } else if (evt.getSource() == this.knob_panoramic && evt.getPropertyName() == FlatIntegerKnob.PROP_VALUE)
+            if ("enabled".equals(evt.getPropertyName()))
+            {
+                lbl_rev.setEnabled(knob_reverb.isEnabled());
+            }
+        } else if (evt.getSource() == this.knob_panoramic && evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
         {
             model.setPanoramic(knob_panoramic.getValue());
-        } else if (evt.getSource() == this.fslider_volume && evt.getPropertyName() == FlatIntegerVerticalSlider.PROP_VALUE)
+            if ("enabled".equals(evt.getPropertyName()))
+            {
+                lbl_pan.setEnabled(knob_panoramic.isEnabled());
+            }
+        } else if (evt.getSource() == this.fslider_volume && evt.getPropertyName().equals(FlatIntegerVerticalSlider.PROP_VALUE))
         {
             int oldValue = (int) evt.getOldValue();
             int newValue = (int) evt.getNewValue();
@@ -444,13 +460,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         knob_panoramic.setPanoramicType(true);
         knob_panoramic.setValueLineGap(3.0);
         knob_panoramic.setValueLineThickness(2.0);
-        knob_panoramic.addPropertyChangeListener(new java.beans.PropertyChangeListener()
-        {
-            public void propertyChange(java.beans.PropertyChangeEvent evt)
-            {
-                knob_panoramicPropertyChange(evt);
-            }
-        });
 
         javax.swing.GroupLayout knob_panoramicLayout = new javax.swing.GroupLayout(knob_panoramic);
         knob_panoramic.setLayout(knob_panoramicLayout);
@@ -466,13 +475,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         knob_chorus.setOpaque(false);
         knob_chorus.setValueLineGap(3.0);
         knob_chorus.setValueLineThickness(2.0);
-        knob_chorus.addPropertyChangeListener(new java.beans.PropertyChangeListener()
-        {
-            public void propertyChange(java.beans.PropertyChangeEvent evt)
-            {
-                knob_chorusPropertyChange(evt);
-            }
-        });
 
         javax.swing.GroupLayout knob_chorusLayout = new javax.swing.GroupLayout(knob_chorus);
         knob_chorus.setLayout(knob_chorusLayout);
@@ -489,13 +491,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         knob_reverb.setOpaque(false);
         knob_reverb.setValueLineGap(3.0);
         knob_reverb.setValueLineThickness(2.0);
-        knob_reverb.addPropertyChangeListener(new java.beans.PropertyChangeListener()
-        {
-            public void propertyChange(java.beans.PropertyChangeEvent evt)
-            {
-                knob_reverbPropertyChange(evt);
-            }
-        });
         knob_reverb.setLayout(null);
 
         lbl_pan.setFont(lbl_pan.getFont().deriveFont(lbl_pan.getFont().getSize()-2f));
@@ -629,30 +624,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
             controller.editChannelId(newValue);
         }
     }//GEN-LAST:event_fbtn_channelIdActionPerformed
-
-    private void knob_panoramicPropertyChange(java.beans.PropertyChangeEvent evt)//GEN-FIRST:event_knob_panoramicPropertyChange
-    {//GEN-HEADEREND:event_knob_panoramicPropertyChange
-        if ("enabled".equals(evt.getPropertyName()))
-        {
-            lbl_pan.setEnabled(knob_panoramic.isEnabled());
-        }
-    }//GEN-LAST:event_knob_panoramicPropertyChange
-
-    private void knob_reverbPropertyChange(java.beans.PropertyChangeEvent evt)//GEN-FIRST:event_knob_reverbPropertyChange
-    {//GEN-HEADEREND:event_knob_reverbPropertyChange
-        if ("enabled".equals(evt.getPropertyName()))
-        {
-            lbl_rev.setEnabled(knob_reverb.isEnabled());
-        }
-    }//GEN-LAST:event_knob_reverbPropertyChange
-
-    private void knob_chorusPropertyChange(java.beans.PropertyChangeEvent evt)//GEN-FIRST:event_knob_chorusPropertyChange
-    {//GEN-HEADEREND:event_knob_chorusPropertyChange
-        if ("enabled".equals(evt.getPropertyName()))
-        {
-            lbl_cho.setEnabled(knob_chorus.isEnabled());
-        }
-    }//GEN-LAST:event_knob_chorusPropertyChange
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.jjazz.ui.mixconsole.VInstrumentButton fbtn_Instrument;

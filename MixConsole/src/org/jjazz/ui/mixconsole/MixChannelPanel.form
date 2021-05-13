@@ -465,9 +465,6 @@
             <Property name="valueLineGap" type="double" value="3.0"/>
             <Property name="valueLineThickness" type="double" value="2.0"/>
           </Properties>
-          <Events>
-            <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="knob_panoramicPropertyChange"/>
-          </Events>
 
           <Layout>
             <DimensionLayout dim="0">
@@ -488,9 +485,6 @@
             <Property name="valueLineGap" type="double" value="3.0"/>
             <Property name="valueLineThickness" type="double" value="2.0"/>
           </Properties>
-          <Events>
-            <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="knob_chorusPropertyChange"/>
-          </Events>
 
           <Layout>
             <DimensionLayout dim="0">
@@ -512,9 +506,6 @@
             <Property name="valueLineGap" type="double" value="3.0"/>
             <Property name="valueLineThickness" type="double" value="2.0"/>
           </Properties>
-          <Events>
-            <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="knob_reverbPropertyChange"/>
-          </Events>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
             <Property name="useNullLayout" type="boolean" value="true"/>
