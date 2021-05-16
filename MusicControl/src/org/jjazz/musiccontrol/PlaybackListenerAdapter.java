@@ -22,12 +22,14 @@
  */
 package org.jjazz.musiccontrol;
 
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.songstructure.api.SongPart;
 
 /**
  * Convenience class.
  * <p>
- * Note that methods will be called out of the Swing EDT.
+ * Note that methods are called on the Swing Event Dispatching Thread. Event handling must be time-efficient.
  */
 public class PlaybackListenerAdapter implements PlaybackListener
 {
@@ -51,7 +53,13 @@ public class PlaybackListenerAdapter implements PlaybackListener
     }
 
     @Override
-    public void chordSymbolChanged(String chordSymbol)
+    public void chordSymbolChanged(CLI_ChordSymbol chordSymbol)
+    {
+        // Do nothing
+    }
+
+    @Override
+    public void songPartChanged(SongPart newSpt)
     {
         // Do nothing
     }

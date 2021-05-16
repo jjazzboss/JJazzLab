@@ -160,14 +160,16 @@ public class ControlTrackBuilder
     private void addChordSymbolEvents(Track track)
     {
         var ccSeq = new ContextChordSequence(context);      // This will process the substitute chord symbols
+        int csIndex = 0;
         for (CLI_ChordSymbol cliCs : ccSeq)
         {
             long tick = context.getRelativeTick(cliCs.getPosition());
             assert tick != -1 : "cliCs=" + cliCs + " ccSeq=" + ccSeq + " context=" + context;
-            MetaMessage mm = MidiUtilities.getMarkerMetaMessage(cliCs.getData().getOriginalName());
+            MetaMessage mm = MidiUtilities.getMarkerMetaMessage("csIndex=" + csIndex);
             // HACK!
             // tick+1 is a hack, otherwise when tick==0 the first Meta event is sometimes not fired! Don't know why
             track.add(new MidiEvent(mm, tick + 1));
+            csIndex++;
         }
     }
 

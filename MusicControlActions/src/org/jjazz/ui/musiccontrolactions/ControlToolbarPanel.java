@@ -31,6 +31,7 @@ import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.musiccontrol.PlaybackListener;
+import org.jjazz.musiccontrol.PlaybackListenerAdapter;
 import org.jjazz.song.api.Song;
 
 import org.openide.awt.Actions;
@@ -43,7 +44,7 @@ import org.openide.util.actions.BooleanStateAction;
 /**
  * The panel used as a control toolbar.
  */
-public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyChangeListener, LookupListener, PlaybackListener
+public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyChangeListener, LookupListener
 {
 
     private Lookup.Result<Song> lookupResult;
@@ -70,7 +71,15 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
 
         // Listen to playbackState and position changes
         MusicController.getInstance().addPropertyChangeListener(this);
-        MusicController.getInstance().addPlaybackListener(this);
+        MusicController.getInstance().addPlaybackListener(new PlaybackListenerAdapter()
+        {
+            @Override
+            public void beatChanged(final Position oldPos, final Position newPos)
+            {
+                // Changes are generated outside the EDT
+                SwingUtilities.invokeLater(() -> posModel.set(newPos)); // PositionViewer listens to posModel changes
+            }
+        });
 
 
         // Listen to the active MidiMix changes
@@ -112,34 +121,6 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         {
             newSong, currentSong
         });
-    }
-    // ======================================================================
-    // Playbackistener interface
-    // ======================================================================  
-
-    @Override
-    public void beatChanged(final Position oldPos, final Position newPos)
-    {
-        // Changes are generated outside the EDT
-        SwingUtilities.invokeLater(() -> posModel.set(newPos)); // PositionViewer listens to posModel changes
-    }
-
-    @Override
-    public void barChanged(int oldBar, int newBar)
-    {
-        // Nothing
-    }
-
-    @Override
-    public void chordSymbolChanged(String cs)
-    {
-        // Nothing
-    }
-
-    @Override
-    public void midiActivity(long tick, int channel)
-    {
-        // Nothing
     }
 
     // ======================================================================

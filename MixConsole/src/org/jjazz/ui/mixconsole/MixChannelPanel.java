@@ -31,12 +31,12 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JTextField;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.synths.StdSynth;
 import org.jjazz.midi.Instrument;
 import org.jjazz.midi.MidiConst;
 import org.jjazz.musiccontrol.MusicController;
 import org.jjazz.musiccontrol.PlaybackListener;
+import org.jjazz.musiccontrol.PlaybackListenerAdapter;
 import org.jjazz.ui.flatcomponents.FlatIntegerKnob;
 import org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider;
 import org.jjazz.ui.flatcomponents.FlatTextEditDialog;
@@ -47,7 +47,7 @@ import org.jjazz.util.Utilities;
 /**
  * Display a MixChannel.
  */
-public class MixChannelPanel extends javax.swing.JPanel implements PropertyChangeListener, PlaybackListener
+public class MixChannelPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
 
     private MixChannelPanelModel model;
@@ -55,6 +55,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     private MixConsoleSettings settings;
     private Color channelColor;
     private boolean selected;
+    private final PlaybackListener playbackListener;
     private Font FONT = GeneralUISettings.getInstance().getStdCondensedFont();
     private static final Logger LOGGER = Logger.getLogger(MixChannelPanel.class.getSimpleName());
 
@@ -65,6 +66,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     public MixChannelPanel()
     {
         model = new BaseMixChannelPanelModel();
+        playbackListener = null;
     }
 
     public MixChannelPanel(final MixChannelPanelModel model, final MixChannelPanelController controller, MixConsoleSettings settings)
@@ -77,12 +79,27 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         this.controller = controller;
         this.settings = settings;
 
+
         this.settings.addPropertyChangeListener(this);
         this.model.addPropertyChangeListener(this);
 
-        MusicController.getInstance().addPlaybackListener(this);
+
+        playbackListener = new PlaybackListenerAdapter()
+        {
+            @Override
+            public void midiActivity(long tick, int channel)
+            {
+                if (model.getChannelId() == channel)
+                {
+                    fled_midiActivity.showActivity();
+                }
+            }
+        };
+        MusicController.getInstance().addPlaybackListener(playbackListener);
+
 
         initComponents();
+
 
         knob_panoramic.addPropertyChangeListener(this);
         knob_reverb.addPropertyChangeListener(this);
@@ -95,6 +112,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         // Listen to UI changes
         this.fslider_volume.addPropertyChangeListener(this);
 
+
         refreshUI();
     }
 
@@ -105,7 +123,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
     public void cleanup()
     {
-        MusicController.getInstance().removePlaybackListener(this);
+        MusicController.getInstance().removePlaybackListener(playbackListener);
         model.removePropertyChangeListener(this);
         settings.removePropertyChangeListener(this);
         model.cleanup();
@@ -167,36 +185,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     public boolean isSelected()
     {
         return selected;
-    }
-
-    // ======================================================================
-    // Playbackistener interface
-    // ======================================================================  
-    @Override
-    public void beatChanged(Position oldPos, Position newPos)
-    {
-        // Nothing
-    }
-
-    @Override
-    public void barChanged(int oldBar, int newBar)
-    {
-        // Nothing
-    }
-
-    @Override
-    public void chordSymbolChanged(String cs)
-    {
-        // Nothing
-    }
-
-    @Override
-    public void midiActivity(long tick, int channel)
-    {
-        if (model.getChannelId() == channel)
-        {
-            fled_midiActivity.showActivity();
-        }
     }
 
     // ----------------------------------------------------------------------------

@@ -22,23 +22,49 @@
  */
 package org.jjazz.musiccontrol;
 
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.songstructure.api.SongPart;
 
 /**
  * Listener of events occuring during song playback.
  * <p>
  * MusicController will fire the events taking into account the user-defined output synth latency. Events are fired by the
- * MusicController on the Event Dispatching Thread, event handling must be time-efficient.
+ * MusicController on the Event Dispatching Thread. Event handling must be time-efficient.
  * <p>
  */
 public interface PlaybackListener
 {
 
+    /**
+     * Called on each beat change.
+     *
+     * @param oldPos
+     * @param newPos
+     */
     void beatChanged(Position oldPos, Position newPos);
 
+    /**
+     * Called on each bar change.
+     *
+     * @param oldBar
+     * @param newBar
+     */
     void barChanged(int oldBar, int newBar);
 
-    void chordSymbolChanged(String chordSymbol);
+    /**
+     * Called on chord symbol change.
+     *
+     * @param chordSymbol The current chord symbol with an absolute position (position within the entire song structure).
+     */
+    void chordSymbolChanged(CLI_ChordSymbol chordSymbol);
+
+    /**
+     * Called on SongPart change.
+     *
+     * @param spt
+     */
+    void songPartChanged(SongPart spt);
 
     /**
      * Indicates some musical activity on specified channel at specified time.

@@ -26,10 +26,10 @@ import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
-import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import org.jjazz.activesong.ActiveSongManager;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.ui.keyboardcomponent.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.KeyboardRange;
 import org.jjazz.midimix.MidiMix;
@@ -38,6 +38,7 @@ import org.jjazz.musiccontrol.NoteListener;
 import org.jjazz.musiccontrol.PlaybackListenerAdapter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
+import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.uisettings.GeneralUISettings;
 
 /**
@@ -53,6 +54,8 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
     private int channel;
     private ViewerNoteListener noteListener;
     private boolean enableListening;
+    private CLI_ChordSymbol currentChordSymbol;
+    private SongPart currentSongPart;
     private final Font chordSymbolFont;
 
     private static final Logger LOGGER = Logger.getLogger(RtViewerPanel.class.getSimpleName());
@@ -76,14 +79,22 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
         pnl_piano.add(keyboard);
 
 
-        // Get the chord symbols changes
+        // Get the chord symbol + spt changes
         MusicController mc = MusicController.getInstance();
         mc.addPlaybackListener(new PlaybackListenerAdapter()
         {
             @Override
-            public void chordSymbolChanged(String cs)
+            public void chordSymbolChanged(CLI_ChordSymbol cliCs)
             {
-                lbl_chordScale.setText(cs);
+                currentChordSymbol = cliCs;
+                updateContextString();
+            }
+
+            @Override
+            public void songPartChanged(SongPart newSpt)
+            {
+                currentSongPart = newSpt;
+                updateContextString();
             }
         });
 
@@ -315,7 +326,27 @@ public class RtViewerPanel extends javax.swing.JPanel implements PropertyChangeL
         noteListener.reset();
         enableListening = true;
     }
-      
+
+    private void updateContextString()
+    {
+        String str = "";
+        if (currentChordSymbol != null)
+        {
+            str += currentChordSymbol.getData().getOriginalName();
+            var cri = currentChordSymbol.getData().getRenderingInfo();
+            var scaleInstance = cri.getScaleInstance();
+            if (scaleInstance != null)
+            {
+                str += " - " + scaleInstance.toString();
+            }
+        }
+//        if (currentSongPart != null)
+//        {
+//            str += " - spt=" + currentSongPart.toString();
+//        }
+        lbl_chordScale.setText(str);
+    }
+
     // =================================================================================
     // Private classes
     // =================================================================================

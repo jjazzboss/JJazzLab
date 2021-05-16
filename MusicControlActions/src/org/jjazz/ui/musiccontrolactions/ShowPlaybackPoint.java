@@ -29,7 +29,6 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.SwingUtilities;
 import org.jjazz.activesong.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -44,7 +43,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.musiccontrol.PlaybackListener;
+import org.jjazz.musiccontrol.PlaybackListenerAdapter;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.RpChangedEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
@@ -80,7 +79,7 @@ import org.jjazz.util.ResUtil;
         {
             // 
         })
-public class ShowPlaybackPoint extends BooleanStateAction implements PropertyChangeListener, LookupListener, Presenter.Toolbar, ClsChangeListener, SgsChangeListener, PlaybackListener
+public class ShowPlaybackPoint extends BooleanStateAction implements PropertyChangeListener, LookupListener, Presenter.Toolbar, ClsChangeListener, SgsChangeListener
 {
 
     private final Lookup.Result<Song> lookupResult;
@@ -102,7 +101,23 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         putValue("hideActionText", true);
         // Listen to playbackState and position changes
         MusicController.getInstance().addPropertyChangeListener(this);
-        MusicController.getInstance().addPlaybackListener(this);
+        MusicController.getInstance().addPlaybackListener(new PlaybackListenerAdapter()
+        {
+            @Override
+            public void beatChanged(final Position oldPos, final Position newPos)
+            {
+                if (currentCL_Editor != null)
+                {
+                    newSgsPos.set(newPos);
+                    Position newClsPos = convertToClsPosition(newSgsPos);
+                    if (newClsPos != null)
+                    {
+                        currentCL_Editor.showPlaybackPoint(true, newClsPos);
+                    }
+                    currentRL_Editor.showPlaybackPoint(true, newSgsPos);
+                }
+            }
+        });
         // Listen to the Midi active song changes
         ActiveSongManager.getInstance().addPropertyListener(this);
         // Listen to the current Song changes
@@ -257,42 +272,6 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         }
         updateShowing();
         updateEnabled();
-    }
-
-    // ======================================================================
-    // PlaybackListener interface
-    // ======================================================================  
-    @Override
-    public void beatChanged(final Position oldPos, final Position newPos)
-    {
-        if (currentCL_Editor != null)
-        {
-            newSgsPos.set(newPos);
-            Position newClsPos = convertToClsPosition(newSgsPos);
-            if (newClsPos != null)
-            {
-                currentCL_Editor.showPlaybackPoint(true, newClsPos);
-            }
-            currentRL_Editor.showPlaybackPoint(true, newSgsPos);
-        }
-    }
-
-    @Override
-    public void chordSymbolChanged(String cs)
-    {
-        // Nothing
-    }
-
-    @Override
-    public void barChanged(int oldBar, int newBar)
-    {
-        // Nothing
-    }
-
-    @Override
-    public void midiActivity(long tick, int channel)
-    {
-        // Nothing
     }
 
     // ======================================================================

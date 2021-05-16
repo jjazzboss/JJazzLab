@@ -348,7 +348,6 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         fbtn_allSoloOff.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         org.openide.awt.Mnemonics.setLocalizedText(fbtn_allSoloOff, " S "); // NOI18N
-        fbtn_allSoloOff.setToolTipText(org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.fbtn_allSoloOff.toolTipText")); // NOI18N
         fbtn_allSoloOff.setFont(fbtn_allSoloOff.getFont().deriveFont(fbtn_allSoloOff.getFont().getSize()-1f));
         panel_MasterControls.add(fbtn_allSoloOff);
         panel_MasterControls.add(filler5);
