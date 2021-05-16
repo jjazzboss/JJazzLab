@@ -28,7 +28,6 @@ import java.awt.Dimension;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Paint;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.beans.PropertyChangeListener;
@@ -58,10 +57,8 @@ public class PianoKey extends JComponent
     // Client properties
     // call repaint() after updating these clientProperties
     private static final String COLOR_WKEY = "WKeyColor";
-    private static final String COLOR_WKEY_PRESSED = "WKeyPressedColor";
     private static final String COLOR_BKEY_DARKEST = "WKeyDarkestColor";
     private static final String COLOR_BKEY_LIGHTEST = "WKeyLightestColor";
-    private static final String COLOR_BKEY_PRESSED = "WKeyPressedColor";
     private static final String COLOR_KEY_CONTOUR = "WKeyContourColor";
     private static final String COLOR_KEY_CONTOUR_SELECTED = "WKeyContourSelectedColor";
     private static final String COLOR_DISABLED_KEY = "WKeyDisabledColor";
@@ -106,6 +103,8 @@ public class PianoKey extends JComponent
      * Pitch of the note
      */
     private final int pitch;
+    private Color pressedWhiteKeyColor;
+    private boolean showVelocityColor;
 
     private boolean isSelected;
 
@@ -148,14 +147,14 @@ public class PianoKey extends JComponent
 
         // Default color favlues
         putClientProperty(COLOR_WKEY, Color.WHITE);
-        putClientProperty(COLOR_WKEY_PRESSED, Color.RED);
         putClientProperty(COLOR_BKEY_DARKEST, Color.BLACK);
         putClientProperty(COLOR_BKEY_LIGHTEST, new Color(55, 55, 55));
-        putClientProperty(COLOR_BKEY_PRESSED, Color.RED);
         putClientProperty(COLOR_KEY_CONTOUR, new Color(117, 117, 117));
         putClientProperty(COLOR_KEY_CONTOUR_SELECTED, Color.BLUE.brighter());
         putClientProperty(COLOR_DISABLED_KEY, Color.LIGHT_GRAY);
 
+        showVelocityColor = false;
+        pressedWhiteKeyColor = new Color(0, 255, 255);
 
         // Preferred size
         setPreferredSize(new Dimension(WW, WH));
@@ -183,33 +182,91 @@ public class PianoKey extends JComponent
     }
 
     /**
-     * Set the key in the "pressed" state or not with the specified velocity.
+     * Set this key released (velocity is set to 0).
      * <p>
-     * Key is pressed if velocity &gt; 0. Fire a changed event if velocity was changed.
-     *
-     *
+     * Fire a change event if velocity was changed. Do nothing if this key is not enabled.
+     */
+    public synchronized void setReleased()
+    {
+        if (!isEnabled())
+        {
+            return;
+        }
+
+
+        if (velocity > 0)
+        {
+            int old = velocity;
+            velocity = 0;
+            pcs.firePropertyChange(PROP_PRESSED, old, velocity);
+            repaint();
+        }
+    }
+
+    /**
+     * Set the key in the "pressed" state.
+     * <p>
+     * Key is pressed if velocity &gt; 0. If velocity==0, setReleased() is called. Fire a changed event if velocity was changed.
+     * Do nothing if this key is not enabled.
      *
      * @param v
+     * @param pressedKeyColor Set the pressed color for white key (pressed color for a black key is calculated from this color as
+     * well). If null use default color.
      */
-    public void setPressed(int v)
+    public synchronized void setPressed(int v, Color pressedKeyColor)
     {
         if (!Note.checkVelocity(v))
         {
-            throw new IllegalArgumentException("v=" + v);
+            throw new IllegalArgumentException("v=" + v + " pressedColorWK=" + pressedKeyColor);
         }
+
+
         if (!isEnabled())
         {
-            velocity = v;           // But don't update UI
             return;
         }
-        if (v != velocity)
+
+
+        if (v == 0)
+        {
+            setReleased();
+            return;
+        }
+
+        // Special case, no velocity change, don't fire a change event
+        if (v == velocity)
+        {
+            if (pressedKeyColor != null && !pressedWhiteKeyColor.equals(pressedKeyColor))
+            {
+                // Repaint only if color has changed
+                pressedWhiteKeyColor = pressedKeyColor;
+                repaint();
+            }
+            return;
+        }
+
+
+        // Special case: no need to repaint if key is already pressed and no color change
+        if (velocity > 0 && !showVelocityColor && pressedKeyColor == null)
         {
             int old = velocity;
             velocity = v;
             pcs.firePropertyChange(PROP_PRESSED, old, velocity);
-            repaint();
-
+            return;
         }
+
+
+        // Normal case
+        if (pressedKeyColor != null && !pressedWhiteKeyColor.equals(pressedKeyColor))
+        {
+            pressedWhiteKeyColor = pressedKeyColor;
+        }
+        int old = velocity;
+        velocity = v;
+        pcs.firePropertyChange(PROP_PRESSED, old, velocity);
+        repaint();
+
+
     }
 
     public void setSelected(boolean b)
@@ -242,7 +299,7 @@ public class PianoKey extends JComponent
      */
     public void release()
     {
-        setPressed(0);
+        setPressed(0, null);
     }
 
     /**
@@ -284,9 +341,9 @@ public class PianoKey extends JComponent
             if (velocity > 0)
             {
                 // Show pressed color adjusted to velocity
-                float f = ((Note.VELOCITY_MAX - (float) velocity) / (Note.VELOCITY_MAX - Note.VELOCITY_MIN));
+                float f = showVelocityColor ? ((Note.VELOCITY_MAX - (float) velocity) / (Note.VELOCITY_MAX - Note.VELOCITY_MIN)) : 0;
                 int alpha = 255 - Math.round(220 * f);
-                Color keyPressedColor = isWhiteKey() ? getColorProperty(COLOR_WKEY_PRESSED) : getColorProperty(COLOR_BKEY_PRESSED);
+                Color keyPressedColor = isWhiteKey() ? getPressedWhiteKeyColor() : getPressedBlackKeyColor();
                 g2.setColor(new Color(keyPressedColor.getRed(), keyPressedColor.getGreen(), keyPressedColor.getBlue(), alpha));
 
 //                int boundedLuminance = Math.min(luminance, getLuminanceNoEvent());
@@ -531,6 +588,57 @@ public class PianoKey extends JComponent
     public boolean contains(int x, int y)
     {
         return shape.contains(x, y);
+    }
+
+    /**
+     * @return the showVelocityColor
+     */
+    public boolean isShowVelocityColor()
+    {
+        return showVelocityColor;
+    }
+
+    /**
+     * Set if pressed color is adjusted depending on note velocity.
+     *
+     * @param showVelocityColor the showVelocityColor to set
+     */
+    public void setShowVelocityColor(boolean showVelocityColor)
+    {
+        this.showVelocityColor = showVelocityColor;
+        repaint();
+    }
+
+    /**
+     * @return Reuse getPressedWhiteKeyColor() but a bit darker.
+     */
+    public Color getPressedBlackKeyColor()
+    {
+        return pressedWhiteKeyColor.darker();
+    }
+
+    /**
+     * @return the pressedWhiteKeyColor
+     */
+    public Color getPressedWhiteKeyColor()
+    {
+        return pressedWhiteKeyColor;
+    }
+
+    /**
+     * Set the pressed color for a white key.
+     * <p>
+     * Used also to derive the pressed color for a black key.
+     *
+     * @param pressedKeyColor the pressedKeyColor to set
+     */
+    public void setPressedWhiteKeyColor(Color pressedKeyColor)
+    {
+        this.pressedWhiteKeyColor = pressedKeyColor;
+        if (velocity > 0)
+        {
+            repaint();
+        }
     }
 
     public void addChangeListener(PropertyChangeListener l)

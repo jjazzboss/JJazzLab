@@ -302,7 +302,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         roundedPanel = new org.jjazz.ui.flatcomponents.RoundedPanel();
         pnl_led_close = new javax.swing.JPanel();
         fled_midiActivity = new org.jjazz.ui.flatcomponents.FlatLedIndicator();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(2, 0), new java.awt.Dimension(2, 0), new java.awt.Dimension(3, 32767));
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(1, 0), new java.awt.Dimension(1, 0), new java.awt.Dimension(1, 32767));
         fbtn_Settings = new org.jjazz.ui.flatcomponents.FlatButton();
         pnl_mute = new javax.swing.JPanel();
         fbtn_mute = new org.jjazz.ui.flatcomponents.FlatToggleButton();
@@ -340,9 +340,10 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         flowLayout1.setAlignOnBaseline(true);
         pnl_led_close.setLayout(flowLayout1);
 
-        fled_midiActivity.setForeground(new java.awt.Color(222, 222, 222));
+        fled_midiActivity.setAlphaStepActivity(150);
+        fled_midiActivity.setColorMax(new java.awt.Color(255, 67, 16));
+        fled_midiActivity.setColorMin(new java.awt.Color(70, 70, 70));
         fled_midiActivity.setDiameter(8);
-        fled_midiActivity.setLuminanceStepEventReceived(-35);
         pnl_led_close.add(fled_midiActivity);
         pnl_led_close.add(filler1);
 
@@ -535,7 +536,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
                 .addGroup(roundedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(pnl_led_close, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(fbtn_Settings, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(10, 10, 10)
                 .addComponent(pnl_mute, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pnl_solo, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)

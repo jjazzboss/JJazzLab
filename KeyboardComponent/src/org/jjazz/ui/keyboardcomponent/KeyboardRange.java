@@ -22,9 +22,22 @@
  */
 package org.jjazz.ui.keyboardcomponent;
 
-public enum KeyboardRange
+/**
+ * Define the size (number of keys) of a KeyboardComponent.
+ *
+ * @author Administrateur
+ */
+public class KeyboardRange
 {
-    _128_KEYS(0, 127, 75), _88_KEYS(21, 108, 52), _76_KEYS(28, 103, 45), _61_KEYS(36, 96, 36), _49_KEYS(36, 84, 29), _37_KEYS(48, 84, 22);
+    public static final KeyboardRange _128_KEYS = new KeyboardRange(0, 127, 75);
+    public static final KeyboardRange _88_KEYS = new KeyboardRange(21, 108, 52);
+    public static final KeyboardRange _76_KEYS = new KeyboardRange(28, 103, 45);
+    public static final KeyboardRange _61_KEYS = new KeyboardRange(36, 96, 36);
+    public static final KeyboardRange _49_KEYS = new KeyboardRange(36, 84, 29);
+    public static final KeyboardRange _37_KEYS = new KeyboardRange(48, 84, 22);
+    public static final KeyboardRange BASS_KEYS = new KeyboardRange(12, 60, 29);
+    public static final KeyboardRange DRUMS_KEYS = new KeyboardRange(24, 84, 36);
+
     int lowPitch;
     int highPitch;
     int nbWhiteKeys;
@@ -36,14 +49,36 @@ public enum KeyboardRange
         this.nbWhiteKeys = nbWhiteKeys;
     }
 
+    /**
+     * Get a bigger keyboard, or if too big reset size to the smallest one (3 octaves, keeping approximatively the same center
+     * note)
+     *
+     * @return
+     */
     public KeyboardRange next()
     {
-        int i = ordinal() + 1;
-        if (i >= KeyboardRange.values().length)
+        KeyboardRange res;
+        int newLowPitch = lowPitch - 12;
+        int newHighPitch = highPitch + 12;
+        if (newLowPitch >= 0 && newHighPitch <= 127)
         {
-            i = 0;
+            // Grow bigger
+            res = new KeyboardRange(newLowPitch, newHighPitch, nbWhiteKeys + 14);
+        } else
+        {
+            // Smallest = 3 octaves
+            newLowPitch = lowPitch;
+            newHighPitch = highPitch;
+            int nbWKeys = nbWhiteKeys;
+            while (newHighPitch - newLowPitch + 1 > 48)
+            {
+                newLowPitch += 12;
+                newHighPitch -= 12;
+                nbWKeys -= 14;
+            }
+            res = new KeyboardRange(newLowPitch, newHighPitch, nbWKeys);
         }
-        return KeyboardRange.values()[i];
+        return res;
     }
 
     public int getLowestPitch()

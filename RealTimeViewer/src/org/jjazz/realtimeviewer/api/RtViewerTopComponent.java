@@ -24,7 +24,7 @@ package org.jjazz.realtimeviewer.api;
 
 import java.util.logging.Logger;
 import org.jjazz.activesong.ActiveSongManager;
-import org.jjazz.realtimeviewer.RtViewerPanel;
+import org.jjazz.realtimeviewer.NotesViewerPanel;
 import org.jjazz.song.api.Song;
 import org.jjazz.util.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -45,7 +45,7 @@ import org.openide.windows.WindowManager;
         //iconBase="SET/PATH/TO/ICON/HERE",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "jlnavigator", openAtStartup = false)
+@TopComponent.Registration(mode = "jlnavigator", openAtStartup = true)
 @ActionID(category = "Window", id = "org.jjazz.realtimeviewer.RtViewerTopComponent")
 @ActionReference(path = "Menu/Window", position = 5, separatorAfter = 7)
 @TopComponent.OpenActionRegistration(
@@ -56,7 +56,7 @@ public final class RtViewerTopComponent extends TopComponent
 {
 
     private static final Logger LOGGER = Logger.getLogger(RtViewerTopComponent.class.getSimpleName());
-    private RtViewerPanel viewer;
+    private NotesViewerPanel viewer;
 
     public RtViewerTopComponent()
     {
@@ -69,7 +69,7 @@ public final class RtViewerTopComponent extends TopComponent
         initComponents();
 
 
-        viewer = new RtViewerPanel();
+        viewer = new NotesViewerPanel();
         add(viewer);
 
 

@@ -172,7 +172,20 @@ public class KeyboardComponent extends JPanel
      */
     public void releaseAllNotes()
     {
-        pianoKeys.forEach(pk -> pk.setPressed(0));
+        pianoKeys.forEach(pk -> pk.setReleased());
+    }
+
+    /**
+     * Release the specified key.
+     *
+     * @param pitch
+     */
+    public void setReleased(int pitch)
+    {
+        if (keyboardRange.isValid(pitch))
+        {
+            getPianoKey(pitch).setReleased();
+        }
     }
 
     /**
@@ -181,13 +194,14 @@ public class KeyboardComponent extends JPanel
      * Method just delegates to setVelocity() of the relevant PianoKey. Do nothing if pitch is not valid for this KeyboardRange.
      *
      * @param pitch
-     * @param velocity If 0 it means the key must be released.
+     * @param velocity If 0 equivalent to calling setReleased()
+     * @param pressedKeyColor The pressed key color to be used. If null use default color.
      */
-    public void setPressed(int pitch, int velocity)
+    public void setPressed(int pitch, int velocity, Color pressedKeyColor)
     {
         if (keyboardRange.isValid(pitch))
         {
-            getPianoKey(pitch).setPressed(velocity);
+            getPianoKey(pitch).setPressed(velocity, pressedKeyColor);
         }
     }
 
@@ -225,7 +239,7 @@ public class KeyboardComponent extends JPanel
         }
         return null;
     }
- 
+
     /**
      * Layout the keys to fit the size.
      * <p>
