@@ -37,7 +37,7 @@
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="pnl_chordSymbol" max="32767" attributes="0"/>
-                  <Component id="jScrollPane1" alignment="0" pref="349" max="32767" attributes="0"/>
+                  <Component id="jScrollPane1" alignment="0" pref="285" max="32767" attributes="0"/>
                   <Component id="pnl_viewer" alignment="1" max="32767" attributes="0"/>
                   <Group type="102" attributes="0">
                       <Component id="spn_srcChannel" min="-2" max="-2" attributes="0"/>
@@ -65,18 +65,21 @@
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Component id="pnl_chordSymbol" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Component id="pnl_viewer" pref="64" max="32767" attributes="0"/>
+              <Component id="pnl_viewer" pref="177" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="pnl_buttons" min="-2" pref="17" max="-2" attributes="0"/>
+              <Component id="pnl_buttons" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jScrollPane1" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="2" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
   </Layout>
   <SubComponents>
     <Container class="javax.swing.JPanel" name="pnl_viewer">
+      <Properties>
+        <Property name="opaque" type="boolean" value="false"/>
+      </Properties>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout"/>
     </Container>
@@ -97,7 +100,7 @@
             <Property name="columns" type="int" value="20"/>
             <Property name="rows" type="int" value="4"/>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/realtimeviewer/Bundle.properties" key="NotesViewerPanel.helpTextArea1.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/notesviewer/Bundle.properties" key="NotesViewerPanel.helpTextArea1.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
             </Property>
           </Properties>
         </Component>
@@ -141,6 +144,9 @@
       </Properties>
     </Component>
     <Container class="javax.swing.JPanel" name="pnl_buttons">
+      <Properties>
+        <Property name="opaque" type="boolean" value="false"/>
+      </Properties>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
         <Property name="alignment" type="int" value="2"/>

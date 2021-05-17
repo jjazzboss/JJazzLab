@@ -151,7 +151,7 @@ public class PianoKey extends JComponent
         putClientProperty(COLOR_BKEY_LIGHTEST, new Color(55, 55, 55));
         putClientProperty(COLOR_KEY_CONTOUR, new Color(117, 117, 117));
         putClientProperty(COLOR_KEY_CONTOUR_SELECTED, Color.BLUE.brighter());
-        putClientProperty(COLOR_DISABLED_KEY, Color.LIGHT_GRAY);
+        putClientProperty(COLOR_DISABLED_KEY, new Color(70, 70, 70));
 
         showVelocityColor = false;
         pressedWhiteKeyColor = new Color(0, 255, 255);
@@ -639,8 +639,10 @@ public class PianoKey extends JComponent
         {
             repaint();
         }
+        
     }
 
+    
     public void addChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);

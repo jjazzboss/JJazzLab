@@ -32,7 +32,9 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -116,11 +118,12 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     {
         new Color(78, 235, 249), // cyan 
         new Color(254, 142, 39), // light orange
-        new Color(157, 180, 71)  // light green
+        new Color(157, 180, 71), // light green
+        new Color(102, 102, 153), // blue purple
+        new Color(255, 255, 153)  // pale yellow
     };
     private static final Color CHANNEL_COLOR_USER = new Color(192, 115, 243);       // Light purple
     private static Rhythm RHYTHM_ALL;
-    private final WeakHashMap<Rhythm, Color> mapRhythmColor = new WeakHashMap<>();
     private final InstanceContent instanceContent;
     private final Lookup lookup;
     private final Lookup.Result<Song> songLkpResult;
@@ -133,7 +136,6 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     // WeakHashMap for safety/robustness: normally not needed, we remove the song entry upon song closing
     private final WeakHashMap<Song, Rhythm> mapVisibleRhythm;
     private final MixConsoleSettings settings;
-    private int colorIndex;
     private final MenuBar menuBar;
     private SavableSong savableSong;
     private SaveAsCapableSong saveAsCapableSong;
@@ -591,6 +593,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             mcp = createMixChannelPanelForRhythmVoice(mm, channel, rvKey);
         }
         insertMixChannelPanel(channel, mcp);
+        updateChannelColors();
     }
 
     private MixChannelPanel createMixChannelPanelForRhythmVoice(MidiMix mm, int channel, RhythmVoice rv)
@@ -600,15 +603,6 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         MixChannelPanelControllerImpl mcpController = new MixChannelPanelControllerImpl(mm, channel);
         MixChannelPanel mcp = new MixChannelPanel(mcpModel, mcpController, settings);
         Rhythm r = rv.getContainer();
-        Color c = this.mapRhythmColor.get(r);
-        if (c == null)
-        {
-            // Get the color and save it
-            c = CHANNEL_COLORS[colorIndex];
-            colorIndex = (colorIndex == CHANNEL_COLORS.length - 1) ? 0 : colorIndex + 1;
-            mapRhythmColor.put(r, c);
-        }
-        mcp.setChannelColor(c);
         mcp.setChannelName(r.getName(), rv.getName());
         Instrument prefIns = rv.getPreferredInstrument();
         Icon icon;
@@ -688,6 +682,36 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         panel_mixChannels.remove(mcp);
         panel_mixChannels.revalidate();
         panel_mixChannels.repaint();
+        updateChannelColors();
+    }
+
+    /**
+     * Always use the same color for first rhythm in the song, for second, etc.
+     */
+    private void updateChannelColors()
+    {
+        // Prepare the colors
+        int index = 0;
+        Map<Rhythm, Color> mapRhythmColor = new HashMap();
+        for (Rhythm r : songModel.getSongStructure().getUniqueRhythms(true))
+        {
+            Color c = CHANNEL_COLORS[index];
+            mapRhythmColor.put(r, c);
+            index++;
+            if (index > 4)
+            {
+                index = 0;
+            }
+        }
+
+        // Set the colors
+        for (MixChannelPanel mcp : getMixChannelPanels())
+        {
+            int channel = mcp.getModel().getChannelId();
+            Color c = mapRhythmColor.get(songMidiMix.getRhythmVoice(channel).getContainer());
+            mcp.setChannelColor(c);
+        }
+
     }
 
     /**
@@ -908,7 +932,6 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 //                }
 //            }
 //        }
-
         return menuBar;
     }
 

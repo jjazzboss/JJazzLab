@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.realtimeviewer;
+package org.jjazz.notesviewer;
 
 import java.util.logging.Logger;
 import javax.swing.Icon;
@@ -33,8 +33,7 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.keyboardcomponent.KeyboardRange;
 import org.openide.util.lookup.ServiceProvider;
-import org.jjazz.realtimeviewer.spi.NotesViewer;
-import org.jjazz.ui.keyboardcomponent.KeyboardComponent;
+import org.jjazz.notesviewer.spi.NotesViewer;
 
 /**
  * A NotesViewer based on a keyboard.
@@ -50,22 +49,23 @@ public class PianoNotesViewer implements NotesViewer
     private CLI_ChordSymbol cliChordSymbol;
     private StandardScaleInstance scaleInstance;
     private PianoNotesViewerComponent component;
-    private KeyboardComponent keyboard;
     private boolean realTimeNotesEnabled = true;
     private static final Logger LOGGER = Logger.getLogger(NotesViewerPanel.class.getSimpleName());
 
     @Override
     public JComponent getComponent()
     {
-        var c = new PianoNotesViewerComponent();
-        keyboard = c.getKeyboard();
-        return c;
+        if (component == null)
+        {
+            component = new PianoNotesViewerComponent();
+        }
+        return component;
     }
 
     @Override
     public Icon getIcon()
     {
-        return new ImageIcon(getClass().getResource("resources/PianoSize.png"));
+        return new ImageIcon(getClass().getResource("resources/KeyboardIcon.png"));
     }
 
     @Override
@@ -98,7 +98,7 @@ public class PianoNotesViewer implements NotesViewer
     {
         if (realTimeNotesEnabled)
         {
-            keyboard.setPressed(pitch, velocity, null);
+            component.getKeyboard().setPressed(pitch, velocity, null);
         }
     }
 
@@ -107,26 +107,26 @@ public class PianoNotesViewer implements NotesViewer
     {
         if (realTimeNotesEnabled)
         {
-            keyboard.setReleased(pitch);
+            component.getKeyboard().setReleased(pitch);
         }
     }
 
     @Override
     public void releaseAllNotes()
     {
-        keyboard.releaseAllNotes();
+        component.getKeyboard().releaseAllNotes();
     }
 
     @Override
     public void showChordSymbolNotes(CLI_ChordSymbol cliCs)
     {
-        
+
     }
 
     @Override
     public void showScaleNotes(StandardScaleInstance scale)
     {
-        
+
     }
 
     @Override
@@ -138,7 +138,8 @@ public class PianoNotesViewer implements NotesViewer
     @Override
     public void setEnabled(boolean b)
     {
-        
+        getComponent().setEnabled(b);
+        realTimeNotesEnabled = b;
     }
 
     // =================================================================================
@@ -148,9 +149,9 @@ public class PianoNotesViewer implements NotesViewer
     {
         boolean b = realTimeNotesEnabled;
         realTimeNotesEnabled = false;
-        
-        
-        KeyboardRange kbdRange = keyboard.getKeyboardRange();
+
+
+        KeyboardRange kbdRange = component.getKeyboard().getKeyboardRange();
         switch (mode)
         {
             case RealTimeNotes:
@@ -173,9 +174,9 @@ public class PianoNotesViewer implements NotesViewer
                 throw new AssertionError(mode.name());
         }
 
-        keyboard.setKeyboardRange(kbdRange);
+        component.getKeyboard().setKeyboardRange(kbdRange);
 
-        
+
         realTimeNotesEnabled = b;
     }
 

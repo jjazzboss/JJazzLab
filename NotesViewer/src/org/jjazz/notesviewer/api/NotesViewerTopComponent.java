@@ -20,11 +20,11 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.realtimeviewer.api;
+package org.jjazz.notesviewer.api;
 
 import java.util.logging.Logger;
 import org.jjazz.activesong.ActiveSongManager;
-import org.jjazz.realtimeviewer.NotesViewerPanel;
+import org.jjazz.notesviewer.NotesViewerPanel;
 import org.jjazz.song.api.Song;
 import org.jjazz.util.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -37,31 +37,31 @@ import org.openide.windows.WindowManager;
  * Top component which displays something.
  */
 @ConvertAsProperties(
-        dtd = "-//org.jjazz.realtimeviewer//RtViewer//EN",
+        dtd = "-//org.jjazz.notesviewer//NotesViewer//EN",
         autostore = false
 )
 @TopComponent.Description(
-        preferredID = "RtViewerTopComponent",
+        preferredID = "NotesViewerTopComponent",
         //iconBase="SET/PATH/TO/ICON/HERE",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
 @TopComponent.Registration(mode = "jlnavigator", openAtStartup = true)
-@ActionID(category = "Window", id = "org.jjazz.realtimeviewer.RtViewerTopComponent")
+@ActionID(category = "Window", id = "org.jjazz.notesviewer.api.NotesViewerTopComponent")
 @ActionReference(path = "Menu/Window", position = 5, separatorAfter = 7)
 @TopComponent.OpenActionRegistration(
-        displayName = "#CTL_RtViewerAction",
-        preferredID = "RtViewerTopComponent"
+        displayName = "#CTL_NotesViewerAction",
+        preferredID = "NotesViewerTopComponent"
 )
-public final class RtViewerTopComponent extends TopComponent
+public final class NotesViewerTopComponent extends TopComponent
 {
 
-    private static final Logger LOGGER = Logger.getLogger(RtViewerTopComponent.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(NotesViewerTopComponent.class.getSimpleName());
     private NotesViewerPanel viewer;
 
-    public RtViewerTopComponent()
+    public NotesViewerTopComponent()
     {
 
-        setToolTipText(ResUtil.getString(getClass(), "CTL_RtViewerTopComponentDesc"));
+        setToolTipText(ResUtil.getString(getClass(), "CTL_NotesViewerTopComponentDesc"));
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         // putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.TRUE);
 
@@ -92,9 +92,9 @@ public final class RtViewerTopComponent extends TopComponent
      *
      * @return Can be null
      */
-    static public RtViewerTopComponent getInstance()
+    static public NotesViewerTopComponent getInstance()
     {
-        return (RtViewerTopComponent) WindowManager.getDefault().findTopComponent("RtViewerTopComponent");
+        return (NotesViewerTopComponent) WindowManager.getDefault().findTopComponent("RtViewerTopComponent");
     }
 
     /**
@@ -142,7 +142,7 @@ public final class RtViewerTopComponent extends TopComponent
      */
     private void updateTabName(Song song)
     {
-        String tabNameBase = ResUtil.getString(getClass(), "CTL_RtViewerTopComponent");
+        String tabNameBase = ResUtil.getString(getClass(), "CTL_NotesViewerTopComponent");
         setName(tabNameBase + (song == null ? "" : " - " + song.getName()));
     }
 }

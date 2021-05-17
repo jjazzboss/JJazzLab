@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.realtimeviewer;
+package org.jjazz.notesviewer;
 
 import java.awt.Font;
 import java.awt.event.MouseWheelEvent;
@@ -43,7 +43,7 @@ import org.jjazz.musiccontrol.PlaybackListenerAdapter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.uisettings.GeneralUISettings;
-import org.jjazz.realtimeviewer.spi.NotesViewer;
+import org.jjazz.notesviewer.spi.NotesViewer;
 import org.jjazz.ui.flatcomponents.FlatButton;
 import org.openide.util.Lookup;
 
@@ -95,10 +95,10 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
 
 
         // Get the incoming notes to update the keyboard
-        noteListener = new NotesViewerListener();        
+        noteListener = new NotesViewerListener();
         mc.addNoteListener(noteListener);
-        
-                
+
+
         // Initialize the viewers
         setNotesViewer(initViewers());
 
@@ -160,6 +160,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                     case DISABLED:  // Fall down
                     case STOPPED:
                         org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(() -> lbl_chordSymbol.setText(" "));
+                        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(() -> lbl_scale.setText(" "));
                         switchMode(NotesViewer.DisplayMode.HarmonyNotes, null);
                         break;
                     case PAUSED:
@@ -206,6 +207,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             .addGap(0, 100, Short.MAX_VALUE)
         );
 
+        pnl_viewer.setOpaque(false);
         pnl_viewer.setLayout(new javax.swing.BoxLayout(pnl_viewer, javax.swing.BoxLayout.LINE_AXIS));
 
         jScrollPane1.setBorder(null);
@@ -232,6 +234,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         lbl_scale.setFont(lbl_scale.getFont().deriveFont(lbl_scale.getFont().getSize()-1f));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_scale, "Lydian"); // NOI18N
 
+        pnl_buttons.setOpaque(false);
         pnl_buttons.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 3, 0));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -242,7 +245,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(pnl_chordSymbol, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 285, Short.MAX_VALUE)
                     .addComponent(pnl_viewer, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(spn_srcChannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -265,12 +268,12 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pnl_chordSymbol, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pnl_viewer, javax.swing.GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE)
+                .addComponent(pnl_viewer, javax.swing.GroupLayout.DEFAULT_SIZE, 177, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pnl_buttons, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(pnl_buttons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGap(2, 2, 2))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -293,6 +296,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         song = null;
         midiMix = null;
         lbl_chordSymbol.setText(" ");
+        lbl_scale.setText(" ");
 
 
         if (sg != null && mm != null)
@@ -336,7 +340,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     /**
      * Get all the NotesViewers available in the global lookup and add a button for each one.
      *
-     * @return The default one
+     * @return The default NotesViewers
      */
     private NotesViewer initViewers()
     {

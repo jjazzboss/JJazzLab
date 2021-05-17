@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.realtimeviewer.spi;
+package org.jjazz.notesviewer.spi;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -101,7 +101,7 @@ public interface NotesViewer
      * Represent the notes of the specified chord symbol.
      *
      * @param cliCs
-     * @throws IllegalStatException If getMode() is not HarmonyNotes
+     * @throws IllegalStateException If getMode() is not HarmonyNotes
      */
     void showChordSymbolNotes(CLI_ChordSymbol cliCs);
 
@@ -109,7 +109,7 @@ public interface NotesViewer
      * Represent the notes of the specified scale.
      *
      * @param scale
-     * @throws IllegalStatException If getMode() is not HarmonyNotes
+     * @throws IllegalStateException If getMode() is not HarmonyNotes
      */
     void showScaleNotes(StandardScaleInstance scale);
 
