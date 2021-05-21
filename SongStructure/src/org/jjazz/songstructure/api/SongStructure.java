@@ -52,7 +52,7 @@ public interface SongStructure
      * Return the list of unique rhythms used in this SongStructure.
      *
      * @param excludeAdaptedRhythms
-     * @return
+     * @return The list of rhythms, in the order they are used in the song.
      */
     default public List<Rhythm> getUniqueRhythms(boolean excludeAdaptedRhythms)
     {
@@ -201,7 +201,6 @@ public interface SongStructure
      */
     public Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem);
 
-
     /**
      * Check if add operation is doable.
      * <p>
@@ -226,7 +225,6 @@ public interface SongStructure
      * @throws UnsupportedEditException Exception is thrown before any change is done. See authorizeAddSongParts().
      */
     public void addSongParts(List<SongPart> spts) throws UnsupportedEditException;
-
 
     /**
      * Check if remove operation is doable.
@@ -256,7 +254,6 @@ public interface SongStructure
      * @param mapSptSize A map which associates a SongPart and the new desired size.
      */
     public void resizeSongParts(SmallMap<SongPart, Integer> mapSptSize);
-
 
     /**
      * Check if replace operation is doable.

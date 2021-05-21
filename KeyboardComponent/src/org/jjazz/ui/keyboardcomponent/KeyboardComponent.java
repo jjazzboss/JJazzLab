@@ -29,6 +29,7 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -72,7 +73,7 @@ public class KeyboardComponent extends JPanel
         return "Keyboard[" + keyboardRange + "]";
     }
 
-    public KeyboardRange getKeyboardRange()
+    public KeyboardRange getRange()
     {
         return keyboardRange;
     }
@@ -80,8 +81,8 @@ public class KeyboardComponent extends JPanel
     /**
      * Set the keyboard size.
      * <p>
-     * All notes are released. New PianoKeys are created. This updates also the preferred and minimum size. Caller must
-     * synchronize this method if other threads update this keyboard in parallel.
+     * New PianoKeys are created. Pressed/marked notes are maintained. This updates also the preferred and minimum size. Caller
+     * must synchronize this method if other threads update this keyboard in parallel.
      *
      * @param kbdRange
      */
@@ -97,7 +98,27 @@ public class KeyboardComponent extends JPanel
             return;
         }
 
-        releaseAllNotes();
+        // Save state
+        HashMap<Integer, Color> pressedColors = new HashMap<>();
+        HashMap<Integer, Integer> pressedVelocities = new HashMap<>();
+        HashMap<Integer, Color> markedColors = new HashMap<>();
+        pianoKeys.forEach(pk ->
+        {
+            int pitch = pk.getPitch();
+            if (pk.isPressed())
+            {
+                pressedColors.put(pitch, pk.getPressedWhiteKeyColor());
+                pressedVelocities.put(pitch, pk.getVelocity());
+            }
+            Color mColor = pk.getMarkedColor();
+            if (mColor != null)
+            {
+                markedColors.put(pitch, mColor);
+            }
+        });
+
+
+        // Update keys
         keyboardRange = kbdRange;
 
         pianoKeys.forEach(pk -> remove(pk));
@@ -110,6 +131,14 @@ public class KeyboardComponent extends JPanel
             PianoKey key = new PianoKey(i, leftmost, rightmost);
             pianoKeys.add(key);
             add(key);
+
+            // Restore state
+            Color c = pressedColors.get(i);
+            if (c != null)
+            {
+                key.setPressed(pressedVelocities.get(i), c);
+            }
+            key.setMarked(markedColors.get(i));
         }
 
         // Set preferred size
@@ -118,7 +147,7 @@ public class KeyboardComponent extends JPanel
         setPreferredSize(new Dimension(w, PianoKey.WH));
 
         // Set minimum size
-        setMinimumSize(new Dimension(getKeyboardRange().getNbWhiteKeys() * PianoKey.WW_MIN, PianoKey.WH_MIN));
+        setMinimumSize(new Dimension(getRange().getNbWhiteKeys() * PianoKey.WW_MIN, PianoKey.WH_MIN));
 
 
         revalidate();
@@ -168,11 +197,28 @@ public class KeyboardComponent extends JPanel
     }
 
     /**
-     * Set all keys unpressed.
+     * Set all keys unpressed, remove all marks.
      */
-    public void releaseAllNotes()
+    public void reset()
     {
-        pianoKeys.forEach(pk -> pk.setPressed(0));
+        pianoKeys.forEach(pk ->
+        {
+            pk.setReleased();
+            pk.setMarked(null);
+        });
+    }
+
+    /**
+     * Release the specified key.
+     *
+     * @param pitch
+     */
+    public void setReleased(int pitch)
+    {
+        if (keyboardRange.isValid(pitch))
+        {
+            getPianoKey(pitch).setReleased();
+        }
     }
 
     /**
@@ -181,13 +227,14 @@ public class KeyboardComponent extends JPanel
      * Method just delegates to setVelocity() of the relevant PianoKey. Do nothing if pitch is not valid for this KeyboardRange.
      *
      * @param pitch
-     * @param velocity If 0 it means the key must be released.
+     * @param velocity If 0 equivalent to calling setReleased()
+     * @param pressedKeyColor The pressed key color to be used. If null use default color.
      */
-    public void setPressed(int pitch, int velocity)
+    public void setPressed(int pitch, int velocity, Color pressedKeyColor)
     {
         if (keyboardRange.isValid(pitch))
         {
-            getPianoKey(pitch).setPressed(velocity);
+            getPianoKey(pitch).setPressed(velocity, pressedKeyColor);
         }
     }
 
@@ -225,7 +272,7 @@ public class KeyboardComponent extends JPanel
         }
         return null;
     }
- 
+
     /**
      * Layout the keys to fit the size.
      * <p>

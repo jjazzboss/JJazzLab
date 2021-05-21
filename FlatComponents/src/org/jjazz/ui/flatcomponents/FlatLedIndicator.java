@@ -29,65 +29,45 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.Shape;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Ellipse2D;
+import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.Timer;
-import org.jjazz.ui.utilities.HSLColor;
 
 /**
  * A simple activity indicator.
  * <p>
- * Use showActivity() to indicate activity. The more often it is used, the brightest the color.
+ * Call showActivity() to indicate activity on the led: led color goes from colorMin (minimum activity) to colorMax.<p>
+ * Color transition is done by first filling the led with colorMin, then overwriting it with colorMax with the transparency
+ * (alpha) channel set. When showActivity() is called, colorMax alpha channel is increased by getAlphaStepActivity(). Every
+ * DECAY_TIME_MS, colorMax alpha channel is decreased by getAlphaStepDecay().
  * <p>
- * Foreground color is used to draw the contour of the indicator, colorFill to fill the circle.<p>
- * Luminance of the fill color is modified with EventReceivedLuminanceStep (brighter) when an event is received.<br>
- * Luminance of the fill color is modified with OnePeriodLuminanceStep (whiter) every 50ms.<br>
  */
-public class FlatLedIndicator extends JComponent implements ActionListener, MouseListener
+public class FlatLedIndicator extends JComponent implements MouseListener
 {
 
-    /**
-     * The diameter of the indicator.
-     */
+    public final static int DECAY_TIME_MS = 75;
     private int diameter;
-    /**
-     * The fill color. Luminance will be adjusted depending on the received events.
-     */
-    private Color colorFill;
-    /**
-     * 0-100. Used when no events (whiter color).
-     */
-    private int luminanceNoEvent;
-    /**
-     * 0-100. Used when many events are received (brighter color).
-     */
-    private int luminanceMaxEvents;
-    /**
-     * Decay time in milliseconds
-     */
-    private final int decayTime;
+    private Color colorMin, colorMax;
+    private int alphaStepDecay, alphaStepActivity;
+
     private final Timer timer;
-    private int luminance;
-    private int luminanceStepEventReceived;
-    private int luminanceStepOnePeriod;
-    private HSLColor hslFillColor;
+    private int alphaColorMax;
+    private static final Logger LOGGER = Logger.getLogger(FlatLedIndicator.class.getSimpleName());
 
     public FlatLedIndicator()
     {
-        setLuminanceNoEvent(100);
-        setLuminanceMaxEvents(50);
-        setColorFill(Color.RED);
-        setLuminanceStepOnePeriod(5);
-        setLuminanceStepEventReceived(-20);
+        alphaColorMax = 0;  // Fully transparent
+        setColorMax(Color.RED);
+        setColorMin(Color.LIGHT_GRAY);
+        setAlphaStepActivity(40);
+        setAlphaStepDecay(20);
         setDiameter(11);
 
-        luminance = getLuminanceNoEvent();
-        decayTime = 75;         // ms
-        timer = new Timer(decayTime, this);
+        timer = new Timer(DECAY_TIME_MS, evt -> timerElapsed());
 
         // addMouseListener(this);     // For test only
     }
@@ -96,122 +76,112 @@ public class FlatLedIndicator extends JComponent implements ActionListener, Mous
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g); // Honor the opaque property
+
+
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         Insets in = getInsets();
+
+
         double width = getWidth() - in.left - in.right;
         double height = getHeight() - in.top - in.bottom;
         double xCenter = in.left + width / 2;
         double yCenter = in.top + height / 2;
         double radius = diameter / 2d;
-        int boundedLuminance = Math.min(luminance, getLuminanceNoEvent());
-        boundedLuminance = Math.max(boundedLuminance, getLuminanceMaxEvents());
-        g2.setColor(hslFillColor.adjustLuminance(boundedLuminance));
-        g2.fill(new Ellipse2D.Double(xCenter - radius, yCenter - radius, diameter, diameter));
-        g2.setColor(getForeground());
-        g2.setStroke(new BasicStroke(1));
-        g2.draw(new Ellipse2D.Double(xCenter - radius, yCenter - radius, diameter, diameter));
+
+
+        Shape shape = new Ellipse2D.Double(xCenter - radius, yCenter - radius, diameter, diameter);
+        g2.setColor(colorMin);
+        g2.fill(shape);
+        g2.setColor(new Color(colorMax.getRed(), colorMax.getGreen(), colorMax.getBlue(), alphaColorMax));
+        // If alpha==0, colorMax is transparent and we see colorMin
+        g2.fill(shape);     
     }
 
     /**
-     * Send an "activity event", luminance goes one step down.
+     * Send an "activity event".
      */
     public synchronized void showActivity()
     {
-        luminance += getLuminanceStepEventReceived();
-        luminance = Math.max(luminance, getLuminanceMaxEvents());
+        alphaColorMax += getAlphaStepActivity();
+        alphaColorMax = Math.min(alphaColorMax, 255);
         timer.start();
         repaint();
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e)
+    /**
+     * The color to show maximal activity.
+     *
+     * @return the colorMax
+     */
+    public Color getColorMax()
     {
-        if (luminance < getLuminanceNoEvent())
-        {
-            luminance += getLuminanceStepOnePeriod();
-            luminance = Math.min(getLuminanceNoEvent(), luminance);
-        } else
-        {
-            timer.stop();
-        }
-        repaint();
-    }
-
-    public int getLuminanceMaxEvents()
-    {
-        return luminanceMaxEvents;
+        return colorMax;
     }
 
     /**
-     * @param luminanceMaxEvents The minimum allowed luminance percentage (the lower the value the darker the color)
+     * @param colorMax the colorMax to set
      */
-    public final void setLuminanceMaxEvents(int luminanceMaxEvents)
+    public final void setColorMax(Color colorMax)
     {
-        this.luminanceMaxEvents = luminanceMaxEvents;
-    }
-
-    public int getLuminanceNoEvent()
-    {
-        return luminanceNoEvent;
-    }
-
-    /**
-     * @param luminanceNoEvent The maximum allowed luminance percentage (the higher the value the whiter the color)
-     */
-    public final void setLuminanceNoEvent(int luminanceNoEvent)
-    {
-        this.luminanceNoEvent = luminanceNoEvent;
-    }
-
-    /**
-     * @return the colorFill
-     */
-    public Color getColorFill()
-    {
-        return colorFill;
-    }
-
-    /**
-     * @param colorFill the colorFill to set
-     */
-    public final void setColorFill(Color colorFill)
-    {
-        this.colorFill = colorFill;
-        hslFillColor = new HSLColor(this.colorFill);
+        this.colorMax = colorMax;
         repaint();
     }
 
     /**
-     * @return the EventReceivedLuminanceStep
+     * The color to show minimal activity.
+     *
+     * @return the colorMin
      */
-    public int getLuminanceStepEventReceived()
+    public Color getColorMin()
     {
-        return luminanceStepEventReceived;
+        return colorMin;
     }
 
     /**
-     * @param step the EventReceivedLuminanceStep as a percentage change.
+     * @param colorMin the colorMin to set
      */
-    public final void setLuminanceStepEventReceived(int step)
+    public final void setColorMin(Color colorMin)
     {
-        this.luminanceStepEventReceived = step;
+        this.colorMin = colorMin;
+        repaint();
     }
 
     /**
-     * @return the OnePeriodLuminanceStep
+     *
+     * @return the alphaStepDecay
      */
-    public int getLuminanceStepOnePeriod()
+    public int getAlphaStepDecay()
     {
-        return luminanceStepOnePeriod;
+        return alphaStepDecay;
     }
 
     /**
-     * @param OnePeriodLuminanceStep the OnePeriodLuminanceStep as a percentage change.
+     * Every DECAY_TIME_MS, the alpha channel of colorMax is decreased by alphaStepDecay.
+     *
+     * @param alphaStepDecay the alphaStepDecay to set
      */
-    public final void setLuminanceStepOnePeriod(int OnePeriodLuminanceStep)
+    public final void setAlphaStepDecay(int alphaStepDecay)
     {
-        this.luminanceStepOnePeriod = OnePeriodLuminanceStep;
+        this.alphaStepDecay = alphaStepDecay;
+    }
+
+    /**
+     * @return the alphaStepActivity
+     */
+    public int getAlphaStepActivity()
+    {
+        return alphaStepActivity;
+    }
+
+    /**
+     * Each time showActivity() is called, the alpha channel of colorMax is increased by alphaStepActivity.
+     *
+     * @param alphaStepActivity the alphaStepActivity to set
+     */
+    public final void setAlphaStepActivity(int alphaStepActivity)
+    {
+        this.alphaStepActivity = alphaStepActivity;
     }
 
     /**
@@ -278,6 +248,22 @@ public class FlatLedIndicator extends JComponent implements ActionListener, Mous
     public Dimension getMinimumSize()
     {
         return getPreferredSize();
+    }
+
+    // =================================================================================
+    // Private methods
+    // =================================================================================
+    private void timerElapsed()
+    {
+        if (alphaColorMax > 0)
+        {
+            alphaColorMax -= getAlphaStepDecay();
+            alphaColorMax = Math.max(alphaColorMax, 0);
+        } else
+        {
+            timer.stop();
+        }
+        repaint();
     }
 
 }

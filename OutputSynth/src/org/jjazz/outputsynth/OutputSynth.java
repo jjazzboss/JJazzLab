@@ -110,7 +110,7 @@ public class OutputSynth implements Serializable
         remapTable.setContainer(this);
         userInstrument = StdSynth.getInstance().getGM1Bank().getInstrument(0);  // Piano
         sendModeOnUponPlay = SendModeOnUponStartup.GM;
-        audioLatency = 0;    // ms
+        audioLatency = 150;    // ms
     }
 
     /**

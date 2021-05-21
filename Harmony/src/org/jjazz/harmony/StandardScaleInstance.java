@@ -26,9 +26,12 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * A standard scale (e.g. Mixolydian) with a start note (e.g. Eb).
@@ -80,6 +83,11 @@ public class StandardScaleInstance implements Serializable
     public List<Note> getNotes()
     {
         return getScale().getNotes(startNote);
+    }
+
+    public Set<Integer> getRelativePitches()
+    {
+        return getNotes().stream().map(n -> n.getRelativePitch()).collect(Collectors.toSet());
     }
 
     /**

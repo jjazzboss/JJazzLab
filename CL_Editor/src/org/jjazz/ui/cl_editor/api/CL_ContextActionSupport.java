@@ -86,7 +86,7 @@ public class CL_ContextActionSupport implements ClsChangeListener
         return o;
     }
 
-    private CL_ContextActionSupport(Lookup context)
+    public CL_ContextActionSupport(Lookup context)
     {
         if (context == null)
         {
