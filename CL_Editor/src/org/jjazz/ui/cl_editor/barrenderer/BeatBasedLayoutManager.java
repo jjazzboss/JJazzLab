@@ -26,10 +26,10 @@ import org.jjazz.ui.cl_editor.barrenderer.api.BeatBasedBarRenderer;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRenderer;
 import java.awt.*;
 import java.util.logging.Logger;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.quantizer.Quantizer;
-import org.jjazz.quantizer.Quantization;
+import org.jjazz.quantizer.api.Quantizer;
+import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 
 /**

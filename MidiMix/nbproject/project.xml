@@ -145,7 +145,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.midimix</package>
+                <package>org.jjazz.midimix.api</package>
                 <package>org.jjazz.midimix.spi</package>
             </public-packages>
         </data>

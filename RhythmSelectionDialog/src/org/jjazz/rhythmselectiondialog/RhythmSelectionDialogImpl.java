@@ -24,7 +24,7 @@ package org.jjazz.rhythmselectiondialog;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
-import org.jjazz.rhythmselectiondialog.ui.RhythmProviderList;
+import org.jjazz.rhythmselectiondialog.api.RhythmProviderList;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -57,8 +57,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.RhythmInfo;
@@ -66,12 +66,12 @@ import org.jjazz.rhythm.database.api.FavoriteRhythms;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
-import org.jjazz.rhythmselectiondialog.ui.RhythmTable;
+import org.jjazz.rhythmselectiondialog.api.RhythmTable;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
-import org.jjazz.ui.utilities.Utilities;
-import org.jjazz.util.MultipleErrorsReport;
-import org.jjazz.util.MultipleErrorsReportDialog;
-import org.jjazz.util.ResUtil;
+import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.util.api.MultipleErrorsReport;
+import org.jjazz.util.api.MultipleErrorsReportDialog;
+import org.jjazz.util.api.ResUtil;
 import org.openide.*;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
@@ -490,7 +490,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         for (File f : chooser.getSelectedFiles())
         {
             lastRhythmDir = f.getParentFile();
-            String ext = org.jjazz.util.Utilities.getExtension(f.getName()).toLowerCase();
+            String ext = org.jjazz.util.api.Utilities.getExtension(f.getName()).toLowerCase();
             Rhythm r = null;
             for (RhythmProvider rp : rps)
             {
@@ -703,9 +703,9 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         btn_clearFilter = new javax.swing.JButton();
         lbl_timeSignature = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
         btn_addRhythms = new javax.swing.JButton();
-        fbtn_autoPreviewMode = new org.jjazz.ui.flatcomponents.FlatToggleButton();
+        fbtn_autoPreviewMode = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         lbl_Title = new javax.swing.JLabel();
         cb_applyRhythmToNextSpts = new javax.swing.JCheckBox();
         cb_useRhythmTempo = new javax.swing.JCheckBox();
@@ -992,8 +992,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     private javax.swing.JButton btn_clearFilter;
     private javax.swing.JCheckBox cb_applyRhythmToNextSpts;
     private javax.swing.JCheckBox cb_useRhythmTempo;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_autoPreviewMode;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_autoPreviewMode;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;

@@ -52,7 +52,7 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.jjazz.rhythm.api.RpEnumerable;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.adjustrpvalues")

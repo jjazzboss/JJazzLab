@@ -9,7 +9,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="org.jjazz.midi.ui.MidiInDeviceList" name="midiInDeviceList1">
+        <Component class="org.jjazz.midi.api.ui.MidiInDeviceList" name="midiInDeviceList1">
         </Component>
       </SubComponents>
     </Container>
@@ -232,7 +232,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="org.jjazz.midi.ui.MidiOutDeviceList" name="list_OutDevices">
+        <Component class="org.jjazz.midi.api.ui.MidiOutDeviceList" name="list_OutDevices">
           <Events>
             <EventHandler event="valueChanged" listener="javax.swing.event.ListSelectionListener" parameters="javax.swing.event.ListSelectionEvent" handler="list_OutDevicesValueChanged"/>
           </Events>
@@ -252,7 +252,7 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_refreshActionPerformed"/>
       </Events>
     </Component>
-    <Component class="org.jjazz.ui.utilities.WheelSpinner" name="spn_preferredUserChannel">
+    <Component class="org.jjazz.ui.utilities.api.WheelSpinner" name="spn_preferredUserChannel">
       <Properties>
         <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
           <SpinnerModel initial="1" maximum="16" minimum="1" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -289,7 +289,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="org.jjazz.midi.ui.MidiInDeviceList" name="list_InDevices">
+        <Component class="org.jjazz.midi.api.ui.MidiInDeviceList" name="list_InDevices">
           <Events>
             <EventHandler event="valueChanged" listener="javax.swing.event.ListSelectionListener" parameters="javax.swing.event.ListSelectionEvent" handler="list_InDevicesValueChanged"/>
           </Events>

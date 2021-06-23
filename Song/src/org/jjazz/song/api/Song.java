@@ -46,7 +46,7 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -61,7 +61,7 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.undomanager.SimpleEdit;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 

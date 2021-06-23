@@ -22,17 +22,17 @@
  */
 package org.jjazz.ui.mixconsole.actions;
 
-import org.jjazz.midimix.MidiMix;
+import org.jjazz.midimix.api.MidiMix;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
-import org.jjazz.activesong.ActiveSongManager;
-import org.jjazz.midi.InstrumentMix;
+import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.ui.mixconsole.api.MixConsole;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;

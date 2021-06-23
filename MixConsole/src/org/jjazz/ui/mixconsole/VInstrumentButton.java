@@ -22,8 +22,8 @@
  */
 package org.jjazz.ui.mixconsole;
 
-import org.jjazz.ui.flatcomponents.FlatButton;
-import org.jjazz.ui.utilities.VTextIcon;
+import org.jjazz.ui.flatcomponents.api.FlatButton;
+import org.jjazz.ui.utilities.api.VTextIcon;
 
 /**
  * A flat button with vertical text (rotated on the left)

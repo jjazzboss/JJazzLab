@@ -203,7 +203,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="org.jjazz.midi.ui.InstrumentTable" name="tbl_Instruments">
+        <Component class="org.jjazz.midi.api.ui.InstrumentTable" name="tbl_Instruments">
         </Component>
       </SubComponents>
     </Container>

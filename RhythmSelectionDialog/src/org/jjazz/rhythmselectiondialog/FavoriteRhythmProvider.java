@@ -26,14 +26,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.FavoriteRhythms;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.spi.RhythmProvider;
-import org.jjazz.util.MultipleErrorsReport;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.MultipleErrorsReport;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * A "fake" RhythmProvider instance which provides the favorite rhythms from FavoriteRhythms for UI purposes.

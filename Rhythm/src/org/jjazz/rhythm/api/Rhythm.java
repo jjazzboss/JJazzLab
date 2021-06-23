@@ -25,7 +25,7 @@ package org.jjazz.rhythm.api;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.List;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 
 /**
  * A rhythm descriptor.

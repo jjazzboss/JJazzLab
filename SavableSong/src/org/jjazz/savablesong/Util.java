@@ -27,14 +27,14 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.MidiMixManager;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixManager;
 import static org.jjazz.savablesong.SavableSong.SAVE_CODE_ERROR_SONGFILE;
 import static org.jjazz.savablesong.SavableSong.SAVE_CODE_ERROR_SONGMIX;
 import static org.jjazz.savablesong.SavableSong.SAVE_CODE_OK;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.utilities.Utilities;
+import org.jjazz.ui.utilities.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.windows.WindowManager;
@@ -80,7 +80,7 @@ class Util
             String songName = songFile.getName();
 
             // Add file extension if required
-            if (!org.jjazz.util.Utilities.endsWithIgnoreCase(songName, "." + FileDirectoryManager.SONG_EXTENSION))
+            if (!org.jjazz.util.api.Utilities.endsWithIgnoreCase(songName, "." + FileDirectoryManager.SONG_EXTENSION))
             {
                 songFile = new File(songFile.getParent(), songName + "." + FileDirectoryManager.SONG_EXTENSION);
             }
@@ -172,7 +172,7 @@ class Util
         {
             // This is the first save of the song, build the file name from song name + add extension if not already present
             String defaultName = song.getName().replace(" ", "");
-            if (!org.jjazz.util.Utilities.endsWithIgnoreCase(defaultName, "." + FileDirectoryManager.SONG_EXTENSION))
+            if (!org.jjazz.util.api.Utilities.endsWithIgnoreCase(defaultName, "." + FileDirectoryManager.SONG_EXTENSION))
             {
                 defaultName += "." + FileDirectoryManager.SONG_EXTENSION;
             }

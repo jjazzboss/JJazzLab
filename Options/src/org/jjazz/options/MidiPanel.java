@@ -38,15 +38,15 @@ import javax.swing.JFileChooser;
 import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.harmony.Note;
-import org.jjazz.midi.MidiConst;
-import org.jjazz.midi.JJazzMidiSystem;
-import org.jjazz.midimix.UserChannelRvKey;
-import org.jjazz.musiccontrol.TestPlayer;
+import org.jjazz.harmony.api.Note;
+import org.jjazz.midi.api.MidiConst;
+import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.midimix.api.UserChannelRvKey;
+import org.jjazz.musiccontrol.api.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.ui.musiccontrolactions.RemoteController;
 import org.jjazz.uisettings.GeneralUISettings;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.openide.*;
 import org.openide.windows.WindowManager;
 
@@ -131,7 +131,7 @@ final class MidiPanel extends javax.swing.JPanel
 
         // Soundbank enabled only if Out device is a synth
         boolean b = (saveOutDevice instanceof Synthesizer);
-        org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, pnl_soundbankFile);
+        org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, pnl_soundbankFile);
         updateSoundbankText();
         
         spn_preferredUserChannel.setValue(UserChannelRvKey.getInstance().getPreferredUserChannel() + 1);
@@ -248,7 +248,7 @@ final class MidiPanel extends javax.swing.JPanel
     {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        midiInDeviceList1 = new org.jjazz.midi.ui.MidiInDeviceList();
+        midiInDeviceList1 = new org.jjazz.midi.api.ui.MidiInDeviceList();
         lbl_OutDevices = new javax.swing.JLabel();
         cb_midiThru = new javax.swing.JCheckBox();
         lbl_InDevices = new javax.swing.JLabel();
@@ -258,13 +258,13 @@ final class MidiPanel extends javax.swing.JPanel
         btn_changeSoundbankFile = new javax.swing.JButton();
         btn_resetSoundbank = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
-        list_OutDevices = new org.jjazz.midi.ui.MidiOutDeviceList();
+        list_OutDevices = new org.jjazz.midi.api.ui.MidiOutDeviceList();
         btn_refresh = new javax.swing.JButton();
-        spn_preferredUserChannel = new org.jjazz.ui.utilities.WheelSpinner();
+        spn_preferredUserChannel = new org.jjazz.ui.utilities.api.WheelSpinner();
         lbl_preferredUserChannel = new javax.swing.JLabel();
         btn_refreshIn = new javax.swing.JButton();
         jScrollPane4 = new javax.swing.JScrollPane();
-        list_InDevices = new org.jjazz.midi.ui.MidiInDeviceList();
+        list_InDevices = new org.jjazz.midi.api.ui.MidiInDeviceList();
         pnl_remoteControl = new javax.swing.JPanel();
         cb_enableRemoteControl = new javax.swing.JCheckBox();
         cmb_startPauseNote = new javax.swing.JComboBox<>();
@@ -545,7 +545,7 @@ final class MidiPanel extends javax.swing.JPanel
    private void btn_changeSoundbankFileActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_changeSoundbankFileActionPerformed
    {//GEN-HEADEREND:event_btn_changeSoundbankFileActionPerformed
        JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-       JFileChooser chooser = org.jjazz.ui.utilities.Utilities.getFileChooserInstance();
+       JFileChooser chooser = org.jjazz.ui.utilities.api.Utilities.getFileChooserInstance();
        FileNameExtensionFilter filter = new FileNameExtensionFilter(".sf2, .dls files ", "sf2", "dls", "SF2", "DLS");
        chooser.resetChoosableFileFilters();
        chooser.setMultiSelectionEnabled(false);
@@ -602,7 +602,7 @@ final class MidiPanel extends javax.swing.JPanel
         MidiDevice md = list_OutDevices.getSelectedValue();
         btn_test.setEnabled(md != null);
         boolean b = (md instanceof Synthesizer);
-        org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, pnl_soundbankFile);
+        org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, pnl_soundbankFile);
         controller.applyChanges();
         controller.changed();
     }//GEN-LAST:event_list_OutDevicesValueChanged
@@ -686,12 +686,12 @@ final class MidiPanel extends javax.swing.JPanel
     private javax.swing.JLabel lbl_preferredUserChannel;
     private javax.swing.JLabel lbl_startPause;
     private javax.swing.JLabel lbl_stop;
-    private org.jjazz.midi.ui.MidiInDeviceList list_InDevices;
-    private org.jjazz.midi.ui.MidiOutDeviceList list_OutDevices;
-    private org.jjazz.midi.ui.MidiInDeviceList midiInDeviceList1;
+    private org.jjazz.midi.api.ui.MidiInDeviceList list_InDevices;
+    private org.jjazz.midi.api.ui.MidiOutDeviceList list_OutDevices;
+    private org.jjazz.midi.api.ui.MidiInDeviceList midiInDeviceList1;
     private javax.swing.JPanel pnl_remoteControl;
     private javax.swing.JPanel pnl_soundbankFile;
-    private org.jjazz.ui.utilities.WheelSpinner spn_preferredUserChannel;
+    private org.jjazz.ui.utilities.api.WheelSpinner spn_preferredUserChannel;
     private javax.swing.JTextField txtf_soundbankFile;
     // End of variables declaration//GEN-END:variables
 
@@ -735,7 +735,7 @@ final class MidiPanel extends javax.swing.JPanel
     
     private void enableRemoteControlUI(boolean b)
     {
-        org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, pnl_remoteControl);
+        org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, pnl_remoteControl);
         if (b)
         {
             cb_enableRemoteControlActionPerformed(null);

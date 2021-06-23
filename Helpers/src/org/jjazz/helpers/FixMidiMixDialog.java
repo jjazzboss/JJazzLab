@@ -27,10 +27,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midimix.MidiMix;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.openide.windows.WindowManager;
 
 /**

@@ -22,8 +22,8 @@
  */
 package org.jjazz.rhythm.database;
 
-import org.jjazz.util.MultipleErrorsReportDialog;
-import org.jjazz.ui.utilities.PleaseWaitDialog;
+import org.jjazz.util.api.MultipleErrorsReportDialog;
+import org.jjazz.ui.utilities.api.PleaseWaitDialog;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -44,21 +44,21 @@ import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
-import org.jjazz.util.MultipleErrorsReport;
+import org.jjazz.util.api.MultipleErrorsReport;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
-import org.jjazz.util.ResUtil;
-import org.jjazz.util.Utilities;
+import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.Lookup;
 import org.netbeans.api.progress.ProgressHandle;

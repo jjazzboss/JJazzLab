@@ -34,7 +34,7 @@ import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 
 //@ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.showhiderps")
 //@ActionRegistration(displayName = "#CTL_ShowHideRp", lazy=false) // lazy=false to have the tooltip defined

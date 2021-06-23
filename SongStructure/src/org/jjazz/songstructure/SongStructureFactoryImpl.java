@@ -25,7 +25,7 @@ package org.jjazz.songstructure;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;

@@ -36,10 +36,10 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.SwingUtilities;
-import org.jjazz.activesong.ActiveSongManager;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.MidiMixManager;
+import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.api.SongFactory;
@@ -215,15 +215,15 @@ public class SongEditorManager implements PropertyChangeListener
         Runnable openLinksTask = () ->
         {
             // Open possible links
-            for (URL url : org.jjazz.util.Utilities.extractHttpURLs(song.getComments()))
+            for (URL url : org.jjazz.util.api.Utilities.extractHttpURLs(song.getComments()))
             {
                 LOGGER.info("showSong() song=" + song.getName() + " opening song memo internet link: " + url);
-                org.jjazz.util.Utilities.openInBrowser(url, true);         // No user notifying
+                org.jjazz.util.api.Utilities.openInBrowser(url, true);         // No user notifying
             }
-            for (File file : org.jjazz.util.Utilities.extractFileURLsAsFiles(song.getComments()))
+            for (File file : org.jjazz.util.api.Utilities.extractFileURLsAsFiles(song.getComments()))
             {
                 LOGGER.info("showSong() song=" + song.getName() + " opening song memo file link: " + file);
-                org.jjazz.util.Utilities.openFile(file, true);              // No user notifying
+                org.jjazz.util.api.Utilities.openFile(file, true);              // No user notifying
             }
         };
         if (makeActive)

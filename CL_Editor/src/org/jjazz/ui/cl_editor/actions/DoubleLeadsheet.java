@@ -29,7 +29,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongUtils;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;

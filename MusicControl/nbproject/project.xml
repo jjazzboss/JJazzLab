@@ -137,7 +137,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.musiccontrol</package>
+                <package>org.jjazz.musiccontrol.api</package>
             </public-packages>
         </data>
     </configuration>

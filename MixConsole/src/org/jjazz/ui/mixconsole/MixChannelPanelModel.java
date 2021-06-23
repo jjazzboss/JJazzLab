@@ -24,7 +24,7 @@ package org.jjazz.ui.mixconsole;
 
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
-import org.jjazz.midi.Instrument;
+import org.jjazz.midi.api.Instrument;
 
 /**
  * Model of a MixChannelPanel + controller.

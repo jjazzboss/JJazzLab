@@ -22,7 +22,7 @@
  */
 package org.jjazz.ui.mixconsole.actions;
 
-import org.jjazz.midimix.MidiMix;
+import org.jjazz.midimix.api.MidiMix;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -31,7 +31,7 @@ import org.jjazz.analytics.api.Analytics;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;

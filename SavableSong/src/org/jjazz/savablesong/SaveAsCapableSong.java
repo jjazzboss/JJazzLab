@@ -25,12 +25,12 @@ package org.jjazz.savablesong;
 import java.io.File;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
-import org.jjazz.base.actions.SaveAsCapable;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.MidiMixManager;
+import org.jjazz.base.actions.api.SaveAsCapable;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixManager;
 import static org.jjazz.savablesong.SavableSong.SAVE_CODE_CANCEL;
 import org.jjazz.song.api.Song;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.Exceptions;
 

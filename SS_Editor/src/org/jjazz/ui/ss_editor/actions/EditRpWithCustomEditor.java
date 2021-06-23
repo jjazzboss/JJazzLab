@@ -44,7 +44,7 @@ import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
 import org.jjazz.rpcustomeditor.api.RpCustomEditDialog;

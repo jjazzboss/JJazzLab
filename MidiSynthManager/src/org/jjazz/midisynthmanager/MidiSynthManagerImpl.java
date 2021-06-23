@@ -36,15 +36,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.midi.MidiSynth;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.spi.MidiSynthFileReader;
-import org.jjazz.midi.synths.GSSynth;
-import org.jjazz.midi.synths.StdSynth;
+import org.jjazz.midi.api.synths.GSSynth;
+import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.startup.spi.StartupTask;
 import org.jjazz.upgrade.UpgradeManager;
-import org.jjazz.util.ResUtil;
-import org.jjazz.util.Utilities;
+import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.*;
 import org.openide.util.Lookup;
@@ -166,7 +166,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
         ArrayList<MidiSynth> res = new ArrayList<>();
 
         // Process file
-        String ext = org.jjazz.util.Utilities.getExtension(synthFile.getName());
+        String ext = org.jjazz.util.api.Utilities.getExtension(synthFile.getName());
         MidiSynthFileReader reader = MidiSynthFileReader.Util.getReader(ext.toLowerCase());
         if (reader == null)
         {
@@ -229,7 +229,7 @@ public class MidiSynthManagerImpl implements MidiSynthManager
         }
 
         // Initialize the file chooser
-        JFileChooser chooser = org.jjazz.ui.utilities.Utilities.getFileChooserInstance();
+        JFileChooser chooser = org.jjazz.ui.utilities.api.Utilities.getFileChooserInstance();
         chooser.resetChoosableFileFilters();
         for (FileNameExtensionFilter filter : allFilters)
         {

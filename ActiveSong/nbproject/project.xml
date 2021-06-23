@@ -97,7 +97,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.activesong</package>
+                <package>org.jjazz.activesong.api</package>
             </public-packages>
         </data>
     </configuration>

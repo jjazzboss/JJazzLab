@@ -26,7 +26,7 @@ import java.util.List;
 import javax.swing.Action;
 import javax.swing.Box.Filler;
 import javax.swing.JToolBar;
-import org.jjazz.ui.flatcomponents.FlatButton;
+import org.jjazz.ui.flatcomponents.api.FlatButton;
 import org.jjazz.ui.ss_editor.actions.ShowHideRp;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.openide.util.Utilities;

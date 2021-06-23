@@ -46,8 +46,8 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.base.actions.Savable;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.base.actions.api.Savable;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.event.*;
@@ -64,7 +64,7 @@ import org.jjazz.ui.cl_editor.api.CL_EditorSettings;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
-import org.jjazz.ui.utilities.Zoomable;
+import org.jjazz.ui.utilities.api.Zoomable;
 import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.openide.util.Lookup;
@@ -76,8 +76,8 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.savablesong.SavableSong;
 import org.jjazz.savablesong.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
-import org.jjazz.quantizer.Quantization;
-import org.jjazz.quantizer.Quantizer;
+import org.jjazz.quantizer.api.Quantization;
+import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.rhythm.api.Feel;
 import org.jjazz.ui.cl_editor.api.SelectedBar;
 import org.openide.awt.UndoRedo;
@@ -897,7 +897,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 }
             }
         };
-        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(run);
+        org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(run);
     }
 
     @Override
@@ -1183,7 +1183,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 }
             }
         };
-        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(run);
+        org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(run);
     }
 
     // ---------------------------------------------------------------

@@ -22,7 +22,7 @@
  */
 package org.jjazz.leadsheet.chordleadsheet.api;
 
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.openide.util.Lookup;
 import org.jjazz.leadsheet.chordleadsheet.ChordLeadSheetFactoryImpl;
 

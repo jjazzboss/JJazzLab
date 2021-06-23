@@ -193,7 +193,7 @@
                 </dependency>
             </module-dependencies>
             <public-packages>
-                <package>org.jjazz.importers</package>
+                <package>org.jjazz.importers.api</package>
             </public-packages>
         </data>
     </configuration>

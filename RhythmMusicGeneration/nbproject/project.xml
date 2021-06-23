@@ -114,7 +114,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.rhythmmusicgeneration</package>
+                <package>org.jjazz.rhythmmusicgeneration.api</package>
                 <package>org.jjazz.rhythmmusicgeneration.spi</package>
             </public-packages>
         </data>

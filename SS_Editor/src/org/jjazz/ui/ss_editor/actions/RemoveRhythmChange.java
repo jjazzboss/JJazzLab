@@ -44,7 +44,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.HideIfDisabledAction;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.removerhythmchange")
 @ActionRegistration(displayName = "not_used", lazy = false)

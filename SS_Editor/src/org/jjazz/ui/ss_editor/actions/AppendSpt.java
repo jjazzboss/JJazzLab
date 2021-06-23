@@ -43,9 +43,9 @@ import org.openide.awt.ActionRegistration;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
+import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.appendspt")
 @ActionRegistration(displayName = "#CTL_AppendSpt", lazy = false)

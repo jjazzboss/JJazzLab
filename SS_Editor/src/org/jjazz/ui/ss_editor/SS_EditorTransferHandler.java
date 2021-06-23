@@ -47,7 +47,7 @@ import org.jjazz.undomanager.JJazzUndoManager;
 import org.jjazz.undomanager.JJazzUndoManagerFinder;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * Drag n Drop Transfer handler for Section/SongParts.

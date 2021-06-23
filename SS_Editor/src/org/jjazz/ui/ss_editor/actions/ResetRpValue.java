@@ -44,7 +44,7 @@ import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.resetrpvalue")
 @ActionRegistration(displayName = "#CTL_ResetRpValue", lazy = false)

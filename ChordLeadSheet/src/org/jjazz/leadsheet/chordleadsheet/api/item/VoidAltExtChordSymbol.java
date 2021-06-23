@@ -26,8 +26,8 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import org.jjazz.harmony.ChordTypeDatabase;
-import org.jjazz.harmony.Note;
+import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.api.Note;
 
 /**
  * A special instance used as the "void" alternate chord symbol.

@@ -30,7 +30,7 @@ import java.awt.print.Pageable;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import javax.swing.JPanel;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * A panel to render the print preview.

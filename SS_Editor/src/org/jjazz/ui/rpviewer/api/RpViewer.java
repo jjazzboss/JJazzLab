@@ -52,10 +52,10 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ui.flatcomponents.FlatButton;
+import org.jjazz.ui.flatcomponents.api.FlatButton;
 import org.jjazz.ui.rpviewer.RpViewerLayoutManager;
-import org.jjazz.ui.utilities.RedispatchingMouseAdapter;
-import org.jjazz.util.ResUtil;
+import org.jjazz.ui.utilities.api.RedispatchingMouseAdapter;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * A RhythmParameter viewer.

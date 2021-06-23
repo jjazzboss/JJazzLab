@@ -27,18 +27,18 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
-import org.jjazz.harmony.Note;
-import org.jjazz.harmony.StandardScaleInstance;
+import org.jjazz.harmony.api.Note;
+import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.midimix.MidiMix;
+import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
-import org.jjazz.ui.keyboardcomponent.KeyboardRange;
+import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.notesviewer.spi.NotesViewer;
-import org.jjazz.ui.keyboardcomponent.KeyboardComponent;
-import org.jjazz.ui.keyboardcomponent.PianoKey;
+import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
+import org.jjazz.ui.keyboardcomponent.api.PianoKey;
 
 /**
  * A NotesViewer based on a keyboard.

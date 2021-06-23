@@ -24,14 +24,14 @@ package org.jjazz.rhythm.api;
 
 import java.util.Objects;
 import java.util.logging.Logger;
-import org.jjazz.midi.DrumKit;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.InstrumentSettings;
-import org.jjazz.midi.MidiConst;
-import org.jjazz.midi.synths.Family;
-import org.jjazz.midi.synths.GM1Bank;
-import org.jjazz.midi.synths.GM1Instrument;
-import org.jjazz.midi.synths.StdSynth;
+import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.InstrumentSettings;
+import org.jjazz.midi.api.MidiConst;
+import org.jjazz.midi.api.synths.Family;
+import org.jjazz.midi.api.synths.GM1Bank;
+import org.jjazz.midi.api.synths.GM1Instrument;
+import org.jjazz.midi.api.synths.StdSynth;
 
 /**
  * Describe a voice for which a Rhythm will generate music.

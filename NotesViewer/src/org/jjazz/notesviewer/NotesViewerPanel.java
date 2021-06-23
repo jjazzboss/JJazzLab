@@ -36,14 +36,14 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.activesong.ActiveSongManager;
+import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Item;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.musiccontrol.NoteListener;
-import org.jjazz.musiccontrol.PlaybackListenerAdapter;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.NoteListener;
+import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.uisettings.GeneralUISettings;
@@ -51,7 +51,7 @@ import org.jjazz.notesviewer.spi.NotesViewer;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
-import org.jjazz.ui.flatcomponents.FlatButton;
+import org.jjazz.ui.flatcomponents.api.FlatButton;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 
@@ -237,8 +237,8 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 {
                     case DISABLED:  // Fall down
                     case STOPPED:
-                        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(() -> lbl_chordSymbol.setText(" "));
-                        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(() -> lbl_scale.setText(" "));
+                        org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(() -> lbl_chordSymbol.setText(" "));
+                        org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(() -> lbl_scale.setText(" "));
                         notesViewer.releaseAllNotes();
                         break;
                     case PAUSED:
@@ -282,7 +282,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         btn_group = new javax.swing.ButtonGroup();
         pnl_viewer = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
         pnl_chordSymbol = new javax.swing.JPanel();
         spn_srcChannel = new javax.swing.JSpinner();
         pnl_buttons = new javax.swing.JPanel();
@@ -816,7 +816,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup btn_group;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbl_chordSymbol;

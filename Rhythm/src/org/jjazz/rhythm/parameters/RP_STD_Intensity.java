@@ -23,7 +23,7 @@
 package org.jjazz.rhythm.parameters;
 
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * Standard RhythmParameter: Intensity=[-10;+10]

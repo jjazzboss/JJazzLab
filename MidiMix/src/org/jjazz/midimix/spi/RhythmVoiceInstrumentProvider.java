@@ -22,7 +22,7 @@
  */
 package org.jjazz.midimix.spi;
 
-import org.jjazz.midi.Instrument;
+import org.jjazz.midi.api.Instrument;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.openide.util.Lookup;
 

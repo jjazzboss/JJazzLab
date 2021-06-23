@@ -25,7 +25,7 @@ package org.jjazz.midi.spi;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.jjazz.midi.DrumKit;
+import org.jjazz.midi.api.DrumKit;
 import org.openide.util.Lookup;
 
 /**

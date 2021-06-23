@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import org.jjazz.harmony.TimeSignature;
-import org.jjazz.midi.DrumKit;
-import org.jjazz.midi.DrumKit.Type;
-import org.jjazz.midi.keymap.KeyMapGM;
-import org.jjazz.midi.synths.StdSynth;
+import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.DrumKit.Type;
+import org.jjazz.midi.api.keymap.KeyMapGM;
+import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
@@ -18,8 +18,8 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.parameters.RP_STD_Variation;
 import org.jjazz.rhythm.parameters.RP_SYS_Mute;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
-import org.jjazz.rhythmmusicgeneration.Phrase;
+import org.jjazz.rhythmmusicgeneration.api.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.api.Phrase;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 
 /**

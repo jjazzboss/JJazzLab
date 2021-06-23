@@ -34,8 +34,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
-import org.jjazz.activesong.ActiveSongManager;
-import org.jjazz.base.actions.Savable;
+import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.base.actions.api.Savable;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.ss_editor.SS_EditorController;
 import org.jjazz.savablesong.SavableSong;
@@ -47,8 +47,8 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.sptviewer.spi.SptViewerFactory;
 import org.jjazz.ui.ss_editor.SS_EditorImpl;
 import org.jjazz.ui.ss_editor.SS_EditorToolBar;
-import org.jjazz.ui.utilities.Zoomable;
-import org.jjazz.util.ResUtil;
+import org.jjazz.ui.utilities.api.Zoomable;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * Top component for the SongStructure editor.
@@ -363,7 +363,7 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
                 }
             }
         };
-        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(run);
+        org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(run);
     }
 
     // -------------------------------------------------------------------------------------

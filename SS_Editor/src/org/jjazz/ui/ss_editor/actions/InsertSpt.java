@@ -51,7 +51,7 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.insertspt")
 @ActionRegistration(displayName = "#CTL_InsertSpt", lazy = false)

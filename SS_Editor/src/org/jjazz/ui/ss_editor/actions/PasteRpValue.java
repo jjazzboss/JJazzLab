@@ -50,8 +50,8 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.ui.ss_editor.api.RpValueCopyBuffer;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
-import org.jjazz.util.ResUtil;
+import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * Paste RhythmParameter values.

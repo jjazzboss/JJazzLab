@@ -61,8 +61,8 @@ import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 import org.jjazz.uisettings.GeneralUISettings;
-import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
-import org.jjazz.ui.utilities.Zoomable;
+import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
+import org.jjazz.ui.utilities.api.Zoomable;
 import org.openide.awt.Actions;
 import org.openide.util.Utilities;
 

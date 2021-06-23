@@ -208,9 +208,7 @@
                     </test-dependency>
                 </test-type>
             </test-dependencies>
-            <public-packages>
-                <package>org.jjazz.ui.musiccontrolactions</package>
-            </public-packages>
+            <public-packages/>
         </data>
     </configuration>
 </project>

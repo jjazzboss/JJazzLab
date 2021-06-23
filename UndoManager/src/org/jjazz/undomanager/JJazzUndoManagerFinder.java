@@ -22,7 +22,7 @@
  */
 package org.jjazz.undomanager;
 
-import org.jjazz.util.SmallMap;
+import org.jjazz.util.api.SmallMap;
 
 /**
  * Stores JJazzUndoManager instances, e.g. one per song.

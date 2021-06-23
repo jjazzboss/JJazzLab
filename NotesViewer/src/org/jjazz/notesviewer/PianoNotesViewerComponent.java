@@ -23,8 +23,8 @@
 package org.jjazz.notesviewer;
 
 import org.jjazz.notesviewer.spi.NotesViewer;
-import org.jjazz.ui.keyboardcomponent.KeyboardComponent;
-import org.jjazz.ui.keyboardcomponent.KeyboardRange;
+import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
+import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
 
 /**
  *
@@ -74,7 +74,7 @@ public class PianoNotesViewerComponent extends javax.swing.JPanel
         pnl_keyboard = new javax.swing.JPanel();
         pnl_toBeRemoved = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
-        fbtn_size = new org.jjazz.ui.flatcomponents.FlatButton();
+        fbtn_size = new org.jjazz.ui.flatcomponents.api.FlatButton();
 
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS));
 
@@ -127,7 +127,7 @@ public class PianoNotesViewerComponent extends javax.swing.JPanel
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.ui.flatcomponents.FlatButton fbtn_size;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_size;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel pnl_keyboard;
     private javax.swing.JPanel pnl_toBeRemoved;

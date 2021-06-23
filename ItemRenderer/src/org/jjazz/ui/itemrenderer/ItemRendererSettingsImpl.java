@@ -31,7 +31,7 @@ import javax.swing.BorderFactory;
 import javax.swing.border.Border;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.ui.itemrenderer.api.ItemRendererSettings;
-import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
+import org.jjazz.ui.utilities.api.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.GeneralUISettings;
 import org.jjazz.upgrade.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;

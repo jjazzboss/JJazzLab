@@ -25,8 +25,8 @@ package org.jjazz.savablesong;
 import java.io.File;
 import java.util.Objects;
 import java.util.logging.Logger;
-import org.jjazz.base.actions.Savable;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
+import org.jjazz.base.actions.api.Savable;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.song.api.Song;
 
 /**

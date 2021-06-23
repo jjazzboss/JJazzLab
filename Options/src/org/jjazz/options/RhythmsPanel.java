@@ -39,15 +39,15 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.RhythmInfo;
-import org.jjazz.rhythmselectiondialog.ui.RhythmProviderList;
-import org.jjazz.rhythmselectiondialog.ui.RhythmTable;
-import org.jjazz.ui.utilities.Utilities;
-import org.jjazz.util.ResUtil;
+import org.jjazz.rhythmselectiondialog.api.RhythmProviderList;
+import org.jjazz.rhythmselectiondialog.api.RhythmTable;
+import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.LifecycleManager;
 import org.openide.NotifyDescriptor;
@@ -196,7 +196,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
                 updateRhythmProviderList();
             }
         };
-        org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(run);
+        org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(run);
     }
 
     /**
@@ -228,7 +228,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         btn_rhythmProviderSettings = new javax.swing.JButton();
         lbl_timeSignature = new javax.swing.JLabel();
         jScrollPane4 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_rhythmDir, org.openide.util.NbBundle.getMessage(RhythmsPanel.class, "RhythmsPanel.lbl_rhythmDir.text")); // NOI18N
 
@@ -546,7 +546,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
     private javax.swing.JButton btn_rhythmProviderSettings;
     private javax.swing.JButton btn_setDefaultRhythm;
     private javax.swing.JComboBox<TimeSignature> cmb_timeSignature;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;

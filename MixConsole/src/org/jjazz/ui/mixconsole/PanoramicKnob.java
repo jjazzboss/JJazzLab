@@ -23,7 +23,7 @@
 package org.jjazz.ui.mixconsole;
 
 import java.util.logging.Logger;
-import org.jjazz.ui.flatcomponents.FlatIntegerKnob;
+import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
 
 /**
  * A knob for panoramic
