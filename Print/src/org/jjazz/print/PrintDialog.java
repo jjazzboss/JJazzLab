@@ -38,7 +38,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import org.jjazz.songeditormanager.SongEditorManager;
+import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.utilities.api.SingleComponentAspectRatioKeeperLayout;

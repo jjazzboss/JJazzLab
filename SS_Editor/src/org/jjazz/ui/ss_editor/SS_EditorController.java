@@ -57,7 +57,7 @@ import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.rpviewer.api.RpViewer;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.Actions;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;

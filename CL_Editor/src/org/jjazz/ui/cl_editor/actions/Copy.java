@@ -39,7 +39,7 @@ import org.jjazz.ui.cl_editor.api.CopyBuffer;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
 import org.openide.actions.CopyAction;
 import org.openide.awt.ActionID;

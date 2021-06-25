@@ -45,7 +45,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.ui.utilities.api.SingleRootFileSystemView;
-import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;

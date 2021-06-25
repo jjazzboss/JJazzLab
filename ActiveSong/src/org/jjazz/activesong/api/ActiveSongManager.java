@@ -70,7 +70,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     private Song activeSong;
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(ActiveSongManager.class.getSimpleName());
-    private static final ResourceBundle bundle = ResourceBundle.getBundle("org/jjazz/activesong/Bundle");
+    private static final ResourceBundle bundle = ResourceBundle.getBundle("org/jjazz/activesong/api/Bundle");
 
     public static ActiveSongManager getInstance()
     {

@@ -31,7 +31,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionRegistration;

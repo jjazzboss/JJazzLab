@@ -41,7 +41,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
-import org.jjazz.uisettings.GeneralUISettings;
+import org.jjazz.uisettings.api.GeneralUISettings;
 
 /**
  * A vertical flat slider.

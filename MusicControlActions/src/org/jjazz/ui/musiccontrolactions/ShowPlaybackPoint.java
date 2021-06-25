@@ -52,7 +52,7 @@ import org.jjazz.songstructure.api.event.SptRenamedEvent;
 import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.song.api.Song;
-import org.jjazz.songeditormanager.SongEditorManager;
+import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
 import org.jjazz.ui.ss_editor.api.SS_Editor;

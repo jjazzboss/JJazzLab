@@ -48,7 +48,7 @@ import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
-import org.jjazz.uisettings.GeneralUISettings;
+import org.jjazz.uisettings.api.GeneralUISettings;
 
 /**
  * An horizontal flat slider.

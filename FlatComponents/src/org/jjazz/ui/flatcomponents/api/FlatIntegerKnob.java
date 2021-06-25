@@ -45,7 +45,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import org.jjazz.uisettings.GeneralUISettings;
+import org.jjazz.uisettings.api.GeneralUISettings;
 
 /**
  * A flat knob.

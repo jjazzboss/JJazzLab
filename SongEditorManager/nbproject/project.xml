@@ -258,7 +258,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.songeditormanager</package>
+                <package>org.jjazz.songeditormanager.api</package>
             </public-packages>
         </data>
     </configuration>

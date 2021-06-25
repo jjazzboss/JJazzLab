@@ -50,7 +50,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
-import org.jjazz.undomanager.SimpleEdit;
+import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.util.api.SmallMap;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;

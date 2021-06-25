@@ -31,7 +31,7 @@ import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.util.api.SmallMap;
 import org.openide.util.NbPreferences;
 import org.jjazz.ui.colorsetmanager.api.ColorSetManager;
-import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.lookup.ServiceProvider;
 

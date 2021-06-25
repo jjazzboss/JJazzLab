@@ -44,8 +44,8 @@ import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.ui.cl_editor.barbox.api.BarBox;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
 
 /**

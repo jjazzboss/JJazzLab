@@ -24,7 +24,6 @@ package org.jjazz.ui.rpviewer.api;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
-import static java.awt.BorderLayout.CENTER;
 import java.awt.Color;
 import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
 import java.awt.Dimension;
@@ -33,7 +32,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;

@@ -42,7 +42,7 @@ import org.jjazz.midi.spi.MidiSynthFileReader;
 import org.jjazz.midi.api.synths.GSSynth;
 import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.startup.spi.StartupTask;
-import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;

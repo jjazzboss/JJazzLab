@@ -25,7 +25,7 @@ package org.jjazz.ui.utilities.api;
 import java.awt.Font;
 import java.util.Locale;
 import javax.swing.JTextArea;
-import org.jjazz.uisettings.GeneralUISettings;
+import org.jjazz.uisettings.api.GeneralUISettings;
 
 /**
  * A TextArea for help texts : non editable, font is preset, not opaque.

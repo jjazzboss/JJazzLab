@@ -44,7 +44,7 @@ import static org.jjazz.musiccontrol.api.ClickManager.PROP_CLICK_PITCH_LOW;
 import org.jjazz.rhythmmusicgeneration.api.MusicGenerationContext;
 import org.openide.util.NbPreferences;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.lookup.ServiceProvider;
 

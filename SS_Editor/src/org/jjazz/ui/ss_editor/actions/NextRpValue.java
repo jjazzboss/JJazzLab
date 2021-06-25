@@ -34,7 +34,7 @@ import static javax.swing.Action.NAME;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.songstructure.api.SongPartParameter;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;

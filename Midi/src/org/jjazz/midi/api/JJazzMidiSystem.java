@@ -44,7 +44,7 @@ import javax.sound.midi.Synthesizer;
 import javax.sound.midi.Transmitter;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midi.api.device.JJazzMidiDevice;
-import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.progress.BaseProgressUtils;

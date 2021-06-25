@@ -36,7 +36,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;

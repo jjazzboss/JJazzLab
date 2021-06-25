@@ -25,7 +25,6 @@ package org.jjazz.rpcustomeditor.spi;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 
 /**

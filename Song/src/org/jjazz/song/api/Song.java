@@ -58,7 +58,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.songstructure.api.SongStructureFactory;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.undomanager.SimpleEdit;
+import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.util.api.ResUtil;

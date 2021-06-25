@@ -41,7 +41,7 @@ import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.ui.flatcomponents.api.FlatTextEditDialog;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;

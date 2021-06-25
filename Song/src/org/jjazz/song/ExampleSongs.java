@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.startup.spi.StartupTask;
-import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;

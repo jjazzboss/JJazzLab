@@ -29,7 +29,7 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.JComboBox;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.base.actions.api.ShowLogWindow;
+import org.jjazz.base.api.actions.ShowLogWindow;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.device.MidiFilter;
 import org.jjazz.musiccontrol.api.MusicController;

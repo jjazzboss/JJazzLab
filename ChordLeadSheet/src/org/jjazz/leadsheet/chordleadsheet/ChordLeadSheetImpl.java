@@ -22,7 +22,7 @@
  */
 package org.jjazz.leadsheet.chordleadsheet;
 
-import org.jjazz.undomanager.SimpleEdit;
+import org.jjazz.undomanager.api.SimpleEdit;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;

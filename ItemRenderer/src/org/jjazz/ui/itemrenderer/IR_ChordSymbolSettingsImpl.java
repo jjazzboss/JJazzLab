@@ -42,8 +42,8 @@ import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
 import org.jjazz.ui.utilities.api.FontColorUserSettingsProvider;
-import org.jjazz.uisettings.GeneralUISettings;
-import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.uisettings.api.GeneralUISettings;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.netbeans.api.annotations.common.StaticResource;
 

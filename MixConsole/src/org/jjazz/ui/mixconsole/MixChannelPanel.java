@@ -41,7 +41,7 @@ import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
 import org.jjazz.ui.flatcomponents.api.FlatIntegerVerticalSlider;
 import org.jjazz.ui.flatcomponents.api.FlatTextEditDialog;
 import org.jjazz.ui.mixconsole.api.MixConsoleSettings;
-import org.jjazz.uisettings.GeneralUISettings;
+import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.Utilities;
 
 /**

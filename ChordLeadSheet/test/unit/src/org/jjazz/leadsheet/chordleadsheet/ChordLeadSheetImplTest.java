@@ -34,7 +34,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.item.CLI_SectionImpl;
 import org.jjazz.leadsheet.chordleadsheet.item.CLI_ChordSymbolImpl;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.undomanager.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManager;
 import static org.junit.Assert.assertTrue;
 import org.junit.*;
 import org.openide.util.Exceptions;

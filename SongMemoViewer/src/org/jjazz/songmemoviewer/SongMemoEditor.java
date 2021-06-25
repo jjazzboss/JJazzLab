@@ -42,7 +42,7 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.PlainDocument;
 import org.jjazz.song.api.Song;
 import org.jjazz.songmemoviewer.api.SongMemoEditorSettings;
-import org.jjazz.undomanager.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;

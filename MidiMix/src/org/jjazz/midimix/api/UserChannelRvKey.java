@@ -30,7 +30,7 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.Family;
 import org.jjazz.rhythm.api.DummyRhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;

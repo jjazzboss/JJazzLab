@@ -46,7 +46,7 @@ import org.jjazz.musiccontrol.api.NoteListener;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
-import org.jjazz.uisettings.GeneralUISettings;
+import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.notesviewer.spi.NotesViewer;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;

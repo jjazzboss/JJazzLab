@@ -30,7 +30,7 @@ import static javax.swing.Action.NAME;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;

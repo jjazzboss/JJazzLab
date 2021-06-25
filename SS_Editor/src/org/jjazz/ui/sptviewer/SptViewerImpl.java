@@ -57,7 +57,7 @@ import org.jjazz.ui.sptviewer.spi.SptViewerSettings;
 import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.rpviewer.api.RpViewerEditableRenderer;
-import org.jjazz.uisettings.GeneralUISettings;
+import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
 import org.jjazz.ui.rpviewer.spi.RpViewerRendererFactory;

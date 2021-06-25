@@ -56,7 +56,7 @@ import org.jjazz.outputsynth.api.GMRemapTable;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.uisettings.GeneralUISettings;
+import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.openide.*;
