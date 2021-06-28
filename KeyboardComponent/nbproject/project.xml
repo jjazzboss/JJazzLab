@@ -16,7 +16,7 @@
                 </dependency>
             </module-dependencies>
             <public-packages>
-                <package>org.jjazz.ui.keyboardcomponent</package>
+                <package>org.jjazz.ui.keyboardcomponent.api</package>
             </public-packages>
         </data>
     </configuration>

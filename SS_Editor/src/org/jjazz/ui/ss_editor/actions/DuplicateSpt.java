@@ -36,7 +36,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -48,8 +48,8 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.util.ResUtil;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.util.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.duplicatespt")
 @ActionRegistration(displayName = "#CTL_DuplicateSpt", lazy = false)

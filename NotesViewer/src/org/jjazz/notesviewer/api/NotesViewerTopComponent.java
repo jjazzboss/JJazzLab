@@ -23,10 +23,10 @@
 package org.jjazz.notesviewer.api;
 
 import java.util.logging.Logger;
-import org.jjazz.activesong.ActiveSongManager;
+import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.notesviewer.NotesViewerPanel;
 import org.jjazz.song.api.Song;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;

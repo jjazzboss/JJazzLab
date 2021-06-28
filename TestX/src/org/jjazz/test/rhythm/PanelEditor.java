@@ -52,9 +52,9 @@ public class PanelEditor extends RpCustomEditor<RP_TestValue>
     private void initComponents()
     {
 
-        knb_bassDrum = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
-        knb_snare = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
-        knb_hihat = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
+        knb_bassDrum = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knb_snare = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knb_hihat = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
 
         javax.swing.GroupLayout knb_bassDrumLayout = new javax.swing.GroupLayout(knb_bassDrum);
         knb_bassDrum.setLayout(knb_bassDrumLayout);
@@ -116,8 +116,8 @@ public class PanelEditor extends RpCustomEditor<RP_TestValue>
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.ui.flatcomponents.FlatIntegerKnob knb_bassDrum;
-    private org.jjazz.ui.flatcomponents.FlatIntegerKnob knb_hihat;
-    private org.jjazz.ui.flatcomponents.FlatIntegerKnob knb_snare;
+    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_bassDrum;
+    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_hihat;
+    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_snare;
     // End of variables declaration//GEN-END:variables
 }

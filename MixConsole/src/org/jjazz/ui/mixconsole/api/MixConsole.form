@@ -128,7 +128,7 @@
                 <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
               </AuxValues>
             </Component>
-            <Component class="org.jjazz.ui.flatcomponents.FlatButton" name="fbtn_switchAllMute">
+            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_switchAllMute">
               <Properties>
                 <Property name="horizontalAlignment" type="int" value="0"/>
                 <Property name="text" type="java.lang.String" value=" M " noResource="true"/>
@@ -158,7 +158,7 @@
                 <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
               </AuxValues>
             </Component>
-            <Component class="org.jjazz.ui.flatcomponents.FlatButton" name="fbtn_allSoloOff">
+            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_allSoloOff">
               <Properties>
                 <Property name="horizontalAlignment" type="int" value="0"/>
                 <Property name="text" type="java.lang.String" value=" S " noResource="true"/>
@@ -185,7 +185,7 @@
                 <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
               </AuxValues>
             </Component>
-            <Component class="org.jjazz.ui.flatcomponents.FlatButton" name="fbtn_panic">
+            <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_panic">
               <Properties>
                 <Property name="horizontalAlignment" type="int" value="0"/>
                 <Property name="text" type="java.lang.String" value=" PANIC " noResource="true"/>

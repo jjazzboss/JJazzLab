@@ -30,12 +30,12 @@ import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
-import org.jjazz.midi.InstrumentMix;
-import org.jjazz.midi.InstrumentSettings;
-import org.jjazz.midi.MidiConst;
-import org.jjazz.midimix.MidiMix;
+import org.jjazz.midi.api.InstrumentMix;
+import org.jjazz.midi.api.InstrumentSettings;
+import org.jjazz.midi.api.MidiConst;
+import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.ui.utilities.Utilities;
+import org.jjazz.ui.utilities.api.Utilities;
 import org.openide.windows.WindowManager;
 
 /**
@@ -257,14 +257,14 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
         cb_reverb = new javax.swing.JCheckBox();
         cb_instrument = new javax.swing.JCheckBox();
         jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
         btn_ok = new javax.swing.JButton();
         btn_cancel = new javax.swing.JButton();
         pnl_rerouting = new javax.swing.JPanel();
         cb_drumsRerouting = new javax.swing.JCheckBox();
         jScrollPane3 = new javax.swing.JScrollPane();
-        helpTextArea3 = new org.jjazz.ui.utilities.HelpTextArea();
-        spn_velocityShift = new org.jjazz.ui.utilities.WheelSpinner();
+        helpTextArea3 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        spn_velocityShift = new org.jjazz.ui.utilities.api.WheelSpinner();
         lbl_velocityShift = new javax.swing.JLabel();
 
         setTitle(org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.title")); // NOI18N
@@ -588,8 +588,8 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
     private javax.swing.JCheckBox cb_panoramic;
     private javax.swing.JCheckBox cb_reverb;
     private javax.swing.JCheckBox cb_volume;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea3;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea3;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
@@ -597,6 +597,6 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
     private javax.swing.JLabel lbl_velocityShift;
     private javax.swing.JPanel pnl_enabledMidiMessages;
     private javax.swing.JPanel pnl_rerouting;
-    private org.jjazz.ui.utilities.WheelSpinner spn_velocityShift;
+    private org.jjazz.ui.utilities.api.WheelSpinner spn_velocityShift;
     // End of variables declaration//GEN-END:variables
 }

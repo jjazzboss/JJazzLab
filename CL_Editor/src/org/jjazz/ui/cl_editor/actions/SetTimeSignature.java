@@ -31,7 +31,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
@@ -39,9 +39,9 @@ import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.jjazz.util.ResUtil;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
@@ -221,7 +221,7 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
                         updateMenu(MyDynamicMenu.this);
                     }
                 };
-                org.jjazz.ui.utilities.Utilities.invokeLaterIfNeeded(run);
+                org.jjazz.ui.utilities.api.Utilities.invokeLaterIfNeeded(run);
             }
         }
     }

@@ -24,8 +24,8 @@ package org.jjazz.instrumentchooser.spi;
 
 import javax.swing.JDialog;
 import org.jjazz.instrumentchooser.InstrumentChooserDialogImpl;
-import org.jjazz.midi.Instrument;
-import org.jjazz.outputsynth.OutputSynth;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;

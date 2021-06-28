@@ -300,7 +300,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="org.jjazz.ui.utilities.HelpTextArea" name="helpTextArea">
+        <Component class="org.jjazz.ui.utilities.api.HelpTextArea" name="helpTextArea">
           <Properties>
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color type="null"/>

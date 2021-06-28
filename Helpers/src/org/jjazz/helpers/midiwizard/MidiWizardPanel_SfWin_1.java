@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiDevice;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.midi.JJazzMidiSystem;
+import org.jjazz.midi.api.JJazzMidiSystem;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 import org.openide.util.Utilities;

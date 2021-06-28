@@ -57,8 +57,8 @@ import org.jjazz.ui.sptviewer.spi.SptViewerSettings;
 import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.rpviewer.api.RpViewerEditableRenderer;
-import org.jjazz.uisettings.GeneralUISettings;
-import org.jjazz.util.ResUtil;
+import org.jjazz.uisettings.api.GeneralUISettings;
+import org.jjazz.util.api.ResUtil;
 import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
 import org.jjazz.ui.rpviewer.spi.RpViewerRendererFactory;
 import org.jjazz.ui.rpviewer.spi.DefaultRpViewerRendererFactory;
@@ -583,11 +583,11 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         pnl_top = new javax.swing.JPanel();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
         pnl_labels = new javax.swing.JPanel();
-        fbtn_sptName = new org.jjazz.ui.flatcomponents.FlatButton();
+        fbtn_sptName = new org.jjazz.ui.flatcomponents.api.FlatButton();
         multiSelectBar = new org.jjazz.ui.sptviewer.MultiSelectBar();
         lbl_Parent = new javax.swing.JLabel();
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
-        fbtn_rhythm = new org.jjazz.ui.flatcomponents.FlatButton();
+        fbtn_rhythm = new org.jjazz.ui.flatcomponents.api.FlatButton();
         pnl_RpEditors = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -668,8 +668,8 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     }//GEN-LAST:event_fbtn_rhythmActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.ui.flatcomponents.FlatButton fbtn_rhythm;
-    private org.jjazz.ui.flatcomponents.FlatButton fbtn_sptName;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_rhythm;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_sptName;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler2;
     private javax.swing.JLabel jLabel1;

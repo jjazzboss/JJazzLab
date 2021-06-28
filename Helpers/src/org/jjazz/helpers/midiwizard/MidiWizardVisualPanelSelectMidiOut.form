@@ -71,7 +71,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="org.jjazz.midi.ui.MidiOutDeviceList" name="list_outDevices">
+        <Component class="org.jjazz.midi.api.ui.MidiOutDeviceList" name="list_outDevices">
         </Component>
       </SubComponents>
     </Container>
@@ -104,7 +104,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="org.jjazz.ui.utilities.HelpTextArea" name="hlptxt">
+        <Component class="org.jjazz.ui.utilities.api.HelpTextArea" name="hlptxt">
           <Properties>
             <Property name="columns" type="int" value="20"/>
             <Property name="rows" type="int" value="5"/>

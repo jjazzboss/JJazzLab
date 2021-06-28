@@ -28,7 +28,7 @@ import java.io.*;
 import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import static org.jjazz.leadsheet.chordleadsheet.api.item.Bundle.CTL_InvalidValue;
 import static org.jjazz.leadsheet.chordleadsheet.api.item.Bundle.CTL_MissingEnclosingChars;
 import static org.jjazz.leadsheet.chordleadsheet.api.item.Bundle.CTL_NegativeValue;

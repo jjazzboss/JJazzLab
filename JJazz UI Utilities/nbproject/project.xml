@@ -89,7 +89,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.ui.utilities</package>
+                <package>org.jjazz.ui.utilities.api</package>
             </public-packages>
         </data>
     </configuration>

@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 AutoUpdate-Show-In-Client: true
 OpenIDE-Module: org.jjazz.uisettings
-OpenIDE-Module-Install: org/jjazz/uisettings/LookAndFeelInstaller.class
-OpenIDE-Module-Localizing-Bundle: org/jjazz/uisettings/Bundle.properties
+OpenIDE-Module-Install: org/jjazz/uisettings/api/LookAndFeelInstaller.class
+OpenIDE-Module-Localizing-Bundle: org/jjazz/uisettings/api/Bundle.properties
 OpenIDE-Module-Specification-Version: 1.0
 

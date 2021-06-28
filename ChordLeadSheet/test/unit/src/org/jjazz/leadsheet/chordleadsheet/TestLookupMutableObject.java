@@ -32,7 +32,7 @@ import org.openide.awt.UndoRedo;
 import java.text.ParseException;
 import org.jjazz.leadsheet.chordleadsheet.item.CLI_ChordSymbolImpl;
 import org.jjazz.leadsheet.chordleadsheet.item.CLI_SectionImpl;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.junit.After;

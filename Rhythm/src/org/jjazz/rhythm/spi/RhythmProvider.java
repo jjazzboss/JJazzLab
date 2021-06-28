@@ -22,12 +22,12 @@
  */
 package org.jjazz.rhythm.spi;
 
-import org.jjazz.util.MultipleErrorsReport;
+import org.jjazz.util.api.MultipleErrorsReport;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 

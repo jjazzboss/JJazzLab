@@ -28,7 +28,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.api.MidiSynth;
 import org.openide.util.Lookup;
 
 /**

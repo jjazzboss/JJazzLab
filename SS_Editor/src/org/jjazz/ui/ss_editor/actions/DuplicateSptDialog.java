@@ -148,7 +148,7 @@ public class DuplicateSptDialog extends javax.swing.JDialog
         lbl_text = new javax.swing.JLabel();
         btn_ok = new javax.swing.JButton();
         btn_cancel = new javax.swing.JButton();
-        spn_Number = new org.jjazz.ui.utilities.WheelSpinner();
+        spn_Number = new org.jjazz.ui.utilities.api.WheelSpinner();
 
         setTitle(org.openide.util.NbBundle.getMessage(DuplicateSptDialog.class, "DuplicateSptDialog.title")); // NOI18N
         addWindowFocusListener(new java.awt.event.WindowFocusListener()
@@ -242,6 +242,6 @@ public class DuplicateSptDialog extends javax.swing.JDialog
     private javax.swing.JButton btn_cancel;
     private javax.swing.JButton btn_ok;
     private javax.swing.JLabel lbl_text;
-    private org.jjazz.ui.utilities.WheelSpinner spn_Number;
+    private org.jjazz.ui.utilities.api.WheelSpinner spn_Number;
     // End of variables declaration//GEN-END:variables
 }

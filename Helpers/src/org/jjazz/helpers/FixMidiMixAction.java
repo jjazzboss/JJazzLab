@@ -30,14 +30,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.helpers.FixMidiMixDialog.FixChoice;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.InstrumentMix;
-import org.jjazz.midi.synths.StdSynth;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.outputsynth.OutputSynth;
-import org.jjazz.outputsynth.OutputSynthManager;
-import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.InstrumentMix;
+import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.outputsynth.api.OutputSynth;
+import org.jjazz.outputsynth.api.OutputSynthManager;
+import org.jjazz.rhythmmusicgeneration.api.MusicGenerationContext;
 import org.openide.windows.OnShowing;
 
 /**

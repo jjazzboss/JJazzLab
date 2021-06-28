@@ -42,23 +42,23 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
-import org.jjazz.midi.DrumKit;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.InstrumentBank;
-import org.jjazz.midi.JJazzMidiSystem;
-import org.jjazz.midi.MidiConst;
-import org.jjazz.midi.MidiSynth;
-import org.jjazz.midi.synths.GM1Instrument;
-import org.jjazz.midi.synths.StdSynth;
-import org.jjazz.midi.ui.InstrumentTable;
-import org.jjazz.musiccontrol.TestPlayer;
-import org.jjazz.outputsynth.GMRemapTable;
-import org.jjazz.outputsynth.OutputSynth;
+import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.InstrumentBank;
+import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.midi.api.MidiConst;
+import org.jjazz.midi.api.MidiSynth;
+import org.jjazz.midi.api.synths.GM1Instrument;
+import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midi.api.ui.InstrumentTable;
+import org.jjazz.musiccontrol.api.TestPlayer;
+import org.jjazz.outputsynth.api.GMRemapTable;
+import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.uisettings.GeneralUISettings;
-import org.jjazz.util.ResUtil;
-import org.jjazz.util.Utilities;
+import org.jjazz.uisettings.api.GeneralUISettings;
+import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.Utilities;
 import org.openide.*;
 import org.openide.windows.WindowManager;
 
@@ -105,7 +105,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
                 handleTableMouseClicked(e);
             }
         });
-        org.jjazz.ui.utilities.Utilities.installSelectAllWhenFocused(tf_Filter);
+        org.jjazz.ui.utilities.api.Utilities.installSelectAllWhenFocused(tf_Filter);
     }
 
     @Override
@@ -435,12 +435,12 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
         btn_Hear = new javax.swing.JButton();
         lbl_Title = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        tbl_Instruments = new org.jjazz.midi.ui.InstrumentTable();
+        tbl_Instruments = new org.jjazz.midi.api.ui.InstrumentTable();
         rbtn_showRecommended = new javax.swing.JRadioButton();
         rbtn_showAll = new javax.swing.JRadioButton();
         lbl_Filtered = new javax.swing.JLabel();
         lbl_recIns = new javax.swing.JLabel();
-        spn_transposition = new org.jjazz.ui.utilities.WheelSpinner();
+        spn_transposition = new org.jjazz.ui.utilities.api.WheelSpinner();
         lbl_transpose = new javax.swing.JLabel();
         lbl_preferredInstrument = new javax.swing.JLabel();
         lbl_outputSynthConfig = new javax.swing.JLabel();
@@ -780,8 +780,8 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
     private javax.swing.JLabel lbl_transpose;
     private javax.swing.JRadioButton rbtn_showAll;
     private javax.swing.JRadioButton rbtn_showRecommended;
-    private org.jjazz.ui.utilities.WheelSpinner spn_transposition;
-    private org.jjazz.midi.ui.InstrumentTable tbl_Instruments;
+    private org.jjazz.ui.utilities.api.WheelSpinner spn_transposition;
+    private org.jjazz.midi.api.ui.InstrumentTable tbl_Instruments;
     private javax.swing.JTextField tf_Filter;
     // End of variables declaration//GEN-END:variables
 

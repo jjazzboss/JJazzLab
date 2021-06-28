@@ -52,42 +52,42 @@ import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.undo.UndoManager;
-import org.jjazz.activesong.ActiveSongManager;
-import org.jjazz.base.actions.Savable;
-import org.jjazz.harmony.TimeSignature;
-import org.jjazz.midi.DrumKit;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.InstrumentMix;
-import org.jjazz.midi.JJazzMidiSystem;
-import org.jjazz.midi.synths.GM1Instrument;
+import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.base.api.actions.Savable;
+import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.InstrumentMix;
+import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.savablesong.SavableSong;
-import org.jjazz.savablesong.SaveAsCapableSong;
+import org.jjazz.savablesong.api.SavableSong;
+import org.jjazz.savablesong.api.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.MidiMixManager;
-import org.jjazz.midimix.UserChannelRvKey;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.midimix.api.UserChannelRvKey;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.DummyRhythm;
-import org.jjazz.songeditormanager.SongEditorManager;
+import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
 import org.openide.util.Utilities;
 import org.openide.util.WeakListeners;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.Actions;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
-import org.jjazz.ui.flatcomponents.FlatButton;
+import org.jjazz.ui.flatcomponents.api.FlatButton;
 import org.jjazz.ui.mixconsole.MixChannelPanel;
 import org.jjazz.ui.mixconsole.MixChannelPanelControllerImpl;
 import org.jjazz.ui.mixconsole.MixChannelPanelModelImpl;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.options.OptionsDisplayer;
 import org.openide.awt.MenuBar;
@@ -307,11 +307,11 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         lbl_Master = new javax.swing.JLabel();
         masterHorizontalSlider1 = new org.jjazz.ui.mixconsole.MasterVolumeSlider();
         filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
-        fbtn_switchAllMute = new org.jjazz.ui.flatcomponents.FlatButton();
+        fbtn_switchAllMute = new org.jjazz.ui.flatcomponents.api.FlatButton();
         filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
-        fbtn_allSoloOff = new org.jjazz.ui.flatcomponents.FlatButton();
+        fbtn_allSoloOff = new org.jjazz.ui.flatcomponents.api.FlatButton();
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
-        fbtn_panic = new org.jjazz.ui.flatcomponents.FlatButton();
+        fbtn_panic = new org.jjazz.ui.flatcomponents.api.FlatButton();
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         scrollPane_mixChannelsPanel = new javax.swing.JScrollPane();
         panel_mixChannels = new javax.swing.JPanel();
@@ -376,9 +376,9 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<Rhythm> cb_viewRhythms;
-    private org.jjazz.ui.flatcomponents.FlatButton fbtn_allSoloOff;
-    private org.jjazz.ui.flatcomponents.FlatButton fbtn_panic;
-    private org.jjazz.ui.flatcomponents.FlatButton fbtn_switchAllMute;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_allSoloOff;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_panic;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_switchAllMute;
     private javax.swing.Box.Filler filler2;
     private javax.swing.Box.Filler filler3;
     private javax.swing.Box.Filler filler4;
@@ -872,8 +872,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private void updateActiveState(boolean b)
     {
         LOGGER.fine("updateActiveState() -- b=" + b);   //NOI18N
-        org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, menuBar);
-        org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, panel_MasterControls);
+        org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, menuBar);
+        org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, panel_MasterControls);
     }
 
     private void refreshUI()
@@ -919,7 +919,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
         // Reduce font size
-        org.jjazz.ui.utilities.Utilities.changeMenuBarFontSize(menuBar, -2f);
+        org.jjazz.ui.utilities.api.Utilities.changeMenuBarFontSize(menuBar, -2f);
 
 
 //        // Replace File & Edit menus (hard-coded in the declaratively-registered actions) by internationalized strings

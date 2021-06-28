@@ -22,7 +22,7 @@
  */
 package org.jjazz.leadsheet.chordleadsheet;
 
-import org.jjazz.undomanager.SimpleEdit;
+import org.jjazz.undomanager.api.SimpleEdit;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.event.*;
@@ -45,7 +45,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
-import org.jjazz.util.IntRange;
+import org.jjazz.util.api.IntRange;
 import org.openide.util.Exceptions;
 
 public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable

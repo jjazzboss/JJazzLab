@@ -49,7 +49,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.harmony</package>
+                <package>org.jjazz.harmony.api</package>
             </public-packages>
         </data>
     </configuration>

@@ -28,7 +28,7 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.musiccontrol.MusicController;
+import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.song.api.Song;
 
 /**

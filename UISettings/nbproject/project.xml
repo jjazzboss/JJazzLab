@@ -74,7 +74,7 @@
                 </dependency>
             </module-dependencies>
             <public-packages>
-                <package>org.jjazz.uisettings</package>
+                <package>org.jjazz.uisettings.api</package>
             </public-packages>
         </data>
     </configuration>

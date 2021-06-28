@@ -25,7 +25,7 @@ package org.jjazz.midisynthmanager.api;
 
 import java.io.File;
 import java.util.List;
-import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midisynthmanager.MidiSynthManagerImpl;
 
 

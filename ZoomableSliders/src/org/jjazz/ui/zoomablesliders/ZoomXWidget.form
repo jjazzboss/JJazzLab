@@ -32,7 +32,7 @@
         <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="labelMouseClicked"/>
       </Events>
     </Component>
-    <Container class="org.jjazz.ui.flatcomponents.FlatIntegerHorizontalSlider" name="slider">
+    <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider" name="slider">
       <Properties>
         <Property name="faderHeight" type="int" value="4"/>
         <Property name="knobDiameter" type="int" value="10"/>

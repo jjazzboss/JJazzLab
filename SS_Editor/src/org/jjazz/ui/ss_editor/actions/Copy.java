@@ -43,8 +43,8 @@ import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
-import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
-import org.jjazz.util.ResUtil;
+import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
+import org.jjazz.util.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.copy")
 @ActionRegistration(displayName = "#CTL_Copy", lazy = false)

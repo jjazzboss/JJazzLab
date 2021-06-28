@@ -34,10 +34,10 @@ import java.awt.font.TextLayout;
 import java.beans.PropertyChangeEvent;
 import java.text.AttributedString;
 import java.util.logging.Logger;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.ui.itemrenderer.api.*;
-import org.jjazz.ui.utilities.TextLayoutUtils;
+import org.jjazz.ui.utilities.api.TextLayoutUtils;
 
 public class IR_TimeSignature extends ItemRenderer implements IR_Copiable
 {

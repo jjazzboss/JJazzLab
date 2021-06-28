@@ -95,7 +95,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="org.jjazz.ui.utilities.HelpTextArea" name="hlp_area">
+        <Component class="org.jjazz.ui.utilities.api.HelpTextArea" name="hlp_area">
           <Properties>
             <Property name="columns" type="int" value="20"/>
             <Property name="rows" type="int" value="4"/>

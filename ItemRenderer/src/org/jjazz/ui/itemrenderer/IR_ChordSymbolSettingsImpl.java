@@ -37,13 +37,13 @@ import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.ui.itemrenderer.api.IR_ChordSymbolSettings;
-import org.jjazz.util.Utilities;
+import org.jjazz.util.api.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
-import org.jjazz.ui.utilities.FontColorUserSettingsProvider;
-import org.jjazz.uisettings.GeneralUISettings;
-import org.jjazz.upgrade.UpgradeManager;
+import org.jjazz.ui.utilities.api.FontColorUserSettingsProvider;
+import org.jjazz.uisettings.api.GeneralUISettings;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.netbeans.api.annotations.common.StaticResource;
 

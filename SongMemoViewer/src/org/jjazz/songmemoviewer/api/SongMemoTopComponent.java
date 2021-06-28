@@ -24,7 +24,7 @@ package org.jjazz.songmemoviewer.api;
 
 import java.util.logging.Logger;
 import org.jjazz.songmemoviewer.SongMemoEditor;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;

@@ -34,13 +34,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.quantizer.Quantizer;
-import org.jjazz.quantizer.Quantization;
+import org.jjazz.quantizer.api.Quantizer;
+import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 
 /**

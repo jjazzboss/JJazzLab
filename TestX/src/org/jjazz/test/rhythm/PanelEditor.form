@@ -42,7 +42,7 @@
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Container class="org.jjazz.ui.flatcomponents.FlatIntegerKnob" name="knb_bassDrum">
+    <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knb_bassDrum">
 
       <Layout>
         <DimensionLayout dim="0">
@@ -57,7 +57,7 @@
         </DimensionLayout>
       </Layout>
     </Container>
-    <Container class="org.jjazz.ui.flatcomponents.FlatIntegerKnob" name="knb_snare">
+    <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knb_snare">
 
       <Layout>
         <DimensionLayout dim="0">
@@ -72,7 +72,7 @@
         </DimensionLayout>
       </Layout>
     </Container>
-    <Container class="org.jjazz.ui.flatcomponents.FlatIntegerKnob" name="knb_hihat">
+    <Container class="org.jjazz.ui.flatcomponents.api.FlatIntegerKnob" name="knb_hihat">
 
       <Layout>
         <DimensionLayout dim="0">

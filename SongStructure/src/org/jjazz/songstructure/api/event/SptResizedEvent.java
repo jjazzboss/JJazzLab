@@ -22,7 +22,7 @@
  */
 package org.jjazz.songstructure.api.event;
 
-import org.jjazz.util.SmallMap;
+import org.jjazz.util.api.SmallMap;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 

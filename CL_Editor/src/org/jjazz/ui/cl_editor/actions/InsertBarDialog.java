@@ -106,7 +106,7 @@ public final class InsertBarDialog extends javax.swing.JDialog
         lblFromBar = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         btn_Cancel = new javax.swing.JButton();
-        spnNbBars = new org.jjazz.ui.utilities.WheelSpinner();
+        spnNbBars = new org.jjazz.ui.utilities.api.WheelSpinner();
 
         setTitle(org.openide.util.NbBundle.getMessage(InsertBarDialog.class, "InsertBarDialog.title")); // NOI18N
         addWindowFocusListener(new java.awt.event.WindowFocusListener()
@@ -205,7 +205,7 @@ public final class InsertBarDialog extends javax.swing.JDialog
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel lblFromBar;
     private javax.swing.JLabel lbl_spinner;
-    private org.jjazz.ui.utilities.WheelSpinner spnNbBars;
+    private org.jjazz.ui.utilities.api.WheelSpinner spnNbBars;
     // End of variables declaration//GEN-END:variables
 
     /**

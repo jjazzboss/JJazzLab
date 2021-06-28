@@ -31,7 +31,7 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.RenderingHints;
 import javax.swing.JPanel;
-import org.jjazz.ui.utilities.CrossShape;
+import org.jjazz.ui.utilities.api.CrossShape;
 
 /**
  * The component used to show the insertion mark in copy or move mode.

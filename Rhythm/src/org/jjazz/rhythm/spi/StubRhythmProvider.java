@@ -22,7 +22,7 @@
  */
 package org.jjazz.rhythm.spi;
 
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.Rhythm;
 import org.openide.util.Lookup;
 

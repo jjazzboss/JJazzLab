@@ -25,7 +25,7 @@ package org.jjazz.leadsheet.chordleadsheet;
 import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import static org.jjazz.leadsheet.chordleadsheet.Bundle.ERR_CreateSampleLeadSheet12;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheetFactory;

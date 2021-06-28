@@ -27,7 +27,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * A custom user confirmation dialog before applying an Output Synth preset.
@@ -105,7 +105,7 @@ public class PresetConfirmDialog extends javax.swing.JDialog
 
         lbl_image = new javax.swing.JLabel();
         scrollPane_helpArea = new javax.swing.JScrollPane();
-        hlp_area = new org.jjazz.ui.utilities.HelpTextArea();
+        hlp_area = new org.jjazz.ui.utilities.api.HelpTextArea();
         btn_No = new javax.swing.JButton();
         btn_Yes = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
@@ -229,7 +229,7 @@ public class PresetConfirmDialog extends javax.swing.JDialog
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_No;
     private javax.swing.JButton btn_Yes;
-    private org.jjazz.ui.utilities.HelpTextArea hlp_area;
+    private org.jjazz.ui.utilities.api.HelpTextArea hlp_area;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel lbl_image;

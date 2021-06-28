@@ -119,7 +119,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.base.actions</package>
+                <package>org.jjazz.base.api.actions</package>
             </public-packages>
         </data>
     </configuration>

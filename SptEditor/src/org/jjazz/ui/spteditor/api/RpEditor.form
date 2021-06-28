@@ -58,7 +58,7 @@
         </Component>
       </SubComponents>
     </Container>
-    <Container class="org.jjazz.ui.utilities.FixedPreferredWidthPanel" name="pnl_rpName">
+    <Container class="org.jjazz.ui.utilities.api.FixedPreferredWidthPanel" name="pnl_rpName">
       <Properties>
         <Property name="fixedPreferredWidth" type="int" value="60"/>
       </Properties>
