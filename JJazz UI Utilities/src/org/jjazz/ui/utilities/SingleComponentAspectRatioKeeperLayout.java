@@ -44,8 +44,8 @@ public class SingleComponentAspectRatioKeeperLayout implements LayoutManager
         int maxWidth = parent.getWidth() - (insets.left + insets.right);
         int maxHeight = parent.getHeight() - (insets.top + insets.bottom);
 
-        Dimension prefferedSize = component.getPreferredSize();
-        Dimension targetDim = getScaledDimension(prefferedSize, new Dimension(maxWidth, maxHeight));
+        Dimension prefSize = component.getPreferredSize();
+        Dimension targetDim = getScaledDimension(prefSize, new Dimension(maxWidth, maxHeight));
 
         double targetWidth = targetDim.getWidth();
         double targetHeight = targetDim.getHeight();
