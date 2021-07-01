@@ -195,7 +195,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             {
                 showChordSymbolNotes(selectedChordSymbol);
             } else
-            {                
+            {
                 // notesViewer.releaseAllNotes();       // Commented out: leave last chord symbol
             }
         }
@@ -532,6 +532,10 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 noteListener.setEnabled(true);
                 spn_srcChannel.setEnabled(true);
                 notesViewer.setMode(mode);
+                if (selectedChordSymbol != null)
+                {
+                    showChordSymbolNotes(selectedChordSymbol);
+                }
                 break;
             case ShowSelection:
                 noteListener.setEnabled(false);

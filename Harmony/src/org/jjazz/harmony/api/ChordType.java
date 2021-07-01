@@ -734,14 +734,170 @@ final public class ChordType
     }
 
     /**
-     * True if Family=MINOR or DIMINISHED.
      *
-     * @return
+     * @return True for Cm7, C°, etc.
      */
     public boolean isMinor()
     {
-        return family == Family.MINOR || family == Family.DIMINISHED;
+        return Degree.THIRD_FLAT.equals(getDegree(Natural.THIRD));
     }
+
+    /**
+     *
+     * @return True if e.g. C7, C, C6, etc. False if e.g. Cm, C7sus etc.
+     */
+    public boolean isMajor()
+    {
+        return Degree.THIRD.equals(getDegree(Natural.THIRD));
+    }
+
+    /**
+     *
+     * @return True for e.g. C7, C7alt, etc.
+     */
+    public boolean isSeventhMinor()
+    {
+        return Degree.SEVENTH_FLAT.equals(getDegree(Natural.SEVENTH));
+    }
+
+    /**
+     * @return True for e.g. C7M, C9M#11, etc.
+     */
+    public boolean isSeventhMajor()
+    {
+        return Degree.SEVENTH.equals(getDegree(Natural.SEVENTH));
+    }
+
+    /**
+     *
+     * @return True if a seventh (minor or major) is present.
+     */
+    public boolean isSeventh()
+    {
+        return getDegree(Natural.SEVENTH) != null;
+    }
+
+    /**
+     *
+     * @return True for e.g. C, C7, Cm6
+     */
+    public boolean isFifthNatural()
+    {
+        return Degree.FIFTH.equals(getDegree(Natural.FIFTH));
+    }
+
+    /**
+     *
+     * @return True for e.g. C+, C7#5, etc.
+     */
+    public boolean isFifthSharp()
+    {
+        return Degree.FIFTH_SHARP.equals(getDegree(Natural.FIFTH));
+    }
+
+    /**
+     *
+     * @return True for e.g. Cdim, C7b5, etc.
+     */
+    public boolean isFifthFlat()
+    {
+        return Degree.FIFTH_FLAT.equals(getDegree(Natural.FIFTH));
+    }
+
+
+    /**
+     *
+     * @return True if a eleventh (natural or altered) is present.
+     */
+    public boolean isEleventh()
+    {
+        return getDegree(Natural.ELEVENTH) != null;
+    }
+
+    /**
+     *
+     * @return True for e.g. Cm11. Note that C7sus will return false, see isSus().
+     * @see isSus()
+     */
+    public boolean isEleventhNatural()
+    {
+        return !isSus() && Degree.FOURTH_OR_ELEVENTH.equals(getDegree(Natural.ELEVENTH));
+    }
+
+    /**
+     *
+     * @return True for e.g. C7M#11, C7#11.
+     */
+    public boolean isEleventhSharp()
+    {
+        return Degree.ELEVENTH_SHARP.equals(getDegree(Natural.ELEVENTH));
+    }
+
+
+    /**
+     * True if family is Family.SUS (no third degree).
+     *
+     * @return True for e.g. Csus, C7sus
+     */
+    public boolean isSus()
+    {
+        return getFamily().equals(Family.SUS);
+    }
+
+    /**
+     *
+     * @return True if chord does not have a seventh degree (minor or major) but has the SIXTH_OR_THIRTEENTH degree.
+     */
+    public boolean isSixth()
+    {
+        return getDegree(Natural.SEVENTH) == null && Degree.SIXTH_OR_THIRTEENTH.equals(getDegree(Natural.SIXTH));
+    }
+
+    /**
+     *
+     * @return True if chord has a seventh degree (minor or major) and the SIXTH_OR_THIRTEENTH degree.
+     */
+    public boolean isThirteenth()
+    {
+        return getDegree(Natural.SEVENTH) != null && Degree.SIXTH_OR_THIRTEENTH.equals(getDegree(Natural.SIXTH));
+    }
+
+    /**
+     *
+     * @return True if a ninth (natural or altered) is present.
+     */
+    public boolean isNinth()
+    {
+        return getDegree(Natural.NINTH) != null;
+    }
+
+    /**
+     *
+     * @return True for e.g. C9, Dbm9
+     */
+    public boolean isNinthNatural()
+    {
+        return Degree.NINTH.equals(getDegree(Natural.NINTH));
+    }
+
+    /**
+     *
+     * @return True for e.g. C7#9
+     */
+    public boolean isNinthSharp()
+    {
+        return Degree.NINTH_SHARP.equals(getDegree(Natural.NINTH));
+    }
+
+    /**
+     *
+     * @return True for e.g. C7b9, etc.
+     */
+    public boolean isNinthFlat()
+    {
+        return Degree.NINTH_FLAT.equals(getDegree(Natural.NINTH));
+    }
+
 
     @Override
     public String toString()

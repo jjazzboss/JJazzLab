@@ -20,16 +20,13 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.notesviewer;
+package org.jjazz.notesviewer.piano;
 
 import org.jjazz.notesviewer.spi.NotesViewer;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
 
-/**
- *
- * @author Administrateur
- */
+
 public class PianoNotesViewerComponent extends javax.swing.JPanel
 {
 
@@ -100,7 +97,7 @@ public class PianoNotesViewerComponent extends javax.swing.JPanel
         jPanel1.setMaximumSize(new java.awt.Dimension(18, 32767));
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 2));
 
-        fbtn_size.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/notesviewer/resources/LeftRightArrowsSmall.png"))); // NOI18N
+        fbtn_size.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/notesviewer/piano/resources/LeftRightArrowsSmall.png"))); // NOI18N
         fbtn_size.setToolTipText(org.openide.util.NbBundle.getBundle(PianoNotesViewerComponent.class).getString("PianoNotesViewerComponent.fbtn_size.toolTipText")); // NOI18N
         fbtn_size.addActionListener(new java.awt.event.ActionListener()
         {

@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.notesviewer;
+package org.jjazz.notesviewer.piano;
 
 import java.awt.Color;
 import java.util.logging.Logger;
@@ -32,6 +32,7 @@ import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.notesviewer.NotesViewerPanel;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
@@ -57,10 +58,10 @@ public class PianoNotesViewer implements NotesViewer
     private StandardScaleInstance scaleInstance;
     private PianoNotesViewerComponent component;
     private boolean realTimeNotesEnabled = true;
-    private static final Logger LOGGER = Logger.getLogger(NotesViewerPanel.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(PianoNotesViewer.class.getSimpleName());
 
     @Override
-    public JComponent getComponent()
+    public PianoNotesViewerComponent getComponent()
     {
         if (component == null)
         {
@@ -110,7 +111,7 @@ public class PianoNotesViewer implements NotesViewer
     {
         if (realTimeNotesEnabled)
         {
-            component.getKeyboard().setPressed(pitch, velocity, null);
+            getKeyboard().setPressed(pitch, velocity, null);
         }
     }
 
@@ -119,20 +120,20 @@ public class PianoNotesViewer implements NotesViewer
     {
         if (realTimeNotesEnabled)
         {
-            component.getKeyboard().setReleased(pitch);
+            getKeyboard().setReleased(pitch);
         }
     }
 
     @Override
     public void releaseAllNotes()
     {
-        component.getKeyboard().reset();
+        getKeyboard().reset();
     }
 
     @Override
     public void showChordSymbolNotes(CLI_ChordSymbol cliCs)
     {
-        KeyboardComponent keyboard = component.getKeyboard();
+        KeyboardComponent keyboard = getKeyboard();
         int cPitch = keyboard.getRange().getCentralC();
         ExtChordSymbol ecs = cliCs.getData();
         if (ecs.getRootNote().getRelativePitch() > 7)
@@ -148,7 +149,7 @@ public class PianoNotesViewer implements NotesViewer
     @Override
     public void showScaleNotes(StandardScaleInstance ssi)
     {
-        KeyboardComponent keyboard = component.getKeyboard();
+        KeyboardComponent keyboard = getKeyboard();
         var scaleRelPitches = ssi.getRelativePitches();
         for (PianoKey key : keyboard.getPianoKeys())
         {
@@ -180,7 +181,7 @@ public class PianoNotesViewer implements NotesViewer
         boolean b = realTimeNotesEnabled;
         realTimeNotesEnabled = false;
 
-        KeyboardComponent keyboard = component.getKeyboard();
+        KeyboardComponent keyboard = getKeyboard();
         KeyboardRange kbdRange;
         switch (mode)
         {
@@ -207,6 +208,11 @@ public class PianoNotesViewer implements NotesViewer
         keyboard.setKeyboardRange(kbdRange);
 
         realTimeNotesEnabled = b;
+    }
+
+    private KeyboardComponent getKeyboard()
+    {
+        return getComponent().getKeyboard();
     }
 
 }

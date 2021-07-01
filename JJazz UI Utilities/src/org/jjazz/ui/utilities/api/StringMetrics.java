@@ -26,39 +26,95 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.awt.font.*;
 
+/**
+ * Compute string metrics.
+ * <p>
+ * Try to cache data whenever possible.
+ */
 public class StringMetrics
 {
 
     Font font;
-    FontRenderContext context;
+    FontRenderContext fontRendererContext;
+    LineMetrics lineMetrics;
+    Rectangle2D bounds, boundsNoLeading;
+    String lastText;
 
-    public StringMetrics(Graphics2D g2)
+    public StringMetrics(Graphics2D g2, Font font)
     {
-        font = g2.getFont();
-        context = g2.getFontRenderContext();
+        fontRendererContext = g2.getFontRenderContext();
+        this.font = font;
     }
 
     /**
-     * Return a baseline relative coordinates, include the leading (interline spacing).
+     * Return a rectangle in baseline relative coordinates, include the leading (interline spacing).
      *
-     * @param message
+     * @param text
      * @return
      */
-    public Rectangle2D getLogicalBounds(String message)
+    public Rectangle2D getLogicalBounds(String text)
     {
-        return font.getStringBounds(message, context);
+        if (text == null)
+        {
+            throw new NullPointerException("text");
+        }
+        if (bounds == null || !text.equals(lastText))
+        {
+            bounds =  font.getStringBounds(text, fontRendererContext);
+            boundsNoLeading = null;
+        }
+        lastText = text;
+        return bounds;
     }
 
-    public double getWidth(String message)
+    /**
+     * Return a rectangle in baseline relative coordinates, excluding the leading (interline spacing).
+     *
+     * @param text
+     * @return
+     */
+    public Rectangle2D getLogicalBoundsNoLeading(String text)
     {
-        Rectangle2D bounds = getLogicalBounds(message);
-        return bounds.getWidth();
+        if (text == null)
+        {
+            throw new NullPointerException("text");
+        }
+        if (boundsNoLeading == null || !text.equals(lastText))
+        {
+            bounds = font.getStringBounds(text, fontRendererContext);
+            lineMetrics = font.getLineMetrics(text, fontRendererContext);
+            boundsNoLeading = new Rectangle2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - lineMetrics.getLeading());
+        }
+        lastText = text;
+        return boundsNoLeading;
     }
 
-    public double getHeight(String message)
+    public double getWidth(String text)
     {
-        Rectangle2D bounds = getLogicalBounds(message);
-        return bounds.getHeight();
+        return getLogicalBounds(text).getWidth();
+    }
+
+    /**
+     * get the height of this text, including the leading (interline space).
+     *
+     * @param text
+     * @return
+     */
+    public double getHeight(String text)
+    {
+        return getLogicalBounds(text).getHeight();
+    }
+
+    /**
+     * Get the height of this text, excluding the leading (interline space).
+     *
+     * @param text
+     * @return
+     */
+
+    public double getHeightNoLeading(String text)
+    {
+        return getLogicalBoundsNoLeading(text).getHeight();
     }
 
 }

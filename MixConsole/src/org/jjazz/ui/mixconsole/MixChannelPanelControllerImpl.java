@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.mixconsole;
+package org.jjazz.ui.mixconsole; 
 
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
