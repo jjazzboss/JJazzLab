@@ -36,7 +36,7 @@ public interface DiffProvider<Type>
         /**
          * Use the first implementation present in the global lookup. If nothing found, use the default one.
          *
-         * @return
+         * @return 
          */
         public static DiffProvider<?> getDefault()
         {
