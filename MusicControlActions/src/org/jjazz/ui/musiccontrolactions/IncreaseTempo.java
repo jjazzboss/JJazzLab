@@ -24,7 +24,7 @@ package org.jjazz.ui.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import org.jjazz.activesong.ActiveSongManager;
+import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
 import org.openide.awt.ActionID;

@@ -162,8 +162,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.outputsynth</package>
-                <package>org.jjazz.outputsynth.builtin</package>
+                <package>org.jjazz.outputsynth.api</package>
             </public-packages>
         </data>
     </configuration>

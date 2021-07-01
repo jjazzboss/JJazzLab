@@ -282,7 +282,7 @@
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
-            <Component class="org.jjazz.ui.utilities.HelpTextArea" name="helpTextArea1">
+            <Component class="org.jjazz.ui.utilities.api.HelpTextArea" name="helpTextArea1">
               <Properties>
                 <Property name="columns" type="int" value="20"/>
                 <Property name="rows" type="int" value="2"/>
@@ -306,7 +306,7 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_addRhythmsActionPerformed"/>
           </Events>
         </Component>
-        <Component class="org.jjazz.ui.flatcomponents.FlatToggleButton" name="fbtn_autoPreviewMode">
+        <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_autoPreviewMode">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/rhythmselectiondialog/resources/SpeakerOff-24x24.png"/>

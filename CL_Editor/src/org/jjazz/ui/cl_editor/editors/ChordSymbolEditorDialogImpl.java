@@ -39,9 +39,9 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import org.jjazz.harmony.Note;
-import org.jjazz.harmony.ScaleManager;
-import org.jjazz.harmony.StandardScaleInstance;
+import org.jjazz.harmony.api.Note;
+import org.jjazz.harmony.api.ScaleManager;
+import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.leadsheet.chordleadsheet.api.item.AltDataFilter;
 import org.jjazz.leadsheet.chordleadsheet.api.item.AltExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -53,8 +53,8 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.leadsheet.chordleadsheet.api.item.VoidAltExtChordSymbol;
 import org.jjazz.rhythm.parameters.RP_SYS_Marker;
 import org.jjazz.ui.cl_editor.spi.ChordSymbolEditorDialog;
-import org.jjazz.ui.utilities.Utilities;
-import org.jjazz.util.ResUtil;
+import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * Default chord symbol edit dialog.
@@ -552,7 +552,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         jScrollPane2 = new javax.swing.JScrollPane();
         list_scales = new JList<>(stdScales);
         jScrollPane3 = new javax.swing.JScrollPane();
-        helpTextArea2 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea2 = new org.jjazz.ui.utilities.api.HelpTextArea();
         lbl_scaleNotes = new javax.swing.JLabel();
         lbl_scaleTip = new javax.swing.JLabel();
         pnl_Alternate = new javax.swing.JPanel();
@@ -1287,7 +1287,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     private javax.swing.JCheckBox cb_pedalBass;
     private javax.swing.JCheckBox cb_stronger;
     private javax.swing.JCheckBox cb_useVoidAlt;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea2;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;

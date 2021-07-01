@@ -24,9 +24,9 @@
 package org.jjazz.midiconverters.spi;
 
 import java.util.List;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.InstrumentBank;
-import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.InstrumentBank;
+import org.jjazz.midi.api.MidiSynth;
 
 /**
  * Converts a source Instrument to another instrument on a destination MidiSynth.

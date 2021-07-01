@@ -23,8 +23,8 @@
 package org.jjazz.outputsynth.ui.spi;
 
 import javax.swing.JDialog;
-import org.jjazz.midi.Instrument;
-import org.jjazz.outputsynth.OutputSynth;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.ui.RemapTableInstrumentChooserImpl;
 import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;

@@ -31,7 +31,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.rhythm.parameters.RP_Integer;
 import org.jjazz.ui.spteditor.api.RpEditor;
-import org.jjazz.ui.utilities.WheelSpinner;
+import org.jjazz.ui.utilities.api.WheelSpinner;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.spi.RpEditorComponent;
 

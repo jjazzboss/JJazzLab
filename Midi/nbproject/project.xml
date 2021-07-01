@@ -106,14 +106,14 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.midi</package>
-                <package>org.jjazz.midi.device</package>
-                <package>org.jjazz.midi.keymap</package>
-                <package>org.jjazz.midi.parser</package>
+                <package>org.jjazz.midi.api</package>
+                <package>org.jjazz.midi.api.device</package>
+                <package>org.jjazz.midi.api.keymap</package>
+                <package>org.jjazz.midi.api.parser</package>
+                <package>org.jjazz.midi.api.sequencer</package>
+                <package>org.jjazz.midi.api.synths</package>
+                <package>org.jjazz.midi.api.ui</package>
                 <package>org.jjazz.midi.spi</package>
-                <package>org.jjazz.midi.synths</package>
-                <package>org.jjazz.midi.ui</package>
-                <package>org.jjazz.midi.ui.keyboard</package>
             </public-packages>
         </data>
     </configuration>

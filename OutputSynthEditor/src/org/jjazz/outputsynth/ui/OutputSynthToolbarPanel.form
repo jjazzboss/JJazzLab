@@ -32,7 +32,7 @@
         <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
       </AuxValues>
     </Component>
-    <Component class="org.jjazz.ui.flatcomponents.FlatButton" name="fbtn_playbackTransposition">
+    <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_playbackTransposition">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/org/jjazz/outputsynth/ui/resources/Sax-OFF-24x24.png"/>
@@ -55,7 +55,7 @@
         <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
       </AuxValues>
     </Component>
-    <Component class="org.jjazz.ui.flatcomponents.FlatButton" name="fbtn_editOutputSynth">
+    <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_editOutputSynth">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/org/jjazz/outputsynth/ui/resources/OutputSynth2.png"/>

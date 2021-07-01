@@ -29,9 +29,9 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
-import static org.jjazz.ui.flatcomponents.FlatIntegerHorizontalSlider.PROP_HIDE_VALUE;
-import static org.jjazz.ui.flatcomponents.FlatIntegerHorizontalSlider.PROP_NB_GRADUATION_MARKS;
-import org.jjazz.ui.utilities.Zoomable;
+import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_HIDE_VALUE;
+import static org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider.PROP_NB_GRADUATION_MARKS;
+import org.jjazz.ui.utilities.api.Zoomable;
 import org.openide.awt.Actions;
 import org.openide.awt.StatusLineElementProvider;
 import org.openide.util.*;
@@ -135,7 +135,7 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
     {
 
         label = new javax.swing.JLabel();
-        slider = new org.jjazz.ui.flatcomponents.FlatIntegerHorizontalSlider();
+        slider = new org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider();
         slider.putClientProperty(PROP_NB_GRADUATION_MARKS, 0);
         slider.putClientProperty(PROP_HIDE_VALUE, 1);
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(18, 0), new java.awt.Dimension(18, 0), new java.awt.Dimension(18, 32767));
@@ -213,6 +213,6 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.Box.Filler filler1;
     private javax.swing.JLabel label;
-    private org.jjazz.ui.flatcomponents.FlatIntegerHorizontalSlider slider;
+    private org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider slider;
     // End of variables declaration//GEN-END:variables
 }

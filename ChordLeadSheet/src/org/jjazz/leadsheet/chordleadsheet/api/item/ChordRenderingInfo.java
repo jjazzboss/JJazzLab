@@ -31,7 +31,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.logging.Logger;
-import org.jjazz.harmony.StandardScaleInstance;
+import org.jjazz.harmony.api.StandardScaleInstance;
 
 /**
  * Music rendering info associated to a chord.

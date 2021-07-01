@@ -27,6 +27,7 @@
  */
 package org.jjazz.util;
 
+import org.jjazz.util.api.Utilities;
 import java.awt.Font;
 import java.io.File;
 import java.net.URL;

@@ -170,7 +170,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.rhythmselectiondialog.ui</package>
+                <package>org.jjazz.rhythmselectiondialog.api</package>
             </public-packages>
         </data>
     </configuration>

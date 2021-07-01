@@ -209,7 +209,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.ui.musiccontrolactions</package>
+                <package>org.jjazz.ui.musiccontrolactions.api</package>
             </public-packages>
         </data>
     </configuration>

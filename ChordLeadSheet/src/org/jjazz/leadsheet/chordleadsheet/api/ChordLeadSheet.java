@@ -24,11 +24,11 @@ package org.jjazz.leadsheet.chordleadsheet.api;
 
 import java.util.List;
 import javax.swing.event.UndoableEditListener;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.util.IntRange;
+import org.jjazz.util.api.IntRange;
 
 /**
  * The model for a chord leadsheet.

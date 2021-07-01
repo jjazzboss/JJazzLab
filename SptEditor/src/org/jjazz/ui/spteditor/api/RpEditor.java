@@ -222,7 +222,7 @@ public final class RpEditor extends JPanel implements PropertyChangeListener
 
         pnl_placeHolder = new javax.swing.JPanel();
         lbl_placeHolder = new javax.swing.JLabel();
-        pnl_rpName = new org.jjazz.ui.utilities.FixedPreferredWidthPanel();
+        pnl_rpName = new org.jjazz.ui.utilities.api.FixedPreferredWidthPanel();
         lbl_rpName = new javax.swing.JLabel();
 
         setMaximumSize(new java.awt.Dimension(30000, 3000));
@@ -266,7 +266,7 @@ public final class RpEditor extends JPanel implements PropertyChangeListener
     private javax.swing.JLabel lbl_placeHolder;
     private javax.swing.JLabel lbl_rpName;
     private javax.swing.JPanel pnl_placeHolder;
-    private org.jjazz.ui.utilities.FixedPreferredWidthPanel pnl_rpName;
+    private org.jjazz.ui.utilities.api.FixedPreferredWidthPanel pnl_rpName;
     // End of variables declaration//GEN-END:variables
 
 }

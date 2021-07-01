@@ -27,10 +27,10 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
-import org.jjazz.harmony.ChordType;
-import org.jjazz.harmony.ChordTypeDatabase;
-import org.jjazz.harmony.Note;
-import org.jjazz.util.ResUtil;
+import org.jjazz.harmony.api.ChordType;
+import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.api.Note;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 

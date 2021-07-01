@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
@@ -47,7 +47,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructureFactory;
-import org.jjazz.util.Utilities;
+import org.jjazz.util.api.Utilities;
 import org.openide.util.Exceptions;
 
 /**

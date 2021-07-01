@@ -49,7 +49,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.quantizer</package>
+                <package>org.jjazz.quantizer.api</package>
             </public-packages>
         </data>
     </configuration>

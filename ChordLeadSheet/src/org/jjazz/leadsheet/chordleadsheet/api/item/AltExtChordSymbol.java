@@ -29,10 +29,10 @@ import java.io.Serializable;
 import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.harmony.ChordSymbol;
-import org.jjazz.harmony.ChordType;
-import org.jjazz.harmony.ChordTypeDatabase;
-import org.jjazz.harmony.Note;
+import org.jjazz.harmony.api.ChordSymbol;
+import org.jjazz.harmony.api.ChordType;
+import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.api.Note;
 
 /**
  * Used as the alternate content of a ExtChordSymbol.

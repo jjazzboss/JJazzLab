@@ -37,7 +37,7 @@
         <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
       </AuxValues>
     </Component>
-    <Component class="org.jjazz.ui.flatcomponents.FlatToggleButton" name="fbtn_Active">
+    <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_Active">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/Off-24x18.png"/>
@@ -75,14 +75,14 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout"/>
       <SubComponents>
-        <Component class="org.jjazz.ui.flatcomponents.FlatToggleButton" name="fbtn_Stop">
+        <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_Stop">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/StopButtonBorderOff-24x24.png"/>
             </Property>
           </Properties>
         </Component>
-        <Component class="org.jjazz.ui.flatcomponents.FlatToggleButton" name="fbtn_Play">
+        <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_Play">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/PlayButtonBorder-24x24.png"/>
@@ -92,7 +92,7 @@
             </Property>
           </Properties>
         </Component>
-        <Component class="org.jjazz.ui.flatcomponents.FlatToggleButton" name="fbtn_Pause">
+        <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_Pause">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorder-24x24.png"/>
@@ -176,7 +176,7 @@
         <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
       </AuxValues>
     </Component>
-    <Component class="org.jjazz.ui.flatcomponents.FlatToggleButton" name="fbtn_Loop">
+    <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_Loop">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/Loop-OFF-24x24.png"/>
@@ -186,7 +186,7 @@
         </Property>
       </Properties>
     </Component>
-    <Component class="org.jjazz.ui.flatcomponents.FlatToggleButton" name="fbtn_PlaybackPoint">
+    <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_PlaybackPoint">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointOFF-24x24.png"/>
@@ -234,7 +234,7 @@
             <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.VerticalGlue"/>
           </AuxValues>
         </Component>
-        <Component class="org.jjazz.ui.utilities.WheelSpinner" name="spn_Tempo">
+        <Component class="org.jjazz.ui.utilities.api.WheelSpinner" name="spn_Tempo">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
               <SpinnerModel initial="120" maximum="350" minimum="30" numberType="java.lang.Integer" stepSize="1" type="number"/>
@@ -275,7 +275,7 @@
         <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.HorizontalStrut"/>
       </AuxValues>
     </Component>
-    <Component class="org.jjazz.ui.flatcomponents.FlatToggleButton" name="fbtn_Click">
+    <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_Click">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/Click-OFF-24x24.png"/>
@@ -288,7 +288,7 @@
         </Property>
       </Properties>
     </Component>
-    <Component class="org.jjazz.ui.flatcomponents.FlatToggleButton" name="fbtn_Precount">
+    <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_Precount">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/precount2-OFF-24x24.png"/>

@@ -29,7 +29,6 @@ import javax.swing.JComponent;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
-import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 import org.openide.windows.WindowManager;
 

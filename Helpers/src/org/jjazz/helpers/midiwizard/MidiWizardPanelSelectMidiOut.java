@@ -29,7 +29,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import org.jjazz.midi.JJazzMidiSystem;
+import org.jjazz.midi.api.JJazzMidiSystem;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 

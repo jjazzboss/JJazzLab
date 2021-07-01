@@ -31,18 +31,18 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JTextField;
-import org.jjazz.midi.synths.StdSynth;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.MidiConst;
-import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.musiccontrol.PlaybackListener;
-import org.jjazz.musiccontrol.PlaybackListenerAdapter;
-import org.jjazz.ui.flatcomponents.FlatIntegerKnob;
-import org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider;
-import org.jjazz.ui.flatcomponents.FlatTextEditDialog;
+import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.MidiConst;
+import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackListener;
+import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
+import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
+import org.jjazz.ui.flatcomponents.api.FlatIntegerVerticalSlider;
+import org.jjazz.ui.flatcomponents.api.FlatTextEditDialog;
 import org.jjazz.ui.mixconsole.api.MixConsoleSettings;
-import org.jjazz.uisettings.GeneralUISettings;
-import org.jjazz.util.Utilities;
+import org.jjazz.uisettings.api.GeneralUISettings;
+import org.jjazz.util.api.Utilities;
 
 /**
  * Display a MixChannel.
@@ -287,27 +287,27 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     private void initComponents()
     {
 
-        roundedPanel = new org.jjazz.ui.flatcomponents.RoundedPanel();
+        roundedPanel = new org.jjazz.ui.flatcomponents.api.RoundedPanel();
         pnl_led_close = new javax.swing.JPanel();
-        fled_midiActivity = new org.jjazz.ui.flatcomponents.FlatLedIndicator();
+        fled_midiActivity = new org.jjazz.ui.flatcomponents.api.FlatLedIndicator();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(1, 0), new java.awt.Dimension(1, 0), new java.awt.Dimension(1, 32767));
-        fbtn_Settings = new org.jjazz.ui.flatcomponents.FlatButton();
+        fbtn_Settings = new org.jjazz.ui.flatcomponents.api.FlatButton();
         pnl_mute = new javax.swing.JPanel();
-        fbtn_mute = new org.jjazz.ui.flatcomponents.FlatToggleButton();
+        fbtn_mute = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         pnl_solo = new javax.swing.JPanel();
-        fbtn_solo = new org.jjazz.ui.flatcomponents.FlatToggleButton();
+        fbtn_solo = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         pnl_inst_volume = new javax.swing.JPanel();
-        fslider_volume = new org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider();
+        fslider_volume = new org.jjazz.ui.flatcomponents.api.FlatIntegerVerticalSlider();
         fbtn_Instrument = new org.jjazz.ui.mixconsole.VInstrumentButton();
         pnl_icon = new javax.swing.JPanel();
         lbl_Icon = new javax.swing.JLabel();
         pnl_name = new javax.swing.JPanel();
         lbl_name = new javax.swing.JLabel();
         pnl_channelId = new javax.swing.JPanel();
-        fbtn_channelId = new org.jjazz.ui.flatcomponents.FlatButton();
-        knob_panoramic = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
-        knob_chorus = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
-        knob_reverb = new org.jjazz.ui.flatcomponents.FlatIntegerKnob();
+        fbtn_channelId = new org.jjazz.ui.flatcomponents.api.FlatButton();
+        knob_panoramic = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob_chorus = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        knob_reverb = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
         lbl_pan = new javax.swing.JLabel();
         lbl_rev = new javax.swing.JLabel();
         lbl_cho = new javax.swing.JLabel();
@@ -616,16 +616,16 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.jjazz.ui.mixconsole.VInstrumentButton fbtn_Instrument;
-    private org.jjazz.ui.flatcomponents.FlatButton fbtn_Settings;
-    private org.jjazz.ui.flatcomponents.FlatButton fbtn_channelId;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_mute;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_solo;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_Settings;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_channelId;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_mute;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_solo;
     private javax.swing.Box.Filler filler1;
-    private org.jjazz.ui.flatcomponents.FlatLedIndicator fled_midiActivity;
-    private org.jjazz.ui.flatcomponents.FlatIntegerVerticalSlider fslider_volume;
-    private org.jjazz.ui.flatcomponents.FlatIntegerKnob knob_chorus;
-    private org.jjazz.ui.flatcomponents.FlatIntegerKnob knob_panoramic;
-    private org.jjazz.ui.flatcomponents.FlatIntegerKnob knob_reverb;
+    private org.jjazz.ui.flatcomponents.api.FlatLedIndicator fled_midiActivity;
+    private org.jjazz.ui.flatcomponents.api.FlatIntegerVerticalSlider fslider_volume;
+    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_chorus;
+    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_panoramic;
+    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_reverb;
     private javax.swing.JLabel lbl_Icon;
     private javax.swing.JLabel lbl_cho;
     private javax.swing.JLabel lbl_name;
@@ -638,7 +638,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     private javax.swing.JPanel pnl_mute;
     private javax.swing.JPanel pnl_name;
     private javax.swing.JPanel pnl_solo;
-    private org.jjazz.ui.flatcomponents.RoundedPanel roundedPanel;
+    private org.jjazz.ui.flatcomponents.api.RoundedPanel roundedPanel;
     // End of variables declaration//GEN-END:variables
 
     private class BaseMixChannelPanelModel implements MixChannelPanelModel

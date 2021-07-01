@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import javax.swing.event.UndoableEditListener;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -37,9 +37,9 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.util.FloatRange;
-import org.jjazz.util.IntRange;
-import org.jjazz.util.SmallMap;
+import org.jjazz.util.api.FloatRange;
+import org.jjazz.util.api.IntRange;
+import org.jjazz.util.api.SmallMap;
 
 /**
  * A SongStructure manages SongParts.

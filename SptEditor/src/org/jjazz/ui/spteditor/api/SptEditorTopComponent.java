@@ -26,7 +26,7 @@ import java.awt.Dimension;
 import java.util.List;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.spi.SptEditorFactory;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.windows.TopComponent;

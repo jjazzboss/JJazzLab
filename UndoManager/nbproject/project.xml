@@ -65,7 +65,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.undomanager</package>
+                <package>org.jjazz.undomanager.api</package>
             </public-packages>
         </data>
     </configuration>

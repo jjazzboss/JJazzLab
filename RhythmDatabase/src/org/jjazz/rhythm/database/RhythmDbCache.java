@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.spi.RhythmProvider;
 

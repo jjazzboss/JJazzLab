@@ -35,8 +35,8 @@ import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.api.RpEditor;
-import org.jjazz.util.ResUtil;
-import org.jjazz.util.Utilities;
+import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.Utilities;
 import org.jjazz.ui.spteditor.spi.RpEditorComponent;
 
 /**

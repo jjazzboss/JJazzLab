@@ -73,9 +73,7 @@
                     </test-dependency>
                 </test-type>
             </test-dependencies>
-            <public-packages>
-                <package>org.jjazz.rhythm.stubs</package>
-            </public-packages>
+            <public-packages/>
         </data>
     </configuration>
 </project>

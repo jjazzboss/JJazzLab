@@ -27,11 +27,11 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
-import org.jjazz.activesong.ActiveSongManager;
+import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.musiccontrol.MusicController;
-import org.jjazz.musiccontrol.PlaybackListener;
-import org.jjazz.musiccontrol.PlaybackListenerAdapter;
+import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackListener;
+import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
 import org.jjazz.song.api.Song;
 
 import org.openide.awt.Actions;
@@ -215,18 +215,18 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     {
 
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
-        fbtn_Active = new org.jjazz.ui.flatcomponents.FlatToggleButton();
+        fbtn_Active = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         panel_PlayButtons = new javax.swing.JPanel();
-        fbtn_Stop = new org.jjazz.ui.flatcomponents.FlatToggleButton();
-        fbtn_Play = new org.jjazz.ui.flatcomponents.FlatToggleButton();
-        fbtn_Pause = new org.jjazz.ui.flatcomponents.FlatToggleButton();
+        fbtn_Stop = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        fbtn_Play = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        fbtn_Pause = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
         filler10 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
         posViewer = new org.jjazz.ui.musiccontrolactions.PositionViewer();
         filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
-        fbtn_Loop = new org.jjazz.ui.flatcomponents.FlatToggleButton();
-        fbtn_PlaybackPoint = new org.jjazz.ui.flatcomponents.FlatToggleButton();
+        fbtn_Loop = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        fbtn_PlaybackPoint = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
         panel_Tempo = new javax.swing.JPanel()
         {
@@ -237,11 +237,11 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
             }
         };
         filler6 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
-        spn_Tempo = new org.jjazz.ui.utilities.WheelSpinner();
+        spn_Tempo = new org.jjazz.ui.utilities.api.WheelSpinner();
         filler7 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
         filler8 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
-        fbtn_Click = new org.jjazz.ui.flatcomponents.FlatToggleButton();
-        fbtn_Precount = new org.jjazz.ui.flatcomponents.FlatToggleButton();
+        fbtn_Click = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        fbtn_Precount = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         filler9 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
 
         setOpaque(false);
@@ -327,14 +327,14 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     }//GEN-LAST:event_spn_TempoStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Active;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Click;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Loop;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Pause;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Play;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_PlaybackPoint;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Precount;
-    private org.jjazz.ui.flatcomponents.FlatToggleButton fbtn_Stop;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_Active;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_Click;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_Loop;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_Pause;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_Play;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_PlaybackPoint;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_Precount;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton fbtn_Stop;
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler10;
     private javax.swing.Box.Filler filler2;
@@ -348,7 +348,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     private javax.swing.JPanel panel_PlayButtons;
     private javax.swing.JPanel panel_Tempo;
     private org.jjazz.ui.musiccontrolactions.PositionViewer posViewer;
-    private org.jjazz.ui.utilities.WheelSpinner spn_Tempo;
+    private org.jjazz.ui.utilities.api.WheelSpinner spn_Tempo;
     // End of variables declaration//GEN-END:variables
 
 }

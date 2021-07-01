@@ -22,14 +22,14 @@
  */
 package org.jjazz.midiconverters.api;
 
-import org.jjazz.midi.DrumKit;
+import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midiconverters.spi.KeyMapConverter;
 import org.jjazz.midiconverters.spi.InstrumentConverter;
 import java.util.List;
 import java.util.logging.Logger;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.InstrumentBank;
-import org.jjazz.midi.MidiSynth;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.InstrumentBank;
+import org.jjazz.midi.api.MidiSynth;
 import org.openide.util.Lookup;
 
 /**

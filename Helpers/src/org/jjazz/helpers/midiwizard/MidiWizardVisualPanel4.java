@@ -25,10 +25,10 @@ package org.jjazz.helpers.midiwizard;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JPanel;
-import org.jjazz.midi.JJazzMidiSystem;
-import org.jjazz.musiccontrol.TestPlayer;
+import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.musiccontrol.api.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
@@ -117,12 +117,12 @@ public final class MidiWizardVisualPanel4 extends JPanel
     {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        wizardTextArea1 = new org.jjazz.ui.utilities.WizardTextArea();
+        wizardTextArea1 = new org.jjazz.ui.utilities.api.WizardTextArea();
         btn_test1 = new javax.swing.JButton();
         btn_test2 = new javax.swing.JButton();
         btn_test3 = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
         lbl_outDevice = new javax.swing.JLabel();
 
         jScrollPane1.setBorder(null);
@@ -227,10 +227,10 @@ public final class MidiWizardVisualPanel4 extends JPanel
     private javax.swing.JButton btn_test1;
     private javax.swing.JButton btn_test2;
     private javax.swing.JButton btn_test3;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lbl_outDevice;
-    private org.jjazz.ui.utilities.WizardTextArea wizardTextArea1;
+    private org.jjazz.ui.utilities.api.WizardTextArea wizardTextArea1;
     // End of variables declaration//GEN-END:variables
 }

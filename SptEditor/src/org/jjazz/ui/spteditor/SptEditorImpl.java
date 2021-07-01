@@ -48,14 +48,14 @@ import org.openide.util.Lookup;
 import org.openide.util.LookupListener;
 import org.openide.util.Utilities;
 import org.openide.util.WeakListeners;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.api.SptEditor;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.jjazz.ui.spteditor.spi.RpEditorComponentFactory;
 import org.jjazz.ui.spteditor.spi.DefaultRpEditorComponentFactory;
 import org.jjazz.ui.spteditor.spi.RpEditorComponent;
@@ -95,8 +95,8 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         // UI initialization
         initComponents();
 
-        org.jjazz.ui.utilities.Utilities.installSelectAllWhenFocused(tf_name);
-        org.jjazz.ui.utilities.Utilities.installPrintableAsciiKeyTrap(tf_name);
+        org.jjazz.ui.utilities.api.Utilities.installSelectAllWhenFocused(tf_name);
+        org.jjazz.ui.utilities.api.Utilities.installPrintableAsciiKeyTrap(tf_name);
 
         setEditorEnabled(false);
 
@@ -674,7 +674,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
 
     private void setEditorEnabled(boolean b)
     {
-        org.jjazz.ui.utilities.Utilities.setRecursiveEnabled(b, this);
+        org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, this);
     }
 
     private void resetModel()

@@ -25,7 +25,7 @@ package org.jjazz.rhythm.database.api;
 import java.util.List;
 import java.util.function.Predicate;
 import javax.swing.event.ChangeListener;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;

@@ -22,7 +22,7 @@
  */
 package org.jjazz.ui.mixconsole.actions;
 
-import org.jjazz.midimix.MidiMix;
+import org.jjazz.midimix.api.MidiMix;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -32,9 +32,9 @@ import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.jjazz.filedirectorymanager.FileDirectoryManager;
-import org.jjazz.ui.utilities.Utilities;
-import org.jjazz.util.ResUtil;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.util.api.ResUtil;
 import org.jjazz.analytics.api.Analytics;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;

@@ -134,7 +134,7 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
         btn_Cancel = new javax.swing.JButton();
         cmb_transposition = new javax.swing.JComboBox<>();
         jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.HelpTextArea();
+        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
         cb_enableKeyTransposition = new javax.swing.JCheckBox();
 
         setTitle(org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.title")); // NOI18N
@@ -258,7 +258,7 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
     private javax.swing.JButton btn_Ok;
     private javax.swing.JCheckBox cb_enableKeyTransposition;
     private javax.swing.JComboBox<String> cmb_transposition;
-    private org.jjazz.ui.utilities.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
 }

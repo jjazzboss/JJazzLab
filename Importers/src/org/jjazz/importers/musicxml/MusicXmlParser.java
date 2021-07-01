@@ -37,11 +37,11 @@ import nu.xom.Document;
 import nu.xom.Element;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
-import org.jjazz.harmony.ChordType;
-import org.jjazz.harmony.ChordTypeDatabase;
-import org.jjazz.harmony.Degree;
-import org.jjazz.harmony.Note;
-import org.jjazz.harmony.TimeSignature;
+import org.jjazz.harmony.api.ChordType;
+import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.api.Degree;
+import org.jjazz.harmony.api.Note;
+import org.jjazz.harmony.api.TimeSignature;
 import static org.jjazz.importers.musicxml.MusicXmlParser.XMLtoJJazzChordMap;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 

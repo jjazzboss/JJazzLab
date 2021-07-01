@@ -25,13 +25,13 @@ package org.jjazz.helpers.midiwizard;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JPanel;
-import org.jjazz.midi.JJazzMidiSystem;
+import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.jjazz.midi.ui.MidiOutDeviceList;
-import org.jjazz.musiccontrol.TestPlayer;
-import org.jjazz.util.ResUtil;
+import org.jjazz.midi.api.ui.MidiOutDeviceList;
+import org.jjazz.musiccontrol.api.TestPlayer;
+import org.jjazz.util.api.ResUtil;
 
 public final class MidiWizardVisualPanelSelectMidiOut extends JPanel
 {
@@ -146,11 +146,11 @@ public final class MidiWizardVisualPanelSelectMidiOut extends JPanel
     {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        list_outDevices = new org.jjazz.midi.ui.MidiOutDeviceList();
+        list_outDevices = new org.jjazz.midi.api.ui.MidiOutDeviceList();
         lbl_top = new javax.swing.JLabel();
         btn_test = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        hlptxt = new org.jjazz.ui.utilities.HelpTextArea();
+        hlptxt = new org.jjazz.ui.utilities.api.HelpTextArea();
         btn_refresh = new javax.swing.JButton();
 
         jScrollPane1.setViewportView(list_outDevices);
@@ -236,10 +236,10 @@ public final class MidiWizardVisualPanelSelectMidiOut extends JPanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_refresh;
     private javax.swing.JButton btn_test;
-    private org.jjazz.ui.utilities.HelpTextArea hlptxt;
+    private org.jjazz.ui.utilities.api.HelpTextArea hlptxt;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lbl_top;
-    private org.jjazz.midi.ui.MidiOutDeviceList list_outDevices;
+    private org.jjazz.midi.api.ui.MidiOutDeviceList list_outDevices;
     // End of variables declaration//GEN-END:variables
 }

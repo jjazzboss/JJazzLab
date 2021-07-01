@@ -26,8 +26,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.midi.JJazzMidiSystem;
-import org.jjazz.ui.flatcomponents.FlatIntegerHorizontalSlider;
+import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.ui.flatcomponents.api.FlatIntegerHorizontalSlider;
 import static org.jjazz.ui.mixconsole.Bundle.CTL_MasterToolTip;
 import org.openide.util.NbBundle.Messages;
 

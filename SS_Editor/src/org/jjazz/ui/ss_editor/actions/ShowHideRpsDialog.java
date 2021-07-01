@@ -40,7 +40,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.openide.windows.WindowManager;
 
 public class ShowHideRpsDialog extends javax.swing.JDialog

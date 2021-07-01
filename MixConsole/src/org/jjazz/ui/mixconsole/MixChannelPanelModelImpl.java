@@ -30,12 +30,12 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.midi.Instrument;
-import org.jjazz.midi.InstrumentMix;
-import org.jjazz.midi.InstrumentSettings;
-import org.jjazz.midi.MidiConst;
-import org.jjazz.midimix.MidiMix;
-import org.jjazz.midimix.UserChannelRvKey;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.InstrumentMix;
+import org.jjazz.midi.api.InstrumentSettings;
+import org.jjazz.midi.api.MidiConst;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.UserChannelRvKey;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 

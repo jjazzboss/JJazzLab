@@ -1,12 +1,12 @@
 package org.jjazz.midiconverters.api;
 
 import java.util.logging.Logger;
-import org.jjazz.midi.keymap.KeyMapGSGM2;
-import org.jjazz.midi.keymap.KeyMapXG;
-import org.jjazz.midi.keymap.KeyMapGM;
+import org.jjazz.midi.api.keymap.KeyMapGSGM2;
+import org.jjazz.midi.api.keymap.KeyMapXG;
+import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midiconverters.spi.KeyMapConverter;
-import org.jjazz.midi.DrumKit;
-import org.jjazz.midi.keymap.KeyMapXG_PopLatin;
+import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.keymap.KeyMapXG_PopLatin;
 
 /**
  * Note mapping between GSGM2/XG/GM DrumMaps.

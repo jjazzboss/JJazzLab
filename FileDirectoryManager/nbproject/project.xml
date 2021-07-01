@@ -57,7 +57,7 @@
                 </test-type>
             </test-dependencies>
             <public-packages>
-                <package>org.jjazz.filedirectorymanager</package>
+                <package>org.jjazz.filedirectorymanager.api</package>
             </public-packages>
         </data>
     </configuration>

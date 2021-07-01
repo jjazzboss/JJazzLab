@@ -44,9 +44,9 @@ import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.ui.cl_editor.barbox.api.BarBox;
 import org.jjazz.ui.itemrenderer.api.IR_Type;
 import org.jjazz.ui.itemrenderer.api.ItemRenderer;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
-import org.jjazz.util.ResUtil;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * Drag n Drop Transfer handler for ItemRenderers within a single ChordLeadSheet. Drag n Drop between different songs is not

@@ -23,7 +23,7 @@
 package org.jjazz.ui.mixconsole.api;
 
 import java.awt.Dimension;
-import org.jjazz.util.ResUtil;
+import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.UndoRedo;

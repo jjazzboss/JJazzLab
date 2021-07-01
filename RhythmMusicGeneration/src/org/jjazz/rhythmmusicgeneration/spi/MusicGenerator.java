@@ -22,11 +22,11 @@
  */
 package org.jjazz.rhythmmusicgeneration.spi;
 
-import org.jjazz.rhythmmusicgeneration.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.api.MusicGenerationContext;
 import java.util.HashMap;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmmusicgeneration.Phrase;
+import org.jjazz.rhythmmusicgeneration.api.Phrase;
 
 /**
  * Define the music generation capability of a Rhythm.

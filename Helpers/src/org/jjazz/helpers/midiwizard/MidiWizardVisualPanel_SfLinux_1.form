@@ -46,7 +46,7 @@
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Component class="org.jjazz.ui.utilities.WizardTextArea" name="ta_notUserOnlyToGetFont">
+    <Component class="org.jjazz.ui.utilities.api.WizardTextArea" name="ta_notUserOnlyToGetFont">
       <Properties>
         <Property name="editable" type="boolean" value="false"/>
         <Property name="columns" type="int" value="20"/>

@@ -35,7 +35,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.undomanager.JJazzUndoManagerFinder;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -43,9 +43,9 @@ import org.openide.awt.ActionRegistration;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import static org.jjazz.ui.utilities.Utilities.getGenericControlKeyStroke;
-import org.jjazz.undomanager.JJazzUndoManager;
-import org.jjazz.util.ResUtil;
+import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.util.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.appendspt")
 @ActionRegistration(displayName = "#CTL_AppendSpt", lazy = false)
