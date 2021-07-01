@@ -33,6 +33,7 @@ import org.jjazz.util.ResUtil;
  */
 public class Note implements Comparable<Note>, Cloneable
 {
+
     public static final int VELOCITY_MIN = 0;
     public static final int VELOCITY_STD = 100;
     public static final int VELOCITY_MAX = 127;
@@ -323,6 +324,11 @@ public class Note implements Comparable<Note>, Cloneable
     public final Alteration getAlterationDisplay()
     {
         return alterationDisplay;
+    }
+
+    public final boolean isFlatDisplay()
+    {
+        return alterationDisplay.equals(Alteration.FLAT);
     }
 
     /**
@@ -701,7 +707,8 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * @return E.g "D-1" or "Eb3". This is the Midi octave convention: pitch=0-11 corresponds to Midi octave -1, C0 is Midi pitch=12.
+     * @return E.g "D-1" or "Eb3". This is the Midi octave convention: pitch=0-11 corresponds to Midi octave -1, C0 is Midi
+     * pitch=12.
      */
     public String toAbsoluteNoteString()
     {
@@ -779,6 +786,34 @@ public class Note implements Comparable<Note>, Cloneable
         } else
         {
             return true;
+        }
+    }
+
+    /**
+     * Get the relative pitch of the corresponding white key of this note.
+     * <p>
+     * Examples:<br>
+     * If this note==F, return F (5)<br>
+     * If this note==F#, return F (5)<br>
+     * If this note==Gb, return G (7)<br>
+     *
+     * @return
+     */
+    public int getWhiteKey()
+    {
+        int relPitch = getRelativePitch();
+        switch (relPitch)
+        {
+            case 0:
+            case 2:
+            case 4:
+            case 5:
+            case 7:
+            case 9:
+            case 11:
+                return relPitch;
+            default:
+                return alterationDisplay.equals(Alteration.FLAT) ? relPitch + 1 : relPitch - 1;
         }
     }
 
