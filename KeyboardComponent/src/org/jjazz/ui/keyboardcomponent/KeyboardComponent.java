@@ -31,6 +31,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.swing.JPanel;
@@ -43,9 +44,9 @@ import javax.swing.JPanel;
  */
 public class KeyboardComponent extends JPanel
 {
-
+    
     private KeyboardRange keyboardRange;
-
+    
     private final List<PianoKey> pianoKeys = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(KeyboardComponent.class.getSimpleName());
 
@@ -66,13 +67,13 @@ public class KeyboardComponent extends JPanel
     {
         setKeyboardRange(kbdSize);
     }
-
+    
     @Override
     public String toString()
     {
         return "Keyboard[" + keyboardRange + "]";
     }
-
+    
     public KeyboardRange getRange()
     {
         return keyboardRange;
@@ -92,16 +93,17 @@ public class KeyboardComponent extends JPanel
         {
             throw new NullPointerException("kbdRange");
         }
-
+        
         if (kbdRange.equals(keyboardRange))
         {
             return;
         }
 
         // Save state
-        HashMap<Integer, Color> pressedColors = new HashMap<>();
-        HashMap<Integer, Integer> pressedVelocities = new HashMap<>();
-        HashMap<Integer, Color> markedColors = new HashMap<>();
+        Map<Integer, Color> pressedColors = new HashMap<>();
+        Map<Integer, Integer> pressedVelocities = new HashMap<>();
+        Map<Integer, Color> markedColors = new HashMap<>();
+        Map<Integer, Map<String, Color>> colorProps = new HashMap<>();
         pianoKeys.forEach(pk ->
         {
             int pitch = pk.getPitch();
@@ -114,16 +116,18 @@ public class KeyboardComponent extends JPanel
             if (mColor != null)
             {
                 markedColors.put(pitch, mColor);
-            }
+            }            
+            colorProps.put(pitch, pk.getColorProperties());
         });
 
 
-        // Update keys
+        // Update keys and restore state
         keyboardRange = kbdRange;
-
-        pianoKeys.forEach(pk -> remove(pk));
+        
+        
+        removeAll();
         pianoKeys.clear();
-
+        
         for (int i = keyboardRange.getLowestPitch(); i <= keyboardRange.getHighestPitch(); i++)
         {
             boolean leftmost = (i == keyboardRange.getLowestPitch());
@@ -139,6 +143,11 @@ public class KeyboardComponent extends JPanel
                 key.setPressed(pressedVelocities.get(i), c);
             }
             key.setMarked(markedColors.get(i));
+            var mapPropColors = colorProps.get(i);
+            if (mapPropColors != null)
+            {
+                key.setColorProperties(mapPropColors);
+            }
         }
 
         // Set preferred size
@@ -148,8 +157,8 @@ public class KeyboardComponent extends JPanel
 
         // Set minimum size
         setMinimumSize(new Dimension(getRange().getNbWhiteKeys() * PianoKey.WW_MIN, PianoKey.WH_MIN));
-
-
+        
+        
         revalidate();
         repaint();
     }
@@ -163,12 +172,12 @@ public class KeyboardComponent extends JPanel
     {
         return new ArrayList<>(pianoKeys);
     }
-
+    
     public List<PianoKey> getBlackKeys()
     {
         return pianoKeys.stream().filter(pk -> !pk.isWhiteKey()).collect(Collectors.toList());
     }
-
+    
     public List<PianoKey> getWhiteKeys()
     {
         return pianoKeys.stream().filter(pk -> pk.isWhiteKey()).collect(Collectors.toList());
@@ -185,7 +194,7 @@ public class KeyboardComponent extends JPanel
     {
         return keyboardRange.isValid(pitch) ? pianoKeys.get(pitch - keyboardRange.lowPitch) : null;
     }
-
+    
     @Override
     public void setEnabled(boolean b)
     {
@@ -304,8 +313,8 @@ public class KeyboardComponent extends JPanel
         // Y centered
         // int y_pos = r.y + (r.height - wKeyHeight) / 2;
         int y_pos = r.y;
-
-
+        
+        
         for (PianoKey key : pianoKeys)
         {
             // adjust size
@@ -335,5 +344,5 @@ public class KeyboardComponent extends JPanel
         int h = (int) (wKeyWidth * ((float) PianoKey.WH / PianoKey.WW));
         return h;
     }
-
+    
 }

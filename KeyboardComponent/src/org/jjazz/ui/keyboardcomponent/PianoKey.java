@@ -33,6 +33,8 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
@@ -50,21 +52,21 @@ public class PianoKey extends JComponent
     /**
      * Property change fired when setSelected() is called.
      */
-    private static final String PROP_SELECTED = "PropSelected";
+    public static final String PROP_SELECTED = "PropSelected";
     /**
      * Property change fired when setPressed() is called.
      */
-    private static final String PROP_PRESSED = "PropPressed";
+    public static final String PROP_PRESSED = "PropPressed";
 
     // 
     // Client properties
     // call repaint() after updating these clientProperties
-    private static final String COLOR_WKEY = "WKeyColor";
-    private static final String COLOR_BKEY_DARKEST = "WKeyDarkestColor";
-    private static final String COLOR_BKEY_LIGHTEST = "WKeyLightestColor";
-    private static final String COLOR_KEY_CONTOUR = "WKeyContourColor";
-    private static final String COLOR_KEY_CONTOUR_SELECTED = "WKeyContourSelectedColor";
-    private static final String COLOR_DISABLED_KEY = "WKeyDisabledColor";
+    public static final String COLOR_WKEY = "WKeyColor";
+    public static final String COLOR_BKEY_DARKEST = "WKeyDarkestColor";
+    public static final String COLOR_BKEY_LIGHTEST = "WKeyLightestColor";
+    public static final String COLOR_KEY_CONTOUR = "WKeyContourColor";
+    public static final String COLOR_KEY_CONTOUR_SELECTED = "WKeyContourSelectedColor";
+    public static final String COLOR_DISABLED_KEY = "WKeyDisabledColor";
 
     /**
      * Standard White Key Width.
@@ -177,6 +179,53 @@ public class PianoKey extends JComponent
     public void setColorProperty(String key, Color c)
     {
         putClientProperty(key, c);
+        repaint();
+    }
+
+    public Map<String, Color> getColorProperties()
+    {
+        var res = new HashMap<String, Color>();
+        res.put(COLOR_WKEY, getColorProperty(COLOR_WKEY));
+        res.put(COLOR_BKEY_LIGHTEST, getColorProperty(COLOR_BKEY_LIGHTEST));
+        res.put(COLOR_BKEY_DARKEST, getColorProperty(COLOR_BKEY_DARKEST));
+        res.put(COLOR_KEY_CONTOUR, getColorProperty(COLOR_KEY_CONTOUR));
+        res.put(COLOR_KEY_CONTOUR_SELECTED, getColorProperty(COLOR_KEY_CONTOUR_SELECTED));
+        res.put(COLOR_DISABLED_KEY, getColorProperty(COLOR_DISABLED_KEY));
+        return res;
+    }
+
+    public void setColorProperties(Map<String, Color> map)
+    {
+        Color c = map.get(COLOR_WKEY);
+        if (c != null)
+        {
+            putClientProperty(COLOR_WKEY, c);
+        }
+        c = map.get(COLOR_BKEY_LIGHTEST);
+        if (c != null)
+        {
+            putClientProperty(COLOR_BKEY_LIGHTEST, c);
+        }
+        c = map.get(COLOR_BKEY_DARKEST);
+        if (c != null)
+        {
+            putClientProperty(COLOR_BKEY_DARKEST, c);
+        }
+        c = map.get(COLOR_KEY_CONTOUR);
+        if (c != null)
+        {
+            putClientProperty(COLOR_KEY_CONTOUR, c);
+        }
+        c = map.get(COLOR_KEY_CONTOUR_SELECTED);
+        if (c != null)
+        {
+            putClientProperty(COLOR_KEY_CONTOUR_SELECTED, c);
+        }
+        c = map.get(COLOR_DISABLED_KEY);
+        if (c != null)
+        {
+            putClientProperty(COLOR_DISABLED_KEY, c);
+        }
         repaint();
     }
 
