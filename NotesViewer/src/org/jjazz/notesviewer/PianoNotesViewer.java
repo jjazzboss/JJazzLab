@@ -47,8 +47,9 @@ import org.jjazz.ui.keyboardcomponent.PianoKey;
 public class PianoNotesViewer implements NotesViewer
 {
 
-    private static final Color CHORD_COLOR = new Color(0, 128, 192);
-    private static final Color SCALE_COLOR = new Color(187, 187, 187);
+    public static final Color CHORD_COLOR = new Color(0, 128, 192);
+    public static final Color PLAYBACK_COLOR = new Color(0, 128, 130);
+    public static final Color SCALE_COLOR = new Color(187, 187, 187);
     private Mode mode;
     private Song song;
     private MidiMix midiMix;
@@ -57,10 +58,10 @@ public class PianoNotesViewer implements NotesViewer
     private StandardScaleInstance scaleInstance;
     private PianoNotesViewerComponent component;
     private boolean realTimeNotesEnabled = true;
-    private static final Logger LOGGER = Logger.getLogger(NotesViewerPanel.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(PianoNotesViewer.class.getSimpleName());
 
     @Override
-    public JComponent getComponent()
+    public PianoNotesViewerComponent getComponent()
     {
         if (component == null)
         {
@@ -110,7 +111,7 @@ public class PianoNotesViewer implements NotesViewer
     {
         if (realTimeNotesEnabled)
         {
-            component.getKeyboard().setPressed(pitch, velocity, null);
+            component.getKeyboard().setPressed(pitch, velocity, PLAYBACK_COLOR);
         }
     }
 
