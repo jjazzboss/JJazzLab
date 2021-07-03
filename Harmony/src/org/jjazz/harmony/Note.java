@@ -24,7 +24,8 @@ package org.jjazz.harmony;
 
 import java.text.ParseException;
 import java.util.logging.Logger;
-import org.jjazz.util.ResUtil;
+import org.jjazz.harmony.api.SymbolicDuration;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * A note has a pitch, a duration (symbolic and in beats), and a velocity.
