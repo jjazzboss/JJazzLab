@@ -379,17 +379,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             throw new IllegalArgumentException("section=" + cliSection + " newBarIndex=" + newBarIndex);   //NOI18N
         }
 
-
         if (items.indexOf(cliSection) == -1)
         {
             throw new IllegalArgumentException("section=" + cliSection);   //NOI18N
         }
 
-
         // Check change is not vetoed
         var event = new SectionMovedEvent(ChordLeadSheetImpl.this, cliSection, oldBarIndex, newBarIndex);
         authorizeChangeEvent(event);            // Possible exception here! 
-
 
         // OK move is safe, change is safe
         final WritableItem<Section> wSection = (WritableItem<Section>) cliSection;
@@ -638,9 +635,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     "barIndexFrom=" + barIndexFrom + " barIndexTo=" + barIndexTo);
         }
 
-
         LOGGER.fine("deleteBars() -- barIndexFrom=" + barIndexFrom + " barIndexTo=" + barIndexTo);   //NOI18N
-
 
         // Save data after the bar deletions
         CLI_Section afterDeletionSection = (barIndexTo + 1 > size - 1) ? null : getSection(barIndexTo + 1);
@@ -651,11 +646,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             afterDeletionItems = getItems(barIndexTo + 1, getSectionRange(afterDeletionSection).to, ChordLeadSheetItem.class);
         }
 
-
         // Get items to be moved or removed
         List<ChordLeadSheetItem<?>> removedItems = new ArrayList<>();
         List<ChordLeadSheetItem<?>> movedItems = new ArrayList<>();
-
 
         // Avoid initial section at index=0
         // Iterate backwards so that remove operations have less impact
@@ -680,14 +673,12 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             }
         }
 
-
         // Remove everything to be removed except the initial block
         if (!removedItems.isEmpty())
         {
             // Possible exception below! Note that some changes might have been done before exception is thrown
             removeSectionsAndItems(removedItems);
         }
-
 
         // Handle special case if barIndexFrom == 0 and there is a section right after the deleted bars
         if (barIndexFrom == 0 && afterDeletionSection != null && afterDeletionSection.getPosition().getBar() == barIndexTo + 1)
@@ -696,7 +687,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             removeInitialSection();
         }
 
-
         // Shift remaining items
         int range = barIndexTo - barIndexFrom + 1;
         if (!movedItems.isEmpty())
@@ -704,10 +694,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             shiftItemsPosition(movedItems, -range);
         }
 
-
         // Adjust the size
         setSize(getSize() - range);         // Possible exception here! But should not happen since we removed items/sections before.
-
 
         // Adjust positions of items after the deletion if any
         if (afterDeletionItems != null)
@@ -787,36 +775,36 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     @Override
-    public <T> T getActiveItem(int barIndex, Class<T> aClass)
+    public <T> T getLastItem(int barFrom, int barTo, Class<T> aClass)
     {
-        if (barIndex < 0 || barIndex >= getSize())
+        if (barFrom < 0 || barTo < barFrom || barTo >= getSize())
         {
-            throw new IllegalArgumentException("barIndex=" + barIndex + " aClass=" + aClass);
+            throw new IllegalArgumentException( //NOI18N
+                    "barFrom=" + barFrom + " barTo=" + barTo + " aClass=" + aClass);
         }
-        
-        
-        T lastItem = null;
-        for (ChordLeadSheetItem<?> item : items)
+        T res = null;
+        for (int i = items.size() - 1; i >= 0; i--)
         {
-            if (aClass != null && !aClass.isAssignableFrom(item.getClass()))
+            var item = items.get(i);
+            int barIndex = item.getPosition().getBar();
+            
+            
+            if (barIndex > barTo
+                    || (aClass != null && !aClass.isAssignableFrom(item.getClass())))
             {
                 continue;
             }
 
-            int bar = item.getPosition().getBar();
-            if (bar < barIndex)
-            {
-                lastItem = (T) item;
-            } else if (bar == barIndex)
-            {
-                lastItem = (T) item;
-                break;
-            } else
+            if (barIndex < barFrom)
             {
                 break;
             }
+
+            res = (T) item;
+            break;
         }
-        return lastItem;
+
+        return res;
     }
 
     @Override
@@ -1046,13 +1034,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             }
         }
 
-
         // Remove all non section items
         if (!removedItems.isEmpty())
         {
 
             items.removeAll(removedItems);
-
 
             // Create the undoable event        
             UndoableEdit edit = new SimpleEdit("Remove items")
@@ -1082,13 +1068,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, removedItems));
         }
 
-
         // Remove all sections
         for (CLI_Section section : removedSections)
         {
             removeSection(section);      // Possible exception here
         }
-
 
     }
 
@@ -1259,15 +1243,12 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         CLI_Section cliSection = getSection(0);
         LOGGER.fine("removeInitialSection() -- initSection=" + cliSection);   //NOI18N
 
-
         // Check change is not vetoed
         var event = new ItemRemovedEvent(ChordLeadSheetImpl.this, cliSection);
         authorizeChangeEvent(event);            // Possible exception here! 
 
-
         // Change state: remove the item and adjust if required trailing items
         items.remove(0);
-
 
         // Create the undoable event
         UndoableEdit edit = new SimpleEdit("Remove initial section " + cliSection)

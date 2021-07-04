@@ -36,14 +36,19 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 
 /**
- * Manage the border changes when a mouse is over registered (flat) components, and when component is enabled/disabled.
+ * Manage the border changes when a mouse is over registered (flat) components,
+ * and when component is enabled/disabled.
  * <p>
- * This manager allows to disable the border change on mouseEntered for a component if this is actually a mouse drag on another
- * component.
+ * This manager allows to disable the border change on mouseEntered for a
+ * component if this is actually a mouse drag on another component.
  */
 public class BorderManager implements MouseListener, MouseMotionListener, PropertyChangeListener
 {
 
+    public static final Border DEFAULT_BORDER_NOTHING = BorderFactory.createEmptyBorder(1, 1, 1, 1);
+    public static final Border DEFAULT_BORDER_ENTERED = BorderFactory.createLineBorder(Color.GRAY, 1);
+    public static final Border DEFAULT_BORDER_PRESSED = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1);
+    
     private static BorderManager INSTANCE;
     private Border defaultBorderNothing;
     private Border defaultBorderEntered;
@@ -67,13 +72,14 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
     private BorderManager()
     {
         mapCompBorders = new HashMap<>();
-        defaultBorderNothing = BorderFactory.createEmptyBorder(1, 1, 1, 1);
-        defaultBorderEntered = BorderFactory.createLineBorder(Color.GRAY, 1);
-        defaultBorderPressed = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1);
+        defaultBorderNothing = DEFAULT_BORDER_NOTHING;
+        defaultBorderEntered = DEFAULT_BORDER_ENTERED;
+        defaultBorderPressed = DEFAULT_BORDER_PRESSED;
     }
 
     /**
-     * Register the component with no special handling for mouse pressed or mouse enter/exit, and can not be dragged.
+     * Register the component with no special handling for mouse pressed or
+     * mouse enter/exit, and can not be dragged.
      *
      * @param component
      * @see register(JComponent, boolean, boolean)
@@ -132,7 +138,8 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
     }
 
     /**
-     * The border to be used for component c when not in pressed or entered state.
+     * The border to be used for component c when not in pressed or entered
+     * state.
      *
      * @param c
      * @return Can be null
@@ -240,7 +247,8 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
     }
 
     /**
-     * The default border "nothing" to be used when no specific per-component border is set.
+     * The default border "nothing" to be used when no specific per-component
+     * border is set.
      *
      * @return the borderDefault
      */
@@ -258,7 +266,8 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
     }
 
     /**
-     * The default border "pressed" to be used when no specific per-component border is set.
+     * The default border "pressed" to be used when no specific per-component
+     * border is set.
      *
      * @return the borderDefault
      */
@@ -276,7 +285,8 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
     }
 
     /**
-     * The default border "entered" to be used when no specific per-component border is set.
+     * The default border "entered" to be used when no specific per-component
+     * border is set.
      *
      * @return the borderDefault
      */
@@ -352,8 +362,9 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
 
     /**
      *
-     * @param e Source component is always the original component for which mouse was initally pressed (event if release point is
-     * outside this component)
+     * @param e Source component is always the original component for which
+     * mouse was initally pressed (event if release point is outside this
+     * component)
      */
     @Override
     public void mouseReleased(MouseEvent e)
@@ -384,7 +395,6 @@ public class BorderManager implements MouseListener, MouseMotionListener, Proper
 
             draggedComponent = null;
         }
-
 
         // Update the source component
         CompBorders cb = mapCompBorders.get(c);

@@ -46,16 +46,47 @@ public class FlatToggleButton extends FlatButton
     private boolean isSelected;
     private static final Logger LOGGER = Logger.getLogger(FlatToggleButton.class.getSimpleName());
 
+    /**
+     * Equivalent of FlatToggleButton(true, true, false)
+     */
     public FlatToggleButton()
     {
-        selectedForeground = Color.RED;
-        isSelected = false;
+        this(true, true, false);
     }
 
+    /**
+     * Equivalent of FlatToggleButton(null, enablePressedBorder, enableEnteredBorder, enableDrag)
+     *
+     * @param enablePressedBorder
+     * @param enableEnteredBorder
+     * @param enableDrag
+     */
+    public FlatToggleButton(boolean enablePressedBorder, boolean enableEnteredBorder, boolean enableDrag)
+    {
+        this(null, enablePressedBorder, enableEnteredBorder, enableDrag);
+    }
+
+    /**
+     * Equivalent of FlatToggleButton(bsa, true, true, false)
+     */
     public FlatToggleButton(BooleanStateAction bsa)
     {
-        this();
-        setAction(bsa);
+        this(bsa, true, true, false);
+    }
+
+    /**
+     * Create a toggle button initialized with the specified action.
+     *
+     * @param bsa
+     * @param enablePressedBorder
+     * @param enableEnteredBorder
+     * @param enableDrag
+     */
+    public FlatToggleButton(BooleanStateAction bsa, boolean enablePressedBorder, boolean enableEnteredBorder, boolean enableDrag)
+    {
+        super(bsa, enablePressedBorder, enableEnteredBorder, enableDrag);
+        selectedForeground = Color.RED;
+        isSelected = false;
     }
 
     public boolean isSelected()
@@ -224,6 +255,6 @@ public class FlatToggleButton extends FlatButton
         {
             setSelected(!isSelected());
         }
-        fireActionPerformed(ae);        
+        fireActionPerformed(ae);
     }
 }

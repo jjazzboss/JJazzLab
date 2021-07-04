@@ -22,6 +22,7 @@
  */
 package org.jjazz.notesviewer.spi;
 
+import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import org.jjazz.harmony.api.StandardScaleInstance;
@@ -52,7 +53,18 @@ public interface NotesViewer
     JComponent getComponent();
 
     /**
-     * A 16x16 icon to represent this viewer.
+     * A one-line description of this viewer.
+     * <p>
+     * Used by UI to describe this viewer, e.g. as a tooltip.
+     *
+     * @return
+     */
+    String getDescription();
+
+    /**
+     * A 16x16 icon representing this viewer.
+     * <p>
+     * Used by the framework to build a UI which lets the user select the active NotesViewer.
      *
      * @return
      */

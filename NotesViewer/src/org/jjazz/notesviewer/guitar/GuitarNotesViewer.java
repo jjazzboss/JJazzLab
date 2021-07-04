@@ -22,7 +22,8 @@
  */
 package org.jjazz.notesviewer.guitar;
 
-import java.awt.Color;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -34,6 +35,8 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.notesviewer.spi.NotesViewer;
+import org.jjazz.util.api.ResUtil;
+import org.netbeans.api.annotations.common.StaticResource;
 
 /**
  * A NotesViewer based on guitar chord diagrams.
@@ -42,7 +45,9 @@ import org.jjazz.notesviewer.spi.NotesViewer;
 public class GuitarNotesViewer implements NotesViewer
 {
 
-
+    @StaticResource(relative = true)
+    final private static String ICON_PATH = "resources/DiagramIcon.png";
+    final private static Icon ICON = new ImageIcon(GuitarNotesViewer.class.getResource(ICON_PATH));
     private Mode mode;
     private Song song;
     private MidiMix midiMix;
@@ -63,7 +68,13 @@ public class GuitarNotesViewer implements NotesViewer
     @Override
     public Icon getIcon()
     {
-        return new ImageIcon(getClass().getResource("resources/DiagramIcon.png"));
+        return ICON;
+    }
+
+    @Override
+    public String getDescription()
+    {
+        return ResUtil.getString(getClass(), "GuitarViewerDesc");
     }
 
     @Override
@@ -81,12 +92,9 @@ public class GuitarNotesViewer implements NotesViewer
         {
             throw new NullPointerException("mode");
         }
-        if (!mode.equals(this.mode))
-        {
-            this.mode = mode;
-            releaseAllNotes();
-            setEnabled(this.mode.equals(Mode.ShowSelection));
-        }
+        this.mode = mode;
+        releaseAllNotes();
+        component.setMode(mode);
     }
 
     @Override
@@ -140,5 +148,4 @@ public class GuitarNotesViewer implements NotesViewer
     // =================================================================================
     // Private methods
     // =================================================================================     
-
 }

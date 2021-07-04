@@ -22,7 +22,6 @@
  */
 package org.jjazz.ui.flatcomponents.api;
 
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -41,21 +40,56 @@ import javax.swing.border.Border;
  */
 public class FlatButton extends JLabel implements PropertyChangeListener
 {
+
     private String saveTooltip;
     private Action action;
     private ArrayList<ActionListener> listeners = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(FlatButton.class.getSimpleName());
 
+    /**
+     * Equivalent of FlatButton(true, true, false)
+     */
     public FlatButton()
     {
         this(true, true, false);
     }
 
+    /**
+     * Equivalent to FlatButton(null, enablePressedBorder, enableEnteredBorder, enableDrag).
+     * <p>
+     * @param enablePressedBorder
+     * @param enableEnteredBorder
+     * @param enableDrag
+     */
     public FlatButton(boolean enablePressedBorder, boolean enableEnteredBorder, boolean enableDrag)
+    {
+        this(null, enablePressedBorder, enableEnteredBorder, enableDrag);
+    }
+
+    /**
+     * Equivalent to FlatButton(a, true, true, false).
+     *
+     * @param a
+     */
+    public FlatButton(Action a)
+    {
+        this(a, true, true, false);
+    }
+
+    /**
+     * Create a FlatButton with the specified settings.
+     *
+     * @param a If non null use this action to initialize the button.
+     * @param enablePressedBorder True means a specific border is used when pressed.
+     * @param enableEnteredBorder True means a specific border is used when entered.
+     * @param enableDrag True means mouse drag is possible on this button.
+     */
+    public FlatButton(Action a, boolean enablePressedBorder, boolean enableEnteredBorder, boolean enableDrag)
     {
         BorderManager.getInstance().register(this, enablePressedBorder, enableEnteredBorder, enableDrag);
         addMouseListener(new MouseAdapter()
         {
+            @Override
             public void mouseClicked(MouseEvent evt)
             {
                 // Need to be on mouseClicked, not mousePressed() otherwise cause problems when action triggers a dialog sensitive to mouseevents
@@ -65,18 +99,10 @@ public class FlatButton extends JLabel implements PropertyChangeListener
                 }
             }
         });
-    }
-
-    public FlatButton(Action a)
-    {
-        this();
-        setAction(a);
-    }
-
-    public FlatButton(Action a, boolean enablePressedBorder, boolean enableEnteredBorder, boolean enableDrag)
-    {
-        this(enablePressedBorder, enableEnteredBorder, enableDrag);
-        setAction(a);
+        if (a != null)
+        {
+            setAction(a);
+        }
     }
 
     /**
@@ -112,7 +138,7 @@ public class FlatButton extends JLabel implements PropertyChangeListener
      *
      * @param a A non-null Action.
      */
-    public void setAction(Action a)
+    public final void setAction(Action a)
     {
         if (a == null)
         {

@@ -26,13 +26,11 @@ import java.awt.Color;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JComponent;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.notesviewer.NotesViewerPanel;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
@@ -40,21 +38,23 @@ import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.notesviewer.spi.NotesViewer;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.PianoKey;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * A NotesViewer based on a keyboard.
  */
-@ServiceProvider(service = NotesViewer.class)
+@ServiceProvider(service = NotesViewer.class, position = 0)
 public class PianoNotesViewer implements NotesViewer
 {
 
+    final private static String ICON_PATH = "resources/KeyboardIcon.png";
+    final private static Icon ICON = new ImageIcon(PianoNotesViewer.class.getResource(ICON_PATH));
     private static final Color CHORD_COLOR = new Color(0, 128, 192);
     private static final Color SCALE_COLOR = new Color(187, 187, 187);
     private Mode mode;
     private Song song;
     private MidiMix midiMix;
     private RhythmVoice rhythmVoice;
-    private CLI_ChordSymbol cliChordSymbol;
     private StandardScaleInstance scaleInstance;
     private PianoNotesViewerComponent component;
     private boolean realTimeNotesEnabled = true;
@@ -73,7 +73,13 @@ public class PianoNotesViewer implements NotesViewer
     @Override
     public Icon getIcon()
     {
-        return new ImageIcon(getClass().getResource("resources/KeyboardIcon.png"));
+        return ICON;
+    }
+
+    @Override
+    public String getDescription()
+    {
+        return ResUtil.getString(getClass(), "PianoViewerDesc");
     }
 
     @Override
@@ -92,12 +98,10 @@ public class PianoNotesViewer implements NotesViewer
         {
             throw new NullPointerException("mode");
         }
-        if (this.mode != mode)
-        {
-            this.mode = mode;
-            releaseAllNotes();
-            updateKeyboardSize();
-        }
+
+        this.mode = mode;
+        releaseAllNotes();
+        updateKeyboardSize();
     }
 
     @Override

@@ -186,17 +186,16 @@ public interface ChordLeadSheet
     public void cleanup();
 
     /**
-     * Get the item "active" at specified bar.
+     * Get the last matching item in the specified bar range.
      * <p>
-     * If there is one or more items at barIndex, return the first item. If there is no item at barIndex, try to find the last
-     * item in the previous bars.
      *
      * @param <T>
-     * @param barIndex
-     * @param aClass The class or superclass of the item to be searched. If null return any active item.
+     * @param barFrom
+     * @param barTo
+     * @param aClass The class or superclass of the item to be searched. If null return any item.
      * @return Can be null if no item found.
      */
-    public <T> T getActiveItem(int barIndex, Class<T> aClass);
+    public <T> T getLastItem(int barFrom, int barTo, Class<T> aClass);
 
     /**
      * Get all the items of this chordleadsheet.

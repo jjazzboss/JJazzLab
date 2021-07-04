@@ -25,9 +25,15 @@ package org.jjazz.ui.keyboardcomponent.api;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Path2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,12 +44,13 @@ import javax.swing.JPanel;
 /**
  * A JPanel representing a Piano keyboard with selectable keys.
  * <p>
- * Pressed notes can be shown taking account the velocity value.
- * <p>
  */
 public class KeyboardComponent extends JPanel
 {
 
+    private final static int OUT_OF_RANGE_INDICATOR_SPACE = 6;
+    private boolean outOfRangeIndicatorLeft;
+    private boolean outOfRangeIndicatorRight;
     private KeyboardRange keyboardRange;
 
     private final List<PianoKey> pianoKeys = new ArrayList<>();
@@ -117,7 +124,6 @@ public class KeyboardComponent extends JPanel
             }
         });
 
-
         // Update keys
         keyboardRange = kbdRange;
 
@@ -143,12 +149,11 @@ public class KeyboardComponent extends JPanel
 
         // Set preferred size
         Insets in = getInsets();
-        int w = (PianoKey.WH * keyboardRange.getNbWhiteKeys()) + in.left + in.right + 1;
+        int w = (PianoKey.WH * keyboardRange.getNbWhiteKeys()) + in.left + in.right + 1 + 2 * OUT_OF_RANGE_INDICATOR_SPACE;
         setPreferredSize(new Dimension(w, PianoKey.WH));
 
         // Set minimum size
         setMinimumSize(new Dimension(getRange().getNbWhiteKeys() * PianoKey.WW_MIN, PianoKey.WH_MIN));
-
 
         revalidate();
         repaint();
@@ -206,6 +211,8 @@ public class KeyboardComponent extends JPanel
             pk.setReleased();
             pk.setMarked(null);
         });
+        showOutOfRangeNoteIndicator(false, false);
+        showOutOfRangeNoteIndicator(true, false);
     }
 
     /**
@@ -218,13 +225,18 @@ public class KeyboardComponent extends JPanel
         if (keyboardRange.isValid(pitch))
         {
             getPianoKey(pitch).setReleased();
+        } else
+        {
+            showOutOfRangeNoteIndicator(pitch < keyboardRange.lowPitch, false);
         }
     }
 
     /**
      * Set the pressed status of specified key.
      * <p>
-     * Method just delegates to setVelocity() of the relevant PianoKey. Do nothing if pitch is not valid for this KeyboardRange.
+     * Method just delegates to setVelocity() of the relevant PianoKey.
+     * <p>
+     * If pitch is outside the KeyboardRange, show an indicator on the leftmost/rightmost note.
      *
      * @param pitch
      * @param velocity If 0 equivalent to calling setReleased()
@@ -235,6 +247,9 @@ public class KeyboardComponent extends JPanel
         if (keyboardRange.isValid(pitch))
         {
             getPianoKey(pitch).setPressed(velocity, pressedKeyColor);
+        } else
+        {
+            showOutOfRangeNoteIndicator(pitch < keyboardRange.lowPitch, true);
         }
     }
 
@@ -274,6 +289,49 @@ public class KeyboardComponent extends JPanel
     }
 
     /**
+     * Overridden to paint the out of range indicators.
+     *
+     * @param g
+     */
+    @Override
+    public void paintComponent(Graphics g)
+    {
+        super.paintComponent(g);        // Honor the opaque property
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(Color.LIGHT_GRAY);
+
+        final int length = 5;
+        final int semiHeight = 2;
+        Insets in = getInsets();
+        float y = in.top + 20;
+
+        if (outOfRangeIndicatorLeft)
+        {
+            float x = in.left + OUT_OF_RANGE_INDICATOR_SPACE / 2 - length / 2;
+            var s = new Path2D.Float();
+            s.moveTo(x, y);
+            s.lineTo(x + length, y - semiHeight);
+            s.lineTo(x + length, y + semiHeight);
+            s.lineTo(x, y);
+            s.closePath();
+            g2.fill(s);
+        }
+        if (outOfRangeIndicatorRight)
+        {
+            float x = getWidth() - in.right - OUT_OF_RANGE_INDICATOR_SPACE / 2 + length / 2;
+            var s = new Path2D.Float();
+            s.moveTo(x, y);
+            s.lineTo(x - length, y - semiHeight);
+            s.lineTo(x - length, y + semiHeight);
+            s.lineTo(x, y);
+            s.closePath();
+            g2.fill(s);
+        }
+
+    }
+
+    /**
      * Layout the keys to fit the size.
      * <p>
      * Because of integer rounding errors, it may not fit exactly the required dimensions. The keyboard is centered inside the
@@ -283,18 +341,15 @@ public class KeyboardComponent extends JPanel
     public void doLayout()
     {
         Insets in = getInsets();
-        Rectangle r = new Rectangle(in.left, in.top, getWidth() - in.left - in.right, getHeight() - in.top - in.bottom);
-
+        Rectangle r = new Rectangle(in.left + OUT_OF_RANGE_INDICATOR_SPACE, in.top, getWidth() - in.left - in.right - 2 * OUT_OF_RANGE_INDICATOR_SPACE, getHeight() - in.top - in.bottom);
 
         // Keyboard takes all the horizontal space
         int wKeyHeight = computeKeyboardHeightFromWidth(r.width);
         wKeyHeight = Math.max(wKeyHeight, getMinimumSize().height);  // Can't be smaller than minimal height
         wKeyHeight = Math.min(wKeyHeight, r.height);      // Can't be taller than available height
 
-
         // Size of a white key
         int wKeyWidth = (r.width - 1) / keyboardRange.getNbWhiteKeys();
-
 
         // Calculate X so the keyboard will be centered (because of integer rounding we may have differences
         // between the object size and the real keyboard size)
@@ -304,7 +359,6 @@ public class KeyboardComponent extends JPanel
         // Y centered
         // int y_pos = r.y + (r.height - wKeyHeight) / 2;
         int y_pos = r.y;
-
 
         for (PianoKey key : pianoKeys)
         {
@@ -334,6 +388,23 @@ public class KeyboardComponent extends JPanel
         int wKeyWidth = (w - 1) / keyboardRange.getNbWhiteKeys();
         int h = (int) (wKeyWidth * ((float) PianoKey.WH / PianoKey.WW));
         return h;
+    }
+
+    /**
+     *
+     * @param left false means right
+     * @param showHide show if true, hide if false
+     */
+    private void showOutOfRangeNoteIndicator(boolean left, boolean showHide)
+    {
+        if (left)
+        {
+            outOfRangeIndicatorLeft = showHide;
+        } else
+        {
+            outOfRangeIndicatorRight = showHide;
+        }
+        repaint();
     }
 
 }

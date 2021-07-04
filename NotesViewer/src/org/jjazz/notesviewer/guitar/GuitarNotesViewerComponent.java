@@ -26,11 +26,12 @@ import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.swing.JLabel;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.notesviewer.spi.NotesViewer;
 import org.jjazz.ui.guitardiagramcomponent.api.GuitarDiagramComponent;
 import org.jjazz.ui.guitardiagramcomponent.api.TGChord;
 import org.jjazz.ui.guitardiagramcomponent.api.TGChordCreatorUtil;
-
 
 public class GuitarNotesViewerComponent extends javax.swing.JPanel
 {
@@ -55,14 +56,29 @@ public class GuitarNotesViewerComponent extends javax.swing.JPanel
         repaint();
     }
 
+    public void setMode(NotesViewer.Mode mode)
+    {
+        switch (mode)
+        {
+            case ShowBackingTrack:
+                pnl_instrument.removeAll();
+                pnl_instrument.add(new JLabel("Not supported"));
+                break;
+            case ShowSelection:
+                clear();
+                break;
+            default:
+                throw new AssertionError(mode.name());
+
+        }
+    }
+
     public void showDiagrams(CLI_ChordSymbol cliCs)
     {
-        LOGGER.severe("showDiagrams() --    cliCs=" + cliCs);
         pnl_instrument.removeAll();
         List<TGChord> tgChords = new TGChordCreatorUtil().getChords(cliCs.getData());
         tgChords.stream().limit(30).forEach(tgChord ->
-        {
-            LOGGER.severe("showDiagrams() tgChord=" + tgChord);
+        {     
             GuitarDiagramComponent diagram = new GuitarDiagramComponent(tgChord);
             pnl_instrument.add(diagram);
         }
@@ -71,7 +87,6 @@ public class GuitarNotesViewerComponent extends javax.swing.JPanel
         revalidate();
         repaint();
     }
-
 
     @Override
     public void setEnabled(boolean b

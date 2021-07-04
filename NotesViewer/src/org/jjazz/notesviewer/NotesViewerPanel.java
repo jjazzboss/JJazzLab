@@ -22,18 +22,22 @@
  */
 package org.jjazz.notesviewer;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractSpinnerModel;
+import javax.swing.BorderFactory;
 import javax.swing.JSpinner;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.activesong.api.ActiveSongManager;
@@ -51,6 +55,7 @@ import org.jjazz.notesviewer.spi.NotesViewer;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.ui.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.ui.flatcomponents.api.BorderManager;
 import org.jjazz.ui.flatcomponents.api.FlatButton;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
@@ -61,6 +66,12 @@ import org.openide.util.Utilities;
 public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChangeListener, MouseWheelListener, CL_ContextActionListener, ChangeListener
 {
 
+    private static final Border BORDER_NOTHING_SELECTED = BorderFactory.createLineBorder(Color.RED);
+    private static final Border BORDER_NOTHING_UNSELECTED = BorderManager.DEFAULT_BORDER_NOTHING;
+    private static final Border BORDER_ENTERED_SELECTED = BORDER_NOTHING_SELECTED;
+    private static final Border BORDER_ENTERED_UNSELECTED = BorderManager.DEFAULT_BORDER_ENTERED;
+    private static final Border BORDER_PRESSED = BorderFactory.createLineBorder(Color.RED.darker());
+
     private NotesViewer notesViewer;
     private Song songPlaybackMode, songSelectionMode;
     private CLI_ChordSymbol selectedChordSymbol;
@@ -68,6 +79,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     private final NotesViewerListener noteListener;
     private MySpinnerModel spinnerModel;
     private final Font chordSymbolFont;
+    private HashMap<NotesViewer, FlatButton> mapViewerButton = new HashMap<>();
     private CL_ContextActionSupport cap;
 
     private static final Logger LOGGER = Logger.getLogger(NotesViewerPanel.class.getSimpleName());
@@ -85,10 +97,8 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
 
         spn_srcChannel.addChangeListener(this);
 
-
         // Use mouse wheel on spinner only if enabled
         GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(spn_srcChannel, this);
-
 
         // Get the chord symbols changes
         MusicController mc = MusicController.getInstance();
@@ -99,30 +109,25 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             {
                 if (isUIinPlaybackMode())
                 {
-                    showCurrentChordSymbol(cliCs);
+                    updateCurrentChordSymbolUI(cliCs);
                 }
             }
         });
 
-
         // Get the playback state changes
         mc.addPropertyChangeListener(this);
-
 
         // Get the incoming notes to update the keyboard
         noteListener = new NotesViewerListener();
         mc.addNoteListener(noteListener);
 
-
         // Initialize the viewers
-        setNotesViewer(initViewers());
+        setActiveNotesViewer(initNotesViewers());
         modeChanged();
-
 
         // Listen to active song changes
         var asm = ActiveSongManager.getInstance();
         asm.addPropertyListener(this);
-
 
         // Listen to selection changes in the current leadsheet editor
         cap = CL_ContextActionSupport.getInstance(Utilities.actionsGlobalContext());
@@ -163,32 +168,39 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     public void selectionChange(CL_SelectionUtilities selection)
     {
 
-        // Always keep track of the last selected chord symbol (directly or indirectly via bar selection)
-        if (selectedChordSymbol != null)
-        {
-            selectedChordSymbol.removePropertyChangeListener(this);
-        }
-        selectedChordSymbol = null;
+        CLI_ChordSymbol newSelectedChordSymbol = null;
 
         var chordSymbols = selection.getSelectedChordSymbols();
         if (!chordSymbols.isEmpty())
         {
-            selectedChordSymbol = chordSymbols.get(0);
+            newSelectedChordSymbol = chordSymbols.get(0);
 
         } else if (selection.isBarSelectedWithinCls())
         {
-            // Find the first chord valid for this bar
+            // Find the last chord valid for this bar
             var cls = selection.getChordLeadSheet();
-            selectedChordSymbol = cls.getActiveItem(selection.geMinBarIndex(), CLI_ChordSymbol.class);
-            assert selectedChordSymbol != null;       // Chord symbol presence is mandatory at the beginning of a section
+            newSelectedChordSymbol = cls.getLastItem(0, selection.geMinBarIndex(), CLI_ChordSymbol.class);
+            assert newSelectedChordSymbol != null;       // Chord symbol presence is mandatory at the beginning of a section
+        } else
+        {
+            // Not a valid selection
+            // Do nothing
+            // Note: an empty selection is received when switching from a CL_Editor TopComponent to a different TopComponent
+            return;
         }
 
+        // Replace current chord symbol
+        if (selectedChordSymbol != null)
+        {
+            selectedChordSymbol.removePropertyChangeListener(this);
+        }
+        selectedChordSymbol = newSelectedChordSymbol;
         if (selectedChordSymbol != null)
         {
             selectedChordSymbol.addPropertyChangeListener(this);
         }
 
-
+        
         if (!isUIinPlaybackMode())
         {
             if (selectedChordSymbol != null)
@@ -429,14 +441,11 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             songPlaybackMode = sg;
             midiMixPlaybackMode = mm;
 
-
             // Listen to midiMix changes
             mm.addPropertyListener(this);
 
-
             // Update model and NotesViewer context
             updateSpinnerModel();
-
 
             if (isUIinPlaybackMode())
             {
@@ -464,10 +473,8 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         // Disable listening while updating the model
         spn_srcChannel.removeChangeListener(this);
 
-
         // Save possible selected channel
         int channel = spinnerModel != null ? spinnerModel.getChannel() : 10;
-
 
         // Update spinner model 
         spinnerModel = new MySpinnerModel(midiMixPlaybackMode);
@@ -487,23 +494,28 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     /**
      * Get all the NotesViewers available in the global lookup and add a button for each one.
      *
-     * @return The default NotesViewers
+     * @return The default NotesViewer
      */
-    private NotesViewer initViewers()
+    private NotesViewer initNotesViewers()
     {
         Collection<? extends NotesViewer> nViewers = Lookup.getDefault().lookupAll(NotesViewer.class);
+        assert !nViewers.isEmpty();
+
         for (var nViewer : nViewers)
         {
             FlatButton btn = new FlatButton();
             btn.setIcon(nViewer.getIcon());
-            btn.addActionListener(ae -> setNotesViewer(nViewer));
+            btn.setToolTipText(nViewer.getDescription());
+            btn.addActionListener(ae -> setActiveNotesViewer(nViewer));
+            btn.setBorderPressed(BORDER_PRESSED);
             pnl_buttons.add(btn);
+            mapViewerButton.put(nViewer, btn);
         }
-        assert !nViewers.isEmpty();
+
         return nViewers.iterator().next();
     }
 
-    private void setNotesViewer(NotesViewer nViewer)
+    private void setActiveNotesViewer(NotesViewer nViewer)
     {
         if (nViewer == null)
         {
@@ -516,11 +528,21 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         if (notesViewer != null)
         {
             notesViewer.cleanup();
+            mapViewerButton.get(notesViewer).setBorderNothing(BORDER_NOTHING_UNSELECTED);
+            mapViewerButton.get(notesViewer).setBorderEntered(BORDER_ENTERED_UNSELECTED);
         }
         pnl_viewer.removeAll();
         notesViewer = nViewer;
         pnl_viewer.add(notesViewer.getComponent());
+        if (!isUIinPlaybackMode() && selectedChordSymbol != null)
+        {
+            showChordSymbolNotes(selectedChordSymbol);
+        }
+        pnl_viewer.revalidate();
+        pnl_viewer.repaint();
         noteListener.setViewerComponent(notesViewer);
+        mapViewerButton.get(notesViewer).setBorderNothing(BORDER_NOTHING_SELECTED);
+        mapViewerButton.get(notesViewer).setBorderEntered(BORDER_ENTERED_SELECTED);
     }
 
     private void modeChanged()
@@ -532,10 +554,6 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 noteListener.setEnabled(true);
                 spn_srcChannel.setEnabled(true);
                 notesViewer.setMode(mode);
-                if (selectedChordSymbol != null)
-                {
-                    showChordSymbolNotes(selectedChordSymbol);
-                }
                 break;
             case ShowSelection:
                 noteListener.setEnabled(false);
@@ -562,8 +580,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
 
     private void showChordSymbolNotes(CLI_ChordSymbol cliCs)
     {
-        showCurrentChordSymbol(cliCs);
-
+        updateCurrentChordSymbolUI(cliCs);
 
         notesViewer.releaseAllNotes();
         var ecs = cliCs.getData();
@@ -576,7 +593,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
 
     }
 
-    private void showCurrentChordSymbol(CLI_ChordSymbol cliCs)
+    private void updateCurrentChordSymbolUI(CLI_ChordSymbol cliCs)
     {
         var ecs = cliCs.getData();
         lbl_chordSymbol.setText(ecs.getOriginalName());
