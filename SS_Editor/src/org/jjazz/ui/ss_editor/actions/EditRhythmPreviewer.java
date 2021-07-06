@@ -352,7 +352,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         var newSpt = spt.clone(r, 0, spt.getNbBars(), parentSection);
         newSpts.add(newSpt);
 
-        // If r is an AdaptedRhythm we must also add its the source rhythm
+        // If r is an AdaptedRhythm we must also add its source rhythm
         if (r instanceof AdaptedRhythm)
         {
             AdaptedRhythm ar = (AdaptedRhythm) r;

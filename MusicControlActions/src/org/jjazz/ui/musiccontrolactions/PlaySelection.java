@@ -179,7 +179,7 @@ public class PlaySelection extends AbstractAction
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
             MusicGenerationContext context = new MusicGenerationContext(song, midiMix, rg);
-            mc.setContext(context);
+            mc.setSession(context);
             mc.play(rg.from);
         } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
         {

@@ -25,15 +25,12 @@ package org.jjazz.musiccontrol.api;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
-import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiConst;
@@ -44,7 +41,10 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.api.IntRange;
 
 /**
- * Methods to prepare a control track.
+ * Methods to add a control track.
+ * <p>
+ * Control track contains special Midi events used by the JJazzLab-X framework, like a special control change event on each beat,
+ * and markers for chord symbols.
  */
 public class ControlTrackBuilder
 {
@@ -96,10 +96,8 @@ public class ControlTrackBuilder
             tick = addBeatChangeEvents(track, tick, spt);
         }
 
-
         // Add the chord symbols
         addChordSymbolEvents(track);
-
 
         // Set EndOfTrack
         long lastTick = (long) (context.getBeatRange().size() * MidiConst.PPQ_RESOLUTION) + 1;
@@ -152,7 +150,6 @@ public class ControlTrackBuilder
             ShortMessage sm = MidiUtilities.getJJazzBeatChangeControllerMessage(MidiConst.CHANNEL_MIN);
             track.add(new MidiEvent(sm, tick));
         }
-
 
         return (long) (tickOffset + nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
     }

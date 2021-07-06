@@ -51,7 +51,6 @@ import org.jjazz.rhythm.parameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.ResUtil;
 

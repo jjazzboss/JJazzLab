@@ -264,7 +264,7 @@ public class ExportToMidiFile extends AbstractAction
 
 
         // Dump sequence in debug mode
-        if (MusicController.getInstance().isDebugBuiltSequence())
+        if (MusicController.getInstance().isDebugPlayedSequence())
         {
             LOGGER.info("actionPerformed() song=" + song.getName() + " - sequence :");   //NOI18N
             LOGGER.info(MidiUtilities.toString(sequence));   //NOI18N

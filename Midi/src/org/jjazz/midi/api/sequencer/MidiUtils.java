@@ -399,8 +399,7 @@ public final class MidiUtils
             }
             int size = list.size() + 1;
             firstTempoIsFake = true;
-            if ((size > 1)
-                    && (list.get(0).getTick() == 0))
+            if (size > 1 && list.get(0).getTick() == 0)
             {
                 // do not need to add an initial tempo event at the beginning
                 size--;

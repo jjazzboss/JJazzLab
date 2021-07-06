@@ -349,7 +349,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
         // or:
         // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
         cb_logMidiOut.setSelected(JJazzMidiSystem.getInstance().getMidiOutLogConfig().contains(MidiFilter.ConfigLog.LOG_PASSED_MESSAGES));
-        cb_debugBuiltSequence.setSelected(MusicController.getInstance().isDebugBuiltSequence());
+        cb_debugBuiltSequence.setSelected(MusicController.getInstance().isDebugPlayedSequence());
         cb_noAnalytics.setSelected(!Analytics.getInstance().isEnabled());
 
     }
@@ -370,7 +370,7 @@ public final class AdvancedPanel extends javax.swing.JPanel
         {
             JJazzMidiSystem.getInstance().getMidiOutLogConfig().remove(MidiFilter.ConfigLog.LOG_PASSED_MESSAGES);
         }
-        MusicController.getInstance().setDebugBuiltSequence(cb_debugBuiltSequence.isSelected());
+        MusicController.getInstance().setDebugPlayedSequence(cb_debugBuiltSequence.isSelected());
 
         Analytics.getInstance().setEnabled(!cb_noAnalytics.isSelected());
     }

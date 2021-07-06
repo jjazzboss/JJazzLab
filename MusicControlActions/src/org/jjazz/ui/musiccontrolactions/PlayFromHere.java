@@ -177,7 +177,7 @@ public class PlayFromHere extends AbstractAction
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
             MusicGenerationContext context = new MusicGenerationContext(song, midiMix);
-            mc.setContext(context);
+            mc.setSession(context);
             mc.play(playFromBar);
         } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
         {
