@@ -56,6 +56,7 @@ import org.jjazz.util.api.ResUtil;
 public class SongPlaybackSession implements PlaybackSession, PropertyChangeListener
 {
 
+    private State state = State.NEW;
     private MusicGenerationContext mgContext;
     private final HashSet<ChangeListener> listeners = new HashSet<>();
     private Sequence sequence;
@@ -66,9 +67,7 @@ public class SongPlaybackSession implements PlaybackSession, PropertyChangeListe
     private long songTickStart = -1;
     private long songTickEnd = -1;
     private ContextChordSequence contextChordSequence;
-    private boolean outdated;
     private MusicGenerator.PostProcessor[] postProcessors;
-    private boolean isGenerated;
     /**
      * The sequence track id (index) for each rhythm voice, for the given context.
      * <p>
@@ -77,7 +76,7 @@ public class SongPlaybackSession implements PlaybackSession, PropertyChangeListe
     private HashMap<RhythmVoice, Integer> mapRvTrackId;
 
     /**
-     * Create a session.
+     * Create a session with the specified parameters.
      *
      * @param mgContext
      * @param postProcessors Can be null, passed to the MidiSequenceBuilder in charge of creating the sequence.
@@ -89,8 +88,6 @@ public class SongPlaybackSession implements PlaybackSession, PropertyChangeListe
             throw new NullPointerException("context"); //NOI18N
         }
         this.mgContext = mgContext;
-        outdated = false;
-        isGenerated = false;
         this.postProcessors = postProcessors;
 
         // Listen to song and midimix changes
@@ -100,28 +97,31 @@ public class SongPlaybackSession implements PlaybackSession, PropertyChangeListe
     }
 
     /**
-     * Create a new session with the same context, ready to be generated.
+     * Create a new identical session, ready to be generated.
      *
      * @return
      */
-    SongPlaybackSession getCleanCopy()
+    @Override
+    public SongPlaybackSession getCopyInNewState()
     {
         return new SongPlaybackSession(mgContext, postProcessors);
     }
 
-    /**
-     * Can be run only once.
-     *
-     * @throws MusicGenerationException
-     */
+    @Override
+    public State getState()
+    {
+        return state;
+    }
+
+    @Override
     public void generate() throws MusicGenerationException
     {
-        if (isGenerated)
+        if (!state.equals(State.NEW))
         {
-            throw new IllegalStateException("isGenerated=" + isGenerated);
+            throw new IllegalStateException("state=" + state);
         }
-        
-        
+
+
         MusicGenerationContext workContext = mgContext;
         int t = MusicController.getInstance().getPlaybackKeyTransposition();
         if (t != 0)
@@ -168,13 +168,11 @@ public class SongPlaybackSession implements PlaybackSession, PropertyChangeListe
         contextChordSequence = new ContextChordSequence(workContext);
 
 
-        isGenerated = true;
+        // Change state
+        state = State.GENERATED;
+        fireChanged();
     }
 
-    public boolean isGenerated()
-    {
-        return isGenerated;
-    }
 
     public ContextChordSequence getContextChordGetSequence()
     {
@@ -236,6 +234,15 @@ public class SongPlaybackSession implements PlaybackSession, PropertyChangeListe
         return mapRvTrackId;
     }
 
+    public int getPrecountClickTrackId()
+    {
+        return precountClickTrackId;
+    }
+
+    public int getControlTrackId()
+    {
+        return controlTrackId;
+    }
 
     @Override
     public void addChangeListener(ChangeListener listener)
@@ -247,12 +254,6 @@ public class SongPlaybackSession implements PlaybackSession, PropertyChangeListe
     public void removeChangeListener(ChangeListener listener)
     {
         listeners.remove(listener);
-    }
-
-    @Override
-    public boolean isOutdated()
-    {
-        return outdated;
     }
 
 
@@ -271,19 +272,19 @@ public class SongPlaybackSession implements PlaybackSession, PropertyChangeListe
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
-        if (outdated)
+        if (!state.equals(State.GENERATED))
         {
             return;
         }
 
-        boolean res = false;
+        boolean outdated = false;
         if (e.getSource() == mgContext.getSong())
         {
             if (e.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED))
             {
                 if ((Boolean) e.getNewValue() == true)
                 {
-                    res = true;
+                    outdated = true;
                 }
             }
         } else if (e.getSource() == mgContext.getMidiMix() && null != e.getPropertyName())
@@ -293,14 +294,14 @@ public class SongPlaybackSession implements PlaybackSession, PropertyChangeListe
                 case MidiMix.PROP_CHANNEL_DRUMS_REROUTED:
                 case MidiMix.PROP_INSTRUMENT_TRANSPOSITION:
                 case MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT:
-                    res = true;
+                    outdated = true;
                     break;
                 case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX:
-                    res = true;
+                    outdated = true;
                     break;
                 case MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP:
                     // KeyMap has changed, need to regenerate the sequence
-                    res = true;
+                    outdated = true;
                     break;
                 default:
                     // eg MidiMix.PROP_USER_CHANNEL: do nothing
@@ -311,13 +312,13 @@ public class SongPlaybackSession implements PlaybackSession, PropertyChangeListe
             if (!e.getPropertyName().equals(ClickManager.PROP_PLAYBACK_CLICK_ENABLED))
             {
                 // Make sure click track is recalculated (click channel, instrument, etc. might have changed)      
-                res = true;
+                outdated = true;
             }
         }
 
-        if (res)
+        if (outdated)
         {
-            outdated = true;
+            state = State.OUTDATED;
             fireChanged();
         }
     }

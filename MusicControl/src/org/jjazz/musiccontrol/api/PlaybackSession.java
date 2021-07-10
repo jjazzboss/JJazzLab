@@ -22,25 +22,65 @@
  */
 package org.jjazz.musiccontrol.api;
 
-import java.util.HashMap;
 import java.util.List;
 import javax.sound.midi.Sequence;
 import javax.swing.event.ChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.MusicGenerationException;
 
 /**
- * Contains a sequence and all the related data needed by MusicController to manage a playback session.
+ * Contains a sequence and the minimum related data needed by MusicController to manage a playback session.
  * <p>
- * Implementations are expected to be immutable, expected for the isOutdated() method.
+ * The session is responsible for maintaining its State and notifying listeners when State has changed.
  */
 public interface PlaybackSession
 {
 
+    public enum State
+    {
+        /**
+         * State of the session upon creation, sequence and related data are not generated yet. Sequence and related data values
+         * are undefined in this state.
+         */
+        NEW,
+        /**
+         * Sequence and related data have been generated and are up to date with the underlying data.
+         */
+        GENERATED,
+        /**
+         * Sequence and related data were generated but are now out of date compared to the underlying data.
+         */
+        OUTDATED
+    }
+
+    /**
+     * The state of the session.
+     *
+     * @return
+     */
+    State getState();
+
+    /**
+     * Create the sequence and the related data.
+     * <p>
+     * The method changes the state to GENERATED.
+     *
+     * @throws org.jjazz.rhythm.api.MusicGenerationException
+     * @throws IllegalStateException If State is not NEW.
+     */
+    void generate() throws MusicGenerationException;
+
+    /**
+     * Create a new identical session in the NEW state.
+     *
+     * @return
+     */
+    PlaybackSession getCopyInNewState();
+
     /**
      * Get the Midi sequence.
      *
-     * @return Can't be null.
+     * @return
      */
     Sequence getSequence();
 
@@ -84,36 +124,21 @@ public interface PlaybackSession
     default List<Position> getNaturalBeatPositions()
     {
         return null;
-    }   
+    }
 
 
     /**
-     * Check if this session data is no more in sync with the underlying data (e.g. a Song).
-     * <p>
-     * Use addChangeListener() to be notified when isOutdated() return value changes. Once isOutdated() returns true, value can
-     * never change back to false.
-     *
-     * @return If true a new session should be generated.
-     */
-    boolean isOutdated();
-
-    /**
-     * Add a listener to the isOutdated() state.
+     * Add a listener to the state changes.
      *
      * @param listener
      */
     void addChangeListener(ChangeListener listener);
 
-    /**
-     * Remove a listener to the isOutdated() state.
-     *
-     * @param listener
-     */
     void removeChangeListener(ChangeListener listener);
 
     /**
      * Must be called before disposing this session.
      */
-    void cleanup();   
+    void cleanup();
 
 }
