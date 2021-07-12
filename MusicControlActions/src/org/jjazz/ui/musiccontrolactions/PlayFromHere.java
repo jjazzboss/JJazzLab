@@ -37,7 +37,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
@@ -176,7 +176,7 @@ public class PlayFromHere extends AbstractAction
         try
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
-            MusicGenerationContext context = new MusicGenerationContext(song, midiMix);
+            SongContext context = new SongContext(song, midiMix);
             mc.setSession(context);
             mc.play(playFromBar);
         } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)

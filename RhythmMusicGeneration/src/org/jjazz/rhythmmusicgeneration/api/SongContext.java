@@ -38,11 +38,11 @@ import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.LongRange;
 
 /**
- * Information to be used by a Rhythm to generate music.
+ * Information to be used by a Rhythm to generate music for some bars of a Song with a related MidiMix.
  * <p>
  * The class also provides convenient methods to extract song data (e.g. song parts) relevant to the context.
  */
-public class MusicGenerationContext
+public class SongContext
 {
 
     private Song song;
@@ -50,24 +50,24 @@ public class MusicGenerationContext
     private IntRange range;
 
     /**
-     * Create a MusicGenerationContext object for the whole song.
+     * Create a SongContext object for the whole song.
      *
      * @param s
      * @param mix
      */
-    public MusicGenerationContext(Song s, MidiMix mix)
+    public SongContext(Song s, MidiMix mix)
     {
         this(s, mix, null);
     }
 
     /**
-     * Create a MusicGenerationContext object for a whole or a part of the song.
+     * Create a SongContext object for a whole or a part of the song.
      *
      * @param s
      * @param mix
      * @param r If null, the range will represent the whole song from first to last bar.
      */
-    public MusicGenerationContext(Song s, MidiMix mix, IntRange r)
+    public SongContext(Song s, MidiMix mix, IntRange r)
     {
         if (s == null || mix == null)
         {
@@ -92,12 +92,12 @@ public class MusicGenerationContext
     }
 
     /**
-     * Create a MusicGenerationContext which reuse mgc's Song and MidiMix, but with the specified range.
+     * Create a SongContext which reuse mgc's Song and MidiMix, but with the specified range.
      *
      * @param mgc
      * @param newRange
      */
-    public MusicGenerationContext(MusicGenerationContext mgc, IntRange newRange)
+    public SongContext(SongContext mgc, IntRange newRange)
     {
         this(mgc.getSong(), mgc.getMidiMix(), newRange);
     }
@@ -127,7 +127,7 @@ public class MusicGenerationContext
         {
             return false;
         }
-        final MusicGenerationContext other = (MusicGenerationContext) obj;
+        final SongContext other = (SongContext) obj;
         if (!Objects.equals(this.song, other.song))
         {
             return false;
@@ -388,6 +388,6 @@ public class MusicGenerationContext
     @Override
     public String toString()
     {
-        return "MusicGenerationContext[song=" + song.getName() + ", midiMix=" + mix + ", range=" + range + "]";
+        return "SongContext[song=" + song.getName() + ", midiMix=" + mix + ", range=" + range + "]";
     }
 }

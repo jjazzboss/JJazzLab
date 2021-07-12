@@ -53,7 +53,7 @@ public class DummyGenerator implements MusicGenerator
   
 
     @Override
-    public HashMap<RhythmVoice, Phrase> generateMusic(MusicGenerationContext context)
+    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context)
     {
         HashMap<RhythmVoice, Phrase> res = new HashMap<>();
 
@@ -72,7 +72,7 @@ public class DummyGenerator implements MusicGenerator
             float sptPosInBeats = context.getSong().getSongStructure().getPositionInNaturalBeats(sptRange.from);
 
             // Get the ChordSequence corresponding to the song part
-            MusicGenerationContext rContext = new MusicGenerationContext(context, sptRange);
+            SongContext rContext = new SongContext(context, sptRange);
             ContextChordSequence cSeq = new ContextChordSequence(rContext);
             for (RhythmVoice rv : rhythm.getRhythmVoices())
             {

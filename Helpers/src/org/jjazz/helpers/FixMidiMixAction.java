@@ -37,7 +37,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.openide.windows.OnShowing;
 
 /**
@@ -82,7 +82,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
             return;
         }
 
-        MusicGenerationContext context = (MusicGenerationContext) evt.getNewValue();
+        SongContext context = (SongContext) evt.getNewValue();
         assert context != null : "evt=" + evt;   //NOI18N
         MidiMix midiMix = context.getMidiMix();
 

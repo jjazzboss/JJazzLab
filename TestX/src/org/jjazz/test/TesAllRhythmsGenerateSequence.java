@@ -36,7 +36,7 @@ import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythmmusicgeneration.api.MidiSequenceBuilder;
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
@@ -103,7 +103,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
         @Override
         public void run()
         {
-            MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(new MusicGenerationContext(song, midiMix));
+            MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(new SongContext(song, midiMix));
             SongStructure sgs = song.getSongStructure();
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
             um.setLimit(1);      // to not use too much memory with all rhythms instances...

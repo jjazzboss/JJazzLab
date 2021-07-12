@@ -435,14 +435,14 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
 
             if (midiMixPlaybackMode != null)
             {
-                midiMixPlaybackMode.removePropertyListener(this);
+                midiMixPlaybackMode.removePropertyChangeListener(this);
             }
 
             songPlaybackMode = sg;
             midiMixPlaybackMode = mm;
 
             // Listen to midiMix changes
-            mm.addPropertyListener(this);
+            mm.addPropertyChangeListener(this);
 
             // Update model and NotesViewer context
             updateSpinnerModel();

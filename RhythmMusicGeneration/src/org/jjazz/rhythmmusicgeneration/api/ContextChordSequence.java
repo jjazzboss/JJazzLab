@@ -41,18 +41,18 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.util.api.IntRange;
 
 /**
- * A ChordSequence built for a given MusicGenerationContext.
+ * A ChordSequence built for a given SongContext.
  * <p>
  * When constructed a ContextChordSequence always has a starting chord symbol.
  */
 public class ContextChordSequence extends ChordSequence
 {
 
-    private MusicGenerationContext context;
+    private SongContext context;
     protected static final Logger LOGGER = Logger.getLogger(ContextChordSequence.class.getSimpleName());
 
     /**
-     * Build a ChordSequence from the specified MusicGenerationContext.
+     * Build a ChordSequence from the specified SongContext.
      * <p>
      * Use the song's SongStructure and ChordLeadSheet, limited to the context range, to build this ChordSequence. Process the
      * alternate chord symbols when relevant. Make sure that the created object has a ChordSymbol at beginning.<br>
@@ -64,7 +64,7 @@ public class ContextChordSequence extends ChordSequence
      * @param context
      * @throws IllegalArgumentException If no chord found to be the 1st chord of the ChordSequence.
      */
-    public ContextChordSequence(MusicGenerationContext context)
+    public ContextChordSequence(SongContext context)
     {
         super(context.getBarRange().from, context.getBarRange().to - context.getBarRange().from + 1);
 
@@ -120,7 +120,7 @@ public class ContextChordSequence extends ChordSequence
         }
     }
 
-    public MusicGenerationContext getContext()
+    public SongContext getContext()
     {
         return context;
     }

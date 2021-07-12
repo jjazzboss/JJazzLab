@@ -41,7 +41,7 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
 import static org.jjazz.musiccontrol.api.ClickManager.PROP_CLICK_PITCH_LOW;
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.openide.util.NbPreferences;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.upgrade.api.UpgradeManager;
@@ -362,7 +362,7 @@ public class ClickManager
      * @param context
      * @return the index of the track in the sequence.
      */
-    public int addClickTrack(Sequence sequence, MusicGenerationContext context)
+    public int addClickTrack(Sequence sequence, SongContext context)
     {
         if (sequence == null || context == null)
         {
@@ -403,7 +403,7 @@ public class ClickManager
      * @param context
      * @return The tick position of the start of the song.
      */
-    public long addPreCountClickTrack(Sequence sequence, MusicGenerationContext context)
+    public long addPreCountClickTrack(Sequence sequence, SongContext context)
     {
         if (sequence == null || context == null)
         {

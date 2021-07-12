@@ -67,7 +67,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
         }
         channelId = channel;
         midiMix = mMix;
-        midiMix.addPropertyListener(this);
+        midiMix.addPropertyChangeListener(this);
         insMix = mMix.getInstrumentMixFromChannel(channel);
         insMix.addPropertyChangeListener(this);
         insSettings = insMix.getSettings();

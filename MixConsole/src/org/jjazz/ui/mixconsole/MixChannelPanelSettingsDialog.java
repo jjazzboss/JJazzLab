@@ -223,14 +223,14 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
 
     private void registerModel()
     {
-        midiMix.addPropertyListener(this);
+        midiMix.addPropertyChangeListener(this);
         insMix.addPropertyChangeListener(this);
         insSet.addPropertyChangeListener(this);
     }
 
     private void unregisterModel()
     {
-        midiMix.removePropertyListener(this);
+        midiMix.removePropertyChangeListener(this);
         insMix.removePropertyChangeListener(this);
         insSet.removePropertyChangeListener(this);
         midiMix = null;

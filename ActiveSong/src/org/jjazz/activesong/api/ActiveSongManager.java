@@ -372,7 +372,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
      */
     private void registerMidiMix(MidiMix mm)
     {
-        mm.addPropertyListener(this);
+        mm.addPropertyChangeListener(this);
         for (Integer channel : mm.getUsedChannels())
         {
             InstrumentMix insMix = mm.getInstrumentMixFromChannel(channel);
@@ -383,7 +383,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
 
     private void unregisterMidiMix(MidiMix mm)
     {
-        mm.removePropertyListener(this);
+        mm.removePropertyChangeListener(this);
         for (Integer channel : mm.getUsedChannels())
         {
             InstrumentMix insMix = mm.getInstrumentMixFromChannel(channel);

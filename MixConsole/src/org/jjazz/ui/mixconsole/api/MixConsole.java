@@ -560,7 +560,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         instanceContent.add(saveAsCapableSong); // always enabled
 
         // Update the console with MidiMix changes
-        songMidiMix.addPropertyListener(this);
+        songMidiMix.addPropertyChangeListener(this);
 
         // Add the visible channel panels
         addVisibleMixChannelPanels();
@@ -854,7 +854,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         resetSongModified();
         if (songMidiMix != null)
         {
-            songMidiMix.removePropertyListener(this);
+            songMidiMix.removePropertyChangeListener(this);
         }
         if (songModel != null)
         {

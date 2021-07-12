@@ -43,7 +43,7 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.parameters.RP_STD_Variation;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.rhythmmusicgeneration.api.Phrase;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 
@@ -94,7 +94,7 @@ public class RhythmStub implements Rhythm, MusicGenerator
     }
 
     @Override
-    public HashMap<RhythmVoice, Phrase> generateMusic(MusicGenerationContext context) throws MusicGenerationException
+    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context) throws MusicGenerationException
     {
         return new DummyGenerator(this).generateMusic(context);
     }

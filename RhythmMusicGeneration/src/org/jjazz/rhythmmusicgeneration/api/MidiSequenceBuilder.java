@@ -64,7 +64,7 @@ public class MidiSequenceBuilder
     /**
      * The context.
      */
-    private MusicGenerationContext context;
+    private SongContext context;
     private MusicGenerator.PostProcessor[] postProcessors;  // Can be null
     private final HashMap<RhythmVoice, Integer> mapRvTrackId = new HashMap<>();
 
@@ -74,7 +74,7 @@ public class MidiSequenceBuilder
      * @param context The context to build the sequence. Song's SongStructure can not be empty.
      * @param postProcessors Optional postProcessors to run on the generated phrases.
      */
-    public MidiSequenceBuilder(MusicGenerationContext context, MusicGenerator.PostProcessor... postProcessors)
+    public MidiSequenceBuilder(SongContext context, MusicGenerator.PostProcessor... postProcessors)
     {
         if (context == null)
         {
@@ -146,7 +146,7 @@ public class MidiSequenceBuilder
      * @return The last context used by buildSequence()
      * @see buildSequence()
      */
-    public MusicGenerationContext getContext()
+    public SongContext getContext()
     {
         return context;
     }

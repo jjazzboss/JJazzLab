@@ -56,7 +56,7 @@ import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.parameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.api.MidiSequenceBuilder;
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
@@ -189,8 +189,8 @@ public class ExportToMidiFile extends AbstractAction
 
 
         // Build the sequence
-        MusicGenerationContext mgContext = new MusicGenerationContext(songCopy, midiMix);
-        MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(mgContext);
+        SongContext sgContext = new SongContext(songCopy, midiMix);
+        MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(sgContext);
         HashMap<RhythmVoice, Integer> mapRvTrackId = seqBuilder.getRvTrackIdMap();
         Sequence sequence = null;
         try
@@ -247,10 +247,10 @@ public class ExportToMidiFile extends AbstractAction
 
         // Add click & precount tracks if required
         ClickManager cm = ClickManager.getInstance();
-        long songStartTick = cm.isClickPrecountEnabled() ? cm.addPreCountClickTrack(sequence, mgContext) : 0;
+        long songStartTick = cm.isClickPrecountEnabled() ? cm.addPreCountClickTrack(sequence, sgContext) : 0;
         if (cm.isPlaybackClickEnabled())
         {
-            cm.addClickTrack(sequence, mgContext);
+            cm.addClickTrack(sequence, sgContext);
         }
 
 

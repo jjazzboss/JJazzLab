@@ -54,7 +54,7 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmmusicgeneration.api.MidiSequenceBuilder;
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator.PostProcessor;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
@@ -169,7 +169,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
 
         // Build the preview song and context
         Song song;
-        MusicGenerationContext context;
+        SongContext context;
         MidiMix mm;
         try
         {
@@ -178,7 +178,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             // LOGGER.severe("previewRhythm() mm BEFORE=" + mm.toDumpString());
             fixMidiMix(mm);
             // LOGGER.severe("previewRhythm() mm AFTER=" + mm.toDumpString());
-            context = new MusicGenerationContext(song, mm);
+            context = new SongContext(song, mm);
         } catch (UnsupportedEditException | MidiUnavailableException ex)
         {
             LOGGER.warning("previewRhythm() ex=" + ex.getMessage());   //NOI18N

@@ -1030,12 +1030,12 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         undoListeners.remove(l);
     }
 
-    public void addPropertyListener(PropertyChangeListener l)
+    public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
 
-    public void removePropertyListener(PropertyChangeListener l)
+    public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
     }

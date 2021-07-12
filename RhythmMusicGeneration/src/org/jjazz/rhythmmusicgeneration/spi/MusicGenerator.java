@@ -22,7 +22,7 @@
  */
 package org.jjazz.rhythmmusicgeneration.spi;
 
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationContext;
+import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import java.util.HashMap;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -46,7 +46,7 @@ public interface MusicGenerator
          * @param context
          * @return 0 is highest priority, Integer.MAX is lowest priority
          */
-        int getPriority(MusicGenerationContext context);
+        int getPriority(SongContext context);
 
         /**
          * Identifier of the PostProcessor.
@@ -70,7 +70,7 @@ public interface MusicGenerator
          * @return True if some changes have been done.
          * @throws MusicGenerationException
          */
-        boolean postProcess(MusicGenerationContext context, HashMap<RhythmVoice, Phrase> mapRvPhrase) throws MusicGenerationException;
+        boolean postProcess(SongContext context, HashMap<RhythmVoice, Phrase> mapRvPhrase) throws MusicGenerationException;
     }
 
     /**
@@ -105,5 +105,5 @@ public interface MusicGenerator
      * notifying the user of the error message associated to the exception.
      *
      */
-    HashMap<RhythmVoice, Phrase> generateMusic(MusicGenerationContext context) throws MusicGenerationException;
+    HashMap<RhythmVoice, Phrase> generateMusic(SongContext context) throws MusicGenerationException;
 }
