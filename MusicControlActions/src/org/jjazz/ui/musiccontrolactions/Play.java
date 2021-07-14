@@ -35,6 +35,8 @@ import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.SessionFactory;
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
@@ -153,8 +155,12 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                     {
                         MidiMix midiMix = MidiMixManager.getInstance().findMix(currentSong);      // Can raise MidiUnavailableException
                         SongContext context = new SongContext(currentSong, midiMix);
-                        mc.setSession(context);
-                        mc.play(0);
+                        PlaybackSession session = SessionFactory.getInstance().getSongContextSession(context);
+                        if (session.getState().equals(PlaybackSession.State.NEW))
+                        {
+                            session.generate();
+                        }
+                        mc.play(session, 0);
                     } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
                     {
                         if (ex.getLocalizedMessage() != null)

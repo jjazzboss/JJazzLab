@@ -22,7 +22,6 @@
  */
 package org.jjazz.musiccontrol.api;
 
-import org.jjazz.musiccontrol.PlaybackSession;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -31,7 +30,6 @@ import java.beans.VetoableChangeListener;
 import java.beans.VetoableChangeSupport;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -52,23 +50,22 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Transmitter;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.UserChannelRvKey;
+import org.jjazz.musiccontrol.SongContextSession;
+import org.jjazz.musiccontrol.api.playbacksession.ChordSymbolProvider;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.PositionProvider;
+import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.outputsynth.api.OutputSynthManager;
-import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.rhythmmusicgeneration.api.ContextChordSequence;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
-import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
@@ -88,7 +85,7 @@ import org.openide.util.NbPreferences;
  * <p>
  * Use acquireSequencer()/releaseSequencer() if you want to use the Java system sequencer independently.
  */
-public class MusicController implements PropertyChangeListener, MetaEventListener, ControllerEventListener, ChangeListener
+public class MusicController implements PropertyChangeListener, MetaEventListener, ControllerEventListener
 {
 
     public static final String PROP_PLAYBACK_KEY_TRANSPOSITION = "PlaybackTransposition";              //NOI18N
@@ -97,7 +94,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * This vetoable property is changed/fired just before playing song and can be vetoed by vetoables listeners to cancel
      * playback start.
      * <p>
-     * NewValue=If non nulls contains the SongContext object.
+     * NewValue=If non null it contains the SongContext object.
      */
     public static final String PROPVETO_PRE_PLAYBACK = "PropVetoPrePlayback";   //NOI18N 
     public static final String PROP_LOOPCOUNT = "PropLoopCount";   //NOI18N 
@@ -211,15 +208,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
 
 
-        // Listen to click settings changes
-        ClickManager.getInstance().addPropertyChangeListener(this);
-
-
         // Listen to latency changes
         var osm = OutputSynthManager.getInstance();
         osm.addPropertyChangeListener(this);
         audioLatency = osm.getOutputSynth().getAudioLatency();
-
 
     }
 
@@ -304,81 +296,124 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Create a new PlaybackSession from sgContext, or just return the current playback session if it uses the same parameters.
-     *
-     * @param sgContext
-     * @param postProcessors Optional array of postProcessors for the PlaybackSession constructor.
-     * @return
-     * @see getPlaybackSession()
-     */
-    public PlaybackSession createPlaybackSession(SongContext sgContext, MusicGenerator.PostProcessor... postProcessors)
-    {
-        if (sgContext == null)
-        {
-            throw new IllegalArgumentException("sgContext=" + sgContext);
-        }
-
-        if (getSongPlaybackSession() == null
-                || !sgContext.equals(getSongContext())
-                || !Objects.equals(getSongPlaybackSession().getPostProcessors(), Arrays.asList(postProcessors)))
-        {
-            // Create a new PlaybackSession
-            return new PlaybackSession(sgContext, postProcessors);
-
-        } else
-        {
-            // Reuse current session
-            return getSongPlaybackSession();
-        }
-    }
-
-
-    /**
-     * Play from bar fromBarIndex in the specied playback session.
+     * Play a session from the specified bar .
      * <p>
-     * If spSession state is NEW then generate the playback session data.
      *
-     * @param spSession
-     * @param fromBarIndex Must be a valid bar in spSession's SongContext bar range
-     * @throws java.beans.PropertyVetoException If a vetoable listener vetoed the playback of the specified session. A listener
-     * who has already notified the end-user via its own UI must throw a PropertyVetoException with a null message to avoid
-     * another notification by the framework.
+     * @param session A session in the GENERATED state.
+     * @param fromBarIndex
+     * @throws java.beans.PropertyVetoException If a vetoable listener vetoed the playback. A vetoable listener who has already
+     * notified the end-user via its own UI must throw a PropertyVetoException with a null message to avoid another notification
+     * by the framework.
      * @throws MusicGenerationException If a problem occurred which prevents song playing: no Midi out, rhythm music generation
      * problem, MusicController state is not PAUSED nor STOPPED, etc.
      *
      */
-    public void play(PlaybackSession spSession, int fromBarIndex) throws MusicGenerationException, PropertyVetoException
+    public void play(PlaybackSession session, int fromBarIndex) throws MusicGenerationException, PropertyVetoException
     {
-
-        var sgContext = spSession.getSongContext();
-        if (!sgContext.getBarRange().contains(fromBarIndex))
+        if (session == null || !session.getState().equals(PlaybackSession.State.GENERATED))
         {
-            throw new IllegalArgumentException("sgContext=" + sgContext + ", fromBarIndex=" + fromBarIndex);   //NOI18N
+            throw new IllegalArgumentException("session=" + session + " fromBarIndex=" + fromBarIndex);
         }
 
-        if (sgContext.getBarRange().isEmpty())
+
+        // Check that a Midi ouput device is set
+        checkMidi();                // throws MusicGenerationException
+
+
+        // Check bar range
+        if (session.getBarRange().isEmpty())
         {
             // Throw an exception to let the UI roll back (eg play stateful button)
             throw new MusicGenerationException(ResUtil.getString(getClass(), "NOTHING TO PLAY"));
+        } else if (!session.getBarRange().contains(fromBarIndex))
+        {
+            throw new IllegalArgumentException("invalid fromBarIndex=" + fromBarIndex + " session=" + session);
         }
 
 
-        playImpl(spSession, fromBarIndex, Long.MIN_VALUE);
-    }
+        // Check state
+        if (state == State.PLAYING)
+        {
+            throw new MusicGenerationException(ResUtil.getString(getClass(), "A SONG IS ALREADY PLAYING"));
+        } else if (state == State.DISABLED)
+        {
+            throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK IS DISABLED"));
+        }
 
 
-    /**
-     * Play the specified context from the specified tick position.
-     * <p>
-     * To use 100% of the MusicController features, use play(PlaybackSession, int).
-     *
-     * @param pSession
-     * @param fromTick
-     * @throws org.jjazz.rhythm.api.MusicGenerationException E.g. if state is DISABLED, sequence could not be generated, etc.
-     */
-    public void play(PlaybackSession pSession, long fromTick) throws MusicGenerationException, PropertyVetoException
-    {
-        playImpl(pSession, Integer.MIN_VALUE, fromTick);
+        // We can do a bit more if there is a SongContext
+        SongContext sgContext = getSongContext(session);        // Can be null
+
+
+        // Check that all listeners are OK to start playback
+        vcs.fireVetoableChange(PROPVETO_PRE_PLAYBACK, null, sgContext);  // can raise PropertyVetoException
+
+
+        if (debugPlayedSequence)
+        {
+            String songName = sgContext != null ? sgContext.getSong().getName() : "unknown";
+            LOGGER.info("play() song=" + songName + " sequence :"); //NOI18N
+            LOGGER.info(MidiUtilities.toString(session.getSequence())); //NOI18N
+        }
+
+
+        // Update playbackSession
+        if (playbackSession != null)
+        {
+            playbackSession.removePropertyChangeListener(this);
+            playbackSession.cleanup();
+        }
+        playbackSession = session;
+        playbackSession.addPropertyChangeListener(this);
+
+
+        // Set sequence
+        try
+        {
+            // This also stops sequencer and resets Mute, Solo, LoopStart/End points, LoopCount, tick position
+            sequencer.setSequence(playbackSession.getSequence()); // Can raise InvalidMidiDataException
+
+        } catch (InvalidMidiDataException ex)
+        {
+            clearPlaybackSession();
+            throw new MusicGenerationException(ex.getLocalizedMessage());
+        }
+
+
+        // Log the song play event        
+        if (sgContext != null)
+        {
+            Analytics.setPropertiesOnce(Analytics.buildMap("First Play", Analytics.toStdDateTimeString()));
+            Analytics.incrementProperties("Nb Play", 1);
+            var mapParams = Analytics.buildMap("Bar Range", sgContext.getBarRange().toString(), "Rhythms", Analytics.toStrList(sgContext.getUniqueRhythms()));
+            Analytics.logEvent("Play", mapParams);
+        }
+
+
+        // Loop settings
+        sequencer.setLoopStartPoint(playbackSession.getLoopStartTick());
+        sequencer.setLoopEndPoint(playbackSession.getLoopEndTick());
+        sequencer.setLoopCount(loopCount);
+
+
+        // Mute/unmute tracks
+        updateTracksMuteStatus();
+        songPartTempoFactor = 1f;
+        songTempoChanged(playbackSession.getTempo());
+
+
+        // Set sequencer position
+        setPosition(fromBarIndex);
+
+
+        // Start or restart the sequencer
+        seqStart();
+
+
+        State old = this.getState();
+        state = State.PLAYING;
+        pcs.firePropertyChange(PROP_STATE, old, state);
+
     }
 
 
@@ -387,8 +422,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * <p>
      * If state is not PAUSED, nothing is done.
      *
-     * @throws org.jjazz.rhythm.api.MusicGenerationException For example if state==DISABLED
-     * @throws java.beans.PropertyVetoException
+     * @throws MusicGenerationException For example if state==DISABLED
+     * @throws PropertyVetoException
+     * @throws IllegalStateException If current playback session is not in the GENERATED state.
      */
     public void resume() throws MusicGenerationException, PropertyVetoException
     {
@@ -400,11 +436,18 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             return;
         }
 
+        // Need a clean session
+        if (!playbackSession.getState().equals(PlaybackSession.State.GENERATED))
+        {
+            throw new IllegalStateException("playbackSession.getState()=" + playbackSession.getState());
+        }
+
+
         checkMidi();                // throws MusicGenerationException
 
 
         // Check that all listeners are OK to resume playback
-        vcs.fireVetoableChange(PROPVETO_PRE_PLAYBACK, null, getSongContext());  // can raise PropertyVetoException
+        vcs.fireVetoableChange(PROPVETO_PRE_PLAYBACK, null, getSongContext(playbackSession));  // can raise PropertyVetoException
 
 
         // Let's go again
@@ -448,19 +491,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
         // Position must be reset after the stop so that playback beat change tracking listeners are not reset upon stop        
-        if (getSongContext() != null)
-        {
-            setPosition(getSongContext().getBarRange().from);
-        } else
-        {
-            sequencer.setTickPosition(playbackSession.getTickStart());
-        }
+        setPosition(playbackSession.getBarRange().from);
     }
 
     /**
      * Stop the playback of the sequence and leave the position unchanged.
      * <p>
-     * If state is not PLAYING, nothing is done.
+     * If state is not PLAYING, nothing is done. If session is OUTDATED, use stop() instead.
      */
     public void pause()
     {
@@ -469,8 +506,17 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             return;
         }
 
+        // If session is outdated use stop() instead
+        if (playbackSession.getState().equals(PlaybackSession.State.OUTDATED))
+        {
+            stop();
+            return;
+        }
+
+
         sequencer.stop();
         clearPendingEvents();
+
 
         State old = getState();
         state = State.PAUSED;
@@ -642,18 +688,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         vcs.removeVetoableChangeListener(listener);
     }
 
-    //-----------------------------------------------------------------------
-    // Implementation of the ChangeListener interface
-    //-----------------------------------------------------------------------
-
-    @Override
-    public void stateChanged(ChangeEvent e)
-    {
-        if (e.getSource() == playbackSession)
-        {
-
-        }
-    }
 
     //-----------------------------------------------------------------------
     // Implementation of the ControlEventListener interface
@@ -672,12 +706,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         switch (data1)
         {
             case MidiConst.CTRL_CHG_JJAZZ_BEAT_CHANGE:
-                if (getSongPlaybackSession() != null)
+                if (playbackSession instanceof PositionProvider)
                 {
-                    List<Position> naturalBeatPositions = getSongPlaybackSession().getNaturalBeatPositions();
+                    PositionProvider positionProvider = (PositionProvider) playbackSession;
+                    List<Position> naturalBeatPositions = positionProvider.getPositions();
                     if (naturalBeatPositions != null)
                     {
-                        long tick = sequencer.getTickPosition() - playbackSession.getTickStart();
+                        long tick = sequencer.getTickPosition() - playbackSession.getLoopStartTick();
                         int index = (int) (tick / MidiConst.PPQ_RESOLUTION);
                         long remainder = tick % MidiConst.PPQ_RESOLUTION;
                         index += (remainder <= MidiConst.PPQ_RESOLUTION / 2) ? 0 : 1;
@@ -715,32 +750,42 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             // So if this method impacts the UI, it must use SwingUtilities.InvokeLater() (or InvokeAndWait())
             LOGGER.fine("Sequence end reached");  //NOI18N        
             SwingUtilities.invokeLater(() -> stop());
+
         } else if (meta.getType() == 6)     // Marker
         {
             String s = Utilities.toString(meta.getData());
             if (s.startsWith("csIndex="))           // Marker for chord symbol
             {
-                synchronized (lock)     // Synchronized with updateSequencer() which modifies playbackSession and the sequence
+                if (playbackSession instanceof ChordSymbolProvider)
                 {
-                    if (playbackSession instanceof PlaybackSession)
+                    ChordSymbolProvider chordSymbolProvider = (ChordSymbolProvider) playbackSession;
+
+
+                    // Fire chord symbol change
+                    int csIndex = Integer.valueOf(s.substring(8));
+                    ContextChordSequence cSeq = chordSymbolProvider.getContextChordGetSequence();
+                    if (cSeq != null)
                     {
-                        PlaybackSession spSession = (PlaybackSession) playbackSession;
-                        // Fire chord symbol change
-                        int csIndex = Integer.valueOf(s.substring(8));
-                        CLI_ChordSymbol cliCs = spSession.getContextChordGetSequence().get(csIndex);
+                        CLI_ChordSymbol cliCs = cSeq.get(csIndex);
                         fireChordSymbolChanged(cliCs);
 
 
-                        // Check if there is a song part change as well
-                        Position pos = cliCs.getPosition();
-                        if (pos.isFirstBarBeat())
+                        // Possibly fire a songpart change as well
+                        SongContext sgContext = getSongContext(playbackSession);
+                        if (sgContext != null)
                         {
-                            SongPart newSpt = spSession.getSongContext().getSongParts().stream()
-                                    .filter(spt -> spt.getStartBarIndex() == pos.getBar())
-                                    .findFirst().orElse(null);
-                            if (newSpt != null)
+                            // Check if there is a song part change as well on the same position
+                            Position pos = cliCs.getPosition();
+                            if (pos.isFirstBarBeat())
                             {
-                                fireSongPartChanged(newSpt);
+                                SongPart newSpt = sgContext.getSongParts().stream()
+                                        .filter(spt -> spt.getStartBarIndex() == pos.getBar())
+                                        .findFirst().orElse(null);
+                                if (newSpt != null)
+                                {
+
+                                    fireSongPartChanged(newSpt);
+                                }
                             }
                         }
                     }
@@ -772,13 +817,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
 
 
-        // Below property changes are meaningless if no context or if state is DISABLED
-        if (playbackSession == null || state.equals(State.DISABLED))
-        {
-            return;
-        }
-
-
         if (e.getSource() == playbackSession)
         {
             if (e.getPropertyName().equals(PlaybackSession.PROP_STATE))
@@ -789,7 +827,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                         // Nothing
                         break;
                     case OUTDATED:
-                        // Nothing
+                        if (state.equals(State.PAUSED))
+                        {
+                            stop();
+                        }
                         break;
                     case CLOSED:
                         stop();
@@ -802,17 +843,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             } else if (e.getPropertyName().equals(PlaybackSession.PROP_TEMPO))
             {
                 songTempoChanged((Integer) e.getNewValue());
+
             } else if (e.getPropertyName().equals(PlaybackSession.PROP_MUTED_TRACKS))
             {
                 updateTracksMuteStatus();
-            }
-        } else if (e.getSource() == ClickManager.getInstance())
-        {
-            if (e.getPropertyName().equals(ClickManager.PROP_PLAYBACK_CLICK_ENABLED))
-            {
-                // Click track is always there, just unmute/mute it when needed
-                boolean isClickEnabled = (Boolean) e.getNewValue();
-                sequencer.setTrackMute(playbackSession.getClickTrackId(), !isClickEnabled);
             }
         }
     }
@@ -864,35 +898,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         sequencer.removeControllerEventListener(this, listenedControllers);
     }
 
-    /**
-     *
-     * Set the sequencer and model position to the specified bar.
-     * <p>
-     * Take into account the possible precount bars.
-     * <p>
-     * @param fromBar Must be &gt;=0
-     */
     private void setPosition(int fromBar)
     {
-        assert !state.equals(State.DISABLED) && playbackSession instanceof PlaybackSession : "state=" + state + " playbackSession=" + playbackSession;
-
-        PlaybackSession spSession = (PlaybackSession) playbackSession;
-
-        long tick = 0;       // Default when fromBar==0 and click precount is true
-        if (ClickManager.getInstance().isClickPrecountEnabled())
-        {
-            // Start from 0 to get the precount notes
-        } else
-        {
-            tick = spSession.getTickStart();   // Bar 0 of the range            
-            if (fromBar > spSession.getSongContext().getBarRange().from)
-            {
-                tick += spSession.getSongContext().getRelativeTick(new Position(fromBar, 0));
-            }
-        }
-
+        assert !state.equals(State.DISABLED) : "state=" + state;
+        long tick = playbackSession.getState().equals(PlaybackSession.State.GENERATED) ? playbackSession.getTick(fromBar) : 0;
         sequencer.setTickPosition(tick);
-
         updateCurrentPosition(fromBar, 0);
     }
 
@@ -1023,6 +1033,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
     }
 
+    private SongContext getSongContext(PlaybackSession session)
+    {
+        SongContext sgContext = session instanceof SongContextProvider ? ((SongContextProvider) session).getSongContext() : null;
+        return sgContext;
+    }
+
     /**
      * Start the sequencer with the bug fix (tempo reset at 120 upon each start) + possibly fire a chord change event.
      * <p>
@@ -1046,27 +1062,31 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             case STOPPED:
             case PAUSED:
 
-                if (playbackSession instanceof PlaybackSession)
+                SongContext sgContext = getSongContext(playbackSession);
+                if (sgContext != null && playbackSession instanceof ChordSymbolProvider)
                 {
-                    PlaybackSession spSession = (PlaybackSession) playbackSession;
-                    var sgContext = spSession.getSongContext();
-
-
-                    // Fire chord symbol change if no chord symbol at current position (current chord symbol is the previous one)
-                    // Fire a song part change event
-                    long relativeTick = sequencer.getTickPosition() - spSession.getTickStart();    // Can be negative if precount is ON
-                    Position posStart = sgContext.getPosition(relativeTick);
-                    if (posStart != null)
+                    ChordSymbolProvider chordSymbolProvider = (ChordSymbolProvider) playbackSession;
+                    ContextChordSequence cSeq = chordSymbolProvider.getContextChordGetSequence();
+                    if (cSeq != null)
                     {
-                        CLI_ChordSymbol lastCliCs = spSession.getContextChordGetSequence().getChordSymbol(posStart); // Process substitute chord symbols
-                        if (lastCliCs != null)
+                        // Fire chord symbol change if no chord symbol at current position (current chord symbol is the previous one)
+                        // Fire a song part change event
+                        long loopStartTick = playbackSession.getLoopStartTick();
+                        assert loopStartTick != -1 : "loopStartTick=" + loopStartTick + " playbackSession=" + playbackSession;
+                        long relativeTick = sequencer.getTickPosition() - loopStartTick;    // Can be negative if precount is ON
+                        Position posStart = sgContext.getPosition(relativeTick);
+                        if (posStart != null)
                         {
-                            // Fire the event
-                            fireChordSymbolChanged(lastCliCs);
-                        }
+                            CLI_ChordSymbol lastCliCs = cSeq.getChordSymbol(posStart); // Process substitute chord symbols
+                            if (lastCliCs != null)
+                            {
+                                // Fire the event
+                                fireChordSymbolChanged(lastCliCs);
+                            }
 
-                        SongPart spt = sgContext.getSong().getSongStructure().getSongPart(posStart.getBar());
-                        fireSongPartChanged(spt);
+                            SongPart spt = sgContext.getSong().getSongStructure().getSongPart(posStart.getBar());
+                            fireSongPartChanged(spt);
+                        }
                     }
                 }
 
@@ -1126,49 +1146,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
     /**
-     * Set the sequencer to play the session sequence with the session settings, update playbackSession.
+     * Update the track status of all RhythmVoice tracks using the current session data.
      * <p>
-     *
-     * @param pSession
-     * @throws MusicGenerationException
-     */
-    private void applySession(PlaybackSession pSession) throws MusicGenerationException
-    {
-        assert !state.equals(State.DISABLED) && !state.equals(State.PLAYING) : "state=" + state;
-
-        // Update the current session
-        playbackSession = pSession;
-
-
-        // Set sequence
-        try
-        {
-            // This also resets Mute, Solo, LoopStart/End points, LoopCount, tick position
-            sequencer.setSequence(pSession.getSequence()); // Can raise InvalidMidiDataException
-
-            sequencer.setLoopStartPoint(pSession.getTickStart());
-            sequencer.setLoopEndPoint(pSession.getTickEnd());
-            sequencer.setLoopCount(loopCount);
-
-        } catch (InvalidMidiDataException ex)
-        {
-            throw new MusicGenerationException(ex.getLocalizedMessage());
-        }
-
-
-        updateTracksMuteStatus();
-
-
-        // Optional click track
-        if (pSession.getClickTrackId() > -1)
-        {
-            sequencer.setTrackMute(pSession.getClickTrackId(), !ClickManager.getInstance().isPlaybackClickEnabled());
-        }
-
-    }
-
-    /**
-     * Update the track status of all RhythmVoice tracks.
      */
     private void updateTracksMuteStatus()
     {
@@ -1178,158 +1157,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             sequencer.setTrackMute(trackId, mapTrackMute.get(trackId));
         }
     }
-
-    /**
-     * Update the currently played sequence on the fly.
-     * <p>
-     *
-     * @param pSession
-     * @throws MusicGenerationException
-     */
-    private void applySessionOnTheFly(PlaybackSession pSession) throws MusicGenerationException
-    {
-        synchronized (lock)
-        {
-            if (playbackSession != null)
-            {
-                playbackSession.removeChangeListener(this);
-            }
-            playbackSession = null;     // Make sure meta/control listeners do nothing with playbackSession while we update the sequencer's sequence
-        }
-
-
-        // Set sequence
-        try
-        {
-            // This also resets Mute, Solo, LoopStart/End points, LoopCount
-            sequencer.setSequence(pSession.getSequence()); // Can raise InvalidMidiDataException
-
-
-            sequencer.setLoopStartPoint(pSession.getTickStart());
-            sequencer.setLoopEndPoint(pSession.getTickEnd());
-            sequencer.setLoopCount(loopCount);
-
-        } catch (InvalidMidiDataException ex)
-        {
-            throw new MusicGenerationException(ex.getLocalizedMessage());
-        }
-
-
-        synchronized (lock)
-        {
-            playbackSession = pSession;
-            playbackSession.addChangeListener(this);
-            // From there meta/controller listeners can work
-        }
-
-
-        // Update muted tracks state based on the MidiMix
-        if (pSession instanceof PlaybackSession)
-        {
-            PlaybackSession spSession = (PlaybackSession) pSession;
-            updateAllTracksMuteState(spSession.getSongContext().getMidiMix(), spSession.getMapRvTrackid());
-        }
-
-        // Optional click track
-        if (pSession.getClickTrackId() > -1)
-        {
-            sequencer.setTrackMute(pSession.getClickTrackId(), !ClickManager.getInstance().isPlaybackClickEnabled());
-        }
-
-    }
-
-
-    /**
-     * Manage both the PlaybackSession or PlaybackSession cases.
-     *
-     * @param pSession
-     * @param fromBarIndex Ignored if pSession is not a PlaybackSession
-     * @param fromTick Ignored if pSession is a PlaybackSession
-     * @throws MusicGenerationException
-     * @throws PropertyVetoException
-     */
-    private void playImpl(PlaybackSession pSession, int fromBarIndex, long fromTick) throws MusicGenerationException, PropertyVetoException
-    {
-        if (pSession == null)
-        {
-            throw new IllegalArgumentException("pSession=" + pSession + " fromBarIndex=" + fromBarIndex + " fromTick=" + fromTick);
-        }
-
-
-        // Check that a Midi ouput device is set
-        checkMidi();                // throws MusicGenerationException
-
-
-        // Check state
-        if (state == State.PLAYING)
-        {
-            throw new MusicGenerationException(ResUtil.getString(getClass(), "A SONG IS ALREADY PLAYING"));
-        } else if (state == State.DISABLED)
-        {
-            throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK IS DISABLED"));
-        }
-
-        // PlaybackSession variables
-        var spSession = pSession instanceof PlaybackSession ? (PlaybackSession) pSession : null;
-        var sgContext = spSession != null ? spSession.getSongContext() : null;
-
-
-        // Check that all listeners are OK to start playback
-        vcs.fireVetoableChange(PROPVETO_PRE_PLAYBACK, null, sgContext);  // can raise PropertyVetoException
-
-
-        // Log the play event        
-        Analytics.setPropertiesOnce(Analytics.buildMap("First Play", Analytics.toStdDateTimeString()));
-        Analytics.incrementProperties("Nb Play", 1);
-        var mapParams = (sgContext != null)
-                ? Analytics.buildMap("Bar Range", sgContext.getBarRange().toString(), "Rhythms", Analytics.toStrList(sgContext.getUniqueRhythms()))
-                : Analytics.buildMap("Rhythms", Analytics.toStrList(sgContext.getUniqueRhythms()));
-        Analytics.logEvent("Play", mapParams);
-
-
-        // Generate sequence if required
-        if (pSession.getState().equals(PlaybackSession.State.NEW))
-        {
-            pSession.generate();
-        }
-
-
-        if (debugPlayedSequence)
-        {
-            String songName = sgContext != null ? sgContext.getSong().getName() : "unknown";
-            LOGGER.info("play() song=" + songName + " sequence :"); //NOI18N
-            LOGGER.info(MidiUtilities.toString(pSession.getSequence())); //NOI18N
-        }
-       
-
-        // Apply the new session in the sequencer  ==> from now playbackSession = pSession
-        applySession(pSession);
-        
-        
-         CHECK !songPartTempoFactor = 1f;
-        songTempoChanged(pSession.getSongContext().getSong().getTempo());
-
-
-        // Set sequencer start position
-        if (spSession != null)
-        {
-            setPosition(fromBarIndex);
-        } else
-        {
-            sequencer.setTickPosition(pSession.getTickStart());
-        }
-
-
-        // Start or restart the sequencer
-        seqStart();
-
-
-        State old = this.getState();
-        state = State.PLAYING;
-        pcs.firePropertyChange(PROP_STATE, old, state);
-
-    }
-
 
     /**
      * Our Midi Receiver used to fire events to NoteListeners and PlaybackListener.midiActivity().

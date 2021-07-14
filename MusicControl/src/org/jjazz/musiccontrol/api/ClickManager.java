@@ -403,7 +403,7 @@ public class ClickManager
      * @param context
      * @return The tick position of the start of the song.
      */
-    public long addPreCountClickTrack(Sequence sequence, SongContext context)
+    public long addPrecountClickTrack(Sequence sequence, SongContext context)
     {
         if (sequence == null || context == null)
         {

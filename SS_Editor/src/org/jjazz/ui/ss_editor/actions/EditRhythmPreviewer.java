@@ -55,6 +55,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmmusicgeneration.api.MidiSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator.PostProcessor;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
@@ -95,7 +96,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         }
         originalSong = sg;
         originalSpt = spt;
-        originalPostProcessors = MusicController.getInstance().getPostProcessors();
+        originalPostProcessors = new PostProcessor[0]; // MusicController.getInstance().getPostProcessors();
         previouslyActivatedSong = ActiveSongManager.getInstance().getActiveSong();
     }
 
@@ -169,7 +170,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
 
         // Build the preview song and context
         Song song;
-        SongContext context;
+        SongContext sgContext;
         MidiMix mm;
         try
         {
@@ -178,7 +179,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             // LOGGER.severe("previewRhythm() mm BEFORE=" + mm.toDumpString());
             fixMidiMix(mm);
             // LOGGER.severe("previewRhythm() mm AFTER=" + mm.toDumpString());
-            context = new SongContext(song, mm);
+            sgContext = new SongContext(song, mm);
         } catch (UnsupportedEditException | MidiUnavailableException ex)
         {
             LOGGER.warning("previewRhythm() ex=" + ex.getMessage());   //NOI18N
@@ -192,7 +193,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         asm.setActive(song, mm);
 
         // Build the sequence from context
-        MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(context, originalPostProcessors);
+        MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(sgContext, originalPostProcessors);
         Sequence sequence = seqBuilder.buildSequence(false);                  // Can raise MusicGenerationException
         if (sequence == null)
         {
@@ -208,7 +209,6 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         // Prepare sequencer
         try
         {
-
             sequencer.setSequence(sequence);
         } catch (InvalidMidiDataException ex)
         {
@@ -219,7 +219,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         sequencer.setTickPosition(0);
         sequencer.setLoopCount(loop ? Sequencer.LOOP_CONTINUOUSLY : 0);
         sequencer.setLoopStartPoint(0);
-        long songTickEnd = (long) (context.getSptBeatRange(spt0).size() * MidiConst.PPQ_RESOLUTION);
+        long songTickEnd = (long) (sgContext.getSptBeatRange(spt0).size() * MidiConst.PPQ_RESOLUTION);
         sequencer.setLoopEndPoint(songTickEnd);
 
         // Start

@@ -35,7 +35,10 @@ import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.outputsynth.api.OutputSynthManager;
+import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.song.api.Song;
 
 /**
@@ -109,9 +112,15 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
      */
     public String isActivable(Song sg)
     {
+        if (sg == null)
+        {
+            throw new NullPointerException("sg");
+        }
         String err = null;
         MusicController mc = MusicController.getInstance();
-        if (mc.getState() == MusicController.State.PLAYING && sg != mc.getContext().getSong())
+        PlaybackSession session = mc.getPlaybackSession();
+        SongContext sgContext = session instanceof SongContextProvider ? ((SongContextProvider) session).getSongContext() : null;
+        if (mc.getState() == MusicController.State.PLAYING && (sgContext == null || sg != sgContext.getSong()))
         {
             err = bundle.getString("ErrSongIsPlaying");
         }
@@ -241,7 +250,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
                 if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.PLAY))
                 {
                     OutputSynthManager.getInstance().getOutputSynth().sendModeOnUponPlaySysexMessages();
-                    sendAllMidiMixMessages();                    
+                    sendAllMidiMixMessages();
                 }
             }
         }

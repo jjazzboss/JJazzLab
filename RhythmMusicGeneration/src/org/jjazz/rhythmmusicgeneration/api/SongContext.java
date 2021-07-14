@@ -41,13 +41,16 @@ import org.jjazz.util.api.LongRange;
  * Information to be used by a Rhythm to generate music for some bars of a Song with a related MidiMix.
  * <p>
  * The class also provides convenient methods to extract song data (e.g. song parts) relevant to the context.
+ * <p>
+ * Note that a SongContext instance should be discarded if the Song or MidiMix changes (e.g. the bar range might not be compatible
+ * with the updated song).
  */
 public class SongContext
 {
 
     private Song song;
     private MidiMix mix;
-    private IntRange range;
+    private IntRange barRange;
 
     /**
      * Create a SongContext object for the whole song.
@@ -65,29 +68,29 @@ public class SongContext
      *
      * @param s
      * @param mix
-     * @param r If null, the range will represent the whole song from first to last bar.
+     * @param bars If null, the range will represent the whole song from first to last bar.
      */
-    public SongContext(Song s, MidiMix mix, IntRange r)
+    public SongContext(Song s, MidiMix mix, IntRange bars)
     {
         if (s == null || mix == null)
         {
-            throw new IllegalArgumentException("s=" + s + " mix=" + mix + "r=" + r);   //NOI18N
+            throw new IllegalArgumentException("s=" + s + " mix=" + mix + "barRg=" + bars);   //NOI18N
         }
         song = s;
         this.mix = mix;
         int sizeInBars = s.getSongStructure().getSizeInBars();
         if (sizeInBars == 0)
         {
-            this.range = IntRange.EMPTY_RANGE;
-        } else if (r == null)
+            this.barRange = IntRange.EMPTY_RANGE;
+        } else if (bars == null)
         {
-            this.range = new IntRange(0, sizeInBars - 1);
-        } else if (r.from > sizeInBars - 1 || r.to > sizeInBars - 1)
+            this.barRange = new IntRange(0, sizeInBars - 1);
+        } else if (bars.to > sizeInBars - 1)
         {
-            throw new IllegalArgumentException("s=" + s + " mix=" + mix + "r=" + r);   //NOI18N
+            throw new IllegalArgumentException("s=" + s + " sizeInBars=" + sizeInBars + " mix=" + mix + " bars=" + bars);   //NOI18N
         } else
         {
-            this.range = r;
+            this.barRange = bars;
         }
     }
 
@@ -108,7 +111,7 @@ public class SongContext
         int hash = 5;
         hash = 97 * hash + Objects.hashCode(this.song);
         hash = 97 * hash + Objects.hashCode(this.mix);
-        hash = 97 * hash + Objects.hashCode(this.range);
+        hash = 97 * hash + Objects.hashCode(this.barRange);
         return hash;
     }
 
@@ -136,7 +139,7 @@ public class SongContext
         {
             return false;
         }
-        if (!Objects.equals(this.range, other.range))
+        if (!Objects.equals(this.barRange, other.barRange))
         {
             return false;
         }
@@ -172,7 +175,7 @@ public class SongContext
      */
     public IntRange getBarRange()
     {
-        return range;
+        return barRange;
     }
 
     /**
@@ -186,7 +189,7 @@ public class SongContext
     public FloatRange getBeatRange()
     {
         SongStructure ss = song.getSongStructure();
-        return ss.getBeatRange(range);
+        return ss.getBeatRange(barRange);
     }
 
     /**
@@ -232,7 +235,7 @@ public class SongContext
      */
     public IntRange getSptBarRange(SongPart spt)
     {
-        return spt.getBarRange().getIntersectRange(range);
+        return spt.getBarRange().getIntersectRange(barRange);
     }
 
     /**
@@ -268,7 +271,7 @@ public class SongContext
      */
     public boolean contains(SongPart spt)
     {
-        return spt.getBarRange().contains(range);
+        return spt.getBarRange().contains(barRange);
     }
 
     /**
@@ -372,7 +375,7 @@ public class SongContext
         long tick = -1;
         int bar = pos.getBar();
         float beat = pos.getBeat();
-        if (range.contains(bar))
+        if (barRange.contains(bar))
         {
             SongPart spt = song.getSongStructure().getSongPart(bar);
             LongRange sptTickRange = getSptTickRange(spt);
@@ -388,6 +391,6 @@ public class SongContext
     @Override
     public String toString()
     {
-        return "SongContext[song=" + song.getName() + ", midiMix=" + mix + ", range=" + range + "]";
+        return "SongContext[song=" + song.getName() + ", midiMix=" + mix + ", range=" + barRange + "]";
     }
 }

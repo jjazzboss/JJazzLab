@@ -38,6 +38,8 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.SessionFactory;
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
@@ -179,8 +181,12 @@ public class PlaySelection extends AbstractAction
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
             SongContext context = new SongContext(song, midiMix, rg);
-            mc.setSession(context);
-            mc.play(rg.from);
+            PlaybackSession session = SessionFactory.getInstance().getSongContextSession(context);
+            if (session.getState().equals(PlaybackSession.State.NEW))
+            {
+                session.generate();
+            }
+            mc.play(session, rg.from);
         } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
         {
             if (ex.getMessage() != null)
@@ -211,7 +217,7 @@ public class PlaySelection extends AbstractAction
         {
             song = ssTc.getSongModel();
             lastValidActivatedTc = ssTc;
-        } else if (mcTc!=null && TopComponent.getRegistry().getActivated() == mcTc)
+        } else if (mcTc != null && TopComponent.getRegistry().getActivated() == mcTc)
         {
             song = (lastValidActivatedTc != null) ? mcTc.getEditor().getSong() : null;
         }
@@ -246,7 +252,7 @@ public class PlaySelection extends AbstractAction
         int fromBar = -1;
         CLI_Section toSection = cls.getSection(clsRange.to);
         int toBar = -1;
-        IntRange r = null;        
+        IntRange r = null;
         List<SongPart> spts = ssSelection.isEmpty() || !ssSelection.isContiguousSptSelection() ? ss.getSongParts() : ssSelection.getIndirectlySelectedSongParts();
         for (SongPart spt : spts)
         {

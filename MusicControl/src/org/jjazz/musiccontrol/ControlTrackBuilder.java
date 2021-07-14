@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.musiccontrol.api;
+package org.jjazz.musiccontrol;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -247,7 +247,7 @@ public class ExportToMidiFile extends AbstractAction
 
         // Add click & precount tracks if required
         ClickManager cm = ClickManager.getInstance();
-        long songStartTick = cm.isClickPrecountEnabled() ? cm.addPreCountClickTrack(sequence, sgContext) : 0;
+        long songStartTick = cm.isClickPrecountEnabled() ? cm.addPrecountClickTrack(sequence, sgContext) : 0;
         if (cm.isPlaybackClickEnabled())
         {
             cm.addClickTrack(sequence, sgContext);

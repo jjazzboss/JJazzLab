@@ -200,7 +200,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             selectedChordSymbol.addPropertyChangeListener(this);
         }
 
-        
+
         if (!isUIinPlaybackMode())
         {
             if (selectedChordSymbol != null)
@@ -242,7 +242,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             }
         } else if (evt.getSource() == MusicController.getInstance())
         {
-            if (evt.getPropertyName().equals(MusicController.PROP_STATE) && notesViewer.getMode().equals(NotesViewer.Mode.ShowBackingTrack))
+            if (evt.getPropertyName().equals(MusicController.PROP_STATE) && notesViewer != null && notesViewer.getMode().equals(NotesViewer.Mode.ShowBackingTrack))
             {
                 MusicController.State state = (MusicController.State) evt.getNewValue();
                 switch (state)

@@ -147,6 +147,7 @@
             </test-dependencies>
             <public-packages>
                 <package>org.jjazz.musiccontrol.api</package>
+                <package>org.jjazz.musiccontrol.api.playbacksession</package>
             </public-packages>
         </data>
     </configuration>
