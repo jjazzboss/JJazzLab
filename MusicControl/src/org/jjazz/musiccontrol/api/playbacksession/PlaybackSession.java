@@ -32,7 +32,7 @@ import org.jjazz.util.api.IntRange;
  * A PlaybackSession contains the data needed by the MusicController to play a song and provide related services (firing beat or
  * chord symbol events, managing tempo changes, ...).
  * <p>
- * Some session data values are meaningful only when state==GENERATED.
+ * Some session data values are meaningful only when state==GENERATED. A property change event is fired for mutable value changes.
  * <p>
  * Possible State transitions : <br>
  * - NEW &gt; GENERATED <br>
@@ -69,12 +69,7 @@ public interface PlaybackSession
         CLOSED
     }
 
-    /**
-     * One or more tracks muted status have changed.
-     *
-     * @see getTracksMuteStatus()
-     */
-    public static final String PROP_MUTED_TRACKS = "MutedTracks";
+
     /**
      * The session State has changed.
      */
@@ -83,7 +78,16 @@ public interface PlaybackSession
      * The playback reference tempo has changed.
      */
     public static final String PROP_TEMPO = "Tempo";
-
+    /**
+     * One or more tracks muted status have changed.
+     *
+     * @see getTracksMuteStatus()
+     */
+    public static final String PROP_MUTED_TRACKS = "MutedTracks";
+    /**
+     * The loop count has changed.
+     */
+    public static final String PROP_LOOP_COUNT = "LoopCount";
 
     /**
      * Create the sequence and the related data.
@@ -142,6 +146,13 @@ public interface PlaybackSession
      * @return -1 if no meaningful value can be returned.
      */
     long getLoopStartTick();
+
+    /**
+     * The sequencer loop count (see Java Sequencer setLoopCount()).
+     *
+     * @return
+     */
+    int getLoopCount();
 
     /**
      * The bar range corresponding to the sequence.

@@ -65,9 +65,9 @@ import org.jjazz.util.api.ResUtil;
 import org.openide.util.Exceptions;
 
 /**
- * A RhythmPreviewProvider instance which plays one song part.
+ * A RhythmPreviewProvider instance which plays one song part using the MusicController/PlaybackSession mechanism.
  */
-public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewProvider, MetaEventListener
+public class EditRhythmPreviewerNew implements RhythmSelectionDialog.RhythmPreviewProvider, MetaEventListener
 {
 
     private boolean isPreviewRunning;
@@ -79,7 +79,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
     private Sequencer sequencer;
     private ActionListener endAction;
     private Set<Rhythm> previewedRhythms = new HashSet<>();  // To release rhythm resources upon cleanup
-    private static final Logger LOGGER = Logger.getLogger(EditRhythmPreviewer.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(EditRhythmPreviewerNew.class.getSimpleName());
 
     /**
      *
@@ -87,7 +87,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
      * @param spt The spt for which rhythm is changed
      * @throws MidiUnavailableException
      */
-    public EditRhythmPreviewer(Song sg, SongPart spt) throws MidiUnavailableException
+    public EditRhythmPreviewerNew(Song sg, SongPart spt) throws MidiUnavailableException
     {
         if (sg == null || spt == null)
         {
@@ -103,12 +103,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
     public void cleanup()
     {
         stop();
-        if (sequencer != null)
-        {
-            sequencer.removeMetaEventListener(this);
-            var mc = MusicController.getInstance();
-            mc.releaseSequencer(this);
-        }
+
 
         // Release resources of all previewed rhythms
         for (Rhythm r : previewedRhythms)

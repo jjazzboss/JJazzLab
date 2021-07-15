@@ -22,6 +22,7 @@
  */
 package org.jjazz.musiccontrol.api.playbacksession;
 
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class SessionFactory implements PropertyChangeListener
 
     private static SessionFactory INSTANCE;
 
-    private List<SongContextSession> songContextSessions = new ArrayList<>();
+    private List<PlaybackSession> sessions = new ArrayList<>();
 
     public static SessionFactory getInstance()
     {
@@ -60,15 +61,14 @@ public class SessionFactory implements PropertyChangeListener
     }
 
     /**
-     * Get a SongContext-based session for the specified parameters.
+     * Get a full-featured SongContext-based session for the specified parameters.
      * <p>
      * If an existing session in the NEW or GENERATED state exists for the same parameters, return it. Otherwise a new session is
      * created.
      * <p>
-     * The session implements all the PlaybackSession capabilities (e.g. ChordSymbolProvider, PositionProvider, etc.). The
-     * sequence takes into account the MusicController playback transposition. The session handles the click/precount features
-     * (generate click/precount tracks, listen to ClickManager for enabling/disabling). The session listens to MidiMix changes to
-     * update the tracks muted status.
+     * The session implements all the PlaybackSession capabilities (e.g. ChordSymbolProvider, PositionProvider, VetoableSession,
+     * etc.). The sequence takes into account the MusicController playback transposition. The session handles the click/precount
+     * features with the ClickManager. The session listens to MidiMix changes to update the tracks muted status.
      *
      * @param sgContext
      * @param postProcessors
@@ -85,11 +85,43 @@ public class SessionFactory implements PropertyChangeListener
         {
             session = new SongContextSession(sgContext, postProcessors);
             session.addPropertyChangeListener(this);
-            songContextSessions.add(session);
+            sessions.add(session);
         }
         return session;
     }
 
+    /**
+     * Get a basic SongContext-based session for the specified parameters.
+     * <p>
+     * If an existing session in the NEW or GENERATED state exists for the same parameters, return it. Otherwise a new session is
+     * created.
+     * <p>
+     * The session does not implement any optional session capability: it just plays the sequence.
+     *
+     * @param sgContext
+     * @param postProcessors
+     * @return A session in the NEW or GENERATED state.
+     */
+    public PlaybackSession getBasicSongSession(SongContext sgContext, MusicGenerator.PostProcessor... postProcessors)
+    {
+        if (sgContext == null)
+        {
+            throw new IllegalArgumentException("sgContext=" + sgContext);
+        }
+        SongContextSession session = findSongContextSessionGenerated(sgContext, postProcessors);
+        if (session == null)
+        {
+            session = new SongContextSession(sgContext, postProcessors);
+            session.addPropertyChangeListener(this);
+            sessions.add(session);
+        }
+        return session;
+    }
+
+
+    // ===================================================================================
+    // PropertyChangeListener interface
+    // ===================================================================================
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
@@ -99,7 +131,7 @@ public class SessionFactory implements PropertyChangeListener
             PlaybackSession session = (PlaybackSession) evt.getSource();
             if (session.getState().equals(PlaybackSession.State.CLOSED))
             {
-                songContextSessions.remove(session);
+                sessions.remove(session);
             }
         }
     }
@@ -108,16 +140,49 @@ public class SessionFactory implements PropertyChangeListener
     // Private methods
     // ===================================================================================
     /**
-     * Find an identical existing session in state NEW or GENERATED.
+     * Find an identical existing SongContextSession in state NEW or GENERATED.
      *
+     * @param sessionClass
      * @param sgContext
      * @param postProcessors
      * @return Null if not found
      */
     private SongContextSession findSongContextSessionGenerated(SongContext sgContext, MusicGenerator.PostProcessor... postProcessors)
     {
-        for (var session : songContextSessions)
+        for (var s : sessions)
         {
+            if (!(s instanceof SongContextSession))
+            {
+                continue;
+            }
+            var session = (SongContextSession) s;
+            if ((session.getState().equals(PlaybackSession.State.GENERATED) || session.getState().equals(PlaybackSession.State.NEW))
+                    && sgContext.equals(session.getSongContext())
+                    && Objects.equals(session.getPostProcessors(), Arrays.asList(postProcessors)))
+            {
+                return session;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Find an identical existing SongContextSession in state NEW or GENERATED.
+     *
+     * @param sessionClass
+     * @param sgContext
+     * @param postProcessors
+     * @return Null if not found
+     */
+    private SongContextSession findBasicSongSessionGenerated(SongContext sgContext, MusicGenerator.PostProcessor... postProcessors)
+    {
+        for (var s : sessions)
+        {
+            if (!(s instanceof SongContextSession))
+            {
+                continue;
+            }
+            var session = (SongContextSession) s;
             if ((session.getState().equals(PlaybackSession.State.GENERATED) || session.getState().equals(PlaybackSession.State.NEW))
                     && sgContext.equals(session.getSongContext())
                     && Objects.equals(session.getPostProcessors(), Arrays.asList(postProcessors)))

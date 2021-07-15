@@ -22,6 +22,7 @@
  */
 package org.jjazz.musiccontrol;
 
+import java.awt.event.ActionListener;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -42,10 +43,8 @@ import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.ClickManager;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.playbacksession.ChordSymbolProvider;
-import org.jjazz.musiccontrol.api.playbacksession.PositionProvider;
+import org.jjazz.musiccontrol.api.playbacksession.EndOfPlaybackActionProvider;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
-import org.jjazz.musiccontrol.api.playbacksession.VetoableSession;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.ContextChordSequence;
@@ -58,24 +57,19 @@ import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
 
 /**
- * A full-featured session based on a SongContext.
+ * A simple session based on a SongContext.
  * <p>
- * Take into account ClickManager settings (click & precount) and MusicController settings (playback transposition, loop count).
- * Listen to Song and MidiMix changes to remain uptodate.
  */
-public class SongContextSession implements PropertyChangeListener, PlaybackSession, PositionProvider, ChordSymbolProvider, SongContextProvider, VetoableSession
+public class BasicSongSession implements PropertyChangeListener, PlaybackSession, SongContextProvider, EndOfPlaybackActionProvider
 {
 
     private State state = State.NEW;
     private SongContext sgContext;
     private Sequence sequence;
-    private List<Position> positions;
-    private int playbackClickTrackId = -1;
-    private int precountClickTrackId = -1;
-    private int controlTrackId = -1;
     private long loopStartTick = -1;
     private long loopEndTick = -1;
-    private ContextChordSequence contextChordSequence;
+    private int loopCount = 1;
+    private ActionListener actionListener;
     private MusicGenerator.PostProcessor[] postProcessors;
 
 
@@ -85,7 +79,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
      * If a song uses rhythms R1 and R2 and context is only on R2 bars, then the map only contains R2 rhythm voices and track id.
      */
     private HashMap<RhythmVoice, Integer> mapRvTrackId;
-    private final HashMap<Integer, Boolean> mapRvMuted = new HashMap<>();
+    private final HashMap<Integer, Boolean> mapRvMuted = new HashMap<>();    
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
 
     /**
@@ -94,7 +88,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
      * @param sgContext
      * @param postProcessors Can be null, passed to the MidiSequenceBuilder in charge of creating the sequence.
      */
-    public SongContextSession(SongContext sgContext, MusicGenerator.PostProcessor... postProcessors)
+    public BasicSongSession(SongContext sgContext, int loopCount, ActionListener endOfPlaybackAction, MusicGenerator.PostProcessor... postProcessors)
     {
         if (sgContext == null)
         {
@@ -102,12 +96,8 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         }
         this.sgContext = sgContext;
         this.postProcessors = postProcessors;
-
-        // Listen to all changes that can impact the generation of the song
-        this.sgContext.getSong().addPropertyChangeListener(this);
-        this.sgContext.getMidiMix().addPropertyChangeListener(this);
-        ClickManager.getInstance().addPropertyChangeListener(this); // click settings
-        MusicController.getInstance().addPropertyChangeListener(this);  // playback key transposition    
+        this.actionListener = endOfPlaybackAction;
+        this.loopCount = loopCount;
     }
 
 
@@ -156,31 +146,8 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         }
 
 
-        // Add the control track
-        ControlTrackBuilder ctm = new ControlTrackBuilder(workContext);
-        controlTrackId = ctm.addControlTrack(sequence);
-        mapRvMuted.put(controlTrackId, false);
-        positions = ctm.getNaturalBeatPositions();
-
-
-        // Add the playback click track
-        playbackClickTrackId = preparePlaybackClickTrack(sequence, workContext);
-        mapRvMuted.put(playbackClickTrackId, !ClickManager.getInstance().isPlaybackClickEnabled());
-
-
-        // Add the click precount track - this must be done last because it might shift all song events
-        loopStartTick = preparePrecountClickTrack(sequence, workContext);
-        loopEndTick = loopStartTick + Math.round(workContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
-        precountClickTrackId = sequence.getTracks().length - 1;
-        mapRvMuted.put(precountClickTrackId, false);
-
-
         // Update the sequence if rerouting needed
         rerouteDrumsChannels(sequence, workContext.getMidiMix());
-
-
-        // Build the context chord sequence 
-        contextChordSequence = new ContextChordSequence(workContext);
 
 
         // Change state
@@ -220,7 +187,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     @Override
     public int getLoopCount()
     {
-        return MusicController.getInstance().getLoopCount();
+        return loopCount;
     }
 
 
@@ -232,19 +199,10 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
             return -1;
         }
 
-        long tick;
-        if (ClickManager.getInstance().isClickPrecountEnabled() && barIndex == getBarRange().from)
+        long tick = sgContext.getRelativeTick(new Position(barIndex, 0));
+        if (tick != -1)
         {
-            // Precount is ON and pos is the first possible bar
-            tick = 0;
-        } else
-        {
-            // Precount if OFF or barIndex is not the first possible bar
-            tick = sgContext.getRelativeTick(new Position(barIndex, 0));
-            if (tick != -1)
-            {
-                tick += loopStartTick;
-            }
+            tick += loopStartTick;
         }
         return tick;
     }

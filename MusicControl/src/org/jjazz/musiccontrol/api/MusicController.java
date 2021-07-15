@@ -22,6 +22,7 @@
  */
 package org.jjazz.musiccontrol.api;
 
+import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -29,11 +30,9 @@ import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.beans.VetoableChangeSupport;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,11 +55,12 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.musiccontrol.SongContextSession;
 import org.jjazz.musiccontrol.api.playbacksession.ChordSymbolProvider;
+import org.jjazz.musiccontrol.api.playbacksession.EndOfPlaybackActionProvider;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.PositionProvider;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
+import org.jjazz.musiccontrol.api.playbacksession.VetoableSession;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -73,7 +73,10 @@ import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 
 /**
- * Control the music playback of a SongContext (Song, MidiMix, bar range).
+ * Control the music playback of a PlaybackSession.
+ * <p>
+ * The PlaybackSession provides the Sequence to be played and various related data which impact how the MusicController manage the
+ * Sequence.
  * <p>
  * Property changes are fired for:<br>
  * - start/pause/stop/disabled state changes<br>
@@ -301,9 +304,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      *
      * @param session A session in the GENERATED state.
      * @param fromBarIndex
-     * @throws java.beans.PropertyVetoException If a vetoable listener vetoed the playback. A vetoable listener who has already
-     * notified the end-user via its own UI must throw a PropertyVetoException with a null message to avoid another notification
-     * by the framework.
+     * @throws java.beans.PropertyVetoException If session is a VetoableSession instance and a vetoable listener has vetoed the
+     * playback. A vetoable listener who has already notified the end-user via its own UI must throw a PropertyVetoException with
+     * a null message to avoid another notification by the framework.
      * @throws MusicGenerationException If a problem occurred which prevents song playing: no Midi out, rhythm music generation
      * problem, MusicController state is not PAUSED nor STOPPED, etc.
      *
@@ -346,7 +349,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
         // Check that all listeners are OK to start playback
-        vcs.fireVetoableChange(PROPVETO_PRE_PLAYBACK, null, sgContext);  // can raise PropertyVetoException
+        if (session instanceof VetoableSession)
+        {
+            vcs.fireVetoableChange(PROPVETO_PRE_PLAYBACK, null, ((VetoableSession) session).getVetoableContext());  // can raise PropertyVetoException
+        }
 
 
         if (debugPlayedSequence)
@@ -393,7 +399,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         // Loop settings
         sequencer.setLoopStartPoint(playbackSession.getLoopStartTick());
         sequencer.setLoopEndPoint(playbackSession.getLoopEndTick());
-        sequencer.setLoopCount(loopCount);
+        sequencer.setLoopCount(playbackSession.getLoopCount());
 
 
         // Mute/unmute tracks
@@ -466,6 +472,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     public void stop()
     {
+        boolean realStop = false;
         switch (state)
         {
             case DISABLED:
@@ -477,6 +484,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             case PLAYING:
                 sequencer.stop();
                 clearPendingEvents();
+                realStop = true;
                 break;
             default:
                 throw new AssertionError(state.name());
@@ -489,9 +497,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         state = State.STOPPED;
         pcs.firePropertyChange(PROP_STATE, old, state);
 
-
         // Position must be reset after the stop so that playback beat change tracking listeners are not reset upon stop        
         setPosition(playbackSession.getBarRange().from);
+
+        // Action to be fired after state change
+        executeEndOfPlaybackAction();
+
     }
 
     /**
@@ -521,7 +532,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         State old = getState();
         state = State.PAUSED;
         pcs.firePropertyChange(PROP_STATE, old, state);
+
+        // Action to be fired after state change
+        executeEndOfPlaybackAction();
     }
+
 
     /**
      * The current playback position updated at every beat (beat is an integer).
@@ -563,6 +578,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * Set the key transposition applied to chord symbols when playing a song.
      * <p>
      * Ex: if transposition=-2, chord=C#7 will be replaced by B7.
+     * <p>
+     * Note that to have some effect the current PlaybackSession must take into account this parameter.
      *
      * @param t [0;-11]
      */
@@ -586,7 +603,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Set the loop count of the playback.
      * <p>
-     * Do nothing if state == DISABLED.
+     * Note that to have some effect the current PlaybackSession must take into account this parameter.
      *
      * @param loopCount If 0, play the song once (no loop). Use Sequencer.LOOP_CONTINUOUSLY for endless loop.
      */
@@ -597,16 +614,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             throw new IllegalArgumentException("loopCount=" + loopCount);   //NOI18N
         }
 
-        if (state.equals(State.DISABLED))
-        {
-            return;
-        }
-
         int old = this.loopCount;
         this.loopCount = loopCount;
-
-        sequencer.setLoopCount(loopCount);
-
         pcs.firePropertyChange(PROP_LOOPCOUNT, old, this.loopCount);
     }
 
@@ -847,6 +856,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             } else if (e.getPropertyName().equals(PlaybackSession.PROP_MUTED_TRACKS))
             {
                 updateTracksMuteStatus();
+            } else if (e.getPropertyName().equals(PlaybackSession.PROP_LOOP_COUNT))
+            {
+                if (!state.equals(State.DISABLED))
+                {
+                    sequencer.setLoopCount((Integer) e.getNewValue());
+                }
             }
         }
     }
@@ -1144,6 +1159,17 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
     }
 
+    private void executeEndOfPlaybackAction()
+    {
+        if (playbackSession instanceof EndOfPlaybackActionProvider)
+        {
+            var al = ((EndOfPlaybackActionProvider) playbackSession).getEndOfPlaybackAction();
+            if (al != null)
+            {
+                al.actionPerformed(null);
+            }
+        }
+    }
 
     /**
      * Update the track status of all RhythmVoice tracks using the current session data.
