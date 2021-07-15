@@ -35,6 +35,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.quantizer.api.Quantizer;
+import org.jjazz.util.api.ResUtil;
 
 /**
  * Define methods how to convert CLI_ChordSymbols from/to Strings.
@@ -52,7 +53,6 @@ public class ChordSymbolTextInput
         BEAT, // C7(2.4)
         BAR_BEAT // C7(3:2.4)
     }
-    private static final ResourceBundle bundle = ResourceBundle.getBundle("org/jjazz/chordsymboltextinput/Bundle");
 
     /**
      * Return a new CLI_ChordSymbol built from specified string.
@@ -96,7 +96,7 @@ public class ChordSymbolTextInput
             // Position is provided
             if (closeIndex == -1)
             {
-                throw new ParseException(str + " : " + bundle.getString("MISSING CLOSING PARENTHESIS"), 0);
+                throw new ParseException(str + " : " + ResUtil.getString(ChordSymbolTextInput.class, "MISSING CLOSING PARENTHESIS"), 0);
             }
             newPos = new Position();
             newPos.valueOf(s.substring(openIndex, closeIndex + 1), defaultPos.getBar());

@@ -78,7 +78,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
     private Rhythm rhythm;
     private Sequencer sequencer;
     private ActionListener endAction;
-    private Set<Rhythm> previewedRhythms = new HashSet<>();  // To release rhythm resources upon cleanup
+    private final Set<Rhythm> previewedRhythms = new HashSet<>();  // To release rhythm resources upon cleanup
     private static final Logger LOGGER = Logger.getLogger(EditRhythmPreviewer.class.getSimpleName());
 
     /**

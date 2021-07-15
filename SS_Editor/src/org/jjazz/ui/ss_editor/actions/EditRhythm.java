@@ -124,10 +124,10 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         // Initialize and show dialog
         RhythmSelectionDialog dlg = RhythmSelectionDialog.getDefault();
         Rhythm rSelSpt0 = selSpt0.getRhythm();
-        EditRhythmPreviewer previewer;
+        EditRhythmPreviewerNew previewer;
         try
         {
-            previewer = new EditRhythmPreviewer(song, selSpt0);
+            previewer = new EditRhythmPreviewerNew(song, selSpt0);
         } catch (MidiUnavailableException ex)
         {
             LOGGER.warning("changeRhythm() Can't create RhythmPreviewer ex=" + ex.getMessage() + ". RhythmPreviewer disabled.");   //NOI18N

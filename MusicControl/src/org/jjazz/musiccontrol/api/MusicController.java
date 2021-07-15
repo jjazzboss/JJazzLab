@@ -22,7 +22,6 @@
  */
 package org.jjazz.musiccontrol.api;
 
-import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -556,7 +555,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Get the current playback session.
      *
-     * @return Can be null.
+     * @return Can be null if no song has ever been played.
      */
     public PlaybackSession getPlaybackSession()
     {
@@ -860,7 +859,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             {
                 if (!state.equals(State.DISABLED))
                 {
-                    sequencer.setLoopCount((Integer) e.getNewValue());
+                    int lc = (Integer) e.getNewValue();
+                    LOGGER.severe("propertyChange() set sequencer lc=" + lc);
+                    sequencer.setLoopCount(lc);
                 }
             }
         }

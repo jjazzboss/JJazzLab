@@ -39,7 +39,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
-import org.jjazz.musiccontrol.api.playbacksession.SessionFactory;
+import org.jjazz.musiccontrol.api.playbacksession.SongContextSession;
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
@@ -181,7 +181,7 @@ public class PlaySelection extends AbstractAction
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
             SongContext context = new SongContext(song, midiMix, rg);
-            PlaybackSession session = SessionFactory.getInstance().getSongContextSession(context);
+            SongContextSession session = SongContextSession.buildOrReuseSongContextSession(context);
             if (session.getState().equals(PlaybackSession.State.NEW))
             {
                 session.generate();
