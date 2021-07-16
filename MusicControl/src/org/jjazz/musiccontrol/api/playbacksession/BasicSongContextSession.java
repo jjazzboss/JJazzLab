@@ -148,7 +148,7 @@ public class BasicSongContextSession implements PropertyChangeListener, Playback
      */
     protected BasicSongContextSession(SongContext sgContext, long loopStart, long loopEnd, int loopCount, ActionListener endOfPlaybackAction, MusicGenerator.PostProcessor... postProcessors)
     {
-        if (sgContext == null || loopStart < 0 || loopEnd < 0 || loopEnd < loopStart)
+        if (sgContext == null || loopStart < 0 )
         {
             throw new IllegalArgumentException("sgContext=" + sgContext + " loopStart=" + loopStart + " loopEnd=" + loopEnd + " loopCount=" + loopCount + " endOfPlaybackAction=" + endOfPlaybackAction);
         }

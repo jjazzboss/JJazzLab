@@ -363,7 +363,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
         // Update playbackSession
-        if (playbackSession != null)
+        if (playbackSession != null && playbackSession != session)
         {
             playbackSession.removePropertyChangeListener(this);
             playbackSession.cleanup();
@@ -812,7 +812,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
-        LOGGER.log(Level.FINE, "propertyChange() e={0}", e);  //NOI18N
+        LOGGER.log(Level.SEVERE, "propertyChange() e={0}", e);  //NOI18N
 
 
         // Always enabled changes

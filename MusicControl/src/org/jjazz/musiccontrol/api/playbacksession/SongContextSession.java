@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 import javax.sound.midi.Sequence;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.Note;
@@ -76,7 +77,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     protected ContextChordSequence contextChordSequence;
     protected MusicGenerator.PostProcessor[] postProcessors;
     static private List<SongContextSession> sessions = new ArrayList<>();
-
+    private static final Logger LOGGER = Logger.getLogger(SongContextSession.class.getSimpleName());  //NOI18N
 
     /**
      * The sequence track id (index) for each rhythm voice, for the given context.
@@ -377,7 +378,9 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
             return;
         }
 
-        State old = state;      // NEW, GENERATED or OUTDATED
+        LOGGER.fine("propertyChange() e=" + e);
+
+        State oldState = state;      // NEW, GENERATED or OUTDATED
         boolean outdated = false;
 
         if (e.getSource() == sgContext.getSong())
@@ -396,7 +399,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
             {
 
                 state = State.CLOSED;
-                pcs.firePropertyChange(PROP_STATE, old, state);
+                pcs.firePropertyChange(PROP_STATE, oldState, state);
 
             }
         } else if (e.getSource() == sgContext.getMidiMix())
@@ -471,14 +474,14 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
                 }
             } else if (e.getPropertyName().equals(MusicController.PROP_LOOPCOUNT))
             {
-                pcs.firePropertyChange(PROP_LOOP_COUNT, (Integer)e.getOldValue(), (Integer)e.getNewValue());
+                pcs.firePropertyChange(PROP_LOOP_COUNT, (Integer) e.getOldValue(), (Integer) e.getNewValue());
             }
         }
 
         if (outdated)
         {
             state = State.OUTDATED;
-            pcs.firePropertyChange(PROP_STATE, old, state);
+            pcs.firePropertyChange(PROP_STATE, oldState, state);
         }
 
     }

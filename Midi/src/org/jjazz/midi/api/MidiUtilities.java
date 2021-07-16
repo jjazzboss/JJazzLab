@@ -747,9 +747,16 @@ public class MidiUtilities
             Track[] tracks = sequence.getTracks();
             for (int i = 0; i < tracks.length; i++)
             {
+                Track track = tracks[i];
+                if (track.ticks() < tickEnd)
+                {
+                    // This track is shorter, don't bother                
+                    continue;
+                }
+
                 List<MidiEvent> eventsToRemove = new ArrayList<>();
                 List<MidiEvent> eventsToAdd = new ArrayList<>();
-                Track track = tracks[i];
+
                 long lastNoteOnPerChannel[][] = new long[16][128];  // Store tick+1 in the array, so 0 means not initialized                
                 for (int j = 0; j < track.size(); j++)
                 {
@@ -758,28 +765,39 @@ public class MidiUtilities
                     MidiMessage mm = me.getMessage();
                     if ((mm instanceof MetaMessage) && ((MetaMessage) mm).getType() == MidiConst.META_END_OF_TRACK)
                     {
-                        // Special End Event
+                        // Special End Event: ignore
                         continue;
                     }
 
+
                     if (tick > tickEnd)
                     {
+                        // We passed tickEnd, remove everything but re-add a NoteOff if NoteOn still pending
                         if (mm instanceof ShortMessage)
                         {
                             ShortMessage sm = (ShortMessage) mm;
                             int pitch = sm.getData1();
                             if (sm.getCommand() == ShortMessage.NOTE_OFF)
                             {
-                                if (lastNoteOnPerChannel[sm.getChannel()][pitch]==0 ||  lastNoteOnPerChannel[sm.getChannel()][pitch]-1 < tickEnd)
+                                if (lastNoteOnPerChannel[sm.getChannel()][pitch] > 0 && lastNoteOnPerChannel[sm.getChannel()][pitch] - 1 < tickEnd)
                                 {
-                                    // Need add a NoteOn event
-                                } else
-                                {
-                                    removedEvents.add(me);
+                                    try
+                                    {
+                                        // Need to shorten the note, add a NoteOff at tickEnd - 1
+                                        sm = new ShortMessage(ShortMessage.NOTE_OFF, sm.getChannel(), pitch, 0);
+                                    } catch (InvalidMidiDataException ex)
+                                    {
+                                        // Should never happen
+                                        Exceptions.printStackTrace(ex);
+                                    }
+                                    eventsToAdd.add(new MidiEvent(sm, tickEnd - 1));
                                 }
                             }
                         }
-
+                        eventsToRemove.add(me);
+                    } else
+                    {
+                        // Before tickEnd, keep everything, but keep track on NoteON tick start
                         if (mm instanceof ShortMessage)
                         {
                             ShortMessage sm = (ShortMessage) mm;
@@ -791,35 +809,40 @@ public class MidiUtilities
                                     lastNoteOnPerChannel[sm.getChannel()][pitch] = tick + 1;
                                 } else
                                 {
-                                    removedEvents.add(me);
+                                    // tick == tickEnd
+                                    eventsToRemove.add(me);
                                 }
                             } else if (sm.getCommand() == ShortMessage.NOTE_OFF)
                             {
-                                if (tick < tickEnd)
-                                {
-                                    lastNoteOnPerChannel[sm.getChannel()][pitch] = 0;
-                                } else
-                                {
-                                    removedEvents.add(me);
-                                }
+                                // Clear the last NoteOn tick position
+                                lastNoteOnPerChannel[sm.getChannel()][pitch] = 0;
                             }
                         }
                     }
-                }
-            }
+                } // Next event
+
+                // Update the track
+                eventsToRemove.forEach(me -> track.remove(me));
+                eventsToAdd.forEach(me -> track.add(me));
 
 
+            } // Next track
+
+
+            // Make sure all tracks share the same EndOfTrack event
             for (var track : sequence.getTracks())
             {
                 setEndOfTrackPosition(track, tickEnd);
             }
         }
-        /**
-         * Get the tempo in BPM coded in a Tempo Midi message.
-         *
-         * @param tempoMsg Must be a tempo MetaMessage (type=81)
-         * @return
-         */
+    }
+
+    /**
+     * Get the tempo in BPM coded in a Tempo Midi message.
+     *
+     * @param tempoMsg Must be a tempo MetaMessage (type=81)
+     * @return
+     */
     static public int getTempoInBPM(MetaMessage tempoMsg)
     {
         byte[] data = tempoMsg.getData();
