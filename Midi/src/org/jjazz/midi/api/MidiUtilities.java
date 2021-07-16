@@ -731,11 +731,95 @@ public class MidiUtilities
     }
 
     /**
-     * Get the tempo in BPM coded in a Tempo Midi message.
+     * Change the global duration of the sequence.
+     * <p>
+     * If tickEnd is shorter than current sequence duration, remove all MidiEvents after tickEnd and adjust notes onsets to stop
+     * no later than tickEnd. If tickEnd is greater than current sequence duration, just change end event position.
      *
-     * @param tempoMsg Must be a tempo MetaMessage (type=81)
-     * @return
+     * @param sequence
+     * @param tickEnd
      */
+    static public void setSequenceDuration(Sequence sequence, long tickEnd)
+    {
+        if (sequence.getTickLength() > tickEnd)
+        {
+            // Remove MidiEvents which start after tickEnd, or make notes onset shorter
+            Track[] tracks = sequence.getTracks();
+            for (int i = 0; i < tracks.length; i++)
+            {
+                List<MidiEvent> eventsToRemove = new ArrayList<>();
+                List<MidiEvent> eventsToAdd = new ArrayList<>();
+                Track track = tracks[i];
+                long lastNoteOnPerChannel[][] = new long[16][128];  // Store tick+1 in the array, so 0 means not initialized                
+                for (int j = 0; j < track.size(); j++)
+                {
+                    MidiEvent me = track.get(j);
+                    long tick = me.getTick();
+                    MidiMessage mm = me.getMessage();
+                    if ((mm instanceof MetaMessage) && ((MetaMessage) mm).getType() == MidiConst.META_END_OF_TRACK)
+                    {
+                        // Special End Event
+                        continue;
+                    }
+
+                    if (tick > tickEnd)
+                    {
+                        if (mm instanceof ShortMessage)
+                        {
+                            ShortMessage sm = (ShortMessage) mm;
+                            int pitch = sm.getData1();
+                            if (sm.getCommand() == ShortMessage.NOTE_OFF)
+                            {
+                                if (lastNoteOnPerChannel[sm.getChannel()][pitch]==0 ||  lastNoteOnPerChannel[sm.getChannel()][pitch]-1 < tickEnd)
+                                {
+                                    // Need add a NoteOn event
+                                } else
+                                {
+                                    removedEvents.add(me);
+                                }
+                            }
+                        }
+
+                        if (mm instanceof ShortMessage)
+                        {
+                            ShortMessage sm = (ShortMessage) mm;
+                            int pitch = sm.getData1();
+                            if (sm.getCommand() == ShortMessage.NOTE_ON)
+                            {
+                                if (tick < tickEnd)
+                                {
+                                    lastNoteOnPerChannel[sm.getChannel()][pitch] = tick + 1;
+                                } else
+                                {
+                                    removedEvents.add(me);
+                                }
+                            } else if (sm.getCommand() == ShortMessage.NOTE_OFF)
+                            {
+                                if (tick < tickEnd)
+                                {
+                                    lastNoteOnPerChannel[sm.getChannel()][pitch] = 0;
+                                } else
+                                {
+                                    removedEvents.add(me);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            for (var track : sequence.getTracks())
+            {
+                setEndOfTrackPosition(track, tickEnd);
+            }
+        }
+        /**
+         * Get the tempo in BPM coded in a Tempo Midi message.
+         *
+         * @param tempoMsg Must be a tempo MetaMessage (type=81)
+         * @return
+         */
     static public int getTempoInBPM(MetaMessage tempoMsg)
     {
         byte[] data = tempoMsg.getData();

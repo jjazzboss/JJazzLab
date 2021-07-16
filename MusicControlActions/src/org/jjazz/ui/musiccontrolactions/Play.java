@@ -155,7 +155,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                     {
                         MidiMix midiMix = MidiMixManager.getInstance().findMix(currentSong);      // Can raise MidiUnavailableException
                         SongContext context = new SongContext(currentSong, midiMix);
-                        SongContextSession session = SongContextSession.buildOrReuseSongContextSession(context);
+                        SongContextSession session = SongContextSession.getSession(context);
                         if (session.getState().equals(PlaybackSession.State.NEW))
                         {
                             session.generate();

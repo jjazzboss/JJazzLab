@@ -56,14 +56,14 @@ import org.jjazz.util.api.ResUtil;
 public class BasicSongContextSession implements PropertyChangeListener, PlaybackSession, SongContextProvider, EndOfPlaybackActionProvider
 {
 
-    private State state = State.NEW;
-    private SongContext sgContext;
-    private Sequence sequence;
-    private long loopStartTick;
-    private long loopEndTick;
-    private int loopCount = 1;
-    private ActionListener actionListener;
-    private MusicGenerator.PostProcessor[] postProcessors;
+    protected State state = State.NEW;
+    protected SongContext sgContext;
+    protected Sequence sequence;
+    protected long loopStartTick;
+    protected long loopEndTick;
+    protected int loopCount = 1;
+    protected ActionListener actionListener;
+    protected MusicGenerator.PostProcessor[] postProcessors;
     static private List<BasicSongContextSession> sessions = new ArrayList<>();
 
     /**
@@ -77,7 +77,7 @@ public class BasicSongContextSession implements PropertyChangeListener, Playback
 
 
     /**
-     * If an existing session in the NEW or GENERATED state alreadu exists for the same parameters then return it, otherwise a new
+     * If an existing session in the NEW or GENERATED state already exists for the same parameters then return it, otherwise a new
      * session is created.
      * <p>
      *
@@ -87,7 +87,7 @@ public class BasicSongContextSession implements PropertyChangeListener, Playback
      * @param postProcessors
      * @return A session in the NEW or GENERATED state.
      */
-    static public BasicSongContextSession buildOrReuseSongContextSession(SongContext sgContext, int loopCount, ActionListener endOfPlaybackAction, MusicGenerator.PostProcessor... postProcessors)
+    static public BasicSongContextSession getSession(SongContext sgContext, int loopCount, ActionListener endOfPlaybackAction, MusicGenerator.PostProcessor... postProcessors)
     {
         if (sgContext == null)
         {
@@ -106,7 +106,7 @@ public class BasicSongContextSession implements PropertyChangeListener, Playback
     }
 
     /**
-     * If an existing session in the NEW or GENERATED state alreadu exists for the same parameters then return it, otherwise a new
+     * If an existing session in the NEW or GENERATED state already exists for the same parameters then return it, otherwise a new
      * session is created.
      * <p>
      *
@@ -118,7 +118,7 @@ public class BasicSongContextSession implements PropertyChangeListener, Playback
      * @param postProcessors
      * @return A session in the NEW or GENERATED state.
      */
-    static public BasicSongContextSession buildOrReuseSongContextSession(SongContext sgContext, long loopStart, long loopEnd, int loopCount, ActionListener endOfPlaybackAction, MusicGenerator.PostProcessor... postProcessors)
+    static public BasicSongContextSession getSession(SongContext sgContext, long loopStart, long loopEnd, int loopCount, ActionListener endOfPlaybackAction, MusicGenerator.PostProcessor... postProcessors)
     {
         if (sgContext == null)
         {
@@ -146,7 +146,7 @@ public class BasicSongContextSession implements PropertyChangeListener, Playback
      * @param endOfPlaybackAction
      * @param postProcessors
      */
-    private BasicSongContextSession(SongContext sgContext, long loopStart, long loopEnd, int loopCount, ActionListener endOfPlaybackAction, MusicGenerator.PostProcessor... postProcessors)
+    protected BasicSongContextSession(SongContext sgContext, long loopStart, long loopEnd, int loopCount, ActionListener endOfPlaybackAction, MusicGenerator.PostProcessor... postProcessors)
     {
         if (sgContext == null || loopStart < 0 || loopEnd < 0 || loopEnd < loopStart)
         {

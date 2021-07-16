@@ -181,7 +181,7 @@ public class PlaySelection extends AbstractAction
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
             SongContext context = new SongContext(song, midiMix, rg);
-            SongContextSession session = SongContextSession.buildOrReuseSongContextSession(context);
+            SongContextSession session = SongContextSession.getSession(context);
             if (session.getState().equals(PlaybackSession.State.NEW))
             {
                 session.generate();

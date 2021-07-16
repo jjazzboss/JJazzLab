@@ -64,17 +64,17 @@ import org.jjazz.util.api.ResUtil;
 public class SongContextSession implements PropertyChangeListener, PlaybackSession, PositionProvider, ChordSymbolProvider, SongContextProvider, VetoableSession
 {
 
-    private State state = State.NEW;
-    private SongContext sgContext;
-    private Sequence sequence;
-    private List<Position> positions;
-    private int playbackClickTrackId = -1;
-    private int precountClickTrackId = -1;
-    private int controlTrackId = -1;
-    private long loopStartTick = -1;
-    private long loopEndTick = -1;
-    private ContextChordSequence contextChordSequence;
-    private MusicGenerator.PostProcessor[] postProcessors;
+    protected State state = State.NEW;
+    protected SongContext sgContext;
+    protected Sequence sequence;
+    protected List<Position> positions;
+    protected int playbackClickTrackId = -1;
+    protected int precountClickTrackId = -1;
+    protected int controlTrackId = -1;
+    protected long loopStartTick = -1;
+    protected long loopEndTick = -1;
+    protected ContextChordSequence contextChordSequence;
+    protected MusicGenerator.PostProcessor[] postProcessors;
     static private List<SongContextSession> sessions = new ArrayList<>();
 
 
@@ -97,7 +97,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
      * @param postProcessors
      * @return A session in the NEW or GENERATED state.
      */
-    static public SongContextSession buildOrReuseSongContextSession(SongContext sgContext, MusicGenerator.PostProcessor... postProcessors)
+    static public SongContextSession getSession(SongContext sgContext, MusicGenerator.PostProcessor... postProcessors)
     {
         if (sgContext == null)
         {

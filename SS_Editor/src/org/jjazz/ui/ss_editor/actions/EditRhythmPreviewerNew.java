@@ -50,6 +50,7 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator.PostProcessor;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
@@ -57,7 +58,6 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
 import org.jjazz.util.api.LongRange;
-import static org.openide.awt.Actions.context;
 import org.openide.util.Exceptions;
 
 /**
@@ -158,7 +158,7 @@ public class EditRhythmPreviewerNew implements RhythmSelectionDialog.RhythmPrevi
         Song song = sgContext.getSong();
         MidiMix mm = sgContext.getMidiMix();
         SongPart spt0 = song.getSongStructure().getSongPart(0); // There might be 2 song parts for AdaptedRhythm
-        LongRange spt0TickRange = sgContext.getSptTickRange(spt0); => better shorten sequence because loopEnd not used if no repeat mode!
+        LongRange spt0TickRange = sgContext.getSptTickRange(spt0);
 
 
         // Build the corresponding session
@@ -166,7 +166,7 @@ public class EditRhythmPreviewerNew implements RhythmSelectionDialog.RhythmPrevi
         {
             session.cleanup();
         }
-        session = BasicSongContextSession.buildOrReuseSongContextSession(sgContext,
+        session = BasicSongContextSession.getSession(sgContext,
                 0,
                 spt0TickRange.to,
                 loopCount ? Sequencer.LOOP_CONTINUOUSLY : 0,
@@ -319,6 +319,48 @@ public class EditRhythmPreviewerNew implements RhythmSelectionDialog.RhythmPrevi
         newSs.addSongParts(newSpts);
 
         return newSong;
+    }
+
+
+    /**
+     * Our own session to manage the special case of a SongPart with an AdaptedRhythm which needs the source rhythm to be present
+     * in the song for building the sequence.
+     * <p>
+     * In this case we shorten the generated sequence and update tickLoopEnd.
+     */
+    private class PreviewSession extends BasicSongContextSession
+    {
+
+        protected PreviewSession(SongContext sgContext, int loopCount, ActionListener endOfPlaybackAction, MusicGenerator.PostProcessor... postProcessors)
+        {
+            super(sgContext, 0, -1, loopCount, endOfPlaybackAction, postProcessors);
+        }
+
+        @Override
+        public void generate() throws MusicGenerationException
+        {
+            super.generate();
+
+            
+            // Check if we preview an AdaptedRhythm
+            var spts = sgContext.getSong().getSongStructure().getSongParts();
+            SongPart spt0 = spts.get(0);
+            if (!(spt0.getRhythm() instanceof AdaptedRhythm))
+            {
+                // Nothing to do
+                return;
+            }
+
+            // AdaptedRhythm: there must be a 2nd songpart for the source rhythm,  cut it
+            assert spts.size()==2:"spts="+spts;
+            trimSequence(sgContext.)
+
+        }
+        
+        private void trimSequence(long tickEnd)
+        {
+            for 
+        }
     }
 
 
