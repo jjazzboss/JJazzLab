@@ -23,9 +23,11 @@
 package org.jjazz.ui.ss_editor.spi;
 
 import java.awt.event.ActionListener;
+import java.util.Map;
 import javax.swing.JDialog;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.ui.ss_editor.editors.SimpleRhythmSelectionDialog;
 import org.openide.util.Lookup;
@@ -56,6 +58,8 @@ abstract public class RhythmSelectionDialog extends JDialog
          * If a preview is already being played on a different rhythm, stop it and start a new one.
          *
          * @param r
+         * @param rpValues The rhythm RhythmParameter values. Can't be null, when non defined values the previewer should use the
+         * default RhythmParameter values in this case.
          * @param useRhythmTempo If true use r preferred tempo, otherwise use default tempo.
          * @param loop If true the rhythm preview loops until stop() is called.
          * @param endActionListener Called when preview is complete (if loop disabled) or stopped. Called on the EDT. Can be null
@@ -63,7 +67,7 @@ abstract public class RhythmSelectionDialog extends JDialog
          * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occured. endActionListener is not called in this
          * case.
          */
-        void previewRhythm(Rhythm r, boolean useRhythmTempo, boolean loop, ActionListener endActionListener) throws MusicGenerationException;
+        void previewRhythm(Rhythm r, Map<RhythmParameter<?>, Object> rpValues, boolean useRhythmTempo, boolean loop, ActionListener endActionListener) throws MusicGenerationException;
 
         /**
          * The rhythm currently being previewed.

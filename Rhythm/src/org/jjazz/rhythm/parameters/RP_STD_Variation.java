@@ -57,8 +57,9 @@ public class RP_STD_Variation extends RP_State
         }
         return (RP_STD_Variation) rhythm.getRhythmParameters()
                 .stream()
-                .filter(r -> (r instanceof RP_STD_Variation))
+                .filter(rp -> (rp instanceof RP_STD_Variation))
                 .findAny()
                 .orElse(null);
     }
+    
 }

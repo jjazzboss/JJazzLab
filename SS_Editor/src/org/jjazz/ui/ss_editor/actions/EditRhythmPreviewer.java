@@ -23,61 +23,61 @@
 package org.jjazz.ui.ss_editor.actions;
 
 import java.awt.event.ActionListener;
+import java.beans.PropertyVetoException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MetaEventListener;
-import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
-import javax.swing.SwingUtilities;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
-import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.playbacksession.BasicSongContextSession;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythmmusicgeneration.api.MidiSequenceBuilder;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator.PostProcessor;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.LongRange;
 import org.openide.util.Exceptions;
 
 /**
- * A RhythmPreviewProvider instance which plays one song part.
+ * A RhythmPreviewProvider instance which plays one song part using the MusicController/PlaybackSession mechanism.
  */
-public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewProvider, MetaEventListener
+public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewProvider
 {
 
-    private boolean isPreviewRunning;
     private PostProcessor[] originalPostProcessors;
     private Song originalSong;
     private Song previouslyActivatedSong;
     private SongPart originalSpt;
     private Rhythm rhythm;
-    private Sequencer sequencer;
+    private Map<RhythmParameter<?>, Object> rpValues;
     private ActionListener endAction;
+    private BasicSongContextSession session;
     private final Set<Rhythm> previewedRhythms = new HashSet<>();  // To release rhythm resources upon cleanup
     private static final Logger LOGGER = Logger.getLogger(EditRhythmPreviewer.class.getSimpleName());
 
@@ -102,18 +102,19 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
     @Override
     public void cleanup()
     {
-        stop();
-        if (sequencer != null)
-        {
-            sequencer.removeMetaEventListener(this);
-            var mc = MusicController.getInstance();
-            mc.releaseSequencer(this);
-        }
+
+        MusicController.getInstance().stop();
+
 
         // Release resources of all previewed rhythms
         for (Rhythm r : previewedRhythms)
         {
             r.releaseResources();
+        }
+
+        if (session != null)
+        {
+            session.cleanup();
         }
 
         // Reactivate song
@@ -132,160 +133,110 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
     }
 
     @Override
-    public void previewRhythm(Rhythm r, boolean useRhythmTempo, boolean loop, ActionListener endListener) throws MusicGenerationException
+    public void previewRhythm(Rhythm r, Map<RhythmParameter<?>, Object> rpValues, boolean useRhythmTempo, boolean loopCount, ActionListener endListener) throws MusicGenerationException
     {
         if (r == null)
         {
-            throw new IllegalArgumentException("r=" + r + " useRhythmTempo=" + useRhythmTempo + " loop=" + loop);   //NOI18N
+            throw new IllegalArgumentException("r=" + r + " rpValues=" + rpValues + " useRhythmTempo=" + useRhythmTempo + " loopCount=" + loopCount);   //NOI18N
         }
 
-        LOGGER.fine("previewRhythm() -- r=" + r + " useRhythmTempo=" + useRhythmTempo + " loop=" + loop + " endListener=" + endListener);   //NOI18N
+        LOGGER.fine("previewRhythm() -- r=" + r + " rpValues=" + rpValues + " useRhythmTempo=" + useRhythmTempo + " loop=" + loopCount + " endListener=" + endListener);   //NOI18N
 
-        if (isPreviewRunning)
+        MusicController mc = MusicController.getInstance();
+        if (mc.getState().equals(MusicController.State.PLAYING))
         {
-            if (rhythm == r)
+            if (getPreviewedRhythm() == r && Objects.equals(this.rpValues, rpValues))
             {
                 return;
+            } else
+            {
+                mc.stop();
             }
-            stopSequencer();
         }
 
-        isPreviewRunning = false;
         rhythm = r;
         endAction = endListener;
 
-        // If sequencer not already acquired, stop any previous playing and acquire sequencer
-        if (sequencer == null)
-        {
-            var mc = MusicController.getInstance();
-            mc.stop();
-            sequencer = mc.acquireSequencer(this);
-            if (sequencer == null)
-            {
-                throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_CantAcquireSequencer"));
-            }
-            sequencer.addMetaEventListener(this);
-        }
 
         // Build the preview song and context
-        Song song;
-        SongContext sgContext;
-        MidiMix mm;
-        try
+        SongContext sgContext = buildSongContext(r, rpValues, useRhythmTempo);
+        Song song = sgContext.getSong();
+        MidiMix mm = sgContext.getMidiMix();
+        SongPart spt0 = song.getSongStructure().getSongPart(0); // There might be 2 song parts for AdaptedRhythm
+        LongRange spt0TickRange = sgContext.getSptTickRange(spt0);
+
+
+        // Build the corresponding session
+        if (session != null)
         {
-            song = buildPreviewSong(originalSong, originalSpt, r);
-            mm = MidiMixManager.getInstance().findMix(song);        // Possible exception here
-            // LOGGER.severe("previewRhythm() mm BEFORE=" + mm.toDumpString());
-            fixMidiMix(mm);
-            // LOGGER.severe("previewRhythm() mm AFTER=" + mm.toDumpString());
-            sgContext = new SongContext(song, mm);
-        } catch (UnsupportedEditException | MidiUnavailableException ex)
-        {
-            LOGGER.warning("previewRhythm() ex=" + ex.getMessage());   //NOI18N
-            throw new MusicGenerationException(ex.getLocalizedMessage());
+            session.cleanup();
         }
-        SongPart spt0 = song.getSongStructure().getSongPart(0);
-        song.setTempo(useRhythmTempo ? r.getPreferredTempo() : originalSong.getTempo());
+        session = new PreviewSession(sgContext,
+                loopCount ? Sequencer.LOOP_CONTINUOUSLY : 0,
+                endAction,
+                originalPostProcessors);
+        if (session.getState().equals(PlaybackSession.State.NEW))
+        {
+            session.generate();
+        }
 
         // Activate the song to initialize Midi instruments
         ActiveSongManager asm = ActiveSongManager.getInstance();
         asm.setActive(song, mm);
 
-        // Build the sequence from context
-        MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(sgContext, originalPostProcessors);
-        Sequence sequence = seqBuilder.buildSequence(false);                  // Can raise MusicGenerationException
-        if (sequence == null)
-        {
-            // Can happen if unexpected error, assertion error etc.
-            song.close(false);
-            throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_BuildingSequence"));
-        }
 
-        // Reroute drums channels if needed
-        List<Integer> toBeRerouted = mm.getDrumsReroutedChannels();
-        MidiUtilities.rerouteShortMessages(sequence, toBeRerouted, MidiConst.CHANNEL_DRUMS);
-
-        // Prepare sequencer
+        // Start playback
         try
         {
-            sequencer.setSequence(sequence);
-        } catch (InvalidMidiDataException ex)
+            mc.play(session, 0);
+        } catch (PropertyVetoException ex)
         {
-            LOGGER.warning("previewRhythm() ex=" + ex.getMessage());   //NOI18N
-            throw new MusicGenerationException(ex.getLocalizedMessage());
+            // Should never occur, session does not implement VetoableSession
+            Exceptions.printStackTrace(ex);
         }
-        sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);
-        sequencer.setTickPosition(0);
-        sequencer.setLoopCount(loop ? Sequencer.LOOP_CONTINUOUSLY : 0);
-        sequencer.setLoopStartPoint(0);
-        long songTickEnd = (long) (sgContext.getSptBeatRange(spt0).size() * MidiConst.PPQ_RESOLUTION);
-        sequencer.setLoopEndPoint(songTickEnd);
 
-        // Start
-        sequencer.start();
-        sequencer.setTempoInBPM(MidiConst.SEQUENCER_REF_TEMPO);  // JDK -11 BUG: start() resets tempo at 120 !
-        float songTempoFactor = (float) song.getTempo() / MidiConst.SEQUENCER_REF_TEMPO;
-        sequencer.setTempoFactor(songTempoFactor);
 
-        // Update state
-        isPreviewRunning = true;
+        // Save previewed rhythm
         previewedRhythms.add(rhythm);
 
-        // Close the song but don't release the rhythm resources: it will be done by cleanup()
-        song.close(false);
-    }
 
-    @Override
-    public Rhythm getPreviewedRhythm()
-    {
-        return isPreviewRunning ? rhythm : null;
     }
 
     @Override
     public void stop()
     {
-        if (!isPreviewRunning)
-        {
-            return;
-        }
-        stopSequencer();
+        MusicController.getInstance().stop();
     }
 
-    // ===============================================================================================
-    // MetaEventListener implementation
-    // ===============================================================================================
+
     @Override
-    public void meta(MetaMessage meta)
+    public Rhythm getPreviewedRhythm()
     {
-        if (meta.getType() == 47) // Meta Event for end of sequence
-        {
-            // This method  is called from the Sequencer thread, NOT from the EDT !
-            // So if this method impacts the UI, it must use SwingUtilities.InvokeLater() (or InvokeAndWait())
-            LOGGER.fine("Sequence end reached");   //NOI18N
-            Runnable doRun = new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    stopSequencer();
-                }
-            };
-            SwingUtilities.invokeLater(doRun);
-        }
+        var mc = MusicController.getInstance();
+        return mc.getState().equals(MusicController.State.PLAYING) && mc.getPlaybackSession() == session ? rhythm : null;
     }
+
 
     // ===============================================================================================
     // Private methods
     // ===============================================================================================
-    private void stopSequencer()
+    private SongContext buildSongContext(Rhythm r, Map<RhythmParameter<?>, Object> rpValues, boolean useRhythmTempo) throws MusicGenerationException
     {
-        assert sequencer != null;   //NOI18N
-        sequencer.stop();
-        isPreviewRunning = false;
-        if (endAction != null)
+        SongContext sgContext;
+        try
         {
-            endAction.actionPerformed(null);
+            Song song = buildPreviewSong(originalSong, originalSpt, r, rpValues);
+            song.setTempo(useRhythmTempo ? r.getPreferredTempo() : originalSong.getTempo());
+            MidiMix mm = MidiMixManager.getInstance().findMix(song);        // Possible exception here
+            fixMidiMix(mm);
+            sgContext = new SongContext(song, mm);
+        } catch (UnsupportedEditException | MidiUnavailableException ex)
+        {
+            LOGGER.warning("buildSongContext() r=" + r + " ex=" + ex.getMessage());   //NOI18N
+            throw new MusicGenerationException(ex.getLocalizedMessage());
         }
+
+        return sgContext;
     }
 
     /**
@@ -335,10 +286,13 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
      * @param r
      * @return
      */
-    private Song buildPreviewSong(Song song, SongPart spt, Rhythm r) throws UnsupportedEditException
+    private Song buildPreviewSong(Song song, SongPart spt, Rhythm r, Map<RhythmParameter<?>, Object> rpValues) throws UnsupportedEditException
     {
         // Get a copy
-        Song newSong = SongFactory.getInstance().getCopy(song);
+        var sf = SongFactory.getInstance();
+        Song newSong = sf.getCopy(song);
+        sf.unregisterSong(newSong);
+
         SongStructure newSs = newSong.getSongStructure();
         ChordLeadSheet newCls = newSong.getChordLeadSheet();
 
@@ -348,8 +302,8 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         // Get the first SongPart with the new rhythm
         List<SongPart> newSpts = new ArrayList<>();
         var parentSection = newCls.getSection(spt.getParentSection().getData().getName());
-        var newSpt = spt.clone(r, 0, spt.getNbBars(), parentSection);
-        newSpts.add(newSpt);
+        var newSpt0 = spt.clone(r, 0, spt.getNbBars(), parentSection);
+        newSpts.add(newSpt0);
 
         // If r is an AdaptedRhythm we must also add its source rhythm
         if (r instanceof AdaptedRhythm)
@@ -360,14 +314,65 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
                     .stream()
                     .filter(s -> s.getData().getTimeSignature().equals(sourceRhythm.getTimeSignature()))
                     .findFirst().orElseThrow();     // Exception should never be thrown
-            newSpt = spt.clone(ar.getSourceRhythm(), spt.getNbBars(), spt.getNbBars(), parentSection);
-            newSpts.add(newSpt);
+            var newSpt1 = spt.clone(ar.getSourceRhythm(), spt.getNbBars(), spt.getNbBars(), parentSection);
+            newSpts.add(newSpt1);
         }
 
-        // Add the SongParts
+        // Add the SongParts to the song
         newSs.addSongParts(newSpts);
+
+
+        // Update spt0 RhythmParameter values
+        for (RhythmParameter rp : r.getRhythmParameters())
+        {
+            Object rpValue = rpValues.get(rp);
+            if (rpValue != null)
+            {
+                newSs.setRhythmParameterValue(newSpt0, rp, rpValue);
+            }
+        }
 
         return newSong;
     }
+
+
+    /**
+     * Our own session to manage the special case of a SongPart with an AdaptedRhythm which needs the source rhythm to be present
+     * in the song for building the sequence.
+     * <p>
+     * In this case we shorten the generated sequence and update loopEndTick.
+     */
+    private class PreviewSession extends BasicSongContextSession
+    {
+
+        protected PreviewSession(SongContext sgContext, int loopCount, ActionListener endOfPlaybackAction, MusicGenerator.PostProcessor... postProcessors)
+        {
+            super(sgContext, 0, -1, loopCount, endOfPlaybackAction, postProcessors);
+        }
+
+        @Override
+        public void generate() throws MusicGenerationException
+        {
+            super.generate();
+
+
+            // Check if we preview an AdaptedRhythm
+            var spts = sgContext.getSong().getSongStructure().getSongParts();
+            SongPart spt0 = spts.get(0);
+            if (!(spt0.getRhythm() instanceof AdaptedRhythm))
+            {
+                // Nothing to do
+                return;
+            }
+
+            // AdaptedRhythm: there must be a 2nd songpart for the source rhythm,  cut it
+            assert spts.size() == 2 : "spts=" + spts;
+            loopEndTick = sgContext.getSptTickRange(spt0).to;
+            MidiUtilities.setSequenceDuration(sequence, loopEndTick);
+
+        }
+
+    }
+
 
 }
