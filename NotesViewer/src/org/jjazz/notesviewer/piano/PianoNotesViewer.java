@@ -51,7 +51,7 @@ public class PianoNotesViewer implements NotesViewer
     final private static Icon ICON = new ImageIcon(PianoNotesViewer.class.getResource(ICON_PATH));
     private static final Color CHORD_COLOR = new Color(0, 128, 192);
     private static final Color SCALE_COLOR = new Color(187, 187, 187);
-    private Mode mode;
+    private Mode mode = Mode.ShowSelection;
     private Song song;
     private MidiMix midiMix;
     private RhythmVoice rhythmVoice;

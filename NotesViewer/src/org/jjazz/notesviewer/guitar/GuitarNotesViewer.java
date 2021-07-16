@@ -22,8 +22,6 @@
  */
 package org.jjazz.notesviewer.guitar;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -48,7 +46,7 @@ public class GuitarNotesViewer implements NotesViewer
     @StaticResource(relative = true)
     final private static String ICON_PATH = "resources/DiagramIcon.png";
     final private static Icon ICON = new ImageIcon(GuitarNotesViewer.class.getResource(ICON_PATH));
-    private Mode mode;
+    private Mode mode = Mode.ShowSelection;
     private Song song;
     private MidiMix midiMix;
     private RhythmVoice rhythmVoice;

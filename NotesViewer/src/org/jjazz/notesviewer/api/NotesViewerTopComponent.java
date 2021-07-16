@@ -105,6 +105,7 @@ public final class NotesViewerTopComponent extends TopComponent
     private void initComponents()
     {
 
+        setMinimumSize(new java.awt.Dimension(50, 50));
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
     }// </editor-fold>//GEN-END:initComponents
 

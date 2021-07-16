@@ -242,7 +242,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             }
         } else if (evt.getSource() == MusicController.getInstance())
         {
-            if (evt.getPropertyName().equals(MusicController.PROP_STATE) && notesViewer != null && notesViewer.getMode().equals(NotesViewer.Mode.ShowBackingTrack))
+            if (evt.getPropertyName().equals(MusicController.PROP_STATE) && notesViewer.getMode().equals(NotesViewer.Mode.ShowBackingTrack))
             {
                 MusicController.State state = (MusicController.State) evt.getNewValue();
                 switch (state)
@@ -554,6 +554,8 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 noteListener.setEnabled(true);
                 spn_srcChannel.setEnabled(true);
                 notesViewer.setMode(mode);
+                lbl_chordSymbol.setText(" ");
+                lbl_scale.setText(" ");
                 break;
             case ShowSelection:
                 noteListener.setEnabled(false);
@@ -562,15 +564,15 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 if (selectedChordSymbol != null)
                 {
                     showChordSymbolNotes(selectedChordSymbol);
+                } else
+                {
+                    lbl_chordSymbol.setText(" ");
+                    lbl_scale.setText(" ");
                 }
                 break;
             default:
                 throw new AssertionError(mode.name());
         }
-
-        lbl_chordSymbol.setText(" ");
-        lbl_scale.setText(" ");
-
     }
 
     private boolean isUIinPlaybackMode()
