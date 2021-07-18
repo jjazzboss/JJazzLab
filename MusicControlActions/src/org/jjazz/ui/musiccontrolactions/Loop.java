@@ -32,6 +32,7 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
 import org.jjazz.util.api.ResUtil;
@@ -53,7 +54,7 @@ import org.openide.util.actions.BooleanStateAction;
 @ActionRegistration(displayName = "#CTL_Loop", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Shortcuts", name = "L") 
+            @ActionReference(path = "Shortcuts", name = "L")
         })
 public class Loop extends BooleanStateAction implements PropertyChangeListener, LookupListener
 {
@@ -76,6 +77,7 @@ public class Loop extends BooleanStateAction implements PropertyChangeListener, 
 
         // Listen to loopbackState and position changes
         MusicController.getInstance().addPropertyChangeListener(this);
+        PlaybackSettings.getInstance().addPropertyChangeListener(this);
 
         // Listen to the Midi active song changes
         ActiveSongManager.getInstance().addPropertyListener(this);
@@ -127,8 +129,7 @@ public class Loop extends BooleanStateAction implements PropertyChangeListener, 
         {
             return;
         }
-        MusicController mc = MusicController.getInstance();
-        mc.setLoopCount(b ? Sequencer.LOOP_CONTINUOUSLY : 0);
+        PlaybackSettings.getInstance().setLoopCount(b ? Sequencer.LOOP_CONTINUOUSLY : 0);
         setBooleanState(b);
     }
 
@@ -156,26 +157,28 @@ public class Loop extends BooleanStateAction implements PropertyChangeListener, 
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        MusicController mc = MusicController.getInstance();
-        if (evt.getSource() == mc)
+        if (evt.getSource() == MusicController.getInstance())
         {
-            if (evt.getPropertyName() == MusicController.PROP_STATE)
+            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
             {
                 playbackStateChanged();
-            } else if (evt.getPropertyName() == MusicController.PROP_LOOPCOUNT)
+            }
+        } else if (evt.getSource() == PlaybackSettings.getInstance())
+        {
+            if (evt.getPropertyName().equals(PlaybackSettings.PROP_LOOPCOUNT))
             {
                 int nbLoops = (int) evt.getNewValue();
                 setBooleanState(nbLoops == Sequencer.LOOP_CONTINUOUSLY);
             }
         } else if (evt.getSource() == ActiveSongManager.getInstance())
         {
-            if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
+            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
                 activeSongChanged();
             }
         } else if (evt.getSource() == currentSong)
         {
-            if (evt.getPropertyName() == Song.PROP_CLOSED)
+            if (evt.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 currentSongClosed();
             }

@@ -43,7 +43,7 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.ControlTrackBuilder;
-import org.jjazz.musiccontrol.api.ClickManager;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -62,7 +62,7 @@ import org.jjazz.util.api.ResUtil;
  * Take into account ClickManager settings (click & precount) and MusicController settings (playback transposition, loop count).
  * Listen to Song and MidiMix changes to remain uptodate.
  */
-public class SongContextSession implements PropertyChangeListener, PlaybackSession, PositionProvider, ChordSymbolProvider, SongContextProvider, VetoableSession
+public class SongContextSession implements PropertyChangeListener, PlaybackSession, PositionProvider, ChordSymbolProvider, SongContextProvider
 {
 
     protected State state = State.NEW;
@@ -76,7 +76,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     protected long loopEndTick = -1;
     protected ContextChordSequence contextChordSequence;
     protected MusicGenerator.PostProcessor[] postProcessors;
-    static private List<SongContextSession> sessions = new ArrayList<>();
+    private static final List<SongContextSession> sessions = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(SongContextSession.class.getSimpleName());  //NOI18N
 
     /**
@@ -87,7 +87,6 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     private HashMap<RhythmVoice, Integer> mapRvTrackId;
     private final HashMap<Integer, Boolean> mapRvMuted = new HashMap<>();
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-
 
     /**
      * If an existing session in the NEW or GENERATED state alreadu exists for the same parameters then return it, otherwise a new
@@ -141,10 +140,9 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         // Listen to all changes that can impact the generation of the song
         this.sgContext.getSong().addPropertyChangeListener(this);
         this.sgContext.getMidiMix().addPropertyChangeListener(this);
-        ClickManager.getInstance().addPropertyChangeListener(this); // click settings
+        PlaybackSettings.getInstance().addPropertyChangeListener(this); // click settings
         MusicController.getInstance().addPropertyChangeListener(this);  // playback key transposition    
     }
-
 
     @Override
     public State getState()
@@ -162,7 +160,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
 
 
         SongContext workContext = sgContext;
-        int t = MusicController.getInstance().getPlaybackKeyTransposition();
+        int t = PlaybackSettings.getInstance().getPlaybackKeyTransposition();
         if (t != 0)
         {
             workContext = buildTransposedContext(sgContext, t);
@@ -200,7 +198,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
 
         // Add the playback click track
         playbackClickTrackId = preparePlaybackClickTrack(sequence, workContext);
-        mapRvMuted.put(playbackClickTrackId, !ClickManager.getInstance().isPlaybackClickEnabled());
+        mapRvMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
 
 
         // Add the click precount track - this must be done last because it might shift all song events
@@ -232,7 +230,6 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         return sgContext.getSong().getTempo();
     }
 
-
     @Override
     public Sequence getSequence()
     {
@@ -245,7 +242,6 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         return state.equals(State.GENERATED) ? loopStartTick : -1;
     }
 
-
     @Override
     public long getLoopEndTick()
     {
@@ -255,9 +251,8 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     @Override
     public int getLoopCount()
     {
-        return MusicController.getInstance().getLoopCount();
+        return PlaybackSettings.getInstance().getLoopCount();
     }
-
 
     @Override
     public long getTick(int barIndex)
@@ -268,7 +263,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         }
 
         long tick;
-        if (ClickManager.getInstance().isClickPrecountEnabled() && barIndex == getBarRange().from)
+        if (PlaybackSettings.getInstance().isClickPrecountEnabled() && barIndex == getBarRange().from)
         {
             // Precount is ON and pos is the first possible bar
             tick = 0;
@@ -301,7 +296,6 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         return state.equals(State.GENERATED) || state.equals(State.OUTDATED) ? new HashMap<>(mapRvMuted) : null;
     }
 
-
     @Override
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
@@ -314,16 +308,14 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         pcs.removePropertyChangeListener(l);
     }
 
-
     @Override
     public void cleanup()
     {
-        ClickManager.getInstance().removePropertyChangeListener(this);
+        PlaybackSettings.getInstance().removePropertyChangeListener(this);
         MusicController.getInstance().removePropertyChangeListener(this);  // playback key transposition        
         sgContext.getSong().removePropertyChangeListener(this);
         sgContext.getMidiMix().removePropertyChangeListener(this);
     }
-
 
     public List<MusicGenerator.PostProcessor> getPostProcessors()
     {
@@ -342,7 +334,6 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     // ==========================================================================================================
     // PositionProvider implementation
     // ==========================================================================================================    
-
     @Override
     public List<Position> getPositions()
     {
@@ -356,15 +347,6 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     public ContextChordSequence getContextChordGetSequence()
     {
         return state.equals(State.GENERATED) || state.equals(State.OUTDATED) ? contextChordSequence : null;
-    }
-
-    // ==========================================================================================================
-    // VetoableSession implementation
-    // ==========================================================================================================    
-    @Override
-    public Object getVetoableContext()
-    {
-        return sgContext;
     }
 
     // ==========================================================================================================
@@ -438,45 +420,43 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
             }
 
 
-        } else if (e.getSource() == ClickManager.getInstance())
+        } else if (e.getSource() == PlaybackSettings.getInstance())
         {
-            if (e.getPropertyName().equals(ClickManager.PROP_PLAYBACK_CLICK_ENABLED))
+            if (e.getPropertyName().equals(PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED))
             {
                 if (!state.equals(State.NEW))
                 {
-                    mapRvMuted.put(playbackClickTrackId, !ClickManager.getInstance().isPlaybackClickEnabled());
+                    mapRvMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
                     pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
                 }
 
-            } else if (e.getPropertyName().equals(ClickManager.PROP_CLICK_PITCH_HIGH)
-                    || e.getPropertyName().equals(ClickManager.PROP_CLICK_PITCH_LOW)
-                    || e.getPropertyName().equals(ClickManager.PROP_CLICK_PREFERRED_CHANNEL)
-                    || e.getPropertyName().equals(ClickManager.PROP_CLICK_VELOCITY_HIGH)
-                    || e.getPropertyName().equals(ClickManager.PROP_CLICK_VELOCITY_LOW)
-                    || e.getPropertyName().equals(ClickManager.PROP_CLICK_PRECOUNT_MODE))
+            } else if (e.getPropertyName().equals(PlaybackSettings.PROP_CLICK_PITCH_HIGH)
+                    || e.getPropertyName().equals(PlaybackSettings.PROP_CLICK_PITCH_LOW)
+                    || e.getPropertyName().equals(PlaybackSettings.PROP_CLICK_PREFERRED_CHANNEL)
+                    || e.getPropertyName().equals(PlaybackSettings.PROP_CLICK_VELOCITY_HIGH)
+                    || e.getPropertyName().equals(PlaybackSettings.PROP_CLICK_VELOCITY_LOW)
+                    || e.getPropertyName().equals(PlaybackSettings.PROP_CLICK_PRECOUNT_MODE))
             {
                 if (!state.equals(State.NEW))
                 {
                     outdated = true;
                 }
-            } else if (e.getPropertyName().equals(ClickManager.PROP_CLICK_PRECOUNT_ENABLED))
+            } else if (e.getPropertyName().equals(PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED))
             {
                 // Nothing: only getTick(from) return value will be impacted
-            }
-        } else if (e.getSource() == MusicController.getInstance())
-        {
-            if (e.getPropertyName().equals(MusicController.PROP_PLAYBACK_KEY_TRANSPOSITION))
+            } else if (e.getPropertyName().equals(PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION))
             {
                 // Playback transposition has changed
                 if (!state.equals(State.NEW))
                 {
                     outdated = true;
                 }
-            } else if (e.getPropertyName().equals(MusicController.PROP_LOOPCOUNT))
+            } else if (e.getPropertyName().equals(PlaybackSettings.PROP_LOOPCOUNT))
             {
                 pcs.firePropertyChange(PROP_LOOP_COUNT, (Integer) e.getOldValue(), (Integer) e.getNewValue());
             }
         }
+
 
         if (outdated)
         {
@@ -505,10 +485,10 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     private int preparePlaybackClickTrack(Sequence sequence, SongContext context)
     {
         // Add the click track
-        ClickManager cm = ClickManager.getInstance();
+        PlaybackSettings cm = PlaybackSettings.getInstance();
         int trackId = cm.addClickTrack(sequence, context);
         // Send a Drums program change if Click channel is not used in the current MidiMix
-        int clickChannel = ClickManager.getInstance().getPreferredClickChannel();
+        int clickChannel = PlaybackSettings.getInstance().getPreferredClickChannel();
         if (context.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
         {
             //                Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
@@ -528,7 +508,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     private long preparePrecountClickTrack(Sequence sequence, SongContext context)
     {
         // Add the click track
-        ClickManager cm = ClickManager.getInstance();
+        PlaybackSettings cm = PlaybackSettings.getInstance();
         long tickPos = cm.addPrecountClickTrack(sequence, context);
         // Send a Drums program change if Click channel is not used in the current MidiMix
 //        int clickChannel = ClickManager.getInstance().getPreferredClickChannel();
@@ -574,7 +554,6 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         SongContext res = new SongContext(songCopy, context.getMidiMix(), context.getBarRange());
         return res;
     }
-
 
     /**
      * Find an identical existing SongContextSession in state NEW or GENERATED.

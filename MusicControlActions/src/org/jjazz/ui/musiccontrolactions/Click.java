@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.activesong.api.ActiveSongManager;
-import org.jjazz.musiccontrol.api.ClickManager;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
 import org.jjazz.util.api.ResUtil;
@@ -72,7 +72,7 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
         putValue("hideActionText", true);       //NOI18N
 
         // Listen to clickbackState and position changes
-        ClickManager.getInstance().addPropertyChangeListener(this);
+        PlaybackSettings.getInstance().addPropertyChangeListener(this);
 
         // Listen to the Midi active song changes
         ActiveSongManager.getInstance().addPropertyListener(this);
@@ -124,7 +124,7 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
         {
             return;
         }
-        ClickManager cm = ClickManager.getInstance();
+        PlaybackSettings cm = PlaybackSettings.getInstance();
         cm.setPlaybackClickEnabled(b);
         setBooleanState(b);  // Notify action listeners
     }
@@ -154,9 +154,9 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
     public void propertyChange(PropertyChangeEvent evt)
     {
 
-        if (evt.getSource() == ClickManager.getInstance())
+        if (evt.getSource() == PlaybackSettings.getInstance())
         {
-            if (evt.getPropertyName().equals(ClickManager.PROP_PLAYBACK_CLICK_ENABLED))
+            if (evt.getPropertyName().equals(PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED))
             {
                 setBooleanState((boolean) evt.getNewValue());
             }

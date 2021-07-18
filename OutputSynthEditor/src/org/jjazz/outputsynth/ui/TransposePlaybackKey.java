@@ -31,6 +31,7 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.DialogDisplayer;
@@ -58,31 +59,31 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
         putValue("hideActionText", true);
         updateButtonUI();
 
-        MusicController.getInstance().addPropertyChangeListener(this);
+        PlaybackSettings.getInstance().addPropertyChangeListener(this);
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        var mc = MusicController.getInstance();
+        var ps = PlaybackSettings.getInstance();
         var dlg = TransposePlaybackKeyDialog.getInstance();
-        
-        
-        dlg.preset(mc.getPlaybackKeyTransposition());
+
+
+        dlg.preset(ps.getPlaybackKeyTransposition());
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
 
 
         if (dlg.isExitOk())
         {
-            int old = mc.getPlaybackKeyTransposition();
-            mc.setPlaybackKeyTransposition(dlg.getPlaybackKeyTransposition());
+            int old = ps.getPlaybackKeyTransposition();
+            ps.setPlaybackKeyTransposition(dlg.getPlaybackKeyTransposition());
 
-            
+
             Analytics.setProperties(Analytics.buildMap("Playback Key Transpose", dlg.getPlaybackKeyTransposition()));
 
-            
-            if (old != dlg.getPlaybackKeyTransposition() && mc.getState().equals(MusicController.State.PLAYING))
+
+            if (old != dlg.getPlaybackKeyTransposition() && MusicController.getInstance().getState().equals(MusicController.State.PLAYING))
             {
                 String msg = ResUtil.getString(getClass(), "CTL_ChangeWillTakeEffectAfter");
                 NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
@@ -97,10 +98,10 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        var mc = MusicController.getInstance();
+        var mc = PlaybackSettings.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName().equals(MusicController.PROP_PLAYBACK_KEY_TRANSPOSITION))
+            if (evt.getPropertyName().equals(PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION))
             {
                 updateButtonUI();
             }
@@ -112,7 +113,7 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
     // ======================================================================   
     private void updateButtonUI()
     {
-        int t = MusicController.getInstance().getPlaybackKeyTransposition();
+        int t = PlaybackSettings.getInstance().getPlaybackKeyTransposition();
 
 
         String iconPath = t == 0 ? OFF_ICON : ON_ICON;

@@ -37,7 +37,7 @@ import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.musiccontrol.api.ClickManager;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -302,7 +302,7 @@ public class BasicSongContextSession implements PropertyChangeListener, Playback
     @Override
     public void cleanup()
     {
-        ClickManager.getInstance().removePropertyChangeListener(this);
+        PlaybackSettings.getInstance().removePropertyChangeListener(this);
         MusicController.getInstance().removePropertyChangeListener(this);  // playback key transposition        
         sgContext.getSong().removePropertyChangeListener(this);
         sgContext.getMidiMix().removePropertyChangeListener(this);

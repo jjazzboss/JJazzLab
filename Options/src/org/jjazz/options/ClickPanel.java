@@ -25,8 +25,8 @@ package org.jjazz.options;
 import java.util.Arrays;
 import javax.swing.JComboBox;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.musiccontrol.api.ClickManager;
-import org.jjazz.musiccontrol.api.ClickManager.PrecountMode;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.PlaybackSettings.PrecountMode;
 import org.jjazz.musiccontrol.api.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.NoteEvent;
@@ -332,12 +332,12 @@ final class ClickPanel extends javax.swing.JPanel
         // someCheckBox.setSelected(NbPreferences.forModule(ClickPanel.class).getBoolean("someFlag", false));
         // or:
         // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
-        combo_soundHigh.setSelectedItem(MidiConst.getGMPercussionMap()[ClickManager.getInstance().getClickPitchHigh()]);
-        combo_soundLow.setSelectedItem(MidiConst.getGMPercussionMap()[ClickManager.getInstance().getClickPitchLow()]);
-        spn_velocityHigh.setValue(ClickManager.getInstance().getClickVelocityHigh());
-        spn_velocityLow.setValue(ClickManager.getInstance().getClickVelocityLow());
-        spn_channel.setValue(ClickManager.getInstance().getPreferredClickChannel() + 1);
-        setPrecountMode(ClickManager.getInstance().getClickPrecountMode());
+        combo_soundHigh.setSelectedItem(MidiConst.getGMPercussionMap()[PlaybackSettings.getInstance().getClickPitchHigh()]);
+        combo_soundLow.setSelectedItem(MidiConst.getGMPercussionMap()[PlaybackSettings.getInstance().getClickPitchLow()]);
+        spn_velocityHigh.setValue(PlaybackSettings.getInstance().getClickVelocityHigh());
+        spn_velocityLow.setValue(PlaybackSettings.getInstance().getClickVelocityLow());
+        spn_channel.setValue(PlaybackSettings.getInstance().getPreferredClickChannel() + 1);
+        setPrecountMode(PlaybackSettings.getInstance().getClickPrecountMode());
     }
 
     void store()
@@ -351,13 +351,13 @@ final class ClickPanel extends javax.swing.JPanel
         // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
 
         int pitchHigh = Arrays.asList(MidiConst.getGMPercussionMap()).indexOf(combo_soundHigh.getSelectedItem());
-        ClickManager.getInstance().setClickPitchHigh(pitchHigh);
+        PlaybackSettings.getInstance().setClickPitchHigh(pitchHigh);
         int pitchLow = Arrays.asList(MidiConst.getGMPercussionMap()).indexOf(combo_soundLow.getSelectedItem());
-        ClickManager.getInstance().setClickPitchLow(pitchLow);
-        ClickManager.getInstance().setClickVelocityHigh((int) spn_velocityHigh.getValue());
-        ClickManager.getInstance().setClickVelocityLow((int) spn_velocityLow.getValue());
-        ClickManager.getInstance().setPreferredClickChannel((int) spn_channel.getValue() - 1);
-        ClickManager.getInstance().setClickPrecountMode(getPrecountMode());
+        PlaybackSettings.getInstance().setClickPitchLow(pitchLow);
+        PlaybackSettings.getInstance().setClickVelocityHigh((int) spn_velocityHigh.getValue());
+        PlaybackSettings.getInstance().setClickVelocityLow((int) spn_velocityLow.getValue());
+        PlaybackSettings.getInstance().setPreferredClickChannel((int) spn_channel.getValue() - 1);
+        PlaybackSettings.getInstance().setClickPrecountMode(getPrecountMode());
     }
 
     boolean valid()

@@ -35,7 +35,7 @@ import org.jjazz.midiconverters.api.ConverterManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserChannelRvKey;
-import org.jjazz.musiccontrol.api.ClickManager;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -99,7 +99,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
 
 
         // Can't override the click channel
-        int clickChannel = ClickManager.getInstance().getClickChannel(midiMix);
+        int clickChannel = PlaybackSettings.getInstance().getClickChannel(midiMix);
         if (newChannelId == clickChannel && !rvKeySrc.isDrums())
         {
             String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.Channel10ClickReserved", clickChannel + 1);

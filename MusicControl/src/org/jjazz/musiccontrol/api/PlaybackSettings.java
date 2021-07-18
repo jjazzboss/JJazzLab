@@ -23,7 +23,11 @@
 package org.jjazz.musiccontrol.api;
 
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyVetoException;
+import java.beans.VetoableChangeListener;
+import java.beans.VetoableChangeSupport;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -32,6 +36,7 @@ import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Sequence;
+import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
@@ -40,7 +45,7 @@ import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
-import static org.jjazz.musiccontrol.api.ClickManager.PROP_CLICK_PITCH_LOW;
+import static org.jjazz.musiccontrol.api.PlaybackSettings.PROP_CLICK_PITCH_LOW;
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.openide.util.NbPreferences;
 import org.jjazz.songstructure.api.SongPart;
@@ -49,11 +54,11 @@ import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Click settings and helper methods.
+ * Playback settings (click, looping) and helper methods.
  * <p>
  * Property change events are fired when settings are modified.
  */
-public class ClickManager
+public class PlaybackSettings
 {
 
     public enum PrecountMode
@@ -80,10 +85,18 @@ public class ClickManager
             return mode;
         }
     }
-    private static ClickManager INSTANCE = null;
+    private static PlaybackSettings INSTANCE = null;
     public static String CLICK_TRACK_NAME = "JJazzClickTrack";
     public static String PRECOUNT_CLICK_TRACK_NAME = "JJazzPreCountClickTrack";
-
+    /**
+     * This vetoable property change can be fired by playback actions (eg Play, Pause) just before playing a song and can be
+     * vetoed by vetoables listeners to cancel playback start.
+     * <p>
+     * NewValue=If non null it contains the SongContext object.
+     */
+    public static final String PROP_VETO_PRE_PLAYBACK = "PropVetoPrePlayback";   //NOI18N 
+    public static final String PROP_LOOPCOUNT = "PropLoopCount";   //NOI18N 
+    public static final String PROP_PLAYBACK_KEY_TRANSPOSITION = "PlaybackTransposition";              //NOI18N
     public static String PROP_CLICK_PITCH_HIGH = "ClickPitchHigh";
     public static String PROP_CLICK_PITCH_LOW = "ClickPitchLow";
     public static String PROP_CLICK_VELOCITY_HIGH = "ClickVelocityHigh";
@@ -93,25 +106,82 @@ public class ClickManager
     public static String PROP_CLICK_PRECOUNT_MODE = "ClickPrecountMode";
     public static String PROP_PLAYBACK_CLICK_ENABLED = "PlaybackClickEnabled";
 
+    private int loopCount = 0;
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-    private static Preferences prefs = NbPreferences.forModule(ClickManager.class);
-    protected static final Logger LOGGER = Logger.getLogger(ClickManager.class.getSimpleName());
+    private final VetoableChangeSupport vcs = new VetoableChangeSupport(this);
+    private static Preferences prefs = NbPreferences.forModule(PlaybackSettings.class);
+    protected static final Logger LOGGER = Logger.getLogger(PlaybackSettings.class.getSimpleName());
 
-    static public ClickManager getInstance()
+    static public PlaybackSettings getInstance()
     {
-        synchronized (ClickManager.class)
+        synchronized (PlaybackSettings.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new ClickManager();
+                INSTANCE = new PlaybackSettings();
             }
         }
         return INSTANCE;
     }
 
-    private ClickManager()
+    private PlaybackSettings()
     {
 
+    }
+
+    public int getLoopCount()
+    {
+        return loopCount;
+    }
+
+    /**
+     * Set the loop count of the playback.
+     * <p>
+     *
+     * @param loopCount If 0, play the song once (no loop). Use Sequencer.LOOP_CONTINUOUSLY for endless loop.
+     */
+    public void setLoopCount(int loopCount)
+    {
+        if (loopCount != Sequencer.LOOP_CONTINUOUSLY && loopCount < 0)
+        {
+            throw new IllegalArgumentException("loopCount=" + loopCount);   //NOI18N
+        }
+
+        int old = this.loopCount;
+        this.loopCount = loopCount;
+        pcs.firePropertyChange(PROP_LOOPCOUNT, old, this.loopCount);
+    }
+
+    /**
+     * Get the key transposition applied to chord symbols when playing a song.
+     * <p>
+     *
+     * @return [0;-11] Default is 0.
+     */
+    public int getPlaybackKeyTransposition()
+    {
+        return prefs.getInt(PROP_PLAYBACK_KEY_TRANSPOSITION, 0);
+    }
+
+    /**
+     * Set the key transposition applied to chord symbols when playing a song.
+     * <p>
+     * Ex: if transposition=-2, chord=C#7 will be replaced by B7.
+     * <p>
+     * Note that to have some effect the current PlaybackSession must take into account this parameter.
+     *
+     * @param t [0;-11]
+     */
+    public void setPlaybackKeyTransposition(int t)
+    {
+        if (t < -11 || t > 0)
+        {
+            throw new IllegalArgumentException("t=" + t);   //NOI18N
+        }
+
+        int old = getPlaybackKeyTransposition();
+        prefs.putInt(PROP_PLAYBACK_KEY_TRANSPOSITION, t);
+        pcs.firePropertyChange(PROP_PLAYBACK_KEY_TRANSPOSITION, old, t);
     }
 
     /**
@@ -450,6 +520,36 @@ public class ClickManager
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
+    }
+
+    /**
+     * Listeners will be notified via the PROP_VETO_PRE_PLAYBACK property change before a playback is started.
+     * <p>
+     * The NewValue is a SongContext object. A listener who has already notified the end-user via its own UI must throw a
+     * PropertyVetoException with a null message to avoid another notification by the framework.
+     *
+     * @param listener
+     */
+    public synchronized void addPlaybackStartVetoableListener(VetoableChangeListener listener)
+    {
+        vcs.addVetoableChangeListener(listener);
+    }
+
+    public synchronized void removePlaybackStartVetoableListener(VetoableChangeListener listener)
+    {
+        vcs.removeVetoableChangeListener(listener);
+    }
+
+    /**
+     * Notify all playback start VetoableChangeListeners with a PROP_VETO_PRE_PLAYBACK property vetoable change event.
+     *
+     *
+     * @param sgContext Used as the new value of the Vetoable change
+     * @throws PropertyVetoException
+     */
+    public void firePlaybackStartVetoableChange(SongContext sgContext) throws PropertyVetoException
+    {
+        vcs.fireVetoableChange(PROP_VETO_PRE_PLAYBACK, null, sgContext);
     }
 
     // ============================================================================

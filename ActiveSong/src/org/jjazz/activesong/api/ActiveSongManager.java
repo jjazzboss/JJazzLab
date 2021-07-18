@@ -35,6 +35,7 @@ import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.outputsynth.api.OutputSynthManager;
@@ -92,7 +93,7 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
         // Listen to Midi out and master volume changes
         JJazzMidiSystem.getInstance().addPropertyChangeListener(this);
         // Listen to pre-playback events
-        MusicController.getInstance().addVetoableChangeListener(this);
+        PlaybackSettings.getInstance().addPlaybackStartVetoableListener(this);
 
     }
 
@@ -243,9 +244,9 @@ public class ActiveSongManager implements PropertyChangeListener, VetoableChange
     @Override
     public void vetoableChange(PropertyChangeEvent evt) throws PropertyVetoException
     {
-        if (evt.getSource() == MusicController.getInstance())
+        if (evt.getSource() == PlaybackSettings.getInstance())
         {
-            if (evt.getPropertyName() == MusicController.PROPVETO_PRE_PLAYBACK)
+            if (evt.getPropertyName().equals(PlaybackSettings.PROP_VETO_PRE_PLAYBACK))
             {
                 if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.PLAY))
                 {

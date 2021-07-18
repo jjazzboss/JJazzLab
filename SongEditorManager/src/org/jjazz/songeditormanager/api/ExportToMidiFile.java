@@ -49,7 +49,7 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
-import org.jjazz.musiccontrol.api.ClickManager;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
@@ -246,7 +246,7 @@ public class ExportToMidiFile extends AbstractAction
 
 
         // Add click & precount tracks if required
-        ClickManager cm = ClickManager.getInstance();
+        PlaybackSettings cm = PlaybackSettings.getInstance();
         long songStartTick = cm.isClickPrecountEnabled() ? cm.addPrecountClickTrack(sequence, sgContext) : 0;
         if (cm.isPlaybackClickEnabled())
         {

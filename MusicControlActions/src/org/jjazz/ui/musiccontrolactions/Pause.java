@@ -33,7 +33,11 @@ import javax.swing.ImageIcon;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
 import org.jjazz.util.api.ResUtil;
@@ -133,7 +137,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
                     try
                     {
                         mc.resume();
-                    } catch (MusicGenerationException | PropertyVetoException ex)
+                    } catch (MusicGenerationException ex)
                     {
                         if (ex.getLocalizedMessage() != null)
                         {

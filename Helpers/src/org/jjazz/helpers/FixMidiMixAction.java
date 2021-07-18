@@ -35,6 +35,7 @@ import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
@@ -54,8 +55,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
     public FixMidiMixAction()
     {
         // Register for song playback
-        MusicController mc = MusicController.getInstance();
-        mc.addVetoableChangeListener(this);
+        PlaybackSettings.getInstance().addPlaybackStartVetoableListener(this);
     }
 
     @Override
@@ -75,10 +75,9 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
     {
         LOGGER.log(Level.FINE, "vetoableChange() -- evt={0}", evt);   //NOI18N
 
-        MusicController mc = MusicController.getInstance();
-        if (evt.getSource() != mc
-                || !evt.getPropertyName().equals(MusicController.PROPVETO_PRE_PLAYBACK)
-                || !mc.getState().equals(MusicController.State.STOPPED))  // Don't check in pause mode
+        if (evt.getSource() != PlaybackSettings.getInstance()
+                || !evt.getPropertyName().equals(PlaybackSettings.PROP_VETO_PRE_PLAYBACK)
+                || !MusicController.getInstance().getState().equals(MusicController.State.STOPPED))  // Don't check in pause mode
         {
             return;
         }
@@ -90,7 +89,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
             return;
         }
 
-        
+
         MidiMix midiMix = context.getMidiMix();
         OutputSynth outputSynth = OutputSynthManager.getInstance().getOutputSynth();
         HashMap<Integer, Instrument> mapNewInstruments = outputSynth.getNeedFixInstruments(midiMix);
@@ -162,6 +161,5 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
             midiMix.setDrumsReroutedChannel(true, ch);
         }
     }
-
 
 }
