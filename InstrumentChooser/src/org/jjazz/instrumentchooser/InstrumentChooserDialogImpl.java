@@ -701,6 +701,7 @@ public class InstrumentChooserDialogImpl extends InstrumentChooserDialog impleme
             tp.playTestNotes(channel, -1, TRANSPOSE + getTransposition(), endAction);
         } catch (MusicGenerationException ex)
         {
+            endAction.run();
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }

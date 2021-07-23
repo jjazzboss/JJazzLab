@@ -661,6 +661,7 @@ public class RemapTableInstrumentChooserImpl extends RemapTableInstrumentChooser
             tp.playTestNotes(CHANNEL, -1, 0, endAction);
         } catch (MusicGenerationException ex)
         {
+            endAction.run();
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }

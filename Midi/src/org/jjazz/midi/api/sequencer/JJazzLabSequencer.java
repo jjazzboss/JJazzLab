@@ -55,16 +55,15 @@ import javax.sound.midi.Transmitter;
  * @author Florian Bomers
  * <p>
  * Updated for JJazzLab @author Jerome Lelasseux - based on AdoptOpenJDK16 version.
- * 
+ *
  */
-
 final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, AutoConnectSequencer
 {
 
     /**
      * Event Dispatcher thread. Should be using a shared event dispatcher instance with a factory in EventDispatcher
      */
-    private static final Map<ThreadGroup, EventDispatcher> dispatchers            = new WeakHashMap<>();
+    private static final Map<ThreadGroup, EventDispatcher> dispatchers = new WeakHashMap<>();
 
     /**
      * All RealTimeSequencers share this info object.
@@ -163,7 +162,7 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
     Receiver autoConnectedReceiver = null;
 
     private static final Logger LOGGER = Logger.getLogger(JJazzLabSequencer.class.getSimpleName());
-    
+
     /* ****************************** CONSTRUCTOR ****************************** */
     JJazzLabSequencer()
     {
@@ -1680,7 +1679,7 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
             if (running || tickPos > 0)
             {
                 // will also reindex
-                chaseEvents(oldLastTick, tickPos);
+                chaseEvents(oldLastTick, tickPos);      // Jerome JJazzLab: bug?? oldLastTick==tickPos !
             } else
             {
                 needReindex = true;
@@ -1858,9 +1857,10 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
         }
 
         /**
-         * chase all events from beginning of Track and send note off for those events that are active in noteOnCache array. It is
-         * possible, of course, to catch notes from other tracks, but better than more complicated logic to detect which notes are
-         * really from this track
+         * chase all events from beginning of Track and send note off for those events that are active in noteOnCache array.
+         * <p>
+         * It is possible, of course, to catch notes from other tracks, but better than more complicated logic to detect which
+         * notes are really from this track
          */
         private void sendNoteOffIfOn(Track track, long endTick)
         {
@@ -2163,7 +2163,7 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
             } else
             {
                 // not meta, send to device
-                getTransmitterList().sendMessage(message, -1);  
+                getTransmitterList().sendMessage(message, -1);
 
                 switch (msgStatus & 0xF0)
                 {

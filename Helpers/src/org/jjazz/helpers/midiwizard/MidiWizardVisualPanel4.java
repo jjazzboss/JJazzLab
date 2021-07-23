@@ -103,6 +103,7 @@ public final class MidiWizardVisualPanel4 extends JPanel
             tp.playTestNotes(channel, -1, 0, endAction);
         } catch (MusicGenerationException ex)
         {
+            endAction.run();
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }

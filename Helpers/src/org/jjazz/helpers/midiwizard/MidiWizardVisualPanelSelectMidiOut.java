@@ -132,6 +132,7 @@ public final class MidiWizardVisualPanelSelectMidiOut extends JPanel
             tp.playTestNotes(0, -1, 0, endAction);
         } catch (MusicGenerationException ex)
         {
+            endAction.run();
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }

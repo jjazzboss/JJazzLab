@@ -451,19 +451,20 @@ public class MidiSequenceBuilder
     private class SequenceBuilderTask implements Runnable
     {
 
-        public Sequence sequence = null;
-        public MusicGenerationException musicException = null;
+        // The generated sequence from the phrases
+        private Sequence sequence = null;
+        private MusicGenerationException musicException = null;
 
-        public SequenceBuilderTask()
+        private SequenceBuilderTask()
         {
         }
 
         @Override
         public void run()
         {
+            // The generated phrases for each used rhythm
+            HashMap<RhythmVoice, Phrase> mapRvPhrase = new HashMap<>();
 
-            // Get the generated phrases for each used rhythm
-            HashMap<RhythmVoice, Phrase> mapRes = new HashMap<>();
 
             for (Rhythm r : context.getUniqueRhythms())
             {
@@ -476,7 +477,7 @@ public class MidiSequenceBuilder
                     }
 
                     // Merge into the final result
-                    mapRes.putAll(rMap);
+                    mapRvPhrase.putAll(rMap);
                 } catch (MusicGenerationException ex)
                 {
                     musicException = ex;
@@ -492,7 +493,7 @@ public class MidiSequenceBuilder
                 {
                     try
                     {
-                        pp.postProcess(context, mapRes);
+                        pp.postProcess(context, mapRvPhrase);
                     } catch (MusicGenerationException ex)
                     {
                         musicException = ex;
@@ -501,22 +502,23 @@ public class MidiSequenceBuilder
                 }
             }
 
+
             // Handle muted instruments via the SongPart's RP_SYS_Mute parameter
-            processMutedInstruments(mapRes);
+            processMutedInstruments(mapRvPhrase);
 
 
             // Merge the phrases from delegate RhythmVoices to the source phrase, and remove the delegate phrases            
-            for (var it = mapRes.keySet().iterator(); it.hasNext();)
+            for (var it = mapRvPhrase.keySet().iterator(); it.hasNext();)
             {
                 var rv = it.next();
                 if (rv instanceof RhythmVoiceDelegate)
                 {
                     RhythmVoiceDelegate rvd = (RhythmVoiceDelegate) rv;
-                    Phrase p = mapRes.get(rvd);
-                    Phrase pDest = mapRes.get(rvd.getSource());
+                    Phrase p = mapRvPhrase.get(rvd);
+                    Phrase pDest = mapRvPhrase.get(rvd.getSource());
                     if (pDest == null)
                     {
-                        throw new IllegalStateException("rv=" + rv + " res=" + mapRes);   //NOI18N
+                        throw new IllegalStateException("rv=" + rv + " res=" + mapRvPhrase);   //NOI18N
                     }
 
                     // There should be no overlap of phrases since the delegate is from a different rhythm, so for different song parts 
@@ -533,11 +535,11 @@ public class MidiSequenceBuilder
 
 
             // Handle instrument settings which impact the phrases: transposition, velocity shift, ...
-            processInstrumentsSettings(mapRes);
+            processInstrumentsSettings(mapRvPhrase);
 
 
             // Shift phrases to start at position 0
-            for (Phrase p : mapRes.values())
+            for (Phrase p : mapRvPhrase.values())
             {
                 p.shiftEvents(-context.getBeatRange().from);
             }
@@ -578,7 +580,7 @@ public class MidiSequenceBuilder
                         String name = rv.getContainer().getName() + "-" + rv.getName();
                         MidiUtilities.addTrackNameEvent(track, name);
                         // Fill the track
-                        Phrase p = mapRes.get(rv);
+                        Phrase p = mapRvPhrase.get(rv);
                         p.fillTrack(track);
                         // Store the track with the RhythmVoice
                         mapRvTrackId.put(rv, trackId);

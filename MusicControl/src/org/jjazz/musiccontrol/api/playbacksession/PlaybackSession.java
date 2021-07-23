@@ -29,7 +29,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.util.api.IntRange;
 
 /**
- * A PlaybackSession contains the data needed by the MusicController to play a song and provide related services (firing beat or
+ * A PlaybackSession contains the data needed by the MusicController to play music and provide related services (firing beat or
  * chord symbol events, managing tempo changes, ...).
  * <p>
  * Some session data values are meaningful only when state==GENERATED. A property change event is fired for mutable value changes.
@@ -150,7 +150,7 @@ public interface PlaybackSession
     /**
      * The sequencer loop count (see Java Sequencer setLoopCount()).
      *
-     * @return
+     * @return 0 means sequence is played only once, 1 means sequence is played twice, etc. -1 means loop forever.
      */
     int getLoopCount();
 

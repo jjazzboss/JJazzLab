@@ -1031,6 +1031,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
             tp.playTestNotes(CHANNEL, -1, TRANSPOSE, endAction);
         } catch (MusicGenerationException ex)
         {
+            endAction.run();
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }
@@ -1104,6 +1105,7 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
 
         } catch (MusicGenerationException ex)
         {
+            endAction.run();
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }

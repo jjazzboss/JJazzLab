@@ -728,6 +728,7 @@ final class MidiPanel extends javax.swing.JPanel
             tp.playTestNotes(MidiConst.CHANNEL_MIN, -1, 0, endAction);
         } catch (MusicGenerationException ex)
         {
+            endAction.run();
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }

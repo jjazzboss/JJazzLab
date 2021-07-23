@@ -186,14 +186,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
 
 
         // Start playback
-        try
-        {
-            mc.play(session, 0);
-        } catch (PropertyVetoException ex)
-        {
-            // Should never occur, session does not implement VetoableSession
-            Exceptions.printStackTrace(ex);
-        }
+        mc.play(session, 0);
 
 
         // Save previewed rhythm
@@ -208,14 +201,12 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         MusicController.getInstance().stop();
     }
 
-
     @Override
     public Rhythm getPreviewedRhythm()
     {
         var mc = MusicController.getInstance();
         return mc.getState().equals(MusicController.State.PLAYING) && mc.getPlaybackSession() == session ? rhythm : null;
     }
-
 
     // ===============================================================================================
     // Private methods
@@ -335,7 +326,6 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         return newSong;
     }
 
-
     /**
      * Our own session to manage the special case of a SongPart with an AdaptedRhythm which needs the source rhythm to be present
      * in the song for building the sequence.
@@ -373,6 +363,5 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         }
 
     }
-
 
 }

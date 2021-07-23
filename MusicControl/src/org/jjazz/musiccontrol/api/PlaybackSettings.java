@@ -54,7 +54,7 @@ import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Playback settings (click, looping) and helper methods.
+ * Playback settings (click, precount, looping, playback transposition) and related helper methods.
  * <p>
  * Property change events are fired when settings are modified.
  */

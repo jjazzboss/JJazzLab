@@ -22,19 +22,20 @@
  */
 package org.jjazz.musiccontrol.api;
 
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeListener;
+import java.util.HashMap;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MetaEventListener;
-import javax.sound.midi.MetaMessage;
 import javax.sound.midi.Sequence;
-import javax.sound.midi.Sequencer;
 import javax.sound.midi.Track;
-import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiConst;
+import org.jjazz.musiccontrol.api.playbacksession.EndOfPlaybackActionProvider;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.NoteEvent;
 import org.jjazz.rhythmmusicgeneration.api.Phrase;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.IntRange;
 
 /**
  * Play test notes.
@@ -71,9 +72,8 @@ public class TestPlayer
      * @param channel
      * @param fixPitch -1 means not used.
      * @param transpose Transposition value in semi-tons to be added to test notes. Ignored if fixPitch&gt;=0.
-     * @param endAction Called when sequence is over. Can be null.
-     * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occurred. endAction.run() is called before throwing the
-     * exception.
+     * @param endAction Called when playback is over. Can be null.
+     * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occurred.
      */
     public void playTestNotes(int channel, int fixPitch, int transpose, final Runnable endAction) throws MusicGenerationException
     {
@@ -92,90 +92,143 @@ public class TestPlayer
      * Play the test notes from specified phrase.
      * <p>
      *
-     * @param p
+     * @param phrase
      * @param endAction Called when sequence is over. Can be null.
-     * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occurred. endAction.run() is called before throwing the
-     * exception.
+     * @throws org.jjazz.rhythm.api.MusicGenerationException If a problem occurred.
      */
-    public void playTestNotes(Phrase p, final Runnable endAction) throws MusicGenerationException
+    public void playTestNotes(Phrase phrase, final Runnable endAction) throws MusicGenerationException
     {
-        if (p == null)
+        if (phrase == null)
         {
-            throw new NullPointerException("p=" + p + " endAction=" + endAction);   //NOI18N
+            throw new NullPointerException("p=" + phrase + " endAction=" + endAction);   //NOI18N
         }
 
         final MusicController mc = MusicController.getInstance();
-        Sequencer sequencer = mc.acquireSequencer(this);
-        if (sequencer == null)
-        {
-            throw new MusicGenerationException(ResUtil.getString(getClass(), "Err_CantAccessSequencer"));
-        }
+        mc.stop();
 
+        TestSession session = new TestSession(phrase, endAction);
+        session.generate();
+        mc.play(session, 0);
 
-        try
-        {
-            checkMidi();
-        } catch (MusicGenerationException ex)
-        {
-            if (endAction != null)
-            {
-                endAction.run();
-            }
-            throw ex;
-        }
-
-
-        try
-        {
-            // build a track to hold the notes to send
-            Sequence seq = new Sequence(Sequence.PPQ, MidiConst.PPQ_RESOLUTION);
-            Track track = seq.createTrack();
-            p.fillTrack(track);
-
-            // create an object to listen to the End of Track MetaEvent and stop the sequencer
-            MetaEventListener stopSequencer = new MetaEventListener()
-            {
-                @Override
-                public void meta(MetaMessage event)
-                {
-                    if (event.getType() == 47) // Meta Event for end of sequence
-                    {
-                        sequencer.removeMetaEventListener(this);
-                        sequencer.stop();
-                        mc.releaseSequencer(TestPlayer.this);
-                        if (endAction != null)
-                        {
-                            endAction.run();
-                        }
-                    }
-                }
-            };
-            sequencer.addMetaEventListener(stopSequencer);
-
-            // play the sequence
-            sequencer.setTickPosition(0);
-            sequencer.setLoopCount(0);
-            sequencer.setSequence(seq);
-            sequencer.setTempoFactor(1f);
-            sequencer.setTempoInBPM(120);
-            sequencer.start();
-
-        } catch (InvalidMidiDataException e)
-        {
-            mc.releaseSequencer(TestPlayer.this);
-            throw new MusicGenerationException(e.getLocalizedMessage());
-        }
     }
 
     // ===============================================================================================
     // Private methods
     // ===============================================================================================
-    private void checkMidi() throws MusicGenerationException
+    // ===============================================================================================
+    // Private class
+    // ===============================================================================================
+    private class TestSession implements PlaybackSession, EndOfPlaybackActionProvider
     {
-        if (JJazzMidiSystem.getInstance().getDefaultOutDevice() == null)
+
+        ActionListener endAction;
+        Phrase phrase;
+        Sequence sequence;
+
+        protected TestSession(Phrase p, Runnable r)
         {
-            throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_NoMidiOutputDeviceSet"));
+            this.endAction = evt ->
+            {
+                if (r != null)
+                {
+                    r.run();
+                }
+            };
+            this.phrase = p;
         }
+
+        @Override
+        public void generate() throws MusicGenerationException
+        {
+            try
+            {
+                sequence = new Sequence(Sequence.PPQ, MidiConst.PPQ_RESOLUTION);
+            } catch (InvalidMidiDataException ex)
+            {
+                throw new MusicGenerationException(ex.getMessage());
+            }
+            Track track = sequence.createTrack();
+            phrase.fillTrack(track);
+        }
+
+        @Override
+        public Sequence getSequence()
+        {
+            return sequence;
+        }
+
+        @Override
+        public PlaybackSession.State getState()
+        {
+            return PlaybackSession.State.GENERATED;
+        }
+
+        @Override
+        public int getTempo()
+        {
+            return 120;
+        }
+
+        @Override
+        public HashMap<Integer, Boolean> getTracksMuteStatus()
+        {
+            return null;
+        }
+
+        @Override
+        public long getLoopEndTick()
+        {
+            return -1;      // End of sequence
+        }
+
+        @Override
+        public long getLoopStartTick()
+        {
+            return 0;
+        }
+
+        @Override
+        public int getLoopCount()
+        {
+            return 0;       // No loop
+        }
+
+        @Override
+        public IntRange getBarRange()
+        {
+            return null;
+        }
+
+        @Override
+        public long getTick(int barIndex)
+        {
+            return 0;
+        }
+
+        @Override
+        public void cleanup()
+        {
+            // Nothing
+        }
+
+        @Override
+        public void addPropertyChangeListener(PropertyChangeListener l)
+        {
+            // Nothing
+        }
+
+        @Override
+        public void removePropertyChangeListener(PropertyChangeListener l)
+        {
+            // Nothing
+        }
+
+        @Override
+        public ActionListener getEndOfPlaybackAction()
+        {
+            return endAction;
+        }
+
     }
 
 }

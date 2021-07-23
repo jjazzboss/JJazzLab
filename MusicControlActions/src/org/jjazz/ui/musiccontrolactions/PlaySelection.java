@@ -38,6 +38,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextSession;
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
@@ -181,6 +182,10 @@ public class PlaySelection extends AbstractAction
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
             SongContext context = new SongContext(song, midiMix, rg);
+
+            // Check that all listeners are OK to start playback     
+            PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
+
             SongContextSession session = SongContextSession.getSession(context);
             if (session.getState().equals(PlaybackSession.State.NEW))
             {

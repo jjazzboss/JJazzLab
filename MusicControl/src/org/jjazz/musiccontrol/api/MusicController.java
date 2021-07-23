@@ -284,7 +284,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * problem, MusicController state is not PAUSED nor STOPPED, etc.
      *
      */
-    public void play(PlaybackSession session, int fromBarIndex) throws MusicGenerationException, PropertyVetoException
+    public void play(PlaybackSession session, int fromBarIndex) throws MusicGenerationException
     {
         if (session == null || !session.getState().equals(PlaybackSession.State.GENERATED))
         {
@@ -297,7 +297,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
         // Check bar range
-        if (session.getBarRange().isEmpty())
+        if (session.getBarRange() == null)
+        {
+            // Can't check anything
+        } else if (session.getBarRange().isEmpty())
         {
             // Throw an exception to let the UI roll back (eg play stateful button)
             throw new MusicGenerationException(ResUtil.getString(getClass(), "NOTHING TO PLAY"));
@@ -463,8 +466,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         state = State.STOPPED;
         pcs.firePropertyChange(PROP_STATE, old, state);
 
-        // Position must be reset after the stop so that playback beat change tracking listeners are not reset upon stop        
-        setPosition(playbackSession.getBarRange().from);
+        // Position must be reset after the stop so that playback beat change tracking listeners are not reset upon stop   
+        int barIndex = playbackSession.getBarRange() != null ? playbackSession.getBarRange().from : 0;
+        setPosition(barIndex);
 
         // Action to be fired after state change
         executeEndOfPlaybackAction();
@@ -703,7 +707,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
-        LOGGER.log(Level.SEVERE, "propertyChange() e={0}", e);  //NOI18N
+        LOGGER.log(Level.FINE, "propertyChange() e={0}", e);  //NOI18N
 
 
         // Always enabled changes
@@ -806,7 +810,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private void setPosition(int fromBar)
     {
         assert !state.equals(State.DISABLED) : "state=" + state;
-        long tick = playbackSession.getState().equals(PlaybackSession.State.GENERATED) ? playbackSession.getTick(fromBar) : 0;
+        long tick = Math.max(playbackSession.getTick(fromBar), 0);
         sequencer.setTickPosition(tick);
         updateCurrentPosition(fromBar, 0);
     }
@@ -1068,9 +1072,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private void updateTracksMuteStatus()
     {
         var mapTrackMute = playbackSession.getTracksMuteStatus();
-        for (int trackId : mapTrackMute.keySet())
+        if (mapTrackMute != null)
         {
-            sequencer.setTrackMute(trackId, mapTrackMute.get(trackId));
+            for (int trackId : mapTrackMute.keySet())
+            {
+                sequencer.setTrackMute(trackId, mapTrackMute.get(trackId));
+            }
         }
     }
 

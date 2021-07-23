@@ -318,6 +318,7 @@ final class ClickPanel extends javax.swing.JPanel
            tp.playTestNotes(p, endAction);
        } catch (MusicGenerationException ex)
        {
+           endAction.run();
            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
            DialogDisplayer.getDefault().notify(d);
        }

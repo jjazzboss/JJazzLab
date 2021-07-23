@@ -59,23 +59,28 @@ import org.jjazz.util.api.ResUtil;
 /**
  * A full-featured session based on a SongContext.
  * <p>
- * Take into account ClickManager settings (click & precount) and MusicController settings (playback transposition, loop count).
- * Listen to Song and MidiMix changes to remain uptodate.
+ * The session can take into account all settings of the PlaybackSettings instance. Listen to Song and MidiMix changes to remain
+ * up-to-date.
  */
 public class SongContextSession implements PropertyChangeListener, PlaybackSession, PositionProvider, ChordSymbolProvider, SongContextProvider
 {
 
-    protected State state = State.NEW;
-    protected SongContext sgContext;
-    protected Sequence sequence;
-    protected List<Position> positions;
-    protected int playbackClickTrackId = -1;
-    protected int precountClickTrackId = -1;
-    protected int controlTrackId = -1;
-    protected long loopStartTick = -1;
-    protected long loopEndTick = -1;
-    protected ContextChordSequence contextChordSequence;
-    protected MusicGenerator.PostProcessor[] postProcessors;
+    private State state = State.NEW;
+    private SongContext sgContext;
+    private Sequence sequence;
+    private List<Position> positions;
+    private int playbackClickTrackId = -1;
+    private int precountClickTrackId = -1;
+    private int controlTrackId = -1;
+    private long loopStartTick = 0;
+    private long loopEndTick = -1;
+    private boolean isPlaybackTranspositionEnabled = true;
+    private boolean isClickTrackEnabled = true;
+    private boolean isPrecountTrackEnabled = true;
+    private boolean isControlTrackEnabled = true;
+
+    private ContextChordSequence contextChordSequence;
+    private MusicGenerator.PostProcessor[] postProcessors;
     private static final List<SongContextSession> sessions = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(SongContextSession.class.getSimpleName());  //NOI18N
 
@@ -89,24 +94,36 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
 
     /**
-     * If an existing session in the NEW or GENERATED state alreadu exists for the same parameters then return it, otherwise a new
+     * Create a full-featured session based on a SongContext.
+     * <p>
+     * Take into account all settings of the PlaybackSettings instance. Listen to Song and MidiMix changes to remain up-to-date.
+     * <p>
+     * If an existing session in the NEW or GENERATED state already exists for the same parameters then return it, otherwise a new
      * session is created.
      * <p>
      *
      * @param sgContext
+     * @param enablePlaybackTransposition If true apply the playback transposition
+     * @param enableClickTrack If true add the click track, and its muted/unmuted state will depend on the PlaybackSettings
+     * @param enablePrecountTrack If true add the precount track, and loopStartTick will depend on the PlaybackSettings
+     * @param enableControlTrack if true add a control track (beat positions + chord symbol markers)
      * @param postProcessors
      * @return A session in the NEW or GENERATED state.
      */
-    static public SongContextSession getSession(SongContext sgContext, MusicGenerator.PostProcessor... postProcessors)
+    static public SongContextSession getSession(SongContext sgContext,
+            boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
+            MusicGenerator.PostProcessor... postProcessors)
     {
         if (sgContext == null)
         {
             throw new IllegalArgumentException("sgContext=" + sgContext);
         }
-        SongContextSession session = findSongContextSession(sgContext, postProcessors);
+        SongContextSession session = findSongContextSession(sgContext,
+                enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack,
+                postProcessors);
         if (session == null)
         {
-            final SongContextSession newSession = new SongContextSession(sgContext, postProcessors);
+            final SongContextSession newSession = new SongContextSession(sgContext, enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack, postProcessors);
             newSession.addPropertyChangeListener(evt ->
             {
                 if (evt.getPropertyName().equals(PlaybackSession.PROP_STATE) && newSession.getState().equals(PlaybackSession.State.CLOSED))
@@ -123,12 +140,30 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     }
 
     /**
+     * Same as getSession(sgContext, true, true, true, true, postProcessors);
+     * <p>
+     *
+     * @param sgContext
+     * @param postProcessors
+     * @return A session in the NEW or GENERATED state.
+     */
+    static public SongContextSession getSession(SongContext sgContext, MusicGenerator.PostProcessor... postProcessors)
+    {
+        return getSession(sgContext, true, true, true, true, postProcessors);
+    }
+
+    /**
      * Create a session with the specified parameters.
      *
      * @param sgContext
+     * @param enablePlaybackTransposition
+     * @param enableClickTrack
+     * @param enablePrecountTrack
+     * @param enableControlTrack
      * @param postProcessors Can be null, passed to the MidiSequenceBuilder in charge of creating the sequence.
      */
-    private SongContextSession(SongContext sgContext, MusicGenerator.PostProcessor... postProcessors)
+    protected SongContextSession(SongContext sgContext, boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
+            MusicGenerator.PostProcessor... postProcessors)
     {
         if (sgContext == null)
         {
@@ -136,12 +171,15 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         }
         this.sgContext = sgContext;
         this.postProcessors = postProcessors;
+        this.isPlaybackTranspositionEnabled = enablePlaybackTransposition;
+        this.isClickTrackEnabled = enableClickTrack;
+        this.isPrecountTrackEnabled = enablePrecountTrack;
+        this.isControlTrackEnabled = enableControlTrack;
 
         // Listen to all changes that can impact the generation of the song
         this.sgContext.getSong().addPropertyChangeListener(this);
         this.sgContext.getMidiMix().addPropertyChangeListener(this);
         PlaybackSettings.getInstance().addPropertyChangeListener(this); // click settings
-        MusicController.getInstance().addPropertyChangeListener(this);  // playback key transposition    
     }
 
     @Override
@@ -161,7 +199,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
 
         SongContext workContext = sgContext;
         int t = PlaybackSettings.getInstance().getPlaybackKeyTransposition();
-        if (t != 0)
+        if (isPlaybackTranspositionEnabled && t != 0)
         {
             workContext = buildTransposedContext(sgContext, t);
         }
@@ -190,25 +228,36 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
 
 
         // Add the control track
-        ControlTrackBuilder ctm = new ControlTrackBuilder(workContext);
-        controlTrackId = ctm.addControlTrack(sequence);
-        mapRvMuted.put(controlTrackId, false);
-        positions = ctm.getNaturalBeatPositions();
+        if (isControlTrackEnabled)
+        {
+            ControlTrackBuilder ctm = new ControlTrackBuilder(workContext);
+            controlTrackId = ctm.addControlTrack(sequence);
+            mapRvMuted.put(controlTrackId, false);
+            positions = ctm.getNaturalBeatPositions();
+        }
 
 
         // Add the playback click track
-        playbackClickTrackId = preparePlaybackClickTrack(sequence, workContext);
-        mapRvMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
+        if (isClickTrackEnabled)
+        {
+            playbackClickTrackId = preparePlaybackClickTrack(sequence, workContext);
+            mapRvMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
+        }
 
 
-        // Add the click precount track - this must be done last because it might shift all song events
-        loopStartTick = preparePrecountClickTrack(sequence, workContext);
+        // Add the click precount track - this must be done last because it might shift all song events      
+        if (isPrecountTrackEnabled)
+        {
+            loopStartTick = PlaybackSettings.getInstance().addPrecountClickTrack(sequence, workContext);
+            precountClickTrackId = sequence.getTracks().length - 1;
+            mapRvMuted.put(precountClickTrackId, false);
+        }
+
+
         loopEndTick = loopStartTick + Math.round(workContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
-        precountClickTrackId = sequence.getTracks().length - 1;
-        mapRvMuted.put(precountClickTrackId, false);
 
 
-        // Update the sequence if rerouting needed
+        // Update the sequence if rerouting is needed
         rerouteDrumsChannels(sequence, workContext.getMidiMix());
 
 
@@ -220,7 +269,6 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         State old = state;
         state = State.GENERATED;
         pcs.firePropertyChange(PROP_STATE, old, state);
-
 
     }
 
@@ -498,29 +546,6 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         return trackId;
     }
 
-    /**
-     *
-     * @param sequence
-     * @param mm
-     * @param sg
-     * @return The tick position of the start of the song.
-     */
-    private long preparePrecountClickTrack(Sequence sequence, SongContext context)
-    {
-        // Add the click track
-        PlaybackSettings cm = PlaybackSettings.getInstance();
-        long tickPos = cm.addPrecountClickTrack(sequence, context);
-        // Send a Drums program change if Click channel is not used in the current MidiMix
-//        int clickChannel = ClickManager.getInstance().getPreferredClickChannel();
-//        if (context.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
-//        {
-//                            Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
-//                            JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-//                            jms.sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(clickChannel));  // Might not send anything if default instrument is Void Instrument
-//        }
-        return tickPos;
-    }
-
     private void rerouteDrumsChannels(Sequence seq, MidiMix mm)
     {
         List<Integer> toBeRerouted = mm.getDrumsReroutedChannels();
@@ -563,7 +588,9 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
      * @param postProcessors
      * @return Null if not found
      */
-    static private SongContextSession findSongContextSession(SongContext sgContext, MusicGenerator.PostProcessor... postProcessors)
+    static private SongContextSession findSongContextSession(SongContext sgContext,
+            boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecount, boolean enableControlTrack,
+            MusicGenerator.PostProcessor... postProcessors)
     {
         for (var s : sessions)
         {
@@ -574,7 +601,11 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
             var session = (SongContextSession) s;
             if ((session.getState().equals(PlaybackSession.State.GENERATED) || session.getState().equals(PlaybackSession.State.NEW))
                     && sgContext.equals(session.getSongContext())
-                    && Objects.equals(session.getPostProcessors(), Arrays.asList(postProcessors)))
+                    && Objects.equals(session.getPostProcessors(), Arrays.asList(postProcessors))
+                    && enablePlaybackTransposition == session.isPlaybackTranspositionEnabled
+                    && enableClickTrack == session.isClickTrackEnabled
+                    && enablePrecount == session.isPrecountTrackEnabled
+                    && enableControlTrack == session.isControlTrackEnabled)
             {
                 return session;
             }

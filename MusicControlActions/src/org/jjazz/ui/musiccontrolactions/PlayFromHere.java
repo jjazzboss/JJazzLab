@@ -37,6 +37,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextSession;
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
@@ -59,6 +60,7 @@ import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.api.ResUtil;
+import org.openide.util.Exceptions;
 import org.openide.windows.TopComponent;
 
 /**
@@ -179,6 +181,10 @@ public class PlayFromHere extends AbstractAction
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
             SongContext context = new SongContext(song, midiMix);
+
+            // Check that all listeners are OK to start playback     
+            PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
+
             SongContextSession session = SongContextSession.getSession(context);
             if (session.getState().equals(PlaybackSession.State.NEW))
             {
@@ -192,7 +198,7 @@ public class PlayFromHere extends AbstractAction
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
             }
-        }
+        } 
     }
 
     //=====================================================================================
