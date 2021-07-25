@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
@@ -116,7 +117,7 @@ public class ExportToMidiFile extends AbstractAction
         File midiFile = getMidiFile(song);
         if (midiFile == null)
         {
-            String msg = ResUtil.getString(getClass(), "ERR_CantBuildMidiFile",              song.getName());
+            String msg = ResUtil.getString(getClass(), "ERR_CantBuildMidiFile", song.getName());
             NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
             return;
@@ -147,11 +148,11 @@ public class ExportToMidiFile extends AbstractAction
                 return;
             }
         }
-        
-        
+
+
         // Log event
         Analytics.logEvent("Export Midi");
-        
+
 
         // Generate the sequence    
         MidiMix midiMix = null;
@@ -191,7 +192,7 @@ public class ExportToMidiFile extends AbstractAction
         // Build the sequence
         SongContext sgContext = new SongContext(songCopy, midiMix);
         MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(sgContext);
-        HashMap<RhythmVoice, Integer> mapRvTrackId = seqBuilder.getRvTrackIdMap();
+        Map<RhythmVoice, Integer> mapRvTrackId = seqBuilder.getRvTrackIdMap();
         Sequence sequence = null;
         try
         {
@@ -334,7 +335,7 @@ public class ExportToMidiFile extends AbstractAction
      * @throws ArrayIndexOutOfBoundsException
      * @todo Should we convert tempo Midi message depending on TimeSignature (eg 4/4 or 6/8 don't have the same natural beat...) ?
      */
-    private void prepareForMidiFile(Sequence sequence, long tickOffset, HashMap<RhythmVoice, Integer> mapRvTrackId, MidiMix midiMix) throws ArrayIndexOutOfBoundsException
+    private void prepareForMidiFile(Sequence sequence, long tickOffset, Map<RhythmVoice, Integer> mapRvTrackId, MidiMix midiMix) throws ArrayIndexOutOfBoundsException
     {
         Track[] tracks = sequence.getTracks();
         if (tracks.length == 0)

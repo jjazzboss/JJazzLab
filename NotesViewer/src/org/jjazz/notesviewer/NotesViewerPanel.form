@@ -38,22 +38,21 @@
           <Group type="102" attributes="0">
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="pnl_chordSymbol" max="32767" attributes="0"/>
-                  <Component id="jScrollPane1" alignment="0" max="32767" attributes="0"/>
-                  <Component id="pnl_viewer" alignment="1" max="32767" attributes="0"/>
-                  <Component id="pnl_buttons" alignment="0" max="32767" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="rbtn_selection" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="36" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
                       <Component id="rbtn_playback" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
-                      <Component id="spn_srcChannel" pref="83" max="32767" attributes="0"/>
-                      <EmptySpace min="-2" pref="20" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="spn_srcChannel" max="32767" attributes="0"/>
                   </Group>
+                  <Component id="pnl_chordSymbol" max="32767" attributes="0"/>
+                  <Component id="jScrollPane1" alignment="0" pref="316" max="32767" attributes="0"/>
+                  <Component id="pnl_buttons" alignment="0" max="32767" attributes="0"/>
               </Group>
-              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
           <Component id="pnl_chordSymbolScaleName" alignment="1" max="32767" attributes="0"/>
+          <Component id="pnl_viewer" alignment="0" max="32767" attributes="0"/>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
@@ -70,7 +69,7 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="pnl_chordSymbol" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Component id="pnl_viewer" pref="142" max="32767" attributes="0"/>
+              <Component id="pnl_viewer" pref="132" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="pnl_buttons" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>

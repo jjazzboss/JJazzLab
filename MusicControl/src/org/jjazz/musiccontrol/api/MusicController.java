@@ -25,7 +25,6 @@ package org.jjazz.musiccontrol.api;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.beans.PropertyVetoException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -45,7 +44,6 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Transmitter;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import org.jjazz.analytics.api.Analytics;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiConst;
@@ -319,13 +317,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK IS DISABLED"));
         }
 
-
-        // We can do a bit more if there is a SongContext
-        SongContext sgContext = getSongContext(session);        // Can be null
-
-
+        
         if (debugPlayedSequence)
         {
+            SongContext sgContext = getSongContext(session);        // Can be null
             String songName = sgContext != null ? sgContext.getSong().getName() : "unknown";
             LOGGER.info("play() song=" + songName + " sequence :"); //NOI18N
             LOGGER.info(MidiUtilities.toString(session.getSequence())); //NOI18N
@@ -361,18 +356,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
 
 
-        // Log the song play event        
-        if (sgContext != null)
-        {
-            Analytics.setPropertiesOnce(Analytics.buildMap("First Play", Analytics.toStdDateTimeString()));
-            Analytics.incrementProperties("Nb Play", 1);
-            var mapParams = Analytics.buildMap("Bar Range", sgContext.getBarRange().toString(), "Rhythms", Analytics.toStrList(sgContext.getUniqueRhythms()));
-            Analytics.logEvent("Play", mapParams);
-        }
+
 
 
         // Loop settings
-        sequencer.setLoopStartPoint(playbackSession.getLoopStartTick());
+         sequencer.setLoopStartPoint(playbackSession.getLoopStartTick());
         sequencer.setLoopEndPoint(playbackSession.getLoopEndTick());
         sequencer.setLoopCount(playbackSession.getLoopCount());
 
@@ -441,7 +429,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     public void stop()
     {
-        boolean realStop = false;
         switch (state)
         {
             case DISABLED:
@@ -453,7 +440,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             case PLAYING:
                 sequencer.stop();
                 clearPendingEvents();
-                realStop = true;
                 break;
             default:
                 throw new AssertionError(state.name());

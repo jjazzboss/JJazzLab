@@ -22,7 +22,9 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.ShortMessage;
@@ -101,27 +103,24 @@ public class PitchBendEvent extends NoteEvent
      * @return
      */
     @Override
-    public MidiEvent[] toMidiEvents(int channel)
+    public List<MidiEvent> toMidiEvents(int channel)
     {
         LOGGER.warning("toMidiEvents() NOT VALIDED YET !");   //NOI18N
         int pitchShift = getPitch() - fromPitch;
 
         ShortMessage[] mes = MidiUtilities.getPitchBendMessages(channel, pitchShift);
-        MidiEvent[] events = new MidiEvent[2 * mes.length];
+        List<MidiEvent> events = new ArrayList<>(2 * mes.length);
         long tickStart = (long) (getPositionInBeats() * MidiConst.PPQ_RESOLUTION);
-        int i = 0;
         for (ShortMessage me : mes)
         {
-            events[i] = new MidiEvent(me, tickStart);
-            i++;
+            events.add(new MidiEvent(me, tickStart));
         }
 
         mes = MidiUtilities.getPitchBendMessages(channel, 0);
         long tickEnd = (long) ((getPositionInBeats() + getDurationInBeats()) * MidiConst.PPQ_RESOLUTION) - 1;
         for (ShortMessage me : mes)
         {
-            events[i] = new MidiEvent(me, tickEnd);
-            i++;
+            events.add( new MidiEvent(me, tickEnd));
         }
 
         return events;

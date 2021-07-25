@@ -32,6 +32,7 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
@@ -160,13 +161,25 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                         // Check that all listeners are OK to start playback     
                         PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
 
+                        
+                        // Prepare the session
                         SongContextSession session = SongContextSession.getSession(context);
                         if (session.getState().equals(PlaybackSession.State.NEW))
                         {
                             session.generate();
                         }
 
+
+                        // Start sequencer
                         mc.play(session, 0);
+
+
+                        // Log the song play event        
+                        Analytics.setPropertiesOnce(Analytics.buildMap("First Play", Analytics.toStdDateTimeString()));
+                        Analytics.incrementProperties("Nb Play", 1);
+                        var mapParams = Analytics.buildMap("Bar Range", context.getBarRange().toString(), "Rhythms", Analytics.toStrList(context.getUniqueRhythms()));
+                        Analytics.logEvent("Play", mapParams);
+
                     } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
                     {
                         if (ex.getLocalizedMessage() != null)
@@ -177,6 +190,8 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                         setBooleanState(!newState);
                         return;
                     }
+
+
                 } else
                 {
                     // Nothing

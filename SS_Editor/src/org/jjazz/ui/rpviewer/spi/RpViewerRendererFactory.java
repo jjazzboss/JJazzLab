@@ -27,7 +27,7 @@ import org.openide.util.Lookup;
 import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
 
 /**
- * Provide RpVIewerRenderers implementations.
+ * Provide RpViewerRenderers implementations.
  */
 public interface RpViewerRendererFactory
 {

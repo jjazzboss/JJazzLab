@@ -22,12 +22,14 @@
  */
 package org.jjazz.musiccontrol.api.playbacksession;
 
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequence;
@@ -49,6 +51,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.ContextChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.MidiSequenceBuilder;
+import org.jjazz.rhythmmusicgeneration.api.Phrase;
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
@@ -62,9 +65,11 @@ import org.jjazz.util.api.ResUtil;
  * The session can take into account all settings of the PlaybackSettings instance. Listen to Song and MidiMix changes to remain
  * up-to-date.
  */
-public class SongContextSession implements PropertyChangeListener, PlaybackSession, PositionProvider, ChordSymbolProvider, SongContextProvider
+public class SongContextSession implements PropertyChangeListener, PlaybackSession, PositionProvider, ChordSymbolProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
 
+    public static final int PLAYBACK_SETTINGS_LOOP_COUNT = -1298;
+    private static final ClosedSessionsListener CLOSED_SESSIONS_LISTENER = new ClosedSessionsListener();
     private State state = State.NEW;
     private SongContext sgContext;
     private Sequence sequence;
@@ -74,29 +79,28 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     private int controlTrackId = -1;
     private long loopStartTick = 0;
     private long loopEndTick = -1;
+    private int loopCount = PLAYBACK_SETTINGS_LOOP_COUNT;
     private boolean isPlaybackTranspositionEnabled = true;
     private boolean isClickTrackEnabled = true;
     private boolean isPrecountTrackEnabled = true;
     private boolean isControlTrackEnabled = true;
+    private ActionListener endOfPlaybackAction;
 
     private ContextChordSequence contextChordSequence;
     private MusicGenerator.PostProcessor[] postProcessors;
     private static final List<SongContextSession> sessions = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(SongContextSession.class.getSimpleName());  //NOI18N
 
-    /**
-     * The sequence track id (index) for each rhythm voice, for the given context.
-     * <p>
-     * If a song uses rhythms R1 and R2 and context is only on R2 bars, then the map only contains R2 rhythm voices and track id.
-     */
-    private HashMap<RhythmVoice, Integer> mapRvTrackId;
-    private final HashMap<Integer, Boolean> mapRvMuted = new HashMap<>();
+    private Map<RhythmVoice, Integer> mapRvTrackId;
+    private Map<RhythmVoice, Phrase> mapRvPhrase;
+    private Map<Integer, Boolean> mapTrackIdMuted;
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
 
     /**
      * Create a full-featured session based on a SongContext.
      * <p>
-     * Take into account all settings of the PlaybackSettings instance. Listen to Song and MidiMix changes to remain up-to-date.
+     * Take into account all settings of the PlaybackSettings instance. Listen to PlaybackSettings, sgContext Song/MidiMix changes
+     * to remain up-to-date.
      * <p>
      * If an existing session in the NEW or GENERATED state already exists for the same parameters then return it, otherwise a new
      * session is created.
@@ -107,11 +111,16 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
      * @param enableClickTrack If true add the click track, and its muted/unmuted state will depend on the PlaybackSettings
      * @param enablePrecountTrack If true add the precount track, and loopStartTick will depend on the PlaybackSettings
      * @param enableControlTrack if true add a control track (beat positions + chord symbol markers)
+     * @param loopCount See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the PlaybackSettings instance
+     * value.
+     * @param endOfPlaybackAction Action executed when playback is stopped. Can be null.
      * @param postProcessors
      * @return A session in the NEW or GENERATED state.
      */
     static public SongContextSession getSession(SongContext sgContext,
             boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
+            int loopCount,
+            ActionListener endOfPlaybackAction,
             MusicGenerator.PostProcessor... postProcessors)
     {
         if (sgContext == null)
@@ -120,17 +129,18 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         }
         SongContextSession session = findSongContextSession(sgContext,
                 enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack,
+                loopCount,
+                endOfPlaybackAction,
                 postProcessors);
         if (session == null)
         {
-            final SongContextSession newSession = new SongContextSession(sgContext, enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack, postProcessors);
-            newSession.addPropertyChangeListener(evt ->
-            {
-                if (evt.getPropertyName().equals(PlaybackSession.PROP_STATE) && newSession.getState().equals(PlaybackSession.State.CLOSED))
-                {
-                    sessions.remove(newSession);
-                }
-            });
+            final SongContextSession newSession = new SongContextSession(sgContext,
+                    enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack,
+                    loopCount,
+                    endOfPlaybackAction,
+                    postProcessors);
+
+            newSession.addPropertyChangeListener(CLOSED_SESSIONS_LISTENER);
             sessions.add(newSession);
             return newSession;
         } else
@@ -140,7 +150,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     }
 
     /**
-     * Same as getSession(sgContext, true, true, true, true, postProcessors);
+     * Same as getSession(sgContext, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null, postProcessors);
      * <p>
      *
      * @param sgContext
@@ -149,7 +159,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
      */
     static public SongContextSession getSession(SongContext sgContext, MusicGenerator.PostProcessor... postProcessors)
     {
-        return getSession(sgContext, true, true, true, true, postProcessors);
+        return getSession(sgContext, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null, postProcessors);
     }
 
     /**
@@ -160,9 +170,14 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
      * @param enableClickTrack
      * @param enablePrecountTrack
      * @param enableControlTrack
+     * @param loopCount
+     * @param endOfPlaybackAction
      * @param postProcessors Can be null, passed to the MidiSequenceBuilder in charge of creating the sequence.
      */
-    protected SongContextSession(SongContext sgContext, boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
+    protected SongContextSession(SongContext sgContext,
+            boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
+            int loopCount,
+            ActionListener endOfPlaybackAction,
             MusicGenerator.PostProcessor... postProcessors)
     {
         if (sgContext == null)
@@ -175,6 +190,9 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         this.isClickTrackEnabled = enableClickTrack;
         this.isPrecountTrackEnabled = enablePrecountTrack;
         this.isControlTrackEnabled = enableControlTrack;
+        this.loopCount = loopCount;
+        this.endOfPlaybackAction = endOfPlaybackAction;
+
 
         // Listen to all changes that can impact the generation of the song
         this.sgContext.getSong().addPropertyChangeListener(this);
@@ -199,7 +217,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
 
         SongContext workContext = sgContext;
         int t = PlaybackSettings.getInstance().getPlaybackKeyTransposition();
-        if (isPlaybackTranspositionEnabled && t != 0)
+        if (isPlaybackTranspositionEnabled() && t != 0)
         {
             workContext = buildTransposedContext(sgContext, t);
         }
@@ -215,42 +233,44 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         }
 
 
-        // Used to identify a RhythmVoice's track
+        // Retrieve the maps
+        mapRvPhrase = seqBuilder.getRvPhraseMap();
         mapRvTrackId = seqBuilder.getRvTrackIdMap();
 
 
         // Save the mute status of each RhythmVoice track
+        mapTrackIdMuted = new HashMap<>();
         MidiMix mm = sgContext.getMidiMix();
         for (RhythmVoice rv : mapRvTrackId.keySet())
         {
-            mapRvMuted.put(mapRvTrackId.get(rv), mm.getInstrumentMixFromKey(rv).isMute());
+            mapTrackIdMuted.put(mapRvTrackId.get(rv), mm.getInstrumentMixFromKey(rv).isMute());
         }
 
 
         // Add the control track
-        if (isControlTrackEnabled)
+        if (isControlTrackEnabled())
         {
             ControlTrackBuilder ctm = new ControlTrackBuilder(workContext);
             controlTrackId = ctm.addControlTrack(sequence);
-            mapRvMuted.put(controlTrackId, false);
+            mapTrackIdMuted.put(controlTrackId, false);
             positions = ctm.getNaturalBeatPositions();
         }
 
 
         // Add the playback click track
-        if (isClickTrackEnabled)
+        if (isClickTrackEnabled())
         {
             playbackClickTrackId = preparePlaybackClickTrack(sequence, workContext);
-            mapRvMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
+            mapTrackIdMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
         }
 
 
         // Add the click precount track - this must be done last because it might shift all song events      
-        if (isPrecountTrackEnabled)
+        if (isPrecountTrackEnabled())
         {
             loopStartTick = PlaybackSettings.getInstance().addPrecountClickTrack(sequence, workContext);
             precountClickTrackId = sequence.getTracks().length - 1;
-            mapRvMuted.put(precountClickTrackId, false);
+            mapTrackIdMuted.put(precountClickTrackId, false);
         }
 
 
@@ -299,7 +319,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     @Override
     public int getLoopCount()
     {
-        return PlaybackSettings.getInstance().getLoopCount();
+        return loopCount == PLAYBACK_SETTINGS_LOOP_COUNT ? PlaybackSettings.getInstance().getLoopCount() : loopCount;
     }
 
     @Override
@@ -334,14 +354,16 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     }
 
     /**
-     * Include the click track.
+     * The mute status of all tracks.
+     * <p>
+     * This includes the click/precount/control tracks when enabled.
      *
      * @return
      */
     @Override
     public HashMap<Integer, Boolean> getTracksMuteStatus()
     {
-        return state.equals(State.GENERATED) || state.equals(State.OUTDATED) ? new HashMap<>(mapRvMuted) : null;
+        return state.equals(State.GENERATED) || state.equals(State.OUTDATED) ? new HashMap<>(mapTrackIdMuted) : null;
     }
 
     @Override
@@ -370,6 +392,54 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
         return Arrays.asList(postProcessors);
     }
 
+
+    /**
+     * A map providing the track id (index) corresponding to each used RhythmVoice in the given context.
+     * <p>
+     * If a song uses rhythms R1 and R2 and context is only on R2 bars, then the map only contains R2 rhythm voices and track id.
+     * <p>
+     *
+     * @return
+     */
+    public Map<RhythmVoice, Integer> getRvTrackIdMap()
+    {
+        return new HashMap<>(mapRvTrackId);
+    }
+
+
+    /**
+     * A map giving the resulting Phrase for each RhythmVoice, in the current context.
+     * <p>
+     *
+     * @return
+     */
+    public Map<RhythmVoice, Phrase> getRvPhraseMap()
+    {
+        return new HashMap<>(mapRvPhrase);
+    }
+
+    public boolean isPlaybackTranspositionEnabled()
+    {
+        return isPlaybackTranspositionEnabled;
+    }
+
+    public boolean isClickTrackEnabled()
+    {
+        return isClickTrackEnabled;
+    }
+
+
+    public boolean isPrecountTrackEnabled()
+    {
+        return isPrecountTrackEnabled;
+    }
+
+
+    public boolean isControlTrackEnabled()
+    {
+        return isControlTrackEnabled;
+    }
+
     // ==========================================================================================================
     // SongContextProvider implementation
     // ==========================================================================================================    
@@ -396,6 +466,16 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     {
         return state.equals(State.GENERATED) || state.equals(State.OUTDATED) ? contextChordSequence : null;
     }
+
+    // ==========================================================================================================
+    // EndOfPlaybackActionProvider implementation
+    // ==========================================================================================================   
+    @Override
+    public ActionListener getEndOfPlaybackAction()
+    {
+        return endOfPlaybackAction;
+    }
+
 
     // ==========================================================================================================
     // PropertyChangeListener implementation
@@ -445,7 +525,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
                         Integer trackId = mapRvTrackId.get(rv);     // Can be null if state==outdated
                         if (trackId != null)
                         {
-                            mapRvMuted.put(trackId, insMix.isMute());
+                            mapTrackIdMuted.put(trackId, insMix.isMute());
                             pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
                         }
                     }
@@ -467,14 +547,13 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
                     break;
             }
 
-
         } else if (e.getSource() == PlaybackSettings.getInstance())
         {
             if (e.getPropertyName().equals(PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED))
             {
                 if (!state.equals(State.NEW))
                 {
-                    mapRvMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
+                    mapTrackIdMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
                     pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
                 }
 
@@ -501,7 +580,10 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
                 }
             } else if (e.getPropertyName().equals(PlaybackSettings.PROP_LOOPCOUNT))
             {
-                pcs.firePropertyChange(PROP_LOOP_COUNT, (Integer) e.getOldValue(), (Integer) e.getNewValue());
+                if (loopCount == PLAYBACK_SETTINGS_LOOP_COUNT)
+                {
+                    pcs.firePropertyChange(PROP_LOOP_COUNT, (Integer) e.getOldValue(), (Integer) e.getNewValue());
+                }
             }
         }
 
@@ -590,27 +672,42 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
      */
     static private SongContextSession findSongContextSession(SongContext sgContext,
             boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecount, boolean enableControlTrack,
+            int loopCount,
+            ActionListener endOfPlaybackAction,
             MusicGenerator.PostProcessor... postProcessors)
     {
-        for (var s : sessions)
+        for (var session : sessions)
         {
-            if (!(s instanceof SongContextSession))
-            {
-                continue;
-            }
-            var session = (SongContextSession) s;
             if ((session.getState().equals(PlaybackSession.State.GENERATED) || session.getState().equals(PlaybackSession.State.NEW))
                     && sgContext.equals(session.getSongContext())
                     && Objects.equals(session.getPostProcessors(), Arrays.asList(postProcessors))
-                    && enablePlaybackTransposition == session.isPlaybackTranspositionEnabled
-                    && enableClickTrack == session.isClickTrackEnabled
-                    && enablePrecount == session.isPrecountTrackEnabled
-                    && enableControlTrack == session.isControlTrackEnabled)
+                    && enablePlaybackTransposition == session.isPlaybackTranspositionEnabled()
+                    && enableClickTrack == session.isClickTrackEnabled()
+                    && enablePrecount == session.isPrecountTrackEnabled()
+                    && enableControlTrack == session.isControlTrackEnabled()
+                    && loopCount == session.getLoopCount()
+                    && endOfPlaybackAction == session.getEndOfPlaybackAction())
             {
                 return session;
             }
         }
         return null;
+    }
+
+
+    private static class ClosedSessionsListener implements PropertyChangeListener
+    {
+
+        @Override
+        public void propertyChange(PropertyChangeEvent evt)
+        {
+            SongContextSession session = (SongContextSession) evt.getSource();
+            if (evt.getPropertyName().equals(PlaybackSession.PROP_STATE) && session.getState().equals(PlaybackSession.State.CLOSED))
+            {
+                sessions.remove(session);
+                session.removePropertyChangeListener(this);
+            }
+        }
     }
 
 }

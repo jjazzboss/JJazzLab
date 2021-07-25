@@ -26,6 +26,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,7 +67,8 @@ public class MidiSequenceBuilder
      */
     private SongContext context;
     private MusicGenerator.PostProcessor[] postProcessors;  // Can be null
-    private final HashMap<RhythmVoice, Integer> mapRvTrackId = new HashMap<>();
+    private final Map<RhythmVoice, Integer> mapRvTrackId = new HashMap<>();
+    private final Map<RhythmVoice, Phrase> mapRvPhrase = new HashMap<>();
 
     private static final Logger LOGGER = Logger.getLogger(MidiSequenceBuilder.class.getSimpleName());
 
@@ -88,7 +90,7 @@ public class MidiSequenceBuilder
     /**
      * Build the music accompaniment sequence for the defined context.
      * <p>
-     * - Create a first track with no notes but MidiEvents for song name, time signature changes, CTRL_CHG_JJAZZ_TEMPO_FACTOR
+     * - Create a track 0 with no notes but MidiEvents for song name, time signature changes, CTRL_CHG_JJAZZ_TEMPO_FACTOR
      * controller messages based on the RP_SYS_TempoFactor value (if used by a rhythm). <br>
      * - Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation.
      * <br>
@@ -137,9 +139,21 @@ public class MidiSequenceBuilder
      *
      * @return
      */
-    public HashMap<RhythmVoice, Integer> getRvTrackIdMap()
+    public Map<RhythmVoice, Integer> getRvTrackIdMap()
     {
         return new HashMap<>(mapRvTrackId);
+    }
+
+    /**
+     * A map giving the resulting Phrase for each RhythmVoice, in the current context.
+     * <p>
+     * Must be called AFTER call to buildSequence().
+     *
+     * @return
+     */
+    public Map<RhythmVoice, Phrase> getRvPhraseMap()
+    {
+        return new HashMap<>(mapRvPhrase);
     }
 
     /**
@@ -165,7 +179,7 @@ public class MidiSequenceBuilder
      *
      * @param r
      */
-    private HashMap<RhythmVoice, Phrase> generateRhythmPhrases(Rhythm r) throws MusicGenerationException
+    private Map<RhythmVoice, Phrase> generateRhythmPhrases(Rhythm r) throws MusicGenerationException
     {
         if (r instanceof MusicGenerator)
         {
@@ -230,7 +244,7 @@ public class MidiSequenceBuilder
      *
      * @param rvPhrases
      */
-    private void processMutedInstruments(HashMap<RhythmVoice, Phrase> rvPhrases)
+    private void processMutedInstruments(Map<RhythmVoice, Phrase> rvPhrases)
     {
         for (SongPart spt : context.getSongParts())
         {
@@ -271,7 +285,7 @@ public class MidiSequenceBuilder
      *
      * @param rvPhrases
      */
-    private void processInstrumentsSettings(HashMap<RhythmVoice, Phrase> rvPhrases)
+    private void processInstrumentsSettings(Map<RhythmVoice, Phrase> rvPhrases)
     {
         LOGGER.fine("processInstrumentsSettings() -- ");   //NOI18N
         MidiMix midiMix = context.getMidiMix();
@@ -305,7 +319,7 @@ public class MidiSequenceBuilder
      * @param rvPhrases
      * @throws MusicGenerationException
      */
-    private void checkRhythmPhrasesScope(Rhythm r, HashMap<RhythmVoice, Phrase> rvPhrases) throws MusicGenerationException
+    private void checkRhythmPhrasesScope(Rhythm r, Map<RhythmVoice, Phrase> rvPhrases) throws MusicGenerationException
     {
         // Get the bar ranges used by r
         List<FloatRange> sptRanges = new ArrayList<>();
@@ -462,15 +476,13 @@ public class MidiSequenceBuilder
         @Override
         public void run()
         {
-            // The generated phrases for each used rhythm
-            HashMap<RhythmVoice, Phrase> mapRvPhrase = new HashMap<>();
 
-
+            mapRvPhrase.clear();
             for (Rhythm r : context.getUniqueRhythms())
             {
                 try
                 {
-                    HashMap<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r);          // Possible MusicGenerationException here
+                    Map<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r);          // Possible MusicGenerationException here
                     if (context.getUniqueRhythms().size() > 1)
                     {
                         checkRhythmPhrasesScope(r, rMap);                                  // Possible MusicGenerationException here

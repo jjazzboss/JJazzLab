@@ -22,12 +22,15 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.ShortMessage;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.MidiConst;
+import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.util.api.FloatRange;
 import org.openide.util.Exceptions;
 
@@ -128,6 +131,70 @@ public class NoteEvent extends Note implements Cloneable
     }
 
     /**
+     * Get NoteEvents from a list of NOTE_ON/OFF Midi events.
+     * <p>
+     *
+     * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position.
+     * @param posInBeatsOffset The position in natural beats of the first tick of the track.
+     * @return
+     * @see MidiUtilities#getMidiEvents(javax.sound.midi.Track, java.util.function.Predicate, long, long)
+     */
+    static public List<NoteEvent> getNoteEvents(List<MidiEvent> midiEvents, float posInBeatsOffset)
+    {
+        List<NoteEvent> res = new ArrayList<>();
+
+
+        // Build the NoteEvents
+        MidiEvent[] lastNoteOn = new MidiEvent[128];
+        for (MidiEvent me : midiEvents)
+        {
+            long tick = me.getTick();
+            ShortMessage sm = MidiUtilities.getNoteMidiEvent(me.getMessage());
+            if (sm == null)
+            {
+                // It's not a note ON/OFF message
+                continue;
+            }
+
+
+            int pitch = sm.getData1();
+            int velocity = sm.getData2();
+
+
+            if (sm.getCommand() == ShortMessage.NOTE_ON && velocity > 0)
+            {
+                // NOTE_ON
+                lastNoteOn[pitch] = me;
+
+            } else
+            {
+                MidiEvent meOn = lastNoteOn[pitch];
+
+                // NOTE_OFF
+                if (meOn != null)
+                {
+                    // Create the NoteEvent
+                    long tickOn = meOn.getTick();
+                    ShortMessage smOn = (ShortMessage) meOn.getMessage();
+                    float duration = ((float) tick - tickOn) / MidiConst.PPQ_RESOLUTION;
+                    float posInBeats = posInBeatsOffset + ((float) tickOn / MidiConst.PPQ_RESOLUTION);
+                    NoteEvent ne = new NoteEvent(pitch, duration, smOn.getData2(), posInBeats);
+                    res.add(ne);
+
+                    // Clean the last NoteOn
+                    lastNoteOn[pitch] = null;
+                } else
+                {
+                    // A note Off without a previous note On, do nothing
+                }
+            }
+        }
+
+
+        return res;
+    }
+
+    /**
      * Reset all current properties and copy all properties from ne.
      *
      * @param ne
@@ -178,17 +245,17 @@ public class NoteEvent extends Note implements Cloneable
      * @param channel
      * @return
      */
-    public MidiEvent[] toMidiEvents(int channel)
+    public List<MidiEvent> toMidiEvents(int channel)
     {
-        MidiEvent[] events = new MidiEvent[2];
+        List<MidiEvent> events = new ArrayList<>();
         try
         {
             ShortMessage smOn = new ShortMessage(ShortMessage.NOTE_ON, channel, getPitch(), getVelocity());
             long tickOn = Math.round(position * MidiConst.PPQ_RESOLUTION);
             ShortMessage smOff = new ShortMessage(ShortMessage.NOTE_OFF, channel, getPitch(), 0);
             long tickOff = Math.round((position + getDurationInBeats()) * MidiConst.PPQ_RESOLUTION);
-            events[0] = new MidiEvent(smOn, tickOn);
-            events[1] = new MidiEvent(smOff, tickOff);
+            events.add(new MidiEvent(smOn, tickOn));
+            events.add(new MidiEvent(smOff, tickOff));
         } catch (InvalidMidiDataException ex)
         {
             Exceptions.printStackTrace(ex);

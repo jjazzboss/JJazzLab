@@ -126,7 +126,7 @@ public class Phrase extends LinkedList<NoteEvent>
             it.add(mne);
         }
     }
-
+ 
     /**
      * A deep clone: returned phrase contains clones of the original NoteEvents.
      *
@@ -558,13 +558,27 @@ public class Phrase extends LinkedList<NoteEvent>
      */
     public void fillTrack(Track track)
     {
+        toMidiEvents().forEach(me -> track.add(me));
+    }
+
+    /**
+     * Get all the phrase notes as MidiEvents.
+     * <p>
+     * Tick resolution used is MidiConst.PPQ_RESOLUTION.
+     *
+     * @return Each note is converted into 1 MidiEvent for note ON, 1 for the note OFF
+     */
+    public List<MidiEvent> toMidiEvents()
+    {
+        List<MidiEvent> res = new ArrayList<>();
         for (NoteEvent ne : this)
         {
             for (MidiEvent me : ne.toMidiEvents(channel))
             {
-                track.add(me);
+                res.add(me);
             }
         }
+        return res;
     }
 
     /**

@@ -93,7 +93,7 @@ public class MidiUtilities
      *
      * @param <T>
      * @param track
-     * @param msgClass
+     * @param msgClass MidiMessage class
      * @param tester
      * @param tickMin
      * @param tickMax
@@ -139,6 +139,84 @@ public class MidiUtilities
             track.remove(me);
         }
     }
+
+    /**
+     * Get a clone copy of all MidiEvents found in track.
+     * <p>
+     * @param track
+     * @return The list will contain at least 1 MidiEvent, the special MetaEvent (type=47) marking the end of the track.
+     */
+    static public List<MidiEvent> getMidiEventsCopy(Track track)
+    {
+        var res = new ArrayList<MidiEvent>();
+        for (int i = 0; i < track.size(); i++)
+        {
+            MidiEvent me = track.get(i);
+            MidiMessage mm = me.getMessage();
+            MidiEvent newMe = new MidiEvent((MidiMessage) mm.clone(), me.getTick());
+            res.add(newMe);
+        }
+
+        return res;
+    }
+
+    /**
+     * Return a non-null ShortMessage only if mm is a ShortMessage.NOTE_ON or NOTE_OFF.
+     *
+     * @param mm
+     * @return
+     */
+    static public ShortMessage getNoteMidiEvent(MidiMessage mm)
+    {
+        if (mm instanceof ShortMessage)
+        {
+            ShortMessage sm = (ShortMessage) mm;
+            if (sm.getCommand() == ShortMessage.NOTE_ON || sm.getCommand() == ShortMessage.NOTE_OFF)
+            {
+                return sm;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Return a non-null ShortMessage only if mm is a ShortMessage.NOTE_ON with a velocity &gt; 0.
+     *
+     * @param mm
+     * @return
+     */
+    static public ShortMessage getNoteOnMidiEvent(MidiMessage mm)
+    {
+        if (mm instanceof ShortMessage)
+        {
+            ShortMessage sm = (ShortMessage) mm;
+            if (sm.getCommand() == ShortMessage.NOTE_ON && sm.getData2() > 0)
+            {
+                return sm;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Return a non-null ShortMessage only if mm is a ShortMessage.NOTE_OFF or ShortMessage.NOTE_ON with velocity = 0.
+     *
+     * @param mm
+     * @return
+     */
+    static public ShortMessage getNoteOffMidiEvent(MidiMessage mm)
+    {
+        if (mm instanceof ShortMessage)
+        {
+            ShortMessage sm = (ShortMessage) mm;
+            if (sm.getCommand() == ShortMessage.NOTE_OFF || (sm.getCommand() == ShortMessage.NOTE_ON && sm.getData2() == 0))
+            {
+                return sm;
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Get the last MidiEvent before beforeTick which satisfies predicate.

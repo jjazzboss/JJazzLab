@@ -23,7 +23,7 @@
 package org.jjazz.rhythmmusicgeneration.spi;
 
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
-import java.util.HashMap;
+import java.util.Map;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.Phrase;
@@ -70,7 +70,7 @@ public interface MusicGenerator
          * @return True if some changes have been done.
          * @throws MusicGenerationException
          */
-        boolean postProcess(SongContext context, HashMap<RhythmVoice, Phrase> mapRvPhrase) throws MusicGenerationException;
+        boolean postProcess(SongContext context, Map<RhythmVoice, Phrase> mapRvPhrase) throws MusicGenerationException;
     }
 
     /**
@@ -105,5 +105,5 @@ public interface MusicGenerator
      * notifying the user of the error message associated to the exception.
      *
      */
-    HashMap<RhythmVoice, Phrase> generateMusic(SongContext context) throws MusicGenerationException;
+    Map<RhythmVoice, Phrase> generateMusic(SongContext context) throws MusicGenerationException;
 }

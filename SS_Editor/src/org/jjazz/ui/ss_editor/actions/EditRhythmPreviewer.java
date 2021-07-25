@@ -23,7 +23,7 @@
 package org.jjazz.ui.ss_editor.actions;
 
 import java.awt.event.ActionListener;
-import java.beans.PropertyVetoException;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,11 +33,13 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiUtilities;
@@ -45,14 +47,19 @@ import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.playbacksession.BasicSongContextSession;
+import org.jjazz.musiccontrol.api.playbacksession.ChordSymbolProvider;
+import org.jjazz.musiccontrol.api.playbacksession.EndOfPlaybackActionProvider;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.PositionProvider;
+import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
+import org.jjazz.musiccontrol.api.playbacksession.SongContextSession;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythmmusicgeneration.api.ContextChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator.PostProcessor;
@@ -61,7 +68,7 @@ import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
-import org.jjazz.util.api.LongRange;
+import org.jjazz.util.api.IntRange;
 import org.openide.util.Exceptions;
 
 /**
@@ -77,7 +84,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
     private Rhythm rhythm;
     private Map<RhythmParameter<?>, Object> rpValues;
     private ActionListener endAction;
-    private BasicSongContextSession session;
+    private PreviewSession session;
     private final Set<Rhythm> previewedRhythms = new HashSet<>();  // To release rhythm resources upon cleanup
     private static final Logger LOGGER = Logger.getLogger(EditRhythmPreviewer.class.getSimpleName());
 
@@ -160,13 +167,9 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
 
         // Build the preview song and context
         SongContext sgContext = buildSongContext(r, rpValues, useRhythmTempo);
-        Song song = sgContext.getSong();
-        MidiMix mm = sgContext.getMidiMix();
-        SongPart spt0 = song.getSongStructure().getSongPart(0); // There might be 2 song parts for AdaptedRhythm
-        LongRange spt0TickRange = sgContext.getSptTickRange(spt0);
 
 
-        // Build the corresponding session
+        // Build the corresponding session 
         if (session != null)
         {
             session.cleanup();
@@ -175,17 +178,17 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
                 loopCount ? Sequencer.LOOP_CONTINUOUSLY : 0,
                 endAction,
                 originalPostProcessors);
-        if (session.getState().equals(PlaybackSession.State.NEW))
-        {
-            session.generate();
-        }
+        
 
         // Activate the song to initialize Midi instruments
+        Song song = sgContext.getSong();
+        MidiMix mm = sgContext.getMidiMix();
         ActiveSongManager asm = ActiveSongManager.getInstance();
         asm.setActive(song, mm);
 
 
         // Start playback
+        session.generate();
         mc.play(session, 0);
 
 
@@ -332,26 +335,36 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
      * <p>
      * In this case we shorten the generated sequence and update loopEndTick.
      */
-    private class PreviewSession extends BasicSongContextSession
+    private class PreviewSession implements PlaybackSession, PositionProvider, ChordSymbolProvider, SongContextProvider, EndOfPlaybackActionProvider
     {
 
-        protected PreviewSession(SongContext sgContext, int loopCount, ActionListener endOfPlaybackAction, MusicGenerator.PostProcessor... postProcessors)
+        private final SongContextSession songContextSession;
+        private Sequence sequence;
+        private long loopEndTick;
+
+        private PreviewSession(SongContext sgContext, int loopCount, ActionListener endOfPlaybackAction, MusicGenerator.PostProcessor... postProcessors)
         {
-            super(sgContext, 0, -1, loopCount, endOfPlaybackAction, postProcessors);
+            songContextSession = SongContextSession.getSession(sgContext, true, false, false, true, loopCount, endOfPlaybackAction, postProcessors);
         }
 
         @Override
         public void generate() throws MusicGenerationException
         {
-            super.generate();
+            songContextSession.generate();
 
 
+            // Adapt the sequence
+            sequence = songContextSession.getSequence();
+            loopEndTick = songContextSession.getLoopEndTick();
+
+            
             // Check if we preview an AdaptedRhythm
+            SongContext sgContext = songContextSession.getSongContext();
             var spts = sgContext.getSong().getSongStructure().getSongParts();
             SongPart spt0 = spts.get(0);
             if (!(spt0.getRhythm() instanceof AdaptedRhythm))
             {
-                // Nothing to do
+                // Nothing special to do
                 return;
             }
 
@@ -359,7 +372,104 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
             assert spts.size() == 2 : "spts=" + spts;
             loopEndTick = sgContext.getSptTickRange(spt0).to;
             MidiUtilities.setSequenceDuration(sequence, loopEndTick);
+        }
 
+        @Override
+        public Sequence getSequence()
+        {
+            // Our own modified sequence
+            return sequence;
+        }
+
+        @Override
+        public State getState()
+        {
+            return songContextSession.getState();
+        }
+
+        @Override
+        public int getTempo()
+        {
+            return songContextSession.getTempo();
+        }
+
+        @Override
+        public HashMap<Integer, Boolean> getTracksMuteStatus()
+        {
+            return songContextSession.getTracksMuteStatus();
+        }
+
+        @Override
+        public long getLoopEndTick()
+        {
+            // Our own modified loop end
+            return loopEndTick;
+        }
+
+        @Override
+        public long getLoopStartTick()
+        {
+            return songContextSession.getLoopStartTick();
+        }
+
+        @Override
+        public int getLoopCount()
+        {
+            return songContextSession.getLoopCount();
+        }
+
+        @Override
+        public IntRange getBarRange()
+        {
+            return songContextSession.getBarRange();
+        }
+
+        @Override
+        public long getTick(int barIndex)
+        {
+            return songContextSession.getTick(barIndex);
+        }
+
+        @Override
+        public void cleanup()
+        {
+            songContextSession.cleanup();
+        }
+
+        @Override
+        public void addPropertyChangeListener(PropertyChangeListener l)
+        {
+            // Nothing
+        }
+
+        @Override
+        public void removePropertyChangeListener(PropertyChangeListener l)
+        {
+            // Nothing
+        }
+
+        @Override
+        public List<Position> getPositions()
+        {
+            return songContextSession.getPositions();
+        }
+
+        @Override
+        public ContextChordSequence getContextChordGetSequence()
+        {
+            return songContextSession.getContextChordGetSequence();
+        }
+
+        @Override
+        public SongContext getSongContext()
+        {
+            return songContextSession.getSongContext();
+        }
+
+        @Override
+        public ActionListener getEndOfPlaybackAction()
+        {
+            return songContextSession.getEndOfPlaybackAction();
         }
 
     }

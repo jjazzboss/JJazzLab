@@ -125,6 +125,7 @@ public interface PlaybackSession
     /**
      * Get the mute status of each track id.
      * <p>
+     * Note that track 0 (e.g. mandatory track for sequence name, tempo and time signature changes, etc.) is not included.
      *
      * @return Key=track id, Value=true if track is muted. Can be null if no meaningful value can be returned.
      * @see PROP_MUTED_TRACKS
@@ -135,7 +136,7 @@ public interface PlaybackSession
      * The tick position of the end of the loop.
      * <p>
      *
-     * @return -1 if no meaningful value can be returned.
+     * @return -1 if no meaningful value can be returned (loop will be at the end of sequence)
      */
     long getLoopEndTick();
 
