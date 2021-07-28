@@ -23,6 +23,7 @@
 package org.jjazz.ui.spteditor.spi;
 
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.song.api.Song;
 import org.openide.util.Lookup;
 import org.jjazz.songstructure.api.SongPart;
 
@@ -73,10 +74,11 @@ public interface RpEditorComponentFactory
     /**
      * Create a RpEditorComponent adapted to rp class (whatever the containing rhythm).
      *
+     * @param song Can be null except for RhythmParameters which implement the RpCustomEditorProvider interface
      * @param spt
      * @param rp
      * @return Can be null if rp is not supported.
      */
-    public RpEditorComponent createComponent(SongPart spt, RhythmParameter<?> rp);
+    public RpEditorComponent createComponent(Song song, SongPart spt, RhythmParameter<?> rp);
 
 }

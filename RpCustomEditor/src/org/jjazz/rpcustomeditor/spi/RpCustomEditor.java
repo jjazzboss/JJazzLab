@@ -29,6 +29,8 @@ import org.jjazz.songstructure.api.SongPart;
 
 /**
  * A special JPanel to be used as a RhythmParameter value editor.
+ * <p>
+ * Use addPropertyChangeListener(PROP_RP_VALUE) to get notified when the RP_Value changes.
  *
  * @param <E> The type of value of the RhythmParameter.
  */

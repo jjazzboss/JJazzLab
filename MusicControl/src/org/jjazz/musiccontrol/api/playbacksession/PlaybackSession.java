@@ -94,10 +94,11 @@ public interface PlaybackSession
      * <p>
      * If generation is successful the method changes the state from NEW to GENERATED.
      *
+     * @param silent If false a modal progress bar is shown why generating the music.
      * @throws org.jjazz.rhythm.api.MusicGenerationException
      * @throws IllegalStateException If State is not NEW.
      */
-    void generate() throws MusicGenerationException;
+    void generate(boolean silent) throws MusicGenerationException;
 
     /**
      * The Midi sequence.

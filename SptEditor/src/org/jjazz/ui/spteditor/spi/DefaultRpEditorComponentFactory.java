@@ -23,6 +23,7 @@
 package org.jjazz.ui.spteditor.spi;
 
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.DefaultRpEditorComponentFactoryImpl;
 import org.openide.util.Lookup;
@@ -73,12 +74,13 @@ public interface DefaultRpEditorComponentFactory extends RpEditorComponentFactor
     /**
      * Create a RpEditorComponent of the specified type.
      *
+     * @param song Can be null except for type CUSTOM_DIALOG
      * @param type
      * @param spt
      * @param rp
      * @return Can be null if rp is not supported.
      * @throws IllegalArgumentException If rp class does not match to RpEditor type.
      */
-    public RpEditorComponent createComponent(Type type, SongPart spt, RhythmParameter<?> rp);
+    public RpEditorComponent createComponent(Song song, Type type, SongPart spt, RhythmParameter<?> rp);
 
 }

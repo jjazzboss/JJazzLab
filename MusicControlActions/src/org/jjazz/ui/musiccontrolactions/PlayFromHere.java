@@ -188,7 +188,7 @@ public class PlayFromHere extends AbstractAction
             SongContextSession session = SongContextSession.getSession(context);
             if (session.getState().equals(PlaybackSession.State.NEW))
             {
-                session.generate();
+                session.generate(false);
             }
             mc.play(session, playFromBar);
         } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)

@@ -189,7 +189,7 @@ public class PlaySelection extends AbstractAction
             SongContextSession session = SongContextSession.getSession(context);
             if (session.getState().equals(PlaybackSession.State.NEW))
             {
-                session.generate();
+                session.generate(false);
             }
             mc.play(session, rg.from);
         } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)

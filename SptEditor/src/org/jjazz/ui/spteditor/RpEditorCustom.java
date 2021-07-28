@@ -28,16 +28,22 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.util.logging.Logger;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JButton;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.rpcustomeditor.api.RpCustomEditDialog;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
+import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.jjazz.ui.spteditor.spi.RpEditorComponent;
+import org.openide.util.Exceptions;
 
 /**
  * An editor component for RhythmParameters which implement RpCustomEditorProvider.
@@ -48,16 +54,19 @@ public class RpEditorCustom extends RpEditorComponent
 
     JButton btn_edit;
     Object value;
+    Song songModel;
     private static final Logger LOGGER = Logger.getLogger(RpEditorCustom.class.getSimpleName());
 
-    public RpEditorCustom(SongPart spt, RhythmParameter<?> rp)
+    public RpEditorCustom(Song song, SongPart spt, RhythmParameter<?> rp)
     {
         super(spt, rp);
 
-        if (!(rp instanceof RpCustomEditorProvider))
+        if (!(rp instanceof RpCustomEditorProvider) || song == null)
         {
-            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " is not an instanceof RpCustomEditorProvider");
+            throw new IllegalArgumentException("song=" + song + " spt=" + spt + " rp=" + rp + " is not an instanceof RpCustomEditorProvider");
         }
+
+        songModel = song;
 
         btn_edit = new JButton(ResUtil.getString(getClass(), "CTL_Edit"));
         btn_edit.addActionListener(ae -> showCustomEditDialog());
@@ -81,10 +90,15 @@ public class RpEditorCustom extends RpEditorComponent
 
     @Override
     public void updateEditorValue(Object value)
-    {       
+    {
         this.value = value;
         btn_edit.setText(Utilities.truncateWithDots(value.toString(), 30));
         btn_edit.setToolTipText(rp.getValueDescription(value) + " - Click to edit");
+    }
+
+    public Song getSongModel()
+    {
+        return songModel;
     }
 
     // ===========================================================================
@@ -100,8 +114,19 @@ public class RpEditorCustom extends RpEditorComponent
 
 
         // Prepare our dialog
+        MidiMix mm = null;
+        try
+        {
+            mm = MidiMixManager.getInstance().findMix(songModel);
+        } catch (MidiUnavailableException ex)
+        {
+            // Should never happen 
+            Exceptions.printStackTrace(ex);
+            return;
+        }
+        SongContext sgContext = new SongContext(songModel, mm, songPart.getBarRange());
         RpCustomEditDialog dlg = RpCustomEditDialog.getInstance();
-        dlg.preset(rpEditor, songPart);
+        dlg.preset(rpEditor, sgContext);
         Rectangle r = btn_edit.getBounds();
         Point p = r.getLocation();
         int x = Math.max(10, p.x + dlg.getWidth() + 5);

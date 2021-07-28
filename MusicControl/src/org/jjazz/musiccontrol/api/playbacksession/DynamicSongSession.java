@@ -91,9 +91,9 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
     }
 
     @Override
-    public void generate() throws MusicGenerationException
+    public void generate(boolean silent) throws MusicGenerationException
     {
-        songContextSession.generate();
+        songContextSession.generate(silent);
         sequence = songContextSession.getSequence();
         originalTrackTickSize = sequence.getTickLength();
 

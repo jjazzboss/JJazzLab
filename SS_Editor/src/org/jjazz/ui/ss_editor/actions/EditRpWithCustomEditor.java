@@ -27,10 +27,14 @@ import java.awt.Rectangle;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.List;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythmmusicgeneration.api.SongContext;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -48,8 +52,10 @@ import org.jjazz.util.api.ResUtil;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
 import org.jjazz.rpcustomeditor.api.RpCustomEditDialog;
+import org.jjazz.song.api.Song;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
+import org.openide.util.Exceptions;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
@@ -106,8 +112,20 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
 
 
             // Prepare our dialog
+            Song song = editor.getSongModel();
+            MidiMix mm = null;
+            try
+            {
+                mm = MidiMixManager.getInstance().findMix(song);
+            } catch (MidiUnavailableException ex)
+            {
+                // Should never happen 
+                Exceptions.printStackTrace(ex);
+                return;
+            }
+            SongContext sgContext = new SongContext(song, mm, spt.getBarRange());
             RpCustomEditDialog dlg = RpCustomEditDialog.getInstance();
-            dlg.preset(rpEditor, spt);
+            dlg.preset(rpEditor, sgContext);
             Rectangle r = editor.getRpViewerRectangle(spt, rp);
             Point p = r.getLocation();
             int x = p.x - ((dlg.getWidth() - r.width) / 2);
@@ -130,6 +148,7 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
 
                 JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(undoText);
             }
+
         } else
         {
             // Just highlight the SptEditor

@@ -188,7 +188,7 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
 
 
         // Start playback
-        session.generate();
+        session.generate(false);
         mc.play(session, 0);
 
 
@@ -348,9 +348,9 @@ public class EditRhythmPreviewer implements RhythmSelectionDialog.RhythmPreviewP
         }
 
         @Override
-        public void generate() throws MusicGenerationException
+        public void generate(boolean silent) throws MusicGenerationException
         {
-            songContextSession.generate();
+            songContextSession.generate(silent);
 
 
             // Adapt the sequence

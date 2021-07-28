@@ -107,7 +107,7 @@ public class TestPlayer
         mc.stop();
 
         TestSession session = new TestSession(phrase, endAction);
-        session.generate();
+        session.generate(false);
         mc.play(session, 0);
 
     }
@@ -138,7 +138,7 @@ public class TestPlayer
         }
 
         @Override
-        public void generate() throws MusicGenerationException
+        public void generate(boolean silent) throws MusicGenerationException
         {
             try
             {

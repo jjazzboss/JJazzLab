@@ -207,7 +207,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     }
 
     @Override
-    public void generate() throws MusicGenerationException
+    public void generate(boolean silent) throws MusicGenerationException
     {
         if (!state.equals(State.NEW))
         {
@@ -225,7 +225,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
 
         // Build the sequence
         MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(workContext, postProcessors);
-        sequence = seqBuilder.buildSequence(false); // Can raise MusicGenerationException
+        sequence = seqBuilder.buildSequence(silent); // Can raise MusicGenerationException
         if (sequence == null)
         {
             // If unexpected error, assertion error etc.

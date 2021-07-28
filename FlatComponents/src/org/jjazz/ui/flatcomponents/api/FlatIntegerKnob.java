@@ -96,7 +96,8 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
         // Use mouse wheel to change value, only if enabled
         GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
 
-
+        updateToolTipText();
+        
     }
 
     @Override
@@ -662,7 +663,7 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
         } else
         {
             // Compute the value associated to the north direction
-            setValue((maxValue - minValue) / 2);
+            setValue((maxValue + minValue) / 2);
         }
     }
 

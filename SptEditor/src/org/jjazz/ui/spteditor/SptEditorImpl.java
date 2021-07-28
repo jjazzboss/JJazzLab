@@ -617,7 +617,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
             {
                 factory = defaultRpEditorComponentFactory;
             }
-            RpEditorComponent c = factory.createComponent(spt, rp);
+            RpEditorComponent c = factory.createComponent(this.songModel, spt, rp);
             RpEditor rpe = new RpEditor(spt, rp, c);
             rpes.add(rpe);
             rpe.addPropertyChangeListener(RpEditor.PROP_RP_VALUE, this);     // To avoid getting all UI property change events

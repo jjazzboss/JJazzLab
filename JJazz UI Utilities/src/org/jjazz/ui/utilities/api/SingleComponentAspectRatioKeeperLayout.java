@@ -24,7 +24,7 @@ public class SingleComponentAspectRatioKeeperLayout implements LayoutManager
     /**
      * Will be used for calculus in case no real component is in the parent
      */
-    private static Component fakeComponent = new JPanel();
+    private static final Component fakeComponent = new JPanel();
 
     public SingleComponentAspectRatioKeeperLayout()
     {

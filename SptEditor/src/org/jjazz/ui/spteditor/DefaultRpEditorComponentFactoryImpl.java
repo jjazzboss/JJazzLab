@@ -34,6 +34,7 @@ import org.jjazz.rhythm.parameters.RP_State;
 import org.jjazz.rhythm.parameters.RP_StringSet;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
+import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.spi.DefaultRpEditorComponentFactory;
 import org.jjazz.ui.spteditor.spi.RpEditorComponent;
@@ -60,7 +61,7 @@ public class DefaultRpEditorComponentFactoryImpl implements DefaultRpEditorCompo
     }
 
     @Override
-    public RpEditorComponent createComponent(SongPart spt, RhythmParameter<?> rp)
+    public RpEditorComponent createComponent(Song song, SongPart spt, RhythmParameter<?> rp)
     {
         Type type;
         if (rp instanceof RpCustomEditorProvider)
@@ -79,12 +80,12 @@ public class DefaultRpEditorComponentFactoryImpl implements DefaultRpEditorCompo
         {
             type = Type.STUB;
         }
-        RpEditorComponent c = createComponent(type, spt, rp);
+        RpEditorComponent c = createComponent(song, type, spt, rp);
         return c;
     }
 
     @Override
-    public RpEditorComponent createComponent(Type type, SongPart spt, RhythmParameter<?> rp)
+    public RpEditorComponent createComponent(Song song, Type type, SongPart spt, RhythmParameter<?> rp)
     {
         if (type == null || spt == null || rp == null)
         {
@@ -117,7 +118,7 @@ public class DefaultRpEditorComponentFactoryImpl implements DefaultRpEditorCompo
             case CUSTOM_DIALOG:
                 if (rp instanceof RpCustomEditorProvider)
                 {
-                    c = new RpEditorCustom(spt, rp);
+                    c = new RpEditorCustom(song, spt, rp);
                 }
                 break;
             case STUB:
