@@ -22,6 +22,9 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,6 +42,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.MidiConst;
@@ -47,8 +51,10 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
-import org.jjazz.rhythm.parameters.RP_SYS_Mute;
-import org.jjazz.rhythm.parameters.RP_SYS_TempoFactor;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMix;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMixValue;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.jjazz.songstructure.api.SongPart;
@@ -66,17 +72,15 @@ public class MidiSequenceBuilder
      * The context.
      */
     private SongContext context;
-    private MusicGenerator.PostProcessor[] postProcessors;  // Can be null
     private final Map<RhythmVoice, Integer> mapRvTrackId = new HashMap<>();
     private final Map<RhythmVoice, Phrase> mapRvPhrase = new HashMap<>();
-
+    
     private static final Logger LOGGER = Logger.getLogger(MidiSequenceBuilder.class.getSimpleName());
 
     /**
      * @param context The context to build the sequence. Song's SongStructure can not be empty.
-     * @param postProcessors Optional postProcessors to run on the generated phrases.
      */
-    public MidiSequenceBuilder(SongContext context, MusicGenerator.PostProcessor... postProcessors)
+    public MidiSequenceBuilder(SongContext context)
     {
         if (context == null)
         {
@@ -84,7 +88,6 @@ public class MidiSequenceBuilder
         }
         this.context = context;
         assert !context.getSong().getSongStructure().getSongParts().isEmpty();   //NOI18N
-        this.postProcessors = postProcessors;
     }
 
     /**
@@ -96,6 +99,7 @@ public class MidiSequenceBuilder
      * <br>
      * - Run the optional post-processors.<br>
      * - Apply on each channel possible instrument transpositions, velocity shift, mute (RP_SYS_Mute).<br>
+     * - Apply the RP_SYS_DrumsMix velocity changes.<br>
      * - Perform some checks and assemble the produced phrases into a sequence.<br>
      * <p>
      * If context range start bar is &gt; 0, the Midi events are shifted to start at sequence tick 0.
@@ -122,12 +126,12 @@ public class MidiSequenceBuilder
         {
             BaseProgressUtils.showProgressDialogAndRun(task, ResUtil.getString(getClass(), "PREPARING MUSIC"));
         }
-
+        
         if (task.musicException != null)
         {
             throw task.musicException;
         }
-
+        
         return task.sequence;
     }
 
@@ -164,7 +168,7 @@ public class MidiSequenceBuilder
     {
         return context;
     }
-
+    
     @Override
     public String toString()
     {
@@ -254,8 +258,8 @@ public class MidiSequenceBuilder
             {
                 continue;
             }
-
-
+            
+            
             Set<String> muteValues = spt.getRPValue(rpMute);
             if (muteValues.isEmpty())
             {
@@ -276,6 +280,61 @@ public class MidiSequenceBuilder
                     continue;
                 }
                 p.split(sptRange.from, sptRange.to, true, false);
+            }
+        }
+    }
+
+    /**
+     * Change some note velocities depending on the RP_SYS_DrumsMix value for each SongPart.
+     *
+     * @param mapRvPhrase
+     */
+    private void processDrumsMixSettings(Map<RhythmVoice, Phrase> mapRvPhrase)
+    {
+        for (SongPart spt : context.getSongParts())
+        {
+
+            // Get the RhythmParameter
+            Rhythm r = spt.getRhythm();
+            RP_SYS_DrumsMix rpDrums = RP_SYS_DrumsMix.getDrumsMixRp(r);
+            if (rpDrums == null)
+            {
+                continue;
+            }
+
+
+            // Get the RP value
+            RP_SYS_DrumsMixValue rpValue = spt.getRPValue(rpDrums);
+            var mapSubsetOffset = rpValue.getMapSubsetOffset(); // The offsets to apply for each Subset
+            if (mapSubsetOffset.isEmpty())
+            {
+                continue;
+            }
+
+
+            // Retrieve drums keymap
+            RhythmVoice rvDrums = rpDrums.getRhythmVoice();
+            var keymap = context.getMidiMix().getInstrumentMixFromKey(rvDrums).getInstrument().getDrumKit().getKeyMap();
+
+
+            // Apply the velocity offsets on the SongPart drums notes
+            Phrase p = mapRvPhrase.get(rvDrums);
+            assert p != null : "rpDrums=" + rpDrums + " rvDrums=" + rvDrums;
+            FloatRange sptRange = context.getSptBeatRange(spt);
+            for (NoteEvent ne : p.getNotes(sptRange, true))
+            {
+                int pitch = ne.getPitch();
+                for (DrumKit.Subset subset : mapSubsetOffset.keySet())
+                {
+                    if (keymap.getKeys(subset).contains(pitch))
+                    {
+                        // Replace with a new NoteEvent with adjusted velocity
+                        int v = MidiUtilities.limit(ne.getVelocity() + mapSubsetOffset.get(subset));
+                        NoteEvent newNote = new NoteEvent(ne, ne.getPitch(), ne.getDurationInBeats(), v);
+                        p.set(p.indexOf(ne), newNote);
+                        continue;
+                    }
+                }
             }
         }
     }
@@ -434,6 +493,7 @@ public class MidiSequenceBuilder
         }
     }
 
+
     /**
      * Adjust the EndOfTrack Midi marker for all tracks.
      *
@@ -468,15 +528,15 @@ public class MidiSequenceBuilder
         // The generated sequence from the phrases
         private Sequence sequence = null;
         private MusicGenerationException musicException = null;
-
+        
         private SequenceBuilderTask()
         {
         }
-
+        
         @Override
         public void run()
         {
-
+            
             mapRvPhrase.clear();
             for (Rhythm r : context.getUniqueRhythms())
             {
@@ -499,24 +559,26 @@ public class MidiSequenceBuilder
 
 
             // Optional Post-process
-            if (postProcessors != null)
-            {
-                for (MusicGenerator.PostProcessor pp : postProcessors)
-                {
-                    try
-                    {
-                        pp.postProcess(context, mapRvPhrase);
-                    } catch (MusicGenerationException ex)
-                    {
-                        musicException = ex;
-                        return;
-                    }
-                }
-            }
-
-
+//            if (postProcessors != null)
+//            {
+//                for (MusicGenerator.PostProcessor pp : postProcessors)
+//                {
+//                    try
+//                    {
+//                        pp.postProcess(context, mapRvPhrase);
+//                    } catch (MusicGenerationException ex)
+//                    {
+//                        musicException = ex;
+//                        return;
+//                    }
+//                }
+//            }
             // Handle muted instruments via the SongPart's RP_SYS_Mute parameter
             processMutedInstruments(mapRvPhrase);
+
+
+            // Handle the RP_SYS_DrumsMix changes
+            processDrumsMixSettings(mapRvPhrase);
 
 
             // Merge the phrases from delegate RhythmVoices to the source phrase, and remove the delegate phrases            
@@ -602,6 +664,8 @@ public class MidiSequenceBuilder
             }
             fixEndOfTracks(sequence);
         }
+        
+        
     }
-
+    
 }

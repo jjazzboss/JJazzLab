@@ -69,7 +69,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.midimix.api.UserChannelRvKey;
 import org.jjazz.rhythm.api.AdaptedRhythm;
-import org.jjazz.rhythm.api.DummyRhythm;
+import org.jjazz.rhythm.stubs.api.DummyRhythm;
 import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;

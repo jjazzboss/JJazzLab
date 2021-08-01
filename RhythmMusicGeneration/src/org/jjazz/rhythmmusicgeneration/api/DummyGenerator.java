@@ -22,6 +22,9 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.songcontext.api.SongContext;
 import java.util.HashMap;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import java.util.logging.Logger;

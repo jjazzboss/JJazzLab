@@ -23,7 +23,7 @@
 package org.jjazz.midi.api.keymap;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import org.jjazz.midi.api.DrumKit;
@@ -36,18 +36,11 @@ public class KeyMapXG implements DrumKit.KeyMap
 {
 
     public static final String NAME = "XG";
-    private static final Integer[] CRASH_KEYS = new Integer[]
-    {
-        49, 52, 55, 57
-    };
-    private static final Integer[] OPEN_HI_HAT_KEYS = new Integer[]
-    {
-        46
-    };
     private static KeyMapXG INSTANCE;
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
-    private ArrayList<Integer> accentPitches = new ArrayList<>();
+    private HashMap<DrumKit.Subset, List<Integer>> mapSubsetPitches = new HashMap<>();
+
     private final KeyRange range = new KeyRange(13, 84);
 
     public static KeyMapXG getInstance()
@@ -64,79 +57,80 @@ public class KeyMapXG implements DrumKit.KeyMap
 
     private KeyMapXG()
     {
-        addNote("Surdo Mute", 13, false);
-        addNote("Surdo Open", 14, false);
-        addNote("HIGH Q", 15, false);
-        addNote("Whip Slap", 16, false);
-        addNote("SCRATCH PUSH", 17, false);
-        addNote("Scratch Pull", 18, false);
-        addNote("FINGER SNAP", 19, false);
-        addNote("CLICK Noise", 20, false);
-        addNote("Metronome Click", 21, false);
-        addNote("Metronome Bell", 22, false);
-        addNote("Seq Click Low", 23, false);
-        addNote("Seq Click High", 24, false);
-        addNote("Brush Tap", 25, true);
-        addNote("Brush Swirl Low", 26, false);
-        addNote("Brush Slap", 27, true);
-        addNote("Brush Tap Swirl", 28, false);
-        addNote("Snare Roll", 29, false);
-        addNote("Castanets", 30, false);
-        addNote("Snare Soft", 31, true);
-        addNote("Stick", 32, true);
-        addNote("Kick Soft", 33, true);
-        addNote("Rim Shot Open", 34, true);
-        addNote("Kick tight", 35, true);
-        addNote("BASS DRUM 1", 36, true);
-        addNote("SIDE STICK", 37, true);
-        addNote("ACOUSTIC SNARE", 38, true);
-        addNote("HAND CLAP", 39, true);
-        addNote("ELECTRIC SNARE", 40, true);
-        addNote("LOW FLOOR TOM", 41, false);
-        addNote("CLOSED HI HAT", 42, false);
-        addNote("HIGH FLOOR TOM", 43, false);
-        addNote("PEDAL HI HAT", 44, false);
-        addNote("LOW TOM", 45, false);
-        addNote("OPEN HI HAT", 46, false);
-        addNote("LOW MID TOM", 47, false);
-        addNote("HI MID TOM", 48, false);
-        addNote("CRASH CYMBAL 1", 49, false);
-        addNote("HIGH TOM", 50, false);
-        addNote("RIDE CYMBAL 1", 51, false);
-        addNote("CHINESE CYMBAL", 52, false);
-        addNote("RIDE BELL", 53, false);
-        addNote("TAMBOURINE", 54, false);
-        addNote("SPLASH CYMBAL", 55, false);
-        addNote("COWBELL", 56, false);
-        addNote("CRASH CYMBAL 2", 57, false);
-        addNote("VIBRASLAP", 58, false);
-        addNote("RIDE CYMBAL 2", 59, false);
-        addNote("HI BONGO", 60, false);
-        addNote("LOW BONGO", 61, false);
-        addNote("MUTE HI CONGA", 62, false);
-        addNote("OPEN HI CONGA", 63, false);
-        addNote("LOW CONGA", 64, false);
-        addNote("HIGH TIMBALE", 65, false);
-        addNote("LOW TIMBALE", 66, false);
-        addNote("HIGH AGOGO", 67, false);
-        addNote("LOW AGOGO", 68, false);
-        addNote("CABASA", 69, false);
-        addNote("MARACAS", 70, false);
-        addNote("SHORT WHISTLE", 71, false);
-        addNote("LONG WHISTLE", 72, false);
-        addNote("SHORT GUIRO", 73, false);
-        addNote("LONG GUIRO", 74, false);
-        addNote("CLAVES", 75, false);
-        addNote("HI WOOD SECTION", 76, false);
-        addNote("LOW WOOD SECTION", 77, false);
-        addNote("MUTE CUICA", 78, false);
-        addNote("OPEN CUICA", 79, false);
-        addNote("MUTE TRIANGLE", 80, false);
-        addNote("OPEN TRIANGLE", 81, false);
-        addNote("Shaker", 82, false);
-        addNote("Jingle Bell", 83, false);
-        addNote("Belltree", 84, false);
+        addNote("Surdo Mute", 13);
+        addNote("Surdo Open", 14);
+        addNote("HIGH Q", 15);
+        addNote("Whip Slap", 16);
+        addNote("SCRATCH PUSH", 17);
+        addNote("Scratch Pull", 18);
+        addNote("FINGER SNAP", 19);
+        addNote("CLICK Noise", 20);
+        addNote("Metronome Click", 21);
+        addNote("Metronome Bell", 22);
+        addNote("Seq Click Low", 23);
+        addNote("Seq Click High", 24);
+        addNote("Brush Tap", 25, DrumKit.Subset.SNARE);
+        addNote("Brush Swirl Low", 26, DrumKit.Subset.SNARE);
+        addNote("Brush Slap", 27, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
+        addNote("Brush Tap Swirl", 28, DrumKit.Subset.SNARE);
+        addNote("Snare Roll", 29, DrumKit.Subset.SNARE);
+        addNote("Castanets", 30);
+        addNote("Snare Soft", 31, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
+        addNote("Stick", 32);
+        addNote("Kick Soft", 33, DrumKit.Subset.ACCENT, DrumKit.Subset.BASS);
+        addNote("Rim Shot Open", 34, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
+        addNote("ACOUSTIC BASS DRUM", 35, DrumKit.Subset.ACCENT, DrumKit.Subset.BASS);
+        addNote("BASS DRUM 1", 36, DrumKit.Subset.ACCENT, DrumKit.Subset.BASS);
+        addNote("SIDE STICK", 37, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
+        addNote("ACOUSTIC SNARE", 38, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
+        addNote("HAND CLAP", 39, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
+        addNote("ELECTRIC SNARE", 40, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
+        addNote("LOW FLOOR TOM", 41, DrumKit.Subset.TOM);
+        addNote("CLOSED HI HAT", 42, DrumKit.Subset.HI_HAT, DrumKit.Subset.HI_HAT_CLOSED);
+        addNote("HIGH FLOOR TOM", 43, DrumKit.Subset.TOM);
+        addNote("PEDAL HI HAT", 44, DrumKit.Subset.HI_HAT);
+        addNote("LOW TOM", 45, DrumKit.Subset.TOM);
+        addNote("OPEN HI HAT", 46, DrumKit.Subset.HI_HAT, DrumKit.Subset.HI_HAT_OPEN);
+        addNote("LOW MID TOM", 47, DrumKit.Subset.TOM);
+        addNote("HI MID TOM", 48, DrumKit.Subset.TOM);
+        addNote("CRASH CYMBAL 1", 49, DrumKit.Subset.CRASH);
+        addNote("HIGH TOM", 50, DrumKit.Subset.TOM);
+        addNote("RIDE CYMBAL 1", 51, DrumKit.Subset.CYMBAL);
+        addNote("CHINESE CYMBAL", 52, DrumKit.Subset.CRASH);
+        addNote("RIDE BELL", 53, DrumKit.Subset.CYMBAL);
+        addNote("TAMBOURINE", 54);
+        addNote("SPLASH CYMBAL", 55, DrumKit.Subset.CRASH);
+        addNote("COWBELL", 56);
+        addNote("CRASH CYMBAL 2", 57, DrumKit.Subset.CRASH);
+        addNote("VIBRASLAP", 58);
+        addNote("RIDE CYMBAL 2", 59, DrumKit.Subset.CYMBAL);
+        addNote("HI BONGO", 60);
+        addNote("LOW BONGO", 61);
+        addNote("MUTE HI CONGA", 62);
+        addNote("OPEN HI CONGA", 63);
+        addNote("LOW CONGA", 64);
+        addNote("HIGH TIMBALE", 65);
+        addNote("LOW TIMBALE", 66);
+        addNote("HIGH AGOGO", 67);
+        addNote("LOW AGOGO", 68);
+        addNote("CABASA", 69);
+        addNote("MARACAS", 70);
+        addNote("SHORT WHISTLE", 71);
+        addNote("LONG WHISTLE", 72);
+        addNote("SHORT GUIRO", 73);
+        addNote("LONG GUIRO", 74);
+        addNote("CLAVES", 75);
+        addNote("HI WOOD SECTION", 76);
+        addNote("LOW WOOD SECTION", 77);
+        addNote("MUTE CUICA", 78);
+        addNote("OPEN CUICA", 79);
+        addNote("MUTE TRIANGLE", 80);
+        addNote("OPEN TRIANGLE", 81);
+        addNote("Shaker", 82);
+        addNote("Jingle Bell", 83);
+        addNote("Belltree", 84);
     }
+
 
     @Override
     public String getName()
@@ -175,25 +169,15 @@ public class KeyMapXG implements DrumKit.KeyMap
         return res != null ? res : -1;
     }
 
-    @Override
-    public List<Integer> getAccentKeys()
-    {
-        return new ArrayList<>(accentPitches);
-    }
 
     @Override
-    public List<Integer> getCrashKeys()
+    public List<Integer> getKeys(DrumKit.Subset subset)
     {
-        return Arrays.asList(CRASH_KEYS);
+        var res = mapSubsetPitches.get(subset);
+        return res == null ? Collections.emptyList() : res;
     }
 
-    @Override
-    public List<Integer> getOpenHiHatKeys()
-    {
-        return Arrays.asList(OPEN_HI_HAT_KEYS);
-    }
-
-    private void addNote(String name, int pitch, boolean isAccent)
+    private void addNote(String name, int pitch, DrumKit.Subset... subsets)
     {
         if (pitch < 0 || pitch > 127 || name == null || name.trim().isEmpty())
         {
@@ -206,9 +190,15 @@ public class KeyMapXG implements DrumKit.KeyMap
         }
         mapNamePitch.put(name, pitch);
         mapPitchName.put(pitch, name);
-        if (isAccent)
+        for (DrumKit.Subset subset : subsets)
         {
-            accentPitches.add(pitch);
+            var notes = mapSubsetPitches.get(subset);
+            if (notes == null)
+            {
+                notes = new ArrayList<>();
+                mapSubsetPitches.put(subset, notes);
+            }
+            notes.add(pitch);
         }
     }
 }

@@ -36,7 +36,7 @@ import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythmmusicgeneration.api.MidiSequenceBuilder;
-import org.jjazz.rhythmmusicgeneration.api.SongContext;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;

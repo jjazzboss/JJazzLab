@@ -55,7 +55,7 @@ import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.PositionProvider;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.outputsynth.api.OutputSynthManager;
-import org.jjazz.rhythmmusicgeneration.api.SongContext;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.ContextChordSequence;
 import org.jjazz.songstructure.api.SongPart;

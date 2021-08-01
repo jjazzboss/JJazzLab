@@ -22,7 +22,7 @@
  */
 package org.jjazz.musiccontrol.api.playbacksession;
 
-import org.jjazz.rhythmmusicgeneration.api.SongContext;
+import org.jjazz.songcontext.api.SongContext;
 
 /**
  * PlaybackSession additional capability: the session provides a SongContext

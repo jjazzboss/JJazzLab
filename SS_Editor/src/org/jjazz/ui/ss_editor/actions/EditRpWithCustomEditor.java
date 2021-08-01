@@ -27,6 +27,7 @@ import java.awt.Rectangle;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.Objects;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -34,7 +35,7 @@ import static javax.swing.Action.NAME;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythmmusicgeneration.api.SongContext;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -49,15 +50,13 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.util.api.ResUtil;
-import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
-import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
-import org.jjazz.rpcustomeditor.api.RpCustomEditDialog;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.openide.util.Exceptions;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
+import org.jjazz.ui.rpviewer.spi.RpCustomEditorFactory;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.editrpwithcustomeditor")
 @ActionRegistration(displayName = "#CTL_EditRhythmParameter", lazy = false)
@@ -97,18 +96,11 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
         RhythmParameter<?> rp = sptps.get(0).getRp();
         SongPart spt = sptps.get(0).getSpt();
 
-
-        if (rp instanceof RpCustomEditorProvider)
+        // Open custom editor if supported
+        var factory = RpCustomEditorFactory.findFactory(rp);
+        if (factory != null)
         {
-            // Open custom editor if supported
             SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
-
-
-            // Prepare the CustomEditor
-            RpCustomEditorProvider provider = (RpCustomEditorProvider) rp;
-            RpCustomEditor rpEditor = provider.getCustomEditor();
-            Object value = spt.getRPValue(rp);
-            rpEditor.preset(value, spt);
 
 
             // Prepare our dialog
@@ -124,19 +116,24 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
                 return;
             }
             SongContext sgContext = new SongContext(song, mm, spt.getBarRange());
-            RpCustomEditDialog dlg = RpCustomEditDialog.getInstance();
-            dlg.preset(rpEditor, sgContext);
+            Object value = spt.getRPValue(rp);
+            var dlgEditor = factory.getEditor((RhythmParameter)rp);
+            assert dlgEditor != null : "rp=" + rp;
+            dlgEditor.preset(value, sgContext);
+
+
+            // Set location
             Rectangle r = editor.getRpViewerRectangle(spt, rp);
             Point p = r.getLocation();
-            int x = p.x - ((dlg.getWidth() - r.width) / 2);
-            int y = p.y - dlg.getHeight();
-            dlg.setLocation(Math.max(x, 0), Math.max(y, 0));
-            dlg.setVisible(true);
+            int x = p.x - ((dlgEditor.getWidth() - r.width) / 2);
+            int y = p.y - dlgEditor.getHeight();
+            dlgEditor.setLocation(Math.max(x, 0), Math.max(y, 0));
+            dlgEditor.setVisible(true);
 
 
-            // Process edit result
-            Object newValue = rpEditor.getEditedRpValue();
-            if (dlg.isExitOk() && newValue != null && !newValue.equals(value))
+            // Process the result
+            Object newValue = dlgEditor.getRpValue();
+            if (dlgEditor.isExitOk() && !Objects.equals(value, newValue))
             {
                 SongStructure sgs = editor.getModel();
                 JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);

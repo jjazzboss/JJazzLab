@@ -38,7 +38,7 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
-import org.jjazz.rhythmmusicgeneration.api.SongContext;
+import org.jjazz.songcontext.api.SongContext;
 import org.openide.windows.OnShowing;
 
 /**

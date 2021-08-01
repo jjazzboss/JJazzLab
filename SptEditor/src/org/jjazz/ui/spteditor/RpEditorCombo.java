@@ -32,7 +32,7 @@ import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RP_State;
+import org.jjazz.rhythm.api.RP_State;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.songstructure.api.SongPart;

@@ -22,13 +22,19 @@
  */
 package org.jjazz.midimix.api;
 
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.util.List;
 import java.util.prefs.Preferences;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.Family;
-import org.jjazz.rhythm.api.DummyRhythm;
+import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmFeatures;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
@@ -59,7 +65,7 @@ public class UserChannelRvKey extends RhythmVoice
 
     private UserChannelRvKey()
     {
-        super(new DummyRhythm("UserChannelDummyRhythm", TimeSignature.FOUR_FOUR), Type.CHORD1, "User", StdSynth.getInstance().getGM1Bank().getDefaultInstrument(Family.Piano), new InstrumentSettings(), 0);
+        super(new RhythmNotUsed(), Type.CHORD1, "User", StdSynth.getInstance().getGM1Bank().getDefaultInstrument(Family.Piano), new InstrumentSettings(), 0);
     }
 
     /**
@@ -87,14 +93,12 @@ public class UserChannelRvKey extends RhythmVoice
         prefs.putInt(PREF_USER_CHANNEL, c);
     }
 
-
     // =====================================================================================
     // Upgrade Task
     // =====================================================================================
     @ServiceProvider(service = UpgradeTask.class)
     static public class RestoreSettingsTask implements UpgradeTask
     {
-
 
         @Override
         public void upgrade(String oldVersion)
@@ -105,5 +109,99 @@ public class UserChannelRvKey extends RhythmVoice
 
     }
 
+    static private class RhythmNotUsed implements Rhythm
+    {
+
+        @Override
+        public RhythmFeatures getFeatures()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void loadResources() throws MusicGenerationException
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void releaseResources()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public boolean isResourcesLoaded()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public List<RhythmVoice> getRhythmVoices()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public List<RhythmParameter<?>> getRhythmParameters()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public File getFile()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "RhythmNotUsedId";
+        }
+
+        @Override
+        public String getDescription()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public int getPreferredTempo()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public TimeSignature getTimeSignature()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getName()
+        {
+            return "RhythmNotUsed";
+        }
+
+        @Override
+        public String getAuthor()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void addPropertyChangeListener(PropertyChangeListener l)
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void removePropertyChangeListener(PropertyChangeListener l)
+        {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+    }
 
 }

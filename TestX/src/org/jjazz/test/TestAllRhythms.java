@@ -35,7 +35,7 @@ import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.parameters.RP_State;
+import org.jjazz.rhythm.api.RP_State;
 import org.jjazz.song.api.Song;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;

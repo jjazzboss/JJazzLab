@@ -68,7 +68,7 @@ import org.jjazz.rhythm.database.api.FavoriteRhythms;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
-import org.jjazz.rhythm.parameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythmselectiondialog.api.RhythmTable;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
 import org.jjazz.ui.utilities.api.Utilities;

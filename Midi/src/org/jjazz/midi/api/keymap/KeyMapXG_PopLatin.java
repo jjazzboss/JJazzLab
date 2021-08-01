@@ -24,6 +24,7 @@ package org.jjazz.midi.api.keymap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import org.jjazz.midi.api.DrumKit;
@@ -35,19 +36,10 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
 {
 
     public static final String NAME = "XG_POPLATIN";
-    private static final Integer[] CRASH_KEYS = new Integer[]
-    {
-        
-    };
-    private static final Integer[] OPEN_HI_HAT_KEYS = new Integer[]
-    {
-        
-    };
-
     private static KeyMapXG_PopLatin INSTANCE;
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
-    private ArrayList<Integer> accentPitches = new ArrayList<>();
+    private HashMap<DrumKit.Subset, List<Integer>> mapSubsetPitches = new HashMap<>();
     private final KeyRange range = new KeyRange(13, 84);
 
     public static KeyMapXG_PopLatin getInstance()
@@ -64,78 +56,78 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
 
     private KeyMapXG_PopLatin()
     {
-        addNote("Cajon Low", 13, false);
-        addNote("Cajon Slap", 14, false);
-        addNote("Cajon Tip", 15, false);
-        addNote("Claves High", 16, false);
-        addNote("Claves Low", 17, false);
-        addNote("Hand Clap", 18, true);
+        addNote("Cajon Low", 13);
+        addNote("Cajon Slap", 14);
+        addNote("Cajon Tip", 15);
+        addNote("Claves High", 16);
+        addNote("Claves Low", 17);
+        addNote("Hand Clap", 18, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
         // No 19    
-        addNote("Finger Snap", 20, false);
-        addNote("Castanet", 21, false);
-        addNote("Conga H Tip", 22, false);
-        addNote("Conga H Heel", 23, false);
-        addNote("Conga H Open", 24, false);
-        addNote("Conga H Mute", 25, false);
-        addNote("Conga H Slap Open", 26, false);
-        addNote("Conga H Slap", 27, false);
-        addNote("Conga H Slap Mute", 28, false);
-        addNote("Conga L Tip", 29, false);
-        addNote("Conga L Heel", 30, false);
-        addNote("Conga L Open", 31, false);
-        addNote("Conga L Mute", 32, false);
-        addNote("Conga L Slap Open", 33, false);
-        addNote("Conga L Slap", 34, false);
-        addNote("Conga L Slide", 35, false);
-        addNote("Bongo H Open 1 finger", 36, false);
-        addNote("Bongo H Open 3 finger", 37, false);
-        addNote("Bongo H Rim", 38, false);
-        addNote("Bongo H Tip", 39, false);
-        addNote("Bongo H Heel", 40, false);
-        addNote("Bongo H Slap", 41, false);
-        addNote("Bongo L Open 1 finger", 42, false);
-        addNote("Bongo L Open 3 finger", 43, false);
-        addNote("Bongo L Rim", 44, false);
-        addNote("Bongo L Tip", 45, false);
-        addNote("Bongo L Heel", 46, false);
-        addNote("Bongo L Slap", 47, false);
-        addNote("Timbale L Open", 48, true);
+        addNote("Finger Snap", 20);
+        addNote("Castanet", 21);
+        addNote("Conga H Tip", 22);
+        addNote("Conga H Heel", 23);
+        addNote("Conga H Open", 24);
+        addNote("Conga H Mute", 25);
+        addNote("Conga H Slap Open", 26);
+        addNote("Conga H Slap", 27);
+        addNote("Conga H Slap Mute", 28);
+        addNote("Conga L Tip", 29);
+        addNote("Conga L Heel", 30);
+        addNote("Conga L Open", 31);
+        addNote("Conga L Mute", 32);
+        addNote("Conga L Slap Open", 33);
+        addNote("Conga L Slap", 34);
+        addNote("Conga L Slide", 35);
+        addNote("Bongo H Open 1 finger", 36);
+        addNote("Bongo H Open 3 finger", 37);
+        addNote("Bongo H Rim", 38);
+        addNote("Bongo H Tip", 39);
+        addNote("Bongo H Heel", 40);
+        addNote("Bongo H Slap", 41);
+        addNote("Bongo L Open 1 finger", 42);
+        addNote("Bongo L Open 3 finger", 43);
+        addNote("Bongo L Rim", 44);
+        addNote("Bongo L Tip", 45);
+        addNote("Bongo L Heel", 46);
+        addNote("Bongo L Slap", 47);
+        addNote("Timbale L Open", 48);
         // No 49
         // No 50
         // No 51
         // No 52
-        addNote("Paila L", 53, false);
-        addNote("Timbale H Open", 54, false);
+        addNote("Paila L", 53);
+        addNote("Timbale H Open", 54);
         // No 55
         // No 56
         // No 57
         // No 58
-        addNote("Paila H", 59, false);
-        addNote("Cowbell Top", 60, false);
-        addNote("Cowbell 1", 61, false);
-        addNote("Cowbell 2", 62, false);
-        addNote("Cowbell 3", 63, false);
-        addNote("Guiro Short", 64, false);
-        addNote("Guiro Long", 65, false);
-        addNote("Metal Guiro Short", 66, false);
-        addNote("Metal Guiro Long", 67, false);
-        addNote("Tambourine", 68, false);
-        addNote("Tambourim Open", 69, false);
-        addNote("Tambourim Mute", 70, false);
-        addNote("Tambourim Tip", 71, false);
-        addNote("Maracas", 72, false);
-        addNote("Shaker", 73, false);
-        addNote("Cabasa", 74, false);
-        addNote("Cuica Mute", 75, false);
-        addNote("Cuica Open", 76, false);
-        addNote("Cowbell High 1", 77, false);
-        addNote("Cowbell High 2", 78, false);
-        addNote("Shekere", 79, false);
-        addNote("Shekere Tone", 80, false);
-        addNote("Triangle Mute", 81, false);
-        addNote("Triangle Open", 82, false);
+        addNote("Paila H", 59);
+        addNote("Cowbell Top", 60);
+        addNote("Cowbell 1", 61);
+        addNote("Cowbell 2", 62);
+        addNote("Cowbell 3", 63);
+        addNote("Guiro Short", 64);
+        addNote("Guiro Long", 65);
+        addNote("Metal Guiro Short", 66);
+        addNote("Metal Guiro Long", 67);
+        addNote("Tambourine", 68);
+        addNote("Tambourim Open", 69);
+        addNote("Tambourim Mute", 70);
+        addNote("Tambourim Tip", 71);
+        addNote("Maracas", 72);
+        addNote("Shaker", 73);
+        addNote("Cabasa", 74);
+        addNote("Cuica Mute", 75);
+        addNote("Cuica Open", 76);
+        addNote("Cowbell High 1", 77);
+        addNote("Cowbell High 2", 78);
+        addNote("Shekere", 79);
+        addNote("Shekere Tone", 80);
+        addNote("Triangle Mute", 81);
+        addNote("Triangle Open", 82);
         // No 83
-        addNote("Wind Chime", 84, true);
+        addNote("Wind Chime", 84);
     }
 
     @Override
@@ -176,24 +168,13 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
     }
 
     @Override
-    public List<Integer> getCrashKeys()
+    public List<Integer> getKeys(DrumKit.Subset subset)
     {
-        return Arrays.asList(CRASH_KEYS);
+        var res = mapSubsetPitches.get(subset);
+        return res == null ? Collections.emptyList() : res;
     }
 
-    @Override
-    public List<Integer> getOpenHiHatKeys()
-    {
-        return Arrays.asList(OPEN_HI_HAT_KEYS);
-    }
-
-    @Override
-    public List<Integer> getAccentKeys()
-    {
-        return new ArrayList<>(accentPitches);
-    }
-
-    private void addNote(String name, int pitch, boolean isAccent)
+    private void addNote(String name, int pitch, DrumKit.Subset... subsets)
     {
         if (pitch < 0 || pitch > 127 || name == null || name.trim().isEmpty())
         {
@@ -206,9 +187,15 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
         }
         mapNamePitch.put(name, pitch);
         mapPitchName.put(pitch, name);
-        if (isAccent)
+        for (DrumKit.Subset subset : subsets)
         {
-            accentPitches.add(pitch);
+            var notes = mapSubsetPitches.get(subset);
+            if (notes == null)
+            {
+                notes = new ArrayList<>();
+                mapSubsetPitches.put(subset, notes);
+            }
+            notes.add(pitch);
         }
     }
 }

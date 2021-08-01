@@ -27,16 +27,15 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JButton;
+import javax.swing.SwingUtilities;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythmmusicgeneration.api.SongContext;
-import org.jjazz.rpcustomeditor.api.RpCustomEditDialog;
-import org.jjazz.rpcustomeditor.spi.RpCustomEditor;
-import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.api.RpEditor;
@@ -44,6 +43,7 @@ import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.jjazz.ui.spteditor.spi.RpEditorComponent;
 import org.openide.util.Exceptions;
+import org.jjazz.ui.rpviewer.spi.RpCustomEditorFactory;
 
 /**
  * An editor component for RhythmParameters which implement RpCustomEditorProvider.
@@ -60,10 +60,10 @@ public class RpEditorCustom extends RpEditorComponent
     public RpEditorCustom(Song song, SongPart spt, RhythmParameter<?> rp)
     {
         super(spt, rp);
-
-        if (!(rp instanceof RpCustomEditorProvider) || song == null)
+        var factory = RpCustomEditorFactory.findFactory(rp);
+        if (factory == null || song == null)
         {
-            throw new IllegalArgumentException("song=" + song + " spt=" + spt + " rp=" + rp + " is not an instanceof RpCustomEditorProvider");
+            throw new IllegalArgumentException("song=" + song + " spt=" + spt + " rp=" + rp + " factory=" + factory);
         }
 
         songModel = song;
@@ -107,12 +107,6 @@ public class RpEditorCustom extends RpEditorComponent
     private void showCustomEditDialog()
     {
 
-        // Prepare the CustomEditor
-        RpCustomEditorProvider provider = (RpCustomEditorProvider) rp;
-        RpCustomEditor rpEditor = provider.getCustomEditor();
-        rpEditor.preset(value, songPart);
-
-
         // Prepare our dialog
         MidiMix mm = null;
         try
@@ -125,22 +119,27 @@ public class RpEditorCustom extends RpEditorComponent
             return;
         }
         SongContext sgContext = new SongContext(songModel, mm, songPart.getBarRange());
-        RpCustomEditDialog dlg = RpCustomEditDialog.getInstance();
-        dlg.preset(rpEditor, sgContext);
+        var dlgEditor = RpCustomEditorFactory.findFactory(rp).getEditor(rp);
+        assert dlgEditor != null : "rp=" + rp;
+        dlgEditor.preset(value, sgContext);
+
+
+        // Set location
         Rectangle r = btn_edit.getBounds();
         Point p = r.getLocation();
-        int x = Math.max(10, p.x + dlg.getWidth() + 5);
-        int y = Math.max(10, p.y + r.height / 2 - dlg.getHeight() / 2);
+        SwingUtilities.convertPointToScreen(p, btn_edit.getParent());
+        int x = Math.max(10, p.x + dlgEditor.getWidth() + 5);
+        int y = Math.max(10, p.y + r.height / 2 - dlgEditor.getHeight() / 2);
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-        x = Math.min(x, screen.width - dlg.getWidth());
-        y = Math.min(y, screen.height - dlg.getHeight());
-        dlg.setLocation(x, y);
-        dlg.setVisible(true);
+        x = Math.min(x, screen.width - dlgEditor.getWidth());
+        y = Math.min(y, screen.height - dlgEditor.getHeight());
+        dlgEditor.setLocation(x, y);
+        dlgEditor.setVisible(true);
 
 
         // Process result
-        Object newValue = rpEditor.getEditedRpValue();
-        if (dlg.isExitOk() && newValue != null && !newValue.equals(value))
+        Object newValue = dlgEditor.getRpValue();
+        if (dlgEditor.isExitOk() && !Objects.equals(value, newValue))
         {
             Object old = value;
             value = newValue;

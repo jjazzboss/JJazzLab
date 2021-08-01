@@ -29,7 +29,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.rhythm.parameters.RP_Integer;
+import org.jjazz.rhythm.api.RP_Integer;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.ui.utilities.api.WheelSpinner;
 import org.jjazz.songstructure.api.SongPart;

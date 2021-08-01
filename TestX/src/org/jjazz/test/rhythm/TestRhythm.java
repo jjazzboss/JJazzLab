@@ -11,16 +11,16 @@ import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.DrumKit.Type;
 import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midi.api.synths.StdSynth;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.parameters.RP_STD_Variation;
-import org.jjazz.rhythm.parameters.RP_SYS_Mute;
-import org.jjazz.rhythmmusicgeneration.api.SongContext;
-import org.jjazz.rhythmmusicgeneration.api.Phrase;
+import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
+import org.jjazz.songcontext.api.SongContext;
 
 /**
  *
@@ -90,8 +90,9 @@ public class TestRhythm implements Rhythm, MusicGenerator
             rhythmParameters = new ArrayList<>();
             RP_STD_Variation rpVar = new RP_STD_Variation();
             RP_SYS_Mute rpMute = RP_SYS_Mute.createMuteRp(this);
-            RP_Test rpTest1 = new RP_Test(getRhythmVoices().get(0));
-            rhythmParameters = Arrays.asList(rpVar, rpMute, rpTest1);
+//            RP_Test rpTest1 = new RP_Test(getRhythmVoices().get(0));
+//            rhythmParameters = Arrays.asList(rpVar, rpMute, rpTest1);
+            rhythmParameters = Arrays.asList(rpVar, rpMute);
         }
         return rhythmParameters;
     }

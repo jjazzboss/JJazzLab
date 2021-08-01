@@ -51,7 +51,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.leadsheet.chordleadsheet.api.item.VoidAltExtChordSymbol;
-import org.jjazz.rhythm.parameters.RP_SYS_Marker;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.ui.cl_editor.spi.ChordSymbolEditorDialog;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.util.api.ResUtil;

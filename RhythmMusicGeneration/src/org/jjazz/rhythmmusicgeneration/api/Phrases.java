@@ -22,6 +22,8 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.NoteEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,7 +40,7 @@ import org.jjazz.harmony.api.ScaleManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import static org.jjazz.rhythmmusicgeneration.api.Phrase.PARENT_NOTE;
+import static org.jjazz.phrase.api.Phrase.PARENT_NOTE;
 import static org.jjazz.util.api.Utilities.heapPermutation;
 import org.jjazz.rhythmmusicgeneration.api.SourcePhrase.ChordMode;
 

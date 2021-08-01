@@ -48,12 +48,12 @@ import javax.swing.border.Border;
 import javax.swing.plaf.LayerUI;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.flatcomponents.api.FlatButton;
 import org.jjazz.ui.rpviewer.RpViewerLayoutManager;
 import org.jjazz.ui.utilities.api.RedispatchingMouseAdapter;
 import org.jjazz.util.api.ResUtil;
+import org.jjazz.ui.rpviewer.spi.RpCustomEditorFactory;
 
 /**
  * A RhythmParameter viewer.
@@ -453,7 +453,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     /**
      * Used to track mouse entered/exit avoiding the problems with children components.
      * <p>
-     * This is used only for RpCustomEditorProvider instances, see installUI().
+     * This is used only for RpCustomEditorDialog.Provider instances, see installUI().
      */
     private class MyLayerUI extends LayerUI<RenderingPanel>
     {
@@ -463,7 +463,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         {
             super.installUI(c);
 
-            if (rpModel instanceof RpCustomEditorProvider)
+            if (RpCustomEditorFactory.findFactory(rpModel) != null)
             {
                 // Track mouse events only if we need to display the edit button
                 JLayer jlayer = (JLayer) c;

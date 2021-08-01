@@ -36,7 +36,7 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import org.jjazz.rhythm.parameters.RP_StringSet;
+import org.jjazz.rhythm.api.RP_StringSet;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.spi.RpEditorComponent;

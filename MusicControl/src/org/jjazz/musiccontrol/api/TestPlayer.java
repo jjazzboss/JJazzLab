@@ -33,8 +33,8 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.musiccontrol.api.playbacksession.EndOfPlaybackActionProvider;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.rhythmmusicgeneration.api.NoteEvent;
-import org.jjazz.rhythmmusicgeneration.api.Phrase;
+import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.util.api.IntRange;
 
 /**

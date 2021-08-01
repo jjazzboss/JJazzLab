@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import org.jjazz.phrase.api.NoteEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

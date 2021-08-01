@@ -63,7 +63,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.rpcustomeditor.spi</code-name-base>
+                    <code-name-base>org.jjazz.song</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -71,7 +71,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.jjazz.song</code-name-base>
+                    <code-name-base>org.jjazz.songcontext</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>

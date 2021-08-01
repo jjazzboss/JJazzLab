@@ -36,16 +36,16 @@ import org.jjazz.midi.api.synths.GM1Bank;
 import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midi.api.synths.Family;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.parameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
-import org.jjazz.rhythmmusicgeneration.api.SongContext;
-import org.jjazz.rhythmmusicgeneration.api.Phrase;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
+import org.jjazz.songcontext.api.SongContext;
 
 /**
  * A rhythm stub whatever the time signature.

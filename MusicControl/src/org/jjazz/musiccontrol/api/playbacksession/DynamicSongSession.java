@@ -36,12 +36,11 @@ import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.ContextChordSequence;
-import org.jjazz.rhythmmusicgeneration.api.Phrase;
-import org.jjazz.rhythmmusicgeneration.api.SongContext;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.util.api.IntRange;
 
 /**
@@ -73,18 +72,15 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
      * @param enableControlTrack
      * @param loopCount Use SongContextSession.PLAYBACK_SETTINGS_LOOP_COUNT to rely on PlaybackSettings.
      * @param endOfPlaybackAction
-     * @param postProcessors Can be null, passed to the MidiSequenceBuilder in charge of creating the sequence.
      */
     public DynamicSongSession(SongContext sgContext, boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
             int loopCount,
-            ActionListener endOfPlaybackAction,
-            MusicGenerator.PostProcessor... postProcessors)
+            ActionListener endOfPlaybackAction)
     {
         songContextSession = new SongContextSession(sgContext,
                 enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack,
                 loopCount,
-                endOfPlaybackAction,
-                postProcessors
+                endOfPlaybackAction
         );
 
         songContextSession.addPropertyChangeListener(this);

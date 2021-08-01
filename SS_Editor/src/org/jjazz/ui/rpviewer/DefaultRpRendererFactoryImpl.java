@@ -23,10 +23,10 @@
 package org.jjazz.ui.rpviewer;
 
 import java.util.logging.Logger;
-import org.jjazz.rhythm.parameters.RP_SYS_TempoFactor;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.parameters.RP_Integer;
-import org.jjazz.rhythm.parameters.RP_StringSet;
+import org.jjazz.rhythm.api.RP_Integer;
+import org.jjazz.rhythm.api.RP_StringSet;
 import org.jjazz.ui.rpviewer.spi.RpViewerSettings;
 import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
 import org.jjazz.ui.rpviewer.spi.DefaultRpViewerRendererFactory;

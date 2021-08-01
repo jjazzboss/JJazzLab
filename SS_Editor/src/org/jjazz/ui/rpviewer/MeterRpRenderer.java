@@ -34,7 +34,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.rhythm.parameters.RP_Integer;
+import org.jjazz.rhythm.api.RP_Integer;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.rhythm.api.RpEnumerable;

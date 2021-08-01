@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import org.jjazz.songcontext.api.SongContext;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -34,10 +35,9 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.leadsheet.chordleadsheet.api.item.VoidAltExtChordSymbol;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.parameters.RP_SYS_Marker;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.util.api.IntRange;
 
 /**

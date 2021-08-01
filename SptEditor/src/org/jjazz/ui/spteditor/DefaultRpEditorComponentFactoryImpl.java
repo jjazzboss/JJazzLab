@@ -28,16 +28,16 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.parameters.RP_Integer;
-import org.jjazz.rhythm.parameters.RP_SYS_Mute;
-import org.jjazz.rhythm.parameters.RP_State;
-import org.jjazz.rhythm.parameters.RP_StringSet;
+import org.jjazz.rhythm.api.RP_Integer;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
+import org.jjazz.rhythm.api.RP_State;
+import org.jjazz.rhythm.api.RP_StringSet;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rpcustomeditor.spi.RpCustomEditorProvider;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.spi.DefaultRpEditorComponentFactory;
 import org.jjazz.ui.spteditor.spi.RpEditorComponent;
+import org.jjazz.ui.rpviewer.spi.RpCustomEditorFactory;
 
 public class DefaultRpEditorComponentFactoryImpl implements DefaultRpEditorComponentFactory
 {
@@ -64,7 +64,7 @@ public class DefaultRpEditorComponentFactoryImpl implements DefaultRpEditorCompo
     public RpEditorComponent createComponent(Song song, SongPart spt, RhythmParameter<?> rp)
     {
         Type type;
-        if (rp instanceof RpCustomEditorProvider)
+        if (RpCustomEditorFactory.findFactory(rp) != null)
         {
             type = Type.CUSTOM_DIALOG;
         } else if (rp instanceof RP_Integer)
@@ -116,7 +116,7 @@ public class DefaultRpEditorComponentFactoryImpl implements DefaultRpEditorCompo
                 }
                 break;
             case CUSTOM_DIALOG:
-                if (rp instanceof RpCustomEditorProvider)
+                if (RpCustomEditorFactory.findFactory(rp) != null)
                 {
                     c = new RpEditorCustom(song, spt, rp);
                 }

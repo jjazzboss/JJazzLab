@@ -66,9 +66,8 @@
             </test-dependencies>
             <public-packages>
                 <package>org.jjazz.rhythm.api</package>
-                <package>org.jjazz.rhythm.parameters</package>
+                <package>org.jjazz.rhythm.api.rhythmparameters</package>
                 <package>org.jjazz.rhythm.spi</package>
-                <package>org.jjazz.rhythm.ui</package>
             </public-packages>
         </data>
     </configuration>

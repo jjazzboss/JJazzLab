@@ -124,13 +124,13 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         // Initialize and show dialog
         RhythmSelectionDialog dlg = RhythmSelectionDialog.getDefault();
         Rhythm rSelSpt0 = selSpt0.getRhythm();
-        EditRhythmPreviewer previewer;
+        RhythmSelectionDialog.RhythmPreviewProvider previewer = RhythmSelectionDialog.RhythmPreviewProvider.getDefault();
         try
         {
-            previewer = new EditRhythmPreviewer(song, selSpt0);
+            previewer.setContext(song, selSpt0);
         } catch (MidiUnavailableException ex)
         {
-            LOGGER.warning("changeRhythm() Can't create RhythmPreviewer ex=" + ex.getMessage() + ". RhythmPreviewer disabled.");   //NOI18N
+            LOGGER.warning("changeRhythm() Can't set context ex=" + ex.getMessage() + ". RhythmPreviewProvider disabled.");   //NOI18N
             previewer = null;
         }
         var rdb = RhythmDatabase.getDefault();

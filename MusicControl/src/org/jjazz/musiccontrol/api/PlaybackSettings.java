@@ -45,7 +45,7 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
 import static org.jjazz.musiccontrol.api.PlaybackSettings.PROP_CLICK_PITCH_LOW;
-import org.jjazz.rhythmmusicgeneration.api.SongContext;
+import org.jjazz.songcontext.api.SongContext;
 import org.openide.util.NbPreferences;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.upgrade.api.UpgradeManager;
