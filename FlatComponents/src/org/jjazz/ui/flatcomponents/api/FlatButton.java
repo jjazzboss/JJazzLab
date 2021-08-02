@@ -41,7 +41,6 @@ import javax.swing.border.Border;
 public class FlatButton extends JLabel implements PropertyChangeListener
 {
 
-    private String saveTooltip;
     private Action action;
     private ArrayList<ActionListener> listeners = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(FlatButton.class.getSimpleName());
@@ -193,20 +192,18 @@ public class FlatButton extends JLabel implements PropertyChangeListener
         return BorderManager.getInstance().getBorderPressed(this);
     }
 
+    /**
+     * Overridden to add "OFF" if disabled.
+     *
+     * @return
+     */
     @Override
-    public void setEnabled(boolean b)
+    public String getToolTipText()
     {
-        LOGGER.fine("setEnabled() b=" + b);   //NOI18N
-        if (isEnabled() && !b)
-        {
-            saveTooltip = getToolTipText();
-            setToolTipText("OFF");
-        } else if (!isEnabled() && b)
-        {
-            setToolTipText(saveTooltip);
-        }
-        super.setEnabled(b);
+        String tt = super.getToolTipText();
+        return isEnabled() ? tt : tt + " [OFF]";
     }
+
 
     public void setBorderEntered(Border b)
     {

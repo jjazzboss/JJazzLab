@@ -48,16 +48,16 @@ public class RpCustomEditorFactoryImpl implements RpCustomEditorFactory
     }
 
     @Override
-    public <E> RpCustomEditor getEditor(RhythmParameter<E> rp)
+    public <E> RpCustomEditor<E> getEditor(RhythmParameter<E> rp)
     {
-        GenericDialog res = null;
+        RpDialogRealTimeUpdate res = null;
         
      
         if (rp instanceof RP_SYS_DrumsMix)
         {
             var rpDrums = (RP_SYS_DrumsMix) rp;
-            var editor = new RP_SYS_DrumsMixEditor(rpDrums);
-            res = new GenericDialog(editor);
+            var editor = new RP_SYS_DrumsMixEditorPanel(rpDrums);
+            res = new RpDialogRealTimeUpdate(editor);
         }
         
         return res;

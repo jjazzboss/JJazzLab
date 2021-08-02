@@ -11,13 +11,13 @@ import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
 /**
  * An editor panel for RP_SYS_DrumsMix.
  */
-public class RP_SYS_DrumsMixEditor extends RpEditorPanel<RP_SYS_DrumsMixValue> implements PropertyChangeListener
+public class RP_SYS_DrumsMixEditorPanel extends RpEditorPanel<RP_SYS_DrumsMixValue> implements PropertyChangeListener
 {
 
     private RP_SYS_DrumsMix rp;
     private RP_SYS_DrumsMixValue lastValue;
 
-    public RP_SYS_DrumsMixEditor(RP_SYS_DrumsMix rp)
+    public RP_SYS_DrumsMixEditorPanel(RP_SYS_DrumsMix rp)
     {
         this.rp = rp;
         initComponents();
@@ -118,7 +118,7 @@ public class RP_SYS_DrumsMixEditor extends RpEditorPanel<RP_SYS_DrumsMixValue> i
         knb_crash = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
         jLabel11 = new javax.swing.JLabel();
 
-        setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixEditor.class, "RP_SYS_DrumsMixEditor.toolTipText")); // NOI18N
+        setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixEditorPanel.class, "RP_SYS_DrumsMixEditorPanel.toolTipText")); // NOI18N
 
         jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.Y_AXIS));
 
@@ -144,7 +144,7 @@ public class RP_SYS_DrumsMixEditor extends RpEditorPanel<RP_SYS_DrumsMixValue> i
         jPanel1.add(knb_bassDrum);
 
         jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getSize()-2f));
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixEditor.class, "RP_SYS_DrumsMixEditor.jLabel1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixEditorPanel.class, "RP_SYS_DrumsMixEditorPanel.jLabel1.text")); // NOI18N
         jLabel1.setAlignmentX(0.5F);
         jPanel1.add(jLabel1);
 
@@ -172,7 +172,7 @@ public class RP_SYS_DrumsMixEditor extends RpEditorPanel<RP_SYS_DrumsMixValue> i
         jPanel3.add(knb_hihat);
 
         jLabel8.setFont(jLabel8.getFont().deriveFont(jLabel8.getFont().getSize()-2f));
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel8, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixEditor.class, "RP_SYS_DrumsMixEditor.jLabel8.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel8, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixEditorPanel.class, "RP_SYS_DrumsMixEditorPanel.jLabel8.text")); // NOI18N
         jLabel8.setAlignmentX(0.5F);
         jPanel3.add(jLabel8);
 
@@ -200,7 +200,7 @@ public class RP_SYS_DrumsMixEditor extends RpEditorPanel<RP_SYS_DrumsMixValue> i
         jPanel2.add(knb_snare);
 
         jLabel7.setFont(jLabel7.getFont().deriveFont(jLabel7.getFont().getSize()-2f));
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel7, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixEditor.class, "RP_SYS_DrumsMixEditor.jLabel7.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel7, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixEditorPanel.class, "RP_SYS_DrumsMixEditorPanel.jLabel7.text")); // NOI18N
         jLabel7.setAlignmentX(0.5F);
         jPanel2.add(jLabel7);
 
@@ -228,7 +228,7 @@ public class RP_SYS_DrumsMixEditor extends RpEditorPanel<RP_SYS_DrumsMixValue> i
         jPanel4.add(knb_toms);
 
         jLabel9.setFont(jLabel9.getFont().deriveFont(jLabel9.getFont().getSize()-2f));
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel9, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixEditor.class, "RP_SYS_DrumsMixEditor.jLabel9.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel9, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixEditorPanel.class, "RP_SYS_DrumsMixEditorPanel.jLabel9.text")); // NOI18N
         jLabel9.setAlignmentX(0.5F);
         jPanel4.add(jLabel9);
 
@@ -256,7 +256,7 @@ public class RP_SYS_DrumsMixEditor extends RpEditorPanel<RP_SYS_DrumsMixValue> i
         jPanel5.add(knb_cymbals);
 
         jLabel10.setFont(jLabel10.getFont().deriveFont(jLabel10.getFont().getSize()-2f));
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel10, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixEditor.class, "RP_SYS_DrumsMixEditor.jLabel10.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel10, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixEditorPanel.class, "RP_SYS_DrumsMixEditorPanel.jLabel10.text")); // NOI18N
         jLabel10.setAlignmentX(0.5F);
         jPanel5.add(jLabel10);
 
@@ -284,7 +284,7 @@ public class RP_SYS_DrumsMixEditor extends RpEditorPanel<RP_SYS_DrumsMixValue> i
         jPanel6.add(knb_crash);
 
         jLabel11.setFont(jLabel11.getFont().deriveFont(jLabel11.getFont().getSize()-2f));
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel11, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixEditor.class, "RP_SYS_DrumsMixEditor.jLabel11.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel11, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixEditorPanel.class, "RP_SYS_DrumsMixEditorPanel.jLabel11.text")); // NOI18N
         jLabel11.setAlignmentX(0.5F);
         jPanel6.add(jLabel11);
 

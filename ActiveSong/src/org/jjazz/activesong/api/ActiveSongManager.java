@@ -20,7 +20,8 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.activesong.api;
+package org.jjazz.activesong.api; 
+
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;

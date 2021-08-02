@@ -38,6 +38,7 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextSession;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -48,22 +49,26 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.rpviewer.spi.RpCustomEditor;
+import org.jjazz.util.api.ResUtil;
 import org.openide.*;
+import org.openide.util.Exceptions;
 
 /**
- * A dialog to show a RpCustomEditor panel.
+ * A dialog to edit a RhythmParameter value via a RpCustomEditor panel.
+ * <p>
+ * User can listen in real time the effect on the value changes.
  */
-public class GenericDialog<E> extends RpCustomEditor implements PropertyChangeListener
+public class RpDialogRealTimeUpdate<E> extends RpCustomEditor<E> implements PropertyChangeListener
 {
 
     private RpEditorPanel<E> editorPanel;
     private boolean exitOk;
     private DynamicSongSession session;
     private SongContext songContextOriginal;
-    private static final Logger LOGGER = Logger.getLogger(GenericDialog.class.getSimpleName());  //NOI18N
+    private static final Logger LOGGER = Logger.getLogger(RpDialogRealTimeUpdate.class.getSimpleName());  //NOI18N
 
 
-    public GenericDialog(RpEditorPanel<E> panel)
+    public RpDialogRealTimeUpdate(RpEditorPanel<E> panel)
     {
         editorPanel = panel;
         editorPanel.addPropertyChangeListener(this);
@@ -81,11 +86,11 @@ public class GenericDialog<E> extends RpCustomEditor implements PropertyChangeLi
     }
 
     @Override
-    public void preset(Object rpValue, SongContext sgContext)
+    public void preset(E rpValue, SongContext sgContext)
     {
         songContextOriginal = sgContext;
 
-        
+
         var spt0 = sgContext.getSongParts().get(0);
         if (!spt0.getRhythm().getRhythmParameters().contains(editorPanel.getRhythmParameter()))
         {
@@ -94,13 +99,15 @@ public class GenericDialog<E> extends RpCustomEditor implements PropertyChangeLi
 
 
         // Update UI
+        editorPanel.preset(rpValue, spt0);
         var spt = sgContext.getSongParts().get(0);
         setTitle(getRhythmParameter().getDisplayName() + " (" + spt.getName() + " bar:" + spt.getStartBarIndex() + ")");
         btn_ok.requestFocusInWindow();
         tbtn_hear.setSelected(false);
         tbtn_bypass.setSelected(false);
-        tbtn_bypass.setEnabled(false);
-
+        tbtn_bypass.setEnabled(false);                
+        String tt = ResUtil.getString(getClass(), "RpDialogRealTimeUpdate.tbtn_bypass.toolTipText") + ": " + rpValue.toString();
+        tbtn_bypass.setToolTipText(tt);
     }
 
     /**
@@ -133,6 +140,7 @@ public class GenericDialog<E> extends RpCustomEditor implements PropertyChangeLi
     {
         if (evt.getSource() == editorPanel && evt.getPropertyName().equals(RpEditorPanel.PROP_RP_VALUE))
         {
+            // LOGGER.info("propertyChange() evt=" + evt);
             if (tbtn_hear.isSelected())
             {
                 try
@@ -140,7 +148,9 @@ public class GenericDialog<E> extends RpCustomEditor implements PropertyChangeLi
                     updateSession();
                 } catch (MusicGenerationException ex)
                 {
-                    LOGGER.severe("propertyChange() ex=" + ex.getMessage());
+                    LOGGER.warning("propertyChange() ex=" + ex.getMessage());
+                    NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                    DialogDisplayer.getDefault().notify(d);
                 }
             }
         }
@@ -181,7 +191,10 @@ public class GenericDialog<E> extends RpCustomEditor implements PropertyChangeLi
 
         SongContext sgContext = pickContext();
         SongContextSession tmpSession = SongContextSession.getSession(sgContext, true, false, false, true, 0, null);
-        tmpSession.generate(true);
+        if (tmpSession.getState().equals(PlaybackSession.State.NEW))
+        {
+            tmpSession.generate(true);
+        }
 
         // 
         Map<Integer, List<MidiEvent>> mapTrackIdEvents = new HashMap<>();
@@ -198,10 +211,10 @@ public class GenericDialog<E> extends RpCustomEditor implements PropertyChangeLi
             Phrase newP = newRvPhraseMap.get(rv);
             if (p.equals(newP))
             {
-                LOGGER.info("updateSession() skipped identitical phrases for rv=" + rv + " p.size()=" + p.size());
+                // LOGGER.info("updateSession() skipped identitical phrases for rv=" + rv + " p.size()=" + p.size());
             } else
             {
-                LOGGER.info("updateSession() different phrases for rv=" + rv + ", newP.size()=" + newP.size() + " => saving MidiEvents");
+                // LOGGER.info("updateSession() different phrases for rv=" + rv + ", newP.size()=" + newP.size() + " => saving MidiEvents");
                 mapTrackIdEvents.put(originalRvTrackIdMap.get(rv), newP.toMidiEvents());
             }
         }
@@ -347,7 +360,7 @@ public class GenericDialog<E> extends RpCustomEditor implements PropertyChangeLi
         pnl_editor.setLayout(new javax.swing.BoxLayout(pnl_editor, javax.swing.BoxLayout.LINE_AXIS));
 
         tbtn_bypass.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/CompareArrows-OFF.png"))); // NOI18N
-        tbtn_bypass.setToolTipText(org.openide.util.NbBundle.getMessage(GenericDialog.class, "GenericDialog.tbtn_bypass.toolTipText")); // NOI18N
+        tbtn_bypass.setToolTipText(org.openide.util.NbBundle.getMessage(RpDialogRealTimeUpdate.class, "RpDialogRealTimeUpdate.tbtn_bypass.toolTipText")); // NOI18N
         tbtn_bypass.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/CompareArrows-ON.png"))); // NOI18N
         tbtn_bypass.addActionListener(new java.awt.event.ActionListener()
         {
@@ -358,7 +371,7 @@ public class GenericDialog<E> extends RpCustomEditor implements PropertyChangeLi
         });
 
         tbtn_hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/SpeakerOff-24x24.png"))); // NOI18N
-        tbtn_hear.setToolTipText(org.openide.util.NbBundle.getMessage(GenericDialog.class, "GenericDialog.tbtn_hear.toolTipText")); // NOI18N
+        tbtn_hear.setToolTipText(org.openide.util.NbBundle.getMessage(RpDialogRealTimeUpdate.class, "RpDialogRealTimeUpdate.tbtn_hear.toolTipText")); // NOI18N
         tbtn_hear.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/SpeakerOnRed-24x24.png"))); // NOI18N
         tbtn_hear.addActionListener(new java.awt.event.ActionListener()
         {
@@ -368,7 +381,7 @@ public class GenericDialog<E> extends RpCustomEditor implements PropertyChangeLi
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_ok, org.openide.util.NbBundle.getMessage(GenericDialog.class, "GenericDialog.btn_ok.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_ok, org.openide.util.NbBundle.getMessage(RpDialogRealTimeUpdate.class, "RpDialogRealTimeUpdate.btn_ok.text")); // NOI18N
         btn_ok.setFont(btn_ok.getFont().deriveFont(btn_ok.getFont().getSize()-2f));
         btn_ok.setMinimumSize(new java.awt.Dimension(20, 19));
         btn_ok.addActionListener(new java.awt.event.ActionListener()
@@ -379,7 +392,7 @@ public class GenericDialog<E> extends RpCustomEditor implements PropertyChangeLi
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_cancel, org.openide.util.NbBundle.getMessage(GenericDialog.class, "GenericDialog.btn_cancel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_cancel, org.openide.util.NbBundle.getMessage(RpDialogRealTimeUpdate.class, "RpDialogRealTimeUpdate.btn_cancel.text")); // NOI18N
         btn_cancel.setFont(btn_cancel.getFont().deriveFont(btn_cancel.getFont().getSize()-2f));
         btn_cancel.addActionListener(new java.awt.event.ActionListener()
         {
@@ -467,6 +480,15 @@ public class GenericDialog<E> extends RpCustomEditor implements PropertyChangeLi
     private void tbtn_bypassActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tbtn_bypassActionPerformed
     {//GEN-HEADEREND:event_tbtn_bypassActionPerformed
         assert tbtn_hear.isSelected();
+        try
+        {
+            updateSession();
+        } catch (MusicGenerationException ex)
+        {
+            LOGGER.warning("tbtn_bypassActionPerformed() ex=" + ex.getMessage());
+            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+        }
     }//GEN-LAST:event_tbtn_bypassActionPerformed
 
     private void formWindowClosed(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosed

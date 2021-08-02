@@ -29,15 +29,15 @@ import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.PlaybackSettings.PrecountMode;
 import org.jjazz.musiccontrol.api.TestPlayer;
 import org.jjazz.phrase.api.NoteEvent;
-import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.jjazz.phrase.api.Phrase;
 
 final class ClickPanel extends javax.swing.JPanel
 {
 
-    private final ClickOptionsPanelController controller;
+    private final ClickOptionsPanelController controller; 
 
     ClickPanel(ClickOptionsPanelController controller)
     {
@@ -316,7 +316,7 @@ final class ClickPanel extends javax.swing.JPanel
        try
        {
            tp.playTestNotes(p, endAction);
-       } catch (MusicGenerationException ex)
+       } catch (MusicGenerationException ex) 
        {
            endAction.run();
            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
