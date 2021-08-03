@@ -34,7 +34,7 @@ import org.jjazz.songstructure.api.SongPart;
  *
  * @param <E> The type of value of the RhythmParameter.
  */
-public abstract class RpEditorPanel<E> extends JPanel
+public abstract class AbstractRpPanel<E> extends JPanel
 {
 
     /**
@@ -43,7 +43,7 @@ public abstract class RpEditorPanel<E> extends JPanel
     public static final String PROP_RP_VALUE = "PropRpValue";
 
 
-    private static final Logger LOGGER = Logger.getLogger(RpEditorPanel.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(AbstractRpPanel.class.getSimpleName());
 
 
     // =======================================================================

@@ -102,7 +102,7 @@
               <Image iconType="3" name="/org/jjazz/rpcustomeditorfactoryimpl/resources/CompareArrows-OFF.png"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RpDialogRealTimeUpdate.tbtn_bypass.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RpCustomEditorImpl.tbtn_bypass.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
             <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/rpcustomeditorfactoryimpl/resources/CompareArrows-ON.png"/>
@@ -118,7 +118,7 @@
               <Image iconType="3" name="/org/jjazz/rpcustomeditorfactoryimpl/resources/SpeakerOff-24x24.png"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RpDialogRealTimeUpdate.tbtn_hear.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RpCustomEditorImpl.tbtn_hear.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
             <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/rpcustomeditorfactoryimpl/resources/SpeakerOnRed-24x24.png"/>
@@ -131,7 +131,7 @@
         <Component class="org.jjazz.ui.utilities.api.SmallFlatDarkLafButton" name="btn_ok">
           <Properties>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RpDialogRealTimeUpdate.btn_ok.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RpCustomEditorImpl.btn_ok.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
               <FontInfo relative="true">
@@ -149,7 +149,7 @@
         <Component class="org.jjazz.ui.utilities.api.SmallFlatDarkLafButton" name="btn_cancel">
           <Properties>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RpDialogRealTimeUpdate.btn_cancel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RpCustomEditorImpl.btn_cancel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
               <FontInfo relative="true">
