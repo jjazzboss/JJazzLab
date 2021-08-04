@@ -27,12 +27,26 @@ public class RP_SYS_DrumsMixPanel extends AbstractRpPanel<RP_SYS_DrumsMixValue> 
         knb_toms.addPropertyChangeListener(this);
         knb_crash.addPropertyChangeListener(this);
         knb_cymbals.addPropertyChangeListener(this);
+        knb_perc.addPropertyChangeListener(this);
     }
 
     @Override
     public RP_SYS_DrumsMix getRhythmParameter()
     {
         return rp;
+    }
+
+    @Override
+    public void setEnabled(boolean b)
+    {
+        super.setEnabled(b);
+        knb_bassDrum.setEnabled(b);
+        knb_snare.setEnabled(b);
+        knb_hihat.setEnabled(b);
+        knb_toms.setEnabled(b);
+        knb_crash.setEnabled(b);
+        knb_cymbals.setEnabled(b);
+        knb_perc.setEnabled(b);
     }
 
     @Override
@@ -50,6 +64,7 @@ public class RP_SYS_DrumsMixPanel extends AbstractRpPanel<RP_SYS_DrumsMixValue> 
         knb_toms.setValue(rpValue.getTomsOffset());
         knb_crash.setValue(rpValue.getCrashOffset());
         knb_cymbals.setValue(rpValue.getCymbalsOffset());
+        knb_perc.setValue(rpValue.getPercOffset());
         lastValue = rpValue;
     }
 
@@ -61,7 +76,8 @@ public class RP_SYS_DrumsMixPanel extends AbstractRpPanel<RP_SYS_DrumsMixValue> 
                 knb_hihat.getValue(),
                 knb_toms.getValue(),
                 knb_crash.getValue(),
-                knb_cymbals.getValue()
+                knb_cymbals.getValue(),
+                knb_perc.getValue()
         );
         return res;
     }
@@ -79,12 +95,14 @@ public class RP_SYS_DrumsMixPanel extends AbstractRpPanel<RP_SYS_DrumsMixValue> 
                 || evt.getSource() == knb_hihat
                 || evt.getSource() == knb_toms
                 || evt.getSource() == knb_crash
-                || evt.getSource() == knb_cymbals)
+                || evt.getSource() == knb_cymbals
+                || evt.getSource() == knb_perc
+                )
         {
             if (evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
             {
                 var newValue = getEditedRpValue();
-                firePropertyChange(PROP_RP_VALUE, lastValue, newValue);
+                firePropertyChange(PROP_EDITED_RP_VALUE, lastValue, newValue);
                 lastValue = newValue;
             }
         }
@@ -117,6 +135,9 @@ public class RP_SYS_DrumsMixPanel extends AbstractRpPanel<RP_SYS_DrumsMixValue> 
         jPanel6 = new javax.swing.JPanel();
         knb_crash = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
         jLabel11 = new javax.swing.JLabel();
+        jPanel7 = new javax.swing.JPanel();
+        knb_perc = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
+        jLabel12 = new javax.swing.JLabel();
 
         setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixPanel.class, "RP_SYS_DrumsMixPanel.toolTipText")); // NOI18N
 
@@ -288,6 +309,34 @@ public class RP_SYS_DrumsMixPanel extends AbstractRpPanel<RP_SYS_DrumsMixValue> 
         jLabel11.setAlignmentX(0.5F);
         jPanel6.add(jLabel11);
 
+        jPanel7.setLayout(new javax.swing.BoxLayout(jPanel7, javax.swing.BoxLayout.Y_AXIS));
+
+        knb_perc.setKnobRadius(9.0);
+        knb_perc.setKnobStartAngle(220.0);
+        knb_perc.setMaxValue(64);
+        knb_perc.setMinValue(-64);
+        knb_perc.setPanoramicType(true);
+        knb_perc.setValue(0);
+        knb_perc.setValueLineThickness(2.0);
+
+        javax.swing.GroupLayout knb_percLayout = new javax.swing.GroupLayout(knb_perc);
+        knb_perc.setLayout(knb_percLayout);
+        knb_percLayout.setHorizontalGroup(
+            knb_percLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 30, Short.MAX_VALUE)
+        );
+        knb_percLayout.setVerticalGroup(
+            knb_percLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 27, Short.MAX_VALUE)
+        );
+
+        jPanel7.add(knb_perc);
+
+        jLabel12.setFont(jLabel12.getFont().deriveFont(jLabel12.getFont().getSize()-2f));
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel12, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixPanel.class, "RP_SYS_DrumsMixPanel.jLabel12.text")); // NOI18N
+        jLabel12.setAlignmentX(0.5F);
+        jPanel7.add(jLabel12);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -305,6 +354,8 @@ public class RP_SYS_DrumsMixPanel extends AbstractRpPanel<RP_SYS_DrumsMixValue> 
                 .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -312,6 +363,7 @@ public class RP_SYS_DrumsMixPanel extends AbstractRpPanel<RP_SYS_DrumsMixValue> 
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -327,6 +379,7 @@ public class RP_SYS_DrumsMixPanel extends AbstractRpPanel<RP_SYS_DrumsMixValue> 
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
@@ -336,10 +389,12 @@ public class RP_SYS_DrumsMixPanel extends AbstractRpPanel<RP_SYS_DrumsMixValue> 
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
     private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_bassDrum;
     private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_crash;
     private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_cymbals;
     private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_hihat;
+    private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_perc;
     private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_snare;
     private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_toms;
     // End of variables declaration//GEN-END:variables

@@ -293,11 +293,12 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         jPanel1 = new javax.swing.JPanel();
         btn_group = new javax.swing.ButtonGroup();
         pnl_viewer = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
         pnl_chordSymbol = new javax.swing.JPanel();
         spn_srcChannel = new javax.swing.JSpinner();
+        pnl_low = new javax.swing.JPanel();
         pnl_buttons = new javax.swing.JPanel();
+        pnl_help = new javax.swing.JPanel();
+        lbl_helpIcon = new javax.swing.JLabel();
         rbtn_playback = new javax.swing.JRadioButton();
         rbtn_selection = new javax.swing.JRadioButton();
         pnl_chordSymbolScaleName = new javax.swing.JPanel();
@@ -318,19 +319,24 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         pnl_viewer.setOpaque(false);
         pnl_viewer.setLayout(new javax.swing.BoxLayout(pnl_viewer, javax.swing.BoxLayout.LINE_AXIS));
 
-        jScrollPane1.setBorder(null);
-
-        helpTextArea1.setColumns(20);
-        helpTextArea1.setRows(4);
-        helpTextArea1.setText(org.openide.util.NbBundle.getBundle(NotesViewerPanel.class).getString("NotesViewerPanel.helpTextArea1.text")); // NOI18N
-        jScrollPane1.setViewportView(helpTextArea1);
-
         pnl_chordSymbol.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
         spn_srcChannel.setFont(spn_srcChannel.getFont().deriveFont(spn_srcChannel.getFont().getSize()-1f));
 
-        pnl_buttons.setOpaque(false);
-        pnl_buttons.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 3, 0));
+        pnl_low.setOpaque(false);
+        pnl_low.setLayout(new java.awt.BorderLayout());
+
+        pnl_buttons.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 3, 0));
+        pnl_low.add(pnl_buttons, java.awt.BorderLayout.WEST);
+        pnl_buttons.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(NotesViewerPanel.class, "NotesViewerPanel.pnl_buttons.AccessibleContext.accessibleName")); // NOI18N
+
+        pnl_help.setLayout(new javax.swing.BoxLayout(pnl_help, javax.swing.BoxLayout.LINE_AXIS));
+
+        lbl_helpIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/notesviewer/resources/HelpIcon16x16.png"))); // NOI18N
+        lbl_helpIcon.setToolTipText(org.openide.util.NbBundle.getMessage(NotesViewerPanel.class, "NotesViewerPanel.lbl_helpIcon.toolTipText")); // NOI18N
+        pnl_help.add(lbl_helpIcon);
+
+        pnl_low.add(pnl_help, java.awt.BorderLayout.EAST);
 
         btn_group.add(rbtn_playback);
         rbtn_playback.setFont(rbtn_playback.getFont().deriveFont(rbtn_playback.getFont().getSize()-1f));
@@ -379,10 +385,9 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                         .addGap(18, 18, 18)
                         .addComponent(rbtn_playback)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(spn_srcChannel))
+                        .addComponent(spn_srcChannel, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE))
                     .addComponent(pnl_chordSymbol, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 316, Short.MAX_VALUE)
-                    .addComponent(pnl_buttons, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(pnl_low, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
             .addComponent(pnl_chordSymbolScaleName, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(pnl_viewer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -400,12 +405,10 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pnl_chordSymbol, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pnl_viewer, javax.swing.GroupLayout.DEFAULT_SIZE, 132, Short.MAX_VALUE)
+                .addComponent(pnl_viewer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pnl_buttons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(2, 2, 2))
+                .addComponent(pnl_low, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -838,14 +841,15 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup btn_group;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbl_chordSymbol;
+    private javax.swing.JLabel lbl_helpIcon;
     private javax.swing.JLabel lbl_scale;
     private javax.swing.JPanel pnl_buttons;
     private javax.swing.JPanel pnl_chordSymbol;
     private javax.swing.JPanel pnl_chordSymbolScaleName;
+    private javax.swing.JPanel pnl_help;
+    private javax.swing.JPanel pnl_low;
     private javax.swing.JPanel pnl_viewer;
     private javax.swing.JRadioButton rbtn_playback;
     private javax.swing.JRadioButton rbtn_selection;

@@ -42,13 +42,10 @@
                           </Group>
                           <Group type="102" attributes="0">
                               <Group type="103" groupAlignment="0" attributes="0">
-                                  <Group type="102" alignment="0" attributes="0">
-                                      <Component id="cb_useRhythmTempo" min="-2" max="-2" attributes="0"/>
-                                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-                                  </Group>
+                                  <Component id="cb_useRhythmTempo" alignment="0" min="-2" max="-2" attributes="0"/>
                                   <Component id="cb_applyRhythmToNextSpts" alignment="0" min="-2" max="-2" attributes="0"/>
                               </Group>
-                              <EmptySpace min="-2" pref="341" max="-2" attributes="0"/>
+                              <EmptySpace min="341" max="32767" attributes="0"/>
                               <Component id="btn_Ok" min="-2" pref="61" max="-2" attributes="0"/>
                               <EmptySpace type="unrelated" max="-2" attributes="0"/>
                               <Component id="btn_Cancel" min="-2" max="-2" attributes="0"/>

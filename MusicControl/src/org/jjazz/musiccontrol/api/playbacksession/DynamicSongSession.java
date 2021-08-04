@@ -44,8 +44,8 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.util.api.IntRange;
 
 /**
- * A SongContextSession-based PlaybackSession which allows the user to add/remove MidiEvents (without changing the Sequence size)
- * in realtime while playing.
+ * A SongContextSession-based session which allows the user to add/remove MidiEvents (without changing the Sequence size) in
+ * realtime while playing.
  */
 public class DynamicSongSession implements PropertyChangeListener, PlaybackSession, PositionProvider, ChordSymbolProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
@@ -194,7 +194,7 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
      */
     public void updateSequence(Map<Integer, List<MidiEvent>> mapTrackIdEvents)
     {
-        // LOGGER.info("updateSequence ---- mapTrackIdEvents=" + mapTrackIdEvents);
+        LOGGER.info("updateSequence ---- mapTrackIdEvents.keySet()=" + mapTrackIdEvents.keySet());
         for (int trackId : mapTrackIdEvents.keySet())
         {
             Track track = bufferTrackSet.getTrack(trackId);
@@ -430,7 +430,7 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
         }
 
 
-//        LOGGER.info("setPlayingBuffer() AFTER: mapTrackIdMuted=" + mapTrackIdMuted);
+        LOGGER.info("setPlayingBuffer() AFTER: mapTrackIdMuted=" + mapTrackIdMuted);
         // Swap TrackSets
         TrackSet tmp = playingTrackSet;
         playingTrackSet = bufferTrackSet;

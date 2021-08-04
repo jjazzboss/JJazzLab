@@ -23,6 +23,7 @@
 package org.jjazz.midi.api.keymap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -177,6 +178,12 @@ public class KeyMapXG implements DrumKit.KeyMap
         return res == null ? Collections.emptyList() : res;
     }
 
+    /**
+     *
+     * @param name
+     * @param pitch
+     * @param subsets If empty assign to Subset.PERCUSSION by default
+     */
     private void addNote(String name, int pitch, DrumKit.Subset... subsets)
     {
         if (pitch < 0 || pitch > 127 || name == null || name.trim().isEmpty())
@@ -190,7 +197,12 @@ public class KeyMapXG implements DrumKit.KeyMap
         }
         mapNamePitch.put(name, pitch);
         mapPitchName.put(pitch, name);
-        for (DrumKit.Subset subset : subsets)
+        var workSubsets = new ArrayList<>(Arrays.asList(subsets));
+        if (workSubsets.isEmpty())
+        {
+            workSubsets.add(DrumKit.Subset.PERCUSSION);
+        }
+        for (DrumKit.Subset subset : workSubsets)
         {
             var notes = mapSubsetPitches.get(subset);
             if (notes == null)
@@ -200,5 +212,6 @@ public class KeyMapXG implements DrumKit.KeyMap
             }
             notes.add(pitch);
         }
+
     }
 }

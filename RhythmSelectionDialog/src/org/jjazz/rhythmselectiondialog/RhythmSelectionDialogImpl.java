@@ -105,6 +105,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         // Listen to ComboBox changes
         cmb_variation.addActionListener(this);
 
+
         // Update UI
         Utilities.installSelectAllWhenFocused(tf_filter);
         fbtn_autoPreviewMode.addActionListener(e -> toggleRhythmPreview());
@@ -338,12 +339,13 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                         }
                     } else
                     {
-                        // Other rhythms may have different variations that currently played rhythm
+                        // It's a one time preview
+                        // Other rhythms may have different variations that currently played rhythm, so disable for other rhythms
                         cmb_variation.setEnabled(ri == pri);
                     }
                 } else if (fbtn_autoPreviewMode.isEnabled() && fbtn_autoPreviewMode.isSelected())
                 {
-                    // Rhythm preview is OFF, but auto preview is ON. This typically happens after a new RhythmProvider is selected
+                    // RhythmPreview is OFF, but auto preview is ON. This typically happens after a new RhythmProvider is selected
                     if (ri != null)
                     {
                         // Preview rhythm if not
@@ -361,6 +363,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                 }
             } else
             {
+                // No RhythmPreview capability
                 cmb_variation.setEnabled(false);
             }
         }
@@ -676,22 +679,31 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         }
 
 
+        // Update cmb_variation
+        String rpStdVariationValue = updateCmbVariation(r);
+        cmb_variation.setEnabled(rpStdVariationValue != null);
+
+
+        // Prepare 
+        Map<RhythmParameter<?>, Object> mapRpValues = new HashMap<>();
+        if (rpStdVariationValue != null)
+        {
+            mapRpValues.put(RP_STD_Variation.getVariationRp(r), rpStdVariationValue);
+        }
+
+
         // Preview
         try
         {
             LOGGER.fine("previewRhythm() calling rhythmPreviewProvider().previewRhythm()");   //NOI18N
 
-            rhythmPreviewProvider.previewRhythm(r, new HashMap<>(), cb_useRhythmTempo.isSelected(), fbtn_autoPreviewMode.isSelected(), e -> rhythmPreviewComplete(r));
+            rhythmPreviewProvider.previewRhythm(r, mapRpValues, cb_useRhythmTempo.isSelected(), fbtn_autoPreviewMode.isSelected(), e -> rhythmPreviewComplete(r));
             rhythmTable.getModel().setHighlighted(ri, true);
         } catch (MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
         }
-
-        // Update cmb_variation
-        cmb_variation.setEnabled(updateCmbVariation(r));
-
 
     }
 
@@ -701,14 +713,15 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
      * Select a default value, reuse previous one if any. Does not trigger an actionPerformed().
      *
      * @param r
-     * @return False if r does not use the RP_STD_Variation parameter.
+     * @return Null if r does use RP_STD_Variation, otherwise return the RP_STD_Variation value to use (we try to reuse the one
+     * from previous rhythm)
      */
-    private boolean updateCmbVariation(Rhythm r)
+    private String updateCmbVariation(Rhythm r)
     {
         RP_STD_Variation rpVariation = RP_STD_Variation.getVariationRp(r);
         if (rpVariation == null)
         {
-            return false;
+            return null;
         }
 
         cmb_variation.removeActionListener(this);
@@ -716,16 +729,16 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         String oldSelectedValue = (String) cmb_variation.getSelectedItem();
         var possibleValues = rpVariation.getPossibleValues();
         cmb_variation.setModel(new DefaultComboBoxModel<>(possibleValues.toArray(new String[0])));
+        String newSelectedValue = oldSelectedValue; // Try to reuse previous value by default
         if (oldSelectedValue == null || !possibleValues.contains(oldSelectedValue))
         {
-            cmb_variation.setSelectedItem(rpVariation.getDefaultValue());
-        } else
-        {
-            cmb_variation.setSelectedItem(oldSelectedValue);
+            // If new rhythm does not support the old value, use default
+            newSelectedValue = rpVariation.getDefaultValue();
         }
-
+        cmb_variation.setSelectedItem(newSelectedValue);
         cmb_variation.addActionListener(this);
-        return true;
+
+        return newSelectedValue;
     }
 
     private void variationChangedByUser()

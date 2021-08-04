@@ -86,7 +86,9 @@ public class InstrumentMix implements Serializable
     }
 
     /**
-     * @return the instrument
+     * Get the instrument.
+     *
+     * @return Can't be null.
      */
     public Instrument getInstrument()
     {
@@ -94,7 +96,9 @@ public class InstrumentMix implements Serializable
     }
 
     /**
-     * @param instrument the instrument to set
+     * Set the instrument.
+     *
+     * @param instrument Can't be null.
      */
     public final void setInstrument(Instrument instrument)
     {

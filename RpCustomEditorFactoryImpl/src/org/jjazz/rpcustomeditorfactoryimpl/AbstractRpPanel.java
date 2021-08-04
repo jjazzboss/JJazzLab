@@ -30,7 +30,7 @@ import org.jjazz.songstructure.api.SongPart;
 /**
  * A JPanel to be used as a RhythmParameter value editor by GenericDialog.
  * <p>
- * Use addPropertyChangeListener(PROP_RP_VALUE) to get notified when the RP_Value changes.
+ Use addPropertyChangeListener(PROP_EDITED_RP_VALUE) to get notified when the edited RP_Value changes.
  *
  * @param <E> The type of value of the RhythmParameter.
  */
@@ -40,7 +40,7 @@ public abstract class AbstractRpPanel<E> extends JPanel
     /**
      * This property change event must be fired each time user modifies the value in the editor.
      */
-    public static final String PROP_RP_VALUE = "PropRpValue";
+    public static final String PROP_EDITED_RP_VALUE = "PropEditedRpValue";
 
 
     private static final Logger LOGGER = Logger.getLogger(AbstractRpPanel.class.getSimpleName());
@@ -68,7 +68,7 @@ public abstract class AbstractRpPanel<E> extends JPanel
     /**
      * Change the edited value to rpValue.
      * <p>
-     * This must NOT trigger a PROP_RP_VALUE change event.
+ This must NOT trigger a PROP_EDITED_RP_VALUE change event.
      *
      * @param rpValue Can not be null.
      */

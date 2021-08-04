@@ -7,7 +7,7 @@
    id="svg20"
    sodipodi:docname="GuitarDiagramIcon.svg"
    inkscape:version="1.1 (c68e22c387, 2021-05-23)"
-   inkscape:export-filename="C:\Users\Jerome\Documents\JJazzLab\src\JJazzLab-X\Graphics\KeyboardIcon-Selected.png"
+   inkscape:export-filename="C:\Users\lelasseux\Documents\Perso\src\work\JJazzLab-X\Graphics\HelpIcon.png"
    inkscape:export-xdpi="1.6"
    inkscape:export-ydpi="1.6"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -103,6 +103,12 @@
   </metadata>
   <defs
      id="defs24">
+    <rect
+       x="187.11864"
+       y="231.8644"
+       width="516.61016"
+       height="488.13558"
+       id="rect2379" />
     <marker
        inkscape:isstock="true"
        style="overflow:visible"
@@ -202,12 +208,12 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:window-width="1920"
-     inkscape:window-height="1017"
+     inkscape:window-height="1027"
      id="namedview22"
      showgrid="false"
      inkscape:zoom="0.24583334"
-     inkscape:cx="-1035.2542"
-     inkscape:cy="372.20338"
+     inkscape:cx="-1254.9152"
+     inkscape:cy="1136.9491"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
@@ -215,7 +221,8 @@
      inkscape:document-rotation="0"
      inkscape:pagecheckerboard="0"
      inkscape:document-units="pt"
-     inkscape:snap-others="false" />
+     inkscape:snap-others="false"
+     inkscape:lockguides="true" />
   <path
      style="fill:#000000;stroke-width:1.92043638"
      d="m 3605.0732,-1380.2504 v -180.521 h 285.1848 285.1848 v 180.521 180.5211 H 3890.258 3605.0732 Z m 75.9703,164.3538 c 3.5356,-2.5837 3.7278,-5.4805 3.7278,-56.1728 v -53.4485 l -10.0823,-0.5805 -10.0823,-0.5805 v -110.3247 -110.3247 h -24.0371 -24.0371 l 0.5117,164.3525 c 0.4988,160.1646 0.6068,164.4219 4.2396,167.0779 5.3261,3.894 54.4314,3.8951 59.7597,10e-4 z m 79.1577,-0.2653 c 4.2375,-2.9681 4.2682,-3.3758 4.2682,-56.6529 v -53.6633 h -10.5624 -10.5624 v -110.4251 -110.4251 h -12.4828 -12.4829 v 110.4251 110.4251 h -10.5624 -10.5624 v 53.6633 c 0,65.2134 -3.1392,59.6424 33.6077,59.6424 19.5833,0 26.0055,-0.6544 29.3394,-2.9895 z m 81.0856,-0.8514 c 3.7807,-3.7806 3.8409,-6.4014 3.8409,-167.0779 v -163.2371 h -24.0054 -24.0055 v 110.3247 110.3247 l -10.0823,0.5805 -10.0823,0.5805 v 52.5033 52.5034 l 4.5338,3.6694 c 3.9584,3.2038 7.7964,3.6694 30.2468,3.6694 23.1526,0 26.0957,-0.3825 29.554,-3.8409 z m 78.3106,0.8514 c 4.2375,-2.9681 4.2682,-3.3758 4.2682,-56.6529 v -53.6633 h -10.5624 -10.5624 v -110.4251 -110.4251 h -23.0452 -23.0453 v 163.2371 c 0,160.6765 0.06,163.2973 3.8409,167.0779 3.4552,3.4552 6.4015,3.8409 29.3395,3.8409 19.97,0 26.424,-0.6482 29.7667,-2.9895 z m 81.1165,-0.8822 c 3.719,-3.719 3.8515,-5.9341 3.3607,-56.1727 l -0.5109,-52.3011 -11.0425,-0.576 -11.0425,-0.5759 v -110.3293 -110.3292 h -11.5226 -11.5226 v 110.4251 110.4251 h -10.5624 -10.5624 v 53.6633 c 0,65.2669 -3.2096,59.6424 34.0349,59.6424 23.0057,0 25.8771,-0.3785 29.3703,-3.8717 z m 78.2797,0.8822 c 4.2375,-2.9681 4.2682,-3.3758 4.2682,-56.6529 v -53.6633 h -11.5226 -11.5226 v -110.4251 -110.4251 h -11.5226 -11.5226 v 110.3247 110.3247 l -10.0823,0.5805 -10.0823,0.5805 -0.5109,52.3011 c -0.6367,65.175 -3.4335,60.0444 32.731,60.0444 19.97,0 26.424,-0.6482 29.7667,-2.9895 z m 80.6584,0 4.2682,-2.9896 v -164.0884 -164.0884 h -24.0055 -24.0055 v 110.4251 110.4251 h -9.6021 -9.6022 v 53.6633 c 0,65.2134 -3.1392,59.6424 33.6076,59.6424 19.5833,0 26.0056,-0.6544 29.3395,-2.9895 z"
@@ -563,4 +570,26 @@
        inkscape:export-xdpi="1.6"
        inkscape:export-ydpi="1.6" />
   </g>
+  <text
+     xml:space="preserve"
+     transform="matrix(6.7446475,0,0,6.7446475,-1070.1136,-1334.1053)"
+     id="text2377"
+     style="font-style:normal;font-weight:normal;font-size:40px;line-height:60px;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect2379);fill:#999999;fill-opacity:1;stroke:#999999;stroke-opacity:1"
+     inkscape:export-filename="C:\Users\lelasseux\Documents\Perso\src\work\JJazzLab-X\Graphics\HelpIcon.png"
+     inkscape:export-xdpi="1.6"
+     inkscape:export-ydpi="1.6"><tspan
+       x="187.11914"
+       y="286.80273"
+       id="tspan21189"><tspan
+         style="font-weight:bold;font-size:96px;-inkscape-font-specification:'sans-serif, Bold'"
+         id="tspan21187">?</tspan></tspan></text>
+  <circle
+     style="vector-effect:none;fill:none;fill-opacity:1;stroke:#999999;stroke-width:31.8411;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     id="path6477"
+     cx="360"
+     cy="359.99997"
+     r="327.04556"
+     inkscape:export-filename="C:\Users\lelasseux\Documents\Perso\src\work\JJazzLab-X\Graphics\HelpIcon.png"
+     inkscape:export-xdpi="1.6"
+     inkscape:export-ydpi="1.6" />
 </svg>

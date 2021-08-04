@@ -1,9 +1,7 @@
 package org.jjazz.rhythm.api.rhythmparameters;
 
-import java.beans.PropertyChangeSupport;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.DrumKit;
 
@@ -13,38 +11,26 @@ import org.jjazz.midi.api.DrumKit;
 public class RP_SYS_DrumsMixValue
 {
 
-    public static final String PROP_BASSDRUMOFFSET = "bassDrumOffset";
-    public static final String PROP_SNAREOFFSET = "snareOffset";
-    public static final String PROP_HIHATOFFSET = "hiHatOffset";
-    public static final String PROP_TOMSOFFSET = "tomsOffset";
-    public static final String PROP_CRASHOFFSET = "crashOffset";
-    public static final String PROP_CYMBALSOFFSET = "cymbalsOffset";
-
     private int bassDrumOffset;
     private int snareOffset;
     private int hiHatOffset;
     private int tomsOffset;
     private int crashOffset;
     private int cymbalsOffset;
-    private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
+    private int percOffset;
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_DrumsMixValue.class.getSimpleName());
 
     public RP_SYS_DrumsMixValue()
     {
-        reset();
+        this(0, 0, 0, 0, 0, 0, 0);
     }
 
     public RP_SYS_DrumsMixValue(RP_SYS_DrumsMixValue v)
     {
-        bassDrumOffset = v.bassDrumOffset;
-        snareOffset = v.snareOffset;
-        hiHatOffset = v.hiHatOffset;
-        crashOffset = v.crashOffset;
-        tomsOffset = v.tomsOffset;
-        cymbalsOffset = v.cymbalsOffset;
+        this(v.bassDrumOffset, v.snareOffset, v.hiHatOffset, v.tomsOffset, v.crashOffset, v.cymbalsOffset, v.percOffset);
     }
 
-    public RP_SYS_DrumsMixValue(int bassDrumOffset, int snareOffset, int hiHatOffset, int tomsOffset, int crashOffset, int cymbalsOffset)
+    public RP_SYS_DrumsMixValue(int bassDrumOffset, int snareOffset, int hiHatOffset, int tomsOffset, int crashOffset, int cymbalsOffset, int percOffset)
     {
         this.bassDrumOffset = bassDrumOffset;
         this.snareOffset = snareOffset;
@@ -52,18 +38,9 @@ public class RP_SYS_DrumsMixValue
         this.tomsOffset = tomsOffset;
         this.crashOffset = crashOffset;
         this.cymbalsOffset = cymbalsOffset;
+        this.percOffset = percOffset;
     }
 
-
-    public void reset()
-    {
-        bassDrumOffset = 0;
-        snareOffset = 0;
-        hiHatOffset = 0;
-        crashOffset = 0;
-        tomsOffset = 0;
-        cymbalsOffset = 0;
-    }
 
     /**
      * @return the bassDrumOffset
@@ -73,15 +50,6 @@ public class RP_SYS_DrumsMixValue
         return bassDrumOffset;
     }
 
-    /**
-     * @param bassDrumOffset the bassDrumOffset to set
-     */
-    public void setBassDrumOffset(int bassDrumOffset)
-    {
-        int oldBassDrumOffset = this.bassDrumOffset;
-        this.bassDrumOffset = bassDrumOffset;
-        pcs.firePropertyChange(PROP_BASSDRUMOFFSET, oldBassDrumOffset, bassDrumOffset);
-    }
 
     /**
      * @return the snareOffset
@@ -91,15 +59,6 @@ public class RP_SYS_DrumsMixValue
         return snareOffset;
     }
 
-    /**
-     * @param snareOffset the snareOffset to set
-     */
-    public void setSnareOffset(int snareOffset)
-    {
-        int oldSnareOffset = this.snareOffset;
-        this.snareOffset = snareOffset;
-        pcs.firePropertyChange(PROP_SNAREOFFSET, oldSnareOffset, snareOffset);
-    }
 
     /**
      * @return the hiHatOffset
@@ -109,15 +68,6 @@ public class RP_SYS_DrumsMixValue
         return hiHatOffset;
     }
 
-    /**
-     * @param hiHatOffset the hiHatOffset to set
-     */
-    public void setHiHatOffset(int hiHatOffset)
-    {
-        int oldHiHatOffset = this.hiHatOffset;
-        this.hiHatOffset = hiHatOffset;
-        pcs.firePropertyChange(PROP_HIHATOFFSET, oldHiHatOffset, hiHatOffset);
-    }
 
     /**
      * @return the tomsOffset
@@ -127,15 +77,6 @@ public class RP_SYS_DrumsMixValue
         return tomsOffset;
     }
 
-    /**
-     * @param tomsOffset the tomsOffset to set
-     */
-    public void setTomsOffset(int tomsOffset)
-    {
-        int oldTomsOffset = this.tomsOffset;
-        this.tomsOffset = tomsOffset;
-        pcs.firePropertyChange(PROP_TOMSOFFSET, oldTomsOffset, tomsOffset);
-    }
 
     /**
      * @return the crashOffset
@@ -145,15 +86,6 @@ public class RP_SYS_DrumsMixValue
         return crashOffset;
     }
 
-    /**
-     * @param crashOffset the crashOffset to set
-     */
-    public void setCrashOffset(int crashOffset)
-    {
-        int oldCrashOffset = this.crashOffset;
-        this.crashOffset = crashOffset;
-        pcs.firePropertyChange(PROP_CRASHOFFSET, oldCrashOffset, crashOffset);
-    }
 
     /**
      * @return the cymbalsOffset
@@ -164,13 +96,11 @@ public class RP_SYS_DrumsMixValue
     }
 
     /**
-     * @param cymbalsOffset the cymbalsOffset to set
+     * @return the percussionOffset
      */
-    public void setCymbalsOffset(int cymbalsOffset)
+    public int getPercOffset()
     {
-        int oldCymbalsOffset = this.cymbalsOffset;
-        this.cymbalsOffset = cymbalsOffset;
-        pcs.firePropertyChange(PROP_CYMBALSOFFSET, oldCymbalsOffset, cymbalsOffset);
+        return percOffset;
     }
 
     /**
@@ -207,24 +137,29 @@ public class RP_SYS_DrumsMixValue
         {
             res.put(DrumKit.Subset.CRASH, crashOffset);
         }
+        if (percOffset != 0)
+        {
+            res.put(DrumKit.Subset.PERCUSSION, percOffset);
+        }
         return res;
     }
 
     public String toDescriptionString()
     {
         return "BD=" + bassDrumOffset + " SN=" + snareOffset + " HH=" + hiHatOffset
-                + " TO=" + tomsOffset + " CY=" + cymbalsOffset + " CR=" + crashOffset;
+                + " TO=" + tomsOffset + " CY=" + cymbalsOffset + " CR=" + crashOffset + " PC=" + percOffset;
     }
 
     /**
      * Save the specified object state as a string.
      *
+     * @param v
      * @return
      * @see loadFromString()
      */
     static public String saveAsString(RP_SYS_DrumsMixValue v)
     {
-        return v.bassDrumOffset + "," + v.snareOffset + "," + v.hiHatOffset + "," + v.tomsOffset + "," + v.crashOffset + "," + v.cymbalsOffset;
+        return v.bassDrumOffset + "," + v.snareOffset + "," + v.hiHatOffset + "," + v.tomsOffset + "," + v.crashOffset + "," + v.cymbalsOffset + "," + v.percOffset;
     }
 
     /**
@@ -237,22 +172,23 @@ public class RP_SYS_DrumsMixValue
     static public RP_SYS_DrumsMixValue loadFromString(String s)
     {
         String[] strs = s.split(",");
-        RP_SYS_DrumsMixValue res = null;
-        if (strs.length == 6)
+        RP_SYS_DrumsMixValue res = new RP_SYS_DrumsMixValue();
+        if (strs.length == 7)
         {
             try
             {
-                res = new RP_SYS_DrumsMixValue();
-                res.bassDrumOffset = Integer.parseInt(strs[0]);
-                res.snareOffset = Integer.parseInt(strs[1]);
-                res.hiHatOffset = Integer.parseInt(strs[2]);
-                res.tomsOffset = Integer.parseInt(strs[3]);
-                res.crashOffset = Integer.parseInt(strs[4]);
-                res.cymbalsOffset = Integer.parseInt(strs[5]);
+                res = new RP_SYS_DrumsMixValue(
+                        Integer.parseInt(strs[0]),
+                        Integer.parseInt(strs[1]),
+                        Integer.parseInt(strs[2]),
+                        Integer.parseInt(strs[3]),
+                        Integer.parseInt(strs[4]),
+                        Integer.parseInt(strs[5]),
+                        Integer.parseInt(strs[6])
+                );
             } catch (NumberFormatException ex)
             {
                 LOGGER.severe("loadFromString() ex=" + ex.getMessage());
-                res = null;
             }
         }
         return res;
@@ -261,13 +197,14 @@ public class RP_SYS_DrumsMixValue
     @Override
     public int hashCode()
     {
-        int hash = 3;
-        hash = 41 * hash + this.bassDrumOffset;
-        hash = 41 * hash + this.snareOffset;
-        hash = 41 * hash + this.hiHatOffset;
-        hash = 41 * hash + this.tomsOffset;
-        hash = 41 * hash + this.crashOffset;
-        hash = 41 * hash + this.cymbalsOffset;
+        int hash = 7;
+        hash = 13 * hash + this.bassDrumOffset;
+        hash = 13 * hash + this.snareOffset;
+        hash = 13 * hash + this.hiHatOffset;
+        hash = 13 * hash + this.tomsOffset;
+        hash = 13 * hash + this.crashOffset;
+        hash = 13 * hash + this.cymbalsOffset;
+        hash = 13 * hash + this.percOffset;
         return hash;
     }
 
@@ -311,7 +248,7 @@ public class RP_SYS_DrumsMixValue
         {
             return false;
         }
-        if (!Objects.equals(this.pcs, other.pcs))
+        if (this.percOffset != other.percOffset)
         {
             return false;
         }

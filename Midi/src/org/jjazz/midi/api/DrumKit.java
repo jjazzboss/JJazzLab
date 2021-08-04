@@ -54,6 +54,7 @@ public class DrumKit implements Serializable
         TOM,
         CRASH,
         CYMBAL,
+        PERCUSSION,
         ACCENT  // Contains at least kicks and snares, crash cymbals and open hi-hats should be included
     }
 

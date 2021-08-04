@@ -47,6 +47,7 @@ import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -74,7 +75,7 @@ public class MidiSequenceBuilder
     private SongContext context;
     private final Map<RhythmVoice, Integer> mapRvTrackId = new HashMap<>();
     private final Map<RhythmVoice, Phrase> mapRvPhrase = new HashMap<>();
-    
+
     private static final Logger LOGGER = Logger.getLogger(MidiSequenceBuilder.class.getSimpleName());
 
     /**
@@ -126,12 +127,12 @@ public class MidiSequenceBuilder
         {
             BaseProgressUtils.showProgressDialogAndRun(task, ResUtil.getString(getClass(), "PREPARING MUSIC"));
         }
-        
+
         if (task.musicException != null)
         {
             throw task.musicException;
         }
-        
+
         return task.sequence;
     }
 
@@ -168,7 +169,7 @@ public class MidiSequenceBuilder
     {
         return context;
     }
-    
+
     @Override
     public String toString()
     {
@@ -258,8 +259,8 @@ public class MidiSequenceBuilder
             {
                 continue;
             }
-            
-            
+
+
             Set<String> muteValues = spt.getRPValue(rpMute);
             if (muteValues.isEmpty())
             {
@@ -314,7 +315,8 @@ public class MidiSequenceBuilder
 
             // Retrieve drums keymap
             RhythmVoice rvDrums = rpDrums.getRhythmVoice();
-            var keymap = context.getMidiMix().getInstrumentMixFromKey(rvDrums).getInstrument().getDrumKit().getKeyMap();
+            var drumkit = context.getMidiMix().getInstrumentMixFromKey(rvDrums).getInstrument().getDrumKit();   // Can be null for "Not Set" drums voice
+            var keymap = drumkit != null ? drumkit.getKeyMap() : KeyMapGM.getInstance();
 
 
             // Apply the velocity offsets on the SongPart drums notes
@@ -528,15 +530,15 @@ public class MidiSequenceBuilder
         // The generated sequence from the phrases
         private Sequence sequence = null;
         private MusicGenerationException musicException = null;
-        
+
         private SequenceBuilderTask()
         {
         }
-        
+
         @Override
         public void run()
         {
-            
+
             mapRvPhrase.clear();
             for (Rhythm r : context.getUniqueRhythms())
             {
@@ -664,8 +666,8 @@ public class MidiSequenceBuilder
             }
             fixEndOfTracks(sequence);
         }
-        
-        
+
+
     }
-    
+
 }

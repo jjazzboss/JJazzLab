@@ -38,6 +38,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -77,7 +79,7 @@ public class Utilities
     {
         if (Files.isDirectory(dirPath))
         {
-            try ( Stream<Path> entries = Files.list(dirPath))
+            try (Stream<Path> entries = Files.list(dirPath))
             {
                 return !entries.findFirst().isPresent();
             }
@@ -478,7 +480,7 @@ public class Utilities
 
         LOGGER.fine("extractZipResource() -- myClass=" + myClass + " zipResource=" + zipResource + " destDir=" + destDir);   //NOI18N
         ArrayList<File> res = new ArrayList<>();
-        try ( InputStream is = myClass.getResourceAsStream(zipResource);  BufferedInputStream bis = new BufferedInputStream(is);  ZipInputStream zis = new ZipInputStream(bis))
+        try (InputStream is = myClass.getResourceAsStream(zipResource); BufferedInputStream bis = new BufferedInputStream(is); ZipInputStream zis = new ZipInputStream(bis))
         {
             ZipEntry entry;
             byte[] buffer = new byte[2048];
@@ -504,7 +506,7 @@ public class Utilities
                 {
                     continue;
                 }
-                try ( FileOutputStream fos = new FileOutputStream(destFile);  BufferedOutputStream bos = new BufferedOutputStream(fos, buffer.length))
+                try (FileOutputStream fos = new FileOutputStream(destFile); BufferedOutputStream bos = new BufferedOutputStream(fos, buffer.length))
                 {
                     int len;
                     while ((len = zis.read(buffer)) > 0)
@@ -539,7 +541,7 @@ public class Utilities
             throw new IllegalArgumentException("c=" + c + " resourceFilePath=" + resourceFilePath + " targetFile=" + targetFile);   //NOI18N
         }
         boolean b = false;
-        try ( InputStream in = c.getResourceAsStream(resourceFilePath))
+        try (InputStream in = c.getResourceAsStream(resourceFilePath))
         {
             if (in != null)
             {
@@ -771,7 +773,7 @@ public class Utilities
     {
         StringWriter result = new StringWriter();
         int curChar;
-        try ( InputStream is = fo.getInputStream();  BufferedReader in = new BufferedReader(new InputStreamReader(is)))
+        try (InputStream is = fo.getInputStream(); BufferedReader in = new BufferedReader(new InputStreamReader(is)))
         {
             while ((curChar = in.read()) != -1)
             {
@@ -958,6 +960,40 @@ public class Utilities
 
         return errMsg == null;
     }
+
+    /**
+     * Shutdown an executor service in a clean way.
+     * <p>
+     * From https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/ExecutorService.html
+     *
+     * @param pool
+     * @param waitTerminationTimeMs Time in milliseconds to wait for pool tasks to terminate themselves
+     * @param waitCancelTimeMs Time in milliseconds to wait for pool tasks to handle the cancel requests
+     */
+    static public void shutdownAndAwaitTermination(ExecutorService pool, long waitTerminationTimeMs, long waitCancelTimeMs)
+    {
+        pool.shutdown(); // Disable new tasks from being submitted
+        try
+        {
+            // Wait a while for existing tasks to terminate
+            if (!pool.awaitTermination(waitTerminationTimeMs, TimeUnit.MILLISECONDS))
+            {
+                pool.shutdownNow(); // Cancel currently executing tasks
+                // Wait a while for tasks to respond to being cancelled
+                if (!pool.awaitTermination(waitCancelTimeMs, TimeUnit.MILLISECONDS))
+                {
+                    LOGGER.warning("shutdownAndAwaitTermination() Pool did not terminate within " + (waitTerminationTimeMs + waitCancelTimeMs) + "ms");
+                }
+            }
+        } catch (InterruptedException ie)
+        {
+            // (Re-)Cancel if current thread also interrupted
+            pool.shutdownNow();
+            // Preserve interrupt status
+            Thread.currentThread().interrupt();
+        }
+    }
+
 
     // ========================================================================
     // Private methods

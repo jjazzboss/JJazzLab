@@ -34,6 +34,7 @@ import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
+import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
@@ -96,10 +97,11 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
         RhythmParameter<?> rp = sptps.get(0).getRp();
         SongPart spt = sptps.get(0).getSpt();
 
+        
         // Open custom editor if supported
         var factory = RpCustomEditorFactory.findFactory(rp);
         if (factory != null)
-        {
+        {           
             SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
 
 

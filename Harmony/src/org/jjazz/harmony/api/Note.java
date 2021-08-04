@@ -748,7 +748,7 @@ public class Note implements Comparable<Note>, Cloneable
 
     public boolean isFlat()
     {
-        return alterationDisplay.equals(alterationDisplay.FLAT);
+        return alterationDisplay.equals(Alteration.FLAT);
     }
 
 

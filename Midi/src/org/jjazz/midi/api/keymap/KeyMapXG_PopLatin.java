@@ -61,7 +61,7 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
         addNote("Cajon Tip", 15);
         addNote("Claves High", 16);
         addNote("Claves Low", 17);
-        addNote("Hand Clap", 18, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
+        addNote("Hand Clap", 18);
         // No 19    
         addNote("Finger Snap", 20);
         addNote("Castanet", 21);
@@ -174,6 +174,12 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
         return res == null ? Collections.emptyList() : res;
     }
 
+    /**
+     *
+     * @param name
+     * @param pitch
+     * @param subsets If empty assign to Subset.PERCUSSION by default
+     */
     private void addNote(String name, int pitch, DrumKit.Subset... subsets)
     {
         if (pitch < 0 || pitch > 127 || name == null || name.trim().isEmpty())
@@ -187,7 +193,12 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
         }
         mapNamePitch.put(name, pitch);
         mapPitchName.put(pitch, name);
-        for (DrumKit.Subset subset : subsets)
+        var workSubsets = new ArrayList<>(Arrays.asList(subsets));
+        if (workSubsets.isEmpty())
+        {
+            workSubsets.add(DrumKit.Subset.PERCUSSION);
+        }
+        for (DrumKit.Subset subset : workSubsets)
         {
             var notes = mapSubsetPitches.get(subset);
             if (notes == null)
@@ -197,5 +208,6 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
             }
             notes.add(pitch);
         }
+
     }
 }

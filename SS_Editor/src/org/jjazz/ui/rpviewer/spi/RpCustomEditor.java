@@ -49,7 +49,8 @@ public abstract class RpCustomEditor<E> extends JDialog implements PropertyChang
     public abstract RhythmParameter<E> getRhythmParameter();
 
     /**
-     * Initialize the dialog.
+     * Initialize the dialog before being shown.
+     *
      *
      * @param rpValue The RhythmParameter value
      * @param sgContext The bar range must correspond to a single SongPart (a single RhythmParameter value).

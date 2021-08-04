@@ -122,7 +122,7 @@ public class GeneralUISettings
      * 
      *
      * @param theme
-     * @deprecated It's too difficult to maintain 2 themes...
+     * @deprecated It's too difficult to maintain 2 themes
      */
     protected void setThemeUponRestart(Theme theme)
     {

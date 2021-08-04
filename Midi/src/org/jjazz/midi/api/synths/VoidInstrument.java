@@ -32,7 +32,7 @@ import org.jjazz.midi.api.InstrumentBank;
 /**
  * A special "void" instrument: no bank change or program change is associated to this instrument.
  * <p>
- * When used the system should not send any Midi bank select or program change messages for this instument.
+ * When used the system should not send any Midi bank select or program change messages for this instrument.
  */
 public class VoidInstrument extends GM1Instrument implements Serializable
 {

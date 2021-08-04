@@ -29,8 +29,12 @@ import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequencer;
@@ -38,6 +42,9 @@ import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
+import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
@@ -51,7 +58,9 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.rpviewer.spi.RpCustomEditor;
+import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
+import org.jjazz.util.api.Utilities;
 import org.openide.*;
 import org.openide.util.Exceptions;
 
@@ -63,12 +72,14 @@ import org.openide.util.Exceptions;
 public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements PropertyChangeListener
 {
 
+    private static final int PREVIEW_MAX_NB_BARS = 4;
     private AbstractRpPanel<E> editorPanel;
     private boolean exitOk;
     private DynamicSongSession session;
     private SongContext songContextOriginal;
-    private final BlockingQueue<E> blockingQueue = new ArrayBlockingQueue<>(256);
-    private final Thread thread = new Thread(new RpValueChangesHandlingTask(blockingQueue));
+    private E rpValueOriginal;
+    private Queue<E> queue;
+    private RpValueChangesHandlingTask rpValueChangesHandlingTask;
     private static final Logger LOGGER = Logger.getLogger(RpCustomEditorImpl.class.getSimpleName());  //NOI18N
 
 
@@ -92,8 +103,12 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
     @Override
     public void preset(E rpValue, SongContext sgContext)
     {
+        if (rpValue == null || sgContext == null)
+        {
+            throw new IllegalArgumentException("rpValue=" + rpValue + " sgContext=" + sgContext);
+        }
         songContextOriginal = sgContext;
-
+        rpValueOriginal = rpValue;
 
         var spt0 = sgContext.getSongParts().get(0);
         if (!spt0.getRhythm().getRhythmParameters().contains(editorPanel.getRhythmParameter()))
@@ -103,6 +118,7 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
 
 
         // Update UI
+        editorPanel.setEnabled(true);
         editorPanel.preset(rpValue, spt0);
         var spt = sgContext.getSongParts().get(0);
         setTitle(getRhythmParameter().getDisplayName() + " (" + spt.getName() + " bar:" + spt.getStartBarIndex() + ")");
@@ -110,8 +126,10 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
         tbtn_hear.setSelected(false);
         tbtn_bypass.setSelected(false);
         tbtn_bypass.setEnabled(false);
-        String tt = ResUtil.getString(getClass(), "RpDialogRealTimeUpdate.tbtn_bypass.toolTipText") + ": " + rpValue.toString();
+        String tt = ResUtil.getString(getClass(), "RpCustomEditorImpl.tbtn_bypass.toolTipText") + ": " + rpValue.toString();
         tbtn_bypass.setToolTipText(tt);
+
+
     }
 
     /**
@@ -142,20 +160,14 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getSource() == editorPanel && evt.getPropertyName().equals(AbstractRpPanel.PROP_RP_VALUE))
+        if (evt.getSource() == editorPanel && evt.getPropertyName().equals(AbstractRpPanel.PROP_EDITED_RP_VALUE))
         {
             // LOGGER.info("propertyChange() evt=" + evt);
-            if (tbtn_hear.isSelected())
+            if (tbtn_hear.isSelected() && !tbtn_bypass.isSelected())
             {
-                try
-                {
-                    updateSession();
-                } catch (MusicGenerationException ex)
-                {
-                    LOGGER.warning("propertyChange() ex=" + ex.getMessage());
-                    NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
-                    DialogDisplayer.getDefault().notify(d);
-                }
+                // Transmit the value to our handler task
+                E rpValue = (E) evt.getNewValue();
+                queue.offer(rpValue);
             }
         }
     }
@@ -168,45 +180,94 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
     {
         MusicController mc = MusicController.getInstance();
         mc.stop();
-        
-        // Stop thread
-        
+
+
+        stopThread();
+
 
         exitOk = ok;
         setVisible(false);
         dispose();
     }
 
-    /**
-     * Return the original or rpValue-based context depending on the bypass button.
-     *
-     * @param rpValue
-     * @return
-     */
-    private SongContext pickContext(E rpValue)
+
+    private void startThread()
     {
-        SongContext res = songContextOriginal;
-        if (!tbtn_bypass.isSelected())
+        if (rpValueChangesHandlingTask == null)
         {
-            res = buildContextWithRpValue(rpValue);
+            queue = new ConcurrentLinkedQueue<>();
+            rpValueChangesHandlingTask = new RpValueChangesHandlingTask(queue);
+            rpValueChangesHandlingTask.start();
         }
-        return res;
+    }
+
+    private void stopThread()
+    {
+        if (rpValueChangesHandlingTask != null)
+        {
+            rpValueChangesHandlingTask.stop();
+        }
     }
 
 
     /**
-     * Start playback with the given context.
+     * Create a preview SongContext where the previewed SongPart is no longer than maxNbBars and it uses the specified rhythm
+     * parameter value.
      *
-     * @param sgContext
+     * @param rpValue
+     * @param maxNbBars
+     * @return
      */
-    private void startPlayback(SongContext sgContext)
+    private SongContext buildPreviewContext(E rpValue, int maxNbBars)
     {
+        // Get a song copy which uses the edited RP value
+        Song song = SongFactory.getInstance().getCopy(songContextOriginal.getSong());
+        SongStructure ss = song.getSongStructure();
+        ChordLeadSheet cls = song.getChordLeadSheet();
+        SongPart spt = ss.getSongPart(songContextOriginal.getBarRange().from);
 
+
+        // Make sure SongPart size does not exceed maxNbBars 
+        CLI_Section section = spt.getParentSection();
+        IntRange sectionRange = cls.getSectionRange(section);
+        if (sectionRange.size() > maxNbBars)
+        {
+            // Shorten the section
+            try
+            {
+                cls.setSize(sectionRange.from + maxNbBars);
+            } catch (UnsupportedEditException ex)
+            {
+                // We're removing a section, should never happen
+                Exceptions.printStackTrace(ex);
+            }
+        }
+
+        // Apply the RP value
+        ss.setRhythmParameterValue(spt, (RhythmParameter) editorPanel.getRhythmParameter(), rpValue);
+
+
+        // Create the new context
+        SongContext res = new SongContext(song, songContextOriginal.getMidiMix(), spt.getBarRange());
+        return res;
+    }
+
+    /**
+     * Start playback.
+     */
+    private void startPlayback()
+    {
         // Prepare the dynamic session
         if (session != null)
         {
             session.cleanup();
         }
+
+        // Build song context with the original RP value or edited one
+        E rpValue = tbtn_bypass.isSelected() ? rpValueOriginal : editorPanel.getEditedRpValue();
+        SongContext sgContext = buildPreviewContext(rpValue, PREVIEW_MAX_NB_BARS);
+
+
         session = new DynamicSongSession(sgContext,
                 true,
                 false,
@@ -244,24 +305,6 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
 
     }
 
-
-    /**
-     * Create a new context where SongPart uses the edited rhythm parameter value.
-     *
-     * @return
-     */
-    private SongContext buildContextWithRpValue(E rpValue)
-    {
-        // Get a song copy which uses the edited RP value
-        Song songCopy = SongFactory.getInstance().getCopy(songContextOriginal.getSong());
-        SongStructure ssCopy = songCopy.getSongStructure();
-        SongPart sptCopy = ssCopy.getSongPart(songContextOriginal.getBarRange().from);
-        ssCopy.setRhythmParameterValue(sptCopy, (RhythmParameter) editorPanel.getRhythmParameter(), rpValue);
-
-        // Create the new context
-        SongContext res = new SongContext(songCopy, songContextOriginal.getMidiMix(), songContextOriginal.getBarRange());
-        return res;
-    }
 
     /**
      * Overridden to add global key bindings
@@ -325,6 +368,10 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
             public void windowClosing(java.awt.event.WindowEvent evt)
             {
                 formWindowClosing(evt);
+            }
+            public void windowOpened(java.awt.event.WindowEvent evt)
+            {
+                formWindowOpened(evt);
             }
         });
 
@@ -437,29 +484,25 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
 
     private void tbtn_hearActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tbtn_hearActionPerformed
     {//GEN-HEADEREND:event_tbtn_hearActionPerformed
+        startThread();
         if (tbtn_hear.isSelected())
         {
-            startPlayback(pickContext(editorPanel.getEditedRpValue()));
-            tbtn_bypass.setEnabled(true);
+            startPlayback();
+
         } else
         {
             MusicController.getInstance().stop();
-            tbtn_bypass.setEnabled(false);
         }
+        tbtn_bypass.setEnabled(tbtn_hear.isSelected());
     }//GEN-LAST:event_tbtn_hearActionPerformed
 
     private void tbtn_bypassActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tbtn_bypassActionPerformed
     {//GEN-HEADEREND:event_tbtn_bypassActionPerformed
         assert tbtn_hear.isSelected();
-        try
-        {
-            updateSession();
-        } catch (MusicGenerationException ex)
-        {
-            LOGGER.warning("tbtn_bypassActionPerformed() ex=" + ex.getMessage());
-            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-        }
+        editorPanel.setEnabled(!tbtn_bypass.isSelected());
+        E rpValue = tbtn_bypass.isSelected() ? rpValueOriginal : editorPanel.getEditedRpValue();
+        queue.offer(rpValue);
+
     }//GEN-LAST:event_tbtn_bypassActionPerformed
 
     private void formWindowClosed(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosed
@@ -476,6 +519,17 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
         exit(false);
     }//GEN-LAST:event_formWindowClosing
 
+    private void formWindowOpened(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowOpened
+    {//GEN-HEADEREND:event_formWindowOpened
+        if (songContextOriginal == null)
+        {
+            throw new IllegalStateException("songContextOriginal is null: preset() must be called before making dialog visible");
+        }
+        MusicController.getInstance().stop();
+        tbtn_hear.setSelected(true);
+        tbtn_hearActionPerformed(null);
+    }//GEN-LAST:event_formWindowOpened
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.jjazz.ui.utilities.api.SmallFlatDarkLafButton btn_cancel;
@@ -491,7 +545,7 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
     // Private classes
     // =================================================================================
     /**
-     * A thread to handle incoming RP value changes and start one MusicGenerationTask at a time on the last RP value.
+     * A thread to handle incoming RP value changes and start one MusicGenerationTask at a time with the last available RP value.
      * <p>
      *
      * @param <E> RhythmParameter value class
@@ -499,67 +553,102 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
     private class RpValueChangesHandlingTask implements Runnable
     {
 
-        private final BlockingQueue<E> blockingQueue;
-        Thread musicGenerationThread;
-        private E waitingRpValue;
+        private final Queue<E> queue;
+        private E lastRpValue;
+        private ExecutorService executorService;
+        private ExecutorService generationExecutorService;
+        private Future<?> generationFuture;
+        private volatile boolean running;
 
-        RpValueChangesHandlingTask(BlockingQueue<E> bQueue)
+        public RpValueChangesHandlingTask(Queue<E> bQueue)
         {
-            blockingQueue = bQueue;
+            queue = bQueue;
         }
+
+        public void start()
+        {
+            if (!running)
+            {
+                running = true;
+                executorService = Executors.newSingleThreadExecutor();
+                executorService.submit(this);
+                generationExecutorService = Executors.newSingleThreadExecutor();
+            }
+        }
+
+        public void stop()
+        {
+            if (running)
+            {
+                running = false;
+                Utilities.shutdownAndAwaitTermination(generationExecutorService, 500, 100);
+                Utilities.shutdownAndAwaitTermination(executorService, 1, 1);
+            }
+        }
+
 
         @Override
         public void run()
         {
-
-            while (true)
+            while (running)
             {
-                E rpValue = blockingQueue.peek();
+                E rpValue = queue.poll();           // Does not block if empty
                 if (rpValue == null)
                 {
                     // No incoming RpValue, check if we have a waiting RpValue                        
-                    if (waitingRpValue != null)
+                    if (lastRpValue != null)
                     {
                         // We have a RpValue, can we start a musicGenerationTask ?
-                        if (musicGenerationThread == null || !musicGenerationThread.isAlive())
+                        if (generationFuture == null || generationFuture.isDone())
                         {
                             // yes
-                            startMusicGenerationTask(waitingRpValue);
+                            startMusicGenerationTask();
+
                         } else
                         {
                             // Need to wait a little more for the previous musicGenerationTask to complete
+                            LOGGER.info("RpValueChangesHandlingTask.run() waiting to start task for lastRpValue=" + lastRpValue);
                         }
                     }
                 } else
                 {
                     // We have an incoming RpValue, can we start a musicGenerationTask ?
-                    blockingQueue.remove();
-                    if (musicGenerationThread == null || !musicGenerationThread.isAlive())
+                    LOGGER.info("RpValueChangesHandlingTask.run() rpValue received=" + rpValue);
+                    if (generationFuture == null || generationFuture.isDone())
                     {
                         // yes
-                        startMusicGenerationTask(rpValue);
+                        lastRpValue = rpValue;   // We care only for the last RpValue
+                        startMusicGenerationTask();
                     } else
                     {
                         // no, this becomes the waitingRpValue
-                        waitingRpValue = rpValue;
+                        lastRpValue = rpValue;
+                        LOGGER.info("                                   => can't start generation task, set as waitingRpValue");
                     }
                 }
             }
         }
 
-        private void startMusicGenerationTask(E rpValue)
+        private void startMusicGenerationTask()
         {
-            musicGenerationThread = new Thread(new MusicGenerationTask(rpValue));
-            musicGenerationThread.start();
-            waitingRpValue = null;
+            try
+            {
+                generationFuture = generationExecutorService.submit(new MusicGenerationTask(lastRpValue));
+            } catch (RejectedExecutionException ex)
+            {
+                // Task is being shutdown 
+                generationFuture = null;
+            }
+            lastRpValue = null;
+
         }
 
     }
 
-    class MusicGenerationTask implements Runnable
+    private class MusicGenerationTask implements Runnable
     {
 
-        private E rpValue;
+        private final E rpValue;
 
         MusicGenerationTask(E rpValue)
         {
@@ -569,24 +658,24 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
         @Override
         public void run()
         {
-            assert session != null && tbtn_hear.isSelected();
-
-            SongContext sgContext = pickContext(rpValue);
+            LOGGER.info("MusicGenerationTask.run() >>> STARTING generation with rpValue=" + rpValue);
+            SongContext sgContext = buildPreviewContext(rpValue, PREVIEW_MAX_NB_BARS);
             SongContextSession tmpSession = SongContextSession.getSession(sgContext, true, false, false, true, 0, null);
             if (tmpSession.getState().equals(PlaybackSession.State.NEW))
             {
                 try
                 {
-                    tmpSession.generate(true);
+                    tmpSession.generate(true);          // This can block for some time, possibly a few seconds on slow computers/complex rhythms
                 } catch (MusicGenerationException ex)
                 {
                     LOGGER.warning("MusicGenerationTask.run() ex=" + ex.getMessage());
                     NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(d);
+                    return;
                 }
             }
 
-            // 
+
             Map<Integer, List<MidiEvent>> mapTrackIdEvents = new HashMap<>();
 
 
@@ -601,15 +690,16 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
                 Phrase newP = newRvPhraseMap.get(rv);
                 if (p.equals(newP))
                 {
-                    // LOGGER.info("updateSession() skipped identitical phrases for rv=" + rv + " p.size()=" + p.size());
+                    // LOGGER.info("MusicGenerationTask.run() skipped identitical phrases for rv=" + rv + " p.size()=" + p.size());
                 } else
                 {
-                    // LOGGER.info("updateSession() different phrases for rv=" + rv + ", newP.size()=" + newP.size() + " => saving MidiEvents");
-                    mapTrackIdEvents.put(originalRvTrackIdMap.get(rv), newP.toMidiEvents());
+                    int rvTrackId = originalRvTrackIdMap.get(rv);
+                    mapTrackIdEvents.put(rvTrackId, newP.toMidiEvents());
+                    LOGGER.info("MusicGenerationTask.run() phrase has changed for rv=" + rv + " => stored in mapTrackIdEvents{" + rvTrackId + "}");
                 }
             }
 
-            // Update the dynamic session
+            // Update the dynamic session, which will update the Sequencer
             session.updateSequence(mapTrackIdEvents);
 
             try
@@ -617,9 +707,12 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
                 Thread.sleep(1);       // Give time to the Sequencer thread to process the update
             } catch (InterruptedException ex)
             {
-                Exceptions.printStackTrace(ex);
+                return;
             }
+
+            LOGGER.info("MusicGenerationTask.run() <<< ENDING generation with rpValue=" + rpValue);
         }
+
 
     }
 }
