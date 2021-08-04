@@ -91,7 +91,7 @@ abstract public class RhythmSelectionDialog extends JDialog
          * previously.
          *
          * @param r
-         * @param rpValues The rhythm RhythmParameter values. Can't be null, when non defined values the previewer should use the
+         * @param rpValues The rhythm RhythmParameter values. Can't be null. For non defined values the previewer should use the
          * default RhythmParameter values in this case.
          * @param useRhythmTempo If true use r preferred tempo, otherwise use default tempo.
          * @param loop If true the rhythm preview loops until stop() is called.

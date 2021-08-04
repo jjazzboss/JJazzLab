@@ -353,8 +353,14 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
         pnl_editor = new javax.swing.JPanel();
         tbtn_bypass = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         tbtn_hear = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        jPanel1 = new javax.swing.JPanel();
+        pnl_okCancelButtons = new javax.swing.JPanel();
+        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         btn_ok = new org.jjazz.ui.utilities.api.SmallFlatDarkLafButton();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         btn_cancel = new org.jjazz.ui.utilities.api.SmallFlatDarkLafButton();
+        pnl_resetButton = new javax.swing.JPanel();
+        btn_reset = new org.jjazz.ui.utilities.api.SmallFlatDarkLafButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setModalityType(java.awt.Dialog.ModalityType.DOCUMENT_MODAL);
@@ -399,9 +405,14 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
             }
         });
 
+        jPanel1.setLayout(new java.awt.BorderLayout());
+
+        pnl_okCancelButtons.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 0));
+        pnl_okCancelButtons.add(filler2);
+
         org.openide.awt.Mnemonics.setLocalizedText(btn_ok, org.openide.util.NbBundle.getMessage(RpCustomEditorImpl.class, "RpCustomEditorImpl.btn_ok.text")); // NOI18N
         btn_ok.setFont(btn_ok.getFont().deriveFont(btn_ok.getFont().getSize()-2f));
-        btn_ok.setMinimumSize(new java.awt.Dimension(20, 19));
+        btn_ok.setMargin(new java.awt.Insets(2, 7, 2, 7));
         btn_ok.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -409,9 +420,12 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
                 btn_okActionPerformed(evt);
             }
         });
+        pnl_okCancelButtons.add(btn_ok);
+        pnl_okCancelButtons.add(filler1);
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_cancel, org.openide.util.NbBundle.getMessage(RpCustomEditorImpl.class, "RpCustomEditorImpl.btn_cancel.text")); // NOI18N
         btn_cancel.setFont(btn_cancel.getFont().deriveFont(btn_cancel.getFont().getSize()-2f));
+        btn_cancel.setMargin(new java.awt.Insets(2, 7, 2, 7));
         btn_cancel.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -419,6 +433,26 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
                 btn_cancelActionPerformed(evt);
             }
         });
+        pnl_okCancelButtons.add(btn_cancel);
+
+        jPanel1.add(pnl_okCancelButtons, java.awt.BorderLayout.EAST);
+
+        pnl_resetButton.setLayout(new java.awt.BorderLayout());
+
+        org.openide.awt.Mnemonics.setLocalizedText(btn_reset, org.openide.util.NbBundle.getMessage(RpCustomEditorImpl.class, "RpCustomEditorImpl.btn_reset.text")); // NOI18N
+        btn_reset.setToolTipText(org.openide.util.NbBundle.getMessage(RpCustomEditorImpl.class, "RpCustomEditorImpl.btn_reset.toolTipText")); // NOI18N
+        btn_reset.setFont(btn_reset.getFont().deriveFont(btn_reset.getFont().getSize()-2f));
+        btn_reset.setMargin(new java.awt.Insets(2, 7, 2, 7));
+        btn_reset.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_resetActionPerformed(evt);
+            }
+        });
+        pnl_resetButton.add(btn_reset, java.awt.BorderLayout.CENTER);
+
+        jPanel1.add(pnl_resetButton, java.awt.BorderLayout.WEST);
 
         javax.swing.GroupLayout pnl_containerLayout = new javax.swing.GroupLayout(pnl_container);
         pnl_container.setLayout(pnl_containerLayout);
@@ -427,11 +461,7 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
             .addGroup(pnl_containerLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnl_containerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnl_containerLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(btn_ok, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_cancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE)
                     .addGroup(pnl_containerLayout.createSequentialGroup()
                         .addComponent(pnl_editor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -449,12 +479,10 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
                         .addComponent(tbtn_hear, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(tbtn_bypass, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addGap(0, 15, Short.MAX_VALUE))
                     .addComponent(pnl_editor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(pnl_containerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btn_cancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_ok, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -526,16 +554,28 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
             throw new IllegalStateException("songContextOriginal is null: preset() must be called before making dialog visible");
         }
         MusicController.getInstance().stop();
-        tbtn_hear.setSelected(true);
-        tbtn_hearActionPerformed(null);
+
+//        tbtn_hear.setSelected(true);      // Start playback when dialog is made visible
+//        tbtn_hearActionPerformed(null);
     }//GEN-LAST:event_formWindowOpened
+
+    private void btn_resetActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetActionPerformed
+    {//GEN-HEADEREND:event_btn_resetActionPerformed
+        editorPanel.setEditedRpValue(editorPanel.getRhythmParameter().getDefaultValue());
+    }//GEN-LAST:event_btn_resetActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.jjazz.ui.utilities.api.SmallFlatDarkLafButton btn_cancel;
     private org.jjazz.ui.utilities.api.SmallFlatDarkLafButton btn_ok;
+    private org.jjazz.ui.utilities.api.SmallFlatDarkLafButton btn_reset;
+    private javax.swing.Box.Filler filler1;
+    private javax.swing.Box.Filler filler2;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel pnl_container;
     private javax.swing.JPanel pnl_editor;
+    private javax.swing.JPanel pnl_okCancelButtons;
+    private javax.swing.JPanel pnl_resetButton;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_bypass;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_hear;
     // End of variables declaration//GEN-END:variables
@@ -623,7 +663,7 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
                     {
                         // no, this becomes the waitingRpValue
                         lastRpValue = rpValue;
-                        LOGGER.info("                                   => can't start generation task, set as waitingRpValue");
+                        LOGGER.info("                                   => can't start generation task, set as lastRpValue");
                     }
                 }
             }
@@ -704,7 +744,7 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
 
             try
             {
-                Thread.sleep(1);       // Give time to the Sequencer thread to process the update
+                Thread.sleep(1000);       // Give time to the Sequencer thread to process the update
             } catch (InterruptedException ex)
             {
                 return;

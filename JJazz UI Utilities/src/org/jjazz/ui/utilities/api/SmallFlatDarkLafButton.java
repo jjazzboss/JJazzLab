@@ -22,6 +22,7 @@
  */
 package org.jjazz.ui.utilities.api;
 
+import java.awt.Dimension;
 import java.awt.Insets;
 import javax.swing.Action;
 import javax.swing.Icon;
@@ -65,6 +66,6 @@ public class SmallFlatDarkLafButton extends JButton
     private void updateProperties()
     {
         putClientProperty("JButton.buttonType", "roundRect");
-        putClientProperty("Button.margin", new Insets(2, 7, 2, 7));
+        putClientProperty( "JComponent.minimumWidth", 0 );      // Hack from FlatDarkLaf author! See GitHub issue #364
     }
 }
