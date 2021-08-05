@@ -22,6 +22,7 @@
  */
 package org.jjazz.rpcustomeditorfactoryimpl;
 
+import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorDialog;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMix;
 import org.jjazz.ui.rpviewer.spi.RpCustomEditor;
@@ -29,7 +30,7 @@ import org.jjazz.ui.rpviewer.spi.RpCustomEditorFactory;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * A factory for RpCustomEditors.
+ * A default factory for RpCustomEditors.
  * <p>
  */
 @ServiceProvider(service = RpCustomEditorFactory.class)
@@ -50,14 +51,14 @@ public class RpCustomEditorFactoryImpl implements RpCustomEditorFactory
     @Override
     public <E> RpCustomEditor<E> getEditor(RhythmParameter<E> rp)
     {
-        RpCustomEditorImpl res = null;
+        RealTimeRpEditorDialog res = null;
         
      
         if (rp instanceof RP_SYS_DrumsMix)
         {
             var rpDrums = (RP_SYS_DrumsMix) rp;
             var editor = new RP_SYS_DrumsMixPanel(rpDrums);
-            res = new RpCustomEditorImpl(editor);
+            res = new RealTimeRpEditorDialog(editor);
         }
         
         return res;

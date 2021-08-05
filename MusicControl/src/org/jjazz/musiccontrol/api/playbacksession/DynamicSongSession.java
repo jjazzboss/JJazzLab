@@ -25,6 +25,7 @@ package org.jjazz.musiccontrol.api.playbacksession;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -44,19 +45,18 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.util.api.IntRange;
 
 /**
- * A SongContextSession-based session which allows the user to add/remove MidiEvents (without changing the Sequence size) in
- * realtime while playing.
+ * A SongContextSession-based session which allows the user to add/remove MidiEvents (without changing the Sequence size) while
+ * the sequence is playing.
+ * <p>
+ * Use buffer tracks and mute/unmute tracks to enable on-the-fly sequence changes.
  */
 public class DynamicSongSession implements PropertyChangeListener, PlaybackSession, PositionProvider, ChordSymbolProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
 
     private final Map<Integer, List<MidiEvent>> originalTrackEvents = new HashMap<>();      // Does not include track 0
     private long originalTrackTickSize;
-    private TrackSet playingTrackSet;        // Either trackSetA or trackSetB
-    private TrackSet bufferTrackSet;        // Either trackSetA or trackSetB
-    private TrackSet trackSetA;         // Exclude track 0 
-    private TrackSet trackSetB;         // Exclude track 0
-    private SongContextSession songContextSession;
+    private TrackSet trackSet;         // Exclude track 0 
+    private final SongContextSession songContextSession;
     private Sequence sequence;
     private final HashMap<Integer, Boolean> mapTrackIdMuted = new HashMap<>();
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
@@ -94,47 +94,34 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
         originalTrackTickSize = sequence.getTickLength();
 
 
-        // Add additional tracks for double-buffering
+        // Create the trackset to manage double-buffering at track level
         Track[] allTracks = sequence.getTracks();
-        var originalMapIdMuted = songContextSession.getTracksMuteStatus();
-        trackSetA = new TrackSet();
-        trackSetB = new TrackSet();
-        int count = 0;
+        var originalMapIdMuted = songContextSession.getTracksMuteStatus(); // Track 0 is not included, but may contain click/precount/control tracks
+        trackSet = new TrackSet();
         for (int trackId : originalMapIdMuted.keySet())
         {
             Track track = allTracks[trackId];
-
 
             // Save the original events
             var events = MidiUtilities.getMidiEventsCopy(track);
             originalTrackEvents.put(trackId, Collections.unmodifiableList(events));
 
-            // TrackSetA (initially playing)
-            trackSetA.addTrack(track, trackId, trackId);
+            // Populate the track set
+            trackSet.addTrack(sequence, track, trackId);
 
-            // TrackSetB (initially buffering)
-            Track bufferTrack = sequence.createTrack();
-            trackSetB.addTrack(bufferTrack, trackId, allTracks.length + count);
-            events = MidiUtilities.getMidiEventsCopy(track);
-            events.forEach(me -> bufferTrack.add(me));
-            MidiUtilities.setEndOfTrackPosition(bufferTrack, originalTrackTickSize);
-
-            count++;
         }
 
 
         // Initialize our own tracks mute state
         for (int trackId : originalMapIdMuted.keySet())
         {
-            mapTrackIdMuted.put(trackId, originalMapIdMuted.get(trackId));         // trackSetA playing
-            mapTrackIdMuted.put(trackSetB.getMappedTrackId(trackId), true);         // trackSetB muted
+            mapTrackIdMuted.put(trackId, originalMapIdMuted.get(trackId));
+            mapTrackIdMuted.put(trackSet.getBufferTrackId(trackId), true);         // buffer track is muted
         }
 
-//        LOGGER.info("generate() mapTrackIdMuted=" + mapTrackIdMuted);
+        LOGGER.info("generate() mapTrackIdMuted=" + mapTrackIdMuted);
 //        LOGGER.info(" Original sequence=" + MidiUtilities.toString(sequence));
 
-        playingTrackSet = trackSetA;
-        bufferTrackSet = trackSetB;
     }
 
     /**
@@ -189,33 +176,48 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
      * The events are first copied to muted "buffer tracks", then we switch the mute status between the buffer and the playing
      * tracks. The transition might be noticeable if there were ringing notes when tracks mute state is switched.
      *
-     * @param mapTrackIdEvents Events for track indexes between 1 and (getNbPlayingTracks()-1).
+     * @param mapTrackIdEvents Events for 1 or more track indexes in the range 1 to (getNbPlayingTracks()-1).
      * @throws IllegalArgumentException If a MidiEvent tick position is beyond getOriginalSequenceSize()
      */
     public void updateSequence(Map<Integer, List<MidiEvent>> mapTrackIdEvents)
     {
-        LOGGER.info("updateSequence ---- mapTrackIdEvents.keySet()=" + mapTrackIdEvents.keySet());
+        LOGGER.info("updateSequence() ---- mapTrackIdEvents.keySet()=" + mapTrackIdEvents.keySet());
+
+        // Update the impacted active/buffer tracks
         for (int trackId : mapTrackIdEvents.keySet())
         {
-            Track track = bufferTrackSet.getTrack(trackId);
-            MidiUtilities.clearTrack(track);
+
+            // Clear and update the buffer track with the passed events
+            Track bufferTrack = trackSet.getBufferTrack(trackId);
+            MidiUtilities.clearTrack(bufferTrack);
             for (MidiEvent me : mapTrackIdEvents.get(trackId))
             {
                 if (me.getTick() > originalTrackTickSize)
                 {
                     throw new IllegalArgumentException("me=" + MidiUtilities.toString(me.getMessage(), me.getTick()) + " originalTrackTickSize=" + originalTrackTickSize);
                 }
-                track.add(me);
+                bufferTrack.add(me);
             }
 
             // Make sure size is not changed
-            MidiUtilities.setEndOfTrackPosition(track, originalTrackTickSize);
+            MidiUtilities.setEndOfTrackPosition(bufferTrack, originalTrackTickSize);
+
+
+            // Update the track mute state : apply mute status of the active track to the buffer track, then mute the active track
+            boolean activeTrackMuteState = mapTrackIdMuted.get(trackSet.getActiveTrackId(trackId));
+            mapTrackIdMuted.put(trackSet.getBufferTrackId(trackId), activeTrackMuteState);
+            mapTrackIdMuted.put(trackSet.getActiveTrackId(trackId), true);
+
+
+            // Finally exchange the active and buffer tracks
+            trackSet.swapBufferAndActiveTracks(trackId);
         }
 
-        // LOGGER.info("updateSequence() AFTER update MidiSequence=" + MidiUtilities.toString(sequence));
+        LOGGER.info("updateSequence() AFTER: mapTrackIdMuted=" + mapTrackIdMuted);
 
-        // Change the mute status
-        setPlayingBuffer(bufferTrackSet);
+
+        // Notify our listeners that tracks mute status has changed
+        pcs.firePropertyChange(PlaybackSession.PROP_MUTED_TRACKS, null, mapTrackIdMuted);
     }
 
     /**
@@ -240,16 +242,6 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
     public Map<RhythmVoice, Phrase> getOriginalRvPhraseMap()
     {
         return songContextSession.getRvPhraseMap();
-    }
-
-    public TrackSet getPlayingTrackSet()
-    {
-        return playingTrackSet;
-    }
-
-    public TrackSet getBufferTrackSet()
-    {
-        return bufferTrackSet;
     }
 
     @Override
@@ -371,14 +363,14 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
 
             PropertyChangeEvent newEvent;
 
-            // Need to map the new mute status to the currently playing TrackSet
+            // Need to map the new mute status to the currently active tracks
             if (e.getPropertyName().equals(PlaybackSession.PROP_MUTED_TRACKS))
             {
                 var originalMapTrackIdMuted = songContextSession.getTracksMuteStatus();
                 for (int trackId : originalMapTrackIdMuted.keySet())
                 {
                     boolean muted = originalMapTrackIdMuted.get(trackId);
-                    mapTrackIdMuted.put(playingTrackSet.getMappedTrackId(trackId), muted);
+                    mapTrackIdMuted.put(trackSet.getActiveTrackId(trackId), muted);
                 }
                 newEvent = new PropertyChangeEvent(this, e.getPropertyName(), e.getOldValue(), mapTrackIdMuted);
             } else
@@ -404,95 +396,99 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
     // Private methods
     // ==========================================================================================================
 
-    /**
-     * Switch the buffer and the playing TrackSets.
-     *
-     * @param trackSet
-     */
-    private void setPlayingBuffer(TrackSet trackSet)
-    {
-        if (playingTrackSet == trackSet)
-        {
-            return;
-        }
-
-//        LOGGER.info("setPlayingBuffer() ---- trackSet=" + trackSet);
-//        LOGGER.info("setPlayingBuffer() BEFORE: mapTrackIdMuted=" + mapTrackIdMuted);
-
-        // Copy the tracks mute state
-        for (int originalTrackId : originalTrackEvents.keySet())
-        {
-            int trackIndexPlaying = playingTrackSet.getMappedTrackId(originalTrackId);
-            int trackIndexBuffer = bufferTrackSet.getMappedTrackId(originalTrackId);
-            boolean muted = mapTrackIdMuted.get(trackIndexPlaying);
-            mapTrackIdMuted.put(trackIndexBuffer, muted);       // Transfer playing mute status to the buffer
-            mapTrackIdMuted.put(trackIndexPlaying, true);       // Mute the playing tracks
-        }
-
-
-        LOGGER.info("setPlayingBuffer() AFTER: mapTrackIdMuted=" + mapTrackIdMuted);
-        // Swap TrackSets
-        TrackSet tmp = playingTrackSet;
-        playingTrackSet = bufferTrackSet;
-        bufferTrackSet = tmp;
-
-
-        // Notify our listeners that tracks mute status has changed
-        pcs.firePropertyChange(PlaybackSession.PROP_MUTED_TRACKS, null, mapTrackIdMuted);
-    }
-
-
     // ==========================================================================================================
     // Inner classes
     // ==========================================================================================================    
     /**
-     * A set of tracks which can be either the playing tracks or the buffer tracks.
+     * Manage a set of tracks: N active tracks and N buffer tracks.
      */
     public class TrackSet
     {
 
-        private final Map<Integer, Track> mapOriginalIdTrack = new HashMap<>();
-        private final Map<Integer, Integer> mapOriginalIdMappedId = new HashMap<>();
+        private final List<Track> tracks = new ArrayList<>();
+        private final Map<Integer, Integer> mapOriginalIdActiveId = new HashMap<>();
+        private final Map<Integer, Integer> mapOriginalIdBufferId = new HashMap<>();
 
         /**
-         * Add a track.
+         * Add a track to the TrackSet and create the corresponding buffer track.
          *
+         * @param sequence
          * @param track
-         * @param originalTrackId A value between 0 and getNbPlayingTracks()
-         * @param mappedTrackId Same as originalTrackId, or a value &gt; N if it corresponds to one of the added buffer tracks
+         * @param originalTrackId A value between 0 and getNbPlayingTracks()-1.
          */
-        private void addTrack(Track track, int originalTrackId, int mappedTrackId)
+        public void addTrack(Sequence sequence, Track track, int originalTrackId)
         {
-            mapOriginalIdTrack.put(originalTrackId, track);
-            mapOriginalIdMappedId.put(originalTrackId, mappedTrackId);
+            tracks.add(track);
+            int activeId = tracks.size() - 1;
+            mapOriginalIdActiveId.put(originalTrackId, activeId);
+
+            // Create the corresponding buffer track
+            Track bufferTrack = sequence.createTrack();
+            tracks.add(bufferTrack);
+            int bufferId = sequence.getTracks().length - 1;
+            mapOriginalIdBufferId.put(originalTrackId, bufferId);
         }
 
         /**
-         * The track corresponding to the original track id .
+         * The buffer track for originalTrackId becomes the active track, and vice-versa.
+         *
+         * @param originalTrackId
+         */
+        public void swapBufferAndActiveTracks(int originalTrackId)
+        {
+            int tmp = getActiveTrackId(originalTrackId);
+            mapOriginalIdActiveId.put(originalTrackId, getBufferTrackId(originalTrackId));
+            mapOriginalIdBufferId.put(originalTrackId, tmp);
+        }
+
+        /**
+         * The active track corresponding to the original track id.
          *
          * @param originalTrackId A value &lt; getNbPlayingTracks()
          * @return
          */
-        public Track getTrack(int originalTrackId)
+        public Track getActiveTrack(int originalTrackId)
         {
-            return mapOriginalIdTrack.get(originalTrackId);
+            return tracks.get(getActiveTrackId(originalTrackId));
         }
 
         /**
-         * The mapped track id corresponding to the original track id .
+         * The buffer track corresponding to the original track id.
          *
          * @param originalTrackId A value &lt; getNbPlayingTracks()
          * @return
          */
-        public int getMappedTrackId(int originalTrackId)
+        public Track getBufferTrack(int originalTrackId)
         {
-            return mapOriginalIdMappedId.get(originalTrackId);
+            return tracks.get(getBufferTrackId(originalTrackId));
+        }
+
+        /**
+         * The active track id corresponding to the original track id .
+         *
+         * @param originalTrackId A value &lt; getNbPlayingTracks()
+         * @return
+         */
+        public int getActiveTrackId(int originalTrackId)
+        {
+            return mapOriginalIdActiveId.get(originalTrackId);
+        }
+
+        /**
+         * The buffer track id corresponding to the original track id .
+         *
+         * @param originalTrackId A value &lt; getNbPlayingTracks()
+         * @return
+         */
+        public int getBufferTrackId(int originalTrackId)
+        {
+            return mapOriginalIdBufferId.get(originalTrackId);
         }
 
         @Override
         public String toString()
         {
-            return "TrackSet<mapOriginalIdMappedId=" + mapOriginalIdMappedId + ">";
+            return "TrackSet<mapOriginalIdActiveId=" + mapOriginalIdActiveId + ">";
         }
 
     }

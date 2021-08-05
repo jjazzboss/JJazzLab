@@ -20,8 +20,9 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.rpcustomeditorfactoryimpl;
+package org.jjazz.rpcustomeditorfactoryimpl.api;
 
+import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorPanel;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
@@ -65,25 +66,29 @@ import org.openide.*;
 import org.openide.util.Exceptions;
 
 /**
- * A dialog to edit a RhythmParameter value via a RpCustomEditor panel.
+ * A RpCustomEditor dialog implementation which lets user preview the RP value changes in real time (while the sequence is
+ * playing).
  * <p>
- * User can listen in real time the effect on the value changes.
+ * The dialog can be customized for a given RhythmParameter via the RealTimeRpEditorPanel panel which provides the RP value
+ * editing capability.
+ *
+ * @param <E> RhythmParameter value class
  */
-public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements PropertyChangeListener
+public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements PropertyChangeListener
 {
 
     private static final int PREVIEW_MAX_NB_BARS = 4;
-    private AbstractRpPanel<E> editorPanel;
+    private final RealTimeRpEditorPanel<E> editorPanel;
     private boolean exitOk;
     private DynamicSongSession session;
     private SongContext songContextOriginal;
     private E rpValueOriginal;
     private Queue<E> queue;
     private RpValueChangesHandlingTask rpValueChangesHandlingTask;
-    private static final Logger LOGGER = Logger.getLogger(RpCustomEditorImpl.class.getSimpleName());  //NOI18N
+    private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());  //NOI18N
 
 
-    public RpCustomEditorImpl(AbstractRpPanel<E> panel)
+    public RealTimeRpEditorDialog(RealTimeRpEditorPanel<E> panel)
     {
         editorPanel = panel;
         editorPanel.addPropertyChangeListener(this);
@@ -126,7 +131,7 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
         tbtn_hear.setSelected(false);
         tbtn_bypass.setSelected(false);
         tbtn_bypass.setEnabled(false);
-        String tt = ResUtil.getString(getClass(), "RpCustomEditorImpl.tbtn_bypass.toolTipText") + ": " + rpValue.toString();
+        String tt = ResUtil.getString(getClass(), "RealTimeRpEditorDialog.tbtn_bypass.toolTipText") + ": " + rpValue.toString();
         tbtn_bypass.setToolTipText(tt);
 
 
@@ -160,7 +165,7 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getSource() == editorPanel && evt.getPropertyName().equals(AbstractRpPanel.PROP_EDITED_RP_VALUE))
+        if (evt.getSource() == editorPanel && evt.getPropertyName().equals(RealTimeRpEditorPanel.PROP_EDITED_RP_VALUE))
         {
             // LOGGER.info("propertyChange() evt=" + evt);
             if (tbtn_hear.isSelected() && !tbtn_bypass.isSelected())
@@ -383,9 +388,9 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
 
         pnl_editor.setLayout(new javax.swing.BoxLayout(pnl_editor, javax.swing.BoxLayout.LINE_AXIS));
 
-        tbtn_bypass.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/CompareArrows-OFF.png"))); // NOI18N
-        tbtn_bypass.setToolTipText(org.openide.util.NbBundle.getMessage(RpCustomEditorImpl.class, "RpCustomEditorImpl.tbtn_bypass.toolTipText")); // NOI18N
-        tbtn_bypass.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/CompareArrows-ON.png"))); // NOI18N
+        tbtn_bypass.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-OFF.png"))); // NOI18N
+        tbtn_bypass.setToolTipText(org.openide.util.NbBundle.getMessage(RealTimeRpEditorDialog.class, "RealTimeRpEditorDialog.tbtn_bypass.toolTipText")); // NOI18N
+        tbtn_bypass.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-ON.png"))); // NOI18N
         tbtn_bypass.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -394,9 +399,9 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
             }
         });
 
-        tbtn_hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/SpeakerOff-24x24.png"))); // NOI18N
-        tbtn_hear.setToolTipText(org.openide.util.NbBundle.getMessage(RpCustomEditorImpl.class, "RpCustomEditorImpl.tbtn_hear.toolTipText")); // NOI18N
-        tbtn_hear.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/SpeakerOnRed-24x24.png"))); // NOI18N
+        tbtn_hear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/SpeakerOff-24x24.png"))); // NOI18N
+        tbtn_hear.setToolTipText(org.openide.util.NbBundle.getMessage(RealTimeRpEditorDialog.class, "RealTimeRpEditorDialog.tbtn_hear.toolTipText")); // NOI18N
+        tbtn_hear.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/SpeakerOnRed-24x24.png"))); // NOI18N
         tbtn_hear.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -410,7 +415,7 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
         pnl_okCancelButtons.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 0));
         pnl_okCancelButtons.add(filler2);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_ok, org.openide.util.NbBundle.getMessage(RpCustomEditorImpl.class, "RpCustomEditorImpl.btn_ok.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_ok, org.openide.util.NbBundle.getMessage(RealTimeRpEditorDialog.class, "RealTimeRpEditorDialog.btn_ok.text")); // NOI18N
         btn_ok.setFont(btn_ok.getFont().deriveFont(btn_ok.getFont().getSize()-2f));
         btn_ok.setMargin(new java.awt.Insets(2, 7, 2, 7));
         btn_ok.addActionListener(new java.awt.event.ActionListener()
@@ -423,7 +428,7 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
         pnl_okCancelButtons.add(btn_ok);
         pnl_okCancelButtons.add(filler1);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_cancel, org.openide.util.NbBundle.getMessage(RpCustomEditorImpl.class, "RpCustomEditorImpl.btn_cancel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_cancel, org.openide.util.NbBundle.getMessage(RealTimeRpEditorDialog.class, "RealTimeRpEditorDialog.btn_cancel.text")); // NOI18N
         btn_cancel.setFont(btn_cancel.getFont().deriveFont(btn_cancel.getFont().getSize()-2f));
         btn_cancel.setMargin(new java.awt.Insets(2, 7, 2, 7));
         btn_cancel.addActionListener(new java.awt.event.ActionListener()
@@ -439,8 +444,8 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
 
         pnl_resetButton.setLayout(new java.awt.BorderLayout());
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_reset, org.openide.util.NbBundle.getMessage(RpCustomEditorImpl.class, "RpCustomEditorImpl.btn_reset.text")); // NOI18N
-        btn_reset.setToolTipText(org.openide.util.NbBundle.getMessage(RpCustomEditorImpl.class, "RpCustomEditorImpl.btn_reset.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_reset, org.openide.util.NbBundle.getMessage(RealTimeRpEditorDialog.class, "RealTimeRpEditorDialog.btn_reset.text")); // NOI18N
+        btn_reset.setToolTipText(org.openide.util.NbBundle.getMessage(RealTimeRpEditorDialog.class, "RealTimeRpEditorDialog.btn_reset.toolTipText")); // NOI18N
         btn_reset.setFont(btn_reset.getFont().deriveFont(btn_reset.getFont().getSize()-2f));
         btn_reset.setMargin(new java.awt.Insets(2, 7, 2, 7));
         btn_reset.addActionListener(new java.awt.event.ActionListener()
@@ -535,7 +540,7 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
 
     private void formWindowClosed(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosed
     {//GEN-HEADEREND:event_formWindowClosed
-        // Called when dispose() is called
+        // Triggerd by dispose() call
         if (editorPanel != null)
         {
             editorPanel.cleanup();
@@ -587,8 +592,6 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
     /**
      * A thread to handle incoming RP value changes and start one MusicGenerationTask at a time with the last available RP value.
      * <p>
-     *
-     * @param <E> RhythmParameter value class
      */
     private class RpValueChangesHandlingTask implements Runnable
     {
@@ -621,7 +624,7 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
             if (running)
             {
                 running = false;
-                Utilities.shutdownAndAwaitTermination(generationExecutorService, 500, 100);
+                Utilities.shutdownAndAwaitTermination(generationExecutorService, 1000, 100);
                 Utilities.shutdownAndAwaitTermination(executorService, 1, 1);
             }
         }
@@ -630,6 +633,7 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
         @Override
         public void run()
         {
+            boolean doNotRepeatWaiting = false;
             while (running)
             {
                 E rpValue = queue.poll();           // Does not block if empty
@@ -643,28 +647,33 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
                         {
                             // yes
                             startMusicGenerationTask();
-
+                            doNotRepeatWaiting = false;
                         } else
                         {
                             // Need to wait a little more for the previous musicGenerationTask to complete
-                            LOGGER.info("RpValueChangesHandlingTask.run() waiting to start task for lastRpValue=" + lastRpValue);
+                            if (!doNotRepeatWaiting)
+                            {
+                                LOGGER.info("RpValueChangesHandlingTask.run() waiting to start task for lastRpValue=" + lastRpValue + ".........");
+                                doNotRepeatWaiting = true;
+                            }
                         }
                     }
                 } else
                 {
+                    lastRpValue = rpValue;
+
                     // We have an incoming RpValue, can we start a musicGenerationTask ?
                     LOGGER.info("RpValueChangesHandlingTask.run() rpValue received=" + rpValue);
                     if (generationFuture == null || generationFuture.isDone())
                     {
                         // yes
-                        lastRpValue = rpValue;   // We care only for the last RpValue
                         startMusicGenerationTask();
                     } else
                     {
                         // no, this becomes the waitingRpValue
-                        lastRpValue = rpValue;
                         LOGGER.info("                                   => can't start generation task, set as lastRpValue");
                     }
+                    doNotRepeatWaiting = false;
                 }
             }
         }
@@ -744,7 +753,9 @@ public class RpCustomEditorImpl<E> extends RpCustomEditor<E> implements Property
 
             try
             {
-                Thread.sleep(1000);       // Give time to the Sequencer thread to process the update
+                // Avoid to have too many sequencer changes in a short period of time, which can cause audio issues
+                // with notes muted/unmuted too many times
+                Thread.sleep(10);
             } catch (InterruptedException ex)
             {
                 return;

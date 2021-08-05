@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.rpcustomeditorfactoryimpl;
+package org.jjazz.rpcustomeditorfactoryimpl.spi;
 
 import java.util.logging.Logger;
 import javax.swing.JPanel;
@@ -28,13 +28,13 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * A JPanel to be used as a RhythmParameter value editor by GenericDialog.
+ * A JPanel to be used as a RhythmParameter value editor by the RealTimeRpEditorDialog.
  * <p>
- * Use addPropertyChangeListener(PROP_EDITED_RP_VALUE) to get notified when the edited RP_Value changes.
+ * The panel must fire PROP_EDITED_RP_VALUE property change events when RP value is changed by the user.
  *
  * @param <E> The type of value of the RhythmParameter.
  */
-public abstract class AbstractRpPanel<E> extends JPanel
+public abstract class RealTimeRpEditorPanel<E> extends JPanel
 {
 
     /**
@@ -43,7 +43,7 @@ public abstract class AbstractRpPanel<E> extends JPanel
     public static final String PROP_EDITED_RP_VALUE = "PropEditedRpValue";
 
 
-    private static final Logger LOGGER = Logger.getLogger(AbstractRpPanel.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorPanel.class.getSimpleName());
 
 
     // =======================================================================

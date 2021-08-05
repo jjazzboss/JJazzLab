@@ -1,5 +1,6 @@
 package org.jjazz.rpcustomeditorfactoryimpl;
 
+import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorPanel;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMix;
@@ -11,7 +12,7 @@ import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
 /**
  * An editor panel for RP_SYS_DrumsMix.
  */
-public class RP_SYS_DrumsMixPanel extends AbstractRpPanel<RP_SYS_DrumsMixValue> implements PropertyChangeListener
+public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixValue> implements PropertyChangeListener
 {
 
     private RP_SYS_DrumsMix rp;

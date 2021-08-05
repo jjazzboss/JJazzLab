@@ -151,7 +151,10 @@
                     </run-dependency>
                 </dependency>
             </module-dependencies>
-            <public-packages/>
+            <public-packages>
+                <package>org.jjazz.rpcustomeditorfactoryimpl.spi</package>
+                <package>org.jjazz.rpcustomereditorfactoryimpl.api</package>
+            </public-packages>
         </data>
     </configuration>
 </project>
