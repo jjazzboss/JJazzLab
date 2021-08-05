@@ -36,6 +36,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequencer;
@@ -87,11 +89,31 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private RpValueChangesHandlingTask rpValueChangesHandlingTask;
     private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());  //NOI18N
 
-
     public RealTimeRpEditorDialog(RealTimeRpEditorPanel<E> panel)
     {
         editorPanel = panel;
         editorPanel.addPropertyChangeListener(this);
+
+        Utilities.installTimeStampLogging();
+        Handler handler = new Handler()
+        {
+            @Override
+            public void publish(LogRecord lr)
+            {
+                lr.getSourceMethodName();
+            }
+
+            @Override
+            public void flush()
+            {
+            }
+
+            @Override
+            public void close() throws SecurityException
+            {
+            }
+        };
+        LOGGER.addHandler(handler);
 
         initComponents();
 
@@ -112,6 +134,9 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         {
             throw new IllegalArgumentException("rpValue=" + rpValue + " sgContext=" + sgContext);
         }
+
+        LOGGER.fine("preset() -- rpValue=" + rpValue + " sgContext=" + sgContext);
+
         songContextOriginal = sgContext;
         rpValueOriginal = rpValue;
 
@@ -167,7 +192,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     {
         if (evt.getSource() == editorPanel && evt.getPropertyName().equals(RealTimeRpEditorPanel.PROP_EDITED_RP_VALUE))
         {
-            // LOGGER.info("propertyChange() evt=" + evt);
+            LOGGER.fine("propertyChange() evt=" + evt);
             if (tbtn_hear.isSelected() && !tbtn_bypass.isSelected())
             {
                 // Transmit the value to our handler task

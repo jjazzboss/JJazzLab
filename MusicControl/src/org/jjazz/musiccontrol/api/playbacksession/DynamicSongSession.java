@@ -25,11 +25,13 @@ package org.jjazz.musiccontrol.api.playbacksession;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
@@ -61,6 +63,30 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
     private final HashMap<Integer, Boolean> mapTrackIdMuted = new HashMap<>();
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(DynamicSongSession.class.getSimpleName());  //NOI18N
+
+    static
+    {
+        Handler handler = new Handler()
+        {
+            @Override
+            public void publish(LogRecord lr)
+            {
+                lr.getSourceMethodName();
+            }
+
+            @Override
+            public void flush()
+            {
+            }
+
+            @Override
+            public void close() throws SecurityException
+            {
+            }
+        };
+        LOGGER.addHandler(handler);
+    }
+
 
     /**
      * Create a DynamicSongSession with the specified parameters.
@@ -97,7 +123,8 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
         // Create the trackset to manage double-buffering at track level
         Track[] allTracks = sequence.getTracks();
         var originalMapIdMuted = songContextSession.getTracksMuteStatus(); // Track 0 is not included, but may contain click/precount/control tracks
-        trackSet = new TrackSet();
+        trackSet = new TrackSet(sequence);
+
         for (int trackId : originalMapIdMuted.keySet())
         {
             Track track = allTracks[trackId];
@@ -107,7 +134,7 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
             originalTrackEvents.put(trackId, Collections.unmodifiableList(events));
 
             // Populate the track set
-            trackSet.addTrack(sequence, track, trackId);
+            trackSet.addTrack(trackId);
 
         }
 
@@ -120,6 +147,9 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
         }
 
         LOGGER.info("generate() mapTrackIdMuted=" + mapTrackIdMuted);
+        LOGGER.info("generate() mapRvTrackId=" + songContextSession.getRvTrackIdMap());
+        LOGGER.info("generate() trackSet=" + trackSet.toString());
+
 //        LOGGER.info(" Original sequence=" + MidiUtilities.toString(sequence));
 
     }
@@ -400,33 +430,33 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
     // Inner classes
     // ==========================================================================================================    
     /**
-     * Manage a set of tracks: N active tracks and N buffer tracks.
+     * Manage a set of tracks of a sequence: N active tracks and N buffer tracks.
      */
     public class TrackSet
     {
 
-        private final List<Track> tracks = new ArrayList<>();
+        private final Sequence seq;
         private final Map<Integer, Integer> mapOriginalIdActiveId = new HashMap<>();
         private final Map<Integer, Integer> mapOriginalIdBufferId = new HashMap<>();
+
+        public TrackSet(Sequence seq)
+        {
+            this.seq = seq;
+        }
 
         /**
          * Add a track to the TrackSet and create the corresponding buffer track.
          *
-         * @param sequence
-         * @param track
          * @param originalTrackId A value between 0 and getNbPlayingTracks()-1.
          */
-        public void addTrack(Sequence sequence, Track track, int originalTrackId)
+        public void addTrack(int originalTrackId)
         {
-            tracks.add(track);
-            int activeId = tracks.size() - 1;
-            mapOriginalIdActiveId.put(originalTrackId, activeId);
+            mapOriginalIdActiveId.put(originalTrackId, originalTrackId);
 
             // Create the corresponding buffer track
-            Track bufferTrack = sequence.createTrack();
-            tracks.add(bufferTrack);
-            int bufferId = sequence.getTracks().length - 1;
-            mapOriginalIdBufferId.put(originalTrackId, bufferId);
+            Track bufferTrack = seq.createTrack();
+            int bufferTrackId = Arrays.asList(seq.getTracks()).indexOf(bufferTrack);
+            mapOriginalIdBufferId.put(originalTrackId, bufferTrackId);
         }
 
         /**
@@ -449,7 +479,7 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
          */
         public Track getActiveTrack(int originalTrackId)
         {
-            return tracks.get(getActiveTrackId(originalTrackId));
+            return seq.getTracks()[getActiveTrackId(originalTrackId)];
         }
 
         /**
@@ -460,7 +490,7 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
          */
         public Track getBufferTrack(int originalTrackId)
         {
-            return tracks.get(getBufferTrackId(originalTrackId));
+            return seq.getTracks()[getBufferTrackId(originalTrackId)];
         }
 
         /**
@@ -488,7 +518,11 @@ public class DynamicSongSession implements PropertyChangeListener, PlaybackSessi
         @Override
         public String toString()
         {
-            return "TrackSet<mapOriginalIdActiveId=" + mapOriginalIdActiveId + ">";
+            StringBuilder sb = new StringBuilder();
+            sb.append("Trackset:\n");
+            sb.append("   mapOriginalIdActiveId=" + mapOriginalIdActiveId + "\n");
+            sb.append("   mapOriginalIdBufferId=" + mapOriginalIdBufferId + "\n");
+            return sb.toString();
         }
 
     }

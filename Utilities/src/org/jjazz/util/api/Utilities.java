@@ -40,14 +40,16 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Formatter;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.openide.*;
 import org.openide.filesystems.FileObject;
-import org.openide.util.Exceptions;
 
 /**
  * Various convenience functions.
@@ -56,6 +58,62 @@ public class Utilities
 {
 
     private static final Logger LOGGER = Logger.getLogger(Utilities.class.getName());
+    private static long firstTimeLogStampEpochMillis = -1;
+
+    /**
+     * Make logging message include a time stamp in milliseconds, relative to the time of the first logged message in the
+     * application.
+     */
+    public static void installTimeStampLogging()
+    {
+        Formatter formatter = new Formatter()
+        {
+            @Override
+            public String format(LogRecord lr)
+            {
+                if (firstTimeLogStampEpochMillis == -1)
+                {
+                    firstTimeLogStampEpochMillis = lr.getMillis();
+                }
+                return String.format("%s-%06d [%s.%s]: %s\n", 
+                        lr.getLevel(), 
+                        lr.getMillis() - firstTimeLogStampEpochMillis, 
+                        removeLeadingPackageName(lr.getSourceClassName()), 
+                        lr.getSourceMethodName(), 
+                        lr.getMessage());
+            }
+        };
+
+        // Need custom handler to get class/method names !
+        // LogRecord API doc: Therefore, if a logging Handler wants to pass off a LogRecord to another thread, or to transmit it over RMI, and 
+        // if it wishes to subsequently obtain method name or class name information it should call one of getSourceClassName or getSourceMethodName 
+        // to force the values to be filled in.        
+        Handler handler = new Handler()
+        {
+            @Override
+            public void publish(LogRecord lr)
+            {
+                lr.getSourceMethodName();
+            }
+
+            @Override
+            public void flush()
+            {
+            }
+
+            @Override
+            public void close() throws SecurityException
+            {
+            }
+        };
+
+
+        for (Handler h : Logger.getLogger("").getHandlers())
+        {
+            // Actions to be taken on the root loggers
+            h.setFormatter(formatter);
+        }
+    }
 
     /**
      * @return Complete absolute path from where the application was initialized.
@@ -1019,6 +1077,22 @@ public class Utilities
             failure[i] = j;
         }
         return failure;
+    }
+
+    /**
+     * If s=="org.jjazz.name", return "name".
+     *
+     * @param s
+     * @return
+     */
+    private static String removeLeadingPackageName(String s)
+    {
+        int index = s.lastIndexOf(".");
+        if (index == -1 || index == s.length() - 1)
+        {
+            return s;
+        }
+        return s.substring(index + 1);
     }
 
 }
