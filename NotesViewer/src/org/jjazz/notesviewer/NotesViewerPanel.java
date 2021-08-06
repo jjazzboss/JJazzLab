@@ -24,22 +24,20 @@ package org.jjazz.notesviewer;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Vector;
 import java.util.logging.Logger;
-import javax.swing.AbstractSpinnerModel;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JSpinner;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Item;
@@ -63,25 +61,24 @@ import org.openide.util.Utilities;
 /**
  * Real time viewer panel
  */
-public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChangeListener, MouseWheelListener, CL_ContextActionListener, ChangeListener
+public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChangeListener, CL_ContextActionListener, ActionListener
 {
-
+    
     private static final Border BORDER_NOTHING_SELECTED = BorderFactory.createLineBorder(Color.RED);
     private static final Border BORDER_NOTHING_UNSELECTED = BorderManager.DEFAULT_BORDER_NOTHING;
     private static final Border BORDER_ENTERED_SELECTED = BORDER_NOTHING_SELECTED;
     private static final Border BORDER_ENTERED_UNSELECTED = BorderManager.DEFAULT_BORDER_ENTERED;
     private static final Border BORDER_PRESSED = BorderFactory.createLineBorder(Color.RED.darker());
-
+    
     private NotesViewer notesViewer;
     private Song songPlaybackMode, songSelectionMode;
     private CLI_ChordSymbol selectedChordSymbol;
     private MidiMix midiMixPlaybackMode, midiMixSelectionMode;
     private final NotesViewerListener noteListener;
-    private MySpinnerModel spinnerModel;
     private final Font chordSymbolFont;
     private HashMap<NotesViewer, FlatButton> mapViewerButton = new HashMap<>();
     private CL_ContextActionSupport cap;
-
+    
     private static final Logger LOGGER = Logger.getLogger(NotesViewerPanel.class.getSimpleName());
 
     /**
@@ -92,13 +89,10 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
 
         // Used by initComponents
         chordSymbolFont = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(Font.BOLD, 16f);
-
+        
         initComponents();
-
-        spn_srcChannel.addChangeListener(this);
-
-        // Use mouse wheel on spinner only if enabled
-        GeneralUISettings.getInstance().installChangeValueWithMouseWheelSupport(spn_srcChannel, this);
+        
+        cmb_srcChannel.addActionListener(this);
 
         // Get the chord symbols changes
         MusicController mc = MusicController.getInstance();
@@ -133,48 +127,32 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         cap = CL_ContextActionSupport.getInstance(Utilities.actionsGlobalContext());
         cap.addListener(this);
     }
-
+    
     @Override
     public void setEnabled(boolean b)
     {
         super.setEnabled(b);
-        spn_srcChannel.setEnabled(b);
+        cmb_srcChannel.setEnabled(b);
         lbl_chordSymbol.setEnabled(b);
         lbl_scale.setEnabled(b);
         notesViewer.setEnabled(b);
     }
 
-    // -----------------------------------------------------------------------------
-    // MouseWheelListener interface
-    // -----------------------------------------------------------------------------   
-    @Override
-    public void mouseWheelMoved(MouseWheelEvent e)
-    {
-        if (!isEnabled())
-        {
-            return;
-        }
-        if (!hasFocus())
-        {
-            requestFocusInWindow();
-        }
-        spn_srcChannel.setValue(e.getWheelRotation() < 0 ? spinnerModel.getNextValue() : spinnerModel.getPreviousValue());
-    }
+
     // -----------------------------------------------------------------------------
     // CL_ContextActionListener interface
     // -----------------------------------------------------------------------------   
-
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
-
+        
         CLI_ChordSymbol newSelectedChordSymbol = null;
-
+        
         var chordSymbols = selection.getSelectedChordSymbols();
         if (!chordSymbols.isEmpty())
         {
             newSelectedChordSymbol = chordSymbols.get(0);
-
+            
         } else if (selection.isBarSelectedWithinCls())
         {
             // Find the last chord valid for this bar
@@ -199,8 +177,8 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         {
             selectedChordSymbol.addPropertyChangeListener(this);
         }
-
-
+        
+        
         if (!isUIinPlaybackMode())
         {
             if (selectedChordSymbol != null)
@@ -212,7 +190,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             }
         }
     }
-
+    
     @Override
     public void sizeChanged(int oldSize, int newSize)
     {
@@ -220,12 +198,15 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     }
 
     // =================================================================================
-    // ChangeListener implementation
+    // ActionListener implementation 
     // =================================================================================
     @Override
-    public void stateChanged(ChangeEvent e)
+    public void actionPerformed(ActionEvent e)
     {
-        channelChanged();
+        if (e.getSource() == cmb_srcChannel)
+        {
+            channelChanged();
+        }
     }
 
     // =================================================================================
@@ -267,7 +248,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         {
             if (MidiMix.PROP_CHANNEL_INSTRUMENT_MIX.equals(evt.getPropertyName()))
             {
-                updateSpinnerModel();
+                updateComboModel();
             }
         } else if (evt.getSource() == selectedChordSymbol)
         {
@@ -294,7 +275,6 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         btn_group = new javax.swing.ButtonGroup();
         pnl_viewer = new javax.swing.JPanel();
         pnl_chordSymbol = new javax.swing.JPanel();
-        spn_srcChannel = new javax.swing.JSpinner();
         pnl_low = new javax.swing.JPanel();
         pnl_buttons = new javax.swing.JPanel();
         pnl_help = new javax.swing.JPanel();
@@ -304,6 +284,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         pnl_chordSymbolScaleName = new javax.swing.JPanel();
         lbl_chordSymbol = new javax.swing.JLabel();
         lbl_scale = new javax.swing.JLabel();
+        cmb_srcChannel = new javax.swing.JComboBox<>();
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -320,8 +301,6 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         pnl_viewer.setLayout(new javax.swing.BoxLayout(pnl_viewer, javax.swing.BoxLayout.LINE_AXIS));
 
         pnl_chordSymbol.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
-
-        spn_srcChannel.setFont(spn_srcChannel.getFont().deriveFont(spn_srcChannel.getFont().getSize()-1f));
 
         pnl_low.setOpaque(false);
         pnl_low.setLayout(new java.awt.BorderLayout());
@@ -373,6 +352,8 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         org.openide.awt.Mnemonics.setLocalizedText(lbl_scale, "Lydian"); // NOI18N
         pnl_chordSymbolScaleName.add(lbl_scale);
 
+        cmb_srcChannel.setFont(cmb_srcChannel.getFont().deriveFont(cmb_srcChannel.getFont().getSize()-1f));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -382,10 +363,10 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(rbtn_selection)
-                        .addGap(18, 18, 18)
+                        .addGap(10, 10, 10)
                         .addComponent(rbtn_playback)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(spn_srcChannel, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cmb_srcChannel, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addComponent(pnl_chordSymbol, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(pnl_low, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
@@ -399,7 +380,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(rbtn_playback)
                     .addComponent(rbtn_selection)
-                    .addComponent(spn_srcChannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(cmb_srcChannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(pnl_chordSymbolScaleName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -407,8 +388,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pnl_viewer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pnl_low, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(pnl_low, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -434,12 +414,12 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     {
         if (sg != null && mm != null)
         {
-
+            
             if (midiMixPlaybackMode != null)
             {
                 midiMixPlaybackMode.removePropertyChangeListener(this);
             }
-
+            
             songPlaybackMode = sg;
             midiMixPlaybackMode = mm;
 
@@ -447,50 +427,67 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             mm.addPropertyChangeListener(this);
 
             // Update model and NotesViewer context
-            updateSpinnerModel();
-
+            updateComboModel();
+            
             if (isUIinPlaybackMode())
             {
-                spn_srcChannel.setEnabled(true);        // If there was no active song before
+                cmb_srcChannel.setEnabled(true);        // If there was no active song before
                 lbl_chordSymbol.setText(" ");
                 lbl_scale.setText(" ");
             }
         } else
         {
-            spn_srcChannel.setEnabled(false);
+            cmb_srcChannel.setEnabled(false);
         }
     }
-
+    
     private void channelChanged()
     {
         // Update note listener and reset notesViewer
-        int channel = spinnerModel.getChannel();
-        noteListener.setReceiveChannel(channel);
-        notesViewer.setContext(songPlaybackMode, midiMixPlaybackMode, midiMixPlaybackMode.getRhythmVoice(channel));
+        noteListener.setReceiveChannel(getChannel());
+        notesViewer.setContext(songPlaybackMode, midiMixPlaybackMode, midiMixPlaybackMode.getRhythmVoice(getChannel()));
         notesViewer.releaseAllNotes();
     }
-
-    private void updateSpinnerModel()
+    
+    private int getChannel()
+    {
+        return ((ComboChannelElement) cmb_srcChannel.getSelectedItem()).channel;
+    }
+    
+    private void updateComboModel()
     {
         // Disable listening while updating the model
-        spn_srcChannel.removeChangeListener(this);
+        cmb_srcChannel.removeActionListener(this);
+
 
         // Save possible selected channel
-        int channel = spinnerModel != null ? spinnerModel.getChannel() : 10;
+        ComboChannelElement lastSelection = (ComboChannelElement) cmb_srcChannel.getSelectedItem();  // Can be null
 
-        // Update spinner model 
-        spinnerModel = new MySpinnerModel(midiMixPlaybackMode);
-        spn_srcChannel.setModel(spinnerModel);
-        spn_srcChannel.setEditor(new JSpinner.DefaultEditor(spn_srcChannel));  // Disable editing
-        int maxNbChars = spinnerModel.getLongestValueLength();
-        ((JSpinner.DefaultEditor) spn_srcChannel.getEditor()).getTextField().setColumns(Math.round(maxNbChars * 0.6f));
+
+        // Create and set model
+        Vector<ComboChannelElement> data = new Vector<>();
+        for (int ch : midiMixPlaybackMode.getUsedChannels())
+        {
+            var element = new ComboChannelElement(midiMixPlaybackMode, ch);
+            data.add(element);
+            if (lastSelection != null && lastSelection.channel == ch)
+            {
+                lastSelection = element;
+            }
+        }
+        cmb_srcChannel.setModel(new DefaultComboBoxModel<>(data));
+        cmb_srcChannel.setPrototypeDisplayValue(new ComboChannelElement(null, 0));
+
 
         // Relisten to changes
-        spn_srcChannel.addChangeListener(this);
+        cmb_srcChannel.addActionListener(this);
 
         // Restore saved channel
-        spinnerModel.setChannel(channel);       // This will fire a stateChange event so channelChanged() will be called
-
+        if (lastSelection != null)
+        {
+            cmb_srcChannel.setSelectedItem(lastSelection);       // This will fire a action event so channelChanged() will be called
+        } 
+                
     }
 
     /**
@@ -502,7 +499,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     {
         Collection<? extends NotesViewer> nViewers = Lookup.getDefault().lookupAll(NotesViewer.class);
         assert !nViewers.isEmpty();
-
+        
         for (var nViewer : nViewers)
         {
             FlatButton btn = new FlatButton();
@@ -513,10 +510,10 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             pnl_buttons.add(btn);
             mapViewerButton.put(nViewer, btn);
         }
-
+        
         return nViewers.iterator().next();
     }
-
+    
     private void setActiveNotesViewer(NotesViewer nViewer)
     {
         if (nViewer == null)
@@ -546,7 +543,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         mapViewerButton.get(notesViewer).setBorderNothing(BORDER_NOTHING_SELECTED);
         mapViewerButton.get(notesViewer).setBorderEntered(BORDER_ENTERED_SELECTED);
     }
-
+    
     private void modeChanged()
     {
         NotesViewer.Mode mode = isUIinPlaybackMode() ? NotesViewer.Mode.ShowBackingTrack : NotesViewer.Mode.ShowSelection;
@@ -554,14 +551,14 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         {
             case ShowBackingTrack:
                 noteListener.setEnabled(true);
-                spn_srcChannel.setEnabled(true);
+                cmb_srcChannel.setEnabled(true);
                 notesViewer.setMode(mode);
                 lbl_chordSymbol.setText(" ");
                 lbl_scale.setText(" ");
                 break;
             case ShowSelection:
                 noteListener.setEnabled(false);
-                spn_srcChannel.setEnabled(false);
+                cmb_srcChannel.setEnabled(false);
                 notesViewer.setMode(mode);
                 if (selectedChordSymbol != null)
                 {
@@ -576,16 +573,16 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 throw new AssertionError(mode.name());
         }
     }
-
+    
     private boolean isUIinPlaybackMode()
     {
         return rbtn_playback.isSelected();
     }
-
+    
     private void showChordSymbolNotes(CLI_ChordSymbol cliCs)
     {
         updateCurrentChordSymbolUI(cliCs);
-
+        
         notesViewer.releaseAllNotes();
         var ecs = cliCs.getData();
         var ssi = ecs.getRenderingInfo().getScaleInstance();
@@ -594,9 +591,9 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             notesViewer.showScaleNotes(ssi);
         }
         notesViewer.showChordSymbolNotes(cliCs);
-
+        
     }
-
+    
     private void updateCurrentChordSymbolUI(CLI_ChordSymbol cliCs)
     {
         var ecs = cliCs.getData();
@@ -605,12 +602,13 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         lbl_scale.setText(scale == null ? " " : scale.toString());
     }
 
+
     // =================================================================================
     // Private classes
     // =================================================================================
     private static class NotesViewerListener implements NoteListener
     {
-
+        
         public static final long MIN_DURATION_MS = 100;
         private boolean enabled;
         private int receiveChannel;
@@ -620,13 +618,13 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         private final long noteOnPosMs[][] = new long[16][128];
         // Cache the created Timers
         private final Timer timersCache[][] = new Timer[16][128];
-
+        
         public NotesViewerListener()
         {
             reset();
             enabled = true;
         }
-
+        
         @Override
         public synchronized void noteOn(long tick, int channel, int pitch, int velocity)
         {
@@ -637,7 +635,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             noteOnPosMs[channel][pitch] = System.currentTimeMillis();
             getViewerComponent().realTimeNoteOn(pitch, velocity);
         }
-
+        
         @Override
         public synchronized void noteOff(long tick, int channel, int pitch)
         {
@@ -729,9 +727,9 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             this.viewerComponent = viewerComponent;
             reset();
             setEnabled(b);
-
+            
         }
-
+        
         private final void reset()
         {
             for (int i = 0; i < 16; i++)
@@ -747,100 +745,42 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 }
             }
         }
-
+        
     }
-
-    private static class MySpinnerModel extends AbstractSpinnerModel
+    
+    private class ComboChannelElement
     {
-
-        MidiMix midiMix;
-        List<Integer> usedChannels;
-        int channelIndex;
-
-        MySpinnerModel(MidiMix midiMix)
+        
+        int channel;
+        String stringValue;
+        
+        public ComboChannelElement(MidiMix mm, int channel)
         {
-            this.midiMix = midiMix;
-            usedChannels = midiMix.getUsedChannels();
-            channelIndex = 0;
+            this.channel = channel;
+            this.stringValue = "[" + (channel + 1) + "] / unknown";
+            if (mm != null)
+            {
+                var insMix = midiMixPlaybackMode.getInstrumentMixFromChannel(channel);
+                if (insMix != null)
+                {
+                    Instrument ins = insMix.getInstrument();
+                    RhythmVoice rv = midiMixPlaybackMode.getRhythmVoice(channel);
+                    stringValue = "[" + (channel + 1) + "] " + ins.getPatchName() + " / " + rv.getName();
+                }
+            }
         }
-
+        
         @Override
-        public Object getValue()
+        public String toString()
         {
-            return getStringValue(getChannel());
+            return stringValue;
         }
-
-        public int getChannel()
-        {
-            return usedChannels.isEmpty() ? 0 : usedChannels.get(channelIndex);
-        }
-
-        public void setChannel(int channel)
-        {
-            channelIndex = usedChannels.indexOf(channel);
-            if (channelIndex == -1)
-            {
-                channelIndex = 0;
-            }
-            fireStateChanged();
-        }
-
-        @Override
-        public void setValue(Object o)
-        {
-            fireStateChanged();
-        }
-
-        @Override
-        public Object getNextValue()
-        {
-            channelIndex++;
-            if (channelIndex >= usedChannels.size())
-            {
-                channelIndex = 0;
-            }
-            return getStringValue(getChannel());
-        }
-
-        @Override
-        public Object getPreviousValue()
-        {
-            channelIndex--;
-            if (channelIndex < 0)
-            {
-                channelIndex = usedChannels.size() - 1;
-            }
-            return getStringValue(getChannel());
-        }
-
-        public String getStringValue(int ch)
-        {
-            var insMix = midiMix.getInstrumentMixFromChannel(getChannel());
-            if (insMix == null)
-            {
-                return "empty";
-            }
-            Instrument ins = insMix.getInstrument();
-            RhythmVoice rv = midiMix.getRhythmVoice(ch);
-            return "[" + (ch + 1) + "] " + ins.getPatchName() + " / " + rv.getName();
-        }
-
-        private int getLongestValueLength()
-        {
-            int max = 5;
-            for (var channel : usedChannels)
-            {
-                int strLength = getStringValue(channel).length();
-                max = Math.max(max, strLength);
-            }
-            return max;
-        }
-
     }
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup btn_group;
+    private javax.swing.JComboBox<ComboChannelElement> cmb_srcChannel;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel lbl_chordSymbol;
     private javax.swing.JLabel lbl_helpIcon;
@@ -853,7 +793,6 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     private javax.swing.JPanel pnl_viewer;
     private javax.swing.JRadioButton rbtn_playback;
     private javax.swing.JRadioButton rbtn_selection;
-    private javax.swing.JSpinner spn_srcChannel;
     // End of variables declaration//GEN-END:variables
 
 }

@@ -104,4 +104,11 @@
             <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-PasteAction.instance"/>
         </file>         
     </folder>        
+        
+    <folder name="Windows2">
+        <folder name="Modes">
+            <folder name="jlnavigator"/>
+            <file name="jlnavigator.wsmode" url="modes/jlnavigator.wsmode"/>
+        </folder>
+    </folder>    
 </filesystem>

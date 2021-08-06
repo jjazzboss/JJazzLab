@@ -52,7 +52,7 @@ public class RP_SYS_DrumsMix implements RhythmParameter<RP_SYS_DrumsMixValue>
     @Override
     public String getValueDescription(RP_SYS_DrumsMixValue value)
     {
-        return rhythmVoice.getName() + ": " + value.toDescriptionString();
+        return null;
     }
 
     @Override

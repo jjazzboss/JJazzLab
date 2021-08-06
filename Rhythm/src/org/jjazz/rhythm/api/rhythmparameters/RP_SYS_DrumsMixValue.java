@@ -146,8 +146,67 @@ public class RP_SYS_DrumsMixValue
 
     public String toDescriptionString()
     {
-        return "B=" + bassDrumOffset + " S=" + snareOffset + " H=" + hiHatOffset
-                + " T=" + tomsOffset + " CY=" + cymbalsOffset + " CR=" + crashOffset + " P=" + percOffset;
+        StringBuilder sb = new StringBuilder();
+        if (bassDrumOffset != 0)
+        {
+            if (sb.length() > 0)
+            {
+                sb.append(", ");
+            }
+            sb.append("BD=").append(bassDrumOffset);
+        }
+        if (snareOffset != 0)
+        {
+            if (sb.length() > 0)
+            {
+                sb.append(", ");
+            }
+            sb.append("SN=").append(snareOffset);
+        }
+        if (hiHatOffset != 0)
+        {
+            if (sb.length() > 0)
+            {
+                sb.append(", ");
+            }
+            sb.append("HH=").append(hiHatOffset);
+        }
+        if (tomsOffset != 0)
+        {
+            if (sb.length() > 0)
+            {
+                sb.append(", ");
+            }
+            sb.append("TO=").append(tomsOffset);
+        }
+        if (cymbalsOffset != 0)
+        {
+            if (sb.length() > 0)
+            {
+                sb.append(", ");
+            }
+            sb.append("CY=").append(cymbalsOffset);
+        }
+        if (crashOffset != 0)
+        {
+            if (sb.length() > 0)
+            {
+                sb.append(", ");
+            }
+            sb.append("CR=").append(crashOffset);
+        }
+        if (percOffset != 0)
+        {
+            if (sb.length() > 0)
+            {
+                sb.append(", ");
+            }
+            sb.append("OT=").append(percOffset);
+        }
+        sb.insert(0, "[");
+        sb.append("]");
+
+        return sb.toString();
     }
 
     /**
