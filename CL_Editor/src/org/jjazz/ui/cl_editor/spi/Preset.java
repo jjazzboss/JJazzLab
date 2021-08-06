@@ -40,9 +40,9 @@ public class Preset
     {
         BarEdit, ChordSymbolEdit, TimeSignatureEdit, SectionNameEdit
     }
-    private Type presetType;
-    private ChordLeadSheetItem<?> item;
-    private char key;
+    private final Type presetType;
+    private final ChordLeadSheetItem<?> item;
+    private final char key;
 
     /**
      * Create the preset.
