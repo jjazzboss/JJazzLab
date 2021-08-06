@@ -399,7 +399,7 @@ public class SongContextSession implements PropertyChangeListener, PlaybackSessi
     public Map<RhythmVoice, Phrase> getRvPhraseMap()
     {
         return new HashMap<>(mapRvPhrase);
-    }
+    }    
 
     public boolean isPlaybackTranspositionEnabled()
     {

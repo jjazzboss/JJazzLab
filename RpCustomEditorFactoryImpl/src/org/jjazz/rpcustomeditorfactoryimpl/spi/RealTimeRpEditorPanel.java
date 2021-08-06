@@ -25,12 +25,18 @@ package org.jjazz.rpcustomeditorfactoryimpl.spi;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songcontext.api.SongContext;
 
 /**
  * A JPanel to be used as a RhythmParameter value editor by the RealTimeRpEditorDialog.
  * <p>
  * The panel must fire PROP_EDITED_RP_VALUE property change events when RP value is changed by the user.
+ * <p>
+ * NOTE: the implementation should avoid generating too many PROP_EDITED_RP_VALUE change events in a short period of time,
+ * because each change might trigger a music generation by the RealTimeRpEditorDialog. For example, if implementation relies on a
+ * JSlider to update the value, during a mouse-drag on the JSlider it is better to avoid sending a PROP_EDITED_RP_VALUE change
+ * event for each elementary move, a better approach is to send a change event only for the final RP value, once the drag operation is
+ * complete.
  *
  * @param <E> The type of value of the RhythmParameter.
  */
@@ -61,9 +67,9 @@ public abstract class RealTimeRpEditorPanel<E> extends JPanel
      * Initialize the editor for the specified context.
      *
      * @param rpValue Can not be null.
-     * @param spt Optional SongPart, can be null.
+     * @param sgContext Optional SongContext, can be null.
      */
-    public abstract void preset(E rpValue, SongPart spt);
+    public abstract void preset(E rpValue, SongContext sgContext);
 
     /**
      * Change the edited value to rpValue.

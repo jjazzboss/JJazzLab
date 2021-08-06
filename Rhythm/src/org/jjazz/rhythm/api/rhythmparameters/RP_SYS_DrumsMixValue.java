@@ -146,8 +146,8 @@ public class RP_SYS_DrumsMixValue
 
     public String toDescriptionString()
     {
-        return "BD=" + bassDrumOffset + " SN=" + snareOffset + " HH=" + hiHatOffset
-                + " TO=" + tomsOffset + " CY=" + cymbalsOffset + " CR=" + crashOffset + " PC=" + percOffset;
+        return "B=" + bassDrumOffset + " S=" + snareOffset + " H=" + hiHatOffset
+                + " T=" + tomsOffset + " CY=" + cymbalsOffset + " CR=" + crashOffset + " P=" + percOffset;
     }
 
     /**

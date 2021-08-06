@@ -334,7 +334,6 @@ public class MidiSequenceBuilder
                         int v = MidiUtilities.limit(ne.getVelocity() + mapSubsetOffset.get(subset));
                         NoteEvent newNote = new NoteEvent(ne, ne.getPitch(), ne.getDurationInBeats(), v);
                         p.set(p.indexOf(ne), newNote);
-                        continue;
                     }
                 }
             }

@@ -27,9 +27,6 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -39,7 +36,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequencer;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -52,7 +48,6 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextSession;
-import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
@@ -79,7 +74,10 @@ import org.openide.util.Exceptions;
 public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements PropertyChangeListener
 {
 
-    private static final int PREVIEW_MAX_NB_BARS = 4;
+    public static final int DEFAULT_PREVIEW_MAX_NB_BARS = 4;
+    public static final int DEFAULT_POST_UPDATE_SLEEP_TIME_MS = 100;
+    private int previewMaxNbBars = DEFAULT_PREVIEW_MAX_NB_BARS;
+    private int postUpdateSleepTime = DEFAULT_POST_UPDATE_SLEEP_TIME_MS;
     private final RealTimeRpEditorPanel<E> editorPanel;
     private boolean exitOk;
     private DynamicSongSession session;
@@ -93,28 +91,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     {
         editorPanel = panel;
         editorPanel.addPropertyChangeListener(this);
-
-        Utilities.installTimeStampLogging();
-        Handler handler = new Handler()
-        {
-            @Override
-            public void publish(LogRecord lr)
-            {
-                lr.getSourceMethodName();
-            }
-
-            @Override
-            public void flush()
-            {
-            }
-
-            @Override
-            public void close() throws SecurityException
-            {
-            }
-        };
-        LOGGER.addHandler(handler);
-
+     
         initComponents();
 
         pnl_editor.add(editorPanel, BorderLayout.CENTER);
@@ -149,16 +126,14 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
         // Update UI
         editorPanel.setEnabled(true);
-        editorPanel.preset(rpValue, spt0);
-        var spt = sgContext.getSongParts().get(0);
-        setTitle(getRhythmParameter().getDisplayName() + " (" + spt.getName() + " bar:" + spt.getStartBarIndex() + ")");
+        editorPanel.preset(rpValue, sgContext);
+        setTitle(buildTitle(spt0));
         btn_ok.requestFocusInWindow();
         tbtn_hear.setSelected(false);
         tbtn_bypass.setSelected(false);
         tbtn_bypass.setEnabled(false);
         String tt = ResUtil.getString(getClass(), "RealTimeRpEditorDialog.tbtn_bypass.toolTipText") + ": " + rpValue.toString();
         tbtn_bypass.setToolTipText(tt);
-
 
     }
 
@@ -184,6 +159,54 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         return exitOk;
     }
 
+
+    /**
+     * Get the maximum number of bars used in the preview.
+     *
+     * @return the previewMaxNbBars
+     */
+    public int getPreviewMaxNbBars()
+    {
+        return previewMaxNbBars;
+    }
+
+    /**
+     * Set the maximum number of bars used in the preview.
+     * <p>
+     */
+    public void setPreviewMaxNbBars(int previewMaxNbBars)
+    {
+        if (previewMaxNbBars < 1)
+        {
+            throw new IllegalArgumentException("previewMaxNbBars=" + previewMaxNbBars);
+        }
+        this.previewMaxNbBars = previewMaxNbBars;
+    }
+
+    /**
+     * Get the sleep time (in milliseconds) added after a sequence update in order to avoid too many sequence changes in a short
+     * period of time.
+     * <p>
+     * An update on a given track stops ringing notes on that track, so very frequent changes should be avoided when possible.
+     * <p>
+     */
+    public int getPostUpdateSleepTime()
+    {
+        return postUpdateSleepTime;
+    }
+
+    /**
+     * Get the sleep time added after an update to avoid too many close sequence changes.
+     * <p>
+     * Track changes stop ringing notes on that track, so very frequent changes should be avoided when possible.
+     *
+     * @param postUpdateSleepTime In milliseconds
+     */
+    public void setPostUpdateSleepTime(int postUpdateSleepTime)
+    {
+        this.postUpdateSleepTime = postUpdateSleepTime;
+    }
+
     // ======================================================================================
     // PropertyChangeListener interface
     // ======================================================================================
@@ -196,8 +219,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
             if (tbtn_hear.isSelected() && !tbtn_bypass.isSelected())
             {
                 // Transmit the value to our handler task
-                E rpValue = (E) evt.getNewValue();
-                queue.offer(rpValue);
+                sendRpValueToThread((E) evt.getNewValue());
             }
         }
     }
@@ -239,16 +261,21 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         }
     }
 
+    private String buildTitle(SongPart spt)
+    {
+        String strSongPart = ResUtil.getString(getClass(), "RealTimeRpEditorDialog.song_part");
+        return getRhythmParameter().getDisplayName() + " - " + strSongPart + " '" + spt.getName() + "'";
+    }
+
 
     /**
      * Create a preview SongContext where the previewed SongPart is no longer than maxNbBars and it uses the specified rhythm
      * parameter value.
      *
      * @param rpValue
-     * @param maxNbBars
      * @return
      */
-    private SongContext buildPreviewContext(E rpValue, int maxNbBars)
+    private SongContext buildPreviewContext(E rpValue)
     {
         // Get a song copy which uses the edited RP value
         Song song = SongFactory.getInstance().getCopy(songContextOriginal.getSong());
@@ -260,12 +287,12 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         // Make sure SongPart size does not exceed maxNbBars 
         CLI_Section section = spt.getParentSection();
         IntRange sectionRange = cls.getSectionRange(section);
-        if (sectionRange.size() > maxNbBars)
+        if (sectionRange.size() > previewMaxNbBars)
         {
             // Shorten the section
             try
             {
-                cls.setSize(sectionRange.from + maxNbBars);
+                cls.setSize(sectionRange.from + previewMaxNbBars);
             } catch (UnsupportedEditException ex)
             {
                 // We're removing a section, should never happen
@@ -295,7 +322,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
         // Build song context with the original RP value or edited one
         E rpValue = tbtn_bypass.isSelected() ? rpValueOriginal : editorPanel.getEditedRpValue();
-        SongContext sgContext = buildPreviewContext(rpValue, PREVIEW_MAX_NB_BARS);
+        SongContext sgContext = buildPreviewContext(rpValue);
 
 
         session = new DynamicSongSession(sgContext,
@@ -333,6 +360,13 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
             }
         }
 
+    }
+
+
+    private void sendRpValueToThread(E rpValue)
+    {
+        assert rpValue != null;
+        queue.offer(rpValue);
     }
 
 
@@ -559,7 +593,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         assert tbtn_hear.isSelected();
         editorPanel.setEnabled(!tbtn_bypass.isSelected());
         E rpValue = tbtn_bypass.isSelected() ? rpValueOriginal : editorPanel.getEditedRpValue();
-        queue.offer(rpValue);
+        sendRpValueToThread(rpValue);
 
     }//GEN-LAST:event_tbtn_bypassActionPerformed
 
@@ -678,7 +712,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
                             // Need to wait a little more for the previous musicGenerationTask to complete
                             if (!doNotRepeatWaiting)
                             {
-                                LOGGER.info("RpValueChangesHandlingTask.run() waiting to start task for lastRpValue=" + lastRpValue + ".........");
+//                                LOGGER.info("RpValueChangesHandlingTask.run() waiting to start task for lastRpValue=" + lastRpValue + ".........");
                                 doNotRepeatWaiting = true;
                             }
                         }
@@ -688,7 +722,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
                     lastRpValue = rpValue;
 
                     // We have an incoming RpValue, can we start a musicGenerationTask ?
-                    LOGGER.info("RpValueChangesHandlingTask.run() rpValue received=" + rpValue);
+//                    LOGGER.info("RpValueChangesHandlingTask.run() rpValue received=" + rpValue);
                     if (generationFuture == null || generationFuture.isDone())
                     {
                         // yes
@@ -696,7 +730,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
                     } else
                     {
                         // no, this becomes the waitingRpValue
-                        LOGGER.info("                                   => can't start generation task, set as lastRpValue");
+//                        LOGGER.info("                                   => can't start generation task, set as lastRpValue");
                     }
                     doNotRepeatWaiting = false;
                 }
@@ -732,8 +766,9 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         @Override
         public void run()
         {
-            LOGGER.info("MusicGenerationTask.run() >>> STARTING generation with rpValue=" + rpValue);
-            SongContext sgContext = buildPreviewContext(rpValue, PREVIEW_MAX_NB_BARS);
+//            LOGGER.info("MusicGenerationTask.run() >>> STARTING generation with rpValue=" + rpValue);
+
+            SongContext sgContext = buildPreviewContext(rpValue);
             SongContextSession tmpSession = SongContextSession.getSession(sgContext, true, false, false, true, 0, null);
             if (tmpSession.getState().equals(PlaybackSession.State.NEW))
             {
@@ -750,43 +785,21 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
             }
 
 
-            Map<Integer, List<MidiEvent>> mapTrackIdEvents = new HashMap<>();
+            // Perform the update 
+            session.updateSequence(tmpSession.getRvPhraseMap());
 
 
-            // Process only changed phrases
-            var originalRvPhraseMap = session.getOriginalRvPhraseMap();
-            var originalRvTrackIdMap = session.getOriginalRvTrackIdMap();
-            var newRvPhraseMap = tmpSession.getRvPhraseMap();
-
-            for (var rv : originalRvPhraseMap.keySet())
-            {
-                Phrase p = originalRvPhraseMap.get(rv);
-                Phrase newP = newRvPhraseMap.get(rv);
-                if (p.equals(newP))
-                {
-                    // LOGGER.info("MusicGenerationTask.run() skipped identitical phrases for rv=" + rv + " p.size()=" + p.size());
-                } else
-                {
-                    int rvTrackId = originalRvTrackIdMap.get(rv);
-                    mapTrackIdEvents.put(rvTrackId, newP.toMidiEvents());
-                    LOGGER.info("MusicGenerationTask.run() phrase has changed for rv=" + rv + " => stored in mapTrackIdEvents{" + rvTrackId + "}");
-                }
-            }
-
-            // Update the dynamic session, which will update the Sequencer
-            session.updateSequence(mapTrackIdEvents);
-
+            // Avoid to have too many sequencer changes in a short period of time, which can cause audio issues
+            // with notes muted/unmuted too many times
             try
             {
-                // Avoid to have too many sequencer changes in a short period of time, which can cause audio issues
-                // with notes muted/unmuted too many times
-                Thread.sleep(10);
+                Thread.sleep(getPostUpdateSleepTime());
             } catch (InterruptedException ex)
             {
                 return;
             }
 
-            LOGGER.info("MusicGenerationTask.run() <<< ENDING generation with rpValue=" + rpValue);
+//            LOGGER.info("MusicGenerationTask.run() <<< ENDING generation with rpValue=" + rpValue);
         }
 
 

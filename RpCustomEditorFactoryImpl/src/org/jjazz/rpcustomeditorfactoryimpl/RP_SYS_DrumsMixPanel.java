@@ -3,8 +3,11 @@ package org.jjazz.rpcustomeditorfactoryimpl;
 import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorPanel;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMix;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMixValue;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
 
@@ -17,6 +20,7 @@ public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixV
 
     private RP_SYS_DrumsMix rp;
     private RP_SYS_DrumsMixValue lastValue;
+    private SongContext songContext;
 
     public RP_SYS_DrumsMixPanel(RP_SYS_DrumsMix rp)
     {
@@ -51,9 +55,25 @@ public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixV
     }
 
     @Override
-    public void preset(RP_SYS_DrumsMixValue rpValue, SongPart spt)
+    public void preset(RP_SYS_DrumsMixValue rpValue, SongContext sgContext)
     {
         setEditedRpValue(rpValue);
+        songContext = sgContext;
+
+
+        // Update channel label
+        String strChannel = "Channel drums";
+        if (songContext != null)
+        {
+            RhythmVoice rvDrums = rp.getRhythmVoice();
+            int channel = sgContext.getMidiMix().getChannel(rvDrums);
+            strChannel = "Channel " + (channel + 1);
+            if (!rvDrums.getName().trim().equalsIgnoreCase("drums"))
+            {
+                strChannel += " (" + rvDrums.getName().trim() + ")";
+            }
+        }
+        lbl_channel.setText(strChannel);
     }
 
     @Override
@@ -97,8 +117,7 @@ public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixV
                 || evt.getSource() == knb_toms
                 || evt.getSource() == knb_crash
                 || evt.getSource() == knb_cymbals
-                || evt.getSource() == knb_perc
-                )
+                || evt.getSource() == knb_perc)
         {
             if (evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
             {
@@ -139,6 +158,7 @@ public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixV
         jPanel7 = new javax.swing.JPanel();
         knb_perc = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
         jLabel12 = new javax.swing.JLabel();
+        lbl_channel = new javax.swing.JLabel();
 
         setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixPanel.class, "RP_SYS_DrumsMixPanel.toolTipText")); // NOI18N
 
@@ -338,31 +358,39 @@ public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixV
         jLabel12.setAlignmentX(0.5F);
         jPanel7.add(jLabel12);
 
+        lbl_channel.setFont(lbl_channel.getFont().deriveFont(lbl_channel.getFont().getSize()-1f));
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_channel, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixPanel.class, "RP_SYS_DrumsMixPanel.lbl_channel.text")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(lbl_channel))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(3, 3, 3)
+                .addComponent(lbl_channel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -371,7 +399,7 @@ public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixV
                     .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -398,6 +426,7 @@ public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixV
     private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_perc;
     private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_snare;
     private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knb_toms;
+    private javax.swing.JLabel lbl_channel;
     // End of variables declaration//GEN-END:variables
 
 

@@ -59,12 +59,18 @@ public class Utilities
 
     private static final Logger LOGGER = Logger.getLogger(Utilities.class.getName());
     private static long firstTimeLogStampEpochMillis = -1;
+    private static boolean changedRootLogger = false;
 
     /**
      * Make logging message include a time stamp in milliseconds, relative to the time of the first logged message in the
      * application.
+     * <p>
+     * Note: this will impact other Logging of other modules as well, but if not registered explicitly, class will be displayed as
+     * null.
+     *
+     * @param logger The logger for which to apply the new logging message
      */
-    public static void installTimeStampLogging()
+    public static void installTimeStampLogging(Logger logger)
     {
         Formatter formatter = new Formatter()
         {
@@ -75,11 +81,10 @@ public class Utilities
                 {
                     firstTimeLogStampEpochMillis = lr.getMillis();
                 }
-                return String.format("%s-%06d [%s.%s]: %s\n", 
-                        lr.getLevel(), 
-                        lr.getMillis() - firstTimeLogStampEpochMillis, 
-                        removeLeadingPackageName(lr.getSourceClassName()), 
-                        lr.getSourceMethodName(), 
+                return String.format("%s-%06d [%s]: %s\n",
+                        lr.getLevel(),
+                        lr.getMillis() - firstTimeLogStampEpochMillis,
+                        removeLeadingPackageName(lr.getSourceClassName()),
                         lr.getMessage());
             }
         };
@@ -106,12 +111,17 @@ public class Utilities
             {
             }
         };
+        logger.addHandler(handler);
 
 
-        for (Handler h : Logger.getLogger("").getHandlers())
+        if (!changedRootLogger)
         {
-            // Actions to be taken on the root loggers
-            h.setFormatter(formatter);
+            for (Handler h : Logger.getLogger("").getHandlers())
+            {
+                // Actions to be taken on the root loggers
+                h.setFormatter(formatter);
+            }
+            changedRootLogger = true;
         }
     }
 
