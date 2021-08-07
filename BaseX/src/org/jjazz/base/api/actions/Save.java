@@ -38,7 +38,9 @@ import org.openide.awt.StatusDisplayer;
 @ActionRegistration(displayName = "#CTL_Save", iconBase = "org/jjazz/base/api/actions/resources/save.png")
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/File", position = 1500)
+            @ActionReference(path = "Menu/File", position = 1500),
+            @ActionReference(path = "Toolbars/File", position = 20),
+            @ActionReference(path = "Shortcuts", name = "D-S")
         })
 public final class Save extends AbstractAction
 {

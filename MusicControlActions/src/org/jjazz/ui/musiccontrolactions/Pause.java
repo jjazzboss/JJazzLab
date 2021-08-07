@@ -26,18 +26,13 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyVetoException;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
-import org.jjazz.musiccontrol.api.PlaybackSettings;
-import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
-import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
 import org.jjazz.util.api.ResUtil;
@@ -78,8 +73,10 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
     {
         setBooleanState(false);
 
-        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorder-24x24.png")));
-        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorderOn-24x24.png")));
+//        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorder-24x24.png")));
+//        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorderOn-24x24.png")));
+        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButton-24x24.png")));
+        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonOn-24x24.png")));
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_PauseTooltip"));
         putValue("hideActionText", true);
 

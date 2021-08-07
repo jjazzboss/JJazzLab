@@ -66,8 +66,10 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
     {
         setBooleanState(true);
 
-        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButtonBorderOff-24x24.png")));
-        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButtonBorderOn-24x24.png")));
+//        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButtonBorderOff-24x24.png")));
+//        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButtonBorderOn-24x24.png")));
+        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButton-24x24.png")));
+        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButtonOn-24x24.png")));
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_StopTooltip"));
         putValue("hideActionText", true);
 

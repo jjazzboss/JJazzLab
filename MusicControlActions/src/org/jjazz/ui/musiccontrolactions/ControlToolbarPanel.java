@@ -244,6 +244,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         fbtn_Precount = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         filler9 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
 
+        setBackground(new java.awt.Color(60, 63, 65));
         setOpaque(false);
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
         add(filler2);
@@ -254,19 +255,21 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         add(fbtn_Active);
         add(filler1);
 
-        panel_PlayButtons.setBackground(new java.awt.Color(127, 126, 126));
+        panel_PlayButtons.setBackground(new java.awt.Color(48, 50, 52));
+        panel_PlayButtons.setOpaque(false);
         panel_PlayButtons.setLayout(new javax.swing.BoxLayout(panel_PlayButtons, javax.swing.BoxLayout.LINE_AXIS));
 
-        fbtn_Stop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButtonBorderOff-24x24.png"))); // NOI18N
+        fbtn_Stop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButton-24x24.png"))); // NOI18N
+        fbtn_Stop.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButtonOn-24x24.png"))); // NOI18N
         panel_PlayButtons.add(fbtn_Stop);
 
-        fbtn_Play.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonBorder-24x24.png"))); // NOI18N
-        fbtn_Play.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonBorderOn-24x24.png"))); // NOI18N
+        fbtn_Play.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButton-24x24.png"))); // NOI18N
+        fbtn_Play.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonOn-24x24.png"))); // NOI18N
         panel_PlayButtons.add(fbtn_Play);
 
-        fbtn_Pause.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorder-24x24.png"))); // NOI18N
+        fbtn_Pause.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButton-24x24.png"))); // NOI18N
         fbtn_Pause.setToolTipText(org.openide.util.NbBundle.getMessage(ControlToolbarPanel.class, "ControlToolbarPanel.fbtn_Pause.toolTipText")); // NOI18N
-        fbtn_Pause.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorderOn-24x24.png"))); // NOI18N
+        fbtn_Pause.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PauseButtonOn-24x24.png"))); // NOI18N
         panel_PlayButtons.add(fbtn_Pause);
 
         add(panel_PlayButtons);

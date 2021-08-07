@@ -2,6 +2,9 @@
 
 <Form version="1.8" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
   <Properties>
+    <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+      <Color blue="41" green="3f" red="3c" type="rgb"/>
+    </Property>
     <Property name="opaque" type="boolean" value="false"/>
   </Properties>
   <AuxValues>
@@ -69,8 +72,9 @@
     <Container class="javax.swing.JPanel" name="panel_PlayButtons">
       <Properties>
         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color blue="7e" green="7e" red="7f" type="rgb"/>
+          <Color blue="34" green="32" red="30" type="rgb"/>
         </Property>
+        <Property name="opaque" type="boolean" value="false"/>
       </Properties>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout"/>
@@ -78,30 +82,33 @@
         <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_Stop">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/StopButtonBorderOff-24x24.png"/>
+              <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/StopButton-24x24.png"/>
+            </Property>
+            <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+              <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/StopButtonOn-24x24.png"/>
             </Property>
           </Properties>
         </Component>
         <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_Play">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/PlayButtonBorder-24x24.png"/>
+              <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/PlayButton-24x24.png"/>
             </Property>
             <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/PlayButtonBorderOn-24x24.png"/>
+              <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/PlayButtonOn-24x24.png"/>
             </Property>
           </Properties>
         </Component>
         <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="fbtn_Pause">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorder-24x24.png"/>
+              <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/PauseButton-24x24.png"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="org/jjazz/ui/musiccontrolactions/Bundle.properties" key="ControlToolbarPanel.fbtn_Pause.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
             <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/PauseButtonBorderOn-24x24.png"/>
+              <Image iconType="3" name="/org/jjazz/ui/musiccontrolactions/resources/PauseButtonOn-24x24.png"/>
             </Property>
           </Properties>
         </Component>

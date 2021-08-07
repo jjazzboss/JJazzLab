@@ -42,9 +42,7 @@ import org.openide.awt.StatusDisplayer;
 @ActionRegistration(displayName = "#CTL_SaveAll", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/File", position = 1540),
-            @ActionReference(path = "Toolbars/File", position = 20),
-            @ActionReference(path = "Shortcuts", name = "D-S")
+            @ActionReference(path = "Menu/File", position = 1540)            
         })
 public class SaveAll extends AbstractAction implements ChangeListener
 {
@@ -57,7 +55,7 @@ public class SaveAll extends AbstractAction implements ChangeListener
 
 
         // Need this for auto icon size changing to work... (switch to saveAll24.gif) since can't be done using actionRegistration's iconBase=xx
-        putValue("iconBase", "org/jjazz/base/api/actions/resources/saveAll.gif");
+        putValue("iconBase", "org/jjazz/base/api/actions/resources/saveAll.png");
 
         Savable.ToBeSavedList.addListener(this);
         setEnabled(false);
