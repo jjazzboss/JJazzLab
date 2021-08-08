@@ -22,17 +22,21 @@
  */
 package org.jjazz.ui.utilities.api;
 
-import java.awt.Dimension;
-import java.awt.Insets;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JButton;
 
 /**
- * A small round JButton tested with FlatDarkLaf.
+ * A JButton which can be "small" even when using FlatDarkLaf (FlatDarkLaf applies a minimum width of 72 to all buttons!).
+ * <p>
+ * See hack from FlatDarkLaf author, GitHub issue #364.
+ *
+ * @todo Next FlatDarkLaf version should disable the 72px minimum width enforcement when setMargins() was used, to be tested when
+ * available.
  */
 public class SmallFlatDarkLafButton extends JButton
 {
+
     public SmallFlatDarkLafButton()
     {
         super();
@@ -65,7 +69,7 @@ public class SmallFlatDarkLafButton extends JButton
 
     private void updateProperties()
     {
-        putClientProperty("JButton.buttonType", "roundRect");
-        putClientProperty( "JComponent.minimumWidth", 0 );      // Hack from FlatDarkLaf author! See GitHub issue #364
+        // putClientProperty("JButton.buttonType", "roundRect");
+        putClientProperty("JComponent.minimumWidth", 0);      // Hack from FlatDarkLaf author! See GitHub issue #364
     }
 }

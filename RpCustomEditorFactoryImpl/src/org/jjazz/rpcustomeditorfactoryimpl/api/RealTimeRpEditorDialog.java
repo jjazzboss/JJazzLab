@@ -445,10 +445,12 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
             }
         });
 
+        pnl_editor.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         pnl_editor.setLayout(new javax.swing.BoxLayout(pnl_editor, javax.swing.BoxLayout.LINE_AXIS));
 
         tbtn_bypass.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-OFF.png"))); // NOI18N
         tbtn_bypass.setToolTipText(org.openide.util.NbBundle.getMessage(RealTimeRpEditorDialog.class, "RealTimeRpEditorDialog.tbtn_bypass.toolTipText")); // NOI18N
+        tbtn_bypass.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-Disabled.png"))); // NOI18N
         tbtn_bypass.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-ON.png"))); // NOI18N
         tbtn_bypass.addActionListener(new java.awt.event.ActionListener()
         {
