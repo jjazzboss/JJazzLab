@@ -66,12 +66,9 @@ public class Loop extends BooleanStateAction implements PropertyChangeListener, 
     public Loop()
     {
         setBooleanState(false);
-//        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/LoopButtonOff2-24x24.png")));
-//        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/LoopButtonOn2-24x24.png")));
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Loop-OFF-24x24.png")));
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Loop-ON-24x24.png")));
-//        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/LoopOff-20x20.png")));
-//        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/LoopOn-20x20.png")));
+        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/LoopDisabled-24x24.png")));   //NOI18N                
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_LoopTooltip"));
         putValue("hideActionText", true);
 

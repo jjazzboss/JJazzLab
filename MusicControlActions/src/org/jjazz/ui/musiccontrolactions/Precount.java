@@ -68,6 +68,8 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
         PlaybackSettings cm = PlaybackSettings.getInstance();
         cm.addPropertyChangeListener(this);
         updateUI(cm.getClickPrecountMode());
+        
+        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/precountDisabled-24x24.png")));   //NOI18N                        
         putValue("hideActionText", true);
 
         setSelected(cm.isClickPrecountEnabled());

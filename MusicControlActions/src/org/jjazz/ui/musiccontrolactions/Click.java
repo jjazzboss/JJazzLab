@@ -66,8 +66,7 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
 
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Click-OFF-24x24.png")));     //NOI18N
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Click-ON-24x24.png")));   //NOI18N
-//        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/ClickOff-20x20.png")));   //NOI18N
-//        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/ClickOn-20x20.png")));   //NOI18N
+        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/ClickDisabled-24x24.png")));   //NOI18N
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(),"CTL_ClickTooltip"));   //NOI18N
         putValue("hideActionText", true);       //NOI18N
 

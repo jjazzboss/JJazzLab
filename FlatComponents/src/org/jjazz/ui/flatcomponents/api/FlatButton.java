@@ -129,7 +129,8 @@ public class FlatButton extends JLabel implements PropertyChangeListener
      * - NAME &gt; setText()<br>
      * - SHORT_DESCRIPTION &gt; setTooltipText()<br>
      * - SMALL_ICON &gt; setIcon()<br>
-     * - enabled &gt; setEnabled()
+     * - "JJazzDisabledIcon" &gt; setDisabledIcon()<br>
+     * - "enabled" &gt; setEnabled()
      * <p>
      * If button is pressed it calls action's actionPerformed() (in addition to the ActionListeners).
      * <p>
@@ -150,6 +151,7 @@ public class FlatButton extends JLabel implements PropertyChangeListener
         action = a;
         action.addPropertyChangeListener(this);
         setIcon((Icon) action.getValue(Action.SMALL_ICON));
+        setDisabledIcon((Icon) action.getValue("JJazzDisabledIcon"));
         if ((Boolean) action.getValue("hideActionText") != Boolean.TRUE)
         {
             setText((String) action.getValue(Action.NAME));

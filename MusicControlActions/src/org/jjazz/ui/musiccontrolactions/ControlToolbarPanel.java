@@ -30,7 +30,6 @@ import javax.swing.SwingUtilities;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.PlaybackListener;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
 import org.jjazz.song.api.Song;
 
@@ -221,8 +220,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         fbtn_Stop = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         fbtn_Play = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         fbtn_Pause = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
-        filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
-        filler10 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
+        filler10 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(16, 0), new java.awt.Dimension(20, 32767));
         posViewer = new org.jjazz.ui.musiccontrolactions.PositionViewer();
         filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 0), new java.awt.Dimension(3, 32767));
         fbtn_Loop = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
@@ -273,7 +271,6 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         panel_PlayButtons.add(fbtn_Pause);
 
         add(panel_PlayButtons);
-        add(filler3);
         add(filler10);
 
         posViewer.setBorder(javax.swing.BorderFactory.createCompoundBorder(spn_Tempo.getBorder(), javax.swing.BorderFactory.createEmptyBorder(1, 8, 1, 8)));
@@ -341,7 +338,6 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     private javax.swing.Box.Filler filler1;
     private javax.swing.Box.Filler filler10;
     private javax.swing.Box.Filler filler2;
-    private javax.swing.Box.Filler filler3;
     private javax.swing.Box.Filler filler4;
     private javax.swing.Box.Filler filler5;
     private javax.swing.Box.Filler filler6;

@@ -95,8 +95,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         setSelected(true);
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointOFF-24x24.png")));
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointON-24x24.png")));
-//      putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointOff-20x20.png")));
-//      putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointOn-20x20.png")));
+        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));   //NOI18N                                
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_ShowPlaybackTooltip"));
         putValue("hideActionText", true);
         // Listen to playbackState and position changes
