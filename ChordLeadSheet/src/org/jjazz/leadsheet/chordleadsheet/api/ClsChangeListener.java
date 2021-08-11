@@ -42,6 +42,8 @@ public interface ClsChangeListener
 
     /**
      * Process the change.
+     * <p>
+     * Note that this method might be called outside of the EDT.
      *
      * @param e
      * @throws IllegalStateException If change is not authorized by this listener.

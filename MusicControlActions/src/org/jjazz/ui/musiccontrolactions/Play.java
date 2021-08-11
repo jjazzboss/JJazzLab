@@ -37,8 +37,10 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
-import org.jjazz.musiccontrol.api.playbacksession.SongContextSession;
+import org.jjazz.musiccontrol.api.playbacksession.SongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
@@ -84,7 +86,6 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
         setBooleanState(false);
 
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButton-24x24.png")));
-        //putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonOn-24x24.png")));
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonOn-24x24-orange.png")));
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_PlayToolTip"));
         putValue("hideActionText", true);
@@ -164,7 +165,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
 
                         
                         // Prepare the session
-                        SongContextSession session = SongContextSession.getSession(context);
+                        UpdatableSongSession session = new UpdatableSongSession(DynamicSongSession.getSession(context));
                         if (session.getState().equals(PlaybackSession.State.NEW))
                         {
                             session.generate(false);

@@ -317,7 +317,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK IS DISABLED"));
         }
 
-        
+
         if (debugPlayedSequence)
         {
             SongContext sgContext = getSongContext(session);        // Can be null
@@ -356,11 +356,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
 
 
-
-
-
         // Loop settings
-         sequencer.setLoopStartPoint(playbackSession.getLoopStartTick());
+        sequencer.setLoopStartPoint(playbackSession.getLoopStartTick());
         sequencer.setLoopEndPoint(playbackSession.getLoopEndTick());
         sequencer.setLoopCount(playbackSession.getLoopCount());
 

@@ -25,490 +25,457 @@ package org.jjazz.musiccontrol.api.playbacksession;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiEvent;
-import javax.sound.midi.Sequence;
-import javax.sound.midi.Track;
-import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.midi.api.MidiUtilities;
+import java.util.stream.Collectors;
+import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
+import org.jjazz.leadsheet.chordleadsheet.api.Section;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ItemAddedEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ItemBarShiftedEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ItemChangedEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ItemMovedEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.event.ItemRemovedEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.event.SectionMovedEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmmusicgeneration.api.ContextChordSequence;
+import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.util.api.IntRange;
+import org.jjazz.songstructure.api.SgsChangeListener;
+import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.songstructure.api.event.RpChangedEvent;
+import org.jjazz.songstructure.api.event.SgsChangeEvent;
+import org.jjazz.songstructure.api.event.SptAddedEvent;
+import org.jjazz.songstructure.api.event.SptRemovedEvent;
+import org.jjazz.songstructure.api.event.SptRenamedEvent;
+import org.jjazz.songstructure.api.event.SptReplacedEvent;
+import org.jjazz.songstructure.api.event.SptResizedEvent;
+import org.openide.util.Exceptions;
 
 /**
- * A SongContextSession-based session which allows the user to add/remove MidiEvents (without changing the Sequence size) while
- * the sequence is playing.
+ * This SongSession listens to the context changes (Song, Midimix, PlaybackSettings) and decide whether the change outdates the
+ * session or can be managed via an update for an UpdatableSongSession.
  * <p>
- * Use buffer tracks and mute/unmute tracks to enable on-the-fly sequence changes.
+ * Basically, chord symbol and rhythm parameter value changes are managed via updates, other changes make the session outdated.
  */
-public class DynamicSongSession implements PropertyChangeListener, PlaybackSession, PositionProvider, ChordSymbolProvider, SongContextProvider, EndOfPlaybackActionProvider
+public class DynamicSongSession extends SongSession implements UpdatableSongSession.UpdateProvider, SgsChangeListener, ClsChangeListener
 {
 
-    private long originalTrackTickSize;
-    private int nbPlayingTracks;
-    private Map<RhythmVoice, Phrase> currentMapRvPhrase;
-    private TrackSet trackSet;         // Exclude track 0 
-    private final SongContextSession songContextSession;
-    private Sequence sequence;
-    private final HashMap<Integer, Boolean> mapTrackIdMuted = new HashMap<>();
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private Map<RhythmVoice, Phrase> mapRvPhrases;
+    private static final List<DynamicSongSession> sessions = new ArrayList<>();
+    private static final ClosedSessionsListener CLOSED_SESSIONS_LISTENER = new ClosedSessionsListener();
     private static final Logger LOGGER = Logger.getLogger(DynamicSongSession.class.getSimpleName());  //NOI18N
 
     /**
-     * Create a DynamicSongSession with the specified parameters.
+     * Create a song session based for the specified parameters.
+     * <p>
+     * Take into account all settings of the PlaybackSettings instance.
+     * <p>
+     * Sessions are cached: if an existing targetSession in the NEW or GENERATED state already exists for the same parameters then
+     * return it, otherwise a new session is created.
+     * <p>
      *
      * @param sgContext
-     * @param enablePlaybackTransposition
-     * @param enableClickTrack
-     * @param enablePrecountTrack
-     * @param enableControlTrack
-     * @param loopCount Use SongContextSession.PLAYBACK_SETTINGS_LOOP_COUNT to rely on PlaybackSettings.
-     * @param endOfPlaybackAction
+     * @param enablePlaybackTransposition If true apply the playback transposition
+     * @param enableClickTrack If true add the click track, and its muted/unmuted state will depend on the PlaybackSettings
+     * @param enablePrecountTrack If true add the precount track, and loopStartTick will depend on the PlaybackSettings
+     * @param enableControlTrack if true add a control track (beat positions + chord symbol markers)
+     * @param loopCount See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the PlaybackSettings instance
+     * value.
+     * @param endOfPlaybackAction Action executed when playback is stopped. Can be null.
+     * @return A targetSession in the NEW or GENERATED state.
      */
-    public DynamicSongSession(SongContext sgContext, boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
+    static public DynamicSongSession getSession(SongContext sgContext,
+            boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
             int loopCount,
             ActionListener endOfPlaybackAction)
     {
-        songContextSession = new SongContextSession(sgContext,
+        if (sgContext == null)
+        {
+            throw new IllegalArgumentException("sgContext=" + sgContext);
+        }
+        DynamicSongSession session = findSession(sgContext,
                 enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack,
                 loopCount,
-                endOfPlaybackAction
-        );
-
-        songContextSession.addPropertyChangeListener(this);
-    }
-
-    @Override
-    public void generate(boolean silent) throws MusicGenerationException
-    {
-        songContextSession.generate(silent);
-        sequence = songContextSession.getSequence();
-        originalTrackTickSize = sequence.getTickLength();
-        nbPlayingTracks = sequence.getTracks().length;
-        currentMapRvPhrase = new HashMap<>(songContextSession.getRvPhraseMap());
-
-
-        // Create the trackset to manage double-buffering at track level
-        var originalMapIdMuted = songContextSession.getTracksMuteStatus(); // Track 0 is not included, but may contain click/precount/control tracks
-        trackSet = new TrackSet(sequence);
-        originalMapIdMuted.keySet().forEach(trackId -> trackSet.addTrack(trackId));
-
-
-        // Initialize our own tracks mute state
-        for (int trackId : originalMapIdMuted.keySet())
+                endOfPlaybackAction);
+        if (session == null)
         {
-            mapTrackIdMuted.put(trackId, originalMapIdMuted.get(trackId));
-            mapTrackIdMuted.put(trackSet.getBufferTrackId(trackId), true);         // buffer track is muted
-        }
+            final DynamicSongSession newSession = new DynamicSongSession(sgContext,
+                    enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack,
+                    loopCount,
+                    endOfPlaybackAction);
 
-
-//        LOGGER.info("generate() mapTrackIdMuted=" + mapTrackIdMuted);
-//        LOGGER.info("generate() mapRvTrackId=" + songContextSession.getRvTrackIdMap());
-//        LOGGER.info("generate() trackSet=" + trackSet.toString());
-//        LOGGER.info(" Original sequence=" + MidiUtilities.toString(sequence));
-    }
-
-    /**
-     * Get the original sequence and create additional empty tracks to allow "double buffering modification" via muting/unmuting
-     * tracks.
-     * <p>
-     * The total number of tracks is 2 * getNbPlayingTracks().
-     *
-     * @return
-     */
-    @Override
-    public Sequence getSequence()
-    {
-        return sequence;
-    }
-
-
-    /**
-     * The number of playing tracks (excluding the additional double buffering extra tracks).
-     *
-     * @return
-     */
-    public int getNbPlayingTracks()
-    {
-        return nbPlayingTracks;
-    }
-
-    /**
-     * The size in ticks of the original generated sequence.
-     *
-     * @return
-     */
-    public long getOriginalSequenceSize()
-    {
-        return originalTrackTickSize;
-    }
-
-
-    /**
-     * Update the sequence by replacing the contents of one or more RhythmVoice tracks.
-     * <p>
-     * Update tracks for which there is an actual change. Changes are first applied to muted "buffer tracks", then we switch the
-     * mute status between the buffer and the playing tracks. The transition might be noticeable if notes were still ringing when
-     * tracks mute state is switched.
-     *
-     * @param newMapRvPhrase
-     * @throws IllegalArgumentException If a MidiEvent tick position is beyond getOriginalSequenceSize(), or if session is not in
-     * the GENERATED state.
-     */
-    public void updateSequence(Map<RhythmVoice, Phrase> newMapRvPhrase)
-    {
-//        LOGGER.info("updateSequence() ---- newMapRvPhrase.keySet()=" + newMapRvPhrase.keySet());
-
-        if (!getState().equals(PlaybackSession.State.GENERATED))
+            newSession.addPropertyChangeListener(CLOSED_SESSIONS_LISTENER);
+            sessions.add(newSession);
+            return newSession;
+        } else
         {
-            throw new IllegalStateException("newMapRvPhrase=" + newMapRvPhrase + " getState()=" + getState());
+            return session;
         }
-
-
-        // Update sequence with a phrase if it's modified compared to current one
-        for (RhythmVoice rv : newMapRvPhrase.keySet())
-        {
-            var newPhrase = newMapRvPhrase.get(rv);
-
-
-            if (currentMapRvPhrase.get(rv).equals(newPhrase))
-            {
-                // No change do nothing
-                continue;
-            } else
-            {
-                // Replace the current events
-//                LOGGER.info("updateSequence()     changes detected for rv=" + rv + ", updating");
-                currentMapRvPhrase.put(rv, newPhrase);
-            }
-
-
-            // Clear and update the buffer track with the passed events
-            int trackId = getOriginalRvTrackIdMap().get(rv);
-            Track bufferTrack = trackSet.getBufferTrack(trackId);
-            MidiUtilities.clearTrack(bufferTrack);
-            for (MidiEvent me : newPhrase.toMidiEvents())
-            {
-                if (me.getTick() > originalTrackTickSize)
-                {
-                    throw new IllegalArgumentException("me=" + MidiUtilities.toString(me.getMessage(), me.getTick()) + " originalTrackTickSize=" + originalTrackTickSize);
-                }
-                bufferTrack.add(me);
-            }
-
-
-            // Make sure size is not changed
-            MidiUtilities.setEndOfTrackPosition(bufferTrack, originalTrackTickSize);
-
-
-            // Update the track mute state : apply mute status of the active track to the buffer track, then mute the active track
-            boolean activeTrackMuteState = mapTrackIdMuted.get(trackSet.getActiveTrackId(trackId));
-            mapTrackIdMuted.put(trackSet.getBufferTrackId(trackId), activeTrackMuteState);
-            mapTrackIdMuted.put(trackSet.getActiveTrackId(trackId), true);
-
-
-            // Finally exchange the active and buffer tracks
-            trackSet.swapBufferAndActiveTracks(trackId);
-        }
-
-//        LOGGER.info("updateSequence() AFTER: mapTrackIdMuted=" + mapTrackIdMuted);
-
-        // Notify our listeners that tracks mute status has changed
-        pcs.firePropertyChange(PlaybackSession.PROP_MUTED_TRACKS, null, mapTrackIdMuted);
     }
 
     /**
-     * A map providing the original track id corresponding to each used RhythmVoice in the given context.
-     * <p>
-     * If a song uses rhythms R1 and R2 and context is only on R2 bars, then the map only contains R2 rhythm voices and track id.
+     * Same as getSession(sgContext, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
      * <p>
      *
-     * @return @see getOriginalTrackEvents()
+     * @param sgContext
+     * @return A targetSession in the NEW or GENERATED state.
      */
-    public Map<RhythmVoice, Integer> getOriginalRvTrackIdMap()
+    static public DynamicSongSession getSession(SongContext sgContext)
     {
-        return songContextSession.getRvTrackIdMap();
+        return getSession(sgContext, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
     }
 
-    /**
-     * A map giving the original resulting Phrase for each RhythmVoice, in the current context.
-     * <p>
-     *
-     * @return
-     */
-    public Map<RhythmVoice, Phrase> getOriginalRvPhraseMap()
+    private DynamicSongSession(SongContext sgContext, boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack, int loopCount, ActionListener endOfPlaybackAction)
     {
-        return songContextSession.getRvPhraseMap();
-    }
+        super(sgContext, enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack, loopCount, endOfPlaybackAction);
 
-    /**
-     * Get the current Phrase for each RhythmVoice track.
-     *
-     * @return
-     */
-    public Map<RhythmVoice, Phrase> getCurrentRvPhraseMap()
-    {
-        return currentMapRvPhrase;
-    }
 
-    @Override
-    public State getState()
-    {
-        return songContextSession.getState();
-    }
-
-    @Override
-    public int getTempo()
-    {
-        return songContextSession.getTempo();
-    }
-
-    @Override
-    public HashMap<Integer, Boolean> getTracksMuteStatus()
-    {
-        // Our version
-        return mapTrackIdMuted;
-    }
-
-    @Override
-    public long getLoopEndTick()
-    {
-        return songContextSession.getLoopEndTick();
-    }
-
-    @Override
-    public long getLoopStartTick()
-    {
-        return songContextSession.getLoopStartTick();
-    }
-
-    @Override
-    public int getLoopCount()
-    {
-        return songContextSession.getLoopCount();
-    }
-
-    @Override
-    public IntRange getBarRange()
-    {
-        return songContextSession.getBarRange();
-    }
-
-    @Override
-    public long getTick(int barIndex)
-    {
-        return songContextSession.getTick(barIndex);
-
+        // Listen to detailed changes
+        sgContext.getSong().getChordLeadSheet().addClsChangeListener(this);
+        sgContext.getSong().getSongStructure().addSgsChangeListener(this);
     }
 
     @Override
     public void cleanup()
     {
-        songContextSession.removePropertyChangeListener(this);
-        songContextSession.cleanup();
-    }
-
-    @Override
-    public void addPropertyChangeListener(PropertyChangeListener l)
-    {
-        pcs.addPropertyChangeListener(l);
-    }
-
-    @Override
-    public void removePropertyChangeListener(PropertyChangeListener l)
-    {
-        pcs.removePropertyChangeListener(l);
+        super.cleanup();
+        getSongContext().getSong().getChordLeadSheet().removeClsChangeListener(this);
+        getSongContext().getSong().getSongStructure().removeSgsChangeListener(this);
     }
 
     // ==========================================================================================================
-    // SongContextProvider implementation
-    // ==========================================================================================================    
-    @Override
-    public SongContext getSongContext()
-    {
-        return songContextSession.getSongContext();
-    }
-
-    // ==========================================================================================================
-    // PositionProvider implementation
-    // ==========================================================================================================    
-    @Override
-    public List<Position> getPositions()
-    {
-        return songContextSession.getPositions();
-    }
-
-    // ==========================================================================================================
-    // ChordSymbolProvider implementation
-    // ==========================================================================================================    
-    @Override
-    public ContextChordSequence getContextChordGetSequence()
-    {
-        return songContextSession.getContextChordGetSequence();
-    }
-
-    // ==========================================================================================================
-    // EndOfPlaybackActionProvider implementation
-    // ==========================================================================================================   
-    @Override
-    public ActionListener getEndOfPlaybackAction()
-    {
-        return songContextSession.getEndOfPlaybackAction();
-    }
-
-    // ==========================================================================================================
-    // PropertyChangeListener implementation
+    // PropertyChangeListener interface
     // ==========================================================================================================
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
+        super.propertyChange(e);            // Important
 
-//        LOGGER.fine("propertyChange() e=" + e);
 
-        if (e.getSource() == songContextSession)
+        if (!getState().equals(PlaybackSession.State.GENERATED))
         {
-
-            PropertyChangeEvent newEvent;
-
-            // Need to map the new mute status to the currently active tracks
-            if (e.getPropertyName().equals(PlaybackSession.PROP_MUTED_TRACKS))
-            {
-                var originalMapTrackIdMuted = songContextSession.getTracksMuteStatus();
-                for (int trackId : originalMapTrackIdMuted.keySet())
-                {
-                    boolean muted = originalMapTrackIdMuted.get(trackId);
-                    mapTrackIdMuted.put(trackSet.getActiveTrackId(trackId), muted);
-                }
-                newEvent = new PropertyChangeEvent(this, e.getPropertyName(), e.getOldValue(), mapTrackIdMuted);
-            } else
-            {
-                newEvent = new PropertyChangeEvent(this, e.getPropertyName(), e.getOldValue(), e.getNewValue());
-            }
-
-            // Forward the event and make this object the event source
-            newEvent.setPropagationId(e.getPropagationId());
-            pcs.firePropertyChange(newEvent);
+            return;
         }
 
+        // LOGGER.fine("propertyChange() e=" + e);
 
+        boolean outdated = false;
+        boolean updatable = false;
+
+
+        if (e.getSource() == getSongContext().getMidiMix())
+        {
+            switch (e.getPropertyName())
+            {
+                case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX:
+                case MidiMix.PROP_CHANNEL_DRUMS_REROUTED:
+                    outdated = true;
+
+                    break;
+                case MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP:
+                case MidiMix.PROP_INSTRUMENT_TRANSPOSITION:
+                case MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT:
+                    updatable = true;
+
+                default:    // e.g.  case MidiMix.PROP_INSTRUMENT_MUTE:
+                    // Nothing
+                    break;
+            }
+
+        } else if (e.getSource() == PlaybackSettings.getInstance())
+        {
+            switch (e.getPropertyName())
+            {
+                case PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION:
+                    updatable = true;
+                    break;
+
+                case PlaybackSettings.PROP_CLICK_PITCH_HIGH:
+                case PlaybackSettings.PROP_CLICK_PITCH_LOW:
+                case PlaybackSettings.PROP_CLICK_PREFERRED_CHANNEL:
+                case PlaybackSettings.PROP_CLICK_VELOCITY_HIGH:
+                case PlaybackSettings.PROP_CLICK_VELOCITY_LOW:
+                case PlaybackSettings.PROP_CLICK_PRECOUNT_MODE:
+                case PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED:
+                    outdated = true;
+                    break;
+
+                default:   // PROP_VETO_PRE_PLAYBACK, PROP_LOOPCOUNT, PROP_PLAYBACK_CLICK_ENABLED
+                    // Do nothing
+                    break;
+            }
+
+        }
+
+        if (outdated)
+        {
+            setState(State.OUTDATED);
+        } else if (updatable)
+        {
+            prepareUpdate();
+        }
+    }
+
+    // ==========================================================================================================
+    // UpdatableSongSession.UpdateProvider interface
+    // ==========================================================================================================
+    @Override
+    public Map<RhythmVoice, Phrase> getUpdate()
+    {
+        return mapRvPhrases;
+    }
+
+    // ==========================================================================================================
+    // ClsChangeListener interface
+    // ==========================================================================================================
+    @Override
+    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
     }
 
     @Override
-    public String toString()
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        return "DynamicSongSession=[" + songContextSession + "]";
+        // NOTE: model changes can be generated outside the EDT!
+
+        if (!getState().equals(PlaybackSession.State.GENERATED))
+        {
+            return;
+        }
+
+        LOGGER.info("chordLeadSheetChanged()  -- event=" + event);
+
+        boolean outdated = false;
+        boolean updatable = false;
+
+
+        if (event instanceof SizeChangedEvent)
+        {
+            outdated = true;
+
+        } else if ((event instanceof ItemAddedEvent)
+                || (event instanceof ItemRemovedEvent))
+        {
+
+            var contextItems = event.getItems().stream()
+                    .filter(cli -> isClsBarIndexPartOfContext(cli.getPosition().getBar()))
+                    .collect(Collectors.toList());
+            outdated = contextItems.stream().anyMatch(cli -> !(cli instanceof CLI_ChordSymbol));
+            updatable = contextItems.stream().allMatch(cli -> cli instanceof CLI_ChordSymbol);
+
+        } else if (event instanceof ItemBarShiftedEvent)
+        {
+            outdated = true;
+
+        } else if (event instanceof ItemChangedEvent)
+        {
+            ItemChangedEvent e = (ItemChangedEvent) event;
+            var item = e.getItem();
+            if (isClsBarIndexPartOfContext(item.getPosition().getBar()))
+            {
+                if (item instanceof CLI_Section)
+                {
+                    Section newSection = (Section) e.getNewData();
+                    Section oldSection = (Section) e.getOldData();
+                    if (!newSection.getTimeSignature().equals(oldSection.getTimeSignature()))
+                    {
+                        outdated = true;
+                    }
+                } else if (item instanceof CLI_ChordSymbol)
+                {
+                    updatable = true;
+                }
+            }
+
+        } else if (event instanceof ItemMovedEvent)
+        {
+            ItemMovedEvent e = (ItemMovedEvent) event;
+            if (isClsBarIndexPartOfContext(e.getNewPosition().getBar()) || isClsBarIndexPartOfContext(e.getOldPosition().getBar()))
+            {
+                updatable = true;
+            }
+
+        } else if (event instanceof SectionMovedEvent)
+        {
+            outdated = true;
+
+        }
+
+        LOGGER.info("chordLeadSheetChanged()  => outdated=" + outdated + " updatable=" + updatable);
+        if (outdated)
+        {
+            setState(State.OUTDATED);
+        } else if (updatable)
+        {
+            prepareUpdate();
+        }
+
     }
+    // ==========================================================================================================
+    // SgsChangeListener interface
+    // ==========================================================================================================
+
+    @Override
+
+    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+
+    @Override
+    public void songStructureChanged(SgsChangeEvent e)
+    {
+        // NOTE: model changes can be generated outside the EDT!        
+
+        if (!getState().equals(PlaybackSession.State.GENERATED))
+        {
+            return;
+        }
+
+        LOGGER.info("songStructureChanged()  -- e=" + e);
+
+        boolean outdated = false;
+        boolean updatable = false;
+
+        List<SongPart> contextSpts = getSongContext().getSongParts();
+
+        if (e instanceof SptRemovedEvent || e instanceof SptAddedEvent)
+        {
+            outdated = e.getSongParts().stream()
+                    .anyMatch(spt -> contextSpts.contains(spt));
+
+        } else if (e instanceof SptReplacedEvent)
+        {
+            SptReplacedEvent re = (SptReplacedEvent) e;
+            outdated = re.getSongParts().stream()
+                    .anyMatch(spt -> contextSpts.contains(spt));
+
+        } else if (e instanceof SptResizedEvent)
+        {
+            SptResizedEvent re = (SptResizedEvent) e;
+            outdated = re.getMapOldSptSize().getKeys().stream()
+                    .anyMatch(spt -> contextSpts.contains(spt));
+
+        } else if (e instanceof SptRenamedEvent)
+        {
+            // Nothing
+        } else if (e instanceof RpChangedEvent)
+        {
+            updatable = contextSpts.contains(e.getSongPart());
+        }
+
+        LOGGER.info("songStructureChanged()  => outdated=" + outdated + " updatable=" + updatable);
+        if (outdated)
+        {
+            setState(State.OUTDATED);
+        } else if (updatable)
+        {
+            prepareUpdate();
+        }
+
+    }
+
 
     // ==========================================================================================================
     // Private methods
     // ==========================================================================================================
+    private void prepareUpdate()
+    {
+        LOGGER.info("prepareUpdate() -- ");
+        if (!getState().equals(State.GENERATED))
+        {
+            LOGGER.info("prepareUpdate()   => ignored because state=" + getState());
+            return;
+        }
+
+        // Recompute the RhythmVoice phrases
+        SongSequenceBuilder sgBuilder = new SongSequenceBuilder(getSongContext());
+        try
+        {
+            mapRvPhrases = sgBuilder.buildMapRvPhrase(true);
+        } catch (MusicGenerationException ex)
+        {
+            Exceptions.printStackTrace(ex);
+            return;
+        }
+
+        // Notify listeners, probably an UpdatableSongSession
+        firePropertyChange(UpdatableSongSession.UpdateProvider.PROP_UPDATE_AVAILABLE, false, true);
+    }
+
+
+    /**
+     * Check that the specified ChordLeadSheet barIndex is part of our context.
+     *
+     * @param clsBarIndex
+     * @return
+     */
+    private boolean isClsBarIndexPartOfContext(int clsBarIndex)
+    {
+        SongContext sgContext = getSongContext();
+        ChordLeadSheet cls = sgContext.getSong().getChordLeadSheet();
+        CLI_Section section = cls.getSection(clsBarIndex);
+        return sgContext.getSongParts().stream().anyMatch(spt -> spt.getParentSection() == section);
+    }
+
+
+    /**
+     * Find an identical existing session in state NEW or GENERATED.
+     *
+     * @return Null if not found
+     */
+    static private DynamicSongSession findSession(SongContext sgContext,
+            boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecount, boolean enableControlTrack,
+            int loopCount,
+            ActionListener endOfPlaybackAction)
+    {
+        for (var session : sessions)
+        {
+            if ((session.getState().equals(PlaybackSession.State.GENERATED) || session.getState().equals(PlaybackSession.State.NEW))
+                    && sgContext.equals(session.getSongContext())
+                    && enablePlaybackTransposition == session.isPlaybackTranspositionEnabled()
+                    && enableClickTrack == session.isClickTrackEnabled()
+                    && enablePrecount == session.isPrecountTrackEnabled()
+                    && enableControlTrack == session.isControlTrackEnabled()
+                    && loopCount == session.getLoopCount()
+                    && endOfPlaybackAction == session.getEndOfPlaybackAction())
+            {
+                return session;
+            }
+        }
+        return null;
+    }
+
 
     // ==========================================================================================================
     // Inner classes
-    // ==========================================================================================================    
-    /**
-     * Manage a set of tracks of a sequence: N active tracks and N buffer tracks.
-     */
-    static private class TrackSet
+    // ==========================================================================================================
+    private static class ClosedSessionsListener implements PropertyChangeListener
     {
 
-        private final Sequence trackSetSequence;
-        private final Map<Integer, Integer> mapOriginalIdActiveId = new HashMap<>();
-        private final Map<Integer, Integer> mapOriginalIdBufferId = new HashMap<>();
-
-        public TrackSet(Sequence seq)
-        {
-            this.trackSetSequence = seq;
-        }
-
-        /**
-         * Add a track to the TrackSet and create the corresponding buffer track.
-         *
-         * @param originalTrackId A value between 0 and getNbPlayingTracks()-1.
-         */
-        public void addTrack(int originalTrackId)
-        {
-            mapOriginalIdActiveId.put(originalTrackId, originalTrackId);
-
-            // Create the corresponding buffer track
-            Track bufferTrack = trackSetSequence.createTrack();
-            int bufferTrackId = Arrays.asList(trackSetSequence.getTracks()).indexOf(bufferTrack);
-            mapOriginalIdBufferId.put(originalTrackId, bufferTrackId);
-        }
-
-        /**
-         * The buffer track for originalTrackId becomes the active track, and vice-versa.
-         *
-         * @param originalTrackId
-         */
-        public void swapBufferAndActiveTracks(int originalTrackId)
-        {
-            int tmp = getActiveTrackId(originalTrackId);
-            mapOriginalIdActiveId.put(originalTrackId, getBufferTrackId(originalTrackId));
-            mapOriginalIdBufferId.put(originalTrackId, tmp);
-        }
-
-        /**
-         * The active track corresponding to the original track id.
-         *
-         * @param originalTrackId A value &lt; getNbPlayingTracks()
-         * @return
-         */
-        public Track getActiveTrack(int originalTrackId)
-        {
-            return trackSetSequence.getTracks()[getActiveTrackId(originalTrackId)];
-        }
-
-        /**
-         * The buffer track corresponding to the original track id.
-         *
-         * @param originalTrackId A value &lt; getNbPlayingTracks()
-         * @return
-         */
-        public Track getBufferTrack(int originalTrackId)
-        {
-            return trackSetSequence.getTracks()[getBufferTrackId(originalTrackId)];
-        }
-
-        /**
-         * The active track id corresponding to the original track id .
-         *
-         * @param originalTrackId A value &lt; getNbPlayingTracks()
-         * @return
-         */
-        public int getActiveTrackId(int originalTrackId)
-        {
-            return mapOriginalIdActiveId.get(originalTrackId);
-        }
-
-        /**
-         * The buffer track id corresponding to the original track id .
-         *
-         * @param originalTrackId A value &lt; getNbPlayingTracks()
-         * @return
-         */
-        public int getBufferTrackId(int originalTrackId)
-        {
-            return mapOriginalIdBufferId.get(originalTrackId);
-        }
-
         @Override
-        public String toString()
+        public void propertyChange(PropertyChangeEvent evt)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Trackset:\n");
-            sb.append("   mapOriginalIdActiveId=" + mapOriginalIdActiveId + "\n");
-            sb.append("   mapOriginalIdBufferId=" + mapOriginalIdBufferId + "\n");
-            return sb.toString();
+            DynamicSongSession session = (DynamicSongSession) evt.getSource();
+            if (evt.getPropertyName().equals(PlaybackSession.PROP_STATE) && session.getState().equals(PlaybackSession.State.CLOSED))
+            {
+                sessions.remove(session);
+                session.removePropertyChangeListener(this);
+            }
         }
-
     }
+
 }

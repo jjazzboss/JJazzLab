@@ -63,63 +63,50 @@ import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.ResUtil;
 
 /**
- * Ask all the rhythms of a song to produce music and integrate the results to make a Midi sequence.
+ * Methods to convert a Song into Phrases and Midi sequence.
  * <p>
  */
-public class MidiSequenceBuilder
+public class SongSequenceBuilder
 {
 
-    /**
-     * The context.
-     */
-    private SongContext context;
-    private final Map<RhythmVoice, Integer> mapRvTrackId = new HashMap<>();
-    private final Map<RhythmVoice, Phrase> mapRvPhrase = new HashMap<>();
+    static public class SongSequence
+    {
 
-    private static final Logger LOGGER = Logger.getLogger(MidiSequenceBuilder.class.getSimpleName());
+        public Sequence sequence;
+        public Map<RhythmVoice, Integer> mapRvTrackId;
+        public Map<RhythmVoice, Phrase> mapRvPhrase;
+    }
+
+
+    private SongContext songContext;
+
+    private static final Logger LOGGER = Logger.getLogger(SongSequenceBuilder.class.getSimpleName());
 
     /**
-     * @param context The context to build the sequence. Song's SongStructure can not be empty.
+     * @param context The songContext to build the sequence. Song's SongStructure can not be empty.
      */
-    public MidiSequenceBuilder(SongContext context)
+    public SongSequenceBuilder(SongContext context)
     {
         if (context == null)
         {
             throw new NullPointerException("context");   //NOI18N
         }
-        this.context = context;
+        this.songContext = context;
         assert !context.getSong().getSongStructure().getSongParts().isEmpty();   //NOI18N
     }
 
     /**
-     * Build the music accompaniment sequence for the defined context.
-     * <p>
-     * - Create a track 0 with no notes but MidiEvents for song name, time signature changes, CTRL_CHG_JJAZZ_TEMPO_FACTOR
-     * controller messages based on the RP_SYS_TempoFactor value (if used by a rhythm). <br>
-     * - Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation.
-     * <br>
-     * - Run the optional post-processors.<br>
-     * - Apply on each channel possible instrument transpositions, velocity shift, mute (RP_SYS_Mute).<br>
-     * - Apply the RP_SYS_DrumsMix velocity changes.<br>
-     * - Perform some checks and assemble the produced phrases into a sequence.<br>
-     * <p>
-     * If context range start bar is &gt; 0, the Midi events are shifted to start at sequence tick 0.
+     * Call buildMapRvPhrase() then buildSongSequence().
      *
      * @param silent If true do not show a progress dialog
-     * @return A Sequence containing accompaniment tracks for the context, including time signature change Midi meta events and
-     * JJazz custom Midi controller messages (MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR) for tempo factor changes.
-     * @throws MusicGenerationException
+     * @return
+     * @throws org.jjazz.rhythm.api.MusicGenerationException
+     * @see #buildSongSequence(java.util.Map, boolean)
+     * @see #buildMapRvPhrase(boolean)
      */
-    public Sequence buildSequence(boolean silent) throws MusicGenerationException
+    public SongSequence buildAll(boolean silent) throws MusicGenerationException
     {
-
-        // Check that there is a valid starting chord at the beginning on each section
-        checkStartChordPresence();      // throws MusicGenerationException
-
-        // Check there is no 2 chords at same position
-        checkChordsAtSamePosition();            // throws MusicGenerationException
-
-        SequenceBuilderTask task = new SequenceBuilderTask();
+        AllBuilderTask task = new AllBuilderTask();
         if (silent)
         {
             task.run();
@@ -133,52 +120,227 @@ public class MidiSequenceBuilder
             throw task.musicException;
         }
 
-        return task.sequence;
+        return task.songSequence;
     }
 
+
     /**
-     * A map giving the track id (index in the sequence) for each rhythm voice, in the current context.
+     * Build the RhythmVoice phrases for the defined context.
      * <p>
-     * Must be called AFTER call to buildSequence(). The returned map contains data only for the generated tracks in the given
-     * context. In a song with 2 rhythms R1 and R2, if context only uses R2, then only the id and tracks for R2 are returned.
-     *
-     * @return
-     */
-    public Map<RhythmVoice, Integer> getRvTrackIdMap()
-    {
-        return new HashMap<>(mapRvTrackId);
-    }
-
-    /**
-     * A map giving the resulting Phrase for each RhythmVoice, in the current context.
+     * - Perform some checks on the context (start chord on each section start, no overlapping chord symbols) <br>
+     * - Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation.
+     * <br>
+     * - Apply on each channel possible instrument transpositions, velocity shift, mute (RP_SYS_Mute).<br>
+     * - Apply the RP_SYS_DrumsMix velocity changes.<br>
      * <p>
-     * Must be called AFTER call to buildSequence().
+     * Phrases for RhythmVoiceDelegates are merged into the phrases of the source RhythmVoices.
      *
+     * @param silent If true do not show a progress dialog
      * @return
+     * @throws MusicGenerationException
      */
-    public Map<RhythmVoice, Phrase> getRvPhraseMap()
+    public Map<RhythmVoice, Phrase> buildMapRvPhrase(boolean silent) throws MusicGenerationException
     {
-        return new HashMap<>(mapRvPhrase);
+        RvPhrasesBuilderTask task = new RvPhrasesBuilderTask();
+        if (silent)
+        {
+            task.run();
+        } else
+        {
+            BaseProgressUtils.showProgressDialogAndRun(task, ResUtil.getString(getClass(), "PREPARING MUSIC"));
+        }
+
+        if (task.musicException != null)
+        {
+            throw task.musicException;
+        }
+
+        return task.rvPhrases;
     }
 
+
     /**
-     * @return The last context used by buildSequence()
-     * @see buildSequence()
+     * Build the SongSequence from the specified RhythmVoice phrases for the defined context.
+     * <p>
+     * - Create a track 0 with no notes but MidiEvents for song name, time signature changes, CTRL_CHG_JJAZZ_TEMPO_FACTOR
+     * controller messages based on the RP_SYS_TempoFactor value (if used by a rhythm). <br>
+     * - Then create a track per RhythmVoice.
+     * <p>
+     * If songContext range start bar is &gt; 0, the Midi events are shifted to start at sequence tick 0.
+     *
+     * @param rvPhrases The RhythmVoice phrases such as produced by buildMapRvPhrase(boolean).
+     * @param silent If true do not show a progress dialog
+     * @return A Sequence containing accompaniment tracks for the songContext, including time signature change Midi meta events
+     * and JJazz custom Midi controller messages (MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR) for tempo factor changes.
+     * @throws MusicGenerationException
      */
-    public SongContext getContext()
+    public SongSequence buildSongSequence(Map<RhythmVoice, Phrase> rvPhrases, boolean silent) throws MusicGenerationException
     {
-        return context;
+        SongSequenceBuilderTask task = new SongSequenceBuilderTask(rvPhrases);
+        if (silent)
+        {
+            task.run();
+        } else
+        {
+            BaseProgressUtils.showProgressDialogAndRun(task, ResUtil.getString(getClass(), "PREPARING MUSIC"));
+        }
+
+        if (task.musicException != null)
+        {
+            throw task.musicException;
+        }
+
+        return task.songSequence;
+    }
+
+
+    public SongContext getSongContext()
+    {
+        return songContext;
     }
 
     @Override
     public String toString()
     {
-        return "MidiSequenceBuilder context=" + context.toString();
+        return "MidiSequenceBuilder context=" + songContext.toString();
     }
 
     // =========================================================================
     // Private methods
     // =========================================================================
+    private Map<RhythmVoice, Phrase> buildMapRvPhrase() throws MusicGenerationException
+    {
+        Map<RhythmVoice, Phrase> res = new HashMap<>();
+
+        // Check that there is a valid starting chord at the beginning on each section
+        checkStartChordPresence(songContext);      // throws MusicGenerationException
+
+        // Check there is no 2 chords at same position
+        checkChordsAtSamePosition(songContext);            // throws MusicGenerationException        
+
+
+        for (Rhythm r : songContext.getUniqueRhythms())
+        {
+
+            // Generate the phrase
+            Map<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r);                   // Possible MusicGenerationException here
+
+            if (songContext.getUniqueRhythms().size() > 1)
+            {
+                checkRhythmPhrasesScope(songContext, r, rMap);                              // Possible MusicGenerationException here
+            }
+
+            // Merge into the final result
+            res.putAll(rMap);
+
+        }
+
+
+        // Handle muted instruments via the SongPart's RP_SYS_Mute parameter
+        processMutedInstruments(songContext, res);
+
+
+        // Handle the RP_SYS_DrumsMix changes
+        processDrumsMixSettings(songContext, res);
+
+
+        // Merge the phrases from delegate RhythmVoices to the source phrase, and remove the delegate phrases            
+        for (var it = res.keySet().iterator(); it.hasNext();)
+        {
+            var rv = it.next();
+            if (rv instanceof RhythmVoiceDelegate)
+            {
+                RhythmVoiceDelegate rvd = (RhythmVoiceDelegate) rv;
+                Phrase p = res.get(rvd);
+                Phrase pDest = res.get(rvd.getSource());
+                if (pDest == null)
+                {
+                    throw new IllegalStateException("rv=" + rv + " res=" + res);   //NOI18N
+                }
+
+                // There should be no overlap of phrases since the delegate is from a different rhythm, so for different song parts 
+                pDest.add(p);
+
+                // Remove the delegate
+                it.remove();
+            }
+        }
+        // 
+        // From here no more SongPart-based processing allowed, since the phrases for SongParts using an AdaptedRhythm have 
+        // been merged into the tracks of its source rhythm.
+        // 
+
+
+        // Handle instrument settings which impact the phrases: transposition, velocity shift, ...
+        processInstrumentsSettings(songContext, res);
+
+
+        // Shift phrases to start at position 0
+        for (Phrase p : res.values())
+        {
+            p.shiftEvents(-songContext.getBeatRange().from);
+        }
+
+        return res;
+    }
+
+    private SongSequence buildSongSequence(Map<RhythmVoice, Phrase> rvPhrases) throws MusicGenerationException
+    {
+        SongSequence res = new SongSequence();
+        res.mapRvPhrase = new HashMap<>(rvPhrases);
+
+        try
+        {
+            res.sequence = new Sequence(Sequence.PPQ, MidiConst.PPQ_RESOLUTION);
+        } catch (InvalidMidiDataException ex)
+        {
+            throw new MusicGenerationException("buildSequence() Can't create the initial empty sequence : " + ex.getLocalizedMessage());
+        }
+
+
+        // First track is really useful only when exporting to Midi file type 1            
+        // Contain song name, tempo factor changes, time signatures
+        Track track0 = res.sequence.createTrack();
+        MidiUtilities.addTrackNameEvent(track0, songContext.getSong().getName() + " (JJazzLab song)");
+        addTimeSignatureChanges(songContext, track0);
+        addTempoFactorChanges(songContext, track0);
+
+
+        // Other tracks : create one per RhythmVoice
+        int trackId = 1;
+        res.mapRvTrackId = new HashMap<>();
+        for (Rhythm r : songContext.getUniqueRhythms())
+        {
+
+            // Group tracks per rhythm
+            for (RhythmVoice rv : r.getRhythmVoices())
+            {
+
+                // Delegate phrases have already been merged
+                if (!(rv instanceof RhythmVoiceDelegate))
+                {
+                    Track track = res.sequence.createTrack();
+
+                    // First event will be the name of the track
+                    String name = rv.getContainer().getName() + "-" + rv.getName();
+                    MidiUtilities.addTrackNameEvent(track, name);
+
+                    // Fill the track
+                    Phrase p = rvPhrases.get(rv);
+                    p.fillTrack(track);
+
+                    // Store the track with the RhythmVoice
+                    res.mapRvTrackId.put(rv, trackId);
+                    trackId++;
+                }
+            }
+        }
+        fixEndOfTracks(songContext, res.sequence);
+
+        return res;
+    }
+
+
     /**
      * Ask specified rhythm to generate music.
      *
@@ -190,7 +352,7 @@ public class MidiSequenceBuilder
         {
             LOGGER.fine("fillRhythmTracks() calling generateMusic() for rhythm r=" + r.getName());   //NOI18N
             r.loadResources();
-            return ((MusicGenerator) r).generateMusic(context);
+            return ((MusicGenerator) r).generateMusic(songContext);
         } else
         {
             LOGGER.warning("generateRhythmPhrases() r=" + r + " is not a MusicGenerator instance");
@@ -203,7 +365,7 @@ public class MidiSequenceBuilder
      *
      * @throws MusicGenerationException
      */
-    private void checkStartChordPresence() throws MusicGenerationException
+    private void checkStartChordPresence(SongContext context) throws MusicGenerationException
     {
         ChordLeadSheet cls = context.getSong().getChordLeadSheet();
         for (CLI_Section section : cls.getItems(CLI_Section.class))
@@ -220,7 +382,7 @@ public class MidiSequenceBuilder
     /**
      * Check if the ChordLeadSheet contains 2 chord symbols at the same position.
      */
-    private void checkChordsAtSamePosition() throws MusicGenerationException
+    private void checkChordsAtSamePosition(SongContext context) throws MusicGenerationException
     {
         HashMap<Position, CLI_ChordSymbol> mapPosCs = new HashMap<>();
         ChordLeadSheet cls = context.getSong().getChordLeadSheet();
@@ -249,7 +411,7 @@ public class MidiSequenceBuilder
      *
      * @param rvPhrases
      */
-    private void processMutedInstruments(Map<RhythmVoice, Phrase> rvPhrases)
+    private void processMutedInstruments(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
     {
         for (SongPart spt : context.getSongParts())
         {
@@ -288,9 +450,9 @@ public class MidiSequenceBuilder
     /**
      * Change some note velocities depending on the RP_SYS_DrumsMix value for each SongPart.
      *
-     * @param mapRvPhrase
+     * @param rvPhrases
      */
-    private void processDrumsMixSettings(Map<RhythmVoice, Phrase> mapRvPhrase)
+    private void processDrumsMixSettings(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
     {
         for (SongPart spt : context.getSongParts())
         {
@@ -320,7 +482,7 @@ public class MidiSequenceBuilder
 
 
             // Apply the velocity offsets on the SongPart drums notes
-            Phrase p = mapRvPhrase.get(rvDrums);
+            Phrase p = rvPhrases.get(rvDrums);
             assert p != null : "rpDrums=" + rpDrums + " rvDrums=" + rvDrums;
             FloatRange sptRange = context.getSptBeatRange(spt);
             for (NoteEvent ne : p.getNotes(sptRange, true))
@@ -345,7 +507,7 @@ public class MidiSequenceBuilder
      *
      * @param rvPhrases
      */
-    private void processInstrumentsSettings(Map<RhythmVoice, Phrase> rvPhrases)
+    private void processInstrumentsSettings(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
     {
         LOGGER.fine("processInstrumentsSettings() -- ");   //NOI18N
         MidiMix midiMix = context.getMidiMix();
@@ -379,7 +541,7 @@ public class MidiSequenceBuilder
      * @param rvPhrases
      * @throws MusicGenerationException
      */
-    private void checkRhythmPhrasesScope(Rhythm r, Map<RhythmVoice, Phrase> rvPhrases) throws MusicGenerationException
+    private void checkRhythmPhrasesScope(SongContext context, Rhythm r, Map<RhythmVoice, Phrase> rvPhrases) throws MusicGenerationException
     {
         // Get the bar ranges used by r
         List<FloatRange> sptRanges = new ArrayList<>();
@@ -417,7 +579,7 @@ public class MidiSequenceBuilder
                 }
                 if (!inRange)
                 {
-                    // context.getPosition(0)
+                    // songContext.getPosition(0)
                     String msg = ResUtil.getString(getClass(), "ERR_InvalidNotePosition", ne.toString(), r.getName());
                     LOGGER.log(Level.INFO, "checkRhythmPhrasesScope() " + msg);   //NOI18N
                     LOGGER.fine("DEBUG!  rv=" + rv.getName() + " ne=" + ne + " p=" + p);   //NOI18N
@@ -433,7 +595,7 @@ public class MidiSequenceBuilder
      *
      * @param track
      */
-    private void addTempoFactorChanges(Track track)
+    private void addTempoFactorChanges(SongContext context, Track track)
     {
         List<SongPart> spts = context.getSongParts();
         float beatOffset = context.getBeatRange().from;
@@ -475,7 +637,7 @@ public class MidiSequenceBuilder
      *
      * @param track
      */
-    private void addTimeSignatureChanges(Track track)
+    private void addTimeSignatureChanges(SongContext context, Track track)
     {
         List<SongPart> spts = context.getSongParts();
         float beatOffset = context.getBeatRange().from;
@@ -485,7 +647,7 @@ public class MidiSequenceBuilder
             TimeSignature ts = spt.getRhythm().getTimeSignature();
             if (!ts.equals(prevTs))
             {
-                float beatPos = context.getSptBeatRange(spt).from - beatOffset;
+                float beatPos = songContext.getSptBeatRange(spt).from - beatOffset;
                 long tickPos = Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
                 MidiEvent me = new MidiEvent(MidiUtilities.getTimeSignatureMessage(ts), tickPos);
                 track.add(me);
@@ -500,7 +662,7 @@ public class MidiSequenceBuilder
      *
      * @param seq
      */
-    private void fixEndOfTracks(Sequence seq)
+    private void fixEndOfTracks(SongContext context, Sequence seq)
     {
         long lastTick = (long) (context.getBeatRange().size() * MidiConst.PPQ_RESOLUTION) + 1;
         for (Track t : seq.getTracks())
@@ -516,157 +678,90 @@ public class MidiSequenceBuilder
     // ====================================================================================================
     // Private classes
     // ====================================================================================================
+
     /**
-     * Does the real job of building the sequence.
+     * A runnable to generate all data.
      * <p>
-     * Phrases for RhythmVoiceDelegates are merged into the phrases of the source RhythmVoices.
-     * <p>
-     * If musicException field is not null it means an exception occured. Created sequence is available in the sequence field.
+     * Produced data must be retrieved from the fields. If musicException field is not null it means an exception occured.
      */
-    private class SequenceBuilderTask implements Runnable
+    private class AllBuilderTask implements Runnable
     {
 
         // The generated sequence from the phrases
-        private Sequence sequence = null;
+        private SongSequence songSequence;
         private MusicGenerationException musicException = null;
 
-        private SequenceBuilderTask()
+        @Override
+        public void run()
         {
+            try
+            {
+                var rvPhrases = buildMapRvPhrase();
+                songSequence = buildSongSequence(rvPhrases);
+            } catch (MusicGenerationException ex)
+            {
+                musicException = ex;
+                return;
+            }
+        }
+    }
+
+    /**
+     * A runnable to generate the RhythmVoice phrases.
+     * <p>
+     * Produced data must be retrieved from the fields. If musicException field is not null it means an exception occured.
+     */
+    private class RvPhrasesBuilderTask implements Runnable
+    {
+
+        // The generated sequence from the phrases
+        private Map<RhythmVoice, Phrase> rvPhrases;
+        private MusicGenerationException musicException = null;
+
+        @Override
+        public void run()
+        {
+            try
+            {
+                rvPhrases = buildMapRvPhrase();
+            } catch (MusicGenerationException ex)
+            {
+                musicException = ex;
+                return;
+            }
+        }
+    }
+
+    /**
+     * A runnable to generate the SongSequence.
+     * <p>
+     * Produced data must be retrieved from the fields. If musicException field is not null it means an exception occured.
+     */
+    private class SongSequenceBuilderTask implements Runnable
+    {
+
+        // The generated sequence from the phrases
+        private Map<RhythmVoice, Phrase> rvPhrases;
+        private SongSequence songSequence;
+        private MusicGenerationException musicException = null;
+
+        public SongSequenceBuilderTask(Map<RhythmVoice, Phrase> rvPhrases)
+        {
+            this.rvPhrases = rvPhrases;
         }
 
         @Override
         public void run()
         {
-
-            mapRvPhrase.clear();
-            for (Rhythm r : context.getUniqueRhythms())
-            {
-                try
-                {
-                    Map<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r);          // Possible MusicGenerationException here
-                    if (context.getUniqueRhythms().size() > 1)
-                    {
-                        checkRhythmPhrasesScope(r, rMap);                                  // Possible MusicGenerationException here
-                    }
-
-                    // Merge into the final result
-                    mapRvPhrase.putAll(rMap);
-                } catch (MusicGenerationException ex)
-                {
-                    musicException = ex;
-                    return;
-                }
-            }
-
-
-            // Optional Post-process
-//            if (postProcessors != null)
-//            {
-//                for (MusicGenerator.PostProcessor pp : postProcessors)
-//                {
-//                    try
-//                    {
-//                        pp.postProcess(context, mapRvPhrase);
-//                    } catch (MusicGenerationException ex)
-//                    {
-//                        musicException = ex;
-//                        return;
-//                    }
-//                }
-//            }
-            // Handle muted instruments via the SongPart's RP_SYS_Mute parameter
-            processMutedInstruments(mapRvPhrase);
-
-
-            // Handle the RP_SYS_DrumsMix changes
-            processDrumsMixSettings(mapRvPhrase);
-
-
-            // Merge the phrases from delegate RhythmVoices to the source phrase, and remove the delegate phrases            
-            for (var it = mapRvPhrase.keySet().iterator(); it.hasNext();)
-            {
-                var rv = it.next();
-                if (rv instanceof RhythmVoiceDelegate)
-                {
-                    RhythmVoiceDelegate rvd = (RhythmVoiceDelegate) rv;
-                    Phrase p = mapRvPhrase.get(rvd);
-                    Phrase pDest = mapRvPhrase.get(rvd.getSource());
-                    if (pDest == null)
-                    {
-                        throw new IllegalStateException("rv=" + rv + " res=" + mapRvPhrase);   //NOI18N
-                    }
-
-                    // There should be no overlap of phrases since the delegate is from a different rhythm, so for different song parts 
-                    pDest.add(p);
-
-                    // Remove the delegate
-                    it.remove();
-                }
-            }
-            // 
-            // From here no more SongPart-based processing allowed, since the phrases for SongParts using an AdaptedRhythm have 
-            // been merged into the tracks of its source rhythm.
-            // 
-
-
-            // Handle instrument settings which impact the phrases: transposition, velocity shift, ...
-            processInstrumentsSettings(mapRvPhrase);
-
-
-            // Shift phrases to start at position 0
-            for (Phrase p : mapRvPhrase.values())
-            {
-                p.shiftEvents(-context.getBeatRange().from);
-            }
-
-
-            // Convert to Midi sequence
             try
             {
-                sequence = new Sequence(Sequence.PPQ, MidiConst.PPQ_RESOLUTION);
-            } catch (InvalidMidiDataException ex)
+                songSequence = buildSongSequence(rvPhrases);
+            } catch (MusicGenerationException ex)
             {
-                musicException = new MusicGenerationException("SequenceBuilderTask() Can't create the initial empty sequence : " + ex.getLocalizedMessage());
+                musicException = ex;
                 return;
             }
-
-
-            // First track is really useful only when exporting to Midi file type 1            
-            // Contain song name, tempo factor changes, time signatures
-            Track track0 = sequence.createTrack();
-            MidiUtilities.addTrackNameEvent(track0, context.getSong().getName() + " (JJazzLab song)");
-            addTimeSignatureChanges(track0);
-            addTempoFactorChanges(track0);
-
-
-            // Other tracks : create one per RhythmVoice
-            int trackId = 1;
-            mapRvTrackId.clear();
-            for (Rhythm r : context.getUniqueRhythms())
-            {
-                // Group tracks per rhythm
-                for (RhythmVoice rv : r.getRhythmVoices())
-                {
-                    // Delegate phrases have already been merged
-                    if (!(rv instanceof RhythmVoiceDelegate))
-                    {
-                        Track track = sequence.createTrack();
-                        // First event will be the name of the track
-                        String name = rv.getContainer().getName() + "-" + rv.getName();
-                        MidiUtilities.addTrackNameEvent(track, name);
-                        // Fill the track
-                        Phrase p = mapRvPhrase.get(rv);
-                        p.fillTrack(track);
-                        // Store the track with the RhythmVoice
-                        mapRvTrackId.put(rv, trackId);
-                        trackId++;
-                    }
-                }
-            }
-            fixEndOfTracks(sequence);
         }
-
-
     }
 
 }

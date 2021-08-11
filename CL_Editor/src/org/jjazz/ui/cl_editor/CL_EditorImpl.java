@@ -1012,172 +1012,169 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     public void chordLeadSheetChanged(final ClsChangeEvent event)
     {
         // Model changes can be generated outside the EDT
-        Runnable run = new Runnable()
+        Runnable run = () ->
         {
-            @Override
-            public void run()
+
+            // Save focus state
+            ChordLeadSheetItem<?> fItem = null;
+            IR_Type fIrType = null;
+            Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+            if (c instanceof ItemRenderer)
             {
-                // Save focus state
-                ChordLeadSheetItem<?> fItem = null;
-                IR_Type fIrType = null;
-                Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-                if (c instanceof ItemRenderer)
+                ItemRenderer ir = (ItemRenderer) c;
+                fItem = ir.getModel();
+                fIrType = ir.getIR_Type();
+            }
+            if (event instanceof SizeChangedEvent)
+            {
+                SizeChangedEvent e = (SizeChangedEvent) event;
+                int newSize = e.getNewSize();
+                int oldSize = e.getOldSize();
+                // Create or delete BarBoxes as appropriate
+                setNbBarBoxes(computeNbBarBoxes(NB_EXTRA_LINES));
+                // Refresh bars impacted by the resize
+                int minLastBar = Math.min(oldSize - 1, newSize - 1);
+                int maxLastBar = Math.max(oldSize - 1, newSize - 1);
+                maxLastBar = Math.min(maxLastBar, getNbBarBoxes() - 1);
+                Quantization q = getDisplayQuantizationValue(clsModel.getSection(newSize - 1));
+                for (int i = minLastBar + 1; i <= maxLastBar; i++)
                 {
-                    ItemRenderer ir = (ItemRenderer) c;
-                    fItem = ir.getModel();
-                    fIrType = ir.getIR_Type();
+                    int bar = (i < newSize) ? i : -1;
+                    BarBox bb = getBarBox(i);
+                    bb.setModelBarIndex(bar);
+                    if (bar != -1)
+                    {
+                        // Update quantization if size got bigger
+                        bb.setDisplayQuantizationValue(q);
+                    }
                 }
-                if (event instanceof SizeChangedEvent)
+            } else if (event instanceof ItemAddedEvent)
+            {
+                ItemAddedEvent e = (ItemAddedEvent) event;
+                for (ChordLeadSheetItem<?> item : e.getItems())
                 {
-                    SizeChangedEvent e = (SizeChangedEvent) event;
-                    int newSize = e.getNewSize();
-                    int oldSize = e.getOldSize();
-                    // Create or delete BarBoxes as appropriate
-                    setNbBarBoxes(computeNbBarBoxes(NB_EXTRA_LINES));
-                    // Refresh bars impacted by the resize
-                    int minLastBar = Math.min(oldSize - 1, newSize - 1);
-                    int maxLastBar = Math.max(oldSize - 1, newSize - 1);
-                    maxLastBar = Math.min(maxLastBar, getNbBarBoxes() - 1);
-                    Quantization q = getDisplayQuantizationValue(clsModel.getSection(newSize - 1));
-                    for (int i = minLastBar + 1; i <= maxLastBar; i++)
-                    {
-                        int bar = (i < newSize) ? i : -1;
-                        BarBox bb = getBarBox(i);
-                        bb.setModelBarIndex(bar);
-                        if (bar != -1)
-                        {
-                            // Update quantization if size got bigger
-                            bb.setDisplayQuantizationValue(q);
-                        }
-                    }
-                } else if (event instanceof ItemAddedEvent)
+                    int modelBarIndex = item.getPosition().getBar();
+                    addItem(modelBarIndex, item);
+                }
+            } else if (event instanceof ItemRemovedEvent)
+            {
+                ItemRemovedEvent e = (ItemRemovedEvent) event;
+                for (ChordLeadSheetItem<?> item : e.getItems())
                 {
-                    ItemAddedEvent e = (ItemAddedEvent) event;
-                    for (ChordLeadSheetItem<?> item : e.getItems())
-                    {
-                        int modelBarIndex = item.getPosition().getBar();
-                        addItem(modelBarIndex, item);
-                    }
-                } else if (event instanceof ItemRemovedEvent)
-                {
-                    ItemRemovedEvent e = (ItemRemovedEvent) event;
-                    for (ChordLeadSheetItem<?> item : e.getItems())
-                    {
-                        int barIndex = item.getPosition().getBar();
-                        removeItem(barIndex, item, false);
-                    }
-                } else if (event instanceof ItemChangedEvent)
-                {
-                    ItemChangedEvent e = (ItemChangedEvent) event;
-                    ChordLeadSheetItem<?> item = e.getItem();
-                    if (item instanceof CLI_Section)
-                    {
-                        CLI_Section cliSection = (CLI_Section) item;
-                        Section oldSection = (Section) e.getOldData();
-                        Quantization q = restoreSectionQValue(oldSection);
-                        if (q != null)
-                        {
-                            // Quantization was set for this section
-                            if (!oldSection.getName().equals(cliSection.getData().getName()))
-                            {
-                                // Name has changed, need to rename the property
-                                storeSectionQValue(oldSection, null);
-                                storeSectionQValue(cliSection.getData(), q);
-                            }
-                            if (!oldSection.getTimeSignature().equals(cliSection.getData().getTimeSignature()))
-                            {
-                                // TimeSignature has changed, the quantization setting is not valid anymore
-                                // Remove it. A new one will be restored just after in propagateSectionChange()
-                                storeSectionQValue(cliSection.getData(), null);
-                            }
-                        }
-                        propagateSectionChange((CLI_Section) item);
-                    }
-                } else if (event instanceof ItemMovedEvent)
-                {
-                    // A moved ChordSymbol or other, but NOT a section
-                    ItemMovedEvent e = (ItemMovedEvent) event;
-                    ChordLeadSheetItem<?> item = e.getItem();
                     int barIndex = item.getPosition().getBar();
-                    int oldBarIndex = e.getOldPosition().getBar();
-                    boolean selected = isSelected(item);
-                    if (barIndex == oldBarIndex)
+                    removeItem(barIndex, item, false);
+                }
+            } else if (event instanceof ItemChangedEvent)
+            {
+                ItemChangedEvent e = (ItemChangedEvent) event;
+                ChordLeadSheetItem<?> item = e.getItem();
+                if (item instanceof CLI_Section)
+                {
+                    CLI_Section cliSection = (CLI_Section) item;
+                    Section oldSection = (Section) e.getOldData();
+                    Quantization q = restoreSectionQValue(oldSection);
+                    if (q != null)
                     {
-                        // Simple, just update one bar
-                        selectItem(item, false); // Important to not corrupt the lookup
-                        getBarBox(barIndex).moveItem(item);
-                    } else
+                        // Quantization was set for this section
+                        if (!oldSection.getName().equals(cliSection.getData().getName()))
+                        {
+                            // Name has changed, need to rename the property
+                            storeSectionQValue(oldSection, null);
+                            storeSectionQValue(cliSection.getData(), q);
+                        }
+                        if (!oldSection.getTimeSignature().equals(cliSection.getData().getTimeSignature()))
+                        {
+                            // TimeSignature has changed, the quantization setting is not valid anymore
+                            // Remove it. A new one will be restored just after in propagateSectionChange()
+                            storeSectionQValue(cliSection.getData(), null);
+                        }
+                    }
+                    propagateSectionChange((CLI_Section) item);
+                }
+            } else if (event instanceof ItemMovedEvent)
+            {
+                // A moved ChordSymbol or other, but NOT a section
+                ItemMovedEvent e = (ItemMovedEvent) event;
+                ChordLeadSheetItem<?> item = e.getItem();
+                int barIndex = item.getPosition().getBar();
+                int oldBarIndex = e.getOldPosition().getBar();
+                boolean selected = isSelected(item);
+                if (barIndex == oldBarIndex)
+                {
+                    // Simple, just update one bar
+                    selectItem(item, false); // Important to not corrupt the lookup
+                    getBarBox(barIndex).moveItem(item);
+                } else
+                {
+                    // Remove on one bar and add on another bar
+                    removeItem(oldBarIndex, item, false);
+                    addItem(barIndex, item);
+                    if (item == fItem)
                     {
-                        // Remove on one bar and add on another bar
-                        removeItem(oldBarIndex, item, false);
+                        getBarBox(barIndex).setFocusOnItem(item, fIrType);
+                    }
+                }
+                selectItem(item, selected);
+            } else if (event instanceof SectionMovedEvent)
+            {
+                SectionMovedEvent e = (SectionMovedEvent) event;
+                CLI_Section section = e.getSection();
+                setSectionStartOnNewLine(section, false);
+                int barIndex = section.getPosition().getBar();
+                int prevBarIndex = e.getOldBar();
+                boolean selected = isSelected(section);
+                removeItem(prevBarIndex, section, true);
+                addItem(barIndex, section);       // This will updatePaddingBoxes if needed
+                propagateSectionChange(clsModel.getSection(e.getOldBar()));
+                selectItem(section, selected);
+                if (section == fItem)
+                {
+                    getBarBox(barIndex).setFocusOnItem(section, fIrType);
+                }
+            } else if (event instanceof ItemBarShiftedEvent)
+            {
+                ItemBarShiftedEvent e = (ItemBarShiftedEvent) event;
+                int barDiff = e.getBarDiff();
+                assert barDiff != 0;   //NOI18N
+                List<ChordLeadSheetItem<?>> items = e.getItems();
+                int last = items.size() - 1;
+                if (barDiff > 0)
+                {
+                    // Shift on the right
+                    for (int i = last; i >= 0; i--)
+                    {
+                        // Start from the end, so moved item remain in same section automatically
+                        ChordLeadSheetItem<?> item = items.get(i);
+                        int barIndex = item.getPosition().getBar();
+                        boolean selected = isSelected(item);
+                        removeItem(barIndex - barDiff, item, true);
                         addItem(barIndex, item);
+                        if (item instanceof CLI_Section)
+                        {
+                            // Need to also update the bars from previous position to before new position
+                            propagateSectionChange(clsModel.getSection(barIndex - 1));
+                        }
+                        selectItem(item, selected);
                         if (item == fItem)
                         {
                             getBarBox(barIndex).setFocusOnItem(item, fIrType);
                         }
                     }
-                    selectItem(item, selected);
-                } else if (event instanceof SectionMovedEvent)
+                } else
                 {
-                    SectionMovedEvent e = (SectionMovedEvent) event;
-                    CLI_Section section = e.getSection();
-                    setSectionStartOnNewLine(section, false);
-                    int barIndex = section.getPosition().getBar();
-                    int prevBarIndex = e.getOldBar();
-                    boolean selected = isSelected(section);
-                    removeItem(prevBarIndex, section, true);
-                    addItem(barIndex, section);       // This will updatePaddingBoxes if needed
-                    propagateSectionChange(clsModel.getSection(e.getOldBar()));
-                    selectItem(section, selected);
-                    if (section == fItem)
+                    // Shift to the left
+                    for (int i = 0; i <= last; i++)
                     {
-                        getBarBox(barIndex).setFocusOnItem(section, fIrType);
-                    }
-                } else if (event instanceof ItemBarShiftedEvent)
-                {
-                    ItemBarShiftedEvent e = (ItemBarShiftedEvent) event;
-                    int barDiff = e.getBarDiff();
-                    assert barDiff != 0;   //NOI18N
-                    List<ChordLeadSheetItem<?>> items = e.getItems();
-                    int last = items.size() - 1;
-                    if (barDiff > 0)
-                    {
-                        // Shift on the right
-                        for (int i = last; i >= 0; i--)
+                        // Start from the end, so moved item remain in same section automatically
+                        ChordLeadSheetItem<?> item = items.get(i);
+                        int barIndex = item.getPosition().getBar();
+                        boolean selected = isSelected(item);
+                        removeItem(barIndex - barDiff, item, true);
+                        addItem(barIndex, item);
+                        selectItem(item, selected);
+                        if (item == fItem)
                         {
-                            // Start from the end, so moved item remain in same section automatically
-                            ChordLeadSheetItem<?> item = items.get(i);
-                            int barIndex = item.getPosition().getBar();
-                            boolean selected = isSelected(item);
-                            removeItem(barIndex - barDiff, item, true);
-                            addItem(barIndex, item);
-                            if (item instanceof CLI_Section)
-                            {
-                                // Need to also update the bars from previous position to before new position
-                                propagateSectionChange(clsModel.getSection(barIndex - 1));
-                            }
-                            selectItem(item, selected);
-                            if (item == fItem)
-                            {
-                                getBarBox(barIndex).setFocusOnItem(item, fIrType);
-                            }
-                        }
-                    } else
-                    {
-                        // Shift to the left
-                        for (int i = 0; i <= last; i++)
-                        {
-                            // Start from the end, so moved item remain in same section automatically
-                            ChordLeadSheetItem<?> item = items.get(i);
-                            int barIndex = item.getPosition().getBar();
-                            boolean selected = isSelected(item);
-                            removeItem(barIndex - barDiff, item, true);
-                            addItem(barIndex, item);
-                            selectItem(item, selected);
-                            if (item == fItem)
-                            {
-                                getBarBox(barIndex).setFocusOnItem(item, fIrType);
-                            }
+                            getBarBox(barIndex).setFocusOnItem(item, fIrType);
                         }
                     }
                 }

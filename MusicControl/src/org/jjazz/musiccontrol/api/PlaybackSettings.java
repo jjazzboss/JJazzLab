@@ -96,14 +96,14 @@ public class PlaybackSettings
     public static final String PROP_VETO_PRE_PLAYBACK = "PropVetoPrePlayback";   //NOI18N 
     public static final String PROP_LOOPCOUNT = "PropLoopCount";   //NOI18N 
     public static final String PROP_PLAYBACK_KEY_TRANSPOSITION = "PlaybackTransposition";              //NOI18N
-    public static String PROP_CLICK_PITCH_HIGH = "ClickPitchHigh";
-    public static String PROP_CLICK_PITCH_LOW = "ClickPitchLow";
-    public static String PROP_CLICK_VELOCITY_HIGH = "ClickVelocityHigh";
-    public static String PROP_CLICK_VELOCITY_LOW = "ClickVelocityLow";
-    public static String PROP_CLICK_PREFERRED_CHANNEL = "ClickChannel";
-    public static String PROP_CLICK_PRECOUNT_ENABLED = "ClickPrecountEnabled";
-    public static String PROP_CLICK_PRECOUNT_MODE = "ClickPrecountMode";
-    public static String PROP_PLAYBACK_CLICK_ENABLED = "PlaybackClickEnabled";
+    public static final String PROP_CLICK_PITCH_HIGH = "ClickPitchHigh";
+    public static final String PROP_CLICK_PITCH_LOW = "ClickPitchLow";
+    public static final String PROP_CLICK_VELOCITY_HIGH = "ClickVelocityHigh";
+    public static final String PROP_CLICK_VELOCITY_LOW = "ClickVelocityLow";
+    public static final String PROP_CLICK_PREFERRED_CHANNEL = "ClickChannel";
+    public static final String PROP_CLICK_PRECOUNT_ENABLED = "ClickPrecountEnabled";
+    public static final String PROP_CLICK_PRECOUNT_MODE = "ClickPrecountMode";
+    public static final String PROP_PLAYBACK_CLICK_ENABLED = "PlaybackClickEnabled";
 
     private int loopCount = 0;
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);

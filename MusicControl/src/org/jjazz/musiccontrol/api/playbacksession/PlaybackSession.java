@@ -24,6 +24,9 @@ package org.jjazz.musiccontrol.api.playbacksession;
 
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.util.api.IntRange;
@@ -34,14 +37,7 @@ import org.jjazz.util.api.IntRange;
  * <p>
  * Some session data values are meaningful only when state==GENERATED. A property change event is fired for mutable value changes.
  * <p>
- * Possible State transitions : <br>
- * - NEW &gt; GENERATED <br>
- * - NEW &gt; OUTDATED (song has changed before generate() was called)<br>
- * - GENERATED &gt; OUTDATED<br>
- * - from any state to the final CLOSED state
- * <p>
- * The PlaybackSession implementation is responsible for changing its state from GENERATED to OUTDATED.
- * <p>
+ * Some implementations might not support the OUTDATED_UPDATABLE state (i.e. transition from GENERATED to OUTDATED).
  * Implementations may also implement additional session capabilities such as SongContextProvider, ChordSymbolProvider, etc.
  */
 public interface PlaybackSession
@@ -60,7 +56,8 @@ public interface PlaybackSession
          */
         GENERATED,
         /**
-         * Sequence and related data were generated but are now out of date compared to the underlying data.
+         * Sequence and related data were generated but are now out of date compared to the underlying data (and this can't be
+         * fixed)
          */
         OUTDATED,
         /**

@@ -33,8 +33,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequencer;
 import javax.swing.AbstractAction;
@@ -45,9 +43,10 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.BasicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
-import org.jjazz.musiccontrol.api.playbacksession.SongContextSession;
+import org.jjazz.musiccontrol.api.playbacksession.SongSession;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
@@ -80,7 +79,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private int postUpdateSleepTime = DEFAULT_POST_UPDATE_SLEEP_TIME_MS;
     private final RealTimeRpEditorPanel<E> editorPanel;
     private boolean exitOk;
-    private DynamicSongSession session;
+    private UpdatableSongSession session;
     private SongContext songContextOriginal;
     private E rpValueOriginal;
     private Queue<E> queue;
@@ -91,7 +90,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     {
         editorPanel = panel;
         editorPanel.addPropertyChangeListener(this);
-     
+
         initComponents();
 
         pnl_editor.add(editorPanel, BorderLayout.CENTER);
@@ -325,13 +324,15 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         SongContext sgContext = buildPreviewContext(rpValue);
 
 
-        session = new DynamicSongSession(sgContext,
+        var basicSession = BasicSongSession.getSession(sgContext,
                 true,
                 false,
                 false,
                 true,
                 Sequencer.LOOP_CONTINUOUSLY,
                 null);
+
+        session = new UpdatableSongSession(basicSession);
         try
         {
             session.generate(false);
@@ -527,14 +528,14 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
             .addGroup(pnl_containerLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnl_containerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE)
                     .addGroup(pnl_containerLayout.createSequentialGroup()
                         .addComponent(pnl_editor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(pnl_containerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(tbtn_hear, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(tbtn_bypass, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap())
+                .addGap(4, 4, 4))
         );
         pnl_containerLayout.setVerticalGroup(
             pnl_containerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -545,11 +546,11 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
                         .addComponent(tbtn_hear, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(tbtn_bypass, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 15, Short.MAX_VALUE))
+                        .addGap(0, 22, Short.MAX_VALUE))
                     .addComponent(pnl_editor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGap(4, 4, 4))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -771,7 +772,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 //            LOGGER.info("MusicGenerationTask.run() >>> STARTING generation with rpValue=" + rpValue);
 
             SongContext sgContext = buildPreviewContext(rpValue);
-            SongContextSession tmpSession = SongContextSession.getSession(sgContext, true, false, false, true, 0, null);
+            BasicSongSession tmpSession = BasicSongSession.getSession(sgContext, true, false, false, true, 0, null);
             if (tmpSession.getState().equals(PlaybackSession.State.NEW))
             {
                 try

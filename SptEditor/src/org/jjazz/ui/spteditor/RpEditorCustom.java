@@ -128,11 +128,13 @@ public class RpEditorCustom extends RpEditorComponent
         Rectangle r = btn_edit.getBounds();
         Point p = r.getLocation();
         SwingUtilities.convertPointToScreen(p, btn_edit.getParent());
-        int x = Math.max(10, p.x + dlgEditor.getWidth() + 5);
-        int y = Math.max(10, p.y + r.height / 2 - dlgEditor.getHeight() / 2);
+        int x =  p.x + r.width + 10;
+        int y = Math.max(2, p.y + r.height / 2 - dlgEditor.getHeight() / 2);
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         x = Math.min(x, screen.width - dlgEditor.getWidth());
         y = Math.min(y, screen.height - dlgEditor.getHeight());
+        Point pd = new Point(x,y);        
+        SwingUtilities.convertPointFromScreen(pd, dlgEditor.getParent());
         dlgEditor.setLocation(x, y);
         dlgEditor.setVisible(true);
 

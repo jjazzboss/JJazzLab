@@ -56,7 +56,7 @@ import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
-import org.jjazz.rhythmmusicgeneration.api.MidiSequenceBuilder;
+import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
@@ -191,13 +191,11 @@ public class ExportToMidiFile extends AbstractAction
 
         // Build the sequence
         SongContext sgContext = new SongContext(songCopy, midiMix);
-        MidiSequenceBuilder seqBuilder = new MidiSequenceBuilder(sgContext);
-        Map<RhythmVoice, Integer> mapRvTrackId = seqBuilder.getRvTrackIdMap();
-        Sequence sequence = null;
+        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(sgContext);
+        SongSequenceBuilder.SongSequence songSequence = null;
         try
         {
-            sequence = seqBuilder.buildSequence(false);
-            mapRvTrackId = seqBuilder.getRvTrackIdMap();
+            songSequence = seqBuilder.buildAll(false);
         } catch (MusicGenerationException ex)
         {
             LOGGER.warning("actionPerformed() ex=" + ex.getMessage());   //NOI18N
@@ -211,7 +209,10 @@ public class ExportToMidiFile extends AbstractAction
         {
             songCopy.close(false);
         }
-        assert sequence != null;   //NOI18N
+
+        assert songSequence != null;   //NOI18N
+        Map<RhythmVoice, Integer> mapRvTrackId = songSequence.mapRvTrackId;
+        Sequence sequence = songSequence.sequence;
 
 
         // Check Midi export capabilities

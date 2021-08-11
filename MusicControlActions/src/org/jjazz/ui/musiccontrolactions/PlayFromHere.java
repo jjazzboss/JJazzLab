@@ -38,8 +38,10 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
-import org.jjazz.musiccontrol.api.playbacksession.SongContextSession;
+import org.jjazz.musiccontrol.api.playbacksession.SongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
@@ -185,7 +187,7 @@ public class PlayFromHere extends AbstractAction
             // Check that all listeners are OK to start playback     
             PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
 
-            SongContextSession session = SongContextSession.getSession(context);
+            UpdatableSongSession session = new UpdatableSongSession(DynamicSongSession.getSession(context));
             if (session.getState().equals(PlaybackSession.State.NEW))
             {
                 session.generate(false);
