@@ -43,10 +43,10 @@ import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.playbacksession.BasicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
-import org.jjazz.musiccontrol.api.playbacksession.SongSession;
+import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
@@ -324,7 +324,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         SongContext sgContext = buildPreviewContext(rpValue);
 
 
-        var basicSession = BasicSongSession.getSession(sgContext,
+        var basicSession = StaticSongSession.getSession(sgContext,
                 true,
                 false,
                 false,
@@ -772,7 +772,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 //            LOGGER.info("MusicGenerationTask.run() >>> STARTING generation with rpValue=" + rpValue);
 
             SongContext sgContext = buildPreviewContext(rpValue);
-            BasicSongSession tmpSession = BasicSongSession.getSession(sgContext, true, false, false, true, 0, null);
+            StaticSongSession tmpSession = StaticSongSession.getSession(sgContext, true, false, false, true, 0, null);
             if (tmpSession.getState().equals(PlaybackSession.State.NEW))
             {
                 try

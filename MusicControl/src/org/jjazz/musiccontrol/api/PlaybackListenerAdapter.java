@@ -63,4 +63,10 @@ public class PlaybackListenerAdapter implements PlaybackListener
     {
         // Do nothing
     }
+
+    @Override
+    public void enabledChanged(boolean b)
+    {
+        // Do nothing
+    }
 }

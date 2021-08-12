@@ -33,21 +33,22 @@ import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
 
 /**
- * This SongSession gets outdated as soon as there is an incompatible change in the context (song change, etc.).
+ * A BaseSongSession which do not provide on-the-fly updates, it becomes dirty as soon as the SongContext has changed.
+ * <p>
+ * @see DynamicSongSession 
  */
-public class BasicSongSession extends SongSession
+public class StaticSongSession extends BaseSongSession
 {
 
-    private static final List<BasicSongSession> sessions = new ArrayList<>();
+    private static final List<StaticSongSession> sessions = new ArrayList<>();
     private static final ClosedSessionsListener CLOSED_SESSIONS_LISTENER = new ClosedSessionsListener();
 
 
     /**
-     * Create a basic session based for the specified parameters.
+     * Create or reuse a session for the specified parameters.
      * <p>
-     * Take into account all settings of the PlaybackSettings instance.
      * <p>
-     * Sessions are cached: if an existing targetSession in the NEW or GENERATED state already exists for the same parameters then
+     * Sessions are cached: if an existing session in the NEW or GENERATED state already exists for the same parameters then
      * return it, otherwise a new session is created.
      * <p>
      *
@@ -59,9 +60,9 @@ public class BasicSongSession extends SongSession
      * @param loopCount See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the PlaybackSettings instance
      * value.
      * @param endOfPlaybackAction Action executed when playback is stopped. Can be null.
-     * @return A targetSession in the NEW or GENERATED state.
+     * @return A session in the NEW or GENERATED state.
      */
-    static public BasicSongSession getSession(SongContext sgContext,
+    static public StaticSongSession getSession(SongContext sgContext,
             boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
             int loopCount,
             ActionListener endOfPlaybackAction)
@@ -70,13 +71,13 @@ public class BasicSongSession extends SongSession
         {
             throw new IllegalArgumentException("sgContext=" + sgContext);
         }
-        BasicSongSession session = findSession(sgContext,
+        StaticSongSession session = findSession(sgContext,
                 enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack,
                 loopCount,
                 endOfPlaybackAction);
         if (session == null)
         {
-            final BasicSongSession newSession = new BasicSongSession(sgContext,
+            final StaticSongSession newSession = new StaticSongSession(sgContext,
                     enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack,
                     loopCount,
                     endOfPlaybackAction);
@@ -97,12 +98,12 @@ public class BasicSongSession extends SongSession
      * @param sgContext
      * @return A targetSession in the NEW or GENERATED state.
      */
-    static public BasicSongSession getSession(SongContext sgContext)
+    static public StaticSongSession getSession(SongContext sgContext)
     {
         return getSession(sgContext, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
     }
 
-    private BasicSongSession(SongContext sgContext, boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack, int loopCount, ActionListener endOfPlaybackAction)
+    private StaticSongSession(SongContext sgContext, boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack, int loopCount, ActionListener endOfPlaybackAction)
     {
         super(sgContext, enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack, loopCount, endOfPlaybackAction);
     }
@@ -117,7 +118,7 @@ public class BasicSongSession extends SongSession
 
         // LOGGER.fine("propertyChange() e=" + e);
 
-        boolean outdated = false;
+        boolean dirty = false;
 
         if (e.getSource() == getSongContext().getSong())
         {
@@ -125,7 +126,7 @@ public class BasicSongSession extends SongSession
             {
                 if ((Boolean) e.getNewValue() == true)
                 {
-                    outdated = true;
+                    dirty = true;
                 }
             }
         } else if (e.getSource() == getSongContext().getMidiMix())
@@ -137,10 +138,10 @@ public class BasicSongSession extends SongSession
                 case MidiMix.PROP_INSTRUMENT_TRANSPOSITION:
                 case MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT:
                 case MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP:
-                    outdated = true;
+                    dirty = true;
                     break;
 
-                default:   // PROP_DRUMS_INSTRUMENT_KEYMAP
+                default:
                     // Do nothing
                     break;
             }
@@ -157,7 +158,7 @@ public class BasicSongSession extends SongSession
                 case PlaybackSettings.PROP_CLICK_VELOCITY_LOW:
                 case PlaybackSettings.PROP_CLICK_PRECOUNT_MODE:
                 case PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED:
-                    outdated = true;
+                    dirty = true;
                     break;
 
                 default:   // PROP_VETO_PRE_PLAYBACK, PROP_LOOPCOUNT, PROP_PLAYBACK_CLICK_ENABLED
@@ -166,9 +167,9 @@ public class BasicSongSession extends SongSession
             }
         }
 
-        if (outdated)
+        if (dirty)
         {
-            setState(State.OUTDATED);
+            setDirty();
         }
     }
 
@@ -178,7 +179,7 @@ public class BasicSongSession extends SongSession
      *
      * @return Null if not found
      */
-    static private BasicSongSession findSession(SongContext sgContext,
+    static private StaticSongSession findSession(SongContext sgContext,
             boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecount, boolean enableControlTrack,
             int loopCount,
             ActionListener endOfPlaybackAction)
@@ -188,9 +189,9 @@ public class BasicSongSession extends SongSession
             if ((session.getState().equals(PlaybackSession.State.GENERATED) || session.getState().equals(PlaybackSession.State.NEW))
                     && sgContext.equals(session.getSongContext())
                     && enablePlaybackTransposition == session.isPlaybackTranspositionEnabled()
-                    && enableClickTrack == session.isClickTrackEnabled()
-                    && enablePrecount == session.isPrecountTrackEnabled()
-                    && enableControlTrack == session.isControlTrackEnabled()
+                    && enableClickTrack == (session.getClickTrackId() != -1)
+                    && enablePrecount == (session.getPrecountTrackId() != -1)
+                    && enableControlTrack == (session.getControlTrackId() != -1)
                     && loopCount == session.getLoopCount()
                     && endOfPlaybackAction == session.getEndOfPlaybackAction())
             {
@@ -209,7 +210,7 @@ public class BasicSongSession extends SongSession
         @Override
         public void propertyChange(PropertyChangeEvent evt)
         {
-            BasicSongSession session = (BasicSongSession) evt.getSource();
+            StaticSongSession session = (StaticSongSession) evt.getSource();
             if (evt.getPropertyName().equals(PlaybackSession.PROP_STATE) && session.getState().equals(PlaybackSession.State.CLOSED))
             {
                 sessions.remove(session);

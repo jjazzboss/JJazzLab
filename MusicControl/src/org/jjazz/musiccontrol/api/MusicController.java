@@ -49,10 +49,8 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.musiccontrol.api.playbacksession.ChordSymbolProvider;
 import org.jjazz.musiccontrol.api.playbacksession.EndOfPlaybackActionProvider;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
-import org.jjazz.musiccontrol.api.playbacksession.PositionProvider;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.songcontext.api.SongContext;
@@ -62,6 +60,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.openide.util.Exceptions;
+import org.jjazz.musiccontrol.api.playbacksession.ControlTrackProvider;
 
 /**
  * Control the music playback of a PlaybackSession.
@@ -368,6 +367,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         songTempoChanged(playbackSession.getTempo());
 
 
+        // Enable events to PlaybackListeners
+        if (playbackSession instanceof ControlTrackProvider)
+        {
+            firePlaybackListenerEnabledChanged(true);
+        }
+
+
         // Set sequencer position
         setPosition(fromBarIndex);
 
@@ -461,7 +467,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Stop the playback of the sequence and leave the position unchanged.
      * <p>
-     * If state is not PLAYING, nothing is done. If session is OUTDATED, use stop() instead.
+     * If state is not PLAYING, nothing is done. If session is dirty, use stop() instead.
      */
     public void pause()
     {
@@ -470,8 +476,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             return;
         }
 
-        // If session is outdated use stop() instead
-        if (playbackSession.getState().equals(PlaybackSession.State.OUTDATED))
+        // If session needs to be regenerated use stop() instead
+        if (playbackSession.isDirty())
         {
             stop();
             return;
@@ -592,11 +598,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         switch (data1)
         {
             case MidiConst.CTRL_CHG_JJAZZ_BEAT_CHANGE:
-                if (playbackSession instanceof PositionProvider)
+                if (playbackSession instanceof ControlTrackProvider)
                 {
-                    PositionProvider positionProvider = (PositionProvider) playbackSession;
-                    List<Position> naturalBeatPositions = positionProvider.getPositions();
-                    if (naturalBeatPositions != null)
+                    ControlTrackProvider controlTrackProvider = (ControlTrackProvider) playbackSession;
+                    List<Position> naturalBeatPositions = controlTrackProvider.getSongPositions();
+                    if (naturalBeatPositions != null && playbackSession.getLoopStartTick() != -1)
                     {
                         long tick = sequencer.getTickPosition() - playbackSession.getLoopStartTick();
                         int index = (int) (tick / MidiConst.PPQ_RESOLUTION);
@@ -642,14 +648,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             String s = Utilities.toString(meta.getData());
             if (s.startsWith("csIndex="))           // Marker for chord symbol
             {
-                if (playbackSession instanceof ChordSymbolProvider)
+                if (playbackSession instanceof ControlTrackProvider)
                 {
-                    ChordSymbolProvider chordSymbolProvider = (ChordSymbolProvider) playbackSession;
+                    ControlTrackProvider controlTrackProvider = (ControlTrackProvider) playbackSession;
 
 
                     // Fire chord symbol change
                     int csIndex = Integer.valueOf(s.substring(8));
-                    ContextChordSequence cSeq = chordSymbolProvider.getContextChordGetSequence();
+                    ContextChordSequence cSeq = controlTrackProvider.getContextChordGetSequence();
                     if (cSeq != null)
                     {
                         CLI_ChordSymbol cliCs = cSeq.get(csIndex);
@@ -711,12 +717,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                     case GENERATED:
                         // Nothing
                         break;
-                    case OUTDATED:
-                        if (state.equals(State.PAUSED))
-                        {
-                            stop();
-                        }
-                        break;
                     case CLOSED:
                         stop();
                         clearPlaybackSession();
@@ -725,6 +725,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                         throw new AssertionError(playbackSession.getState().name());
 
                 }
+            } else if (e.getPropertyName().equals(PlaybackSession.PROP_DIRTY))
+            {
+                stop();
+
             } else if (e.getPropertyName().equals(PlaybackSession.PROP_TEMPO))
             {
                 songTempoChanged((Integer) e.getNewValue());
@@ -732,6 +736,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             } else if (e.getPropertyName().equals(PlaybackSession.PROP_MUTED_TRACKS))
             {
                 updateTracksMuteStatus();
+                
             } else if (e.getPropertyName().equals(PlaybackSession.PROP_LOOP_COUNT))
             {
                 if (!state.equals(State.DISABLED))
@@ -739,6 +744,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                     int lc = (Integer) e.getNewValue();
                     sequencer.setLoopCount(lc);
                 }
+                
+            } else if (e.getPropertyName().equals(ControlTrackProvider.PROP_DISABLED))
+            {
+                firePlaybackListenerEnabledChanged(false);
             }
         }
     }
@@ -796,6 +805,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         long tick = Math.max(playbackSession.getTick(fromBar), 0);
         sequencer.setTickPosition(tick);
         updateCurrentPosition(fromBar, 0);
+    }
+
+    private void firePlaybackListenerEnabledChanged(boolean b)
+    {
+        // No need to use a latency aware event
+        for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
+        {
+            pl.enabledChanged(b);
+        }
     }
 
     private void fireChordSymbolChanged(CLI_ChordSymbol cliCs)
@@ -955,10 +973,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             case PAUSED:
 
                 SongContext sgContext = getSongContext(playbackSession);
-                if (sgContext != null && playbackSession instanceof ChordSymbolProvider)
+                if (sgContext != null && playbackSession instanceof ControlTrackProvider)
                 {
-                    ChordSymbolProvider chordSymbolProvider = (ChordSymbolProvider) playbackSession;
-                    ContextChordSequence cSeq = chordSymbolProvider.getContextChordGetSequence();
+                    ControlTrackProvider controlTrackProvider = (ControlTrackProvider) playbackSession;
+                    ContextChordSequence cSeq = controlTrackProvider.getContextChordGetSequence();
                     if (cSeq != null)
                     {
                         // Fire chord symbol change if no chord symbol at current position (current chord symbol is the previous one)

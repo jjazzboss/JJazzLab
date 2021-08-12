@@ -44,16 +44,17 @@ import org.jjazz.leadsheet.chordleadsheet.api.event.SectionMovedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythmmusicgeneration.api.ContextChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.event.RpChangedEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
@@ -64,25 +65,35 @@ import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.openide.util.Exceptions;
 
 /**
- * This SongSession listens to the context changes (Song, Midimix, PlaybackSettings) and decide whether the change outdates the
- * session or can be managed via an update for an UpdatableSongSession.
+ * This SongSession listens to the context changes to provide on-the-fly updates for an UpdatableSongSession.
  * <p>
- * Basically, chord symbol and rhythm parameter value changes are managed via updates, other changes make the session outdated.
+ * On-the-fly updates are provided for :<br>
+ * - chord symbol changes (add/remove/changed/move)<br>
+ * - rhythm parameter value changes<br>
+ * - PlaybackSettings playback transposition changes<br>
+ * - MidiMix instrument transposition/velocity changes, plus drum keymap changes<br>
+ * <p>
+ * If change can't be handled as an on-the-fly update, session is marked dirty. Song structural changes make the session dirty and
+ * prevent any future update.
+ *
+ * @todo Check drumsrerouting changes impact on updates
  */
-public class DynamicSongSession extends SongSession implements UpdatableSongSession.UpdateProvider, SgsChangeListener, ClsChangeListener
+public class DynamicSongSession extends BaseSongSession implements UpdatableSongSession.UpdateProvider, SgsChangeListener, ClsChangeListener
 {
 
     private Map<RhythmVoice, Phrase> mapRvPhrases;
+    private boolean isUpdatable = true;
+    private boolean isControlTrackEnabled = true;
     private static final List<DynamicSongSession> sessions = new ArrayList<>();
     private static final ClosedSessionsListener CLOSED_SESSIONS_LISTENER = new ClosedSessionsListener();
     private static final Logger LOGGER = Logger.getLogger(DynamicSongSession.class.getSimpleName());  //NOI18N
 
+
     /**
-     * Create a song session based for the specified parameters.
+     * Create or reuse a session for the specified parameters.
      * <p>
-     * Take into account all settings of the PlaybackSettings instance.
      * <p>
-     * Sessions are cached: if an existing targetSession in the NEW or GENERATED state already exists for the same parameters then
+     * Sessions are cached: if an existing session in the NEW or GENERATED state already exists for the same parameters then
      * return it, otherwise a new session is created.
      * <p>
      *
@@ -94,7 +105,7 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
      * @param loopCount See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the PlaybackSettings instance
      * value.
      * @param endOfPlaybackAction Action executed when playback is stopped. Can be null.
-     * @return A targetSession in the NEW or GENERATED state.
+     * @return A session in the NEW or GENERATED state.
      */
     static public DynamicSongSession getSession(SongContext sgContext,
             boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
@@ -171,8 +182,8 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
 
         // LOGGER.fine("propertyChange() e=" + e);
 
-        boolean outdated = false;
-        boolean updatable = false;
+        boolean dirty = false;
+        boolean update = false;
 
 
         if (e.getSource() == getSongContext().getMidiMix())
@@ -180,14 +191,20 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
             switch (e.getPropertyName())
             {
                 case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX:
+                    // An instrument mix was added or removed (it can be the user channel)
+                    // In both cases we don't care: if it's the user channel there is no impact, and if it's an added/removed rhythm 
+                    // we'll get the change directly via our SgsChangeListener
+                    break;
+
                 case MidiMix.PROP_CHANNEL_DRUMS_REROUTED:
-                    outdated = true;
+                    // An instrument mix is rerouted on/off
+                    dirty = true;
 
                     break;
                 case MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP:
                 case MidiMix.PROP_INSTRUMENT_TRANSPOSITION:
                 case MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT:
-                    updatable = true;
+                    update = true;
 
                 default:    // e.g.  case MidiMix.PROP_INSTRUMENT_MUTE:
                     // Nothing
@@ -199,7 +216,7 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
             switch (e.getPropertyName())
             {
                 case PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION:
-                    updatable = true;
+                    update = true;  // Control track is not impacted
                     break;
 
                 case PlaybackSettings.PROP_CLICK_PITCH_HIGH:
@@ -209,7 +226,7 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
                 case PlaybackSettings.PROP_CLICK_VELOCITY_LOW:
                 case PlaybackSettings.PROP_CLICK_PRECOUNT_MODE:
                 case PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED:
-                    outdated = true;
+                    dirty = true;
                     break;
 
                 default:   // PROP_VETO_PRE_PLAYBACK, PROP_LOOPCOUNT, PROP_PLAYBACK_CLICK_ENABLED
@@ -219,12 +236,15 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
 
         }
 
-        if (outdated)
+        if (isUpdatable)
         {
-            setState(State.OUTDATED);
-        } else if (updatable)
-        {
-            prepareUpdate();
+            if (dirty)
+            {
+                setDirty();
+            } else if (update)
+            {
+                prepareUpdate(false);
+            }
         }
     }
 
@@ -258,13 +278,13 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
 
         LOGGER.info("chordLeadSheetChanged()  -- event=" + event);
 
-        boolean outdated = false;
-        boolean updatable = false;
+        boolean update = false;
+        boolean disableUpdates = false;
 
 
         if (event instanceof SizeChangedEvent)
         {
-            outdated = true;
+            disableUpdates = true;
 
         } else if ((event instanceof ItemAddedEvent)
                 || (event instanceof ItemRemovedEvent))
@@ -273,12 +293,13 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
             var contextItems = event.getItems().stream()
                     .filter(cli -> isClsBarIndexPartOfContext(cli.getPosition().getBar()))
                     .collect(Collectors.toList());
-            outdated = contextItems.stream().anyMatch(cli -> !(cli instanceof CLI_ChordSymbol));
-            updatable = contextItems.stream().allMatch(cli -> cli instanceof CLI_ChordSymbol);
+            disableUpdates = contextItems.stream().anyMatch(cli -> !(cli instanceof CLI_ChordSymbol));
+            update = contextItems.stream().allMatch(cli -> cli instanceof CLI_ChordSymbol);
 
         } else if (event instanceof ItemBarShiftedEvent)
         {
-            outdated = true;
+            // Bars were inserted/deleted
+            disableUpdates = true;
 
         } else if (event instanceof ItemChangedEvent)
         {
@@ -292,11 +313,11 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
                     Section oldSection = (Section) e.getOldData();
                     if (!newSection.getTimeSignature().equals(oldSection.getTimeSignature()))
                     {
-                        outdated = true;
+                        disableUpdates = true;
                     }
                 } else if (item instanceof CLI_ChordSymbol)
                 {
-                    updatable = true;
+                    update = true;
                 }
             }
 
@@ -305,22 +326,26 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
             ItemMovedEvent e = (ItemMovedEvent) event;
             if (isClsBarIndexPartOfContext(e.getNewPosition().getBar()) || isClsBarIndexPartOfContext(e.getOldPosition().getBar()))
             {
-                updatable = true;
+                update = true;
             }
 
         } else if (event instanceof SectionMovedEvent)
         {
-            outdated = true;
+            disableUpdates = true;
 
         }
 
-        LOGGER.info("chordLeadSheetChanged()  => outdated=" + outdated + " updatable=" + updatable);
-        if (outdated)
+        LOGGER.info("chordLeadSheetChanged()  => disableUpdates=" + disableUpdates + " update=" + update);
+
+        if (isUpdatable)
         {
-            setState(State.OUTDATED);
-        } else if (updatable)
-        {
-            prepareUpdate();
+            if (disableUpdates)
+            {
+                disableUpdates();
+            } else if (update)
+            {
+                prepareUpdate(true);    // Chord symbols have changed, control track is impacted
+            }
         }
 
     }
@@ -347,26 +372,26 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
 
         LOGGER.info("songStructureChanged()  -- e=" + e);
 
-        boolean outdated = false;
-        boolean updatable = false;
+        boolean disableUpdates = false;
+        boolean update = false;
 
         List<SongPart> contextSpts = getSongContext().getSongParts();
 
         if (e instanceof SptRemovedEvent || e instanceof SptAddedEvent)
         {
-            outdated = e.getSongParts().stream()
+            disableUpdates = e.getSongParts().stream()
                     .anyMatch(spt -> contextSpts.contains(spt));
 
         } else if (e instanceof SptReplacedEvent)
         {
             SptReplacedEvent re = (SptReplacedEvent) e;
-            outdated = re.getSongParts().stream()
+            disableUpdates = re.getSongParts().stream()
                     .anyMatch(spt -> contextSpts.contains(spt));
 
         } else if (e instanceof SptResizedEvent)
         {
             SptResizedEvent re = (SptResizedEvent) e;
-            outdated = re.getMapOldSptSize().getKeys().stream()
+            disableUpdates = re.getMapOldSptSize().getKeys().stream()
                     .anyMatch(spt -> contextSpts.contains(spt));
 
         } else if (e instanceof SptRenamedEvent)
@@ -374,25 +399,43 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
             // Nothing
         } else if (e instanceof RpChangedEvent)
         {
-            updatable = contextSpts.contains(e.getSongPart());
+            update = contextSpts.contains(e.getSongPart());
         }
 
-        LOGGER.info("songStructureChanged()  => outdated=" + outdated + " updatable=" + updatable);
-        if (outdated)
+        LOGGER.info("songStructureChanged()  => dirty=" + disableUpdates + " update=" + update);
+
+        if (isUpdatable)
         {
-            setState(State.OUTDATED);
-        } else if (updatable)
-        {
-            prepareUpdate();
+            if (disableUpdates)
+            {
+                disableUpdates();
+            } else if (update)
+            {
+                prepareUpdate(false);
+            }
         }
 
     }
 
+    // ==========================================================================================================
+    // ControlTrackProvider implementation
+    // ==========================================================================================================    
+    @Override
+    public List<Position> getSongPositions()
+    {
+        return isControlTrackEnabled ? super.getSongPositions() : null;
+    }
+
+    @Override
+    public ContextChordSequence getContextChordGetSequence()
+    {
+        return isControlTrackEnabled ? super.getContextChordGetSequence() : null;
+    }
 
     // ==========================================================================================================
     // Private methods
     // ==========================================================================================================
-    private void prepareUpdate()
+    private void prepareUpdate(boolean controlTrackImpacted)
     {
         LOGGER.info("prepareUpdate() -- ");
         if (!getState().equals(State.GENERATED))
@@ -401,8 +444,15 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
             return;
         }
 
+        SongContext workContext = getSongContext();
+        int t = PlaybackSettings.getInstance().getPlaybackKeyTransposition();
+        if (isPlaybackTranspositionEnabled() && t != 0)
+        {
+            workContext = buildTransposedContext(getSongContext(), t);
+        }
+
         // Recompute the RhythmVoice phrases
-        SongSequenceBuilder sgBuilder = new SongSequenceBuilder(getSongContext());
+        SongSequenceBuilder sgBuilder = new SongSequenceBuilder(workContext);
         try
         {
             mapRvPhrases = sgBuilder.buildMapRvPhrase(true);
@@ -411,6 +461,11 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
             Exceptions.printStackTrace(ex);
             return;
         }
+
+
+//        Drums Rerouting ??
+//        Control track if chord symbol have changed!!
+        LOGGER.info("prepareUpdate()   => done, notifying...");
 
         // Notify listeners, probably an UpdatableSongSession
         firePropertyChange(UpdatableSongSession.UpdateProvider.PROP_UPDATE_AVAILABLE, false, true);
@@ -431,6 +486,20 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
         return sgContext.getSongParts().stream().anyMatch(spt -> spt.getParentSection() == section);
     }
 
+    /**
+     * This also disables position and chord symbol providing.
+     */
+    private void disableUpdates()
+    {
+        if (isUpdatable)
+        {
+            LOGGER.info("disableUpdates() -- ");
+            isUpdatable = false;
+            setDirty();
+            isControlTrackEnabled = false;
+            firePropertyChange(ControlTrackProvider.PROP_DISABLED, false, true);
+        }
+    }
 
     /**
      * Find an identical existing session in state NEW or GENERATED.
@@ -447,9 +516,9 @@ public class DynamicSongSession extends SongSession implements UpdatableSongSess
             if ((session.getState().equals(PlaybackSession.State.GENERATED) || session.getState().equals(PlaybackSession.State.NEW))
                     && sgContext.equals(session.getSongContext())
                     && enablePlaybackTransposition == session.isPlaybackTranspositionEnabled()
-                    && enableClickTrack == session.isClickTrackEnabled()
-                    && enablePrecount == session.isPrecountTrackEnabled()
-                    && enableControlTrack == session.isControlTrackEnabled()
+                    && enableClickTrack == (session.getClickTrackId() != -1)
+                    && enablePrecount == (session.getPrecountTrackId() != -1)
+                    && enableControlTrack == (session.getControlTrackId() != -1)
                     && loopCount == session.getLoopCount()
                     && endOfPlaybackAction == session.getEndOfPlaybackAction())
             {

@@ -45,7 +45,7 @@ import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.playbacksession.SongSession;
+import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythm.api.AdaptedRhythm;
@@ -325,7 +325,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
      * <p>
      * In this case we shorten the generated previewSequence and update previewLoopEndTick.
      */
-    private class PreviewSession extends SongSession
+    private class PreviewSession extends BaseSongSession
     {
 
         private Sequence previewSequence;

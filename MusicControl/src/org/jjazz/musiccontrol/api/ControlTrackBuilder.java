@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.musiccontrol;
+package org.jjazz.musiccontrol.api;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,6 +55,10 @@ public class ControlTrackBuilder
      * Store the position of each natural beat.
      */
     private final ArrayList<Position> naturalBeatPositions = new ArrayList<>();
+    /**
+     * The chord sequence to retrieve the chord symbol from the Midi marker index.
+     */
+    private ContextChordSequence contextChordSequence;
     private static final Logger LOGGER = Logger.getLogger(ControlTrackBuilder.class.getSimpleName());
 
     public ControlTrackBuilder(SongContext context)
@@ -64,13 +68,16 @@ public class ControlTrackBuilder
             throw new IllegalArgumentException("context=" + context);   //NOI18N
         }
         this.context = context;
+        contextChordSequence = new ContextChordSequence(context);       // This will process the substitute chord symbols
     }
 
     /**
      * Add a control track for the given context with the following events:
      * <p>
-     * - a marker event for each chord symbol (text=original name of the chord symbol)<br>
-     * - a CTRL_CHG_JJAZZ_BEAT_CHANGE Midi event at every beat change<br>
+     * - a marker event for each chord symbol, with text="csIndex=chord_symbol_index" (index of the ContextChordSequence provided
+     * by {@link #getContextChordSequence()}). <br>
+     * - a CTRL_CHG_JJAZZ_BEAT_CHANGE Midi event at every beat change, use {@link #getSongPositions()} to get the
+     * corresponding Position.<br>
      *
      * @param sequence The sequence for which we add the control track.
      * @return the index of the track in the sequence.
@@ -107,14 +114,24 @@ public class ControlTrackBuilder
     }
 
     /**
-     * Get an array containing the natural beat positions computed by the last call to addControlTrack().
+     * Get an array containing all song beat positions computed by the last call to addControlTrack().
      * <p>
      *
      * @return
      */
-    public List<Position> getNaturalBeatPositions()
+    public List<Position> getSongPositions()
     {
         return naturalBeatPositions;
+    }
+
+    /**
+     * Get the chord sequence which match the inserted Midi markers, as computed by the last call to addControlTrack().
+     *
+     * @return
+     */
+    public ContextChordSequence getContextChordSequence()
+    {
+        return contextChordSequence;
     }
 
     // =================================================================================
@@ -156,12 +173,11 @@ public class ControlTrackBuilder
 
     private void addChordSymbolEvents(Track track)
     {
-        var ccSeq = new ContextChordSequence(context);      // This will process the substitute chord symbols
         int csIndex = 0;
-        for (CLI_ChordSymbol cliCs : ccSeq)
+        for (CLI_ChordSymbol cliCs : contextChordSequence)
         {
             long tick = context.getRelativeTick(cliCs.getPosition());
-            assert tick != -1 : "cliCs=" + cliCs + " ccSeq=" + ccSeq + " context=" + context;
+            assert tick != -1 : "cliCs=" + cliCs + " contextChordSequence=" + contextChordSequence + " context=" + context;
             MetaMessage mm = MidiUtilities.getMarkerMetaMessage("csIndex=" + csIndex);
             // HACK!
             // tick+1 is a hack, otherwise when tick==0 the first Meta event is sometimes not fired! Don't know why

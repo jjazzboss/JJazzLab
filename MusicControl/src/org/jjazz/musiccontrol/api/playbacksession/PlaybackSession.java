@@ -24,9 +24,6 @@ package org.jjazz.musiccontrol.api.playbacksession;
 
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.util.api.IntRange;
@@ -35,9 +32,6 @@ import org.jjazz.util.api.IntRange;
  * A PlaybackSession contains the data needed by the MusicController to play music and provide related services (firing beat or
  * chord symbol events, managing tempo changes, ...).
  * <p>
- * Some session data values are meaningful only when state==GENERATED. A property change event is fired for mutable value changes.
- * <p>
- * Some implementations might not support the OUTDATED_UPDATABLE state (i.e. transition from GENERATED to OUTDATED).
  * Implementations may also implement additional session capabilities such as SongContextProvider, ChordSymbolProvider, etc.
  */
 public interface PlaybackSession
@@ -52,14 +46,9 @@ public interface PlaybackSession
          */
         NEW,
         /**
-         * Sequence and related data have been generated and are up to date with the underlying data.
+         * Sequence and related data have been generated.
          */
         GENERATED,
-        /**
-         * Sequence and related data were generated but are now out of date compared to the underlying data (and this can't be
-         * fixed)
-         */
-        OUTDATED,
         /**
          * The session is closed (e.g. song is no more available) and any playback should be stopped.
          */
@@ -68,23 +57,27 @@ public interface PlaybackSession
 
 
     /**
-     * The session State has changed.
+     * A property change event is fired when the state has changed.
      */
-    public static final String PROP_STATE = "State";
+    public static final String PROP_STATE = "PropState";
     /**
-     * The playback reference tempo has changed.
+     * A property change event is fired when session is no more up-to-date with its underlying data.
      */
-    public static final String PROP_TEMPO = "Tempo";
+    public static final String PROP_DIRTY = "PropDirty";
     /**
-     * One or more tracks muted status have changed.
+     * A property change event is fired when the playback reference tempo has changed.
+     */
+    public static final String PROP_TEMPO = "PropTempo";
+    /**
+     * A property change event is fired when one or more tracks muted status have changed.
      *
      * @see getTracksMuteStatus()
      */
-    public static final String PROP_MUTED_TRACKS = "MutedTracks";
+    public static final String PROP_MUTED_TRACKS = "PropMutedTracks";
     /**
-     * The loop count has changed.
+     * A property change event is fired when the loop count has changed.
      */
-    public static final String PROP_LOOP_COUNT = "LoopCount";
+    public static final String PROP_LOOP_COUNT = "PropLoopCount";
 
     /**
      * Create the sequence and the related data.
@@ -103,6 +96,16 @@ public interface PlaybackSession
      * @return Can be null if no meaningful value can be returned.
      */
     Sequence getSequence();
+
+    /**
+     * The sequence is not up-to-date with its underlying data.
+     * <p>
+     * If playback is stopped a new session should be created.
+     *
+     * @return
+     * @see PROP_DIRTY
+     */
+    boolean isDirty();
 
     /**
      * Get the state of this session.

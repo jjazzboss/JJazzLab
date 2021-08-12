@@ -41,7 +41,7 @@ import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.musiccontrol.ControlTrackBuilder;
+import org.jjazz.musiccontrol.api.ControlTrackBuilder;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import static org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.PROP_LOOP_COUNT;
 import static org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.PROP_MUTED_TRACKS;
@@ -59,20 +59,25 @@ import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
 
 /**
- * A full-featured session based on a SongContext.
+ * A base implementation of a PlaybackSession to render a SongContext.
  * <p>
- * The targetSession can take into account all settings of the PlaybackSettings instance.
+ * The session is a SongContextProvider and ControlTrackProvider.
  * <p>
- * This session is abstract because it does not listen to changes that could make it outdated: this must be done by the subclass.
+ * Once generated the session listens to: <br>
+ * - Song tempo changes, closing<br>
+ * - MidiMix channel mute changes<br>
+ * - PlaybackSettings Click and Loop changes<p>
+ * Use the provided subclasses for more advanced behaviors.
  */
-public abstract class SongSession implements PropertyChangeListener, PlaybackSession, PositionProvider, ChordSymbolProvider, SongContextProvider, EndOfPlaybackActionProvider
+public class BaseSongSession implements PropertyChangeListener, PlaybackSession, ControlTrackProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
 
     public static final int PLAYBACK_SETTINGS_LOOP_COUNT = -1298;
     private State state = State.NEW;
+    private boolean isDirty;
     private SongContext songContext;
     private Sequence sequence;
-    private List<Position> positions;
+    private List<Position> songPositions;
     private int playbackClickTrackId = -1;
     private int precountClickTrackId = -1;
     private int controlTrackId = -1;
@@ -80,22 +85,20 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
     private long loopEndTick = -1;
     private int loopCount = PLAYBACK_SETTINGS_LOOP_COUNT;
     private boolean isPlaybackTranspositionEnabled = true;
-    private boolean isClickTrackEnabled = true;
-    private boolean isPrecountTrackEnabled = true;
-    private boolean isControlTrackEnabled = true;
+    private boolean isClickTrackIncluded = true;
+    private boolean isPrecountTrackIncluded = true;
+    private boolean isControlTrackIncluded = true;
     private ActionListener endOfPlaybackAction;
     private ContextChordSequence contextChordSequence;
     private Map<RhythmVoice, Integer> mapRvTrackId;
     private Map<RhythmVoice, Phrase> mapRvPhrase;
     private Map<Integer, Boolean> mapTrackIdMuted;
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-    private static final Logger LOGGER = Logger.getLogger(SongSession.class.getSimpleName());  //NOI18N
+    private static final Logger LOGGER = Logger.getLogger(BaseSongSession.class.getSimpleName());  //NOI18N
 
     /**
-     * Create a targetSession with the specified parameters.
+     * Create a session with the specified parameters.
      * <p>
-     * Listen to the property changes of the context Song (tempo changes), Midimix (mute track changes), and the PlaybackSettings
-     * (click on/off changes).
      *
      * @param sgContext
      * @param enablePlaybackTransposition
@@ -105,7 +108,7 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
      * @param loopCount
      * @param endOfPlaybackAction
      */
-    protected SongSession(SongContext sgContext,
+    public BaseSongSession(SongContext sgContext,
             boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
             int loopCount,
             ActionListener endOfPlaybackAction)
@@ -116,9 +119,9 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
         }
         this.songContext = sgContext;
         this.isPlaybackTranspositionEnabled = enablePlaybackTransposition;
-        this.isClickTrackEnabled = enableClickTrack;
-        this.isPrecountTrackEnabled = enablePrecountTrack;
-        this.isControlTrackEnabled = enableControlTrack;
+        this.isClickTrackIncluded = enableClickTrack;
+        this.isPrecountTrackIncluded = enablePrecountTrack;
+        this.isControlTrackIncluded = enableControlTrack;
         this.loopCount = loopCount;
         this.endOfPlaybackAction = endOfPlaybackAction;
 
@@ -179,17 +182,18 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
 
 
         // Add the control track
-        if (isControlTrackEnabled())
+        if (isControlTrackIncluded)
         {
             ControlTrackBuilder ctm = new ControlTrackBuilder(workContext);
             controlTrackId = ctm.addControlTrack(sequence);
             mapTrackIdMuted.put(controlTrackId, false);
-            positions = ctm.getNaturalBeatPositions();
+            songPositions = ctm.getSongPositions();
+            contextChordSequence = ctm.getContextChordSequence();
         }
 
 
         // Add the playback click track
-        if (isClickTrackEnabled())
+        if (isClickTrackIncluded)
         {
             playbackClickTrackId = preparePlaybackClickTrack(sequence, workContext);
             mapTrackIdMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
@@ -197,7 +201,7 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
 
 
         // Add the click precount track - this must be done last because it might shift all song events      
-        if (isPrecountTrackEnabled())
+        if (isPrecountTrackIncluded)
         {
             loopStartTick = PlaybackSettings.getInstance().addPrecountClickTrack(sequence, workContext);
             precountClickTrackId = sequence.getTracks().length - 1;
@@ -212,13 +216,21 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
         rerouteDrumsChannels(sequence, workContext.getMidiMix());
 
 
-        // Build the context chord sequence 
-        contextChordSequence = new ContextChordSequence(workContext);
-
-
         // Change state
         setState(State.GENERATED);
 
+    }
+
+
+    /**
+     * We don't listen to any change on the underlying context data: always return false.
+     *
+     * @return
+     */
+    @Override
+    public synchronized boolean isDirty()
+    {
+        return isDirty;
     }
 
     @Override
@@ -254,23 +266,21 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
     @Override
     public long getTick(int barIndex)
     {
-        if (!state.equals(State.GENERATED))
+        long tick = -1;
+        if (state.equals(State.GENERATED))
         {
-            return -1;
-        }
-
-        long tick;
-        if (PlaybackSettings.getInstance().isClickPrecountEnabled() && barIndex == getBarRange().from)
-        {
-            // Precount is ON and pos is the first possible bar
-            tick = 0;
-        } else
-        {
-            // Precount if OFF or barIndex is not the first possible bar
-            tick = songContext.getRelativeTick(new Position(barIndex, 0));
-            if (tick != -1)
+            if (PlaybackSettings.getInstance().isClickPrecountEnabled() && barIndex == getBarRange().from)
             {
-                tick += loopStartTick;
+                // Precount is ON and pos is the first possible bar
+                tick = 0;
+            } else
+            {
+                // Precount if OFF or barIndex is not the first possible bar
+                tick = songContext.getRelativeTick(new Position(barIndex, 0));
+                if (tick != -1)
+                {
+                    tick += loopStartTick;
+                }
             }
         }
         return tick;
@@ -279,7 +289,7 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
     @Override
     public IntRange getBarRange()
     {
-        return state.equals(State.GENERATED) || state.equals(State.OUTDATED) ? songContext.getBarRange() : null;
+        return state.equals(State.GENERATED) ? songContext.getBarRange() : null;
     }
 
     /**
@@ -292,7 +302,7 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
     @Override
     public HashMap<Integer, Boolean> getTracksMuteStatus()
     {
-        return state.equals(State.GENERATED) || state.equals(State.OUTDATED) ? new HashMap<>(mapTrackIdMuted) : null;
+        return state.equals(State.GENERATED) ? new HashMap<>(mapTrackIdMuted) : null;
     }
 
     @Override
@@ -321,11 +331,11 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
      * If a song uses rhythms R1 and R2 and context is only on R2 bars, then the map only contains R2 rhythm voices and track id.
      * <p>
      *
-     * @return
+     * @return Null if no meaningful value can be returned.
      */
     public Map<RhythmVoice, Integer> getRvTrackIdMap()
     {
-        return new HashMap<>(mapRvTrackId);
+        return state.equals(State.GENERATED) ? new HashMap<>(mapRvTrackId) : null;
     }
 
 
@@ -333,11 +343,11 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
      * A map giving the resulting Phrase for each RhythmVoice, in the current context.
      * <p>
      *
-     * @return
+     * @return Null if no meaningful value can be returned.
      */
     public Map<RhythmVoice, Phrase> getRvPhraseMap()
     {
-        return new HashMap<>(mapRvPhrase);
+        return state.equals(State.GENERATED) ? new HashMap<>(mapRvPhrase) : null;
     }
 
     public boolean isPlaybackTranspositionEnabled()
@@ -345,21 +355,35 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
         return isPlaybackTranspositionEnabled;
     }
 
-    public boolean isClickTrackEnabled()
+    /**
+     * Get the click sequence track number.
+     *
+     * @return -1 if no click track
+     */
+    public int getClickTrackId()
     {
-        return isClickTrackEnabled;
+        return playbackClickTrackId;
+    }
+
+    /**
+     * Get the precount sequence track number.
+     *
+     * @return -1 if no precount track
+     */
+    public int getPrecountTrackId()
+    {
+        return precountClickTrackId;
     }
 
 
-    public boolean isPrecountTrackEnabled()
+    /**
+     * Get the control sequence track number.
+     *
+     * @return -1 if no control track
+     */
+    public int getControlTrackId()
     {
-        return isPrecountTrackEnabled;
-    }
-
-
-    public boolean isControlTrackEnabled()
-    {
-        return isControlTrackEnabled;
+        return controlTrackId;
     }
 
     // ==========================================================================================================
@@ -372,21 +396,18 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
     }
 
     // ==========================================================================================================
-    // PositionProvider implementation
+    // ControlTrackProvider implementation
     // ==========================================================================================================    
     @Override
-    public List<Position> getPositions()
+    public List<Position> getSongPositions()
     {
-        return state.equals(State.GENERATED) || state.equals(State.OUTDATED) ? positions : null;
+        return state.equals(State.GENERATED) ? songPositions : null;
     }
 
-    // ==========================================================================================================
-    // ChordSymbolProvider implementation
-    // ==========================================================================================================    
     @Override
     public ContextChordSequence getContextChordGetSequence()
     {
-        return state.equals(State.GENERATED) || state.equals(State.OUTDATED) ? contextChordSequence : null;
+        return state.equals(State.GENERATED) ? contextChordSequence : null;
     }
 
     // ==========================================================================================================
@@ -410,7 +431,7 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
             return;
         }
 
-        LOGGER.fine("propertyChange() e=" + e);
+        LOGGER.info("propertyChange() e=" + e);
 
         if (e.getSource() == songContext.getSong())
         {
@@ -476,11 +497,11 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
     @Override
     public String toString()
     {
-        return "SongContextSession=[state=" + state + ", " + songContext + "]";
+        return "SongSession=[state=" + state + ", " + songContext + "]";
     }
 
     // ==========================================================================================================
-    // Private methods
+    // Protected methods
     // ==========================================================================================================
     protected synchronized void setState(State newState)
     {
@@ -489,35 +510,43 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
         pcs.firePropertyChange(PROP_STATE, oldState, newState);
     }
 
+    /**
+     * Set as dirty and fire a change event.
+     * <p>
+     * For use by subclasses
+     */
+    protected synchronized void setDirty()
+    {
+        if (!isDirty)
+        {
+            isDirty = true;
+            pcs.firePropertyChange(PROP_DIRTY, false, true);
+        }
+    }
+
     protected void firePropertyChange(String propertyName, Object oldValue, Object newValue)
     {
         pcs.firePropertyChange(propertyName, oldValue, newValue);
     }
 
-    /**
-     *
-     * @param sequence
-     * @param mm
-     * @param sg
-     * @return The track id
-     */
-    private int preparePlaybackClickTrack(Sequence sequence, SongContext context)
+
+    protected int preparePlaybackClickTrack(Sequence sequence, SongContext context)
     {
         // Add the click track
         PlaybackSettings cm = PlaybackSettings.getInstance();
         int trackId = cm.addClickTrack(sequence, context);
         // Send a Drums program change if Click channel is not used in the current MidiMix
-        int clickChannel = PlaybackSettings.getInstance().getPreferredClickChannel();
-        if (context.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
-        {
-            //                Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
-            //                JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-            //                jms.sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(clickChannel));  // Might not send anything if default instrument is Void Instrument
-        }
+//        int clickChannel = PlaybackSettings.getInstance().getPreferredClickChannel();
+//        if (context.getMidiMix().getInstrumentMixFromChannel(clickChannel) == null)
+//        {
+        //                Instrument ins = DefaultInstruments.getInstance().getInstrument(RvType.Drums);
+        //                JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
+        //                jms.sendMidiMessagesOnJJazzMidiOut(ins.getMidiMessages(clickChannel));  // Might not send anything if default instrument is Void Instrument
+//        }
         return trackId;
     }
 
-    private void rerouteDrumsChannels(Sequence seq, MidiMix mm)
+    protected void rerouteDrumsChannels(Sequence seq, MidiMix mm)
     {
         List<Integer> toBeRerouted = mm.getDrumsReroutedChannels();
         MidiUtilities.rerouteShortMessages(seq, toBeRerouted, MidiConst.CHANNEL_DRUMS);
@@ -531,7 +560,7 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
      * @param transposition
      * @return
      */
-    private SongContext buildTransposedContext(SongContext context, int transposition)
+    protected SongContext buildTransposedContext(SongContext context, int transposition)
     {
 
         SongFactory sf = SongFactory.getInstance();
@@ -551,5 +580,8 @@ public abstract class SongSession implements PropertyChangeListener, PlaybackSes
         return res;
     }
 
+    // ==========================================================================================================
+    // Private methods
+    // ==========================================================================================================
 
 }

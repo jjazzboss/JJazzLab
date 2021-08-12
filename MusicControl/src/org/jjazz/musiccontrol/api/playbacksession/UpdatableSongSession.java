@@ -34,8 +34,11 @@ import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
+import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -44,15 +47,15 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.util.api.IntRange;
 
 /**
- * A PlaybackSession which is a wrapper for a SongSession to enable on-the-fly updates of the playing sequence using
- * {@link updateSequence(Map&lt;RhythmVoice,Phrase)&gt;}.
+ * A PlaybackSession which is a wrapper for a BaseSongSession to enable on-the-fly updates of the playing sequence using
+ * {@link updateSequence(Map&lt;RhythmVoice,Phrase&gt)}.
  * <p>
  * Authorized udpates are add/remove notes which do not change the Sequence size. The class uses buffer tracks and mute/unmute
  * tracks to enable on-the-fly sequence changes.
  * <p>
- * If the SongSession is an instance of UpdateProvider, listen to update availability and automatically apply the update.
+ * If the BaseSongSession is an instance of UpdateProvider, listen to update availability and automatically apply the update.
  */
-public class UpdatableSongSession implements PropertyChangeListener, PlaybackSession, PositionProvider, ChordSymbolProvider, SongContextProvider, EndOfPlaybackActionProvider
+public class UpdatableSongSession implements PropertyChangeListener, PlaybackSession, ControlTrackProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
 
     /**
@@ -78,18 +81,18 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     private int nbPlayingTracks;
     private Map<RhythmVoice, Phrase> currentMapRvPhrase;
     private TrackSet trackSet;         // Exclude track 0 
-    private final SongSession songSession;
+    private final BaseSongSession songSession;
     private Sequence sequence;
     private final HashMap<Integer, Boolean> mapTrackIdMuted = new HashMap<>();
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(UpdatableSongSession.class.getSimpleName());  //NOI18N
 
     /**
-     * Create an UpdatableSongSession to enable updates of the specified SongSession.
+     * Create an UpdatableSongSession to enable updates of the specified BaseSongSession.
      *
      * @param session If session is an UpdateProvider instance automatically apply the update.
      */
-    public UpdatableSongSession(SongSession session)
+    public UpdatableSongSession(BaseSongSession session)
     {
         if (session == null)
         {
@@ -105,7 +108,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     {
         songSession.generate(silent);
         sequence = songSession.getSequence();
-        originalTrackTickSize = sequence.getTickLength();
+        originalTrackTickSize = sequence.getTickLength();       // Possibly include precount leading bars
         nbPlayingTracks = sequence.getTracks().length;
         currentMapRvPhrase = new HashMap<>(songSession.getRvPhraseMap());
 
@@ -205,12 +208,26 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             }
 
 
+            // Pre-calculate the precount shift
+            long precountShift = 0;
+            if (songSession.getPrecountTrackId() != -1)
+            {
+                TimeSignature ts = songSession.getSongContext().getSongParts().get(0).getRhythm().getTimeSignature();
+                int nbPrecountBars = PlaybackSettings.getInstance().getClickPrecountNbBars(ts, songSession.getSongContext().getSong().getTempo());
+                precountShift = (long) Math.ceil(nbPrecountBars * ts.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION);
+            }
+
             // Clear and update the buffer track with the passed events
             int trackId = getOriginalRvTrackIdMap().get(rv);
             Track bufferTrack = trackSet.getBufferTrack(trackId);
             MidiUtilities.clearTrack(bufferTrack);
+
+
             for (MidiEvent me : newPhrase.toMidiEvents())
             {
+                // Adjust position if precount bars are used
+                me.setTick(me.getTick() + precountShift);
+
                 if (me.getTick() > originalTrackTickSize)
                 {
                     throw new IllegalArgumentException("me=" + MidiUtilities.toString(me.getMessage(), me.getTick()) + " originalTrackTickSize=" + originalTrackTickSize);
@@ -277,6 +294,12 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     public State getState()
     {
         return songSession.getState();
+    }
+
+    @Override
+    public boolean isDirty()
+    {
+        return songSession.isDirty();
     }
 
     @Override
@@ -352,17 +375,15 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     }
 
     // ==========================================================================================================
-    // PositionProvider implementation
+    // ControlTrackProvider implementation
     // ==========================================================================================================    
     @Override
-    public List<Position> getPositions()
+    public List<Position> getSongPositions()
     {
-        return songSession.getPositions();
+        return songSession.getSongPositions();
     }
 
-    // ==========================================================================================================
-    // ChordSymbolProvider implementation
-    // ==========================================================================================================    
+
     @Override
     public ContextChordSequence getContextChordGetSequence()
     {

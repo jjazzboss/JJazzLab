@@ -98,6 +98,8 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));   //NOI18N                                
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_ShowPlaybackTooltip"));
         putValue("hideActionText", true);
+        
+        
         // Listen to playbackState and position changes
         MusicController.getInstance().addPropertyChangeListener(this);
         MusicController.getInstance().addPlaybackListener(new PlaybackListenerAdapter()
@@ -117,8 +119,10 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                 }
             }
         });
+        
         // Listen to the Midi active song changes
         ActiveSongManager.getInstance().addPropertyListener(this);
+        
         // Listen to the current Song changes
         lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
         lookupResult.addLookupListener(this);

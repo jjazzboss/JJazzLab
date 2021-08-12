@@ -37,6 +37,14 @@ public interface PlaybackListener
 {
 
     /**
+     * The enable status has changed.
+     *
+     * @param b If false the MusicController is not able anymore to send events, except for the midiActivity which will continue
+     * to work.
+     */
+    void enabledChanged(boolean b);
+
+    /**
      * Called on each beat change.
      *
      * @param oldPos

@@ -229,6 +229,12 @@ public class TestPlayer
             return endAction;
         }
 
+        @Override
+        public boolean isDirty()
+        {
+            return false;
+        }
+
     }
 
 }
