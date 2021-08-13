@@ -210,9 +210,9 @@ public class SongContext
     /**
      * Get all the song parts which are contained in this context.
      * <p>
-     * See the contains() method.
      *
      * @return Can be empty.
+     * @see #contains(org.jjazz.songstructure.api.SongPart)
      */
     public List<SongPart> getSongParts()
     {
@@ -264,14 +264,14 @@ public class SongContext
     }
 
     /**
-     * Check is the specified spt has at least one bar in the range of this context.
+     * Check if the specified spt has at least one bar in the range of this context.
      *
      * @param spt
      * @return
      */
     public boolean contains(SongPart spt)
     {
-        return spt.getBarRange().contains(barRange);
+        return barRange.intersects(spt.getBarRange());
     }
 
     /**
