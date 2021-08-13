@@ -30,27 +30,9 @@ import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.activesong.api.ActiveSongManager;
-import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
-import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.leadsheet.chordleadsheet.api.event.SectionMovedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemAddedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemBarShiftedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemChangedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemMovedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.ItemRemovedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
-import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
-import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.songstructure.api.event.RpChangedEvent;
-import org.jjazz.songstructure.api.event.SptAddedEvent;
-import org.jjazz.songstructure.api.event.SptRemovedEvent;
-import org.jjazz.songstructure.api.event.SptRenamedEvent;
-import org.jjazz.songstructure.api.event.SptReplacedEvent;
-import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.song.api.Song;
 import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
@@ -66,7 +48,6 @@ import org.openide.util.LookupListener;
 import org.openide.util.Utilities;
 import org.openide.util.actions.BooleanStateAction;
 import org.openide.util.actions.Presenter;
-import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.util.api.ResUtil;
 
@@ -79,7 +60,7 @@ import org.jjazz.util.api.ResUtil;
         {
             // 
         })
-public class ShowPlaybackPoint extends BooleanStateAction implements PropertyChangeListener, LookupListener, Presenter.Toolbar, ClsChangeListener, SgsChangeListener
+public class ShowPlaybackPoint extends BooleanStateAction implements PropertyChangeListener, LookupListener, Presenter.Toolbar
 {
 
     private final Lookup.Result<Song> lookupResult;
@@ -87,7 +68,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
     private CL_Editor currentCL_Editor;
     private SS_Editor currentRL_Editor;
     private final Position newSgsPos = new Position();
-    private boolean songWasModifiedDuringPlayback;
+    private boolean playbackListenerDisabled;
     private static final Logger LOGGER = Logger.getLogger(ShowPlaybackPoint.class.getSimpleName());
 
     public ShowPlaybackPoint()
@@ -98,12 +79,21 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlaybackPointDisabled-24x24.png")));   //NOI18N                                
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_ShowPlaybackTooltip"));
         putValue("hideActionText", true);
-        
-        
+
+
         // Listen to playbackState and position changes
         MusicController.getInstance().addPropertyChangeListener(this);
         MusicController.getInstance().addPlaybackListener(new PlaybackListenerAdapter()
         {
+            @Override
+            public void enabledChanged(boolean b)
+            {
+                LOGGER.info("PlaybackListener.enabledChanged() -- b="+b);
+                playbackListenerDisabled = !b;
+                updateShowing();
+                updateEnabled();
+            }
+
             @Override
             public void beatChanged(final Position oldPos, final Position newPos)
             {
@@ -119,10 +109,10 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                 }
             }
         });
-        
+
         // Listen to the Midi active song changes
         ActiveSongManager.getInstance().addPropertyListener(this);
-        
+
         // Listen to the current Song changes
         lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
         lookupResult.addLookupListener(this);
@@ -147,13 +137,9 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
             {
                 // Listen to song close event
                 currentSong.removePropertyChangeListener(this);
-                currentSong.getChordLeadSheet().removeClsChangeListener(this);
-                currentSong.getSongStructure().removeSgsChangeListener(this);
             }
             currentSong = newSong;
             currentSong.addPropertyChangeListener(this);
-            currentSong.getChordLeadSheet().addClsChangeListener(this);
-            currentSong.getSongStructure().addSgsChangeListener(this);
             currentSongChanged();
         } else
         {
@@ -195,88 +181,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         return new FlatToggleButton(this);
     }
 
-    // ======================================================================
-    // ClsChangeListener interface
-    // ======================================================================  
-    @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event)
-    {
-        if (songWasModifiedDuringPlayback)
-        {
-            return;
-        }
-        if (event instanceof SizeChangedEvent)
-        {
-            songWasModifiedDuringPlayback = true;
-        } else if (event instanceof ItemAddedEvent)
-        {
-            songWasModifiedDuringPlayback = !(event.getItem() instanceof CLI_ChordSymbol);
-        } else if (event instanceof ItemRemovedEvent)
-        {
-            songWasModifiedDuringPlayback = !(event.getItem() instanceof CLI_ChordSymbol);
-        } else if (event instanceof ItemChangedEvent)
-        {
-            songWasModifiedDuringPlayback = !(event.getItem() instanceof CLI_ChordSymbol);
-        } else if (event instanceof ItemMovedEvent)
-        {
-            songWasModifiedDuringPlayback = !(event.getItem() instanceof CLI_ChordSymbol);
-        } else if (event instanceof SectionMovedEvent)
-        {
-            songWasModifiedDuringPlayback = true;
-        } else if (event instanceof ItemBarShiftedEvent)
-        {
-            songWasModifiedDuringPlayback = true;
-        }
-        updateShowing();
-        updateEnabled();
-    }
-
-    // ======================================================================
-    // SgsChangeListener interface
-    // ======================================================================  
-    @Override
-    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
-    public void songStructureChanged(SgsChangeEvent e)
-    {
-        if (songWasModifiedDuringPlayback)
-        {
-            return;
-        }
-        LOGGER.fine("songStructureChanged() e=" + e);   //NOI18N
-        if (e instanceof SptRemovedEvent)
-        {
-            songWasModifiedDuringPlayback = true;
-        } else if (e instanceof SptAddedEvent)
-        {
-            songWasModifiedDuringPlayback = true;
-        } else if (e instanceof SptReplacedEvent)
-        {
-            // Nothing
-        } else if (e instanceof SptResizedEvent)
-        {
-            songWasModifiedDuringPlayback = true;
-        } else if (e instanceof SptRenamedEvent)
-        {
-            // Nothing
-        } else if (e instanceof RpChangedEvent)
-        {
-            // Nothing
-        }
-        updateShowing();
-        updateEnabled();
-    }
-
+  
     // ======================================================================
     // PropertyChangeListener interface
     // ======================================================================   
@@ -286,20 +191,20 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_STATE)
+            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
             {
                 updateShowing();
                 updateEnabled();
             }
         } else if (evt.getSource() == ActiveSongManager.getInstance())
         {
-            if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
+            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
                 activeSongChanged();
             }
         } else if (evt.getSource() == currentSong)
         {
-            if (evt.getPropertyName() == Song.PROP_CLOSED)
+            if (evt.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 currentSongClosed();
             }
@@ -349,8 +254,6 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
             hidePlaybackPoint();
         }
         currentSong.removePropertyChangeListener(this);
-        currentSong.getChordLeadSheet().removeClsChangeListener(this);
-        currentSong.getSongStructure().removeSgsChangeListener(this);
         currentSong = null;
         currentSongChanged();
     }
@@ -372,7 +275,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         {
             case PLAYING:
             case PAUSED:
-                setEnabled(currentIsActive && !songWasModifiedDuringPlayback);
+                setEnabled(currentIsActive && !playbackListenerDisabled);
                 break;
             case STOPPED:
                 setEnabled(currentIsActive);
@@ -396,7 +299,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
     private void updateShowing()
     {
         MusicController.State state = MusicController.getInstance().getState();
-        if (songWasModifiedDuringPlayback)
+        if (playbackListenerDisabled)
         {
             switch (state)
             {
@@ -406,10 +309,10 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                     break;
                 case STOPPED:
                 case DISABLED:
-                    songWasModifiedDuringPlayback = false;
+                    playbackListenerDisabled = false;
                     break;
                 default:
-                    throw new IllegalStateException("state=" + state + " currentCL_Editor=" + currentCL_Editor + " songWasModified=" + songWasModifiedDuringPlayback + " isEnabled()=" + isEnabled() + " getBooleanState()=" + getBooleanState());   //NOI18N
+                    throw new IllegalStateException("state=" + state + " currentCL_Editor=" + currentCL_Editor + " songWasModified=" + playbackListenerDisabled + " isEnabled()=" + isEnabled() + " getBooleanState()=" + getBooleanState());   //NOI18N
             }
         } else
         {
@@ -433,7 +336,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
                     }
                     break;
                 default:
-                    throw new IllegalStateException("state=" + state + " currentCL_Editor=" + currentCL_Editor + " songWasModified=" + songWasModifiedDuringPlayback + " isEnabled()=" + isEnabled() + " getBooleanState()=" + getBooleanState());   //NOI18N
+                    throw new IllegalStateException("state=" + state + " currentCL_Editor=" + currentCL_Editor + " songWasModified=" + playbackListenerDisabled + " isEnabled()=" + isEnabled() + " getBooleanState()=" + getBooleanState());   //NOI18N
             }
         }
     }

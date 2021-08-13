@@ -39,7 +39,6 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
-import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -155,6 +154,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                 {
                     // Start playback from initial position
                     assert currentSong != null; // Otherwise button should be disabled   //NOI18N
+                    UpdatableSongSession session = null;
                     try
                     {
                         MidiMix midiMix = MidiMixManager.getInstance().findMix(currentSong);      // Can raise MidiUnavailableException
@@ -163,9 +163,10 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                         // Check that all listeners are OK to start playback     
                         PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
 
-                        
+
                         // Prepare the session
-                        UpdatableSongSession session = new UpdatableSongSession(DynamicSongSession.getSession(context));
+                        DynamicSongSession dynSession = DynamicSongSession.getSession(context);
+                        session = new UpdatableSongSession(dynSession);
                         if (session.getState().equals(PlaybackSession.State.NEW))
                         {
                             session.generate(false);
@@ -184,11 +185,17 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
 
                     } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
                     {
+                        if (session != null)
+                        {
+                            session.cleanup();
+                        }
+
                         if (ex.getLocalizedMessage() != null)
                         {
                             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
                             DialogDisplayer.getDefault().notify(d);
                         }
+
                         setBooleanState(!newState);
                         return;
                     }

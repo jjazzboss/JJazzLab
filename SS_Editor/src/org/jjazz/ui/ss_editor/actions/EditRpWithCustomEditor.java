@@ -34,7 +34,6 @@ import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
-import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;

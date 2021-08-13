@@ -25,6 +25,7 @@ package org.jjazz.songcontext.api;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
@@ -32,25 +33,26 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.LongRange;
 
 
 /**
- * Information to be used by a Rhythm to generate music for some bars of a Song with a related MidiMix.
+ * Collect various data about a Song context in order to facilitate music generation.
  * <p>
- * The class also provides convenient methods to extract song data (e.g. song parts) relevant to the context.
- * <p>
- * Note that a SongContext instance should be discarded if the Song or MidiMix changes, because the bar range might not be
- * compatible with the updated song.
+ * Note that a SongContext instance should be discarded if the Song changes, because some SongContext methods may return data not
+ * consistent anymore with the actual Song.
  */
 public class SongContext
 {
+
     private Song song;
     private MidiMix mix;
     private IntRange barRange;
+    private List<SongPart> songParts;
+    private FloatRange beatRange;
+    private LongRange tickRange;
 
     /**
      * Create a SongContext object for the whole song.
@@ -92,59 +94,25 @@ public class SongContext
         {
             this.barRange = bars;
         }
+        songParts = song.getSongStructure().getSongParts().stream()
+                .filter(spt -> contains(spt))
+                .collect(Collectors.toList());
+        beatRange = song.getSongStructure().getBeatRange(barRange);
+        tickRange = new LongRange((long) (beatRange.from * MidiConst.PPQ_RESOLUTION), (long) (beatRange.to * MidiConst.PPQ_RESOLUTION));
+
     }
 
     /**
-     * Create a SongContext which reuse mgc's Song and MidiMix, but with the specified range.
+     * Create a SongContext which reuse sgContext's Song and MidiMix, but with the specified range.
      *
-     * @param mgc
+     * @param sgContext
      * @param newRange
      */
-    public SongContext(SongContext mgc, IntRange newRange)
+    public SongContext(SongContext sgContext, IntRange newRange)
     {
-        this(mgc.getSong(), mgc.getMidiMix(), newRange);
+        this(sgContext.getSong(), sgContext.getMidiMix(), newRange);
     }
 
-    @Override
-    public int hashCode()
-    {
-        int hash = 5;
-        hash = 97 * hash + Objects.hashCode(this.song);
-        hash = 97 * hash + Objects.hashCode(this.mix);
-        hash = 97 * hash + Objects.hashCode(this.barRange);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (this == obj)
-        {
-            return true;
-        }
-        if (obj == null)
-        {
-            return false;
-        }
-        if (getClass() != obj.getClass())
-        {
-            return false;
-        }
-        final SongContext other = (SongContext) obj;
-        if (!Objects.equals(this.song, other.song))
-        {
-            return false;
-        }
-        if (!Objects.equals(this.mix, other.mix))
-        {
-            return false;
-        }
-        if (!Objects.equals(this.barRange, other.barRange))
-        {
-            return false;
-        }
-        return true;
-    }
 
     /**
      * Music should be produced for this song.
@@ -179,7 +147,7 @@ public class SongContext
     }
 
     /**
-     * Music should be produced only for this range of natural beats.
+     * The range (computed at the time of this object creation) for which music should be produced.
      * <p>
      * The range can start/end anywhere in the song (including in the middle of a song part). If getBarRange().from &gt; 0 then
      * getBeatRange().from is also &gt; 0.
@@ -188,12 +156,11 @@ public class SongContext
      */
     public FloatRange getBeatRange()
     {
-        SongStructure ss = song.getSongStructure();
-        return ss.getBeatRange(barRange);
+        return beatRange;
     }
 
     /**
-     * The tick range corresponding to getBarRange() or getBeatRange().
+     * The tick range (computed at the time of this object creation) corresponding to getBarRange() or getBeatRange().
      * <p>
      * The range can start/end anywhere in the song (including in the middle of a song part). If getBeatRange().from &gt; 0 then
      * getTickRange().from is also &gt; 0.
@@ -202,13 +169,11 @@ public class SongContext
      */
     public LongRange getTickRange()
     {
-        FloatRange fr = getBeatRange();
-        LongRange lr = new LongRange((long) (fr.from * MidiConst.PPQ_RESOLUTION), (long) (fr.to * MidiConst.PPQ_RESOLUTION));
-        return lr;
+        return tickRange;
     }
 
     /**
-     * Get all the song parts which are contained in this context.
+     * Get all the song parts (at the time of this object creation) which are contained in this context.
      * <p>
      *
      * @return Can be empty.
@@ -216,19 +181,13 @@ public class SongContext
      */
     public List<SongPart> getSongParts()
     {
-        ArrayList<SongPart> res = new ArrayList<>();
-        for (SongPart spt : song.getSongStructure().getSongParts())
-        {
-            if (contains(spt))
-            {
-                res.add(spt);
-            }
-        }
-        return res;
+        return songParts;
     }
 
     /**
-     * Get the Range of bars of spt belonging to this context.
+     * Get the bar range of the specified SongPart in this context.
+     * <p>
+     * Note that a SongPart may be partially in the context bar range.
      *
      * @param spt
      * @return Can be the EMPTY_RANGE if spt is not part of this context.
@@ -386,6 +345,47 @@ public class SongContext
             tick -= getTickRange().from;
         }
         return tick;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = 5;
+        hash = 97 * hash + Objects.hashCode(this.song);
+        hash = 97 * hash + Objects.hashCode(this.mix);
+        hash = 97 * hash + Objects.hashCode(this.barRange);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final SongContext other = (SongContext) obj;
+        if (!Objects.equals(this.song, other.song))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.mix, other.mix))
+        {
+            return false;
+        }
+        if (!Objects.equals(this.barRange, other.barRange))
+        {
+            return false;
+        }
+        return true;
     }
 
     @Override

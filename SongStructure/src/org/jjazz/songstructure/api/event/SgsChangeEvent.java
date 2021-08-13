@@ -72,7 +72,7 @@ public class SgsChangeEvent
 
     /**
      *
-     * @return A list of SongParts changed ordered by startBarIndex (lowest first)
+     * @return A list of SongParts ordered by startBarIndex (lowest first)
      */
     public List<SongPart> getSongParts()
     {

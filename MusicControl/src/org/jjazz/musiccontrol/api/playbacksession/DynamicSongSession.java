@@ -77,6 +77,7 @@ import org.openide.util.Exceptions;
  * prevent any future update.
  *
  * @todo Check drumsrerouting changes impact on updates
+ * @todo RP Tempo factor => need update of track0 SongSequenceBuilder buildSequence
  */
 public class DynamicSongSession extends BaseSongSession implements UpdatableSongSession.UpdateProvider, SgsChangeListener, ClsChangeListener
 {
@@ -271,7 +272,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     {
         // NOTE: model changes can be generated outside the EDT!
 
-        if (!getState().equals(PlaybackSession.State.GENERATED))
+        if (!getState().equals(PlaybackSession.State.GENERATED) || !isUpdatable)
         {
             return;
         }
@@ -337,15 +338,12 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
 
         LOGGER.info("chordLeadSheetChanged()  => disableUpdates=" + disableUpdates + " update=" + update);
 
-        if (isUpdatable)
+        if (disableUpdates)
         {
-            if (disableUpdates)
-            {
-                disableUpdates();
-            } else if (update)
-            {
-                prepareUpdate(true);    // Chord symbols have changed, control track is impacted
-            }
+            disableUpdates();
+        } else if (update)
+        {
+            prepareUpdate(true);    // Chord symbols have changed, control track is impacted
         }
 
     }
@@ -365,54 +363,60 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     {
         // NOTE: model changes can be generated outside the EDT!        
 
-        if (!getState().equals(PlaybackSession.State.GENERATED))
+        if (!getState().equals(PlaybackSession.State.GENERATED) || !isUpdatable)
         {
             return;
         }
 
         LOGGER.info("songStructureChanged()  -- e=" + e);
 
+
         boolean disableUpdates = false;
         boolean update = false;
 
-        List<SongPart> contextSpts = getSongContext().getSongParts();
+        // Context song parts (at the time of the SongContext object creation)
+        List<SongPart> contextSongParts = getSongContext().getSongParts();
 
-        if (e instanceof SptRemovedEvent || e instanceof SptAddedEvent)
+
+        if ((e instanceof SptRemovedEvent)
+                || (e instanceof SptAddedEvent))
         {
+            // Ok only if removed spt is after our context
             disableUpdates = e.getSongParts().stream()
-                    .anyMatch(spt -> contextSpts.contains(spt));
-
+                    .anyMatch(spt -> spt.getStartBarIndex() <= getSongContext().getBarRange().to);
+            
         } else if (e instanceof SptReplacedEvent)
         {
+            // Ok if replaced spt is not in the context
             SptReplacedEvent re = (SptReplacedEvent) e;
             disableUpdates = re.getSongParts().stream()
-                    .anyMatch(spt -> contextSpts.contains(spt));
+                    .anyMatch(spt -> contextSongParts.contains(spt));
 
         } else if (e instanceof SptResizedEvent)
         {
+            // Ok if replaced spt is not in the context
             SptResizedEvent re = (SptResizedEvent) e;
             disableUpdates = re.getMapOldSptSize().getKeys().stream()
-                    .anyMatch(spt -> contextSpts.contains(spt));
+                    .anyMatch(spt -> contextSongParts.contains(spt));
 
         } else if (e instanceof SptRenamedEvent)
         {
             // Nothing
         } else if (e instanceof RpChangedEvent)
         {
-            update = contextSpts.contains(e.getSongPart());
+            // Update if updated RP is for a context SongPart
+            update = contextSongParts.contains(e.getSongPart());
         }
 
-        LOGGER.info("songStructureChanged()  => dirty=" + disableUpdates + " update=" + update);
+        LOGGER.info("songStructureChanged()  => disableUpdates=" + disableUpdates + " update=" + update);
 
-        if (isUpdatable)
+
+        if (disableUpdates)
         {
-            if (disableUpdates)
-            {
-                disableUpdates();
-            } else if (update)
-            {
-                prepareUpdate(false);
-            }
+            disableUpdates();
+        } else if (update)
+        {
+            prepareUpdate(false);
         }
 
     }
@@ -458,6 +462,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             mapRvPhrases = sgBuilder.buildMapRvPhrase(true);
         } catch (MusicGenerationException ex)
         {
+            // TODO improve this!
             Exceptions.printStackTrace(ex);
             return;
         }
@@ -500,7 +505,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             firePropertyChange(ControlTrackProvider.PROP_DISABLED, false, true);
         }
     }
-
+    
     /**
      * Find an identical existing session in state NEW or GENERATED.
      *
@@ -519,7 +524,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                     && enableClickTrack == (session.getClickTrackId() != -1)
                     && enablePrecount == (session.getPrecountTrackId() != -1)
                     && enableControlTrack == (session.getControlTrackId() != -1)
-                    && loopCount == session.getLoopCount()
+                    && loopCount == session.loopCount      // Do NOT use getLoopCount(), because of PLAYBACK_SETTINGS_LOOP_COUNT handling
                     && endOfPlaybackAction == session.getEndOfPlaybackAction())
             {
                 return session;

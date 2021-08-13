@@ -292,6 +292,7 @@ public class NoteEvent extends Note implements Cloneable
             return false;
         }
         NoteEvent ne = (NoteEvent) o;
+        
         return ne.position == position && super.equals(o);
     }
 

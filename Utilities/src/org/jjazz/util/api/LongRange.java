@@ -41,7 +41,7 @@ public class LongRange
      * A range representing [from; to].
      *
      * @param from Must be &gt;= 0
-     * @param to   Must be &gt;= from
+     * @param to Must be &gt;= from
      */
     public LongRange(long from, long to)
     {
@@ -81,12 +81,24 @@ public class LongRange
 
     /**
      *
+     * Check if specified range is contained in this range.
+     *
      * @param r
-     * @return Can return the EMPTY_LONG_RANGE if no intersection.
+     * @return
+     */
+    public boolean contains(LongRange r)
+    {
+        return r != EMPTY_LONG_RANGE && contains(r.from) && contains(r.to);
+    }
+
+    /**
+     *
+     * @param r
+     * @return Return the EMPTY_LONG_RANGE if no intersection.
      */
     public LongRange getIntersectRange(LongRange r)
     {
-        if (!intersect(r))
+        if (!intersects(r))
         {
             return EMPTY_LONG_RANGE;
         }
@@ -95,10 +107,39 @@ public class LongRange
         return new LongRange(maxFrom, minTo);
     }
 
-    public boolean intersect(LongRange r)
+    /**
+     * Check if specified range intersects with this range.
+     * <p>
+     * Note: [2;4] and [4;7] intersects.
+     *
+     * @param r
+     * @return
+     */
+    public boolean intersects(LongRange r)
     {
         return !(this == EMPTY_LONG_RANGE || r == EMPTY_LONG_RANGE || r.from > to || from > r.to);
     }
+
+    /**
+     * Get a new range with bounds modified.
+     * <p>
+     * If this object is the the empty range, just return the empty range.
+     *
+     * @param fromOffset
+     * @param toOffset
+     * @return
+     */
+    public LongRange getTransformed(long fromOffset, long toOffset)
+    {
+        if (isEmpty())
+        {
+            return this;
+        } else
+        {
+            return new LongRange(from + fromOffset, to + toOffset);
+        }
+    }
+
 
     @Override
     public String toString()

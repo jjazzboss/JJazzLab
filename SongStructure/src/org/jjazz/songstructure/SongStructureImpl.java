@@ -155,7 +155,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         if (rg == null)
         {
             rg = songRange;
-        } else if (!rg.contains(songRange))
+        } else if (!songRange.contains(rg))
         {
             return FloatRange.EMPTY_FLOAT_RANGE;
         }

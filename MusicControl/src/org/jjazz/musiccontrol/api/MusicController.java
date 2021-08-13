@@ -220,7 +220,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             sequencerLockHolder = lockHolder;
 
 
-            clearPlaybackSession();
+            cleanUpPlaybackSession();
 
 
             // Remove the MusicController listeners
@@ -327,15 +327,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
         // Update playbackSession
-        if (playbackSession == session)
+        if (session.equals(playbackSession))
         {
             // Nothing
         } else
         {
             if (playbackSession != null)
             {
-                playbackSession.removePropertyChangeListener(this);
-                playbackSession.cleanup();
+                cleanUpPlaybackSession();
             }
             playbackSession = session;
             playbackSession.addPropertyChangeListener(this);
@@ -350,7 +349,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         } catch (InvalidMidiDataException ex)
         {
-            clearPlaybackSession();
+            cleanUpPlaybackSession();
             throw new MusicGenerationException(ex.getLocalizedMessage());
         }
 
@@ -640,7 +639,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             // This method  is called from the Sequencer thread, NOT from the EDT !
             // So if this method impacts the UI, it must use SwingUtilities.InvokeLater() (or InvokeAndWait())
-            LOGGER.fine("Sequence end reached");  //NOI18N        
+            LOGGER.info("Sequence end reached");  //NOI18N        
             SwingUtilities.invokeLater(() -> stop());
 
         } else if (meta.getType() == 6)     // Marker
@@ -719,7 +718,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                         break;
                     case CLOSED:
                         stop();
-                        clearPlaybackSession();
+                        cleanUpPlaybackSession();
                         break;
                     default:
                         throw new AssertionError(playbackSession.getState().name());
@@ -727,7 +726,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 }
             } else if (e.getPropertyName().equals(PlaybackSession.PROP_DIRTY))
             {
-                stop();
+                if (state.equals(State.PAUSED))
+                {
+                    stop();
+                }
 
             } else if (e.getPropertyName().equals(PlaybackSession.PROP_TEMPO))
             {
@@ -736,7 +738,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             } else if (e.getPropertyName().equals(PlaybackSession.PROP_MUTED_TRACKS))
             {
                 updateTracksMuteStatus();
-                
+
             } else if (e.getPropertyName().equals(PlaybackSession.PROP_LOOP_COUNT))
             {
                 if (!state.equals(State.DISABLED))
@@ -744,7 +746,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                     int lc = (Integer) e.getNewValue();
                     sequencer.setLoopCount(lc);
                 }
-                
+
             } else if (e.getPropertyName().equals(ControlTrackProvider.PROP_DISABLED))
             {
                 firePlaybackListenerEnabledChanged(false);
@@ -752,14 +754,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
     }
 
-    private void clearPlaybackSession()
-    {
-        if (playbackSession != null)
-        {
-            playbackSession.cleanup();
-        }
-        playbackSession = null;
-    }
 
     // =====================================================================================
     // Private methods
@@ -1021,6 +1015,16 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         if (beat == 0)
         {
             fireBarChanged(oldPos.getBar(), bar);
+        }
+    }
+
+    private void cleanUpPlaybackSession()
+    {
+        if (playbackSession != null)
+        {
+            playbackSession.removePropertyChangeListener(this);
+            playbackSession.cleanup();
+            playbackSession = null;
         }
     }
 

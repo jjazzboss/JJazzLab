@@ -126,7 +126,7 @@ public class MidiUtilities
     }
 
     /**
-     * Remove all MidiEvents from a track.
+     * Remove all MidiEvents from a track, but leave the End Of Track MetaEvent unchanged.
      *
      * @param track
      */
@@ -136,6 +136,11 @@ public class MidiUtilities
         for (int i = last; i >= 0; i--)
         {
             MidiEvent me = track.get(i);
+            MidiMessage mm = me.getMessage();
+            if ((mm instanceof MetaMessage) && ((MetaMessage) mm).getType() == MidiConst.META_END_OF_TRACK)
+            {
+                continue;
+            }
             track.remove(me);
         }
     }
@@ -1076,7 +1081,7 @@ public class MidiUtilities
     public static boolean setEndOfTrackPosition(Track t, long tick)
     {
         boolean res = false;
-        assert tick >= 0 && t != null && t.size() > 0 : "t=" + t + " tick=" + tick;   //NOI18N
+        assert tick >= 0 && t != null && t.size() > 0 : "t=" + t + " t.size()=" + t.size() + " tick=" + tick;   //NOI18N
         MidiEvent me = t.get(t.size() - 1);
         MidiMessage mm = me.getMessage();
         if ((mm instanceof MetaMessage) && ((MetaMessage) mm).getType() == MidiConst.META_END_OF_TRACK)

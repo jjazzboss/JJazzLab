@@ -267,6 +267,17 @@ public class Utilities
     }
 
     /**
+     * Get a control-sfhit key KeyStroke which works on all OSes: Win, Linux AND Mac OSX.
+     *
+     * @param keyEventCode A KeyEvent constant like KeyEvent.VK_M (for ctrl-M)
+     * @return
+     */
+    public static KeyStroke getGenericControlShiftKeyStroke(int keyEventCode)
+    {
+        return KeyStroke.getKeyStroke(keyEventCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK);
+    }
+
+    /**
      * Get a control-shift key KeyStroke which works on all OSes: Win, Linux AND Mac OSX.
      *
      * @param keyEventCode A KeyEvent constant like KeyEvent.VK_M (for ctrl-shift-M)

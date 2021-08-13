@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
@@ -98,8 +99,16 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         {
             throw new IllegalArgumentException("session=" + session);
         }
+
+
         songSession = session;
         songSession.addPropertyChangeListener(this);
+
+
+        if (songSession.getState().equals(State.GENERATED))
+        {
+            prepareData();
+        }
     }
 
 
@@ -107,31 +116,10 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     public void generate(boolean silent) throws MusicGenerationException
     {
         songSession.generate(silent);
-        sequence = songSession.getSequence();
-        originalTrackTickSize = sequence.getTickLength();       // Possibly include precount leading bars
-        nbPlayingTracks = sequence.getTracks().length;
-        currentMapRvPhrase = new HashMap<>(songSession.getRvPhraseMap());
 
-
-        // Create the trackset to manage double-buffering at track level
-        var originalMapIdMuted = songSession.getTracksMuteStatus(); // Track 0 is not included, but may contain click/precount/control tracks
-        trackSet = new TrackSet(sequence);
-        originalMapIdMuted.keySet().forEach(trackId -> trackSet.addTrack(trackId));
-
-
-        // Initialize our own tracks mute state
-        for (int trackId : originalMapIdMuted.keySet())
-        {
-            mapTrackIdMuted.put(trackId, originalMapIdMuted.get(trackId));
-            mapTrackIdMuted.put(trackSet.getBufferTrackId(trackId), true);         // buffer track is muted
-        }
-
-
-//        LOGGER.info("generate() mapTrackIdMuted=" + mapTrackIdMuted);
-//        LOGGER.info("generate() mapRvTrackId=" + songContextSession.getRvTrackIdMap());
-//        LOGGER.info("generate() trackSet=" + trackSet.toString());
-//        LOGGER.info(" Original sequence=" + MidiUtilities.toString(sequence));
+        prepareData();
     }
+
 
     /**
      * Get the sequence which contains the original song tracks plus additional empty tracks to allow "double buffering
@@ -182,7 +170,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      */
     public void updateSequence(Map<RhythmVoice, Phrase> newMapRvPhrase)
     {
-//        LOGGER.info("updateSequence() ---- newMapRvPhrase.keySet()=" + newMapRvPhrase.keySet());
+        LOGGER.info("updateSequence() ---- newMapRvPhrase.keySet()=" + newMapRvPhrase.keySet());
 
         if (!getState().equals(PlaybackSession.State.GENERATED))
         {
@@ -194,16 +182,20 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         for (RhythmVoice rv : newMapRvPhrase.keySet())
         {
             var newPhrase = newMapRvPhrase.get(rv);
+            var oldPhrase = currentMapRvPhrase.get(rv);
+//            LOGGER.info("   rv="+rv);
+//            LOGGER.info("     oldPhrase="+oldPhrase);
+//            LOGGER.info("     newPhrase="+newPhrase);
 
 
-            if (currentMapRvPhrase.get(rv).equals(newPhrase))
+            if (oldPhrase.equals(newPhrase))
             {
                 // No change do nothing
                 continue;
             } else
             {
                 // Replace the current events
-//                LOGGER.info("updateSequence()     changes detected for rv=" + rv + ", updating");
+                LOGGER.info("updateSequence()     changes detected for rv=" + rv + ", updating");
                 currentMapRvPhrase.put(rv, newPhrase);
             }
 
@@ -365,6 +357,49 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         pcs.removePropertyChangeListener(l);
     }
 
+
+    /**
+     * Overridden to do the equals only on the underlying BaseSongSession.
+     *
+     * @param obj
+     * @return
+     */
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final UpdatableSongSession other = (UpdatableSongSession) obj;
+        if (!Objects.equals(this.songSession, other.songSession))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Overridden to do the hash only on the underlying BaseSongSession.
+     *
+     * @return
+     */
+    @Override
+    public int hashCode()
+    {
+        int hash = 3;
+        hash = 59 * hash + Objects.hashCode(this.songSession);
+        return hash;
+    }
+
     // ==========================================================================================================
     // SongContextProvider implementation
     // ==========================================================================================================    
@@ -457,6 +492,38 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     // ==========================================================================================================
     // Private methods
     // ==========================================================================================================
+
+    /**
+     * Save data from the original session and prepare the trackSet for future updates.
+     */
+    private void prepareData()
+    {
+
+        sequence = songSession.getSequence();
+        originalTrackTickSize = sequence.getTickLength();       // Possibly include precount leading bars
+        nbPlayingTracks = sequence.getTracks().length;
+        currentMapRvPhrase = songSession.getRvPhraseMap();
+
+
+        // Create the trackset to manage double-buffering at track level
+        var originalMapIdMuted = songSession.getTracksMuteStatus(); // Track 0 is not included, but may contain click/precount/control tracks
+        trackSet = new TrackSet(sequence);
+        originalMapIdMuted.keySet().forEach(trackId -> trackSet.addTrack(trackId));
+
+
+        // Initialize our own tracks mute state
+        for (int trackId : originalMapIdMuted.keySet())
+        {
+            mapTrackIdMuted.put(trackId, originalMapIdMuted.get(trackId));
+            mapTrackIdMuted.put(trackSet.getBufferTrackId(trackId), true);         // buffer track is muted
+        }
+
+
+//        LOGGER.info("generate() mapTrackIdMuted=" + mapTrackIdMuted);
+//        LOGGER.info("generate() mapRvTrackId=" + songContextSession.getRvTrackIdMap());
+//        LOGGER.info("generate() trackSet=" + trackSet.toString());
+//        LOGGER.info(" Original sequence=" + MidiUtilities.toString(sequence));
+    }
 
     // ==========================================================================================================
     // Inner classes

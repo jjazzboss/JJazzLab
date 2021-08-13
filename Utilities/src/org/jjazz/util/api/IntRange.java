@@ -88,8 +88,38 @@ public class IntRange
      */
     public boolean contains(IntRange r)
     {
+        return r != EMPTY_RANGE && contains(r.from) && contains(r.to);
+    }
+
+    /**
+     *
+     * @param r
+     * @return Can return the EMPTY_RANGE if no intersection.
+     */
+    public IntRange getIntersectRange(IntRange r)
+    {
+        if (!intersects(r))
+        {
+            return EMPTY_RANGE;
+        }
+        int maxFrom = Math.max(from, r.from);
+        int minTo = Math.min(to, r.to);
+        return new IntRange(maxFrom, minTo);
+    }
+
+    /**
+     * Check if specified range intersects with this range.
+     * <p>
+     * Note: [2;4] and [4;7] intersects.
+     *
+     * @param r
+     * @return
+     */
+    public boolean intersects(IntRange r)
+    {
         return !(this == EMPTY_RANGE || r == EMPTY_RANGE || r.from > to || from > r.to);
     }
+
 
     /**
      * Get a new range with bounds modified.
@@ -109,22 +139,6 @@ public class IntRange
         {
             return new IntRange(from + fromOffset, to + toOffset);
         }
-    }
-
-    /**
-     *
-     * @param r
-     * @return Can return the EMPTY_RANGE if no intersection.
-     */
-    public IntRange getIntersectRange(IntRange r)
-    {
-        if (!contains(r))
-        {
-            return EMPTY_RANGE;
-        }
-        int maxFrom = Math.max(from, r.from);
-        int minTo = Math.min(to, r.to);
-        return new IntRange(maxFrom, minTo);
     }
 
 

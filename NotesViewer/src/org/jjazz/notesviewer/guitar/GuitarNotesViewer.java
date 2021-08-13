@@ -90,9 +90,12 @@ public class GuitarNotesViewer implements NotesViewer
         {
             throw new NullPointerException("mode");
         }
-        this.mode = mode;
-        releaseAllNotes();
-        component.setMode(mode);
+        if (!this.mode.equals(mode))
+        {
+            this.mode = mode;
+            releaseAllNotes();
+            component.setMode(mode);
+        }
     }
 
     @Override

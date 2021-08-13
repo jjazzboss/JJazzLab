@@ -83,7 +83,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     private int controlTrackId = -1;
     private long loopStartTick = 0;
     private long loopEndTick = -1;
-    private int loopCount = PLAYBACK_SETTINGS_LOOP_COUNT;
+    protected int loopCount = PLAYBACK_SETTINGS_LOOP_COUNT;         // Need to be accessible from subclass, because of getLoopCount() implementation
     private boolean isPlaybackTranspositionEnabled = true;
     private boolean isClickTrackIncluded = true;
     private boolean isPrecountTrackIncluded = true;
@@ -431,7 +431,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
             return;
         }
 
-        LOGGER.info("propertyChange() e=" + e);
+        LOGGER.fine("propertyChange() e=" + e);
 
         if (e.getSource() == songContext.getSong())
         {
@@ -441,7 +441,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
             } else if (e.getPropertyName().equals(Song.PROP_CLOSED))
             {
-                setState(State.CLOSED);
+                closeSession();
             }
         } else if (e.getSource() == songContext.getMidiMix())
         {
@@ -583,5 +583,11 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     // ==========================================================================================================
     // Private methods
     // ==========================================================================================================
+
+    private void closeSession()
+    {
+        cleanup();        
+        setState(State.CLOSED);
+    }
 
 }

@@ -100,7 +100,7 @@ public class FloatRange
         {
             return false;
         }
-        return fr.from >= from && (excludeUpperBound ? fr.to < to : fr.from <= to);
+        return fr.from >= from && (excludeUpperBound ? fr.to < to : fr.to <= to);
     }
 
     /**
@@ -110,13 +110,26 @@ public class FloatRange
      */
     public FloatRange getIntersectRange(FloatRange rg)
     {
-        if (!intersect(rg))
+        if (!intersects(rg))
         {
             return EMPTY_FLOAT_RANGE;
         }
         float maxFrom = Math.max(from, rg.from);
         float minTo = Math.min(to, rg.to);
         return new FloatRange(maxFrom, minTo);
+    }
+
+    /**
+     * Check if specified range intersects with this range.
+     * <p>
+     * Note: [2;4] and [4;7] does NOT intersect.
+     *
+     * @param rg
+     * @return
+     */
+    public boolean intersects(FloatRange rg)
+    {
+        return !(this == EMPTY_FLOAT_RANGE || rg == EMPTY_FLOAT_RANGE || rg.from >= to || from >= rg.to);
     }
 
     /**
@@ -137,10 +150,6 @@ public class FloatRange
         return new FloatRange(from + fromOffset, to + toOffset);
     }
 
-    public boolean intersect(FloatRange rg)
-    {
-        return !(this == EMPTY_FLOAT_RANGE || rg == EMPTY_FLOAT_RANGE || rg.from >= to || from >= rg.to);
-    }
 
     @Override
     public String toString()

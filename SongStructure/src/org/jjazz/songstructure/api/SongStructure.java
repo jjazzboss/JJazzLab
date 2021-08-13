@@ -164,10 +164,10 @@ public interface SongStructure
     /**
      * Convert the specified bar range into a natural beat range.
      * <p>
-     * The method must take into account song with possibly different time signatures.
+     * The method must take into account SongParts with possibly different time signatures.
      *
      * @param barRange If null use the whole song structure.
-     * @return
+     * @return Can be an empty range if barRange is not contained in the song structure.
      */
     public FloatRange getBeatRange(IntRange barRange);
 
