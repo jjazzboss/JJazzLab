@@ -77,6 +77,26 @@ public class SongSequenceBuilder
         public Map<RhythmVoice, Phrase> mapRvPhrase;
     }
 
+    static public class MissingStartChordException extends MusicGenerationException
+    {
+
+        public MissingStartChordException(String msg)
+        {
+            super(msg);
+        }
+
+    }
+
+    static public class ChordsAtSamePositionException extends MusicGenerationException
+    {
+
+        public ChordsAtSamePositionException(String msg)
+        {
+            super(msg);
+        }
+
+    }
+
 
     private SongContext songContext;
 
@@ -374,7 +394,7 @@ public class SongSequenceBuilder
             List<? extends CLI_ChordSymbol> clis = cls.getItems(section, CLI_ChordSymbol.class);
             if (clis.isEmpty() || !clis.get(0).getPosition().equals(pos))
             {
-                throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_MissingChordSymbolAtSection", section.getData().getName(), (pos.getBar() + 1)));
+                throw new MissingStartChordException(ResUtil.getString(getClass(), "ERR_MissingChordSymbolAtSection", section.getData().getName(), (pos.getBar() + 1)));
             }
         }
     }
@@ -398,7 +418,7 @@ public class SongSequenceBuilder
                 sb.append(cliCs.getData().toString()).append(cliCs.getPosition().toUserString());
                 sb.append(" - ");
                 sb.append(existingCliCs.getData().toString()).append(existingCliCs.getPosition().toUserString());
-                throw new MusicGenerationException(sb.toString());
+                throw new ChordsAtSamePositionException(sb.toString());
             } else
             {
                 mapPosCs.put(pos, cliCs);

@@ -28,6 +28,14 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -62,6 +70,9 @@ import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRenamedEvent;
 import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
+import org.jjazz.util.api.Utilities;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
 
 /**
@@ -384,7 +395,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             // Ok only if removed spt is after our context
             disableUpdates = e.getSongParts().stream()
                     .anyMatch(spt -> spt.getStartBarIndex() <= getSongContext().getBarRange().to);
-            
+
         } else if (e instanceof SptReplacedEvent)
         {
             // Ok if replaced spt is not in the context
@@ -444,26 +455,6 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         LOGGER.info("prepareUpdate() -- ");
         if (!getState().equals(State.GENERATED))
         {
-            LOGGER.info("prepareUpdate()   => ignored because state=" + getState());
-            return;
-        }
-
-        SongContext workContext = getSongContext();
-        int t = PlaybackSettings.getInstance().getPlaybackKeyTransposition();
-        if (isPlaybackTranspositionEnabled() && t != 0)
-        {
-            workContext = buildTransposedContext(getSongContext(), t);
-        }
-
-        // Recompute the RhythmVoice phrases
-        SongSequenceBuilder sgBuilder = new SongSequenceBuilder(workContext);
-        try
-        {
-            mapRvPhrases = sgBuilder.buildMapRvPhrase(true);
-        } catch (MusicGenerationException ex)
-        {
-            // TODO improve this!
-            Exceptions.printStackTrace(ex);
             return;
         }
 
@@ -472,8 +463,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
 //        Control track if chord symbol have changed!!
         LOGGER.info("prepareUpdate()   => done, notifying...");
 
-        // Notify listeners, probably an UpdatableSongSession
-        firePropertyChange(UpdatableSongSession.UpdateProvider.PROP_UPDATE_AVAILABLE, false, true);
+
     }
 
 
@@ -505,7 +495,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             firePropertyChange(ControlTrackProvider.PROP_DISABLED, false, true);
         }
     }
-    
+
     /**
      * Find an identical existing session in state NEW or GENERATED.
      *
@@ -524,7 +514,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                     && enableClickTrack == (session.getClickTrackId() != -1)
                     && enablePrecount == (session.getPrecountTrackId() != -1)
                     && enableControlTrack == (session.getControlTrackId() != -1)
-                    && loopCount == session.loopCount      // Do NOT use getLoopCount(), because of PLAYBACK_SETTINGS_LOOP_COUNT handling
+                    && loopCount == session.loopCount // Do NOT use getLoopCount(), because of PLAYBACK_SETTINGS_LOOP_COUNT handling
                     && endOfPlaybackAction == session.getEndOfPlaybackAction())
             {
                 return session;
@@ -537,6 +527,194 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     // ==========================================================================================================
     // Inner classes
     // ==========================================================================================================
+    /**
+     * A thread to handle incoming update requests and start one music generation task at a time.
+     * <p>
+     * A user action can trigger several consecutive update requests, so buffer them to update only with the last one.
+     * <p>
+     */
+    private class UpdateRequestsHandler implements Runnable
+    {
+        private Queue<SongContext> queue;
+        private ExecutorService executorService;
+        private ExecutorService generationExecutorService;
+        private Future<?> generationFuture;
+        private int bufferTimeMs;
+        private volatile boolean running;
+
+        /**
+         * Create the handler.
+         *
+         * @param queue
+         * @param bufferTimeMs (milliseconds) Wait this time upon receiving the first request before starting the music generation
+         * task.
+         */
+        public UpdateRequestsHandler(Queue<SongContext> queue, int bufferTimeMs)
+        {
+            this.queue = queue;
+            this.bufferTimeMs = bufferTimeMs;
+        }
+
+        public void start()
+        {
+            if (!running)
+            {
+                running = true;
+                executorService = Executors.newSingleThreadExecutor();
+                executorService.submit(this);
+                generationExecutorService = Executors.newSingleThreadExecutor();
+            }
+        }
+
+        public void stop()
+        {
+            if (running)
+            {
+                running = false;
+                Utilities.shutdownAndAwaitTermination(generationExecutorService, 1000, 100);
+                Utilities.shutdownAndAwaitTermination(executorService, 1, 1);
+            }
+        }
+
+
+        @Override
+        public void run()
+        {
+            boolean doNotRepeatWaiting = false;
+            while (running)
+            {
+                SongContext sgContext = queue.poll();           // Does not block if empty
+                if (sgContext == null)
+                {
+                    // No incoming update, check if we have a waiting RpValue                        
+                    if (lastRpValue != null)
+                    {
+                        // We have a RpValue, can we start a musicGenerationTask ?
+                        if (generationFuture == null || generationFuture.isDone())
+                        {
+                            // yes
+                            startMusicGenerationTask();
+                            doNotRepeatWaiting = false;
+                        } else
+                        {
+                            // Need to wait a little more for the previous musicGenerationTask to complete
+                            if (!doNotRepeatWaiting)
+                            {
+//                                LOGGER.info("RpValueChangesHandlingTask.run() waiting to start task for lastRpValue=" + lastRpValue + ".........");
+                                doNotRepeatWaiting = true;
+                            }
+                        }
+                    }
+                } else
+                {
+                    lastRpValue = rpValue;
+
+                    // We have an incoming RpValue, can we start a musicGenerationTask ?
+//                    LOGGER.info("RpValueChangesHandlingTask.run() rpValue received=" + rpValue);
+                    if (generationFuture == null || generationFuture.isDone())
+                    {
+                        // yes
+                        startMusicGenerationTask();
+                    } else
+                    {
+                        // no, this becomes the waitingRpValue
+//                        LOGGER.info("                                   => can't start generation task, set as lastRpValue");
+                    }
+                    doNotRepeatWaiting = false;
+                }
+            }
+        }
+
+        private void startGeneratorTask(SongContext sgContext)
+        {
+            try
+            {
+                generationFuture = generationExecutorService.submit(new UpdateGenerationTask(sgContext, 500));
+            } catch (RejectedExecutionException ex)
+            {
+                // Task is being shutdown 
+                generationFuture = null;
+            }
+        }
+
+    }
+
+    /**
+     * A task which creates the update and sleeps postUpdateSleepTime before notifying that the update is ready.
+     */
+    private class UpdateGenerationTask implements Runnable
+    {
+
+        private final SongContext songContext;
+        private final int postUpdateSleepTime;
+
+        /**
+         * Create an UpdateGenerator task for the given SongContext.
+         * <p>
+         * Caller must make sure SongContext is not modified in parallel while this task is run.
+         *
+         * @param postUpdateSleepTime This delay avoids to have too many sequencer changes in a short period of time, which can
+         * cause audio issues with notes muted/unmuted too many times.
+         */
+        UpdateGenerationTask(SongContext sgContext, int postUpdateSleepTime)
+        {
+            this.songContext = sgContext;
+            this.postUpdateSleepTime = postUpdateSleepTime;
+        }
+
+        @Override
+        public void run()
+        {
+//            LOGGER.info("UpdateGenerator.run() >>> STARTING generation");
+
+
+            // Manage possible playback transposition
+            SongContext workContext = songContext;
+            int t = PlaybackSettings.getInstance().getPlaybackKeyTransposition();
+            if (isPlaybackTranspositionEnabled() && t != 0)
+            {
+                workContext = buildTransposedContext(songContext, t);
+            }
+
+
+            // Recompute the RhythmVoice phrases
+            SongSequenceBuilder sgBuilder = new SongSequenceBuilder(workContext);
+            try
+            {
+                mapRvPhrases = sgBuilder.buildMapRvPhrase(true);
+            } catch (SongSequenceBuilder.MissingStartChordException | SongSequenceBuilder.ChordsAtSamePositionException ex)
+            {
+                // No need to notify user
+                return;
+            } catch (MusicGenerationException ex)
+            {
+                // This is not normal, notify user
+                LOGGER.warning("UpdateGenerator.run() ex=" + ex.getMessage());
+                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                return;
+            }
+
+
+            try
+            {
+                Thread.sleep(postUpdateSleepTime);
+            } catch (InterruptedException ex)
+            {
+                LOGGER.warning("UpdateGenerator.run() Unexpected UpdateGenerator thread.sleep interruption ex=" + ex.getMessage());
+                return;
+            }
+
+
+//            LOGGER.info("UpdateGenerator.run() <<< ENDING generation");            
+            // Notify listeners, normally an UpdatableSongSession
+            firePropertyChange(UpdatableSongSession.UpdateProvider.PROP_UPDATE_AVAILABLE, false, true);
+
+        }
+
+
+    }
+
     private static class ClosedSessionsListener implements PropertyChangeListener
     {
 
@@ -551,5 +729,6 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             }
         }
     }
+
 
 }
