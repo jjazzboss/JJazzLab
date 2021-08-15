@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -37,6 +38,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.swing.Icon;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
@@ -70,8 +72,12 @@ import org.jjazz.songstructure.api.event.SptRenamedEvent;
 import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.util.api.Utilities;
+import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.awt.NotificationDisplayer;
+import org.openide.awt.StatusDisplayer;
+import org.openide.util.*;
 
 /**
  * This SongSession listens to the context changes to provide on-the-fly updates for an UpdatableSongSession.
@@ -91,10 +97,12 @@ import org.openide.NotifyDescriptor;
 public class DynamicSongSession extends BaseSongSession implements UpdatableSongSession.UpdateProvider, SgsChangeListener, ClsChangeListener
 {
 
+    private static final int DEFAULT_PRE_UPDATE_BUFFER_TIME_MS = 300;
+    private static final int DEFAULT_POST_UPDATE_SLEEP_TIME_MS = 700;
     private Map<RhythmVoice, Phrase> mapRvPhraseUpdate;
     private boolean isUpdatable = true;
     private boolean isControlTrackEnabled = true;
-    private UpdateRequestsHandler updateRequestsHandler = new UpdateRequestsHandler();
+    private UpdateRequestsHandler updateRequestsHandler;
     private static final List<DynamicSongSession> sessions = new ArrayList<>();
     private static final ClosedSessionsListener CLOSED_SESSIONS_LISTENER = new ClosedSessionsListener();
     private static final Logger LOGGER = Logger.getLogger(DynamicSongSession.class.getSimpleName());  //NOI18N
@@ -167,6 +175,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         // Listen to detailed changes
         sgContext.getSong().getChordLeadSheet().addClsChangeListener(this);
         sgContext.getSong().getSongStructure().addSgsChangeListener(this);
+
     }
 
     @Override
@@ -249,12 +258,17 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
 
         if (isUpdatable)
         {
-            if (dirty)
+            synchronized (this)
             {
-                setDirty();
-            } else if (update)
-            {
-                prepareUpdate(false);
+                // Synchonize because a UpdateGenerationTask thread might call setDirty(), so synchronizing makes sure
+                // generateUpdate() won't be called if dirty was false but thread just called setDirty()
+                if (dirty)
+                {
+                    setDirty();
+                } else if (update)
+                {
+                    generateUpdate(false);
+                }
             }
         }
     }
@@ -353,7 +367,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             disableUpdates();
         } else if (update)
         {
-            prepareUpdate(true);    // Chord symbols have changed, control track is impacted
+            generateUpdate(true);    // Chord symbols have changed, control track is impacted
         }
 
     }
@@ -426,7 +440,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             disableUpdates();
         } else if (update)
         {
-            prepareUpdate(false);
+            generateUpdate(false);
         }
 
     }
@@ -449,19 +463,37 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     // ==========================================================================================================
     // Private methods
     // ==========================================================================================================
-    private void prepareUpdate(boolean controlTrackImpacted)
+    private void generateUpdate(boolean controlTrackImpacted)
     {
-        LOGGER.info("prepareUpdate() -- ");
+        LOGGER.info("generateUpdate() -- ");
         if (!getState().equals(State.GENERATED))
         {
             return;
         }
 
+        // Start our update handler thread if first time
+        if (updateRequestsHandler == null)
+        {
+            updateRequestsHandler = new UpdateRequestsHandler(DEFAULT_PRE_UPDATE_BUFFER_TIME_MS, DEFAULT_POST_UPDATE_SLEEP_TIME_MS);
+            updateRequestsHandler.start();
+        }
 
-//        Drums Rerouting ??
-//        Control track if chord symbol have changed!!
-        LOGGER.info("prepareUpdate()   => done, notifying...");
 
+        // Make a copy of the SongContext so it can't be changed by user anymore
+        int transpose = isPlaybackTranspositionEnabled() ? PlaybackSettings.getInstance().getPlaybackKeyTransposition() : 0;
+        SongContext workContext = getContextCopy(getSongContext(), transpose);
+
+
+        // Notify our update handler thread
+        try
+        {
+            updateRequestsHandler.getQueue().add(workContext);
+        } catch (Exception e)
+        {
+            // Should never be here
+            LOGGER.warning("generateUpdate() unexpected updateRequestsHandler.getQueue().size()=" + updateRequestsHandler.getQueue().size());
+            Exceptions.printStackTrace(e);
+        }
 
     }
 
@@ -496,7 +528,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     }
 
     /**
-     * Find an identical existing session in state NEW or GENERATED.
+     * Find an identical existing session in state NEW or GENERATED and not dirty.
      *
      * @return Null if not found
      */
@@ -508,6 +540,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         for (var session : sessions)
         {
             if ((session.getState().equals(PlaybackSession.State.GENERATED) || session.getState().equals(PlaybackSession.State.NEW))
+                    && !session.isDirty()
                     && sgContext.equals(session.getSongContext())
                     && enablePlaybackTransposition == session.isPlaybackTranspositionEnabled()
                     && enableClickTrack == (session.getClickTrackId() != -1)
@@ -536,7 +569,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     private class UpdateRequestsHandler implements Runnable
     {
 
-        private Queue<SongContext> queue;
+        private final Queue<SongContext> queue = new ConcurrentLinkedQueue<>();
         private ExecutorService executorService;
         private ScheduledExecutorService generationExecutorService;
         private Future<?> generationFuture;
@@ -554,11 +587,20 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
          * generation
          * @param postUpdateSleepTimeMs (milliseconds) Wait this time before restarting a music generation
          */
-        public UpdateRequestsHandler(Queue<SongContext> queue, int preUpdateBufferTimeMs, int postUpdateSleepTimeMs)
+        public UpdateRequestsHandler(int preUpdateBufferTimeMs, int postUpdateSleepTimeMs)
         {
-            this.queue = queue;
             this.preUpdateBufferTimeMs = preUpdateBufferTimeMs;
             this.postUpdateSleepTimeMs = postUpdateSleepTimeMs;
+        }
+
+        public Queue<SongContext> getQueue()
+        {
+            return queue;
+        }
+
+        public boolean isRunning()
+        {
+            return running;
         }
 
         public void start()
@@ -585,20 +627,23 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         @Override
         public void run()
         {
-            if (running)
+            while (running)
             {
                 SongContext incoming = queue.poll();           // Does not block if empty
 
                 if (incoming != null)
                 {
+                    LOGGER.info("UpdateRequestsHandler.run() handling incoming=" + incoming);
+
                     // Handle new context, save as pending if handling failed
-                    pendingSongContext = handleContext(incoming) ? null  :incoming;                                          
+                    pendingSongContext = handleContext(incoming) ? null : incoming;
 
                 } else if (pendingSongContext != null)
                 {
                     // Handle the last pending context, reset it if handling was successful
                     if (handleContext(pendingSongContext))
                     {
+                        LOGGER.info("UpdateRequestsHandler.run() handled pendingSongContext=" + pendingSongContext);
                         pendingSongContext = null;
                     }
                 }
@@ -628,12 +673,14 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             if (generationFuture == null)
             {
                 // No generation task created yet, start one
+                LOGGER.info("handleContext() start generatino FIRST TIME");
                 startGenerationTask(sgContext);
                 b = true;
 
             } else if (generationFuture.isDone())
             {
                 // There is a generation task but it is complete, restart one
+                LOGGER.info("handleContext() start generation");
                 startGenerationTask(sgContext);
                 b = true;
 
@@ -643,6 +690,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 // Try to update it
                 if (generationTask.changeContext(sgContext))
                 {
+                    LOGGER.info("handleContext() changed context of current generation task");
                     // OK, task was waiting, we're done
                     b = true;
 
@@ -652,7 +700,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                     b = false;
                 }
             }
-            
+
             return b;
         }
 
@@ -724,41 +772,36 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         @Override
         public void run()
         {
-            SongContext workContext;
             synchronized (this)
             {
                 started = true;
-                workContext = songContext;
             }
 
 
             LOGGER.info("UpdateGenerationTask.run() >>> STARTING generation");
 
-            // Manage possible playback transposition
-            int t = PlaybackSettings.getInstance().getPlaybackKeyTransposition();
-            if (isPlaybackTranspositionEnabled() && t != 0)
-            {
-                workContext = buildTransposedContext(songContext, t);
-            }
-
 
             // Recompute the RhythmVoice phrases
-            SongSequenceBuilder sgBuilder = new SongSequenceBuilder(workContext);
+            SongSequenceBuilder sgBuilder = new SongSequenceBuilder(songContext);
             try
             {
                 mapRvPhraseUpdate = sgBuilder.buildMapRvPhrase(true);
             } catch (SongSequenceBuilder.MissingStartChordException | SongSequenceBuilder.ChordsAtSamePositionException ex)
             {
-                // No need to notify user
+                // Notify user lightly (no blocking dialog) and make sure that a regeneration will be done
+                StatusDisplayer.getDefault().setStatusText(ex.getMessage());
+                setDirty();
                 return;
             } catch (MusicGenerationException ex)
             {
                 // This is not normal, notify user
-                LOGGER.warning("UpdateGenerator.run() ex=" + ex.getMessage());
-                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
                 return;
             }
+
+            // Notify listeners, normally an UpdatableSongSession
+            firePropertyChange(UpdatableSongSession.UpdateProvider.PROP_UPDATE_AVAILABLE, false, true);
 
 
             try
@@ -771,9 +814,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             }
 
 
-//            LOGGER.info("UpdateGenerator.run() <<< ENDING generation");            
-            // Notify listeners, normally an UpdatableSongSession
-            firePropertyChange(UpdatableSongSession.UpdateProvider.PROP_UPDATE_AVAILABLE, false, true);
+            LOGGER.info("UpdateGenerationTask.run() <<< ENDING generation");
 
         }
 

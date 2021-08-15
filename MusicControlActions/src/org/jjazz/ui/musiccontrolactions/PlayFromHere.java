@@ -40,7 +40,6 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
-import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -62,7 +61,6 @@ import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
 import org.jjazz.util.api.ResUtil;
-import org.openide.util.Exceptions;
 import org.openide.windows.TopComponent;
 
 /**
@@ -187,7 +185,7 @@ public class PlayFromHere extends AbstractAction
             // Check that all listeners are OK to start playback     
             PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
 
-            UpdatableSongSession session = new UpdatableSongSession(DynamicSongSession.getSession(context));
+            UpdatableSongSession session = UpdatableSongSession.getSession(DynamicSongSession.getSession(context));
             if (session.getState().equals(PlaybackSession.State.NEW))
             {
                 session.generate(false);

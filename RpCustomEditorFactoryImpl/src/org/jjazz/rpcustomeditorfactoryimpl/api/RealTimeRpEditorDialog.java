@@ -332,7 +332,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
                 Sequencer.LOOP_CONTINUOUSLY,
                 null);
 
-        session = new UpdatableSongSession(basicSession);
+        session = UpdatableSongSession.getSession(basicSession);
         try
         {
             session.generate(false);
@@ -606,6 +606,10 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         if (editorPanel != null)
         {
             editorPanel.cleanup();
+        }
+        if (session != null)
+        {
+            session.cleanup();
         }
     }//GEN-LAST:event_formWindowClosed
 

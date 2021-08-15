@@ -25,6 +25,7 @@ package org.jjazz.musiccontrol.api.playbacksession;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -66,7 +67,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      */
     public interface UpdateProvider
     {
-
+        
         public static String PROP_UPDATE_AVAILABLE = "PropUpdateAvailable";
 
         /**
@@ -76,8 +77,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
          */
         Map<RhythmVoice, Phrase> getUpdate();
     }
-
-
+    
+    
     private long originalTrackTickSize;
     private int nbPlayingTracks;
     private Map<RhythmVoice, Phrase> currentMapRvPhrase;
@@ -85,38 +86,75 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     private final BaseSongSession songSession;
     private Sequence sequence;
     private final HashMap<Integer, Boolean> mapTrackIdMuted = new HashMap<>();
+    private static final List<UpdatableSongSession> sessions = new ArrayList<>();
+    private static final ClosedSessionsListener CLOSED_SESSIONS_LISTENER = new ClosedSessionsListener();
+    
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(UpdatableSongSession.class.getSimpleName());  //NOI18N
+
+
+    /**
+     * Create or reuse a session for the specified parameters.
+     * <p>
+     * Sessions are cached: if an existing session already exists for the same parameters then return it, otherwise a new session
+     * is created.
+     * <p>
+     * @param session Must be in the NEW or GENERATED state. If it is an UpdateProvider instance automatically apply
+     * the updates when available.
+     * @return
+     */
+    static public UpdatableSongSession getSession(BaseSongSession session)
+    {
+        if (session == null)
+        {
+            throw new IllegalArgumentException("session=" + session);
+        }
+        if (session.getState().equals(State.CLOSED))
+        {
+            throw new IllegalStateException("session=" + session);
+        }
+        
+        UpdatableSongSession updatableSession = findSession(session);
+        if (updatableSession == null)
+        {
+            UpdatableSongSession newSession = new UpdatableSongSession(session);
+            newSession.addPropertyChangeListener(CLOSED_SESSIONS_LISTENER);
+            sessions.add(newSession);
+            return newSession;
+        } else
+        {
+            return updatableSession;
+        }
+    }
 
     /**
      * Create an UpdatableSongSession to enable updates of the specified BaseSongSession.
      *
      * @param session If session is an UpdateProvider instance automatically apply the update.
      */
-    public UpdatableSongSession(BaseSongSession session)
+    private UpdatableSongSession(BaseSongSession session)
     {
-        if (session == null)
+        if (session == null )
         {
             throw new IllegalArgumentException("session=" + session);
-        }
-
-
+        }        
+        
         songSession = session;
         songSession.addPropertyChangeListener(this);
-
-
+               
+        
         if (songSession.getState().equals(State.GENERATED))
         {
             prepareData();
         }
     }
-
-
+    
+    
     @Override
     public void generate(boolean silent) throws MusicGenerationException
     {
         songSession.generate(silent);
-
+        
         prepareData();
     }
 
@@ -171,7 +209,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     public void updateSequence(Map<RhythmVoice, Phrase> newMapRvPhrase)
     {
         LOGGER.info("updateSequence() ---- newMapRvPhrase.keySet()=" + newMapRvPhrase.keySet());
-
+        
         if (!getState().equals(PlaybackSession.State.GENERATED))
         {
             throw new IllegalStateException("newMapRvPhrase=" + newMapRvPhrase + " getState()=" + getState());
@@ -187,7 +225,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 //            LOGGER.info("     oldPhrase="+oldPhrase);
 //            LOGGER.info("     newPhrase="+newPhrase);
 
-
+            
             if (oldPhrase.equals(newPhrase))
             {
                 // No change do nothing
@@ -209,17 +247,18 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
                 precountShift = (long) Math.ceil(nbPrecountBars * ts.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION);
             }
 
+
             // Clear and update the buffer track with the passed events
             int trackId = getOriginalRvTrackIdMap().get(rv);
             Track bufferTrack = trackSet.getBufferTrack(trackId);
             MidiUtilities.clearTrack(bufferTrack);
-
-
+            
+            
             for (MidiEvent me : newPhrase.toMidiEvents())
             {
                 // Adjust position if precount bars are used
                 me.setTick(me.getTick() + precountShift);
-
+                
                 if (me.getTick() > originalTrackTickSize)
                 {
                     throw new IllegalArgumentException("me=" + MidiUtilities.toString(me.getMessage(), me.getTick()) + " originalTrackTickSize=" + originalTrackTickSize);
@@ -281,76 +320,76 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     {
         return currentMapRvPhrase;
     }
-
+    
     @Override
     public State getState()
     {
         return songSession.getState();
     }
-
+    
     @Override
     public boolean isDirty()
     {
         return songSession.isDirty();
     }
-
+    
     @Override
     public int getTempo()
     {
         return songSession.getTempo();
     }
-
+    
     @Override
     public HashMap<Integer, Boolean> getTracksMuteStatus()
     {
         // Our version
         return mapTrackIdMuted;
     }
-
+    
     @Override
     public long getLoopEndTick()
     {
         return songSession.getLoopEndTick();
     }
-
+    
     @Override
     public long getLoopStartTick()
     {
         return songSession.getLoopStartTick();
     }
-
+    
     @Override
     public int getLoopCount()
     {
         return songSession.getLoopCount();
     }
-
+    
     @Override
     public IntRange getBarRange()
     {
         return songSession.getBarRange();
     }
-
+    
     @Override
     public long getTick(int barIndex)
     {
         return songSession.getTick(barIndex);
-
+        
     }
-
+    
     @Override
     public void cleanup()
     {
         songSession.removePropertyChangeListener(this);
         songSession.cleanup();
     }
-
+    
     @Override
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
-
+    
     @Override
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
@@ -417,8 +456,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     {
         return songSession.getSongPositions();
     }
-
-
+    
+    
     @Override
     public ContextChordSequence getContextChordGetSequence()
     {
@@ -445,16 +484,16 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 
         if (e.getSource() == songSession)
         {
-
+            
             PropertyChangeEvent newEvent = null;
-
+            
             if (e.getPropertyName().equals(UpdateProvider.PROP_UPDATE_AVAILABLE)
                     && (songSession instanceof UpdateProvider)
                     && getState().equals(State.GENERATED))
             {
                 var update = ((UpdateProvider) (songSession)).getUpdate();
                 updateSequence(update);
-
+                
             } else if (e.getPropertyName().equals(PlaybackSession.PROP_MUTED_TRACKS))
             {
                 // Need to map the new mute status to the currently active tracks                
@@ -465,13 +504,13 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
                     mapTrackIdMuted.put(trackSet.getActiveTrackId(trackId), muted);
                 }
                 newEvent = new PropertyChangeEvent(this, e.getPropertyName(), e.getOldValue(), mapTrackIdMuted);
-
+                
             } else
             {
                 newEvent = new PropertyChangeEvent(this, e.getPropertyName(), e.getOldValue(), e.getNewValue());
-
+                
             }
-
+            
             if (newEvent != null)
             {
                 // Forward the event and make this object the event source
@@ -479,10 +518,10 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
                 pcs.firePropertyChange(newEvent);
             }
         }
-
-
+        
+        
     }
-
+    
     @Override
     public String toString()
     {
@@ -498,7 +537,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      */
     private void prepareData()
     {
-
+        
         sequence = songSession.getSequence();
         originalTrackTickSize = sequence.getTickLength();       // Possibly include precount leading bars
         nbPlayingTracks = sequence.getTracks().length;
@@ -517,13 +556,35 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             mapTrackIdMuted.put(trackId, originalMapIdMuted.get(trackId));
             mapTrackIdMuted.put(trackSet.getBufferTrackId(trackId), true);         // buffer track is muted
         }
-
-
-//        LOGGER.info("generate() mapTrackIdMuted=" + mapTrackIdMuted);
-//        LOGGER.info("generate() mapRvTrackId=" + songContextSession.getRvTrackIdMap());
-//        LOGGER.info("generate() trackSet=" + trackSet.toString());
+        
+        
+        LOGGER.info("generate() mapTrackIdMuted=" + mapTrackIdMuted);
+        LOGGER.info("generate() mapRvTrackId=" + songSession.getRvTrackIdMap());
+        LOGGER.info("generate() trackSet=" + trackSet.toString());
 //        LOGGER.info(" Original sequence=" + MidiUtilities.toString(sequence));
     }
+
+
+    /**
+     * Find an identical existing session in state NEW or GENERATED and not dirty.
+     *
+     * @param session
+     * @return Null if not found
+     */
+    static private UpdatableSongSession findSession(BaseSongSession session)
+    {
+        for (var updatableSession : sessions)
+        {
+            if ((updatableSession.getState().equals(PlaybackSession.State.GENERATED) || updatableSession.getState().equals(PlaybackSession.State.NEW))
+                    && !updatableSession.isDirty()
+                    && session == updatableSession.songSession)
+            {
+                return updatableSession;
+            }
+        }
+        return null;
+    }
+
 
     // ==========================================================================================================
     // Inner classes
@@ -533,11 +594,11 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      */
     static private class TrackSet
     {
-
+        
         private final Sequence trackSetSequence;
         private final Map<Integer, Integer> mapOriginalIdActiveId = new HashMap<>();
         private final Map<Integer, Integer> mapOriginalIdBufferId = new HashMap<>();
-
+        
         public TrackSet(Sequence seq)
         {
             this.trackSetSequence = seq;
@@ -613,7 +674,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         {
             return mapOriginalIdBufferId.get(originalTrackId);
         }
-
+        
         @Override
         public String toString()
         {
@@ -623,7 +684,23 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             sb.append("   mapOriginalIdBufferId=" + mapOriginalIdBufferId + "\n");
             return sb.toString();
         }
-
+        
     }
-
+    
+    
+    private static class ClosedSessionsListener implements PropertyChangeListener
+    {
+        
+        @Override
+        public void propertyChange(PropertyChangeEvent evt)
+        {
+            UpdatableSongSession session = (UpdatableSongSession) evt.getSource();
+            if (evt.getPropertyName().equals(PlaybackSession.PROP_STATE) && session.getState().equals(PlaybackSession.State.CLOSED))
+            {
+                sessions.remove(session);
+                session.removePropertyChangeListener(this);
+            }
+        }
+    }
+    
 }

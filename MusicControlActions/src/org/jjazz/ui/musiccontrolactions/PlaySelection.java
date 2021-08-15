@@ -187,7 +187,7 @@ public class PlaySelection extends AbstractAction
             // Check that all listeners are OK to start playback     
             PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
 
-            UpdatableSongSession session = new UpdatableSongSession(DynamicSongSession.getSession(context));
+            UpdatableSongSession session = UpdatableSongSession.getSession(DynamicSongSession.getSession(context));
             if (session.getState().equals(PlaybackSession.State.NEW))
             {
                 session.generate(false);

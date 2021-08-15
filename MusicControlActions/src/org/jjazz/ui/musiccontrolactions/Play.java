@@ -166,7 +166,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
 
                         // Prepare the session
                         DynamicSongSession dynSession = DynamicSongSession.getSession(context);
-                        session = new UpdatableSongSession(dynSession);
+                        session = UpdatableSongSession.getSession(dynSession);
                         if (session.getState().equals(PlaybackSession.State.NEW))
                         {
                             session.generate(false);

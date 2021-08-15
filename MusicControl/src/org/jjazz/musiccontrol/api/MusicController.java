@@ -327,7 +327,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
         // Update playbackSession
-        if (session.equals(playbackSession))
+        if (session == playbackSession)
         {
             // Nothing
         } else
@@ -713,6 +713,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             {
                 switch (playbackSession.getState())
                 {
+                    case NEW:
                     case GENERATED:
                         // Nothing
                         break;
@@ -1079,9 +1080,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         var mapTrackMute = playbackSession.getTracksMuteStatus();
         if (mapTrackMute != null)
         {
+            LOGGER.info("updateTracksMuteStatus() mapTrackMute=" + mapTrackMute);
             for (int trackId : mapTrackMute.keySet())
             {
-                sequencer.setTrackMute(trackId, mapTrackMute.get(trackId));
+                boolean b = mapTrackMute.get(trackId);
+                sequencer.setTrackMute(trackId, b);
+                if (sequencer.getTrackMute(trackId) != b)
+                {
+                    LOGGER.severe("updateTracksMuteStatus() setTrackMute(" + trackId + "," + b + ") failed");
+                }
             }
         }
     }

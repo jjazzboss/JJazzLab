@@ -61,7 +61,7 @@ import org.jjazz.util.api.ResUtil;
 /**
  * A base implementation of a PlaybackSession to render a SongContext.
  * <p>
- * The session is a SongContextProvider and ControlTrackProvider.
+ * It relies on SongSequenceBuilder and then add control/click/precount tracks, taking into account drums rerouting.
  * <p>
  * Once generated the session listens to: <br>
  * - Song tempo changes, closing<br>
@@ -140,6 +140,21 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     }
 
 
+    /**
+     * Generate the sequence for the SongContext.
+     * <p>
+     * When all parameters are enabled, sequence will contain: <br>
+     * - track 0: song name, tempo and tempo factor changes (see
+     * {@link org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder})<br>
+     * - track 1-N: the song tracks, one per RhythmVoice(see {@link org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder})<br>
+     * - track N+1: control track with beat events + chord symbol markers<br>
+     * - track N+2: click track<br>
+     * - track N+3: precount-click track<p>
+     * Manage the drums rerouting.
+     *
+     * @param silent
+     * @throws MusicGenerationException
+     */
     @Override
     public void generate(boolean silent) throws MusicGenerationException
     {
@@ -153,7 +168,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         int t = PlaybackSettings.getInstance().getPlaybackKeyTransposition();
         if (isPlaybackTranspositionEnabled() && t != 0)
         {
-            workContext = buildTransposedContext(songContext, t);
+            workContext = getContextCopy(songContext, t);
         }
 
 
@@ -497,7 +512,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     @Override
     public String toString()
     {
-        return "SongSession=[state=" + state + ", " + songContext + "]";
+        return "SongSession=[state=" + state + ", isDirty=" + isDirty + " songContext=" + songContext + "]";
     }
 
     // ==========================================================================================================
@@ -553,14 +568,14 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     }
 
     /**
-     * Get a new context with chord leadsheet transposed.
+     * Get a context copy with a new song but same MidiMix and bar range.
      * <p>
      *
      * @param context
-     * @param transposition
+     * @param chordSymbolTransposition If not 0 use it to transpose chord symbols
      * @return
      */
-    protected SongContext buildTransposedContext(SongContext context, int transposition)
+    protected SongContext getContextCopy(SongContext context, int chordSymbolTransposition)
     {
 
         SongFactory sf = SongFactory.getInstance();
@@ -569,12 +584,15 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         sf.unregisterSong(songCopy);
 
         ChordLeadSheet clsCopy = songCopy.getChordLeadSheet();
-        for (CLI_ChordSymbol oldCli : clsCopy.getItems(CLI_ChordSymbol.class))
+        if (chordSymbolTransposition != 0)
         {
-            ExtChordSymbol newEcs = oldCli.getData().getTransposedChordSymbol(transposition, Note.Alteration.FLAT);
-            CLI_ChordSymbol newCli = clif.createChordSymbol(clsCopy, newEcs, oldCli.getPosition());
-            clsCopy.removeItem(oldCli);
-            clsCopy.addItem(newCli);
+            for (CLI_ChordSymbol oldCli : clsCopy.getItems(CLI_ChordSymbol.class))
+            {
+                ExtChordSymbol newEcs = oldCli.getData().getTransposedChordSymbol(chordSymbolTransposition, Note.Alteration.FLAT);
+                CLI_ChordSymbol newCli = clif.createChordSymbol(clsCopy, newEcs, oldCli.getPosition());
+                clsCopy.removeItem(oldCli);
+                clsCopy.addItem(newCli);
+            }
         }
         SongContext res = new SongContext(songCopy, context.getMidiMix(), context.getBarRange());
         return res;
@@ -586,7 +604,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
     private void closeSession()
     {
-        cleanup();        
+        cleanup();
         setState(State.CLOSED);
     }
 
