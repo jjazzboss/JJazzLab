@@ -333,8 +333,9 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     }
 
     @Override
-    public void cleanup()
+    public void close()
     {
+        setState(State.CLOSED);
         PlaybackSettings.getInstance().removePropertyChangeListener(this);
         songContext.getSong().removePropertyChangeListener(this);
         songContext.getMidiMix().removePropertyChangeListener(this);
@@ -456,7 +457,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
             } else if (e.getPropertyName().equals(Song.PROP_CLOSED))
             {
-                closeSession();
+                close();
             }
         } else if (e.getSource() == songContext.getMidiMix())
         {
@@ -602,10 +603,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     // Private methods
     // ==========================================================================================================
 
-    private void closeSession()
-    {
-        cleanup();
-        setState(State.CLOSED);
-    }
+
 
 }

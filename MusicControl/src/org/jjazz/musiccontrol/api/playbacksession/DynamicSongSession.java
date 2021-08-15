@@ -181,7 +181,8 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     @Override
     public void cleanup()
     {
-        super.cleanup();
+        super.close();
+        => remove sessions
         getSongContext().getSong().getChordLeadSheet().removeClsChangeListener(this);
         getSongContext().getSong().getSongStructure().removeSgsChangeListener(this);
     }
