@@ -172,9 +172,11 @@ public interface PlaybackSession
     long getTick(int barIndex);
 
     /**
-     * Must be called before disposing this session.
+     * Force session to close, must be called before disposing this session to release resources.
+     * 
+     * @see PROP_STATE
      */
-    void cleanup();
+    void close();
 
     void addPropertyChangeListener(PropertyChangeListener l);
 
