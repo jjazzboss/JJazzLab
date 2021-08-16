@@ -526,7 +526,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     /**
      * Set as dirty and fire a change event.
      * <p>
-     * For use by subclasses
+     * For use by subclasses.
      */
     protected synchronized void setDirty()
     {

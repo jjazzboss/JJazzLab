@@ -53,6 +53,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -270,13 +271,12 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                     // Do nothing
                     break;
             }
-
         }
 
         synchronized (this)
         {
-            // Synchonize because a UpdateGenerationTask thread might call setDirty(), so synchronizing makes sure
-            // generateUpdate() won't be called if dirty was false but thread just called setDirty()
+            // Synchonize because the UpdateGenerationTask thread might call setDirty(), so synchronizing makes sure
+            // generateUpdate() won't be called if thread called setDirty() right after "if (dirty)" was executed with dirty=false.
             if (dirty)
             {
                 setDirty();
@@ -306,7 +306,8 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     }
 
     @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event)
+    public void chordLeadSheetChanged(ClsChangeEvent event
+    )
     {
         // NOTE: model changes can be generated outside the EDT!
 
@@ -398,7 +399,8 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     }
 
     @Override
-    public void songStructureChanged(SgsChangeEvent e)
+    public void songStructureChanged(SgsChangeEvent e
+    )
     {
         // NOTE: model changes can be generated outside the EDT!        
 
@@ -475,15 +477,25 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     {
         return isControlTrackEnabled ? super.getContextChordGetSequence() : null;
     }
-
     // ==========================================================================================================
     // Private methods
     // ==========================================================================================================
+
     private void generateUpdate(boolean controlTrackImpacted)
     {
         LOGGER.info("generateUpdate() -- ");
-        if (!getState().equals(State.GENERATED) || !PlaybackSettings.getInstance().isAutoUpdateEnabled())
+        if (!getState().equals(State.GENERATED))
         {
+            return;
+        }
+
+        // We should update but not allowed by user
+        if (!PlaybackSettings.getInstance().isAutoUpdateEnabled())
+        {
+            // Make sure a new session is used when playback restarts or resumes.
+            // Note that if song is playing and user restores auto-update while playing, an update will be generated 
+            // to be in-sync again, so this setDirty() should have been avoided, but it's a small price to pay.
+            setDirty();
             return;
         }
 
