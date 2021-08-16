@@ -172,8 +172,8 @@ public interface PlaybackSession
     long getTick(int barIndex);
 
     /**
-     * Force session to close, must be called before disposing this session to release resources.
-     * 
+     * Put session in the CLOSED state and release used resources, so that session can be disposed.
+     *
      * @see PROP_STATE
      */
     void close();

@@ -44,9 +44,9 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.song.api.Song;
 
 /**
- * Manage the active song and MidiMix, and the related Midi messages (sent to JJazz Midi out device).
+ * Manage the active song and MidiMix.
  * <p>
- * Midi messages are sent upon MidiMix changes depending on getSendMessagePolicy(). If song is closed, active song is reset to
+ * Midi messages are sent upon MidiMix changes depending on getSendMessagePolicy(). If last song is closed, active song is reset to
  * null.
  */
 public class ActiveSongManager implements PropertyChangeListener, VetoableChangeListener

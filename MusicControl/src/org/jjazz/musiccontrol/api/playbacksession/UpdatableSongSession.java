@@ -378,10 +378,10 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     }
     
     @Override
-    public void cleanup()
+    public void close()
     {
         songSession.removePropertyChangeListener(this);
-        songSession.cleanup();
+        songSession.close();
     }
     
     @Override

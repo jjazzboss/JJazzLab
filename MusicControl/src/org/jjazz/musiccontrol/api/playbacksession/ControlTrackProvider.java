@@ -34,9 +34,9 @@ public interface ControlTrackProvider
 {
 
     /**
-     * Session must fire this property change event when control track info becomes disabled (enabled by default).
+     * Session must fire this property change event with newValue=false when control track info becomes disabled (it is enabled by default).
      */
-    public static final String PROP_DISABLED = "PropPositionProviderDisabled";
+    public static final String ENABLED_STATE = "PropControlTrackProviderEnabledState";
 
     /**
      * The list is used to convert a CTRL_CHG_JJAZZ_BEAT_CHANGE event into into a Position in the song.

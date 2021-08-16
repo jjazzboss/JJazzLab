@@ -61,6 +61,8 @@ import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.openide.util.Exceptions;
 import org.jjazz.musiccontrol.api.playbacksession.ControlTrackProvider;
+import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
+import org.openide.awt.StatusDisplayer;
 
 /**
  * Control the music playback of a PlaybackSession.
@@ -220,17 +222,16 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             sequencerLockHolder = lockHolder;
 
 
-            cleanUpPlaybackSession();
+            closeCurrentPlaybackSession();
 
 
             // Remove the MusicController listeners
             releaseSequencer();
 
-            State old = state;
-            state = State.DISABLED;
-            pcs.firePropertyChange(PROP_STATE, old, state);
+            State oldState = getState();
+            setState(State.DISABLED);
 
-            LOGGER.fine("acquireSequencer() external lock acquired.  MusicController released the sequencer, oldState=" + old + " newState=DISABLED");  //NOI18N
+            LOGGER.fine("acquireSequencer() external lock acquired.  MusicController released the sequencer, oldState=" + oldState + " newState=DISABLED");  //NOI18N
 
             return sequencer;
         } else
@@ -265,27 +266,99 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         initSequencer();
 
         // Change state
-        State old = state;
-        assert old.equals(State.DISABLED);   //NOI18N
-        state = State.STOPPED;
-        pcs.firePropertyChange(PROP_STATE, old, state);
+        assert state.equals(State.DISABLED);
+        setState(State.STOPPED);
     }
 
     /**
-     * Play a session from the specified bar .
+     * Set the current playback session and try to pre-generate the sequence.
      * <p>
+     * If MusicController is paused then current playback is stopped. If pre-generation of the sequence triggers
+     * SongSequenceBuilder.UserErrorExceptions notify user "lightly" using the StatusDisplayer.
      *
-     * @param session A session in the GENERATED state.
+     * @param session Can be null. If not null, must be in NEW or GENERATED state, and can't be dirty.
+     * @throws org.jjazz.rhythm.api.MusicGenerationException E.g. if song is already playing, if section lacks a starting chord,
+     * etc.
+     * @throws IllegalStateException If session is dirty or is CLOSED.
+     */
+    public void setPlaybackSession(PlaybackSession session) throws MusicGenerationException
+    {
+
+        if (session == playbackSession)
+        {
+            return;
+
+        }
+
+        if (session != null && (session.isDirty() || session.getState().equals(PlaybackSession.State.CLOSED)))
+        {
+            throw new IllegalStateException("session=" + session);
+        }
+
+
+        // Check state
+        switch (state)
+        {
+            case DISABLED:
+                throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK IS DISABLED"));
+            case STOPPED:
+                // Nothing
+                break;
+            case PAUSED:
+                stop();
+                break;
+            case PLAYING:
+                throw new MusicGenerationException(ResUtil.getString(getClass(), "A SONG IS ALREADY PLAYING"));
+            default:
+                throw new AssertionError(state.name());
+        }
+
+        // Update the session
+        closeCurrentPlaybackSession();
+        playbackSession = session;
+
+        if (playbackSession != null)
+        {
+            playbackSession.addPropertyChangeListener(this);
+
+            // Try to pre-generate the sequence
+            if (playbackSession.getState().equals(PlaybackSession.State.NEW))
+            {
+                try
+                {
+                    playbackSession.generate(true);         // Throws MusicGenerationException
+                } catch (SongSequenceBuilder.UserErrorException ex)
+                {
+                    // playbackSession will remain NEW
+                    // Notify user lightly (no blocking dialog) because it is just a pre-generation tentative
+                    StatusDisplayer.getDefault().setStatusText(ex.getMessage());
+                }
+            }
+        }
+    }
+
+    /**
+     * Play the current playback session from the specified bar.
+     * <p>
+     * Do nothing if no playback session set.
+     *
      * @param fromBarIndex
      * @throws MusicGenerationException If a problem occurred which prevents song playing: no Midi out, rhythm music generation
      * problem, MusicController state is not PAUSED nor STOPPED, etc.
+     * @throws IllegalStateException If current session is not in the GENERATED state, if fromBarIndex is invalid
      *
      */
-    public void play(PlaybackSession session, int fromBarIndex) throws MusicGenerationException
+    public void play(int fromBarIndex) throws MusicGenerationException
     {
-        if (session == null || !session.getState().equals(PlaybackSession.State.GENERATED))
+        if (playbackSession == null)
         {
-            throw new IllegalArgumentException("session=" + session + " fromBarIndex=" + fromBarIndex);
+            return;
+        }
+
+
+        if (!playbackSession.getState().equals(PlaybackSession.State.GENERATED))
+        {
+            throw new IllegalArgumentException("playbackSession=" + playbackSession + " fromBarIndex=" + fromBarIndex);
         }
 
 
@@ -293,51 +366,35 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         checkMidi();                // throws MusicGenerationException
 
 
-        // Check bar range
-        if (session.getBarRange() == null)
+        // Check argument
+        if (!playbackSession.getBarRange().contains(fromBarIndex))
         {
-            // Can't check anything
-        } else if (session.getBarRange().isEmpty())
-        {
-            // Throw an exception to let the UI roll back (eg play stateful button)
-            throw new MusicGenerationException(ResUtil.getString(getClass(), "NOTHING TO PLAY"));
-        } else if (!session.getBarRange().contains(fromBarIndex))
-        {
-            throw new IllegalArgumentException("invalid fromBarIndex=" + fromBarIndex + " session=" + session);
+            throw new IllegalArgumentException("invalid fromBarIndex=" + fromBarIndex + " playbackSession=" + playbackSession);
         }
 
 
-        // Check state
-        if (state == State.PLAYING)
+         // Check state
+        switch (state)
         {
-            throw new MusicGenerationException(ResUtil.getString(getClass(), "A SONG IS ALREADY PLAYING"));
-        } else if (state == State.DISABLED)
-        {
-            throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK IS DISABLED"));
+            case DISABLED:
+                throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK IS DISABLED"));
+            case STOPPED:
+            case PAUSED:
+                // Nothing
+                break;
+            case PLAYING:
+                throw new MusicGenerationException(ResUtil.getString(getClass(), "A SONG IS ALREADY PLAYING"));
+            default:
+                throw new AssertionError(state.name());
         }
 
 
         if (debugPlayedSequence)
         {
-            SongContext sgContext = getSongContext(session);        // Can be null
+            SongContext sgContext = getSongContext(playbackSession);        // Can be null
             String songName = sgContext != null ? sgContext.getSong().getName() : "unknown";
             LOGGER.info("play() song=" + songName + " sequence :"); //NOI18N
-            LOGGER.info(MidiUtilities.toString(session.getSequence())); //NOI18N
-        }
-
-
-        // Update playbackSession
-        if (session == playbackSession)
-        {
-            // Nothing
-        } else
-        {
-            if (playbackSession != null)
-            {
-                cleanUpPlaybackSession();
-            }
-            playbackSession = session;
-            playbackSession.addPropertyChangeListener(this);
+            LOGGER.info(MidiUtilities.toString(playbackSession.getSequence())); //NOI18N
         }
 
 
@@ -349,7 +406,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         } catch (InvalidMidiDataException ex)
         {
-            cleanUpPlaybackSession();
+            closeCurrentPlaybackSession();
             throw new MusicGenerationException(ex.getLocalizedMessage());
         }
 
@@ -381,9 +438,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         seqStart();
 
 
-        State old = this.getState();
-        state = State.PLAYING;
-        pcs.firePropertyChange(PROP_STATE, old, state);
+        // Change state
+        setState(State.PLAYING);
 
     }
 
@@ -420,9 +476,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
         // Update state
-        State old = this.getState();
-        state = State.PLAYING;
-        pcs.firePropertyChange(PROP_STATE, old, state);
+        setState(State.PLAYING);
     }
 
     /**
@@ -450,9 +504,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         // Update state
         songPartTempoFactor = 1;
-        State old = this.getState();
-        state = State.STOPPED;
-        pcs.firePropertyChange(PROP_STATE, old, state);
+        setState(State.STOPPED);
 
         // Position must be reset after the stop so that playback beat change tracking listeners are not reset upon stop   
         int barIndex = playbackSession.getBarRange() != null ? playbackSession.getBarRange().from : 0;
@@ -487,9 +539,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         clearPendingEvents();
 
 
-        State old = getState();
-        state = State.PAUSED;
-        pcs.firePropertyChange(PROP_STATE, old, state);
+        // Change state
+        setState(State.PAUSED);
 
         // Action to be fired after state change
         executeEndOfPlaybackAction();
@@ -719,7 +770,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                         break;
                     case CLOSED:
                         stop();
-                        cleanUpPlaybackSession();
+                        closeCurrentPlaybackSession();
                         break;
                     default:
                         throw new AssertionError(playbackSession.getState().name());
@@ -748,9 +799,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                     sequencer.setLoopCount(lc);
                 }
 
-            } else if (e.getPropertyName().equals(ControlTrackProvider.PROP_DISABLED))
+            } else if (e.getPropertyName().equals(ControlTrackProvider.ENABLED_STATE))
             {
-                firePlaybackListenerEnabledChanged(false);
+                firePlaybackListenerEnabledChanged((Boolean) e.getNewValue());
             }
         }
     }
@@ -1019,12 +1070,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
     }
 
-    private void cleanUpPlaybackSession()
+    private void closeCurrentPlaybackSession()
     {
         if (playbackSession != null)
         {
             playbackSession.removePropertyChangeListener(this);
-            playbackSession.cleanup();
+            playbackSession.close();
             playbackSession = null;
         }
     }
@@ -1033,6 +1084,16 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         songTempoFactor = tempoInBPM / MidiConst.SEQUENCER_REF_TEMPO;
         updateTempoFactor();
+    }
+
+    private void setState(State newState)
+    {
+        if (!newState.equals(getState()))
+        {
+            State oldState = getState();
+            state = newState;
+            pcs.firePropertyChange(PROP_STATE, oldState, newState);
+        }
     }
 
     /**

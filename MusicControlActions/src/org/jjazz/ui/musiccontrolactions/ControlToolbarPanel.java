@@ -56,7 +56,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         initComponents();
 
         // Initialize actions
-        fbtn_Active.setAction((BooleanStateAction) Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.setactive"));   //NOI18N
+        fbtn_Active.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.setactive"));   //NOI18N
         fbtn_Play.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.play"));   //NOI18N
         fbtn_Pause.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.pause"));   //NOI18N
         fbtn_Stop.setAction((BooleanStateAction) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.stop"));   //NOI18N

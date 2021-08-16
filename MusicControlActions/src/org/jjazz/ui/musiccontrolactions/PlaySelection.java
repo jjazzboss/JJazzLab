@@ -179,6 +179,7 @@ public class PlaySelection extends AbstractAction
 
 
         // OK we can go
+        UpdatableSongSession session = null;
         try
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(song);      // Can raise MidiUnavailableException
@@ -187,14 +188,19 @@ public class PlaySelection extends AbstractAction
             // Check that all listeners are OK to start playback     
             PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
 
-            UpdatableSongSession session = UpdatableSongSession.getSession(DynamicSongSession.getSession(context));
+            session = UpdatableSongSession.getSession(DynamicSongSession.getSession(context));
             if (session.getState().equals(PlaybackSession.State.NEW))
             {
-                session.generate(false);
+                session.generate(false);        // can raise MusicGenerationException
+                mc.setPlaybackSession(session); // can raise MusicGenerationException
             }
-            mc.play(session, rg.from);
+            mc.play(rg.from);
         } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
         {
+            if (session != null)
+            {
+                session.close();
+            }
             if (ex.getMessage() != null)
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);

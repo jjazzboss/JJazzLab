@@ -67,7 +67,7 @@ import org.jjazz.util.api.ResUtil;
  * - Song tempo changes, closing<br>
  * - MidiMix channel mute changes<br>
  * - PlaybackSettings Click and Loop changes<p>
- * Use the provided subclasses for more advanced behaviors.
+ * Use the provided subclasses for more advanced behaviors, e.g. update the dirty state, etc.
  */
 public class BaseSongSession implements PropertyChangeListener, PlaybackSession, ControlTrackProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
@@ -124,11 +124,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         this.isControlTrackIncluded = enableControlTrack;
         this.loopCount = loopCount;
         this.endOfPlaybackAction = endOfPlaybackAction;
-
-        // Listen to changes that can be handled without going outdated
-        this.songContext.getSong().addPropertyChangeListener(this); // tempo changes
-        this.songContext.getMidiMix().addPropertyChangeListener(this);      // muted changes
-        PlaybackSettings.getInstance().addPropertyChangeListener(this); // click on-off changes
 
     }
 
@@ -229,6 +224,12 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
         // Update the sequence if rerouting is needed
         rerouteDrumsChannels(sequence, workContext.getMidiMix());
+
+
+        // Listen to changes that can be handled without going dirty
+        this.songContext.getSong().addPropertyChangeListener(this); // tempo changes
+        this.songContext.getMidiMix().addPropertyChangeListener(this);      // muted changes
+        PlaybackSettings.getInstance().addPropertyChangeListener(this); // click on-off changes
 
 
         // Change state
@@ -446,6 +447,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         {
             return;
         }
+        // If here state=GENERATED
 
         LOGGER.fine("propertyChange() e=" + e);
 
@@ -464,18 +466,16 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
             switch (e.getPropertyName())
             {
                 case MidiMix.PROP_INSTRUMENT_MUTE:
-                    if (!state.equals(State.NEW))
+                    InstrumentMix insMix = (InstrumentMix) e.getOldValue();
+                    MidiMix mm = songContext.getMidiMix();
+                    RhythmVoice rv = mm.geRhythmVoice(insMix);
+                    Integer trackId = mapRvTrackId.get(rv);     // Can be null 
+                    if (trackId != null)
                     {
-                        InstrumentMix insMix = (InstrumentMix) e.getOldValue();
-                        MidiMix mm = songContext.getMidiMix();
-                        RhythmVoice rv = mm.geRhythmVoice(insMix);
-                        Integer trackId = mapRvTrackId.get(rv);     // Can be null if state==outdated
-                        if (trackId != null)
-                        {
-                            mapTrackIdMuted.put(trackId, insMix.isMute());
-                            pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
-                        }
+                        mapTrackIdMuted.put(trackId, insMix.isMute());
+                        pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
                     }
+
                     break;
 
                 default:
@@ -488,11 +488,8 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
             switch (e.getPropertyName())
             {
                 case PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED:
-                    if (!state.equals(State.NEW))
-                    {
-                        mapTrackIdMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
-                        pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
-                    }
+                    mapTrackIdMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
+                    pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
                     break;
 
                 case PlaybackSettings.PROP_LOOPCOUNT:
@@ -602,7 +599,5 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     // ==========================================================================================================
     // Private methods
     // ==========================================================================================================
-
-
 
 }

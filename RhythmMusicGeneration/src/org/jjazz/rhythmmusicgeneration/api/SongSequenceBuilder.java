@@ -77,26 +77,19 @@ public class SongSequenceBuilder
         public Map<RhythmVoice, Phrase> mapRvPhrase;
     }
 
-    static public class MissingStartChordException extends MusicGenerationException
+    /**
+     * A special kind of MusicGenerationException for errors that user can fix, such as 2 chord symbols at the same position, no
+     * chord symbol at section start, etc.
+     */
+    static public class UserErrorException extends MusicGenerationException
     {
 
-        public MissingStartChordException(String msg)
+        public UserErrorException(String msg)
         {
             super(msg);
         }
 
     }
-
-    static public class ChordsAtSamePositionException extends MusicGenerationException
-    {
-
-        public ChordsAtSamePositionException(String msg)
-        {
-            super(msg);
-        }
-
-    }
-
 
     private SongContext songContext;
 
@@ -232,6 +225,8 @@ public class SongSequenceBuilder
     {
         Map<RhythmVoice, Phrase> res = new HashMap<>();
 
+        checkEmptyRange(songContext);       // throws MusicGenerationException
+        
         // Check that there is a valid starting chord at the beginning on each section
         checkStartChordPresence(songContext);      // throws MusicGenerationException
 
@@ -385,7 +380,7 @@ public class SongSequenceBuilder
      *
      * @throws MusicGenerationException
      */
-    private void checkStartChordPresence(SongContext context) throws MusicGenerationException
+    private void checkStartChordPresence(SongContext context) throws UserErrorException
     {
         ChordLeadSheet cls = context.getSong().getChordLeadSheet();
         for (CLI_Section section : cls.getItems(CLI_Section.class))
@@ -394,7 +389,7 @@ public class SongSequenceBuilder
             List<? extends CLI_ChordSymbol> clis = cls.getItems(section, CLI_ChordSymbol.class);
             if (clis.isEmpty() || !clis.get(0).getPosition().equals(pos))
             {
-                throw new MissingStartChordException(ResUtil.getString(getClass(), "ERR_MissingChordSymbolAtSection", section.getData().getName(), (pos.getBar() + 1)));
+                throw new UserErrorException(ResUtil.getString(getClass(), "ERR_MissingChordSymbolAtSection", section.getData().getName(), (pos.getBar() + 1)));
             }
         }
     }
@@ -402,7 +397,7 @@ public class SongSequenceBuilder
     /**
      * Check if the ChordLeadSheet contains 2 chord symbols at the same position.
      */
-    private void checkChordsAtSamePosition(SongContext context) throws MusicGenerationException
+    private void checkChordsAtSamePosition(SongContext context) throws UserErrorException
     {
         HashMap<Position, CLI_ChordSymbol> mapPosCs = new HashMap<>();
         ChordLeadSheet cls = context.getSong().getChordLeadSheet();
@@ -418,7 +413,7 @@ public class SongSequenceBuilder
                 sb.append(cliCs.getData().toString()).append(cliCs.getPosition().toUserString());
                 sb.append(" - ");
                 sb.append(existingCliCs.getData().toString()).append(existingCliCs.getPosition().toUserString());
-                throw new ChordsAtSamePositionException(sb.toString());
+                throw new UserErrorException(sb.toString());
             } else
             {
                 mapPosCs.put(pos, cliCs);
@@ -552,6 +547,14 @@ public class SongSequenceBuilder
                 LOGGER.fine("processInstrumentsSettings()    Adjusting velocity=" + insSet.getVelocityShift() + " for rv=" + rv);   //NOI18N
             }
         }
+    }
+    
+    private void checkEmptyRange(SongContext context) throws UserErrorException
+    {
+        if (context.getBarRange().isEmpty())
+        {
+            throw new UserErrorException(ResUtil.getString(getClass(), "ERR_NothingToPlay"));
+        } 
     }
 
     /**

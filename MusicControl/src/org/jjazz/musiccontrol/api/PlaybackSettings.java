@@ -53,7 +53,7 @@ import org.jjazz.upgrade.spi.UpgradeTask;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Playback settings (click, precount, looping, playback transposition) and related helper methods.
+ * Playback settings (click, precount, looping, playback transposition, auto-update mode) and related helper methods.
  * <p>
  * Property change events are fired when settings are modified.
  */
@@ -104,6 +104,7 @@ public class PlaybackSettings
     public static final String PROP_CLICK_PRECOUNT_ENABLED = "ClickPrecountEnabled";
     public static final String PROP_CLICK_PRECOUNT_MODE = "ClickPrecountMode";
     public static final String PROP_PLAYBACK_CLICK_ENABLED = "PlaybackClickEnabled";
+    public static final String PROP_AUTO_UPDATE_ENABLED = "AutoUpdateEnabled";
 
     private int loopCount = 0;
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
@@ -181,6 +182,29 @@ public class PlaybackSettings
         int old = getPlaybackKeyTransposition();
         prefs.putInt(PROP_PLAYBACK_KEY_TRANSPOSITION, t);
         pcs.firePropertyChange(PROP_PLAYBACK_KEY_TRANSPOSITION, old, t);
+    }
+
+    /**
+     * Set if playing backing track should be automatically updated in real-time when song changes.
+     *
+     * @param b
+     *
+     */
+    public void setAutoUpdateEnabled(boolean b)
+    {
+        boolean old = isAutoUpdateEnabled();
+        prefs.putBoolean(PROP_AUTO_UPDATE_ENABLED, b);
+        pcs.firePropertyChange(PROP_AUTO_UPDATE_ENABLED, old, b);
+    }
+
+    /**
+     * True if playing backing track should be automatically updated in real-time when song changes.
+     *
+     * @return
+     */
+    public boolean isAutoUpdateEnabled()
+    {
+        return prefs.getBoolean(PROP_AUTO_UPDATE_ENABLED, true);
     }
 
     /**

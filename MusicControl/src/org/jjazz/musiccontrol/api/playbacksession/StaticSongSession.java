@@ -35,13 +35,12 @@ import org.jjazz.songcontext.api.SongContext;
 /**
  * A BaseSongSession which do not provide on-the-fly updates, it becomes dirty as soon as the SongContext has changed.
  * <p>
- * @see DynamicSongSession 
+ * @see DynamicSongSession
  */
 public class StaticSongSession extends BaseSongSession
 {
 
     private static final List<StaticSongSession> sessions = new ArrayList<>();
-    private static final ClosedSessionsListener CLOSED_SESSIONS_LISTENER = new ClosedSessionsListener();
 
 
     /**
@@ -82,7 +81,6 @@ public class StaticSongSession extends BaseSongSession
                     loopCount,
                     endOfPlaybackAction);
 
-            newSession.addPropertyChangeListener(CLOSED_SESSIONS_LISTENER);
             sessions.add(newSession);
             return newSession;
         } else
@@ -106,6 +104,13 @@ public class StaticSongSession extends BaseSongSession
     private StaticSongSession(SongContext sgContext, boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack, int loopCount, ActionListener endOfPlaybackAction)
     {
         super(sgContext, enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack, loopCount, endOfPlaybackAction);
+    }
+
+    @Override
+    public void close()
+    {
+        super.close();
+        sessions.remove(this);
     }
 
     @Override
@@ -204,19 +209,5 @@ public class StaticSongSession extends BaseSongSession
     // ==========================================================================================================
     // Inner classes
     // ==========================================================================================================
-    private static class ClosedSessionsListener implements PropertyChangeListener
-    {
-
-        @Override
-        public void propertyChange(PropertyChangeEvent evt)
-        {
-            StaticSongSession session = (StaticSongSession) evt.getSource();
-            if (evt.getPropertyName().equals(PlaybackSession.PROP_STATE) && session.getState().equals(PlaybackSession.State.CLOSED))
-            {
-                sessions.remove(session);
-                session.removePropertyChangeListener(this);
-            }
-        }
-    }
 
 }

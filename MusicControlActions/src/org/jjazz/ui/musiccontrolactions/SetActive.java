@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.mixconsole.actions;
+package org.jjazz.ui.musiccontrolactions;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -34,7 +34,12 @@ import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -43,6 +48,8 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.awt.StatusDisplayer;
+import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
@@ -54,7 +61,7 @@ import static org.openide.util.actions.BooleanStateAction.PROP_BOOLEAN_STATE;
 /**
  * Toggle the active state of the song.
  */
-@ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.setactive")
+@ActionID(category = "MusicControls", id = "org.jjazz.ui.musiccontrolactions.setactive")
 @ActionRegistration(displayName = "#CTL_SetActive", lazy = false)
 @ActionReferences(
         {
@@ -88,7 +95,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
         // Listen to the current Song changes
         lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
         lookupResult.addLookupListener(this);
-        currentSongChanged();
+        updateEnabledAndSelected();
     }
 
     @Override
@@ -120,7 +127,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
                 throw new IllegalStateException("Unexpected MidiUnavailableException", ex);   //NOI18N
             }
             currentSong.addPropertyChangeListener(this);
-            currentSongChanged();
+            updateEnabledAndSelected();
         } else
         {
             // Do nothing : setactiveer is still using the last valid song
@@ -192,19 +199,19 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_STATE)
+            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
             {
                 playbackStateChanged();
             }
         } else if (evt.getSource() == ActiveSongManager.getInstance())
         {
-            if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
+            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
                 activeSongChanged();
             }
         } else if (evt.getSource() == currentSong)
         {
-            if (evt.getPropertyName() == Song.PROP_CLOSED)
+            if (evt.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 currentSongClosed();
             }
@@ -216,12 +223,46 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
     // ======================================================================   
     private void activeSongChanged()
     {
-        LOGGER.fine("activeSongChanged() calling stop()");   //NOI18N
-        MusicController.getInstance().stop();  // In case the last activesong was playing or in pause mode
-        currentSongChanged();    // Enable/Disable components            
+        LOGGER.fine("activeSongChanged() calling stop()");  
+        
+        MusicController.getInstance().stop();  // In case the last active song was playing or in pause mode
+        updateEnabledAndSelected();    // Enable/Disable components    
+
+        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
+        if (activeSong != null)
+        {
+            // Create (or reuse) a DynamicSession for the active song and update MusicController
+            try
+            {
+                MidiMix midiMix = MidiMixManager.getInstance().findMix(activeSong);      // Can raise MidiUnavailableException
+                SongContext context = new SongContext(activeSong, midiMix);
+                var session = UpdatableSongSession.getSession(DynamicSongSession.getSession(context));   // Might reuse a clean existing session
+                MusicController.getInstance().setPlaybackSession(session); // can raise MusicGenerationException for serious errors
+
+            } catch (MusicGenerationException ex)
+            {
+                // Notify user "lightly", real notification will be done by the Play action
+                StatusDisplayer.getDefault().setStatusText(ex.getMessage());
+
+            } catch (MidiUnavailableException ex)
+            {
+                // Should never happen
+                Exceptions.printStackTrace(ex);
+            }
+        } else
+        {
+            try
+            {
+                MusicController.getInstance().setPlaybackSession(null);
+            } catch (MusicGenerationException ex)
+            {
+                // Should never happen
+                Exceptions.printStackTrace(ex);
+            }
+        }
     }
 
-    private void currentSongChanged()
+    private void updateEnabledAndSelected()
     {
         setEnabled(currentSong != null);
         Song activeSong = ActiveSongManager.getInstance().getActiveSong();
@@ -234,7 +275,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
         currentSong.removePropertyChangeListener(this);
         currentSong = null;
         currentMidiMix = null;
-        currentSongChanged();
+        updateEnabledAndSelected();
     }
 
     private void playbackStateChanged()

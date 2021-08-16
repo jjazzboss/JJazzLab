@@ -316,7 +316,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         // Prepare the dynamic session
         if (session != null)
         {
-            session.cleanup();
+            session.close();
         }
 
         // Build song context with the original RP value or edited one
@@ -351,7 +351,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         MusicController mc = MusicController.getInstance();
         try
         {
-            mc.play(session, session.getBarRange().from);
+            mc.setPlaybackSession(session);
+            mc.play(session.getBarRange().from);
         } catch (MusicGenerationException ex)
         {
             if (ex.getLocalizedMessage() != null)
@@ -609,7 +610,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         }
         if (session != null)
         {
-            session.cleanup();
+            session.close();
         }
     }//GEN-LAST:event_formWindowClosed
 

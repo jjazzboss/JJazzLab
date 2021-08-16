@@ -169,12 +169,12 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                         session = UpdatableSongSession.getSession(dynSession);
                         if (session.getState().equals(PlaybackSession.State.NEW))
                         {
-                            session.generate(false);
+                            session.generate(false);        // can raise MusicGenerationException
+                            mc.setPlaybackSession(session); // can raise MusicGenerationException
                         }
-
-
+                        
                         // Start sequencer
-                        mc.play(session, 0);
+                        mc.play(0);
 
 
                         // Log the song play event        
@@ -187,7 +187,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                     {
                         if (session != null)
                         {
-                            session.cleanup();
+                            session.close();
                         }
 
                         if (ex.getLocalizedMessage() != null)

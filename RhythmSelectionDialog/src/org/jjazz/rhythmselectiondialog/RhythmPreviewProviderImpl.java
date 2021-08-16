@@ -112,7 +112,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
 
         if (session != null)
         {
-            session.cleanup();
+            session.close();
         }
 
         // Reactivate song
@@ -163,7 +163,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
         // Build the corresponding session 
         if (session != null)
         {
-            session.cleanup();
+            session.close();
         }
         session = new PreviewSession(sgContext,
                 loopCount ? Sequencer.LOOP_CONTINUOUSLY : 0,
@@ -179,7 +179,8 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
 
         // Start playback
         session.generate(false);
-        mc.play(session, 0);
+        mc.setPlaybackSession(session);
+        mc.play(0);
 
 
         // Save previewed rhythm

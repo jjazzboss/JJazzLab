@@ -108,7 +108,8 @@ public class TestPlayer
 
         TestSession session = new TestSession(phrase, endAction);
         session.generate(false);
-        mc.play(session, 0);
+        mc.setPlaybackSession(session);
+        mc.play(0);
 
     }
 
@@ -206,7 +207,7 @@ public class TestPlayer
         }
 
         @Override
-        public void cleanup()
+        public void close()
         {
             // Nothing
         }
