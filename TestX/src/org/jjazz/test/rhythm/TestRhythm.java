@@ -154,7 +154,7 @@ public class TestRhythm implements Rhythm, MusicGenerator
     @Override
     public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context) throws MusicGenerationException
     {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new MusicGenerationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

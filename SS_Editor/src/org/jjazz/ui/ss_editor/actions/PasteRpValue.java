@@ -47,7 +47,6 @@ import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.ui.ss_editor.api.RpValueCopyBuffer;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
@@ -56,6 +55,7 @@ import org.jjazz.util.api.ResUtil;
 /**
  * Paste RhythmParameter values.
  * <p>
+ * @todo Improve paste: should work if song part selected, and possible to past 1 value to multiple song parts
  */
 @ActionID(category = "JJazz", id = "org.jjazz.ui.ss_editor.actions.pasterpvalue")
 @ActionRegistration(displayName = "#CTL_PasteRpValue", lazy = false)

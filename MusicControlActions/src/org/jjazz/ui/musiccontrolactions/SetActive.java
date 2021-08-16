@@ -35,7 +35,6 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
-import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
@@ -81,13 +80,10 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
     {
         setBooleanState(false);
 
-        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/Off-24x18.png")));
-        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/On-24x18.png")));
+        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/Off-24x18.png")));
+        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/On-24x18.png")));
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_SetActiveToolTip"));
         putValue("hideActionText", true);
-
-        // Listen to setactivebackState and position changes
-        MusicController.getInstance().addPropertyChangeListener(this);
 
         // Listen to the Midi active song changes
         ActiveSongManager.getInstance().addPropertyListener(this);
@@ -130,7 +126,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
             updateEnabledAndSelected();
         } else
         {
-            // Do nothing : setactiveer is still using the last valid song
+            // Do nothing : setactive is still using the last valid song
         }
     }
 
@@ -196,14 +192,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        MusicController mc = MusicController.getInstance();
-        if (evt.getSource() == mc)
-        {
-            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
-            {
-                playbackStateChanged();
-            }
-        } else if (evt.getSource() == ActiveSongManager.getInstance())
+        if (evt.getSource() == ActiveSongManager.getInstance())
         {
             if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
@@ -223,42 +212,54 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
     // ======================================================================   
     private void activeSongChanged()
     {
-        LOGGER.fine("activeSongChanged() calling stop()");  
-        
+        LOGGER.info("activeSongChanged() --");
+
         MusicController.getInstance().stop();  // In case the last active song was playing or in pause mode
-        updateEnabledAndSelected();    // Enable/Disable components    
+        updateEnabledAndSelected();    // Enable/Disable and select/unselect button    
 
         Song activeSong = ActiveSongManager.getInstance().getActiveSong();
         if (activeSong != null)
         {
-            // Create (or reuse) a DynamicSession for the active song and update MusicController
-            try
-            {
-                MidiMix midiMix = MidiMixManager.getInstance().findMix(activeSong);      // Can raise MidiUnavailableException
-                SongContext context = new SongContext(activeSong, midiMix);
-                var session = UpdatableSongSession.getSession(DynamicSongSession.getSession(context));   // Might reuse a clean existing session
-                MusicController.getInstance().setPlaybackSession(session); // can raise MusicGenerationException for serious errors
-
-            } catch (MusicGenerationException ex)
-            {
-                // Notify user "lightly", real notification will be done by the Play action
-                StatusDisplayer.getDefault().setStatusText(ex.getMessage());
-
-            } catch (MidiUnavailableException ex)
-            {
-                // Should never happen
-                Exceptions.printStackTrace(ex);
-            }
+            updatePlaybackSession(activeSong);
         } else
         {
             try
             {
+                LOGGER.info("activeSongChanged() activeSong=" + null + ", resetting MusicController playback session");
                 MusicController.getInstance().setPlaybackSession(null);
             } catch (MusicGenerationException ex)
             {
                 // Should never happen
                 Exceptions.printStackTrace(ex);
             }
+        }
+    }
+
+    /**
+     * Create (or reuse) an Updatable/DynamicSession for the active song and update MusicController.
+     *
+     * @param activeSong
+     */
+    private void updatePlaybackSession(Song activeSong)
+    {
+        LOGGER.info("updatePlaybackSession() -- activeSong=" + activeSong);
+        try
+        {
+            MidiMix midiMix = MidiMixManager.getInstance().findMix(activeSong);      // Can raise MidiUnavailableException
+            SongContext context = new SongContext(activeSong, midiMix);
+            var session = UpdatableSongSession.getSession(DynamicSongSession.getSession(context));   // Might reuse a clean existing session
+            MusicController.getInstance().setPlaybackSession(session); // can raise MusicGenerationException for serious errors
+
+        } catch (MusicGenerationException ex)
+        {
+            // Notify user "lightly", real notification will be done by the Play action
+            LOGGER.info("updatePlaybackSession() Error while setting playback session: " + ex.getMessage());
+            StatusDisplayer.getDefault().setStatusText(ex.getMessage());
+
+        } catch (MidiUnavailableException ex)
+        {
+            // Should never happen
+            Exceptions.printStackTrace(ex);
         }
     }
 
@@ -278,9 +279,5 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
         updateEnabledAndSelected();
     }
 
-    private void playbackStateChanged()
-    {
-        // Nothing
-    }
 
 }

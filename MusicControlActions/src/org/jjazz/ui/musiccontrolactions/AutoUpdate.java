@@ -35,6 +35,7 @@ import org.jjazz.musiccontrol.api.MusicController.State;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
 import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
@@ -56,7 +57,7 @@ import org.openide.util.actions.BooleanStateAction;
 public class AutoUpdate extends BooleanStateAction implements PropertyChangeListener
 {
 
-    private DynamicSongSession currentSession;
+    private DynamicSongSession currentDynamicSession;
     private static final Logger LOGGER = Logger.getLogger(AutoUpdate.class.getSimpleName());
 
     public AutoUpdate()
@@ -70,7 +71,6 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
         putValue("hideActionText", true);       //NOI18N
 
 
-        ActiveSongManager.getInstance().addPropertyListener(this);
         MusicController.getInstance().addPropertyChangeListener(this);
 
     }
@@ -87,8 +87,8 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
         {
             return;
         }
-//        PlaybackSettings cm = PlaybackSettings.getInstance();
-//        cm.setPlaybackClickEnabled(b);
+        PlaybackSettings.getInstance().setAutoUpdateEnabled(b);
+        
         setBooleanState(b);  // Notify action listeners
     }
 
@@ -118,24 +118,48 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
     {
         var mc = MusicController.getInstance();
 
-        if (evt.getSource() == currentSession)
+        if (evt.getSource() == currentDynamicSession)
         {
             if (evt.getPropertyName().equals(DynamicSongSession.PROP_UPDATES_ENABLED))
             {
-                if (!currentSession.isUpdatable())
+                if (!currentDynamicSession.isUpdatable())
                 {
                     setEnabled(false);
                 }
             }
-        } else if (evt.getSource() == ActiveSongManager.getInstance())
-        {
-            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
-            {
-                updateEnabled();
-            }
         } else if (evt.getSource() == MusicController.getInstance())
         {
-            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
+            if (evt.getPropertyName().equals(MusicController.PROP_PLAYBACK_SESSION))
+            {
+                // Unregister previous session
+                if (currentDynamicSession != null)
+                {
+                    currentDynamicSession.removePropertyChangeListener(this);
+                }
+
+                currentDynamicSession = null;       // By default
+
+
+                // If it's an Updatable+Dynamic session, we can work
+                PlaybackSession session = mc.getPlaybackSession();
+                if (session instanceof UpdatableSongSession)
+                {
+                    PlaybackSession baseSession = ((UpdatableSongSession) session).getBaseSession();
+                    if (baseSession instanceof DynamicSongSession)
+                    {
+                        currentDynamicSession = (DynamicSongSession) baseSession;
+                        currentDynamicSession.addPropertyChangeListener(this);
+                        setEnabled(currentDynamicSession.isUpdatable());
+                    }
+                }
+
+                if (currentDynamicSession == null)
+                {
+                    // Unknow session, autoupdate has no meaning                 
+                    setEnabled(false);
+                }
+
+            } else if (evt.getPropertyName().equals(MusicController.PROP_STATE))
             {
                 State newState = (State) evt.getNewValue();
                 State oldState = (State) evt.getOldValue();
@@ -144,39 +168,14 @@ public class AutoUpdate extends BooleanStateAction implements PropertyChangeList
                 {
                     case DISABLED:
                         break;
-                    case STOPPED:
-                        break;
                     case PAUSED:
+                    case STOPPED:
+                        if (currentDynamicSession != null)
+                        {
+                            setEnabled(true);
+                        }
                         break;
                     case PLAYING:
-                        if (oldState.equals(State.STOPPED))
-                        {
-                            // First start
-
-                            // Unregister previous session
-                            if (currentSession != null)
-                            {
-                                currentSession.removePropertyChangeListener(this);
-                            }
-
-
-                            PlaybackSession session = mc.getPlaybackSession();
-                            if (session instanceof DynamicSongSession)
-                            {
-                                // It's a dynamic session register and update enabled
-                                currentSession = (DynamicSongSession) session;
-                                currentSession.addPropertyChangeListener(this);
-                                setEnabled(currentSession.isUpdatable());
-                            } else
-                            {
-                                // Unknow session, autoupdate has no meaning
-                                currentSession = null;
-                                setEnabled(false);
-                            }
-                        } else if (oldState.equals(State.PAUSED))
-                        {
-                            // Resume, nothing to do
-                        }
                         break;
                     default:
                         throw new AssertionError(newState.name());

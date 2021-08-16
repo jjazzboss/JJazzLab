@@ -39,6 +39,7 @@ import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
+import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Transmitter;
@@ -83,6 +84,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 {
 
     public static final String PROP_STATE = "PropPlaybackState";   //NOI18N 
+    public static final String PROP_PLAYBACK_SESSION = "PropPlaybackSession";   //NOI18N 
 
     /**
      * The playback states.
@@ -280,6 +282,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * @throws org.jjazz.rhythm.api.MusicGenerationException E.g. if song is already playing, if section lacks a starting chord,
      * etc.
      * @throws IllegalStateException If session is dirty or is CLOSED.
+     * @see PROP_PLAYBACK_SESSION
      */
     public void setPlaybackSession(PlaybackSession session) throws MusicGenerationException
     {
@@ -313,6 +316,19 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 throw new AssertionError(state.name());
         }
 
+
+        try
+        {
+            // Reset sequence, so that if
+            sequencer.setSequence((Sequence) null);
+        } catch (InvalidMidiDataException ex)
+        {
+            // Should never happen
+            Exceptions.printStackTrace(ex);
+        }
+
+        PlaybackSession oldSession = playbackSession;
+
         // Update the session
         closeCurrentPlaybackSession();
         playbackSession = session;
@@ -335,6 +351,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 }
             }
         }
+
+
+        pcs.firePropertyChange(PROP_PLAYBACK_SESSION, oldSession, playbackSession);
     }
 
     /**
@@ -373,7 +392,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
 
 
-         // Check state
+        // Check state
         switch (state)
         {
             case DISABLED:
@@ -407,7 +426,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         } catch (InvalidMidiDataException ex)
         {
             closeCurrentPlaybackSession();
-            throw new MusicGenerationException(ex.getLocalizedMessage());
+            throw new MusicGenerationException(ex.getMessage());
         }
 
 
@@ -1139,8 +1158,12 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private void updateTracksMuteStatus()
     {
         var mapTrackMute = playbackSession.getTracksMuteStatus();
-        if (mapTrackMute != null)
+        
+        // Make sure sequence is not null: it can happen when setPlayingSession() was called with an UpdatableSongSession but play() 
+        // was not called yet, and user changed the song that provoked an update        
+        if (mapTrackMute != null && sequencer.getSequence() != null)
         {
+
             LOGGER.info("updateTracksMuteStatus() mapTrackMute=" + mapTrackMute);
             for (int trackId : mapTrackMute.keySet())
             {
@@ -1149,6 +1172,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 if (sequencer.getTrackMute(trackId) != b)
                 {
                     LOGGER.severe("updateTracksMuteStatus() setTrackMute(" + trackId + "," + b + ") failed");
+                    LOGGER.severe("                          sequencer" + sequencer.isRunning());
                 }
             }
         }

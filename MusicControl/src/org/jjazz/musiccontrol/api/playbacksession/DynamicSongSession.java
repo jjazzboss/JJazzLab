@@ -259,6 +259,13 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                     dirty = true;
                     break;
 
+                case PlaybackSettings.PROP_AUTO_UPDATE_ENABLED:
+                    if (PlaybackSettings.getInstance().isAutoUpdateEnabled())
+                    {
+                        // Auto-Update transitioned to ON: try to update to be up-to-date again
+                        update = true;
+                    }
+
                 default:   // PROP_VETO_PRE_PLAYBACK, PROP_LOOPCOUNT, PROP_PLAYBACK_CLICK_ENABLED
                     // Do nothing
                     break;
