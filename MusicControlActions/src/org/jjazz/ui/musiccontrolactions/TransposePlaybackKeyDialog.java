@@ -1,4 +1,4 @@
-package org.jjazz.outputsynth.ui;
+package org.jjazz.ui.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -136,8 +136,6 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
         jScrollPane1 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
         cb_enableKeyTransposition = new javax.swing.JCheckBox();
-
-        setTitle(org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.title")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.btn_Ok.text")); // NOI18N
         btn_Ok.addActionListener(new java.awt.event.ActionListener()

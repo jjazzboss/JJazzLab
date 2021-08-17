@@ -25,11 +25,13 @@ package org.jjazz.musiccontrol.api.playbacksession;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequence;
+import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -41,7 +43,7 @@ import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.musiccontrol.api.ControlTrackBuilder;
+import org.jjazz.musiccontrol.api.ControlTrack;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import static org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.PROP_LOOP_COUNT;
 import static org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.PROP_MUTED_TRACKS;
@@ -77,10 +79,9 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     private boolean isDirty;
     private SongContext songContext;
     private Sequence sequence;
-    private List<Position> songPositions;
+    private ControlTrack controlTrack;
     private int playbackClickTrackId = -1;
     private int precountClickTrackId = -1;
-    private int controlTrackId = -1;
     private long loopStartTick = 0;
     private long loopEndTick = -1;
     protected int loopCount = PLAYBACK_SETTINGS_LOOP_COUNT;         // Need to be accessible from subclass, because of getLoopCount() implementation
@@ -89,7 +90,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     private boolean isPrecountTrackIncluded = true;
     private boolean isControlTrackIncluded = true;
     private ActionListener endOfPlaybackAction;
-    private ContextChordSequence contextChordSequence;
     private Map<RhythmVoice, Integer> mapRvTrackId;
     private Map<RhythmVoice, Phrase> mapRvPhrase;
     private Map<Integer, Boolean> mapTrackIdMuted;
@@ -194,11 +194,10 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         // Add the control track
         if (isControlTrackIncluded)
         {
-            ControlTrackBuilder ctm = new ControlTrackBuilder(workContext);
-            controlTrackId = ctm.addControlTrack(sequence);
-            mapTrackIdMuted.put(controlTrackId, false);
-            songPositions = ctm.getSongPositions();
-            contextChordSequence = ctm.getContextChordSequence();
+            Track track = sequence.createTrack();
+            controlTrack = new ControlTrack(workContext, Arrays.asList(sequence.getTracks()).indexOf(track));
+            controlTrack.fillTrack(track);
+            mapTrackIdMuted.put(controlTrack.getTrackId(), false);
         }
 
 
@@ -393,16 +392,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     }
 
 
-    /**
-     * Get the control sequence track number.
-     *
-     * @return -1 if no control track
-     */
-    public int getControlTrackId()
-    {
-        return controlTrackId;
-    }
-
+  
     // ==========================================================================================================
     // SongContextProvider implementation
     // ==========================================================================================================    
@@ -416,16 +406,11 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     // ControlTrackProvider implementation
     // ==========================================================================================================    
     @Override
-    public List<Position> getSongPositions()
+    public ControlTrack getControlTrack()
     {
-        return state.equals(State.GENERATED) ? songPositions : null;
+        return state.equals(State.GENERATED) ? controlTrack : null;
     }
 
-    @Override
-    public ContextChordSequence getContextChordGetSequence()
-    {
-        return state.equals(State.GENERATED) ? contextChordSequence : null;
-    }
 
     // ==========================================================================================================
     // EndOfPlaybackActionProvider implementation

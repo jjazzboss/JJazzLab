@@ -670,7 +670,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 if (playbackSession instanceof ControlTrackProvider)
                 {
                     ControlTrackProvider controlTrackProvider = (ControlTrackProvider) playbackSession;
-                    List<Position> naturalBeatPositions = controlTrackProvider.getSongPositions();
+                    List<Position> naturalBeatPositions = controlTrackProvider.getControlTrack().getSongPositions();
                     if (naturalBeatPositions != null && playbackSession.getLoopStartTick() != -1)
                     {
                         long tick = sequencer.getTickPosition() - playbackSession.getLoopStartTick();
@@ -724,7 +724,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
                     // Fire chord symbol change
                     int csIndex = Integer.valueOf(s.substring(8));
-                    ContextChordSequence cSeq = controlTrackProvider.getContextChordGetSequence();
+                    ContextChordSequence cSeq = controlTrackProvider.getControlTrack().getContextChordGetSequence();
                     if (cSeq != null)
                     {
                         CLI_ChordSymbol cliCs = cSeq.get(csIndex);
@@ -1041,7 +1041,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 if (sgContext != null && playbackSession instanceof ControlTrackProvider)
                 {
                     ControlTrackProvider controlTrackProvider = (ControlTrackProvider) playbackSession;
-                    ContextChordSequence cSeq = controlTrackProvider.getContextChordGetSequence();
+                    ContextChordSequence cSeq = controlTrackProvider.getControlTrack().getContextChordGetSequence();
                     if (cSeq != null)
                     {
                         // Fire chord symbol change if no chord symbol at current position (current chord symbol is the previous one)
@@ -1158,7 +1158,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private void updateTracksMuteStatus()
     {
         var mapTrackMute = playbackSession.getTracksMuteStatus();
-        
+
         // Make sure sequence is not null: it can happen when setPlayingSession() was called with an UpdatableSongSession but play() 
         // was not called yet, and user changed the song that provoked an update        
         if (mapTrackMute != null && sequencer.getSequence() != null)

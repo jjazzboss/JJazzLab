@@ -80,7 +80,7 @@ import org.openide.util.*;
  * This SongSession listens to the context changes to provide on-the-fly updates for an UpdatableSongSession.
  * <p>
  * On-the-fly updates are provided for :<br>
- * - chord symbol changes (add/remove/changed/move)<br>
+ * - chord symbol changes (add/remove/change/move)<br>
  * - rhythm parameter value changes<br>
  * - PlaybackSettings playback transposition changes<br>
  * - MidiMix instrument transposition/velocity changes, plus drum keymap changes<br>
@@ -263,7 +263,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 case PlaybackSettings.PROP_AUTO_UPDATE_ENABLED:
                     if (PlaybackSettings.getInstance().isAutoUpdateEnabled())
                     {
-                        // Auto-Update transitioned to ON: try to update to be up-to-date again
+                        // Auto-Update switched to ON: try to update to be up-to-date again
                         update = true;
                     }
 

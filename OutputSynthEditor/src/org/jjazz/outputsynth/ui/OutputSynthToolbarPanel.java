@@ -107,8 +107,6 @@ public class OutputSynthToolbarPanel extends javax.swing.JPanel implements Prope
 
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
         add(filler1);
-
-        fbtn_playbackTransposition.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/outputsynth/ui/resources/Sax-OFF-24x24.png"))); // NOI18N
         add(fbtn_playbackTransposition);
         add(filler3);
 

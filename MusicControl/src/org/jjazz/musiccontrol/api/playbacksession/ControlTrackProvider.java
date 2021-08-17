@@ -22,36 +22,21 @@
  */
 package org.jjazz.musiccontrol.api.playbacksession;
 
-import java.util.List;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.rhythmmusicgeneration.api.ContextChordSequence;
+import org.jjazz.musiccontrol.api.ControlTrack;
 
 /**
- * PlaybackSession additional capability: the sequence contains a control track produced by the ControlTrackBuilder.
+ * PlaybackSession additional capability: the sequence contains a control track.
  * <p>
  */
 public interface ControlTrackProvider
 {
 
     /**
-     * Session must fire this property change event with newValue=false when control track info becomes disabled (it is enabled by default).
+     * Session must fire this property change event with newValue=false when control track info becomes disabled (it is enabled by
+     * default).
      */
     public static final String ENABLED_STATE = "PropControlTrackProviderEnabledState";
 
-    /**
-     * The list is used to convert a CTRL_CHG_JJAZZ_BEAT_CHANGE event into into a Position in the song.
-     *
-     * @return Null if not meaningful value can be returned.
-     * @see ControlTrackBuilder.getSongPositions()
-     */
-    public List<Position> getSongPositions();
-
-    /**
-     * The chord sequence used to retrieve the chord symbol from the index passed in the Meta market event.
-     *
-     * @return Null if no meaningful value can be returned
-     * @see ControlTrackBuilder.getSongPositions()
-     */
-    ContextChordSequence getContextChordGetSequence();
+    ControlTrack getControlTrack();
 
 }

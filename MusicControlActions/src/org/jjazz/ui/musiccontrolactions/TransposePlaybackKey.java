@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.outputsynth.ui;
+package org.jjazz.ui.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
@@ -30,12 +30,9 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionRegistration;
 import org.openide.windows.WindowManager;
@@ -82,13 +79,6 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
 
             Analytics.setProperties(Analytics.buildMap("Playback Key Transpose", dlg.getPlaybackKeyTransposition()));
 
-
-            if (old != dlg.getPlaybackKeyTransposition() && MusicController.getInstance().getState().equals(MusicController.State.PLAYING))
-            {
-                String msg = ResUtil.getString(getClass(), "CTL_ChangeWillTakeEffectAfter");
-                NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
-                DialogDisplayer.getDefault().notify(d);
-            }
         }
     }
 

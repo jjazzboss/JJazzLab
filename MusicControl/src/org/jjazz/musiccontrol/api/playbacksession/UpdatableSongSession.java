@@ -37,20 +37,19 @@ import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.musiccontrol.api.ControlTrack;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmmusicgeneration.api.ContextChordSequence;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.util.api.IntRange;
 
 /**
  * A PlaybackSession which is a wrapper for a BaseSongSession to enable on-the-fly updates of the playing sequence using
- * {@link updateSequence(Map&lt;RhythmVoice,Phrase&gt)}.
+ * {@link updateSequence(Update)}.
  * <p>
  * Authorized udpates are add/remove notes which do not change the Sequence size. The class uses buffer tracks and mute/unmute
  * tracks to enable on-the-fly sequence changes.
@@ -61,13 +60,46 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 {
 
     /**
+     * A song update produced by an UpdateProvider and processed by an UpdatableSongSession.
+     */
+    public class Update
+    {
+
+        /**
+         * The updated phrases for one or more RhythmVoices.
+         * <p>
+         * Can be null (no update).
+         */
+        public Map<RhythmVoice, Phrase> mapRvPhrases;
+
+        /**
+         * The updated control track.
+         * <p>
+         * Can be null (no update).
+         */
+        public ControlTrack controlTrack;
+
+        public Update(Map<RhythmVoice, Phrase> mapRvPhrases, ControlTrack controlTrack)
+        {
+            this.mapRvPhrases = mapRvPhrases;
+            this.controlTrack = controlTrack;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "<mapRvPhrases.keySet=" + mapRvPhrases.keySet() + ", controlTrack=" + controlTrack + ">";
+        }
+    }
+
+    /**
      * A SongContextSession capability: can provide an update after sequence was generated (in the GENERATED state).
      * <p>
      * The session must fire a PROP_UPDATE_AVAILABLE property change event when an update is ready.
      */
     public interface UpdateProvider
     {
-        
+
         public static String PROP_UPDATE_AVAILABLE = "PropUpdateAvailable";
 
         /**
@@ -75,10 +107,10 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
          *
          * @return Can be null if PROP_UPDATE_AVAILABLE event was never fired.
          */
-        Map<RhythmVoice, Phrase> getUpdate();
+        Update getUpdate();
     }
-    
-    
+
+
     private long originalTrackTickSize;
     private int nbPlayingTracks;
     private Map<RhythmVoice, Phrase> currentMapRvPhrase;
@@ -88,7 +120,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     private final HashMap<Integer, Boolean> mapTrackIdMuted = new HashMap<>();
     private static final List<UpdatableSongSession> sessions = new ArrayList<>();
     private static final ClosedSessionsListener CLOSED_SESSIONS_LISTENER = new ClosedSessionsListener();
-    
+
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(UpdatableSongSession.class.getSimpleName());  //NOI18N
 
@@ -99,8 +131,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      * Sessions are cached: if an existing session already exists for the same parameters then return it, otherwise a new session
      * is created.
      * <p>
-     * @param session Must be in the NEW or GENERATED state. If it is an UpdateProvider instance automatically apply
-     * the updates when available.
+     * @param session Must be in the NEW or GENERATED state. If it is an UpdateProvider instance automatically apply the updates
+     * when available.
      * @return
      */
     static public UpdatableSongSession getSession(BaseSongSession session)
@@ -113,7 +145,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         {
             throw new IllegalStateException("session=" + session);
         }
-        
+
         UpdatableSongSession updatableSession = findSession(session);
         if (updatableSession == null)
         {
@@ -134,32 +166,32 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      */
     private UpdatableSongSession(BaseSongSession session)
     {
-        if (session == null )
+        if (session == null)
         {
             throw new IllegalArgumentException("session=" + session);
-        }        
-        
+        }
+
         baseSongSession = session;
         baseSongSession.addPropertyChangeListener(this);
-               
-        
+
+
         if (baseSongSession.getState().equals(State.GENERATED))
         {
             prepareData();
         }
     }
-    
+
     public BaseSongSession getBaseSession()
     {
         return baseSongSession;
     }
-    
-    
+
+
     @Override
     public void generate(boolean silent) throws MusicGenerationException
     {
         baseSongSession.generate(silent);
-        
+
         prepareData();
     }
 
@@ -201,36 +233,46 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 
 
     /**
-     * Update the sequence by replacing the contents of one or more RhythmVoice tracks.
+     * Update the sequence with the specified parameter.
      * <p>
-     * Update tracks for which there is an actual change. Changes are first applied to muted "buffer tracks", then we switch the
-     * mute status between the buffer and the playing tracks. The transition might be noticeable if notes were still ringing when
-     * tracks mute state is switched.
+     * Update RhythmVoice tracks for which there is an actual change. Changes are first applied to muted "buffer tracks", then we
+     * switch the mute status between the buffer and the playing tracks. The transition might be noticeable if notes were still
+     * ringing when tracks mute state is switched.
      *
-     * @param newMapRvPhrase
+     * @param update
      * @throws IllegalArgumentException If a MidiEvent tick position is beyond getOriginalSequenceSize(), or if session is not in
      * the GENERATED state.
      */
-    public void updateSequence(Map<RhythmVoice, Phrase> newMapRvPhrase)
+    public void updateSequence(Update update)
     {
-        LOGGER.info("updateSequence() ---- newMapRvPhrase.keySet()=" + newMapRvPhrase.keySet());
-        
+        LOGGER.info("updateSequence() ---- update=" + update);
+
         if (!getState().equals(PlaybackSession.State.GENERATED))
         {
-            throw new IllegalStateException("newMapRvPhrase=" + newMapRvPhrase + " getState()=" + getState());
+            throw new IllegalStateException("getState()=" + getState() + " update=" + update);
         }
 
 
-        // Update sequence with a phrase if it's modified compared to current one
-        for (RhythmVoice rv : newMapRvPhrase.keySet())
+        // Pre-calculate the optional precount shift
+        long precountShift = 0;
+        if (baseSongSession.getPrecountTrackId() != -1)
         {
-            var newPhrase = newMapRvPhrase.get(rv);
+            TimeSignature ts = baseSongSession.getSongContext().getSongParts().get(0).getRhythm().getTimeSignature();
+            int nbPrecountBars = PlaybackSettings.getInstance().getClickPrecountNbBars(ts, baseSongSession.getSongContext().getSong().getTempo());
+            precountShift = (long) Math.ceil(nbPrecountBars * ts.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION);
+        }
+
+
+        // Update sequence for each modified phrase 
+        for (RhythmVoice rv : update.mapRvPhrases.keySet())
+        {
+            var newPhrase = update.mapRvPhrases.get(rv);
             var oldPhrase = currentMapRvPhrase.get(rv);
 //            LOGGER.info("   rv="+rv);
 //            LOGGER.info("     oldPhrase="+oldPhrase);
 //            LOGGER.info("     newPhrase="+newPhrase);
 
-            
+
             if (oldPhrase.equals(newPhrase))
             {
                 // No change do nothing
@@ -243,49 +285,21 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             }
 
 
-            // Pre-calculate the precount shift
-            long precountShift = 0;
-            if (baseSongSession.getPrecountTrackId() != -1)
-            {
-                TimeSignature ts = baseSongSession.getSongContext().getSongParts().get(0).getRhythm().getTimeSignature();
-                int nbPrecountBars = PlaybackSettings.getInstance().getClickPrecountNbBars(ts, baseSongSession.getSongContext().getSong().getTempo());
-                precountShift = (long) Math.ceil(nbPrecountBars * ts.getNbNaturalBeats() * MidiConst.PPQ_RESOLUTION);
-            }
-
-
-            // Clear and update the buffer track with the passed events
+            // Update the track
             int trackId = getOriginalRvTrackIdMap().get(rv);
-            Track bufferTrack = trackSet.getBufferTrack(trackId);
-            MidiUtilities.clearTrack(bufferTrack);
-            
-            
-            for (MidiEvent me : newPhrase.toMidiEvents())
-            {
-                // Adjust position if precount bars are used
-                me.setTick(me.getTick() + precountShift);
-                
-                if (me.getTick() > originalTrackTickSize)
-                {
-                    throw new IllegalArgumentException("me=" + MidiUtilities.toString(me.getMessage(), me.getTick()) + " originalTrackTickSize=" + originalTrackTickSize);
-                }
-                bufferTrack.add(me);
-            }
+            updateTrack(trackId, newPhrase.toMidiEvents(), precountShift);
 
-
-            // Make sure size is not changed
-            MidiUtilities.setEndOfTrackPosition(bufferTrack, originalTrackTickSize);
-
-
-            // Update the track mute state : apply mute status of the active track to the buffer track, then mute the active track
-            boolean activeTrackMuteState = mapTrackIdMuted.get(trackSet.getActiveTrackId(trackId));
-            mapTrackIdMuted.put(trackSet.getBufferTrackId(trackId), activeTrackMuteState);
-            mapTrackIdMuted.put(trackSet.getActiveTrackId(trackId), true);
-
-
-            // Finally exchange the active and buffer tracks
-            trackSet.swapBufferAndActiveTracks(trackId);
         }
 
+
+        // Update control track if changed
+        if (update.controlTrack != null)
+        {
+            int trackId = update.controlTrack.getTrackId();
+            updateTrack(trackId, update.controlTrack.getMidiEvents(), precountShift);
+        }
+
+        
 //        LOGGER.info("updateSequence() AFTER: mapTrackIdMuted=" + mapTrackIdMuted);
 
         // Notify our listeners that tracks mute status has changed
@@ -325,76 +339,76 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     {
         return currentMapRvPhrase;
     }
-    
+
     @Override
     public State getState()
     {
         return baseSongSession.getState();
     }
-    
+
     @Override
     public boolean isDirty()
     {
         return baseSongSession.isDirty();
     }
-    
+
     @Override
     public int getTempo()
     {
         return baseSongSession.getTempo();
     }
-    
+
     @Override
     public HashMap<Integer, Boolean> getTracksMuteStatus()
     {
         // Our version
         return mapTrackIdMuted;
     }
-    
+
     @Override
     public long getLoopEndTick()
     {
         return baseSongSession.getLoopEndTick();
     }
-    
+
     @Override
     public long getLoopStartTick()
     {
         return baseSongSession.getLoopStartTick();
     }
-    
+
     @Override
     public int getLoopCount()
     {
         return baseSongSession.getLoopCount();
     }
-    
+
     @Override
     public IntRange getBarRange()
     {
         return baseSongSession.getBarRange();
     }
-    
+
     @Override
     public long getTick(int barIndex)
     {
         return baseSongSession.getTick(barIndex);
-        
+
     }
-    
+
     @Override
     public void close()
     {
         baseSongSession.removePropertyChangeListener(this);
         baseSongSession.close();
     }
-    
+
     @Override
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
-    
+
     @Override
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
@@ -457,16 +471,9 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     // ControlTrackProvider implementation
     // ==========================================================================================================    
     @Override
-    public List<Position> getSongPositions()
+    public ControlTrack getControlTrack()
     {
-        return baseSongSession.getSongPositions();
-    }
-    
-    
-    @Override
-    public ContextChordSequence getContextChordGetSequence()
-    {
-        return baseSongSession.getContextChordGetSequence();
+        return baseSongSession.getControlTrack();
     }
 
     // ==========================================================================================================
@@ -489,16 +496,16 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 
         if (e.getSource() == baseSongSession)
         {
-            
+
             PropertyChangeEvent newEvent = null;
-            
+
             if (e.getPropertyName().equals(UpdateProvider.PROP_UPDATE_AVAILABLE)
                     && (baseSongSession instanceof UpdateProvider)
                     && getState().equals(State.GENERATED))
             {
                 var update = ((UpdateProvider) (baseSongSession)).getUpdate();
                 updateSequence(update);
-                
+
             } else if (e.getPropertyName().equals(PlaybackSession.PROP_MUTED_TRACKS))
             {
                 // Need to map the new mute status to the currently active tracks                
@@ -509,13 +516,13 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
                     mapTrackIdMuted.put(trackSet.getActiveTrackId(trackId), muted);
                 }
                 newEvent = new PropertyChangeEvent(this, e.getPropertyName(), e.getOldValue(), mapTrackIdMuted);
-                
+
             } else
             {
                 newEvent = new PropertyChangeEvent(this, e.getPropertyName(), e.getOldValue(), e.getNewValue());
-                
+
             }
-            
+
             if (newEvent != null)
             {
                 // Forward the event and make this object the event source
@@ -523,10 +530,10 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
                 pcs.firePropertyChange(newEvent);
             }
         }
-        
-        
+
+
     }
-    
+
     @Override
     public String toString()
     {
@@ -542,7 +549,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      */
     private void prepareData()
     {
-        
+
         sequence = baseSongSession.getSequence();
         originalTrackTickSize = sequence.getTickLength();       // Possibly include precount leading bars
         nbPlayingTracks = sequence.getTracks().length;
@@ -561,12 +568,54 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             mapTrackIdMuted.put(trackId, originalMapIdMuted.get(trackId));
             mapTrackIdMuted.put(trackSet.getBufferTrackId(trackId), true);         // buffer track is muted
         }
-        
-        
+
+
         LOGGER.info("generate() mapTrackIdMuted=" + mapTrackIdMuted);
         LOGGER.info("generate() mapRvTrackId=" + baseSongSession.getRvTrackIdMap());
         LOGGER.info("generate() trackSet=" + trackSet.toString());
 //        LOGGER.info(" Original sequence=" + MidiUtilities.toString(sequence));
+    }
+
+
+    /**
+     * Update one track.
+     *
+     * @param trackId
+     * @param newEvents
+     * @param precountShift
+     * @throws IllegalArgumentException
+     */
+    private void updateTrack(int trackId, List<MidiEvent> newEvents, long precountShift) throws IllegalArgumentException
+    {
+        Track bufferTrack = trackSet.getBufferTrack(trackId);
+        MidiUtilities.clearTrack(bufferTrack);
+
+
+        for (MidiEvent me : newEvents)
+        {
+            // Adjust position if precount bars are used
+            me.setTick(me.getTick() + precountShift);
+
+            if (me.getTick() > originalTrackTickSize)
+            {
+                throw new IllegalArgumentException("me=" + MidiUtilities.toString(me.getMessage(), me.getTick()) + " originalTrackTickSize=" + originalTrackTickSize);
+            }
+            bufferTrack.add(me);
+        }
+
+
+        // Make sure size is not changed
+        MidiUtilities.setEndOfTrackPosition(bufferTrack, originalTrackTickSize);
+
+
+        // Update the track mute state : apply mute status of the active track to the buffer track, then mute the active track
+        boolean activeTrackMuteState = mapTrackIdMuted.get(trackSet.getActiveTrackId(trackId));
+        mapTrackIdMuted.put(trackSet.getBufferTrackId(trackId), activeTrackMuteState);
+        mapTrackIdMuted.put(trackSet.getActiveTrackId(trackId), true);
+
+
+        // Finally exchange the active and buffer tracks
+        trackSet.swapBufferAndActiveTracks(trackId);
     }
 
 
@@ -599,11 +648,11 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      */
     static private class TrackSet
     {
-        
+
         private final Sequence trackSetSequence;
         private final Map<Integer, Integer> mapOriginalIdActiveId = new HashMap<>();
         private final Map<Integer, Integer> mapOriginalIdBufferId = new HashMap<>();
-        
+
         public TrackSet(Sequence seq)
         {
             this.trackSetSequence = seq;
@@ -679,7 +728,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         {
             return mapOriginalIdBufferId.get(originalTrackId);
         }
-        
+
         @Override
         public String toString()
         {
@@ -689,13 +738,13 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             sb.append("   mapOriginalIdBufferId=" + mapOriginalIdBufferId + "\n");
             return sb.toString();
         }
-        
+
     }
-    
-    
+
+
     private static class ClosedSessionsListener implements PropertyChangeListener
     {
-        
+
         @Override
         public void propertyChange(PropertyChangeEvent evt)
         {
@@ -707,5 +756,5 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             }
         }
     }
-    
+
 }
