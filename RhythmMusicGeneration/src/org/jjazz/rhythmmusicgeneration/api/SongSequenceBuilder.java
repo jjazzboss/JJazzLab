@@ -145,6 +145,7 @@ public class SongSequenceBuilder
      * <br>
      * - Apply on each channel possible instrument transpositions, velocity shift, mute (RP_SYS_Mute).<br>
      * - Apply the RP_SYS_DrumsMix velocity changes.<br>
+     * - Apply the 
      * <p>
      * Phrases for RhythmVoiceDelegates are merged into the phrases of the source RhythmVoices.
      *
@@ -288,6 +289,10 @@ public class SongSequenceBuilder
 
         // Handle instrument settings which impact the phrases: transposition, velocity shift, ...
         processInstrumentsSettings(songContext, res);
+        
+        
+        // Process the drums rerouting
+        processDrumsRerouting(songContext, res);
 
 
         // Shift phrases to start at position 0
@@ -547,6 +552,27 @@ public class SongSequenceBuilder
                 LOGGER.fine("processInstrumentsSettings()    Adjusting velocity=" + insSet.getVelocityShift() + " for rv=" + rv);   //NOI18N
             }
         }
+    }
+    
+     /**
+     * Substitute phrases of rerouted channels with new phrases for the GM Drums channel.
+     *
+     * @param rvPhrases
+     */
+    private void processDrumsRerouting(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
+    {
+        LOGGER.fine("processDrumsRerouting() -- ");   //NOI18N
+        
+        MidiMix midiMix = context.getMidiMix();
+        for (int channel : midiMix.getDrumsReroutedChannels())
+        {
+            RhythmVoice rv = midiMix.getRhythmVoice(channel);
+            Phrase oldPhrase = rvPhrases.get(rv);
+            Phrase reroutedPhrase = new Phrase(MidiConst.CHANNEL_DRUMS);
+            reroutedPhrase.add(oldPhrase);
+            rvPhrases.put(rv, reroutedPhrase);
+        }
+               
     }
     
     private void checkEmptyRange(SongContext context) throws UserErrorException

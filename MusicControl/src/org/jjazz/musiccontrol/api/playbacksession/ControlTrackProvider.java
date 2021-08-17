@@ -37,6 +37,11 @@ public interface ControlTrackProvider
      */
     public static final String ENABLED_STATE = "PropControlTrackProviderEnabledState";
 
+    /**
+     * get the control track.
+     *
+     * @return Null if no contral track available.
+     */
     ControlTrack getControlTrack();
 
 }

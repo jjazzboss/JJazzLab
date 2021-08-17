@@ -51,8 +51,8 @@ import org.jjazz.util.api.IntRange;
  * A PlaybackSession which is a wrapper for a BaseSongSession to enable on-the-fly updates of the playing sequence using
  * {@link updateSequence(Update)}.
  * <p>
- * Authorized udpates are add/remove notes which do not change the Sequence size. The class uses buffer tracks and mute/unmute
- * tracks to enable on-the-fly sequence changes.
+ * Authorized udpates are notes+control track changes which do not change the Sequence size. The class uses buffer tracks and
+ * mute/unmute tracks to enable on-the-fly sequence changes.
  * <p>
  * If the BaseSongSession is an instance of UpdateProvider, listen to update availability and automatically apply the update.
  */
@@ -62,33 +62,48 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     /**
      * A song update produced by an UpdateProvider and processed by an UpdatableSongSession.
      */
-    public class Update
+    static public class Update
     {
+
+        private Map<RhythmVoice, Phrase> mapRvPhrases;
+        private ControlTrack controlTrack;
+
+        public Update(Map<RhythmVoice, Phrase> mapRvPhrases, ControlTrack controlTrack)
+        {
+            if (mapRvPhrases == null && controlTrack == null)
+            {
+                throw new IllegalArgumentException("mapRvPhrases=" + mapRvPhrases + " controlTrack=" + controlTrack);
+            }
+            this.mapRvPhrases = mapRvPhrases;
+            this.controlTrack = controlTrack;
+        }
 
         /**
          * The updated phrases for one or more RhythmVoices.
          * <p>
-         * Can be null (no update).
+         * Can be null (no update) if controlTrack is not null.
+         * @return 
          */
-        public Map<RhythmVoice, Phrase> mapRvPhrases;
+        public Map<RhythmVoice, Phrase> getMapRvPhrases()
+        {
+            return mapRvPhrases;
+        }
 
         /**
          * The updated control track.
          * <p>
-         * Can be null (no update).
+         * Can be null (no update) if mapRvPhrases is not null.
+         * @return 
          */
-        public ControlTrack controlTrack;
-
-        public Update(Map<RhythmVoice, Phrase> mapRvPhrases, ControlTrack controlTrack)
+        public ControlTrack getControlTrack()
         {
-            this.mapRvPhrases = mapRvPhrases;
-            this.controlTrack = controlTrack;
+            return controlTrack;
         }
 
         @Override
         public String toString()
         {
-            return "<mapRvPhrases.keySet=" + mapRvPhrases.keySet() + ", controlTrack=" + controlTrack + ">";
+            return "<mapRvPhrases.keySet=" + getMapRvPhrases().keySet() + ", controlTrack=" + getControlTrack() + ">";
         }
     }
 
@@ -114,6 +129,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     private long originalTrackTickSize;
     private int nbPlayingTracks;
     private Map<RhythmVoice, Phrase> currentMapRvPhrase;
+    private ControlTrack currentControlTrack;
     private TrackSet trackSet;         // Exclude track 0 
     private final BaseSongSession baseSongSession;
     private Sequence sequence;
@@ -264,9 +280,9 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 
 
         // Update sequence for each modified phrase 
-        for (RhythmVoice rv : update.mapRvPhrases.keySet())
+        for (RhythmVoice rv : update.getMapRvPhrases().keySet())
         {
-            var newPhrase = update.mapRvPhrases.get(rv);
+            var newPhrase = update.getMapRvPhrases().get(rv);
             var oldPhrase = currentMapRvPhrase.get(rv);
 //            LOGGER.info("   rv="+rv);
 //            LOGGER.info("     oldPhrase="+oldPhrase);
@@ -293,15 +309,16 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 
 
         // Update control track if changed
-        if (update.controlTrack != null)
+        if (update.getControlTrack() != null)
         {
-            int trackId = update.controlTrack.getTrackId();
-            updateTrack(trackId, update.controlTrack.getMidiEvents(), precountShift);
+            currentControlTrack = update.getControlTrack();
+            int trackId = update.getControlTrack().getTrackId();
+            updateTrack(trackId, currentControlTrack.getMidiEvents(), precountShift);
+            
         }
 
-        
-//        LOGGER.info("updateSequence() AFTER: mapTrackIdMuted=" + mapTrackIdMuted);
 
+//        LOGGER.info("updateSequence() AFTER: mapTrackIdMuted=" + mapTrackIdMuted);
         // Notify our listeners that tracks mute status has changed
         pcs.firePropertyChange(PlaybackSession.PROP_MUTED_TRACKS, null, mapTrackIdMuted);
     }
@@ -473,7 +490,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     @Override
     public ControlTrack getControlTrack()
     {
-        return baseSongSession.getControlTrack();
+        return currentControlTrack;
     }
 
     // ==========================================================================================================
@@ -554,7 +571,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         originalTrackTickSize = sequence.getTickLength();       // Possibly include precount leading bars
         nbPlayingTracks = sequence.getTracks().length;
         currentMapRvPhrase = baseSongSession.getRvPhraseMap();
-
+        currentControlTrack = baseSongSession.getControlTrack();
 
         // Create the trackset to manage double-buffering at track level
         var originalMapIdMuted = baseSongSession.getTracksMuteStatus(); // Track 0 is not included, but may contain click/precount/control tracks

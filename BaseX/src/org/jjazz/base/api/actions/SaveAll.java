@@ -42,13 +42,14 @@ import org.openide.awt.StatusDisplayer;
 @ActionRegistration(displayName = "#CTL_SaveAll", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/File", position = 1540)            
+            @ActionReference(path = "Menu/File", position = 1540),
+            @ActionReference(path = "Shortcuts", name = "DS-S")
         })
 public class SaveAll extends AbstractAction implements ChangeListener
 {
 
     private static final Logger LOGGER = Logger.getLogger(SaveAll.class.getSimpleName());
-     
+
     public SaveAll()
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_SaveAll"));

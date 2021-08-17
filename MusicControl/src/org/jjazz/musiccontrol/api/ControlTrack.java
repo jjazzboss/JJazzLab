@@ -138,7 +138,7 @@ public class ControlTrack
      *
      * @return Can't be null
      */
-    ContextChordSequence getContextChordGetSequence()
+    public ContextChordSequence getContextChordGetSequence()
     {
         return contextChordSequence;
     }

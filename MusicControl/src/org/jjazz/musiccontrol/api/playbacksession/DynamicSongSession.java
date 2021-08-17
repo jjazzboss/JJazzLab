@@ -51,14 +51,13 @@ import org.jjazz.leadsheet.chordleadsheet.api.event.SectionMovedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.ControlTrack;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession.Update;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmmusicgeneration.api.ContextChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SgsChangeListener;
@@ -83,7 +82,7 @@ import org.openide.util.*;
  * - chord symbol changes (add/remove/change/move)<br>
  * - rhythm parameter value changes<br>
  * - PlaybackSettings playback transposition changes<br>
- * - MidiMix instrument transposition/velocity changes, plus drum keymap changes<br>
+ * - MidiMix instrument transposition/velocity changes, plus drum keymap and drum rerouting changes<br>
  * <p>
  * If change can't be handled as an on-the-fly update, session is marked dirty. Song structural changes make the session dirty and
  * prevent any future update. Updates generation are blocked if PlaybackSettings.isAutoUpdateEnabled() is OFF.
@@ -100,7 +99,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     public static final String PROP_UPDATES_ENABLED = "PropUpdatesEnabled";
     private static final int DEFAULT_PRE_UPDATE_BUFFER_TIME_MS = 300;
     private static final int DEFAULT_POST_UPDATE_SLEEP_TIME_MS = 700;
-    private Map<RhythmVoice, Phrase> mapRvPhraseUpdate;
+    private Update update;
     private boolean isUpdatable = true;
     private boolean isControlTrackEnabled = true;
     private UpdateRequestsHandler updateRequestsHandler;
@@ -118,16 +117,16 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
      *
      * @param sgContext
      * @param enablePlaybackTransposition If true apply the playback transposition
-     * @param enableClickTrack If true add the click track, and its muted/unmuted state will depend on the PlaybackSettings
-     * @param enablePrecountTrack If true add the precount track, and loopStartTick will depend on the PlaybackSettings
-     * @param enableControlTrack if true add a control track (beat positions + chord symbol markers)
+     * @param includeClickTrack If true add the click track, and its muted/unmuted state will depend on the PlaybackSettings
+     * @param includePrecountTrack If true add the precount track, and loopStartTick will depend on the PlaybackSettings
+     * @param includeControlTrack if true add a control track (beat positions + chord symbol markers)
      * @param loopCount See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the PlaybackSettings instance
      * value.
      * @param endOfPlaybackAction Action executed when playback is stopped. Can be null.
      * @return A session in the NEW or GENERATED state.
      */
     static public DynamicSongSession getSession(SongContext sgContext,
-            boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
+            boolean enablePlaybackTransposition, boolean includeClickTrack, boolean includePrecountTrack, boolean includeControlTrack,
             int loopCount,
             ActionListener endOfPlaybackAction)
     {
@@ -136,13 +135,13 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             throw new IllegalArgumentException("sgContext=" + sgContext);
         }
         DynamicSongSession session = findSession(sgContext,
-                enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack,
+                enablePlaybackTransposition, includeClickTrack, includePrecountTrack, includeControlTrack,
                 loopCount,
                 endOfPlaybackAction);
         if (session == null)
         {
             final DynamicSongSession newSession = new DynamicSongSession(sgContext,
-                    enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack,
+                    enablePlaybackTransposition, includeClickTrack, includePrecountTrack, includeControlTrack,
                     loopCount,
                     endOfPlaybackAction);
 
@@ -228,10 +227,6 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                     break;
 
                 case MidiMix.PROP_CHANNEL_DRUMS_REROUTED:
-                    // An instrument mix is rerouted on/off
-                    dirty = true;
-
-                    break;
                 case MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP:
                 case MidiMix.PROP_INSTRUMENT_TRANSPOSITION:
                 case MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT:
@@ -291,9 +286,9 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     // UpdatableSongSession.UpdateProvider interface
     // ==========================================================================================================
     @Override
-    public Map<RhythmVoice, Phrase> getUpdate()
+    public Update getUpdate()
     {
-        return mapRvPhraseUpdate;
+        return update;
     }
 
     // ==========================================================================================================
@@ -380,7 +375,6 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         if (disableUpdates)
         {
             disableUpdates();
-            disableControlTrack();
         } else if (update)
         {
             generateUpdate(true);    // Chord symbols have changed, control track is impacted
@@ -455,7 +449,6 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         if (disableUpdates)
         {
             disableUpdates();
-            disableControlTrack();
         } else if (update)
         {
             generateUpdate(false);
@@ -467,16 +460,11 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     // ControlTrackProvider implementation
     // ==========================================================================================================    
     @Override
-    public List<Position> getSongPositions()
+    public ControlTrack getControlTrack()
     {
-        return isControlTrackEnabled ? super.getSongPositions() : null;
+        return isControlTrackEnabled ? super.getControlTrack() : null;
     }
 
-    @Override
-    public ContextChordSequence getContextChordGetSequence()
-    {
-        return isControlTrackEnabled ? super.getContextChordGetSequence() : null;
-    }
     // ==========================================================================================================
     // Private methods
     // ==========================================================================================================
@@ -547,6 +535,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             LOGGER.info("disableUpdates() -- ");
             isUpdatable = false;
             setDirty();
+            disableControlTrack();
             firePropertyChange(PROP_UPDATES_ENABLED, true, false);
         }
     }
@@ -566,7 +555,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
      * @return Null if not found
      */
     static private DynamicSongSession findSession(SongContext sgContext,
-            boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecount, boolean enableControlTrack,
+            boolean includePlaybackTransposition, boolean includeClickTrack, boolean includePrecount, boolean includeControlTrack,
             int loopCount,
             ActionListener endOfPlaybackAction)
     {
@@ -575,10 +564,10 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             if ((session.getState().equals(PlaybackSession.State.GENERATED) || session.getState().equals(PlaybackSession.State.NEW))
                     && !session.isDirty()
                     && sgContext.equals(session.getSongContext())
-                    && enablePlaybackTransposition == session.isPlaybackTranspositionEnabled()
-                    && enableClickTrack == (session.getClickTrackId() != -1)
-                    && enablePrecount == (session.getPrecountTrackId() != -1)
-                    && enableControlTrack == (session.getControlTrackId() != -1)
+                    && includePlaybackTransposition == session.isPlaybackTranspositionEnabled()
+                    && includeClickTrack == session.isClickTrackIncluded()
+                    && includePrecount == session.isPrecountTrackIncluded()
+                    && includeControlTrack == session.isControlTrackIncluded()
                     && loopCount == session.loopCount // Do NOT use getLoopCount(), because of PLAYBACK_SETTINGS_LOOP_COUNT handling
                     && endOfPlaybackAction == session.getEndOfPlaybackAction())
             {
@@ -815,23 +804,37 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
 
 
             // Recompute the RhythmVoice phrases
+            Map<RhythmVoice, Phrase> mapRvPhrases;
             SongSequenceBuilder sgBuilder = new SongSequenceBuilder(songContext);
             try
             {
-                mapRvPhraseUpdate = sgBuilder.buildMapRvPhrase(true);
+                mapRvPhrases = sgBuilder.buildMapRvPhrase(true);
             } catch (SongSequenceBuilder.UserErrorException ex)
             {
-                // Notify user lightly (no blocking dialog) and make sure that a regeneration will be done
+                // Notify user lightly (no blocking dialog) and make sure that a regeneration will be done on next start
                 StatusDisplayer.getDefault().setStatusText(ex.getMessage());
                 setDirty();
                 return;
             } catch (MusicGenerationException ex)
             {
-                // This is not normal, notify user
+                // This is not normal (e.g. rhythm generation failure), notify user
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
                 return;
             }
+
+
+            // Create a new control track
+            ControlTrack cTrack = null;
+            if (isControlTrackEnabled)              // Normaly useless since control track is disabled when updates are disabled
+            {
+                cTrack = new ControlTrack(songContext, getControlTrack().getTrackId());
+            }
+
+
+            // Create the update
+            update = new Update(mapRvPhrases, cTrack);
+
 
             // Notify listeners, normally an UpdatableSongSession
             firePropertyChange(UpdatableSongSession.UpdateProvider.PROP_UPDATE_AVAILABLE, false, true);

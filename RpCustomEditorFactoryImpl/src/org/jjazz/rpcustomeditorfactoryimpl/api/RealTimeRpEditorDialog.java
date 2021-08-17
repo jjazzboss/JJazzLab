@@ -47,6 +47,7 @@ import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession.Update;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
@@ -794,7 +795,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
 
             // Perform the update 
-            session.updateSequence(tmpSession.getRvPhraseMap());
+            Update update = new Update(tmpSession.getRvPhraseMap(), null);
+            session.updateSequence(update);
 
 
             // Avoid to have too many sequencer changes in a short period of time, which can cause audio issues

@@ -51,7 +51,6 @@ import static org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.PROP_ST
 import static org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.PROP_TEMPO;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmmusicgeneration.api.ContextChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.songcontext.api.SongContext;
@@ -73,6 +72,7 @@ import org.jjazz.util.api.ResUtil;
  */
 public class BaseSongSession implements PropertyChangeListener, PlaybackSession, ControlTrackProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
+
 
     public static final int PLAYBACK_SETTINGS_LOOP_COUNT = -1298;
     private State state = State.NEW;
@@ -192,7 +192,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
 
         // Add the control track
-        if (isControlTrackIncluded)
+        if (isControlTrackIncluded())
         {
             Track track = sequence.createTrack();
             controlTrack = new ControlTrack(workContext, Arrays.asList(sequence.getTracks()).indexOf(track));
@@ -202,7 +202,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
 
         // Add the playback click track
-        if (isClickTrackIncluded)
+        if (isClickTrackIncluded())
         {
             playbackClickTrackId = preparePlaybackClickTrack(sequence, workContext);
             mapTrackIdMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
@@ -210,7 +210,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
 
         // Add the click precount track - this must be done last because it might shift all song events      
-        if (isPrecountTrackIncluded)
+        if (isPrecountTrackIncluded())
         {
             loopStartTick = PlaybackSettings.getInstance().addPrecountClickTrack(sequence, workContext);
             precountClickTrackId = sequence.getTracks().length - 1;
@@ -366,10 +366,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         return state.equals(State.GENERATED) ? new HashMap<>(mapRvPhrase) : null;
     }
 
-    public boolean isPlaybackTranspositionEnabled()
-    {
-        return isPlaybackTranspositionEnabled;
-    }
 
     /**
      * Get the click sequence track number.
@@ -391,8 +387,26 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         return precountClickTrackId;
     }
 
+    public boolean isPlaybackTranspositionEnabled()
+    {
+        return isPlaybackTranspositionEnabled;
+    }
 
-  
+    public boolean isClickTrackIncluded()
+    {
+        return isClickTrackIncluded;
+    }
+
+    public boolean isPrecountTrackIncluded()
+    {
+        return isPrecountTrackIncluded;
+    }
+
+    public boolean isControlTrackIncluded()
+    {
+        return isControlTrackIncluded;
+    }
+
     // ==========================================================================================================
     // SongContextProvider implementation
     // ==========================================================================================================    

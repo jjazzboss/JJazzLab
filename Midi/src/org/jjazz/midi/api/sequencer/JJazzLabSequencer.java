@@ -1670,7 +1670,11 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
 
         synchronized void setTickPos(long tickPos)
         {
-            long oldLastTick = tickPos;
+            // Jerome JJazzLab bug fix 
+            // Bug impact was not functional because of another bug in chaseTrackEvents(..., startTick, endTick,...): if new position tickPos is after
+            // current position lastPos, then it will chase and reindex too many events (from the beginning each time). So bug fix
+            // should bring only a quite minor performance improvement.            
+            long oldLastTick = lastTick;                // JDK 16: long oldLastTick = tickPos;              
             lastTick = tickPos;
             if (running)
             {
@@ -1679,7 +1683,7 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
             if (running || tickPos > 0)
             {
                 // will also reindex
-                chaseEvents(oldLastTick, tickPos);      // Jerome JJazzLab: bug?? oldLastTick==tickPos !
+                chaseEvents(oldLastTick, tickPos);      
             } else
             {
                 needReindex = true;
@@ -1996,6 +2000,12 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
                 for (int i = 0; i < size; i++)
                 {
                     MidiEvent event = track.get(i);
+                    // Jerome JJazzLab fix => required when fixing the other bug in setTickPos()
+                    if (event.getTick() < startTick)
+                    {
+                        continue;
+                    }
+                    // END of Jerome JJazzLab fix
                     if (event.getTick() >= endTick)
                     {
                         if (doReindex && (trackNum < trackReadPos.length))
@@ -2351,6 +2361,8 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
                     //            is correct, and doesn't drift away with several repetition,
                     //            there is a slight lag when looping back, probably caused
                     //            by the chasing.
+                    
+                    // Jerome JJazzLab: see bug fix on setTickPos+chasing which improves chasing perf. => could reduce this drift?
 
                     checkPointMillis = oldCheckPointMillis + tick2millis(loopEndTick - checkPointTick);
                     checkPointTick = loopStart;
