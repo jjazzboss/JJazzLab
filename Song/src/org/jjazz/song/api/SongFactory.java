@@ -147,8 +147,9 @@ public class SongFactory implements PropertyChangeListener
 
         XStream xstream = Utilities.getSecuredXStreamInstance();
         xstream.alias("Song", Song.class);
-        xstream.aliasPackage("org.jjazz.harmony", "org.jjazz.harmony.api");     // Package was renamed in 3.0
-        
+        // Package was renamed in JJazzLab 3.0, needed to be able to load <3.0 songs
+        xstream.aliasPackage("org.jjazz.harmony", "org.jjazz.harmony.api");
+
 
         // Read file
         try (var fis = new FileInputStream(f))

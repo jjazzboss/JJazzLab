@@ -3,13 +3,15 @@ package org.jjazz.rpcustomeditorfactoryimpl;
 import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorPanel;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMix;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMixValue;
 import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
+import org.jjazz.util.api.ResUtil;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 
 
 /**
@@ -61,11 +63,21 @@ public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixV
         songContext = sgContext;
 
 
-        // Update channel label
         String strChannel = "Channel drums";
         if (songContext != null)
         {
-            RhythmVoice rvDrums = rp.getRhythmVoice();
+            // Check muted drums
+            var rvDrums = rp.getRhythmVoice();
+            String msg = null;
+            if (songContext.getMidiMix().getInstrumentMixFromKey(rvDrums).isMute())
+            {
+                msg = ResUtil.getString(getClass(), "ERR_DrumsTrackIsMuted");
+                NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+            }
+            
+    
+            // Update channel label
             int channel = sgContext.getMidiMix().getChannel(rvDrums);
             strChannel = "Channel " + (channel + 1);
             if (!rvDrums.getName().trim().equalsIgnoreCase("drums"))
@@ -73,6 +85,7 @@ public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixV
                 strChannel += " (" + rvDrums.getName().trim() + ")";
             }
         }
+        
         lbl_channel.setText(strChannel);
     }
 
@@ -127,6 +140,10 @@ public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixV
             }
         }
     }
+
+    // ===================================================================================
+    // Private methods
+    // ===================================================================================
 
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
@@ -359,7 +376,6 @@ public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixV
         jPanel7.add(jLabel12);
 
         lbl_channel.setFont(lbl_channel.getFont().deriveFont(lbl_channel.getFont().getSize()-1f));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_channel, org.openide.util.NbBundle.getMessage(RP_SYS_DrumsMixPanel.class, "RP_SYS_DrumsMixPanel.lbl_channel.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

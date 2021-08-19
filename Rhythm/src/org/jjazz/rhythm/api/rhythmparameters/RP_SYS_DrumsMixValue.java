@@ -153,7 +153,7 @@ public class RP_SYS_DrumsMixValue
             {
                 sb.append(", ");
             }
-            sb.append("BD=").append(bassDrumOffset);
+            sb.append("BD:").append(bassDrumOffset);
         }
         if (snareOffset != 0)
         {
@@ -161,7 +161,7 @@ public class RP_SYS_DrumsMixValue
             {
                 sb.append(", ");
             }
-            sb.append("SN=").append(snareOffset);
+            sb.append("SN:").append(snareOffset);
         }
         if (hiHatOffset != 0)
         {
@@ -169,7 +169,7 @@ public class RP_SYS_DrumsMixValue
             {
                 sb.append(", ");
             }
-            sb.append("HH=").append(hiHatOffset);
+            sb.append("HH:").append(hiHatOffset);
         }
         if (tomsOffset != 0)
         {
@@ -177,7 +177,7 @@ public class RP_SYS_DrumsMixValue
             {
                 sb.append(", ");
             }
-            sb.append("TO=").append(tomsOffset);
+            sb.append("TO:").append(tomsOffset);
         }
         if (cymbalsOffset != 0)
         {
@@ -185,7 +185,7 @@ public class RP_SYS_DrumsMixValue
             {
                 sb.append(", ");
             }
-            sb.append("CY=").append(cymbalsOffset);
+            sb.append("CY:").append(cymbalsOffset);
         }
         if (crashOffset != 0)
         {
@@ -193,7 +193,7 @@ public class RP_SYS_DrumsMixValue
             {
                 sb.append(", ");
             }
-            sb.append("CR=").append(crashOffset);
+            sb.append("CR:").append(crashOffset);
         }
         if (percOffset != 0)
         {
@@ -201,7 +201,7 @@ public class RP_SYS_DrumsMixValue
             {
                 sb.append(", ");
             }
-            sb.append("OT=").append(percOffset);
+            sb.append("OT:").append(percOffset);
         }
         sb.insert(0, "[");
         sb.append("]");

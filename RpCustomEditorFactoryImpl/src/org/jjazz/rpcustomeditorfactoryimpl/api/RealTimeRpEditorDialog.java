@@ -42,14 +42,16 @@ import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.MusicController.State;
 import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
-import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession.Update;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songcontext.api.SongContext;
@@ -124,7 +126,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         }
 
 
-        // Update UI
+        // Reset UI
         editorPanel.setEnabled(true);
         editorPanel.preset(rpValue, sgContext);
         setTitle(buildTitle(spt0));
@@ -626,10 +628,16 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         {
             throw new IllegalStateException("songContextOriginal is null: preset() must be called before making dialog visible");
         }
-        MusicController.getInstance().stop();
 
-//        tbtn_hear.setSelected(true);      // Start playback when dialog is made visible
-//        tbtn_hearActionPerformed(null);
+        // If song was already playing, directly switch to the preview mode
+        var mc = MusicController.getInstance();
+        if (mc.getState().equals(State.PLAYING))
+        {
+            mc.stop();
+            tbtn_hear.setSelected(true);
+            tbtn_hearActionPerformed(null);     // This will start playing the preview
+        }
+
     }//GEN-LAST:event_formWindowOpened
 
     private void btn_resetActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetActionPerformed

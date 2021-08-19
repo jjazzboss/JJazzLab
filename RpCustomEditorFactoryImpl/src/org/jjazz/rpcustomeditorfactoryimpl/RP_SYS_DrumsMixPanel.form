@@ -388,9 +388,6 @@
             <Font component="lbl_channel" property="font" relativeSize="true" size="-1"/>
           </FontInfo>
         </Property>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RP_SYS_DrumsMixPanel.lbl_channel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
       </Properties>
     </Component>
   </SubComponents>
