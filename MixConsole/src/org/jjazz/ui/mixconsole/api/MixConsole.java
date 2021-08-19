@@ -690,31 +690,29 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         updateChannelColors();
     }
 
-    /**
-     * Always use the same color for first rhythm in the song, for second, etc.
-     */
-    private void updateChannelColors()
-    {
-        // Prepare the colors
-        int index = 0;
-        Map<Rhythm, Color> mapRhythmColor = new HashMap();
-        for (Rhythm r : songModel.getSongStructure().getUniqueRhythms(true))
-        {
-            Color c = CHANNEL_COLORS[index];
-            mapRhythmColor.put(r, c);
-            index++;
-            if (index > 4)
-            {
-                index = 0;
-            }
-        }
-        mapRhythmColor.put(UserChannelRvKey.getInstance().getContainer(), CHANNEL_COLOR_USER);
 
-        // Set the colors
+    private void updateChannelColors()
+    {        
+        Map<Rhythm, Color> mapRhythmColor = new HashMap<>();
+               
+        mapRhythmColor.put(UserChannelRvKey.getInstance().getContainer(), CHANNEL_COLOR_USER);
+        
+        int index = 0;
         for (MixChannelPanel mcp : getMixChannelPanels())
         {
-            int channel = mcp.getModel().getChannelId();
-            Color c = mapRhythmColor.get(songMidiMix.getRhythmVoice(channel).getContainer());
+            int channel = mcp.getModel().getChannelId();            
+            Rhythm r = songMidiMix.getRhythmVoice(channel).getContainer();
+            Color c = mapRhythmColor.get(r);
+            if (c == null)
+            {
+                c = CHANNEL_COLORS[index];
+                mapRhythmColor.put(r, c);
+                index++;
+                if (index >= CHANNEL_COLORS.length)
+                {
+                    index = 0;
+                }
+            }
             mcp.setChannelColor(c);
         }
 

@@ -44,6 +44,7 @@ import org.jjazz.util.api.SmallMap;
 /**
  * A SongStructure manages SongParts.
  * <p>
+ * Implement must fire the relevant SgsChangeEvents when a method mutates the song structure.
  */
 public interface SongStructure
 {

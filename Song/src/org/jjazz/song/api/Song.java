@@ -95,10 +95,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     private final Properties clientProperties = new Properties();
     private transient File file;
     private transient boolean needSave = false;
-    /**
-     * The listeners for undoable edits in this LeadSheet.
-     */
-    protected transient List<UndoableEditListener> undoListeners = new ArrayList<>();
     private final transient PropertyChangeSupport pcs = new java.beans.PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(Song.class.getSimpleName());
 
@@ -216,26 +212,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         if (oldTempo != newTempo)
         {
             tempo = newTempo;
-
-            // Create the undoable event
-            UndoableEdit edit = new SimpleEdit("Set tempo " + newTempo)
-            {
-                @Override
-                public void undoBody()
-                {
-                    tempo = oldTempo;
-                    pcs.firePropertyChange(PROP_TEMPO, newTempo, oldTempo);
-                }
-
-                @Override
-                public void redoBody()
-                {
-                    tempo = newTempo;
-                    pcs.firePropertyChange(PROP_TEMPO, oldTempo, newTempo);
-                }
-            };
-            fireUndoableEditHappened(edit);
-
             pcs.firePropertyChange(PROP_TEMPO, oldTempo, newTempo);
             fireIsModified();
         }
@@ -266,26 +242,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             return;
         }
         tags = newTagsLowerCase;
-
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Set tags")
-        {
-            @Override
-            public void undoBody()
-            {
-                tags = oldTags;
-                pcs.firePropertyChange(PROP_TAGS, newTagsLowerCase, tags);
-            }
-
-            @Override
-            public void redoBody()
-            {
-                tags = newTagsLowerCase;
-                pcs.firePropertyChange(PROP_TAGS, oldTags, tags);
-            }
-        };
-        fireUndoableEditHappened(edit);
-
+    
         pcs.firePropertyChange(PROP_TAGS, oldTags, tags);
         fireIsModified();
     }
@@ -324,26 +281,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         if (!newName.equals(name))
         {
             final String oldName = name;
-            name = newName;
-
-            // Create the undoable event
-            UndoableEdit edit = new SimpleEdit("Set name " + newName)
-            {
-                @Override
-                public void undoBody()
-                {
-                    name = oldName;
-                    pcs.firePropertyChange(PROP_NAME, newName, oldName);
-                }
-
-                @Override
-                public void redoBody()
-                {
-                    name = newName;
-                    pcs.firePropertyChange(PROP_NAME, oldName, newName);
-                }
-            };
-            fireUndoableEditHappened(edit);
+            name = newName;   
 
             pcs.firePropertyChange(PROP_NAME, oldName, newName);
             fireIsModified();
@@ -398,26 +336,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         {
             final String oldComments = comments;
             comments = newComments;
-
-            // Create the undoable event
-            UndoableEdit edit = new SimpleEdit("Set comments")
-            {
-                @Override
-                public void undoBody()
-                {
-                    comments = oldComments;
-                    pcs.firePropertyChange(PROP_COMMENTS, newComments, oldComments);
-                }
-
-                @Override
-                public void redoBody()
-                {
-                    comments = newComments;
-                    pcs.firePropertyChange(PROP_COMMENTS, oldComments, newComments);
-                }
-            };
-            fireUndoableEditHappened(edit);
-
+       
             pcs.firePropertyChange(PROP_COMMENTS, oldComments, newComments);
             fireIsModified();
         }
@@ -571,25 +490,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         pcs.removePropertyChangeListener(l);
     }
 
-    public void addUndoableEditListener(UndoableEditListener l)
-    {
-        if (l == null)
-        {
-            throw new NullPointerException("l=" + l);   //NOI18N
-        }
-        undoListeners.remove(l);
-        undoListeners.add(l);
-    }
-
-    public void removeUndoableEditListener(UndoableEditListener l)
-    {
-        if (l == null)
-        {
-            throw new NullPointerException("l=" + l);   //NOI18N
-        }
-        undoListeners.remove(l);
-    }
-
     @Override
     public String toString()
     {
@@ -651,18 +551,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED, false, true);
     }
 
-    private void fireUndoableEditHappened(UndoableEdit edit)
-    {
-        if (edit == null)
-        {
-            throw new IllegalArgumentException("edit=" + edit);   //NOI18N
-        }
-        UndoableEditEvent event = new UndoableEditEvent(this, edit);
-        for (UndoableEditListener l : undoListeners.toArray(new UndoableEditListener[undoListeners.size()]))
-        {
-            l.undoableEditHappened(event);
-        }
-    }
 
     /**
      * Compute some anonymous stats about feature usage.

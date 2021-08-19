@@ -34,12 +34,16 @@ import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.undo.UndoableEdit;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.database.api.RhythmDatabase;
 import org.jjazz.rhythm.database.api.RhythmInfo;
 import org.jjazz.rhythm.database.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
+import static org.jjazz.song.api.Song.PROP_TEMPO;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.ui.ss_editor.spi.RhythmSelectionDialog;
@@ -56,6 +60,7 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -180,10 +185,30 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
 
 
         // Change tempo if required
-        if (dlg.isUseRhythmTempo())
+        int newTempo = newRhythm.getPreferredTempo();
+        int oldTempo = song.getTempo();
+        if (dlg.isUseRhythmTempo() && newTempo!=oldTempo)
         {
-            int tempo = newRhythm.getPreferredTempo();
-            song.setTempo(tempo);
+            song.setTempo(newTempo);
+
+            // Create an undoable edit so that undo restores previous rhythm AND previous tempo
+            UndoableEdit edit = new SimpleEdit("Set tempo " + newTempo)
+            {
+                @Override
+                public void undoBody()
+                {
+                    song.setTempo(oldTempo);
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    song.setTempo(newTempo);
+                }
+            };
+            
+            // Directly notify UndoManager
+            um.undoableEditHappened(new UndoableEditEvent(song, edit));
         }
 
 

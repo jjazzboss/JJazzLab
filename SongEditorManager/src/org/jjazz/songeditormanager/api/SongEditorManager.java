@@ -161,11 +161,6 @@ public class SongEditorManager implements PropertyChangeListener
             JJazzUndoManagerFinder.getDefault().put(undoManager, song.getSongStructure());
 
 
-            // Connect our undoManager to the song. Used by the MixConsole for MidiMix undo/redo changes
-            // Note that for cls/sgs this will be done in each editor's constructor
-            song.addUndoableEditListener(undoManager);
-
-
             // Create the editors
             CL_EditorTopComponent clTC = new CL_EditorTopComponent(song);
             Mode mode = WindowManager.getDefault().findMode("editor");
@@ -359,8 +354,6 @@ public class SongEditorManager implements PropertyChangeListener
      */
     private void songEditorClosed(Song s)
     {
-        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(s);
-        s.removeUndoableEditListener(um);
         s.removePropertyChangeListener(this);
         mapSongEditors.remove(s);
         pcs.firePropertyChange(PROP_SONG_CLOSED, false, s); // Event used for example by RecentSongProvider

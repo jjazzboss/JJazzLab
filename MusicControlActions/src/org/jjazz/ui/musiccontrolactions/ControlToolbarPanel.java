@@ -323,7 +323,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
     private void spn_TempoStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_TempoStateChanged
     {//GEN-HEADEREND:event_spn_TempoStateChanged
         assert currentSong != null; // Otherwise button should be disabled   //NOI18N
-        currentSong.setTempo((int) spn_Tempo.getValue());
+        IncreaseTempo.setSongTempo(currentSong, (int) spn_Tempo.getValue());
     }//GEN-LAST:event_spn_TempoStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -20,12 +20,11 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.ui.musiccontrolactions;
+package org.jjazz.test;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import org.jjazz.activesong.api.ActiveSongManager;
-import org.jjazz.rhythm.api.TempoRange;
+import java.util.logging.Logger;
 import org.jjazz.song.api.Song;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -33,51 +32,40 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.Utilities;
 
-@ActionID(category = "File", id = "org.jjazz.ui.actions.IncreaseTempo")
-@ActionRegistration(displayName = "#CTL_IncreaseTempo", lazy = true)
+/**
+ * For debug purposes...
+ */
+@ActionID(category = "JJazz", id = "org.jjazz.test.dumpundomanagerevents")
+@ActionRegistration(displayName = "Dump undomanager events")
 @ActionReferences(
         {
-            @ActionReference(path = "Shortcuts", name = "ADD"),
-            @ActionReference(path = "Shortcuts", name = "S-EQUALS"),
-            @ActionReference(path = "Shortcuts", name = "PLUS"),
-            @ActionReference(path = "Shortcuts", name = "K"),
+            @ActionReference(path = "Menu/Edit", position = 870013),
         })
-public final class IncreaseTempo implements ActionListener
+public final class DumpUndoManagerEvents implements ActionListener
 {
 
-    final private Song song;
+    private static final Logger LOGGER = Logger.getLogger(DumpUndoManagerEvents.class.getSimpleName());
 
-    public IncreaseTempo(Song sg)
+    public DumpUndoManagerEvents()
     {
-        song = sg;
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    public void actionPerformed(ActionEvent ae)
     {
-        if (ActiveSongManager.getInstance().getActiveSong() == song)
-        {
-            int tempo = song.getTempo() + 5;
-            if (TempoRange.checkTempo(tempo))
-            {
-                setSongTempo(song, tempo);
-            }
-        }
-    }
+        LOGGER.info("DumpUndoManagerEvents() --");   //NOI18N
+        Song song = Utilities.actionsGlobalContext().lookup(Song.class);
 
-    /**
-     * Set the specified song tempo with an undoable edit.
-     *
-     * @param song
-     * @param tempo
-     */
-    static public void setSongTempo(Song song, int tempo)
-    {
-//        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
-//        String editName = "Set tempo " + tempo;
-//        um.startCEdit(editName);
-        song.setTempo(tempo);
-//        um.endCEdit(editName);
+        if (song == null)
+        {
+            LOGGER.severe("No current song, aborting");   //NOI18N
+            return;
+        }
+
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
+        LOGGER.info("um=" + um);
+
     }
 }

@@ -181,7 +181,11 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
             // Find the last chord valid for this bar
             var cls = selection.getChordLeadSheet();
             newSelectedChordSymbol = cls.getLastItem(0, selection.geMinBarIndex(), CLI_ChordSymbol.class);
-            assert newSelectedChordSymbol != null;       // Chord symbol presence is mandatory at the beginning of a section
+            if (newSelectedChordSymbol == null)
+            {
+                // Can happen if user temporarily remove all chord symbols!
+                return;
+            }
         } else
         {
             // Not a valid selection

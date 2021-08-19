@@ -58,7 +58,7 @@ public final class DecreaseTempo implements ActionListener
             int tempo = song.getTempo() - 5;
             if (TempoRange.checkTempo(tempo))
             {
-                song.setTempo(tempo);
+                IncreaseTempo.setSongTempo(song, tempo);
             }
         }
     }
