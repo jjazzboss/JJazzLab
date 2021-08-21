@@ -90,11 +90,12 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     private RhythmProvider presetRhythmProvider;
     private RhythmProvider selectedRhythmProvider;
     private RhythmPreviewProvider rhythmPreviewProvider;
+    private boolean previewDone;
     private boolean exitOk;
     private File lastRhythmDir = null;
     private final HashMap<RhythmProvider, RhythmInfo> mapRpSelectedrythm = new HashMap<>();
-    private RhythmTable rhythmTable = new RhythmTable();
-    private static Preferences prefs = NbPreferences.forModule(RhythmSelectionDialogImpl.class);
+    private final RhythmTable rhythmTable = new RhythmTable();
+    private static final Preferences prefs = NbPreferences.forModule(RhythmSelectionDialogImpl.class);
 
     private static final Logger LOGGER = Logger.getLogger(RhythmSelectionDialogImpl.class.getSimpleName());
 
@@ -171,6 +172,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         }
         LOGGER.log(Level.FINE, "preset() -- ri={0}", ri);   //NOI18N
         exitOk = false;
+        previewDone = false;
 
 
         cleanup();
@@ -317,7 +319,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
             if (rp != null && selectedRhythmProvider != rp)
             {
-                if (rhythmPreviewProvider != null)
+                if (rhythmPreviewProvider != null && previewDone)
                 {
                     rhythmPreviewProvider.stop();
                 }
@@ -683,6 +685,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         {
             return false;
         }
+
+        previewDone = true;
 
         LOGGER.fine("previewRhythm() ri=" + ri);   //NOI18N
 
