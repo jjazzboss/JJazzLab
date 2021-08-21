@@ -1085,6 +1085,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         try (var fis = new FileInputStream(f))
         {
             XStream xstream = Utilities.getSecuredXStreamInstance();
+            // From 3.0 all public packages are renamed with api or spi somewhere in the path
+            // Need package aliasing required to be able to load old sng/mix files            
+            xstream.aliasPackage("org.jjazz.harmony", "org.jjazz.harmony.api");
+            xstream.aliasPackage("org.jjazz.midi", "org.jjazz.midi.api");
+            xstream.aliasPackage("org.jjazz.midimix", "org.jjazz.midimix.api");
             Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8"));        // Needed to support special/accented chars
             mm = (MidiMix) xstream.fromXML(r);
             mm.setFile(f);

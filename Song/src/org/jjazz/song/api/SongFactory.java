@@ -147,8 +147,11 @@ public class SongFactory implements PropertyChangeListener
 
         XStream xstream = Utilities.getSecuredXStreamInstance();
         xstream.alias("Song", Song.class);
-        // Package was renamed in JJazzLab 3.0, needed to be able to load <3.0 songs
+        // From 3.0 all public packages are renamed with api or spi somewhere in the path
+        // Need package aliasing required to be able to load old sng/mix files
         xstream.aliasPackage("org.jjazz.harmony", "org.jjazz.harmony.api");
+        xstream.aliasPackage("org.jjazz.midi", "org.jjazz.midi.api");
+        xstream.aliasPackage("org.jjazz.midimix", "org.jjazz.midimix.api");
 
 
         // Read file
