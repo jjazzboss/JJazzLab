@@ -657,8 +657,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             for (int i = minIndex; i <= maxIndex; i++)
             {
                 SongPart spti = spts.get(i);
-                RhythmParameter<?> rpi = RhythmParameter.
-                        findFirstCompatibleRp(spti.getRhythm().getRhythmParameters(), dragStartRp);
+                RhythmParameter<?> rpi = RhythmParameter.findFirstCompatibleRp(spti.getRhythm().getRhythmParameters(), dragStartRp);
                 if (rpi != null)
                 {
                     editor.selectRhythmParameter(spti, rpi, true);
@@ -692,13 +691,13 @@ public class SS_EditorController implements SS_EditorMouseListener
     public <E> void rhythmParameterEdit(SongPart spt, RhythmParameter<E> rp, E rpValue)
     {
         LOGGER.fine("rhythmParameterEdit() -- rpValue=" + rpValue);
-        
+
         var sgs = editor.getModel();
         String editName = ResUtil.getString(getClass(), "CTL_SetRpValue");
         JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(editName);
-        
+
         sgs.setRhythmParameterValue(spt, rp, rpValue);
-        
+
         JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(editName);
     }
 

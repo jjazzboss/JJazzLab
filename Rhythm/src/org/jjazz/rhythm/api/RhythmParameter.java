@@ -32,7 +32,8 @@ import java.util.List;
  * <p>
  *
  * @param <E> The type of value of this RhythmParameter. E.toString() should return a short (max ~30 characters) user-readable
- * string. @see also RhythmParameter.getValueDescription() to provide more information about a specific value.
+ * string.
+ *
  */
 public interface RhythmParameter<E>
 {

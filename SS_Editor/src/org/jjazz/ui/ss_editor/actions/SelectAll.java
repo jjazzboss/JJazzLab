@@ -52,7 +52,7 @@ import org.jjazz.util.api.ResUtil;
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/SongPart", position = 1300),
+            @ActionReference(path = "Actions/SongPart", position = 1300, separatorBefore = 1290),
             @ActionReference(path = "Actions/RhythmParameter", position = 1300, separatorBefore = 1290),
         })
 public class SelectAll extends AbstractAction implements ContextAwareAction, SS_ContextActionListener

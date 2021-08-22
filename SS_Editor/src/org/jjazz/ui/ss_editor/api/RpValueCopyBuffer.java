@@ -172,4 +172,10 @@ public class RpValueCopyBuffer
         }
     }
 
+    @Override
+    public String toString()
+    {
+        return "rhythm=" + rhythm + " rp=" + this.rhythmParameter + " valueBuffer=" + this.valueBuffer;
+    }
+
 }
