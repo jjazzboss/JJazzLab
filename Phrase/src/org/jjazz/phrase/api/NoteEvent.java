@@ -292,7 +292,7 @@ public class NoteEvent extends Note implements Cloneable
             return false;
         }
         NoteEvent ne = (NoteEvent) o;
-        
+
         return ne.position == position && super.equals(o);
     }
 
@@ -330,6 +330,18 @@ public class NoteEvent extends Note implements Cloneable
     public String toString()
     {
         return String.format("[%s, p=%.3f, d=%.3f, v=%d]", toAbsoluteNoteString(), position, getDurationInBeats(), getVelocity());
+    }
+
+    /**
+     * Save the specified NoteEvent as a string.
+     * <p>
+     * NOTE: client properties are NOT saved.
+     *
+     * @param ne
+     */
+    static public void saveAsString(NoteEvent ne)
+    {
+        return ne.to
     }
 
 }

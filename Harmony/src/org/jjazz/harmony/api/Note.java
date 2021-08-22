@@ -22,6 +22,7 @@
  */
 package org.jjazz.harmony.api;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
 import java.util.logging.Logger;
 import org.jjazz.util.api.ResUtil;
@@ -751,6 +752,39 @@ public class Note implements Comparable<Note>, Cloneable
         return alterationDisplay.equals(Alteration.FLAT);
     }
 
+    /**
+     * Create a Note from a String created with saveAsString()
+     *
+     * @param s
+     * @return Null if an error occurs
+     * @see saveAsString(String)
+     */
+    public static Note loadAsString(String s)
+    {
+        checkNotNull(s);        
+        Note n = null;
+        String strs[] = s.split(",");
+        if (strs.length == 5)
+        {
+            
+        }
+
+        
+        return n;
+    }
+
+    /**
+     * Save a Note as a String object.
+     *
+     * @param n
+     * @return
+     * @see loadAsString(String)
+     */
+    public static String saveAsString(Note n)
+    {
+        return n.pitch + "," + n.alterationDisplay + "," + n.velocity + "," + n.symbolicDuration + "," + n.beatDuration;
+    }
+
 
     /**
      * Convert a positive or relative absolute pitch to a relative pitch between 0 and 11.
@@ -777,10 +811,13 @@ public class Note implements Comparable<Note>, Cloneable
 
     /**
      * Return Check if a pitch corresponds to keyboard white key (C major scale).
+     *
+     * @param pitch
+     * @return
      */
-    public static boolean isWhiteKey(int p)
+    public static boolean isWhiteKey(int pitch)
     {
-        int pitch = p % 12;
+        int pitch = pitch % 12;
         if ((pitch == 1) || (pitch == 3) || (pitch == 6) || (pitch == 8) || (pitch == 10))
         {
             return false;
