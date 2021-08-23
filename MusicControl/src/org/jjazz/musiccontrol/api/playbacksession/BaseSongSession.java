@@ -222,7 +222,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
 
         // Update the sequence if rerouting is needed
-        rerouteDrumsChannels(sequence, workContext.getMidiMix());
+        // rerouteDrumsChannels(sequence, workContext.getMidiMix());
 
 
         // Listen to changes that can be handled without going dirty

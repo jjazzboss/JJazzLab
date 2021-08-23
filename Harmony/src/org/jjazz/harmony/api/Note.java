@@ -756,25 +756,43 @@ public class Note implements Comparable<Note>, Cloneable
      * Create a Note from a String created with saveAsString()
      *
      * @param s
-     * @return Null if an error occurs
-     * @see saveAsString(String)
+     * @return
+     * @throws IllegalArgumentException If s is not valid
+     * @see saveAsString(Note)
      */
-    public static Note loadAsString(String s)
+    public static Note loadAsString(String s) throws IllegalArgumentException
     {
-        checkNotNull(s);        
+        checkNotNull(s);
         Note n = null;
         String strs[] = s.split(",");
         if (strs.length == 5)
         {
-            
+            try
+            {
+                int p = Integer.parseInt(strs[0]);
+                Alteration alt = Alteration.valueOf(strs[1]);
+                int v = Integer.parseInt(strs[2]);
+                float bd = Float.parseFloat(strs[3]);
+                n = new Note(p, bd, v, alt);
+            } catch (IllegalArgumentException ex)
+            {
+                // nothing
+                LOGGER.warning("loadAsString() Invalid string s="+s);
+            }
         }
 
-        
+        if (n == null)
+        {
+            throw new IllegalArgumentException("loadAsString() Invalid Note string s=" + s);
+        }
+
         return n;
     }
 
     /**
      * Save a Note as a String object.
+     * <p>
+     * Example "60,FLAT,102,2.5" means pitch=60, AlterationDisplay=FLAT, velocity=102, duration=2.5 beats
      *
      * @param n
      * @return
@@ -782,7 +800,8 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public static String saveAsString(Note n)
     {
-        return n.pitch + "," + n.alterationDisplay + "," + n.velocity + "," + n.symbolicDuration + "," + n.beatDuration;
+        checkNotNull(n);
+        return n.pitch + "," + n.alterationDisplay + "," + n.velocity + "," + n.beatDuration;
     }
 
 
@@ -817,7 +836,7 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public static boolean isWhiteKey(int pitch)
     {
-        int pitch = pitch % 12;
+        pitch = pitch % 12;
         if ((pitch == 1) || (pitch == 3) || (pitch == 6) || (pitch == 8) || (pitch == 10))
         {
             return false;

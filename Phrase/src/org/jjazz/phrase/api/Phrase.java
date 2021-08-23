@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.api.Chord;
+import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.util.api.FloatRange;
@@ -126,7 +127,7 @@ public class Phrase extends LinkedList<NoteEvent>
             it.add(mne);
         }
     }
- 
+
     /**
      * A deep clone: returned phrase contains clones of the original NoteEvents.
      *
@@ -734,6 +735,76 @@ public class Phrase extends LinkedList<NoteEvent>
             NoteEvent newNe = new NoteEvent(ne, pitch);
             it.set(newNe);
         }
+    }
+
+    /**
+     * Save the specified Phrase as a string.
+     * <p>
+     * Example "[8|NoteEventStr0|NoteEventStr1]" means a Phrase for channel 8 with 2 NoteEvents.
+     *
+     * @param p
+     * @return
+     * @see loadAsString(String)
+     */
+    static public String saveAsString(Phrase p)
+    {
+        StringBuilder sb = new StringBuilder();
+        String delimiter = "|";
+        sb.append("[");
+        sb.append(p.getChannel()).append(delimiter);
+        boolean first = true;
+        for (NoteEvent ne : p)
+        {
+            if (first)
+            {
+                first = false;
+            } else
+            {
+                sb.append(delimiter);
+            }
+            sb.append(NoteEvent.saveAsString(ne));
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
+    /**
+     * Create a Phrase from the specified string.
+     * <p>
+     *
+     * @param s
+     * @return
+     * @throws IllegalArgumentException If s is not a valid string.
+     * @see saveAsString(Phrase)
+     */
+    static public Phrase loadAsString(String s) throws IllegalArgumentException
+    {
+        Phrase p = null;
+        if (s.length() >= 4 && s.charAt(0) == '[' && s.charAt(s.length() - 1) == ']')    // minimum string is e.g. [2|]
+        {
+            String[] strs = s.substring(1, s.length() - 1).split("|");
+            try
+            {
+                int channel = Integer.parseInt(strs[0]);
+                p = new Phrase(channel);
+                for (int i = 1; i < strs.length; i++)
+                {
+                    NoteEvent ne = NoteEvent.loadAsString(strs[i]);
+                    p.addOrdered(ne);
+                }
+            } catch (IllegalArgumentException ex)
+            {
+                // Nothing
+                LOGGER.warning("loadAsString() Invalid string s=" + s);
+            }
+
+        }
+
+        if (p == null)
+        {
+            throw new IllegalArgumentException("loadAsString() Invalid Phrase string s=" + s);
+        }
+        return p;
     }
 
 }

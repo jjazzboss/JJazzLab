@@ -21,18 +21,30 @@ public class RP_SYS_CustomPhraseValue
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhraseValue.class.getSimpleName());
 
 
-    /**
-     * No custom phrase.
-     */
     public RP_SYS_CustomPhraseValue(Rhythm r)
     {
         checkNotNull(r);
         rhythm = r;
     }
 
+    /**
+     * Create a deep copy of the specified value.
+     *
+     * @param value
+     */
+    public RP_SYS_CustomPhraseValue(RP_SYS_CustomPhraseValue value)
+    {
+        this(value.getRhythm());
+        for (var rv : value.getRhythmVoices())
+        {
+            Phrase p = value.getPhrase(rv).clone();
+            mapRvPhrase.put(rv, p);
+        }
+    }
+
 
     /**
-     * Create a copy of this RP value with a phrase added for the specified RhythmVoice.
+     * Create a shallow copy of this RP value with a phrase added for the specified RhythmVoice.
      * <p>
      * If a phrase was already associated for rv, it is replaced.
      * <p>
@@ -57,7 +69,7 @@ public class RP_SYS_CustomPhraseValue
     }
 
     /**
-     * Create a copy of this RP value with a phrase removed for the specified RhythmVoice.
+     * Create a shallow copy of this RP value with a phrase removed for the specified RhythmVoice.
      * <p>
      * NOTE: Phrases are not deeply cloned.
      *
@@ -89,14 +101,13 @@ public class RP_SYS_CustomPhraseValue
 
     public String toDescriptionString()
     {
-        StringBuilder sb = new StringBuilder();
-
-
-        return sb.toString();
+        return mapRvPhrase.keySet().toString();
     }
 
     /**
      * Save the specified object state as a string.
+     * <p>
+     * Example "Bass%[PhraseString]&Piano%[PhraseString]" means 2 RhythmVoices/Phrases. "" means no custom phrase.
      *
      * @param v
      * @return
@@ -104,30 +115,76 @@ public class RP_SYS_CustomPhraseValue
      */
     static public String saveAsString(RP_SYS_CustomPhraseValue v)
     {
-        return 
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (RhythmVoice rv : v.getRhythmVoices())
+        {
+            Phrase p = v.getPhrase(rv);
+            sb.append(rv.getName())
+                    .append("%")
+                    .append(Phrase.saveAsString(p));
+            if (first)
+            {
+                sb.append("&");
+            }
+        }
+        return sb.toString();
     }
 
     /**
      * Create an object from a string.
      *
+     * @param r
      * @param s
      * @return
-     * @see saveAsString()
+     * @throws IllegalArgumentException If s is invalid
+     * @see saveAsString(RP_SYS_CustomPhraseValue)
      */
-    static public RP_SYS_CustomPhraseValue loadFromString(String s)
+    static public RP_SYS_CustomPhraseValue loadFromString(Rhythm r, String s) throws IllegalArgumentException
     {
-        String[] strs = s.split(",");
-        RP_SYS_CustomPhraseValue res = new RP_SYS_CustomPhraseValue();
-        if (strs.length == 7)
+        checkNotNull(s);
+        checkNotNull(r);
+        RP_SYS_CustomPhraseValue res = new RP_SYS_CustomPhraseValue(r);
+        if (s.isBlank())
         {
-            try
-            {
+            return res;
+        }
 
-            } catch (NumberFormatException ex)
+        String strs[] = s.split("&");
+        for (String str : strs)
+        {
+            String strs2[] = str.split("%");
+            if (strs2.length == 2)
             {
-                LOGGER.severe("loadFromString() ex=" + ex.getMessage());
+                try
+                {
+                    RhythmVoice rv = r.getRhythmVoices().stream().filter(rvi -> rvi.getName().equals(strs2[0])).findAny().orElse(null);
+                    if (rv == null)
+                    {
+                        res = null;
+                        break;
+                    }
+
+                    Phrase p = Phrase.loadAsString(strs2[1]);
+                    res.mapRvPhrase.put(rv, p);
+
+                } catch (IllegalArgumentException ex)
+                {
+                    res = null;
+                    break;
+                }
+            } else
+            {
+                res = null;
+                break;
             }
         }
+
+        if (res == null)
+        {
+            throw new IllegalArgumentException("loadAsString() Invalid RP_SYS_CustomPhraseValue string s=" + s);
+        }
+
         return res;
     }
 

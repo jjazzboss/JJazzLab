@@ -145,7 +145,7 @@ public class SongSequenceBuilder
      * <br>
      * - Apply on each channel possible instrument transpositions, velocity shift, mute (RP_SYS_Mute).<br>
      * - Apply the RP_SYS_DrumsMix velocity changes.<br>
-     * - Apply the 
+     * - Apply drums rerouting if needed <br>
      * <p>
      * Phrases for RhythmVoiceDelegates are merged into the phrases of the source RhythmVoices.
      *

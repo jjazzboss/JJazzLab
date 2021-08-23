@@ -18,6 +18,7 @@ import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.songcontext.api.SongContext;
@@ -92,7 +93,8 @@ public class TestRhythm implements Rhythm, MusicGenerator
             RP_SYS_Mute rpMute = RP_SYS_Mute.createMuteRp(this);
 //            RP_Test rpTest1 = new RP_Test(getRhythmVoices().get(0));
 //            rhythmParameters = Arrays.asList(rpVar, rpMute, rpTest1);
-            rhythmParameters = Arrays.asList(rpVar, rpMute);
+            RP_SYS_CustomPhrase rpCustomPhrase = new RP_SYS_CustomPhrase(this);            
+            rhythmParameters = Arrays.asList(rpVar, rpMute, rpCustomPhrase);
         }
         return rhythmParameters;
     }

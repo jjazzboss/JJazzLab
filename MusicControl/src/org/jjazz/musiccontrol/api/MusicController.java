@@ -385,8 +385,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         checkMidi();                // throws MusicGenerationException
 
 
-        // Check argument
-        if (!playbackSession.getBarRange().contains(fromBarIndex))
+        // Check fomrBarIndex argument
+        if (playbackSession.getBarRange() != null && !playbackSession.getBarRange().contains(fromBarIndex))
         {
             throw new IllegalArgumentException("invalid fromBarIndex=" + fromBarIndex + " playbackSession=" + playbackSession);
         }

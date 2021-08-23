@@ -1,9 +1,9 @@
 package org.jjazz.rhythm.api.rhythmparameters;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.util.api.ResUtil;
 
 /**
@@ -13,10 +13,28 @@ import org.jjazz.util.api.ResUtil;
 public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseValue>
 {
 
-    private static final RP_SYS_CustomPhraseValue DEFAULT_VALUE = new RP_SYS_CustomPhraseValue();
-    private RhythmVoice rhythmVoice;
+
+    private Rhythm rhythm;
+
+
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhrase.class.getSimpleName());
 
+
+    public RP_SYS_CustomPhrase(Rhythm r)
+    {
+        checkNotNull(r);
+        rhythm = r;
+    }
+
+    /**
+     * The rhythm associated to this RhythmParameter.
+     *
+     * @return
+     */
+    public Rhythm getRhythm()
+    {
+        return rhythm;
+    }
 
     @Override
     public String getId()
@@ -45,7 +63,7 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
     @Override
     public RP_SYS_CustomPhraseValue getDefaultValue()
     {
-        return DEFAULT_VALUE;
+        return new RP_SYS_CustomPhraseValue(rhythm);
     }
 
     @Override
@@ -57,7 +75,7 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
     @Override
     public RP_SYS_CustomPhraseValue stringToValue(String s)
     {
-        return RP_SYS_CustomPhraseValue.loadFromString(s);
+        return RP_SYS_CustomPhraseValue.loadFromString(rhythm, s);
     }
 
     @Override
@@ -75,7 +93,7 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
     @Override
     public String toString()
     {
-        return value.toDescriptionString();
+        return "RP_SYS_CustomPhrase[rhythm=" + rhythm + "]";
     }
 
     /**

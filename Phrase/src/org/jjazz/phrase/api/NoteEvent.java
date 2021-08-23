@@ -25,6 +25,7 @@ package org.jjazz.phrase.api;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.ShortMessage;
@@ -44,6 +45,7 @@ public class NoteEvent extends Note implements Cloneable
 
     private float position;
     protected HashMap<String, Object> clientProperties;
+    private static final Logger LOGGER = Logger.getLogger(NoteEvent.class.getSimpleName());
 
     public NoteEvent(int pitch, float duration, int velocity, float posInBeats)
     {
@@ -338,10 +340,48 @@ public class NoteEvent extends Note implements Cloneable
      * NOTE: client properties are NOT saved.
      *
      * @param ne
+     * @return
+     * @see loadAsString(String)
      */
-    static public void saveAsString(NoteEvent ne)
+    static public String saveAsString(NoteEvent ne)
     {
-        return ne.to
+        return Note.saveAsString(ne) + ":" + ne.position;
+    }
+
+    /**
+     * Create a NoteEvent from the specified string.
+     * <p>
+     * Example "60,FLAT,102,2.5:1.25" means pitch=60, AlterationDisplay=FLAT, velocity=102, duration=2.5 beats, and position=1.25
+     * beats
+     *
+     * @param s
+     * @return
+     * @throws IllegalArgumentException If s is not a valid string.
+     * @see saveAsString(NoteEvent)
+     */
+    static public NoteEvent loadAsString(String s) throws IllegalArgumentException
+    {
+        NoteEvent ne = null;
+        String[] strs = s.split(":");
+        if (strs.length == 2)
+        {
+            try
+            {
+                Note n = Note.loadAsString(strs[0]);
+                float pos = Float.parseFloat(strs[1]);
+                ne = new NoteEvent(n.getPitch(), n.getDurationInBeats(), n.getVelocity(), pos);
+            } catch (IllegalArgumentException ex)
+            {
+                // Nothing
+                LOGGER.warning("loadAsString() Invalid string s=" + s);
+            }
+        }
+
+        if (ne == null)
+        {
+            throw new IllegalArgumentException("loadAsString() Invalid NoteEvent string s=" + s);
+        }
+        return ne;
     }
 
 }
