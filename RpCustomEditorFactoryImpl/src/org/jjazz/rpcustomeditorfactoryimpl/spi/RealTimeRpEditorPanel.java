@@ -22,7 +22,6 @@
  */
 package org.jjazz.rpcustomeditorfactoryimpl.spi;
 
-import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songcontext.api.SongContext;
@@ -32,11 +31,6 @@ import org.jjazz.songcontext.api.SongContext;
  * <p>
  * The panel must fire PROP_EDITED_RP_VALUE property change events when RP value is changed by the user.
  * <p>
- * NOTE: the implementation should avoid generating too many PROP_EDITED_RP_VALUE change events in a short period of time,
- * because each change might trigger a music generation by the RealTimeRpEditorDialog. For example, if implementation relies on a
- * JSlider to update the value, during a mouse-drag on the JSlider it is better to avoid sending a PROP_EDITED_RP_VALUE change
- * event for each elementary move, a better approach is to send a change event only for the final RP value, once the drag operation is
- * complete.
  *
  * @param <E> The type of value of the RhythmParameter.
  */
@@ -47,9 +41,6 @@ public abstract class RealTimeRpEditorPanel<E> extends JPanel
      * This property change event must be fired each time user modifies the value in the editor.
      */
     public static final String PROP_EDITED_RP_VALUE = "PropEditedRpValue";
-
-
-    private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorPanel.class.getSimpleName());
 
 
     // =======================================================================

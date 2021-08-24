@@ -36,7 +36,6 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.api.Chord;
-import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.util.api.FloatRange;

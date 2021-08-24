@@ -182,6 +182,22 @@ public class Utilities
     }
 
     /**
+     * Gets the usable rectangle area within the borders (insets) of the JComponent.
+     *
+     * @param jc
+     * @return
+     */
+    static public Rectangle getUsableArea(JComponent jc)
+    {
+        Insets in = jc.getInsets();
+        int x0 = in.left;
+        int w = jc.getWidth() - in.right - in.left;
+        int y0 = in.top;
+        int h = jc.getHeight() - in.top - in.bottom;
+        return new Rectangle(x0, y0, w, h);
+    }
+
+    /**
      * Recursively enable/disable a JComponent and its JComponent children.
      *
      * @param b boolean

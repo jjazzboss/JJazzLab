@@ -7,14 +7,13 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.util.api.ResUtil;
 
 /**
- * A RhythmParameter to
+ * A RhythmParameter to replace one or more generated Phrases by custom Phrases.
  * <p>
  */
 public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseValue>
 {
 
-
-    private Rhythm rhythm;
+    private final Rhythm rhythm;
 
 
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhrase.class.getSimpleName());
