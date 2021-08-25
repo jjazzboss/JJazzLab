@@ -22,6 +22,7 @@
  */
 package org.jjazz.midi.api;
 
+import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
@@ -48,6 +49,7 @@ import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.spi.UpgradeTask;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.progress.BaseProgressUtils;
+import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -75,6 +77,7 @@ public final class JJazzMidiSystem
     public final static String PROP_MASTER_VOL_FACTOR = "MasterVolumeFactor";
     public final static String PROP_MIDI_OUT_FILTERING = "MidiOutFiltering";
     public final static String PREF_JAVA_SYNTH_SOUNDFONT_FILE = "JavaSynthSoundFontFile";
+    public final static String PREF_EXTERNAL_MIDI_EDITOR_PATH = "MidiEditorPath";
 
     /**
      * The default MIDI IN device.
@@ -152,7 +155,7 @@ public final class JJazzMidiSystem
         receiverJJazzOut = jjazzMidiOut.getReceiver();
         receiverPhysicalIn2JJazzIn = jjazzMidiIn.getReceiver();
 
-        
+
         // Connect MidiIn to MidiOut to manage MidiThru
         thruFilter = new MidiFilter("[Midi Thru filter]");
         jjazzMidiIn.getTransmitter().setReceiver(thruFilter.getReceiver());
@@ -178,7 +181,7 @@ public final class JJazzMidiSystem
             defaultSequencer = null;
         }
 
-        
+
         // Get the default synth         
         try
         {
@@ -190,7 +193,7 @@ public final class JJazzMidiSystem
             defaultSynth = null;
         }
 
-        
+
         // Try to restore default Midi OUT
         List<MidiDevice> outDevices = getOutDeviceList();
         LOGGER.info("JJazzMidiSystem() Midi out devices=" + getDeviceListAsString(outDevices));   //NOI18N
@@ -217,7 +220,7 @@ public final class JJazzMidiSystem
             });
         }
 
-        
+
         // Try to restore default Midi IN
         List<MidiDevice> inDevices = getInDeviceList();
         defaultInDevice = null;
@@ -237,7 +240,7 @@ public final class JJazzMidiSystem
             }
         }
 
-        
+
         // Load Java synth soundfont file if any
         lastLoadedSoundbank = null;
         lastLoadedSoundbankFile = null;
@@ -419,6 +422,65 @@ public final class JJazzMidiSystem
         {
             LOGGER.warning("resetSynth() Can't unload instruments from soundbank " + lastLoadedSoundbank.getName() + ":" + ex.getMessage());   //NOI18N
         }
+    }
+
+    /**
+     * Edit the specified file with the registered editor, and wait for editor to exit.
+     *
+     * @param f
+     * @throws IOException
+     */
+    public void editMidiFileWithExternalEditor(File f) throws IOException
+    {
+        String cmd = getExternalMidiEditorPath();
+        if (!cmd.contains("%f"))
+        {
+            cmd += " %f";
+        }
+        cmd = cmd.replace("%f", f.getAbsolutePath());
+        LOGGER.info("editMidiFileWithExternalEditor() starting external editor with command: " + cmd);
+        String cmd_args[] = cmd.split("\\s+");
+        ProcessBuilder builder = new ProcessBuilder(cmd_args);
+        Process process = builder.start();
+        try
+        {
+            process.waitFor();
+        } catch (InterruptedException ex)
+        {
+            throw new IOException(ex);
+        }
+    }
+
+    /**
+     * Set the path to an external Midi file editor.
+     *
+     * @param path Can contain '%f' as a placeholder for the Midi file in the command line
+     */
+    public void setExternalMidiEditorPath(String path)
+    {
+        Preconditions.checkNotNull(path);
+        path = path.trim();
+        if (path.charAt(0) != '"')
+        {
+            path = "\"" + path;       // To escape blanks in paths (Windows)
+        }
+        if (path.charAt(path.length() - 1) != '"')
+        {
+            path += "\"";
+        }
+        prefs.put(PREF_EXTERNAL_MIDI_EDITOR_PATH, path);
+    }
+
+    /**
+     * Get the path to an external Midi file editor.
+     * <p>
+     * Can contain '%f' as a placeholder for the Midi file in the command line.
+     *
+     * @return An empty string if not set
+     */
+    public String getExternalMidiEditorPath()
+    {
+        return prefs.get(PREF_EXTERNAL_MIDI_EDITOR_PATH, "");
     }
 
     /**

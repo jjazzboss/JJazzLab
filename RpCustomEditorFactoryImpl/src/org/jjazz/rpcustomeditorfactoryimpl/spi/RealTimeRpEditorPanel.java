@@ -58,7 +58,7 @@ public abstract class RealTimeRpEditorPanel<E> extends JPanel
      * Initialize the editor for the specified context.
      *
      * @param rpValue Can not be null.
-     * @param sgContext Optional SongContext, can be null.
+     * @param sgContext The sgContext contains only 1 SongPart for a rhythm which uses the target RhythmParameter
      */
     public abstract void preset(E rpValue, SongContext sgContext);
 
@@ -81,4 +81,14 @@ public abstract class RealTimeRpEditorPanel<E> extends JPanel
      * Called to cleanup possible resources before discarding this object.
      */
     public abstract void cleanup();
+
+    /**
+     * If panel supports resizing.
+     *
+     * @return False by default.
+     */
+    public boolean isResizable()
+    {
+        return false;
+    }
 }

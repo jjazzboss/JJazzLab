@@ -57,6 +57,7 @@
             </module-dependencies>
             <public-packages>
                 <package>org.jjazz.phrase.api</package>
+                <package>org.jjazz.phrase.api.ui</package>
             </public-packages>
         </data>
     </configuration>

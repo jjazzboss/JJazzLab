@@ -806,4 +806,28 @@ public class Phrase extends LinkedList<NoteEvent>
         return p;
     }
 
+
+    /**
+     * Get a phrase with random notes at random positions.
+     *
+     * @param channel
+     * @param nbBars
+     * @param nbNotes
+     * @return
+     */
+    static public Phrase getRandomPhrase(int channel, int nbBars, int nbNotes)
+    {
+        Phrase p = new Phrase(channel);
+
+        for (int i = 0; i < nbNotes; i++)
+        {
+            int pitch = (int) (40 + Math.round(20 * Math.random()));
+            int vel = (int) (50 + Math.round(20 * Math.random()));
+            float pos = Math.max(0, Math.round(nbBars * 4 * Math.random()) - 2);
+            float dur = Math.random() > 0.5d ? 0.5f : 1f;
+            p.addOrdered(new NoteEvent(pitch, dur, vel, pos));
+        }
+
+        return p;
+    }
 }

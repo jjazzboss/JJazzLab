@@ -114,7 +114,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
      * Create or reuse a session for the specified parameters.
      * <p>
      * <p>
-     * Sessions are cached: if an existing session in the NEW or GENERATED state already exists for the same parameters then
+     * Sessions are cached: if a non-dirty session in the NEW or GENERATED state already exists for the same parameters then
      * return it, otherwise a new session is created.
      * <p>
      *

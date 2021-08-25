@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.phrase.api;
+package org.jjazz.phrase.api.ui;
 
 import com.google.common.base.Objects;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -29,9 +29,13 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
@@ -53,20 +57,22 @@ public class PhraseBirdView extends JPanel
     private static final int OUT_OF_RANGE_PITCH_RATIO = 4;
 
 
-    private Phrase model;
+    private Phrase phrase;
     private FloatRange beatRange;
     private TimeSignature timeSignature;
-
+    private static final Logger LOGGER = Logger.getLogger(PhraseBirdView.class.getSimpleName());
 
     @Override
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g);
-        if (model == null)
+        if (phrase == null)
         {
             return;
         }
         Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
 
         var r = Utilities.getUsableArea(this);
@@ -75,19 +81,19 @@ public class PhraseBirdView extends JPanel
         int nbBars = getSizeInBars();
         double xRatio = r.width / beatRange.size();
         IntRange pitchRange = getViewablePitchRange(MID_RANGE, OUT_OF_RANGE_PITCH_RATIO);
-        double yRatio = r.height / pitchRange.size();
+        double yRatio = (double) r.height / pitchRange.size();
 
 
         // Draw a line segment for each note
-        for (NoteEvent ne : model)
+        for (NoteEvent ne : phrase)
         {
             double x0 = r.x + (ne.getPositionInBeats() - beatRange.from) * xRatio;
             double x1 = r.x + (ne.getPositionInBeats() + ne.getDurationInBeats() - beatRange.from) * xRatio;
             double y = yMax - (getCorrectedPitch(ne.getPitch(), MID_RANGE, OUT_OF_RANGE_PITCH_RATIO) - pitchRange.from) * yRatio;
-//            if (x1 - x0 < 1d)
-//            {
-//                x1 = x0;
-//            }
+            if (x1 - x0 < 0.7d)
+            {
+                x1 = x0 + 0.7d;
+            }
             var line = new Line2D.Double(x0, y, x1, y);
             g2.draw(line);
         }
@@ -97,36 +103,40 @@ public class PhraseBirdView extends JPanel
         for (int i = 1; i < nbBars; i++)
         {
             float barWidth = (float) r.width / nbBars;
-            double x = r.x + i * barWidth - 0.5d; 
-            Color c = getForeground().brighter();
+            double x = r.x + i * barWidth - 0.5d;
+            Color c = getForeground().darker();
             g2.setColor(c);
             var line = new Line2D.Double(x, r.y, x, r.y + BAR_GRADATION_LENGTH - 1);
             g2.draw(line);
             line = new Line2D.Double(x, yMax, x, yMax - BAR_GRADATION_LENGTH + 1);
             g2.draw(line);
         }
-        
+
         g2.dispose();
     }
 
     public Phrase getModel()
     {
-        return model;
+        return phrase;
     }
+    
+    
 
     @Override
     public Dimension getPreferredSize()
     {
-        int w = (int) (PREF_BAR_WIDTH * (0.7f + 0.4f * getSizeInBars()));
-        int h = PREF_HEIGHT;
-        return new Dimension(w, h);
+        return new Dimension(500,50);
+//        int sizeInBars = phrase != null ? getSizeInBars() : 2;
+//        int w = (int) (PREF_BAR_WIDTH * (0.7f + 0.4f * sizeInBars));
+//        int h = PREF_HEIGHT;
+//        return new Dimension(w, h);
     }
 
-    @Override
-    public Dimension getMinimumSize()
-    {
-        return new Dimension(20, 10);
-    }
+//    @Override
+//    public Dimension getMinimumSize()
+//    {
+//        return new Dimension(20, 10);
+//    }
 
     /**
      * Set the Phrase model.
@@ -142,7 +152,7 @@ public class PhraseBirdView extends JPanel
         checkNotNull(beatRange);
         checkArgument(!beatRange.isEmpty(), "beatRange is empty");
 
-        this.model = model;
+        this.phrase = model;
         this.beatRange = beatRange;
         this.timeSignature = ts;
         repaint();
@@ -199,6 +209,7 @@ public class PhraseBirdView extends JPanel
      *
      * @param pitch
      * @param midRange For ex. [36-84]
+     * @param outOfRangePitchRatio
      * @return
      */
     private int getCorrectedPitch(int pitch, IntRange midRange, int outOfRangePitchRatio)
@@ -221,6 +232,7 @@ public class PhraseBirdView extends JPanel
      * The possible pitches taking into account getCorrectedPitch() effect.
      *
      * @param midRange
+     * @param outOfRangePitchRatio
      * @return
      * @see getCorrectedPitch(int, IntRange, int)
      */
@@ -228,8 +240,8 @@ public class PhraseBirdView extends JPanel
     {
         float HARD_LOW = 12;
         float HARD_HIGH = 108;
-        int nbLowNotes = midRange.from <= HARD_LOW ? 0 : Math.round((midRange.from - HARD_LOW) / OUT_OF_RANGE_PITCH_RATIO) + 1;
-        int nbHighNotes = midRange.to >= HARD_HIGH ? 0 : Math.round((HARD_HIGH - midRange.to) / OUT_OF_RANGE_PITCH_RATIO) + 1;
+        int nbLowNotes = midRange.from <= HARD_LOW ? 0 : Math.round((midRange.from - HARD_LOW) / (float) outOfRangePitchRatio) + 1;
+        int nbHighNotes = midRange.to >= HARD_HIGH ? 0 : Math.round((HARD_HIGH - midRange.to) / (float) outOfRangePitchRatio) + 1;
         return new IntRange(midRange.from - nbLowNotes, midRange.to + nbHighNotes);
     }
 }
