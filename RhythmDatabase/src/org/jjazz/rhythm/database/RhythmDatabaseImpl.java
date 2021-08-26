@@ -73,14 +73,11 @@ import org.openide.windows.WindowManager;
  * RhythmDatabase implementation.
  * <p>
  * Upon clean/fresh start:<br>
- * - retrieve all available builtin & file-based rhythm instances by polling
- * RhythmProviders (this can be long if many rhythm files need to be
- * scanned).<br>
- * - create RhythmInfo instances from the Rhythm instances and save the
- * file-based RhythmInfos to a cache file.<p>
+ * - retrieve all available builtin & file-based rhythm instances by polling RhythmProviders (this can be long if many rhythm
+ * files need to be scanned).<br>
+ * - create RhythmInfo instances from the Rhythm instances and save the file-based RhythmInfos to a cache file.<p>
  * Then upon normal start:<br>
- * - retrieve all available builtin rhythm instances by polling RhythmProviders,
- * create the corresponding RhythmInfos.<br>
+ * - retrieve all available builtin rhythm instances by polling RhythmProviders, create the corresponding RhythmInfos.<br>
  * - load additional file-based RhythmInfos from the cache file<br>
  * - create Rhythm instances only when required.<p>
  * <p>
@@ -121,8 +118,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     private static final Logger LOGGER = Logger.getLogger(RhythmDatabaseImpl.class.getSimpleName());
 
     /**
-     * If database is not ready yet (scanning rhythm files) then the call blocks
-     * and shows a dialog to inform user we're waiting.
+     * If database is not ready yet (scanning rhythm files) then the call blocks and shows a dialog to inform user we're waiting.
      *
      * @return
      */
@@ -131,9 +127,9 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         if (INSTANCE != null && INSTANCE.unitTestMode)
         {
             // In unit test we don't use initTask
-            return INSTANCE;            
+            return INSTANCE;
         }
-        
+
         if (INSTANCE == null || INSTANCE.initTask == null)
         {
             // getInstance() calls should happen after initialization
@@ -147,7 +143,8 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
 
         // Show a dialog while waiting for end of the init task
-        PleaseWaitDialog dlg = new PleaseWaitDialog(WindowManager.getDefault().getMainWindow());
+        PleaseWaitDialog dlg = new PleaseWaitDialog(ResUtil.getString(RhythmDatabaseImpl.class, "CTL_PleaseWait"), true);
+
 
         // Add listener before showing modal dialog. If initTask is finished now directly call the listener
         INSTANCE.initTask.addTaskListener(task ->
@@ -1081,8 +1078,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
     }
 
     /**
-     * Create the database instance once the CopyDefaultRhythmFilesTask is
-     * complete.
+     * Create the database instance once the CopyDefaultRhythmFilesTask is complete.
      */
     @ServiceProvider(service = StartupTask.class)
     public static class CreateDatabaseTask implements StartupTask

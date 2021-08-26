@@ -73,8 +73,8 @@ public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixV
                 NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
             }
-            
-    
+
+
             // Update channel label
             int channel = sgContext.getMidiMix().getChannel(rvDrums);
             strChannel = "Channel " + (channel + 1);
@@ -83,7 +83,7 @@ public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixV
                 strChannel += " (" + rvDrums.getName().trim() + ")";
             }
         }
-        
+
         lbl_channel.setText(strChannel);
     }
 
@@ -117,6 +117,12 @@ public class RP_SYS_DrumsMixPanel extends RealTimeRpEditorPanel<RP_SYS_DrumsMixV
     @Override
     public void cleanup()
     {
+    }
+
+    @Override
+    public String getTitle()
+    {
+        return null;
     }
 
     @Override

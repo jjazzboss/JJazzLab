@@ -129,7 +129,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         // Reset UI
         editorPanel.setEnabled(true);
         editorPanel.preset(rpValue, sgContext);
-        setTitle(buildTitle(spt0));
+        String title = editorPanel.getTitle();
+        setTitle(title == null ? buildDefaultTitle(spt0) : title);
         fbtn_ok.requestFocusInWindow();
         tbtn_hear.setSelected(false);
         tbtn_bypass.setSelected(false);
@@ -263,7 +264,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         }
     }
 
-    private String buildTitle(SongPart spt)
+    private String buildDefaultTitle(SongPart spt)
     {
         String strSongPart = ResUtil.getString(getClass(), "RealTimeRpEditorDialog.song_part");
         return getRhythmParameter().getDisplayName() + " - " + strSongPart + " '" + spt.getName() + "'";

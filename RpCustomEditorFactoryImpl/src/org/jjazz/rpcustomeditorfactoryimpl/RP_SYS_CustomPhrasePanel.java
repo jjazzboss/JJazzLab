@@ -16,17 +16,22 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.SwingUtilities;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.utilities.api.PleaseWaitDialog;
 import org.jjazz.util.api.FloatRange;
+import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
@@ -62,6 +67,12 @@ public class RP_SYS_CustomPhrasePanel extends RealTimeRpEditorPanel<RP_SYS_Custo
     public RP_SYS_CustomPhrase getRhythmParameter()
     {
         return rp;
+    }
+
+    @Override
+    public String getTitle()
+    {
+        return ResUtil.getString(getClass(), "RP_SYS_CustomPhrasePanel.DialogTitle");
     }
 
     @Override
@@ -101,12 +112,15 @@ public class RP_SYS_CustomPhrasePanel extends RealTimeRpEditorPanel<RP_SYS_Custo
 
         list_rhythmVoices.setListData(rpValue.getRhythm().getRhythmVoices().toArray(new RhythmVoice[0]));
         list_rhythmVoices.setSelectedIndex(0);
-        lbl_rhythm.setText(songPart.getRhythm().getName());
-        lbl_phraseInfo.setText("bars " + (songPart.getBarRange().from + 1) + " - " + (songPart.getBarRange().to + 1));
+        Rhythm r = songPart.getRhythm();
+        var rpVariation = RP_STD_Variation.getVariationRp(r);
+        String strVariation = rpVariation == null ? "" : "/" + songPart.getRPValue(rpVariation).toString();
+        lbl_rhythm.setText(r.getName() + strVariation);
+        lbl_phraseInfo.setText(songPart.getName() + " [" + (songPart.getBarRange().from + 1) + ";" + (songPart.getBarRange().to + 1) + "]");
 
 
         // Start a task to generate the phrases 
-        Runnable r = () ->
+        Runnable task = () ->
         {
             StaticSongSession tmpSession = StaticSongSession.getSession(songContext, false, false, false, false, 0, null);
             if (tmpSession.getState().equals(PlaybackSession.State.NEW))
@@ -132,7 +146,7 @@ public class RP_SYS_CustomPhrasePanel extends RealTimeRpEditorPanel<RP_SYS_Custo
 
         };
 
-        new Thread(r).start();
+        new Thread(task).start();
 
 
         setEditedRpValue(rpValue);
@@ -245,45 +259,55 @@ public class RP_SYS_CustomPhrasePanel extends RealTimeRpEditorPanel<RP_SYS_Custo
         }
 
         // Build the sequence
-        Sequence sequence = buildSequence();
-
+        // Sequence sequence = buildSequence();
 
         // Write the file
-        try
+//        try
+//        {
+//            MidiSystem.write(sequence, 1, midiTempFile);
+//        } catch (IOException ex)
+//        {
+//            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
+//            DialogDisplayer.getDefault().notify(d);
+//            return;
+//        }
+        // Prepare info dialog
+        PleaseWaitDialog dlg = new PleaseWaitDialog(ResUtil.getString(getClass(), "RP_SYS_CustomPhrasePanel.WaitForEditorQuit"), false);
+
+        // Start in parallel the midi editor
+        Runnable r = () ->
         {
-            MidiSystem.write(sequence, 1, midiTempFile);
-        } catch (IOException ex)
-        {
-            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-            return;
-        }
+            try
+            {
+                JJazzMidiSystem.getInstance().editMidiFileWithExternalEditor(midiTempFile); // Blocks until editor quits
+            } catch (IOException ex)
+            {
+                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+            } finally
+            {
+                LOGGER.info("editCurrentPhrase() resuming from external Midi editing");
+                dlg.setVisible(false);
+                dlg.dispose();
+            }
+        };
+        new Thread(r).start();
 
 
-        try
-        {
-            // Edit file
-            JJazzMidiSystem.getInstance().editMidiFileWithExternalEditor(midiTempFile);
-        } catch (IOException ex)
-        {
-            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-        }
+        // Show info dialog which will be disposed by the external editing thread
+        dlg.setVisible(true);
 
 
         // Reload file
-        try
-        {
-            sequence = MidiSystem.getSequence(midiTempFile);
-        } catch (IOException | InvalidMidiDataException ex)
-        {
-            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-        }
-
-
+//        try
+//        {
+//            sequence = MidiSystem.getSequence(midiTempFile);
+//        } catch (IOException | InvalidMidiDataException ex)
+//        {
+//            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
+//            DialogDisplayer.getDefault().notify(d);
+//        }
         // Extract the phrase
-        
     }
 
     private int getCurrentChannel()
@@ -333,11 +357,11 @@ public class RP_SYS_CustomPhrasePanel extends RealTimeRpEditorPanel<RP_SYS_Custo
 
         lbl_rhythm.setFont(lbl_rhythm.getFont().deriveFont(lbl_rhythm.getFont().getSize()-1f));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_rhythm, "Rhythm"); // NOI18N
+        lbl_rhythm.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_CustomPhrasePanel.class, "RP_SYS_CustomPhrasePanel.lbl_rhythm.toolTipText")); // NOI18N
 
         birdViewComponent.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         birdViewComponent.setForeground(new java.awt.Color(102, 153, 255));
         birdViewComponent.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_CustomPhrasePanel.class, "RP_SYS_CustomPhrasePanel.birdViewComponent.toolTipText")); // NOI18N
-        birdViewComponent.setPreferredSize(new java.awt.Dimension(300, 30));
         birdViewComponent.addFocusListener(new java.awt.event.FocusAdapter()
         {
             public void focusGained(java.awt.event.FocusEvent evt)
@@ -365,11 +389,12 @@ public class RP_SYS_CustomPhrasePanel extends RealTimeRpEditorPanel<RP_SYS_Custo
         );
         birdViewComponentLayout.setVerticalGroup(
             birdViewComponentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGap(0, 35, Short.MAX_VALUE)
         );
 
         lbl_phraseInfo.setFont(lbl_phraseInfo.getFont().deriveFont(lbl_phraseInfo.getFont().getSize()-1f));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_phraseInfo, "bars 2 - 4"); // NOI18N
+        lbl_phraseInfo.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_CustomPhrasePanel.class, "RP_SYS_CustomPhrasePanel.lbl_phraseInfo.toolTipText")); // NOI18N
 
         jScrollPane2.setBorder(null);
 
@@ -409,42 +434,39 @@ public class RP_SYS_CustomPhrasePanel extends RealTimeRpEditorPanel<RP_SYS_Custo
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lbl_rhythm)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btn_edit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(birdViewComponent, javax.swing.GroupLayout.DEFAULT_SIZE, 296, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lbl_rhythm)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(lbl_phraseInfo))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(btn_remove, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btn_edit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 188, Short.MAX_VALUE)))
-                .addGap(18, 18, 18))
+                    .addComponent(birdViewComponent, javax.swing.GroupLayout.DEFAULT_SIZE, 295, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btn_remove, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 295, Short.MAX_VALUE))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lbl_rhythm)
-                    .addComponent(lbl_phraseInfo))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btn_edit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(lbl_phraseInfo)
+                        .addComponent(lbl_rhythm)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 127, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 137, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(birdViewComponent, javax.swing.GroupLayout.DEFAULT_SIZE, 55, Short.MAX_VALUE)
+                        .addComponent(birdViewComponent, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(btn_remove, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(btn_edit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(47, 47, 47))
-                            .addComponent(jScrollPane2))))
+                        .addComponent(btn_remove, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane2)))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents

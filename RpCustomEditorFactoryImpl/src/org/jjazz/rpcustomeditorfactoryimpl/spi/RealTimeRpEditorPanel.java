@@ -83,6 +83,13 @@ public abstract class RealTimeRpEditorPanel<E> extends JPanel
     public abstract void cleanup();
 
     /**
+     * The dialog title.
+     *
+     * @return If null a default title will be generated.
+     */
+    public abstract String getTitle();
+
+    /**
      * If panel supports resizing.
      *
      * @return False by default.

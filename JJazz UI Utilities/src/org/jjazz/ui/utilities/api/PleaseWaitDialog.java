@@ -22,24 +22,29 @@
  */
 package org.jjazz.ui.utilities.api;
 
-import java.awt.Frame;
+import org.openide.windows.WindowManager;
 
 /**
- * A "Please wait..." dialog.
+ * A simple "Please wait..." (or any other text) dialog.
  */
 public class PleaseWaitDialog extends javax.swing.JDialog
 {
 
+    private String text;
+    private boolean isUndecorated;
     /**
-     * Creates new form WaitForScanDialog
+     * Creates the dialog
+     *
+     * @param text The text to be shown.
      */
-    public PleaseWaitDialog(Frame frame)
+    public PleaseWaitDialog(String text, boolean isUndecorated)
     {
-        super(frame, true);
-
+        super(WindowManager.getDefault().getMainWindow(), true);
+        this.text = text;
+        this.isUndecorated = isUndecorated;
         initComponents();
 
-        setLocationRelativeTo(frame);
+        setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
     }
 
     /**
@@ -57,7 +62,7 @@ public class PleaseWaitDialog extends javax.swing.JDialog
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setAlwaysOnTop(true);
         setLocationByPlatform(true);
-        setUndecorated(true);
+        setUndecorated(isUndecorated);
 
         jPanel1.setBackground(new java.awt.Color(114, 148, 163));
         jPanel1.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 255, 255)), javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0))));
@@ -65,7 +70,7 @@ public class PleaseWaitDialog extends javax.swing.JDialog
         jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getStyle() | java.awt.Font.BOLD, jLabel1.getFont().getSize()+1));
         jLabel1.setForeground(new java.awt.Color(246, 241, 241));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(PleaseWaitDialog.class, "PleaseWaitDialog.jLabel1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, text);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
