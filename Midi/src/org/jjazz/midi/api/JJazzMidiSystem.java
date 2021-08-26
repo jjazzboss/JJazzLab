@@ -433,15 +433,26 @@ public final class JJazzMidiSystem
     public void editMidiFileWithExternalEditor(File f) throws IOException
     {
         String cmd = getExternalMidiEditorPath();
+        
+        if (cmd.isBlank())
+        {
+            String msg = ResUtil.getString(getClass(), "ErrNoExternalMidiEditor");
+            throw new IOException(msg);
+        }
+        
+        // Handle the %f
         if (!cmd.contains("%f"))
         {
             cmd += " %f";
         }
         cmd = cmd.replace("%f", f.getAbsolutePath());
+        
+        
+        // Start command
         LOGGER.info("editMidiFileWithExternalEditor() starting external editor with command: " + cmd);
         String cmd_args[] = cmd.split("\\s+");
         ProcessBuilder builder = new ProcessBuilder(cmd_args);
-        Process process = builder.start();
+        Process process = builder.start();         // Throw IOException
         try
         {
             process.waitFor();

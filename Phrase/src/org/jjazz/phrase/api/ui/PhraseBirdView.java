@@ -66,7 +66,7 @@ public class PhraseBirdView extends JPanel
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g);
-        if (phrase == null)
+        if (phrase == null || !isEnabled())
         {
             return;
         }
