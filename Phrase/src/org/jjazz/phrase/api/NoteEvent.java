@@ -135,6 +135,7 @@ public class NoteEvent extends Note implements Cloneable
     /**
      * Get NoteEvents from a list of NOTE_ON/OFF Midi events.
      * <p>
+     * NOTE_ON events without a corresponding NOTE_OFF event are ignored.
      *
      * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position.
      * @param posInBeatsOffset The position in natural beats of the first tick of the track.

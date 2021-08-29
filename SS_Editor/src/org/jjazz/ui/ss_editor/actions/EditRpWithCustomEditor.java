@@ -22,8 +22,10 @@
  */
 package org.jjazz.ui.ss_editor.actions;
 
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.List;
@@ -96,11 +98,11 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
         RhythmParameter<?> rp = sptps.get(0).getRp();
         SongPart spt = sptps.get(0).getSpt();
 
-        
+
         // Open custom editor if supported
         var factory = RpCustomEditorFactory.findFactory(rp);
         if (factory != null)
-        {           
+        {
             SS_Editor editor = SS_EditorTopComponent.getActive().getSS_Editor();
 
 
@@ -118,7 +120,7 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
             }
             SongContext sgContext = new SongContext(song, mm, spt.getBarRange());
             Object value = spt.getRPValue(rp);
-            var dlgEditor = factory.getEditor((RhythmParameter)rp);
+            var dlgEditor = factory.getEditor((RhythmParameter) rp);
             assert dlgEditor != null : "rp=" + rp;
             dlgEditor.preset(value, sgContext);
 
@@ -128,7 +130,20 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
             Point p = r.getLocation();
             int x = p.x - ((dlgEditor.getWidth() - r.width) / 2);
             int y = p.y - dlgEditor.getHeight();
-            dlgEditor.setLocation(Math.max(x, 0), Math.max(y, 0));
+            x = Math.max(x, 0);
+            y = Math.max(y, 0);
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            int delta = x + dlgEditor.getWidth() - screenSize.width;
+            if (delta > 3)
+            {
+                x -= delta;
+            }
+            delta = y + dlgEditor.getHeight() - screenSize.height;
+            if (delta > 3)
+            {
+                y -= delta;
+            }
+            dlgEditor.setLocation(x, y);
             dlgEditor.setVisible(true);
 
 

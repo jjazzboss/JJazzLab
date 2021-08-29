@@ -52,30 +52,7 @@ public class Phrases
 
     private static final Logger LOGGER = Logger.getLogger(Phrases.class.getSimpleName());
 
-    /**
-     * Build a Phrase with 12 notes C-D-E-F-G-A-B-C that fit into nbBeats.
-     *
-     * @param channel
-     * @param startPos Position of the 1st note 'C'
-     * @param nbBeats
-     * @return
-     */
-    static public Phrase getCscalePhrase(int channel, float startPos, float nbBeats)
-    {
-        Phrase p = new Phrase(channel);
-        float noteDur = nbBeats / 8f;
-        float pos = startPos;
-        for (Note n : ScaleManager.MAJOR.getNotes())
-        {
-            NoteEvent ne = new NoteEvent(n.getPitch() + 60, noteDur, n.getVelocity(), pos);
-            pos += noteDur;
-            p.addOrdered(ne);
-        }
-        // Add octave note at this end
-        NoteEvent ne = new NoteEvent(72, noteDur, Note.VELOCITY_STD, pos);
-        p.addOrdered(ne);
-        return p;
-    }
+ 
 
     /**
      * Adapt the notes from a melody-oriented source phrase to a destination chord symbol.

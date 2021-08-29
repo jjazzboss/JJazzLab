@@ -25,7 +25,6 @@ package org.jjazz.songeditormanager.api;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -236,13 +235,13 @@ public class ExportToMidiFile extends AbstractAction
         }
 
 
-        // Remove elements from muted tracks (don't remove track because impact on mapRvTrack + drumsrerouting)
+        // Remove elements from muted tracks (don't remove the muted tracks because it would impact mapRvTrack + drumsrerouting)
         for (RhythmVoice rv : midiMix.getRhythmVoices())
         {
             if (midiMix.getInstrumentMixFromKey(rv).isMute())
             {
                 Track track = sequence.getTracks()[mapRvTrackId.get(rv)];
-                emptyTrack(track);
+                MidiUtilities.clearTrack(track);
             }
         }
 
@@ -326,13 +325,15 @@ public class ExportToMidiFile extends AbstractAction
      * Prepare the sequence for Midi file export.
      * <p>
      * Add various Midi messages on track 0:<br>
-     * - prog/bank changes messages<br>
      * - reset controllers<br>
      * - tempo factor changes<br>
      * - markers for chord symbols<br>
+     * - prog/bank changes messages on each RhythmVoice track<br>
      *
      * @param sequence
      * @param tickOffset The tick start of the song. Will be &gt; 0 if precount click is used.
+     * @param mapRvTrackId
+     * @param midiMix
      * @throws ArrayIndexOutOfBoundsException
      * @todo Should we convert tempo Midi message depending on TimeSignature (eg 4/4 or 6/8 don't have the same natural beat...) ?
      */
@@ -475,17 +476,6 @@ public class ExportToMidiFile extends AbstractAction
 
     }
 
-    /**
-     * Remove all events from the specified track.
-     * <p>
-     */
-    private void emptyTrack(Track track)
-    {
-        // Track uses a simple List to store MidiEvents
-        for (int i = track.size() - 1; i >= 0; i--)
-        {
-            track.remove(track.get(i));
-        }
-    }
+   
 
 }

@@ -5,9 +5,7 @@
     <Property name="defaultCloseOperation" type="int" value="2"/>
     <Property name="alwaysOnTop" type="boolean" value="true"/>
     <Property name="locationByPlatform" type="boolean" value="true"/>
-    <Property name="undecorated" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-      <Connection code="isUndecorated" type="code"/>
-    </Property>
+    <Property name="undecorated" type="boolean" value="true"/>
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>

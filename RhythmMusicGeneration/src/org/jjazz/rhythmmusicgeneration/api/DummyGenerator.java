@@ -53,7 +53,7 @@ public class DummyGenerator implements MusicGenerator
         }
         rhythm = r;
     }
-  
+
 
     @Override
     public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context)
@@ -90,7 +90,7 @@ public class DummyGenerator implements MusicGenerator
                 if (rv.isDrums())
                 {
                     LOGGER.fine("generateMusic() generate dummy drums track for RhythmVoice: " + rv.getName());   //NOI18N
-                    Phrase p = getBasicDrumPhrase(sptPosInBeats, sptRange.size(), ts, destChannel);
+                    Phrase p = Phrase.getBasicDrumPhrase(sptPosInBeats, sptRange.size(), ts, destChannel);
                     pRes.add(p);
                 } else
                 {
@@ -108,61 +108,6 @@ public class DummyGenerator implements MusicGenerator
         }
 
         return res;
-    }
-
-    /**
-     * Get a basic drums phrase.
-     *
-     * @param startPosInBeats
-     * @param nbBars
-     * @param ts
-     * @param channel The channel of the returned phrase
-     * @return
-     */
-    static public Phrase getBasicDrumPhrase(float startPosInBeats, int nbBars, TimeSignature ts, int channel)
-    {
-        if (ts == null || !MidiConst.checkMidiChannel(channel))
-        {
-            throw new IllegalArgumentException("nbBars=" + nbBars + " ts=" + ts + " channel=" + channel);   //NOI18N
-        }
-        Phrase p = new Phrase(channel);
-        float duration = 0.25f;
-        for (int bar = 0; bar < nbBars; bar++)
-        {
-            for (int beat = 0; beat < ts.getNbNaturalBeats(); beat++)
-            {
-                // 2 Hi Hat per beat
-                NoteEvent ne = new NoteEvent(MidiConst.CLOSED_HI_HAT, duration, 80, startPosInBeats);
-                p.addOrdered(ne);
-                ne = new NoteEvent(MidiConst.CLOSED_HI_HAT, duration, 80, startPosInBeats + 0.5f);
-                p.addOrdered(ne);
-
-                // Bass drums or Snare
-                int pitch;
-                int velocity = 70;
-                switch (beat)
-                {
-                    case 0:
-                        pitch = MidiConst.ACOUSTIC_BASS_DRUM;
-                        velocity = 120;
-                        break;
-                    case 1:
-                    case 3:
-                    case 5:
-                    case 7:
-                        pitch = MidiConst.ACOUSTIC_SNARE;
-                        break;
-                    default:
-                        pitch = MidiConst.ACOUSTIC_BASS_DRUM;
-                }
-                ne = new NoteEvent(pitch, duration, velocity, startPosInBeats);
-                p.addOrdered(ne);
-
-                // Next beat
-                startPosInBeats++;
-            }
-        }
-        return p;
     }
 
     /**

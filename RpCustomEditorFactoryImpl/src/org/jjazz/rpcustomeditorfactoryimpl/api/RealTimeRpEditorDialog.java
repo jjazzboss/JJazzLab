@@ -22,7 +22,7 @@
  */
 package org.jjazz.rpcustomeditorfactoryimpl.api;
 
-import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorPanel;
+import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorComponent;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
@@ -78,7 +78,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     public static final int DEFAULT_POST_UPDATE_SLEEP_TIME_MS = 100;
     private int previewMaxNbBars = DEFAULT_PREVIEW_MAX_NB_BARS;
     private int postUpdateSleepTime = DEFAULT_POST_UPDATE_SLEEP_TIME_MS;
-    private final RealTimeRpEditorPanel<E> editorPanel;
+    private final RealTimeRpEditorComponent<E> editor;
     private boolean exitOk;
     private UpdatableSongSession session;
     private SongContext songContextOriginal;
@@ -87,23 +87,23 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private RpValueChangesHandlingTask rpValueChangesHandlingTask;
     private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());  //NOI18N
 
-    public RealTimeRpEditorDialog(RealTimeRpEditorPanel<E> panel)
+    public RealTimeRpEditorDialog(RealTimeRpEditorComponent<E> comp)
     {
-        editorPanel = panel;
-        editorPanel.addPropertyChangeListener(this);
-        setResizable(editorPanel.isResizable());
+        editor = comp;
+        editor.addPropertyChangeListener(this);
+        setResizable(editor.isResizable());
 
         initComponents();
 
 
-        pnl_editor.add(editorPanel, BorderLayout.CENTER);
+        pnl_editor.add(editor, BorderLayout.CENTER);
         pack();
     }
 
     @Override
     public RhythmParameter<E> getRhythmParameter()
     {
-        return editorPanel.getRhythmParameter();
+        return editor.getRhythmParameter();
     }
 
     @Override
@@ -120,16 +120,16 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         rpValueOriginal = rpValue;
 
         var spt0 = sgContext.getSongParts().get(0);
-        if (!spt0.getRhythm().getRhythmParameters().contains(editorPanel.getRhythmParameter()))
+        if (!spt0.getRhythm().getRhythmParameters().contains(editor.getRhythmParameter()))
         {
             throw new IllegalArgumentException("rpValue=" + rpValue + " sgContext=" + sgContext + " spt0=" + spt0 + " getRhythmParameter()=" + getRhythmParameter());
         }
 
 
         // Reset UI
-        editorPanel.setEnabled(true);
-        editorPanel.preset(rpValue, sgContext);
-        String title = editorPanel.getTitle();
+        editor.setEnabled(true);
+        editor.preset(rpValue, sgContext);
+        String title = editor.getTitle();
         setTitle(title == null ? buildDefaultTitle(spt0) : title);
         fbtn_ok.requestFocusInWindow();
         tbtn_hear.setSelected(false);
@@ -148,7 +148,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     @Override
     public E getRpValue()
     {
-        return editorPanel.getEditedRpValue();
+        return editor.getEditedRpValue();
     }
 
     /**
@@ -216,7 +216,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getSource() == editorPanel && evt.getPropertyName().equals(RealTimeRpEditorPanel.PROP_EDITED_RP_VALUE))
+        if (evt.getSource() == editor && evt.getPropertyName().equals(RealTimeRpEditorComponent.PROP_EDITED_RP_VALUE))
         {
             LOGGER.fine("propertyChange() evt=" + evt);
             if (tbtn_hear.isSelected() && !tbtn_bypass.isSelected())
@@ -304,7 +304,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         }
 
         // Apply the RP value
-        ss.setRhythmParameterValue(spt, (RhythmParameter) editorPanel.getRhythmParameter(), rpValue);
+        ss.setRhythmParameterValue(spt, (RhythmParameter) editor.getRhythmParameter(), rpValue);
 
 
         // Create the new context
@@ -324,7 +324,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         }
 
         // Build song context with the original RP value or edited one
-        E rpValue = tbtn_bypass.isSelected() ? rpValueOriginal : editorPanel.getEditedRpValue();
+        E rpValue = tbtn_bypass.isSelected() ? rpValueOriginal : editor.getEditedRpValue();
         SongContext sgContext = buildPreviewContext(rpValue);
 
 
@@ -423,11 +423,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         pnl_editor = new javax.swing.JPanel();
         tbtn_bypass = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         tbtn_hear = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
-        jPanel1 = new javax.swing.JPanel();
-        pnl_okCancelButtons = new javax.swing.JPanel();
-        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
-        pnl_resetButton = new javax.swing.JPanel();
         fbtn_ok = new org.jjazz.ui.flatcomponents.api.FlatButton();
         fbtn_reset = new org.jjazz.ui.flatcomponents.api.FlatButton();
 
@@ -450,7 +445,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         });
 
         pnl_editor.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-        pnl_editor.setLayout(new javax.swing.BoxLayout(pnl_editor, javax.swing.BoxLayout.LINE_AXIS));
+        pnl_editor.setLayout(new java.awt.BorderLayout());
 
         tbtn_bypass.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-OFF.png"))); // NOI18N
         tbtn_bypass.setToolTipText(org.openide.util.NbBundle.getMessage(RealTimeRpEditorDialog.class, "RealTimeRpEditorDialog.tbtn_bypass.toolTipText")); // NOI18N
@@ -474,17 +469,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
                 tbtn_hearActionPerformed(evt);
             }
         });
-
-        jPanel1.setLayout(new java.awt.BorderLayout());
-
-        pnl_okCancelButtons.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 0));
-        pnl_okCancelButtons.add(filler2);
-        pnl_okCancelButtons.add(filler1);
-
-        jPanel1.add(pnl_okCancelButtons, java.awt.BorderLayout.EAST);
-
-        pnl_resetButton.setLayout(new java.awt.BorderLayout());
-        jPanel1.add(pnl_resetButton, java.awt.BorderLayout.WEST);
 
         fbtn_ok.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/OK-24x24.png"))); // NOI18N
         fbtn_ok.setToolTipText(org.openide.util.NbBundle.getMessage(RealTimeRpEditorDialog.class, "RealTimeRpEditorDialog.fbtn_ok.toolTipText")); // NOI18N
@@ -512,16 +496,13 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
             pnl_containerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_containerLayout.createSequentialGroup()
                 .addContainerGap()
+                .addComponent(pnl_editor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_containerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnl_containerLayout.createSequentialGroup()
-                        .addComponent(pnl_editor, javax.swing.GroupLayout.DEFAULT_SIZE, 291, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(pnl_containerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(fbtn_reset, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(tbtn_hear, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(tbtn_bypass, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(fbtn_ok, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(fbtn_reset, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tbtn_hear, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tbtn_bypass, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(fbtn_ok, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(5, 5, 5))
         );
         pnl_containerLayout.setVerticalGroup(
@@ -538,9 +519,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(fbtn_ok, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(pnl_editor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(4, 4, 4))
+                .addGap(10, 10, 10))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -574,8 +553,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private void tbtn_bypassActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tbtn_bypassActionPerformed
     {//GEN-HEADEREND:event_tbtn_bypassActionPerformed
         assert tbtn_hear.isSelected();
-        editorPanel.setEnabled(!tbtn_bypass.isSelected());
-        E rpValue = tbtn_bypass.isSelected() ? rpValueOriginal : editorPanel.getEditedRpValue();
+        editor.setEnabled(!tbtn_bypass.isSelected());
+        E rpValue = tbtn_bypass.isSelected() ? rpValueOriginal : editor.getEditedRpValue();
         sendRpValueToThread(rpValue);
 
     }//GEN-LAST:event_tbtn_bypassActionPerformed
@@ -583,9 +562,9 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private void formWindowClosed(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosed
     {//GEN-HEADEREND:event_formWindowClosed
         // Triggerd by dispose() call
-        if (editorPanel != null)
+        if (editor != null)
         {
-            editorPanel.cleanup();
+            editor.cleanup();
         }
         if (session != null)
         {
@@ -628,7 +607,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         Object result = DialogDisplayer.getDefault().notify(nd);
         if (result == NotifyDescriptor.OK_OPTION)
         {
-            editorPanel.setEditedRpValue(editorPanel.getRhythmParameter().getDefaultValue());
+            editor.setEditedRpValue(editor.getRhythmParameter().getDefaultValue());
         }
     }//GEN-LAST:event_fbtn_resetActionPerformed
 
@@ -636,13 +615,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_ok;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_reset;
-    private javax.swing.Box.Filler filler1;
-    private javax.swing.Box.Filler filler2;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel pnl_container;
     private javax.swing.JPanel pnl_editor;
-    private javax.swing.JPanel pnl_okCancelButtons;
-    private javax.swing.JPanel pnl_resetButton;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_bypass;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_hear;
     // End of variables declaration//GEN-END:variables

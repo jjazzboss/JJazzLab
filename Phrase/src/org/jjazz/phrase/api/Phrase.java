@@ -36,6 +36,9 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.api.Chord;
+import org.jjazz.harmony.api.Note;
+import org.jjazz.harmony.api.ScaleManager;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.util.api.FloatRange;
@@ -97,7 +100,7 @@ public class Phrase extends LinkedList<NoteEvent>
             addOrdered(mne.clone());
         }
     }
-
+      
     /**
      * Add a NoteEvent at the correct index depending on its position.
      * <p>
@@ -808,6 +811,31 @@ public class Phrase extends LinkedList<NoteEvent>
 
 
     /**
+     * Build a Phrase with 12 notes C-D-E-F-G-A-B-C that fit into nbBeats.
+     *
+     * @param channel
+     * @param startPos Position of the 1st note 'C'
+     * @param nbBeats
+     * @return
+     */
+    static public Phrase getCscalePhrase(int channel, float startPos, float nbBeats)
+    {
+        Phrase p = new Phrase(channel);
+        float noteDur = nbBeats / 8f;
+        float pos = startPos;
+        for (Note n : ScaleManager.MAJOR.getNotes())
+        {
+            NoteEvent ne = new NoteEvent(n.getPitch() + 60, noteDur, n.getVelocity(), pos);
+            pos += noteDur;
+            p.addOrdered(ne);
+        }
+        // Add octave note at this end
+        NoteEvent ne = new NoteEvent(72, noteDur, Note.VELOCITY_STD, pos);
+        p.addOrdered(ne);
+        return p;
+    }
+
+    /**
      * Get a phrase with random notes at random positions.
      *
      * @param channel
@@ -830,4 +858,61 @@ public class Phrase extends LinkedList<NoteEvent>
 
         return p;
     }
+    
+     /**
+     * Get a basic drums phrase.
+     *
+     * @param startPosInBeats
+     * @param nbBars
+     * @param ts
+     * @param channel The channel of the returned phrase
+     * @return
+     */
+    static public Phrase getBasicDrumPhrase(float startPosInBeats, int nbBars, TimeSignature ts, int channel)
+    {
+        if (ts == null || !MidiConst.checkMidiChannel(channel))
+        {
+            throw new IllegalArgumentException("nbBars=" + nbBars + " ts=" + ts + " channel=" + channel);   //NOI18N
+        }
+        Phrase p = new Phrase(channel);
+        float duration = 0.25f;
+        for (int bar = 0; bar < nbBars; bar++)
+        {
+            for (int beat = 0; beat < ts.getNbNaturalBeats(); beat++)
+            {
+                // 2 Hi Hat per beat
+                NoteEvent ne = new NoteEvent(MidiConst.CLOSED_HI_HAT, duration, 80, startPosInBeats);
+                p.addOrdered(ne);
+                ne = new NoteEvent(MidiConst.CLOSED_HI_HAT, duration, 80, startPosInBeats + 0.5f);
+                p.addOrdered(ne);
+
+                // Bass drums or Snare
+                int pitch;
+                int velocity = 70;
+                switch (beat)
+                {
+                    case 0:
+                        pitch = MidiConst.ACOUSTIC_BASS_DRUM;
+                        velocity = 120;
+                        break;
+                    case 1:
+                    case 3:
+                    case 5:
+                    case 7:
+                        pitch = MidiConst.ACOUSTIC_SNARE;
+                        break;
+                    default:
+                        pitch = MidiConst.ACOUSTIC_BASS_DRUM;
+                }
+                ne = new NoteEvent(pitch, duration, velocity, startPosInBeats);
+                p.addOrdered(ne);
+
+                // Next beat
+                startPosInBeats++;
+            }
+        }
+        return p;
+    }
+
+ 
 }

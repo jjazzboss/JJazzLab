@@ -37,12 +37,12 @@ import org.openide.util.Utilities;
 /**
  * For debug purposes...
  */
-@ActionID(category = "JJazz", id = "org.jjazz.test.dumpundomanagerevents")
-@ActionRegistration(displayName = "Dump undomanager events")
-@ActionReferences(
-        {
-            @ActionReference(path = "Menu/Edit", position = 870013),
-        })
+//@ActionID(category = "JJazz", id = "org.jjazz.test.dumpundomanagerevents")
+//@ActionRegistration(displayName = "Dump undomanager events")
+//@ActionReferences(
+//        {
+//            @ActionReference(path = "Menu/Edit", position = 870013),
+//        })
 public final class DumpUndoManagerEvents implements ActionListener
 {
 

@@ -23,6 +23,7 @@
 package org.jjazz.midi.api;
 
 import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
@@ -51,6 +52,7 @@ import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
+import org.openide.util.Utilities;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -427,35 +429,44 @@ public final class JJazzMidiSystem
     /**
      * Edit the specified file with the registered editor, and wait for editor to exit.
      *
-     * @param f
+     * @param midiFile
      * @throws IOException
      */
-    public void editMidiFileWithExternalEditor(File f) throws IOException
+    public void editMidiFileWithExternalEditor(File midiFile) throws IOException
     {
-        String cmd = getExternalMidiEditorPath();
-        
-        if (cmd.isBlank())
+        checkNotNull(midiFile);
+        File editorFile = getExternalMidiEditor();
+
+        // Check usual errors to get more friendly error messages
+        if (editorFile.getName().isBlank())
         {
-            String msg = ResUtil.getString(getClass(), "ErrNoExternalMidiEditor");
+            String msg = ResUtil.getString(getClass(), "ErrNoExternalMidiEditorSet");
             throw new IOException(msg);
         }
-        
-        // Handle the %f
-        if (!cmd.contains("%f"))
+        if (!editorFile.exists())
         {
-            cmd += " %f";
+            String msg = ResUtil.getString(getClass(), "ErrExternalMidiEditorNotFound", editorFile.getAbsolutePath());
+            throw new IOException(msg);
         }
-        cmd = cmd.replace("%f", f.getAbsolutePath());
-        
-        
+        if (!editorFile.canExecute() || editorFile.isDirectory())
+        {
+            String msg = ResUtil.getString(getClass(), "ErrCantExecuteMidiEditor", editorFile.getAbsolutePath());
+            throw new IOException(msg);
+        }
+        if (!midiFile.exists())
+        {
+            String msg = ResUtil.getString(getClass(), "ErrMidiFileNotFound", midiFile.getAbsolutePath());
+            throw new IOException(msg);
+        }
+
+
         // Start command
-        LOGGER.info("editMidiFileWithExternalEditor() starting external editor with command: " + cmd);
-        String cmd_args[] = cmd.split("\\s+");
-        ProcessBuilder builder = new ProcessBuilder(cmd_args);
+        LOGGER.info("editMidiFileWithExternalEditor() starting external editor with: " + editorFile.getAbsolutePath() + " " + midiFile.getAbsolutePath());
+        ProcessBuilder builder = new ProcessBuilder(editorFile.getAbsolutePath(), midiFile.getAbsolutePath());
         Process process = builder.start();         // Throw IOException
         try
         {
-            process.waitFor();
+            process.waitFor();      // Block until editor is closed
         } catch (InterruptedException ex)
         {
             throw new IOException(ex);
@@ -465,33 +476,27 @@ public final class JJazzMidiSystem
     /**
      * Set the path to an external Midi file editor.
      *
-     * @param path Can contain '%f' as a placeholder for the Midi file in the command line
+     * @param editorFile
      */
-    public void setExternalMidiEditorPath(String path)
+    public void setExternalMidiEditor(File editorFile)
     {
-        Preconditions.checkNotNull(path);
-        path = path.trim();
-        if (path.charAt(0) != '"')
-        {
-            path = "\"" + path;       // To escape blanks in paths (Windows)
-        }
-        if (path.charAt(path.length() - 1) != '"')
-        {
-            path += "\"";
-        }
-        prefs.put(PREF_EXTERNAL_MIDI_EDITOR_PATH, path);
+        Preconditions.checkNotNull(editorFile);
+        String s = editorFile.getName().isBlank() ? "" : editorFile.getAbsolutePath();
+        LOGGER.fine("setExternalMidiEditor() -- s=" + s);
+        prefs.put(PREF_EXTERNAL_MIDI_EDITOR_PATH, s);
     }
 
     /**
      * Get the path to an external Midi file editor.
      * <p>
-     * Can contain '%f' as a placeholder for the Midi file in the command line.
      *
-     * @return An empty string if not set
+     * @return Can be an empty path
      */
-    public String getExternalMidiEditorPath()
+    public File getExternalMidiEditor()
     {
-        return prefs.get(PREF_EXTERNAL_MIDI_EDITOR_PATH, "");
+        File f = new File(prefs.get(PREF_EXTERNAL_MIDI_EDITOR_PATH, ""));
+        LOGGER.fine("getExternalMidiEditor() return value=" + f.getName());
+        return f;
     }
 
     /**

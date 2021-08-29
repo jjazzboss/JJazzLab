@@ -25,23 +25,22 @@ package org.jjazz.ui.utilities.api;
 import org.openide.windows.WindowManager;
 
 /**
- * A simple "Please wait..." (or any other text) dialog.
+ * A simple "Please wait..." (or any other text) modal dialog.
  */
 public class PleaseWaitDialog extends javax.swing.JDialog
 {
 
     private String text;
-    private boolean isUndecorated;
+
     /**
      * Creates the dialog
      *
      * @param text The text to be shown.
      */
-    public PleaseWaitDialog(String text, boolean isUndecorated)
+    public PleaseWaitDialog(String text)
     {
         super(WindowManager.getDefault().getMainWindow(), true);
         this.text = text;
-        this.isUndecorated = isUndecorated;
         initComponents();
 
         setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
@@ -62,7 +61,7 @@ public class PleaseWaitDialog extends javax.swing.JDialog
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setAlwaysOnTop(true);
         setLocationByPlatform(true);
-        setUndecorated(isUndecorated);
+        setUndecorated(true);
 
         jPanel1.setBackground(new java.awt.Color(114, 148, 163));
         jPanel1.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 255, 255)), javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0))));

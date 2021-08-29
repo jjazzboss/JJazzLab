@@ -143,7 +143,7 @@ public class RhythmDatabaseImpl implements RhythmDatabase, PropertyChangeListene
         }
 
         // Show a dialog while waiting for end of the init task
-        PleaseWaitDialog dlg = new PleaseWaitDialog(ResUtil.getString(RhythmDatabaseImpl.class, "CTL_PleaseWait"), true);
+        PleaseWaitDialog dlg = new PleaseWaitDialog(ResUtil.getString(RhythmDatabaseImpl.class, "CTL_PleaseWait"));
 
 
         // Add listener before showing modal dialog. If initTask is finished now directly call the listener

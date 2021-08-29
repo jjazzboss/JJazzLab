@@ -69,6 +69,9 @@ import org.jjazz.util.api.ResUtil;
 public class SongSequenceBuilder
 {
 
+    /**
+     * The return value of the buildSongSequence() methods.
+     */
     static public class SongSequence
     {
 
@@ -227,7 +230,7 @@ public class SongSequenceBuilder
         Map<RhythmVoice, Phrase> res = new HashMap<>();
 
         checkEmptyRange(songContext);       // throws MusicGenerationException
-        
+
         // Check that there is a valid starting chord at the beginning on each section
         checkStartChordPresence(songContext);      // throws MusicGenerationException
 
@@ -289,8 +292,8 @@ public class SongSequenceBuilder
 
         // Handle instrument settings which impact the phrases: transposition, velocity shift, ...
         processInstrumentsSettings(songContext, res);
-        
-        
+
+
         // Process the drums rerouting
         processDrumsRerouting(songContext, res);
 
@@ -341,8 +344,8 @@ public class SongSequenceBuilder
                 {
                     Track track = res.sequence.createTrack();
 
-                    // First event will be the name of the track
-                    String name = rv.getContainer().getName() + "-" + rv.getName();
+                    // First event will be the name of the track: rhythm - rhythmVoice - channel
+                    String name = rv.getContainer().getName() + "-" + rv.getName() + "-channel:" + songContext.getMidiMix().getChannel(rv) + " (0-15)";
                     MidiUtilities.addTrackNameEvent(track, name);
 
                     // Fill the track
@@ -553,8 +556,8 @@ public class SongSequenceBuilder
             }
         }
     }
-    
-     /**
+
+    /**
      * Substitute phrases of rerouted channels with new phrases for the GM Drums channel.
      *
      * @param rvPhrases
@@ -562,7 +565,7 @@ public class SongSequenceBuilder
     private void processDrumsRerouting(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
     {
         LOGGER.fine("processDrumsRerouting() -- ");   //NOI18N
-        
+
         MidiMix midiMix = context.getMidiMix();
         for (int channel : midiMix.getDrumsReroutedChannels())
         {
@@ -572,15 +575,15 @@ public class SongSequenceBuilder
             reroutedPhrase.add(oldPhrase);
             rvPhrases.put(rv, reroutedPhrase);
         }
-               
+
     }
-    
+
     private void checkEmptyRange(SongContext context) throws UserErrorException
     {
         if (context.getBarRange().isEmpty())
         {
             throw new UserErrorException(ResUtil.getString(getClass(), "ERR_NothingToPlay"));
-        } 
+        }
     }
 
     /**

@@ -23,6 +23,7 @@
 package org.jjazz.options;
 
 import java.awt.Component;
+import java.awt.ComponentOrientation;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -40,6 +41,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JList;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
@@ -51,7 +53,6 @@ import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.LifecycleManager;
 import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
 import org.openide.windows.WindowManager;
 
 final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeListener
@@ -70,11 +71,6 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
 
         cmb_languages.setRenderer(new LocaleCellRenderer());
 
-//        cmb_languages.setRenderer((list, value, index, isSelected, cellHasFocus) ->
-//        {
-//            Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);      // actually c=this !
-//            return null; //To change body of generated lambdas, choose Tools | Templates.
-//        };
 
         // Make button Apply up to date
         cb_disableMouseWheelChangeValue.addActionListener(al -> controller.changed());
@@ -252,6 +248,13 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
 
         tf_midiEditor.setFont(tf_midiEditor.getFont().deriveFont(tf_midiEditor.getFont().getSize()-1f));
         tf_midiEditor.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.tf_midiEditor.toolTipText")); // NOI18N
+        tf_midiEditor.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                tf_midiEditorActionPerformed(evt);
+            }
+        });
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_changeMidiEditor, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.btn_changeMidiEditor.text")); // NOI18N
         btn_changeMidiEditor.addActionListener(new java.awt.event.ActionListener()
@@ -353,14 +356,12 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
 
     private void btn_changeMidiEditorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_changeMidiEditorActionPerformed
     {//GEN-HEADEREND:event_btn_changeMidiEditorActionPerformed
-        JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
         JFileChooser chooser = org.jjazz.ui.utilities.api.Utilities.getFileChooserInstance();
         chooser.resetChoosableFileFilters();
         chooser.setAcceptAllFileFilterUsed(true);
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setDialogTitle(ResUtil.getString(getClass(), "GeneralPanel.ChooseMidiEditor"));
-        String curEditor = jms.getExternalMidiEditorPath();
         chooser.setCurrentDirectory(null);
 
         // Show dialog
@@ -370,6 +371,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
             if (file != null)
             {
                 tf_midiEditor.setText(file.getAbsolutePath());
+                controller.changed();
             }
         }
 
@@ -396,14 +398,14 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         {
             sequence = new Sequence(Sequence.PPQ, MidiConst.PPQ_RESOLUTION);
 
-
             Track track = sequence.createTrack();
-            Phrase p = Phrase.getRandomPhrase(9, 4, 20);
+            Phrase p = Phrase.getBasicDrumPhrase(0, 4, TimeSignature.FOUR_FOUR, 9);
             p.fillTrack(track);
             MidiUtilities.addTrackNameEvent(track, "Drums track");
 
+
             track = sequence.createTrack();
-            p = Phrase.getRandomPhrase(10, 4, 10);
+            p = Phrase.getCscalePhrase(10, 0, 16);
             p.fillTrack(track);
             MidiUtilities.addTrackNameEvent(track, "Bass track");
 
@@ -421,10 +423,10 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
 
 
         var jms = JJazzMidiSystem.getInstance();
-        String saveExternalEditorPath = jms.getExternalMidiEditorPath();
+        File saveExternalEditor = jms.getExternalMidiEditor();
         try
         {
-            jms.setExternalMidiEditorPath(tf_midiEditor.getText());
+            jms.setExternalMidiEditor(new File(tf_midiEditor.getText().trim()));
             jms.editMidiFileWithExternalEditor(midiTempFile);
         } catch (IOException ex)
         {
@@ -432,11 +434,16 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
             DialogDisplayer.getDefault().notify(d);
         } finally
         {
-            jms.setExternalMidiEditorPath(saveExternalEditorPath);
+            jms.setExternalMidiEditor(saveExternalEditor);
         }
 
 
     }//GEN-LAST:event_btn_testMidiEditorActionPerformed
+
+    private void tf_midiEditorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tf_midiEditorActionPerformed
+    {//GEN-HEADEREND:event_tf_midiEditorActionPerformed
+        controller.changed();
+    }//GEN-LAST:event_tf_midiEditorActionPerformed
 
     void load()
     {
@@ -448,6 +455,7 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         // or:
         // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
 
+        LOGGER.fine("load() --");
         cb_loadLastRecentFile.setSelected(StartupShutdownSongManager.getInstance().isOpenRecentFilesUponStartup());
         cb_disableMouseWheelChangeValue.setSelected(!GeneralUISettings.getInstance().isChangeValueWithMouseWheelEnabled());
 
@@ -457,7 +465,8 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
 
 
         // External Midi editor
-        tf_midiEditor.setText(JJazzMidiSystem.getInstance().getExternalMidiEditorPath());
+        File editorFile = JJazzMidiSystem.getInstance().getExternalMidiEditor();
+        tf_midiEditor.setText(editorFile.getName().isBlank() ? "" : editorFile.getAbsolutePath());
 
 
         // Language combo
@@ -477,16 +486,18 @@ final class GeneralPanel extends javax.swing.JPanel implements PropertyChangeLis
         // NbPreferences.forModule(GeneralPanel.class).putBoolean("someFlag", someCheckBox.isSelected());
         // or:
         // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
+        LOGGER.fine("store() --");
         StartupShutdownSongManager.getInstance().setOpenRecentFilesUponStartup(cb_loadLastRecentFile.isSelected());
 
         GeneralUISettings.getInstance().setChangeValueWithMouseWheelEnabled(!cb_disableMouseWheelChangeValue.isSelected());
 
         Analytics.setProperties(Analytics.buildMap("Mouse Wheel Value Change Support", !cb_disableMouseWheelChangeValue.isSelected()));
 
-        JJazzMidiSystem.getInstance().setExternalMidiEditorPath(tf_midiEditor.getText().trim());
+        JJazzMidiSystem.getInstance().setExternalMidiEditor(new File(tf_midiEditor.getText().trim()));
 
         Locale locale = (Locale) cmb_languages.getSelectedItem();
-        if (!locale.equals(Locale.getDefault()))
+        Locale defLocale = Locale.getDefault();
+        if (!locale.equals(defLocale))
         {
             changeLanguage(locale);
         }

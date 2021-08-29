@@ -61,13 +61,13 @@ public class RpCustomEditorFactoryImpl implements RpCustomEditorFactory
         if (rp instanceof RP_SYS_DrumsMix)
         {
             var rpDrums = (RP_SYS_DrumsMix) rp;
-            var editor = new RP_SYS_DrumsMixPanel(rpDrums);
+            var editor = new RP_SYS_DrumsMixComp(rpDrums);
             res = new RealTimeRpEditorDialog(editor);
             
         } else  if (rp instanceof RP_SYS_CustomPhrase)
         {
             var rpCustomPhrase = (RP_SYS_CustomPhrase) rp;
-            var editor = new RP_SYS_CustomPhrasePanel(rpCustomPhrase);
+            var editor = new RP_SYS_CustomPhraseComp(rpCustomPhrase);
             res = new RealTimeRpEditorDialog(editor);
         }
         

@@ -22,19 +22,19 @@
  */
 package org.jjazz.rpcustomeditorfactoryimpl.spi;
 
-import javax.swing.JPanel;
+import javax.swing.JComponent;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songcontext.api.SongContext;
 
 /**
- * A JPanel to be used as a RhythmParameter value editor by the RealTimeRpEditorDialog.
+ * A JComponent to be used as a RhythmParameter value editor by the RealTimeRpEditorDialog.
  * <p>
- * The panel must fire PROP_EDITED_RP_VALUE property change events when RP value is changed by the user.
+ * The component must fire PROP_EDITED_RP_VALUE property change events when RP value is changed by the user.
  * <p>
  *
  * @param <E> The type of value of the RhythmParameter.
  */
-public abstract class RealTimeRpEditorPanel<E> extends JPanel
+public abstract class RealTimeRpEditorComponent<E> extends JComponent
 {
 
     /**
@@ -90,7 +90,7 @@ public abstract class RealTimeRpEditorPanel<E> extends JPanel
     public abstract String getTitle();
 
     /**
-     * If panel supports resizing.
+     * If component supports resizing.
      *
      * @return False by default.
      */
