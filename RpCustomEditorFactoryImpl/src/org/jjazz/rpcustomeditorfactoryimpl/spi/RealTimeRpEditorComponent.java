@@ -58,7 +58,7 @@ public abstract class RealTimeRpEditorComponent<E> extends JComponent
      * Initialize the editor for the specified context.
      *
      * @param rpValue Can not be null.
-     * @param sgContext The sgContext contains only 1 SongPart for a rhythm which uses the target RhythmParameter
+     * @param sgContext The sgContext will contain only 1 SongPart for a rhythm which uses the target RhythmParameter
      */
     public abstract void preset(E rpValue, SongContext sgContext);
 

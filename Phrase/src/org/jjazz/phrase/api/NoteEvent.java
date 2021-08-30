@@ -31,7 +31,6 @@ import javax.sound.midi.MidiEvent;
 import javax.sound.midi.ShortMessage;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.util.api.FloatRange;
 import org.openide.util.Exceptions;
 
@@ -54,7 +53,7 @@ public class NoteEvent extends Note implements Cloneable
         {
             throw new IllegalArgumentException("posInBeats=" + posInBeats);   //NOI18N
         }
-        position = posInBeats;
+        position = Note.roundForMusic(posInBeats);
     }
 
     /**
@@ -130,71 +129,6 @@ public class NoteEvent extends Note implements Cloneable
     {
         this(pitch, durationInBeats, velocity, ne.getPositionInBeats());
         setClientProperties(ne);
-    }
-
-    /**
-     * Get NoteEvents from a list of NOTE_ON/OFF Midi events.
-     * <p>
-     * NOTE_ON events without a corresponding NOTE_OFF event are ignored.
-     *
-     * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position.
-     * @param posInBeatsOffset The position in natural beats of the first tick of the track.
-     * @return
-     * @see MidiUtilities#getMidiEvents(javax.sound.midi.Track, java.util.function.Predicate, long, long)
-     */
-    static public List<NoteEvent> getNoteEvents(List<MidiEvent> midiEvents, float posInBeatsOffset)
-    {
-        List<NoteEvent> res = new ArrayList<>();
-
-
-        // Build the NoteEvents
-        MidiEvent[] lastNoteOn = new MidiEvent[128];
-        for (MidiEvent me : midiEvents)
-        {
-            long tick = me.getTick();
-            ShortMessage sm = MidiUtilities.getNoteMidiEvent(me.getMessage());
-            if (sm == null)
-            {
-                // It's not a note ON/OFF message
-                continue;
-            }
-
-
-            int pitch = sm.getData1();
-            int velocity = sm.getData2();
-
-
-            if (sm.getCommand() == ShortMessage.NOTE_ON && velocity > 0)
-            {
-                // NOTE_ON
-                lastNoteOn[pitch] = me;
-
-            } else
-            {
-                MidiEvent meOn = lastNoteOn[pitch];
-
-                // NOTE_OFF
-                if (meOn != null)
-                {
-                    // Create the NoteEvent
-                    long tickOn = meOn.getTick();
-                    ShortMessage smOn = (ShortMessage) meOn.getMessage();
-                    float duration = ((float) tick - tickOn) / MidiConst.PPQ_RESOLUTION;
-                    float posInBeats = posInBeatsOffset + ((float) tickOn / MidiConst.PPQ_RESOLUTION);
-                    NoteEvent ne = new NoteEvent(pitch, duration, smOn.getData2(), posInBeats);
-                    res.add(ne);
-
-                    // Clean the last NoteOn
-                    lastNoteOn[pitch] = null;
-                } else
-                {
-                    // A note Off without a previous note On, do nothing
-                }
-            }
-        }
-
-
-        return res;
     }
 
     /**
@@ -295,8 +229,7 @@ public class NoteEvent extends Note implements Cloneable
             return false;
         }
         NoteEvent ne = (NoteEvent) o;
-
-        return ne.position == position && super.equals(o);
+        return Float.floatToIntBits(this.position) == Float.floatToIntBits(ne.position) && super.equals(o);
     }
 
     /**
@@ -332,7 +265,8 @@ public class NoteEvent extends Note implements Cloneable
     @Override
     public String toString()
     {
-        return String.format("[%s, p=%.3f, d=%.3f, v=%d]", toAbsoluteNoteString(), position, getDurationInBeats(), getVelocity());
+        // return String.format("[%s, p=%.3f, d=%.3f, v=%d]", toAbsoluteNoteString(), position, getDurationInBeats(), getVelocity());
+        return String.format("[%s, p=%f, d=%f, v=%d]", toAbsoluteNoteString(), position, getDurationInBeats(), getVelocity());
     }
 
     /**
@@ -374,7 +308,7 @@ public class NoteEvent extends Note implements Cloneable
             } catch (IllegalArgumentException ex)
             {
                 // Nothing
-                LOGGER.warning("loadAsString() Invalid string s=" + s);
+                LOGGER.warning("loadAsString() Invalid string s=" + s + ", ex="+ex.getMessage());
             }
         }
 

@@ -121,7 +121,7 @@ public class LongRange
     }
 
     /**
-     * Get a new range with bounds modified.
+     * Get a new range with bounds modified by adding fromOffset and toOffset.
      * <p>
      * If this object is the the empty range, just return the empty range.
      *
@@ -140,6 +140,25 @@ public class LongRange
         }
     }
 
+    /**
+     * Get a new range with bounds modified by adding offset.
+     * <p>
+     * If this object is the the empty range, just return the empty range.
+     *
+     * @param offset
+     *
+     * @return
+     */
+    public LongRange getTransformed(long offset)
+    {
+        if (isEmpty())
+        {
+            return this;
+        } else
+        {
+            return new LongRange(from + offset, to + offset);
+        }
+    }
 
     @Override
     public String toString()

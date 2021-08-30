@@ -84,16 +84,32 @@ public class RP_SYS_CustomPhraseValue
         return res;
     }
 
+    /**
+     * Get the Rhythm which uses this RhythmParameter instance.
+     *
+     * @return
+     */
     public Rhythm getRhythm()
     {
         return rhythm;
     }
 
+    /**
+     * Get the custom phrase for the specified RhythmVoice.
+     *
+     * @param rv
+     * @return Can be null
+     */
     public Phrase getPhrase(RhythmVoice rv)
     {
         return mapRvPhrase.get(rv);
     }
 
+    /**
+     * Get the RhythmVoices for which there is a custom phrase.
+     *
+     * @return Empty if no custom phrase.
+     */
     public Set<RhythmVoice> getRhythmVoices()
     {
         return mapRvPhrase.keySet();

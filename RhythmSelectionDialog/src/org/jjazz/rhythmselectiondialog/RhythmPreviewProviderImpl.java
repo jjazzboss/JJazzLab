@@ -275,8 +275,7 @@ public class RhythmPreviewProviderImpl implements RhythmSelectionDialog.RhythmPr
     {
         // Get a copy
         var sf = SongFactory.getInstance();
-        Song newSong = sf.getCopy(song);
-        sf.unregisterSong(newSong);
+        Song newSong = sf.getCopy(song, false);
 
         SongStructure newSs = newSong.getSongStructure();
         ChordLeadSheet newCls = newSong.getChordLeadSheet();

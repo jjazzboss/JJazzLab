@@ -185,7 +185,7 @@ public class ExportToMidiFile extends AbstractAction
 
         // Work on a copy
         SongFactory sf = SongFactory.getInstance();
-        Song songCopy = sf.getCopy(song);
+        Song songCopy = sf.getCopy(song, false);
 
 
         // Build the sequence
@@ -194,7 +194,7 @@ public class ExportToMidiFile extends AbstractAction
         SongSequenceBuilder.SongSequence songSequence = null;
         try
         {
-            songSequence = seqBuilder.buildAll(false);
+            songSequence = seqBuilder.buildExportableSequence(false);
         } catch (MusicGenerationException ex)
         {
             LOGGER.warning("actionPerformed() ex=" + ex.getMessage());   //NOI18N
@@ -235,7 +235,7 @@ public class ExportToMidiFile extends AbstractAction
         }
 
 
-        // Remove elements from muted tracks (don't remove the muted tracks because it would impact mapRvTrack + drumsrerouting)
+        // Remove elements from muted tracks (don't remove the muted tracks because it would impact mapRvTrack)
         for (RhythmVoice rv : midiMix.getRhythmVoices())
         {
             if (midiMix.getInstrumentMixFromKey(rv).isMute())
@@ -247,21 +247,15 @@ public class ExportToMidiFile extends AbstractAction
 
 
         // Add click & precount tracks if required
-        PlaybackSettings cm = PlaybackSettings.getInstance();
-        long songStartTick = cm.isClickPrecountEnabled() ? cm.addPrecountClickTrack(sequence, sgContext) : 0;
-        if (cm.isPlaybackClickEnabled())
+        PlaybackSettings ps = PlaybackSettings.getInstance();
+        if (ps.isPlaybackClickEnabled())
         {
-            cm.addClickTrack(sequence, sgContext);
+            ps.addClickTrack(sequence, sgContext);
+        }        
+        if (ps.isClickPrecountEnabled())
+        {
+            ps.addPrecountClickTrack(sequence, sgContext);      // Must be done last, shift all events
         }
-
-
-        // Apply Drums channel rerouting        
-        List<Integer> toBeRerouted = midiMix.getDrumsReroutedChannels();
-        MidiUtilities.rerouteShortMessages(sequence, toBeRerouted, MidiConst.CHANNEL_DRUMS);
-
-
-        // Prepare sequence to make Midi file as portable as possible
-        prepareForMidiFile(sequence, songStartTick, mapRvTrackId, midiMix);
 
 
         // Dump sequence in debug mode
@@ -476,6 +470,5 @@ public class ExportToMidiFile extends AbstractAction
 
     }
 
-   
 
 }

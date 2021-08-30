@@ -150,6 +150,19 @@ public class FloatRange
         return new FloatRange(from + fromOffset, to + toOffset);
     }
 
+    /**
+     * Get a new range with bounds modified by adding offset.
+     * <p>
+     * Modifying the empty range returns the empty range.
+     *
+     * @param offset
+     * @return
+     */
+    public FloatRange getTransformed(float offset)
+    {
+        return getTransformed(offset, offset);
+    }
+
 
     @Override
     public String toString()

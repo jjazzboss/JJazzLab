@@ -310,13 +310,14 @@ public class SongFactory implements PropertyChangeListener
      * Listeners or file are NOT copied. Created song is registered.
      *
      * @param song
+     * @param register If true register the created song
      * @return
      */
     @SuppressWarnings(
             {
                 "unchecked"
             })
-    public Song getCopy(Song song)
+    public Song getCopy(Song song, boolean register)
     {
         if (song == null)
         {
@@ -370,7 +371,10 @@ public class SongFactory implements PropertyChangeListener
 
 
         s.resetNeedSave();
-        registerSong(s);
+        if (register)
+        {
+            registerSong(s);
+        }
         return s;
     }
 
@@ -383,13 +387,14 @@ public class SongFactory implements PropertyChangeListener
      * Created song is registered.
      *
      * @param song
+     * @param register If true register the created song.
      * @return
      */
     @SuppressWarnings(
             {
                 "unchecked"
             })
-    public Song getCopyUnlinked(Song song)
+    public Song getCopyUnlinked(Song song, boolean register)
     {
         if (song == null)
         {
@@ -428,7 +433,10 @@ public class SongFactory implements PropertyChangeListener
         s.setTags(song.getTags());
 
         s.resetNeedSave();
-        registerSong(s);
+        if (register)
+        {
+            registerSong(s);
+        }
         return s;
     }
 
@@ -438,9 +446,10 @@ public class SongFactory implements PropertyChangeListener
      * Return song where each SongPart corresponds to one Section in a linear order. Created song is registered.
      *
      * @param song
+     * @param register If true register the created song
      * @return
      */
-    public Song getDeveloppedLeadSheet(Song song)
+    public Song getDeveloppedLeadSheet(Song song, boolean register)
     {
         if (song == null)
         {
@@ -453,7 +462,7 @@ public class SongFactory implements PropertyChangeListener
         if (ss.getSongParts().isEmpty())
         {
             // Special case
-            return getCopy(song);
+            return getCopy(song, register);
         }
 
 
@@ -545,8 +554,10 @@ public class SongFactory implements PropertyChangeListener
             Exceptions.printStackTrace(ex);
         }
 
-
-        registerSong(resSong);
+        if (register)
+        {
+            registerSong(resSong);
+        }
         return resSong;
     }
 
@@ -557,10 +568,11 @@ public class SongFactory implements PropertyChangeListener
      * Created song is registered.
      *
      * @param song
+     * @param register If true register the created song
      * @return
      * @see ChordLeadSheetFactory#getSimplified(ChordLeadSheet)
      */
-    public Song getSimplifiedLeadSheet(Song song)
+    public Song getSimplifiedLeadSheet(Song song, boolean register)
     {
         if (song == null)
         {
@@ -568,7 +580,7 @@ public class SongFactory implements PropertyChangeListener
         }
 
         // Create a full copy to preserve links between SongParts and Sections
-        Song resSong = getCopy(song);
+        Song resSong = getCopy(song, register);
         ChordLeadSheet resCls = resSong.getChordLeadSheet();
 
 
@@ -588,11 +600,12 @@ public class SongFactory implements PropertyChangeListener
             resCls.addItem(item);
         }
 
-
         simplifiedCls.cleanup();
-
-        registerSong(resSong);
-
+        if (register)
+        {
+            registerSong(resSong);
+        }
+        
         return resSong;
     }
 

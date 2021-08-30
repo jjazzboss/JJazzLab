@@ -141,6 +141,10 @@ public class IntRange
         }
     }
 
+    public IntRange getTransformed(int offset)
+    {
+        return getTransformed(offset, offset);
+    }
 
     @Override
     public String toString()

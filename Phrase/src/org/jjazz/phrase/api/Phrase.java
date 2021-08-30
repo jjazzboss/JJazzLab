@@ -34,6 +34,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
+import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.Note;
@@ -100,7 +101,64 @@ public class Phrase extends LinkedList<NoteEvent>
             addOrdered(mne.clone());
         }
     }
-      
+
+    /**
+     * Add NoteEvents from a list of NOTE_ON/OFF Midi events.
+     * <p>
+     * NOTE_ON events without a corresponding NOTE_OFF event are ignored.
+     *
+     * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position.
+     * @param posInBeatsOffset The position in natural beats of the first tick of the track.
+     * @see MidiUtilities#getMidiEvents(javax.sound.midi.Track, java.util.function.Predicate, LongRange)
+     */
+    public void add(List<MidiEvent> midiEvents, float posInBeatsOffset)
+    {
+
+        // Build the NoteEvents
+        MidiEvent[] lastNoteOn = new MidiEvent[128];
+        for (MidiEvent me : midiEvents)
+        {
+            long tick = me.getTick();
+            ShortMessage sm = MidiUtilities.getNoteMidiEvent(me.getMessage());
+            if (sm == null)
+            {
+                // It's not a note ON/OFF message
+                continue;
+            }
+
+            int pitch = sm.getData1();
+            int velocity = sm.getData2();
+
+            if (sm.getCommand() == ShortMessage.NOTE_ON && velocity > 0)
+            {
+                // NOTE_ON
+                lastNoteOn[pitch] = me;
+
+            } else
+            {
+                MidiEvent meOn = lastNoteOn[pitch];
+
+                // NOTE_OFF
+                if (meOn != null)
+                {
+                    // Create the NoteEvent
+                    long tickOn = meOn.getTick();
+                    ShortMessage smOn = (ShortMessage) meOn.getMessage();
+                    float duration = ((float) tick - tickOn) / MidiConst.PPQ_RESOLUTION;
+                    float posInBeats = posInBeatsOffset + ((float) tickOn / MidiConst.PPQ_RESOLUTION);
+                    NoteEvent ne = new NoteEvent(pitch, duration, smOn.getData2(), posInBeats);
+                    addOrdered(ne);
+
+                    // Clean the last NoteOn
+                    lastNoteOn[pitch] = null;
+                } else
+                {
+                    // A note Off without a previous note On, do nothing
+                }
+            }
+        }
+    }
+
     /**
      * Add a NoteEvent at the correct index depending on its position.
      * <p>
@@ -439,21 +497,20 @@ public class Phrase extends LinkedList<NoteEvent>
     }
 
     /**
-     * Remove all events whose start position is equal/after startPos or before endPos.
+     * Remove all events whose start position is equal/after range.from or before range.to.
      * <p>
-     * If a note is starting before startPos and ending after startPos: <br>
+     * If a note is starting before range.from and ending after startPos: <br>
      * - if cutLeft is false, the note is not removed.<br>
-     * - if cutLeft is true, the note is replaced by a shorter identical that ends at startPos.<br>
-     * If a note is starting before endPos and ending after endPos: <br>
+     * - if cutLeft is true, the note is replaced by a shorter identical that ends at range.from.<br>
+     * If a note is starting before range.to and ending after range.to: <br>
      * - if keepRight is false, the note is removed.<br>
-     * - if keepRight is true, the note is replaced by a shorter identical one starting at endPos.<br>
+     * - if keepRight is true, the note is replaced by a shorter identical one starting at range.to.<br>
      *
-     * @param startPos
-     * @param endPos
+     * @param range
      * @param cutLeft
      * @param keepRight
      */
-    public void split(float startPos, float endPos, boolean cutLeft, boolean keepRight)
+    public void split(FloatRange range, boolean cutLeft, boolean keepRight)
     {
         ArrayList<NoteEvent> toBeAdded = new ArrayList<>();
 
@@ -463,27 +520,27 @@ public class Phrase extends LinkedList<NoteEvent>
             NoteEvent ne = it.next();
             float nePosFrom = ne.getPositionInBeats();
             float nePosTo = nePosFrom + ne.getDurationInBeats();
-            if (nePosFrom < startPos)
+            if (nePosFrom < range.from)
             {
-                if (cutLeft && nePosTo > startPos)
+                if (cutLeft && nePosTo > range.from)
                 {
-                    if (keepRight && nePosTo > endPos)
+                    if (keepRight && nePosTo > range.from)
                     {
-                        float newDur = nePosTo - endPos;
-                        NoteEvent newNe = new NoteEvent(ne, newDur, endPos);
+                        float newDur = nePosTo - range.to;
+                        NoteEvent newNe = new NoteEvent(ne, newDur, range.to);
                         toBeAdded.add(newNe);
                     }
-                    float newDur = startPos - nePosFrom;
+                    float newDur = range.from - nePosFrom;
                     NoteEvent newNe = new NoteEvent(ne, newDur, nePosFrom);
                     it.set(newNe);
                 }
-            } else if (nePosFrom < endPos)
+            } else if (nePosFrom < range.to)
             {
                 it.remove();
-                if (keepRight && nePosTo > endPos)
+                if (keepRight && nePosTo > range.to)
                 {
-                    float newDur = nePosTo - endPos;
-                    NoteEvent newNe = new NoteEvent(ne, newDur, endPos);
+                    float newDur = nePosTo - range.to;
+                    NoteEvent newNe = new NoteEvent(ne, newDur, range.to);
                     toBeAdded.add(newNe);
                 }
             } else
@@ -797,7 +854,7 @@ public class Phrase extends LinkedList<NoteEvent>
             } catch (IllegalArgumentException ex)
             {
                 // Nothing
-                LOGGER.warning("loadAsString() Invalid string s=" + s);
+                LOGGER.warning("loadAsString() Invalid string s=" + s+", ex="+ex.getMessage());
             }
 
         }
@@ -858,8 +915,8 @@ public class Phrase extends LinkedList<NoteEvent>
 
         return p;
     }
-    
-     /**
+
+    /**
      * Get a basic drums phrase.
      *
      * @param startPosInBeats
@@ -914,5 +971,5 @@ public class Phrase extends LinkedList<NoteEvent>
         return p;
     }
 
- 
+
 }

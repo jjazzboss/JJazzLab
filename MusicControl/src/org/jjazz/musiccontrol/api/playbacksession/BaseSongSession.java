@@ -577,8 +577,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
         SongFactory sf = SongFactory.getInstance();
         CLI_Factory clif = CLI_Factory.getDefault();
-        Song songCopy = sf.getCopy(context.getSong());
-        sf.unregisterSong(songCopy);
+        Song songCopy = sf.getCopy(context.getSong(), false);
 
         ChordLeadSheet clsCopy = songCopy.getChordLeadSheet();
         if (chordSymbolTransposition != 0)

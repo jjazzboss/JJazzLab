@@ -135,7 +135,11 @@ public class Note implements Comparable<Note>, Cloneable
             throw new IllegalArgumentException("p=" + p + " bd=" + bd + " alt=" + alt + " v=" + v);   //NOI18N
         }
         pitch = p;
-        beatDuration = bd;
+        beatDuration = roundForMusic(bd);
+        if (beatDuration == 0)
+        {
+            beatDuration = 0.01f;   // Must be consistent with roundMusic()
+        }
         symbolicDuration = SymbolicDuration.getSymbolicDuration(beatDuration);;
         alterationDisplay = alt;
         velocity = v;
@@ -760,7 +764,7 @@ public class Note implements Comparable<Note>, Cloneable
      * @throws IllegalArgumentException If s is not valid
      * @see saveAsString(Note)
      */
-    public static Note loadAsString(String s) throws IllegalArgumentException
+    static public Note loadAsString(String s) throws IllegalArgumentException
     {
         checkNotNull(s);
         Note n = null;
@@ -777,7 +781,7 @@ public class Note implements Comparable<Note>, Cloneable
             } catch (IllegalArgumentException ex)
             {
                 // nothing
-                LOGGER.warning("loadAsString() Invalid string s="+s);
+                LOGGER.warning("loadAsString() Invalid string s=" + s + ", ex=" + ex.getMessage());
             }
         }
 
@@ -798,7 +802,7 @@ public class Note implements Comparable<Note>, Cloneable
      * @return
      * @see loadAsString(String)
      */
-    public static String saveAsString(Note n)
+    static public String saveAsString(Note n)
     {
         checkNotNull(n);
         return n.pitch + "," + n.alterationDisplay + "," + n.velocity + "," + n.beatDuration;
@@ -814,7 +818,7 @@ public class Note implements Comparable<Note>, Cloneable
      * @param absPitch Can be negative or positive, provided that -1 means 11(=B), -2 means 10(=Bb) etc.
      * @return
      */
-    public static int getNormalizedRelPitch(int absPitch)
+    static public int getNormalizedRelPitch(int absPitch)
     {
         int relPitch;
 
@@ -834,7 +838,7 @@ public class Note implements Comparable<Note>, Cloneable
      * @param pitch
      * @return
      */
-    public static boolean isWhiteKey(int pitch)
+    static public boolean isWhiteKey(int pitch)
     {
         pitch = pitch % 12;
         if ((pitch == 1) || (pitch == 3) || (pitch == 6) || (pitch == 8) || (pitch == 10))
@@ -882,7 +886,7 @@ public class Note implements Comparable<Note>, Cloneable
      *
      * @return An array of Note objects.
      */
-    public static Note[] getChromaticNotesArray(int pitchFrom, int pitchTo)
+    static public Note[] getChromaticNotesArray(int pitchFrom, int pitchTo)
     {
         if ((pitchFrom > pitchTo) || (pitchFrom < 0) || (pitchTo < 0))
         {
@@ -899,7 +903,25 @@ public class Note implements Comparable<Note>, Cloneable
         return notes;
     }
 
+    /**
+     * Round a float value to avoid musically meaningless differences when doing conversions (eg from/to tick positions).
+     * <p>
+     * This facilitates e.g. NoteEvent or Phrase.equals() even when there are minimal differences of duration or position, like in
+     * RP_SYS_CustomPhraseComp.java.
+     *
+     * @param oldValue
+     * @return
+     */
+    static public float roundForMusic(float oldValue)
+    {
+        float newValue = 100f * oldValue;
+        newValue = Math.round(newValue);
+        newValue = newValue / 100f;
+        return newValue;
+    }
+
     //----------------------------------------------------------------------------------------------
     // Private methods
     //----------------------------------------------------------------------------------------------
+
 }

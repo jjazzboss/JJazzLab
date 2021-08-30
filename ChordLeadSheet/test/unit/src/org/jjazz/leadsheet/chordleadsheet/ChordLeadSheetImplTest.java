@@ -24,7 +24,6 @@ package org.jjazz.leadsheet.chordleadsheet;
 
 import java.text.ParseException;
 import java.util.List;
-import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;

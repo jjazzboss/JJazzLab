@@ -281,9 +281,9 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private SongContext buildPreviewContext(E rpValue)
     {
         // Get a song copy which uses the edited RP value
-        Song song = SongFactory.getInstance().getCopy(songContextOriginal.getSong());
-        SongStructure ss = song.getSongStructure();
-        ChordLeadSheet cls = song.getChordLeadSheet();
+        Song songCopy = SongFactory.getInstance().getCopy(songContextOriginal.getSong(), false);
+        SongStructure ss = songCopy.getSongStructure();
+        ChordLeadSheet cls = songCopy.getChordLeadSheet();
         SongPart spt = ss.getSongPart(songContextOriginal.getBarRange().from);
 
 
@@ -308,7 +308,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
 
         // Create the new context
-        SongContext res = new SongContext(song, songContextOriginal.getMidiMix(), spt.getBarRange());
+        SongContext res = new SongContext(songCopy, songContextOriginal.getMidiMix(), spt.getBarRange());
         return res;
     }
 

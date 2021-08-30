@@ -490,7 +490,12 @@ public class PlaybackSettings
      * Except for the cases below, all existing sequence MidiEvents are shifted 1 or 2 bars later in order to leave room for the
      * precount bars.
      * <p>
-     * Not moved Meta events: Track name and Time signature.
+     * The following initial events (at tick 0) are not moved:<br>
+     * - Meta track name<br>
+     * - Meta time signature<br>
+     * - Meta tempo<br>
+     * - All Controller events <p>
+     * 
      *
      * @param sequence The sequence for which we add the precount click track.
      * @param context
@@ -513,17 +518,30 @@ public class PlaybackSettings
             for (int i = track.size() - 1; i >= 0; i--)
             {
                 MidiEvent me = track.get(i);
+                long tick = me.getTick();
                 MidiMessage mm = me.getMessage();
-                if (mm instanceof MetaMessage)
+                if (tick == 0)
                 {
-                    int type = ((MetaMessage) mm).getType();
-                    // Track name=3, time signature=88                    
-                    if (type == 3 || type == 88)
+                    // Special handling for initial events
+                    if (mm instanceof MetaMessage)
                     {
-                        continue;
+                        int type = ((MetaMessage) mm).getType();
+                        if (type == MidiConst.META_TRACKNAME
+                                || type == MidiConst.META_TIME_SIGNATURE
+                                || type == MidiConst.META_TEMPO)
+                        {
+                            continue;
+                        }
+                    } else if (mm instanceof ShortMessage)
+                    {
+                        ShortMessage sm = (ShortMessage) mm;
+                        if (sm.getCommand() == ShortMessage.CONTROL_CHANGE)
+                        {
+                            continue;
+                        }
                     }
                 }
-                me.setTick(me.getTick() + songStartTick);
+                me.setTick(tick + songStartTick);
             }
         }
 

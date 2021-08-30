@@ -166,15 +166,13 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
         if (cb_simplifyLeadSheet.isSelected())
         {
-            res = sf.getSimplifiedLeadSheet(refSong);
-            sf.unregisterSong(res);
+            res = sf.getSimplifiedLeadSheet(refSong, false);
         }
 
 
         if (cb_developLeadSheet.isSelected())
         {
-            res = sf.getDeveloppedLeadSheet(res);
-            sf.unregisterSong(res);
+            res = sf.getDeveloppedLeadSheet(res, false);
         }
 
 

@@ -35,7 +35,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
+import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Sequence;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.SysexMessage;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -49,9 +52,13 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.outputsynth.api.OutputSynth;
+import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMix;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMixValue;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
@@ -59,6 +66,7 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.ResUtil;
 
@@ -147,7 +155,8 @@ public class SongSequenceBuilder
      * - Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation.
      * <br>
      * - Apply on each channel possible instrument transpositions, velocity shift, mute (RP_SYS_Mute).<br>
-     * - Apply the RP_SYS_DrumsMix velocity changes.<br>
+     * - Apply the RP_SYS_DrumsMix velocity changes<br>
+     * - Apply the RP_SYS_CustomPhrase changes<br>
      * - Apply drums rerouting if needed <br>
      * <p>
      * Phrases for RhythmVoiceDelegates are merged into the phrases of the source RhythmVoices.
@@ -210,6 +219,165 @@ public class SongSequenceBuilder
         return task.songSequence;
     }
 
+    /**
+     * Create a sequence (for the current SongContext) ready to be exported and read by an external sequencer.
+     * <p>
+     * Get rid of all JJazzLab-only MidiEvents or add some initialization events:<br>
+     * - add copyright message<br>
+     * - remove JJazzLab-specific tempo factor and beat <br>
+     * - add tempo events<br>
+     * - add GM/GS/XG/GM2 reset messages depending of the current OutputSynth configuration<br>
+     * - add reset controllers for each RhythmVoice track<br>
+     * - add bank/program and volume/effects events for each RhythmVoice track<br>
+     * - add a marker for each chord symbol<br>
+     *
+     *
+     * @param silent
+     * @return
+     * @throws org.jjazz.rhythm.api.MusicGenerationException
+     */
+    public SongSequence buildExportableSequence(boolean silent) throws MusicGenerationException
+    {
+
+        var songSequence = buildAll(silent);     // throws MusicGenerationException
+
+
+        Sequence sequence = songSequence.sequence;
+        MidiMix midiMix = songContext.getMidiMix();
+        Track[] tracks = sequence.getTracks();
+        Track track0 = tracks[0];
+
+
+        // Copyright
+        MidiMessage mmCopyright = MidiUtilities.getCopyrightMetaMessage("JJazzLab Midi Export file");
+        MidiEvent me = new MidiEvent(mmCopyright, 0);
+        track0.add(me);
+
+
+        // Clean track0 from JJazzLab internal Midi events
+        int i = 0;
+        while (i < track0.size())
+        {
+            me = track0.get(i);
+            MidiMessage mm = me.getMessage();
+            if (mm instanceof ShortMessage)
+            {
+                ShortMessage sm = (ShortMessage) mm;
+                if (sm.getCommand() == ShortMessage.CONTROL_CHANGE && sm.getData1() == MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR)
+                {
+                    track0.remove(me);
+                    i--;
+                }
+            }
+            i++;
+        }
+
+
+        // Add markers at each chord symbol position
+        SongStructure ss = songContext.getSong().getSongStructure();
+        for (SongPart spt : songContext.getSongParts())
+        {
+            CLI_Section section = spt.getParentSection();
+            for (CLI_ChordSymbol cliCs : songContext.getSong().getChordLeadSheet().getItems(section, CLI_ChordSymbol.class))
+            {
+
+                Position absPos = ss.getSptItemPosition(spt, cliCs);
+                long tickPos = songContext.getRelativeTick(absPos);
+                me = new MidiEvent(MidiUtilities.getMarkerMetaMessage(cliCs.getData().getName()), tickPos);
+                track0.add(me);
+            }
+        }
+
+
+        // Add initial tempo event
+        int tempo = songContext.getSong().getTempo();
+        SongPart spt0 = songContext.getSongParts().get(0);
+        RP_SYS_TempoFactor rp = RP_SYS_TempoFactor.getTempoFactorRp(spt0.getRhythm());
+        int tempoFactor = -1;
+        if (rp != null)
+        {
+            tempoFactor = spt0.getRPValue(rp);
+            tempo = Math.round(tempoFactor / 100f * tempo);
+        }
+        me = new MidiEvent(MidiUtilities.getTempoMessage(0, tempo), 0);
+        track0.add(me);
+
+
+        // Add additional song part tempo changes
+        int lastTempoFactor = tempoFactor;
+        var spts = songContext.getSongParts();
+        for (i = 1; i < spts.size(); i++)
+        {
+            SongPart spt = spts.get(i);
+            rp = RP_SYS_TempoFactor.getTempoFactorRp(spt.getRhythm());
+            if (rp != null)
+            {
+                tempoFactor = spt.getRPValue(rp);
+                if (tempoFactor != lastTempoFactor)
+                {
+                    tempo = Math.round(tempoFactor / 100f * songContext.getSong().getTempo());
+                    float beatPos = songContext.getSptBeatRange(spt).from - songContext.getBeatRange().from;
+                    long tickPos = Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
+                    me = new MidiEvent(MidiUtilities.getTempoMessage(0, tempo), tickPos);
+                    track0.add(me);
+                    lastTempoFactor = tempoFactor;
+                }
+            }
+        }
+
+
+        // Add XX mode ON initialization message
+        OutputSynth os = OutputSynthManager.getInstance().getOutputSynth();
+        SysexMessage sxm = null;
+        switch (os.getSendModeOnUponPlay())
+        {
+            case GM:
+                sxm = MidiUtilities.getGmModeOnSysExMessage();
+                break;
+            case GM2:
+                sxm = MidiUtilities.getGm2ModeOnSysExMessage();
+                break;
+            case GS:
+                sxm = MidiUtilities.getGsModeOnSysExMessage();
+                break;
+            case XG:
+                sxm = MidiUtilities.getXgModeOnSysExMessage();
+                break;
+            default:
+            // Nothing
+        }
+        if (sxm != null)
+        {
+            me = new MidiEvent(sxm, 0);
+            track0.add(me);
+        }
+
+
+        // For each RhythmVoice :
+        // - reset all controllers
+        // - add instruments initialization messages for each track
+        for (RhythmVoice rv : songSequence.mapRvTrackId.keySet())
+        {
+            Track track = tracks[songSequence.mapRvTrackId.get(rv)];
+            int channel = songContext.getMidiMix().getChannel(rv);
+
+            // Reset all controllers
+            MidiMessage mmReset = MidiUtilities.getResetAllControllersMessage(channel);
+            me = new MidiEvent(mmReset, 0);
+            track.add(me);
+
+            // Instrument + volume + pan etc.
+            InstrumentMix insMix = midiMix.getInstrumentMixFromKey(rv);
+            for (MidiMessage mm : insMix.getAllMidiMessages(channel))
+            {
+                me = new MidiEvent(mm, 0);
+                track.add(me);
+            }
+        }
+
+        return songSequence;
+    }
+
 
     public SongContext getSongContext()
     {
@@ -262,6 +430,9 @@ public class SongSequenceBuilder
         // Handle the RP_SYS_DrumsMix changes
         processDrumsMixSettings(songContext, res);
 
+
+        // Handle the RP_SYS_CustomPhrase changes
+        processCustomPhrases(songContext, res);
 
         // Merge the phrases from delegate RhythmVoices to the source phrase, and remove the delegate phrases            
         for (var it = res.keySet().iterator(); it.hasNext();)
@@ -465,7 +636,7 @@ public class SongSequenceBuilder
                     LOGGER.warning("muteNotes() Unexpected null phase. rv=" + rv + " rvPhrases=" + rvPhrases);   //NOI18N
                     continue;
                 }
-                p.split(sptRange.from, sptRange.to, true, false);
+                p.split(sptRange, true, false);
             }
         }
     }
@@ -473,6 +644,8 @@ public class SongSequenceBuilder
     /**
      * Change some note velocities depending on the RP_SYS_DrumsMix value for each SongPart.
      *
+     * @param context
+     * @param context
      * @param rvPhrases
      */
     private void processDrumsMixSettings(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
@@ -521,6 +694,50 @@ public class SongSequenceBuilder
                         p.set(p.indexOf(ne), newNote);
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Replace phrases bu custom phrases depending on the RP_SYS_CustomPhrase value.
+     *
+     * @param context
+     * @param rvPhrases
+     */
+    private void processCustomPhrases(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
+    {
+        for (SongPart spt : context.getSongParts())
+        {
+            FloatRange sptBeatRange = context.getSptBeatRange(spt);
+            
+            // Get the RhythmParameter
+            Rhythm r = spt.getRhythm();
+            RP_SYS_CustomPhrase rpCustomPhrase = RP_SYS_CustomPhrase.getCustomPhraseRp(r);
+            if (rpCustomPhrase == null)
+            {
+                continue;
+            }
+
+
+            // Get the RP value and process each customized phrase
+            RP_SYS_CustomPhraseValue rpValue = spt.getRPValue(rpCustomPhrase);
+            for (RhythmVoice rv : rpValue.getRhythmVoices())
+            {
+                // Remove a slice for the current songpart            
+                Phrase p = rvPhrases.get(rv);
+                p.split(sptBeatRange, true, false);
+                                
+                // Get the custom phrase, starts at beat 0
+                Phrase pCustom = rpValue.getPhrase(rv); 
+                
+                // Make sure it's not too long (if song has changed after the customization)
+                pCustom.silenceAfter(sptBeatRange.size());
+                
+                // Shift to fit the current song part position
+                pCustom.shiftEvents(sptBeatRange.from);
+                
+                // Update the current phrase
+                p.add(pCustom);
             }
         }
     }

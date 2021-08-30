@@ -31,6 +31,7 @@ import javax.sound.midi.*;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiAddress.BankSelectMethod;
+import org.jjazz.util.api.LongRange;
 import org.jjazz.util.api.Utilities;
 import org.openide.util.Exceptions;
 
@@ -62,20 +63,19 @@ public class MidiUtilities
      *
      * @param track
      * @param tester
-     * @param tickMin
-     * @param tickMax
+     * @param tickRange
      * @return
      */
-    static public List<MidiEvent> getMidiEvents(Track track, Predicate<MidiEvent> tester, long tickMin, long tickMax)
+    static public List<MidiEvent> getMidiEvents(Track track, Predicate<MidiEvent> tester, LongRange tickRange)
     {
         var res = new ArrayList<MidiEvent>();
         for (int i = 0; i < track.size(); i++)
         {
             MidiEvent me = track.get(i);
-            if (me.getTick() < tickMin)
+            if (me.getTick() < tickRange.from)
             {
                 continue;
-            } else if (me.getTick() > tickMax)
+            } else if (me.getTick() > tickRange.to)
             {
                 break;
             }
@@ -91,38 +91,15 @@ public class MidiUtilities
      * Get track MidiEvents whose MidiMessage is instance of msgClass, whose tick position is within range [tickMin;tickMax] and
      * which satisfy the specified tester.
      *
-     * @param <T>
      * @param track
      * @param msgClass MidiMessage class
      * @param tester
-     * @param tickMin
-     * @param tickMax
+     * @param tickRange
      * @return
      */
-    static public <T> List<MidiEvent> getMidiEvents(Track track, Class<T> msgClass, Predicate<T> tester, long tickMin, long tickMax)
+    static public List<MidiEvent> getMidiEvents(Track track, Class<? extends MidiMessage> msgClass, Predicate<MidiEvent> tester, LongRange tickRange)
     {
-        var res = new ArrayList<MidiEvent>();
-        for (int i = 0; i < track.size(); i++)
-        {
-            MidiEvent me = track.get(i);
-            if (me.getTick() < tickMin)
-            {
-                continue;
-            } else if (me.getTick() > tickMax)
-            {
-                break;
-            }
-            MidiMessage mm = me.getMessage();
-            if (msgClass.isInstance(mm))
-            {
-                T typedMsg = msgClass.cast(mm);
-                if (tester.test(typedMsg))
-                {
-                    res.add(me);
-                }
-            }
-        }
-        return res;
+        return getMidiEvents(track, tester.and(me -> msgClass.isInstance(me.getMessage())), tickRange);
     }
 
     /**
