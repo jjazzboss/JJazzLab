@@ -66,7 +66,7 @@ public class PhraseBirdView extends JPanel
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g);
-        if (phrase == null || !isEnabled())
+        if (phrase == null)
         {
             return;
         }
@@ -82,6 +82,10 @@ public class PhraseBirdView extends JPanel
         double xRatio = r.width / beatRange.size();
         IntRange pitchRange = getViewablePitchRange(MID_RANGE, OUT_OF_RANGE_PITCH_RATIO);
         double yRatio = (double) r.height / pitchRange.size();
+
+
+        Color c = isEnabled() ? getForeground() : getBackground().brighter();
+        g2.setColor(c);
 
 
         // Draw a line segment for each note
@@ -104,8 +108,7 @@ public class PhraseBirdView extends JPanel
         {
             float barWidth = (float) r.width / nbBars;
             double x = r.x + i * barWidth - 0.5d;
-            Color c = getForeground().darker();
-            g2.setColor(c);
+            g2.setColor(isEnabled() ? getForeground().darker() : c);
             var line = new Line2D.Double(x, r.y, x, r.y + BAR_GRADATION_LENGTH - 1);
             g2.draw(line);
             line = new Line2D.Double(x, yMax, x, yMax - BAR_GRADATION_LENGTH + 1);
@@ -119,13 +122,12 @@ public class PhraseBirdView extends JPanel
     {
         return phrase;
     }
-    
-    
+
 
     @Override
     public Dimension getPreferredSize()
     {
-        return new Dimension(500,50);
+        return new Dimension(500, 50);
 //        int sizeInBars = phrase != null ? getSizeInBars() : 2;
 //        int w = (int) (PREF_BAR_WIDTH * (0.7f + 0.4f * sizeInBars));
 //        int h = PREF_HEIGHT;

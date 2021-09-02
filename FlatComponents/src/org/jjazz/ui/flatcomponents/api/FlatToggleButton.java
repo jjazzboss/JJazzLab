@@ -125,7 +125,7 @@ public class FlatToggleButton extends FlatButton
      */
     public void doClick()
     {
-        buttonClicked(null);
+        buttonClicked(new MouseEvent(this, MouseEvent.MOUSE_PRESSED, 0, 0, 0, 0, 0, false));
     }
 
     /**

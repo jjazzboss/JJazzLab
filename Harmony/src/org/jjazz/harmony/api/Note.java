@@ -769,7 +769,7 @@ public class Note implements Comparable<Note>, Cloneable
         checkNotNull(s);
         Note n = null;
         String strs[] = s.split(",");
-        if (strs.length == 5)
+        if (strs.length == 4)
         {
             try
             {

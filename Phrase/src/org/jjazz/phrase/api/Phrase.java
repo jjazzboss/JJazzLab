@@ -841,7 +841,7 @@ public class Phrase extends LinkedList<NoteEvent>
         Phrase p = null;
         if (s.length() >= 4 && s.charAt(0) == '[' && s.charAt(s.length() - 1) == ']')    // minimum string is e.g. [2|]
         {
-            String[] strs = s.substring(1, s.length() - 1).split("|");
+            String[] strs = s.substring(1, s.length() - 1).split("\\|");
             try
             {
                 int channel = Integer.parseInt(strs[0]);

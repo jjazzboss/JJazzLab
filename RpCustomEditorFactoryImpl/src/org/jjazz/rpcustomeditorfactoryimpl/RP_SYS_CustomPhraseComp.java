@@ -23,6 +23,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JLayer;
 import javax.swing.JList;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.LayerUI;
 import org.jjazz.midi.api.JJazzMidiSystem;
@@ -76,8 +77,9 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
         initComponents();
 
-        list_rhythmVoices.setCellRenderer(new RhythmVoiceRenderer());
-
+        list_rhythmVoices.setCellRenderer(new RhythmVoiceRenderer());        
+        
+        
         // Remove and replace by a JLayer  (this way we can use pnl_overlay in Netbeans form designer)
         remove(pnl_overlay);
         overlayLayerUI = new TextOverlayLayerUI();
@@ -302,7 +304,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         File midiTempFile;
         try
         {
-            midiTempFile = File.createTempFile("jjazzTmpFile", ".mid");
+            midiTempFile = File.createTempFile("JJazzCustomPhrases", ".mid");
             midiTempFile.deleteOnExit();
         } catch (IOException ex)
         {

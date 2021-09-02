@@ -24,7 +24,10 @@ package org.jjazz.rpcustomeditorfactoryimpl.api;
 
 import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorComponent;
 import java.awt.BorderLayout;
+import java.awt.DefaultKeyboardFocusManager;
+import java.awt.KeyEventPostProcessor;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Queue;
@@ -85,6 +88,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private E rpValueOriginal;
     private Queue<E> queue;
     private RpValueChangesHandlingTask rpValueChangesHandlingTask;
+    private E saveRpValue;
+    private GlobalKeyActionListener globalKeyListener;
     private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());  //NOI18N
 
     public RealTimeRpEditorDialog(RealTimeRpEditorComponent<E> comp)
@@ -406,6 +411,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
                 exit(false);
             }
         });
+
         return contentPane;
     }
 
@@ -553,9 +559,19 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private void tbtn_bypassActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tbtn_bypassActionPerformed
     {//GEN-HEADEREND:event_tbtn_bypassActionPerformed
         assert tbtn_hear.isSelected();
-        editor.setEnabled(!tbtn_bypass.isSelected());
-        E rpValue = tbtn_bypass.isSelected() ? rpValueOriginal : editor.getEditedRpValue();
-        sendRpValueToThread(rpValue);
+        if (tbtn_bypass.isSelected())
+        {
+            saveRpValue = editor.getEditedRpValue();
+            editor.setEditedRpValue(rpValueOriginal);
+            editor.setEnabled(false);
+        } else
+        {
+            assert saveRpValue != null;
+            editor.setEditedRpValue(saveRpValue);
+            editor.setEnabled(true);
+        }
+
+        sendRpValueToThread(editor.getEditedRpValue());
 
     }//GEN-LAST:event_tbtn_bypassActionPerformed
 
@@ -570,6 +586,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         {
             session.close();
         }
+        DefaultKeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventPostProcessor(globalKeyListener);
     }//GEN-LAST:event_formWindowClosed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
@@ -592,6 +609,11 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
             tbtn_hear.setSelected(true);
             tbtn_hearActionPerformed(null);     // This will start playing the preview
         }
+
+
+        // Add our global key listener
+        globalKeyListener = new GlobalKeyActionListener();
+        DefaultKeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventPostProcessor(globalKeyListener);
 
     }//GEN-LAST:event_formWindowOpened
 
@@ -625,6 +647,28 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 // =================================================================================
 // Private classes
 // =================================================================================
+    /**
+     * Use a global approach to trigger some keyboard actions because we can't control what will be in the
+     * RealTimeRpEditorComponent.
+     * <p>
+     * E.g. if there is a JList, it will capture the SPACE key...
+     */
+    private class GlobalKeyActionListener implements KeyEventPostProcessor
+    {
+
+        @Override
+        public boolean postProcessKeyEvent(KeyEvent e)
+        {
+            boolean b = false;
+            if (e.getID() == KeyEvent.KEY_TYPED &&  e.getKeyChar() == ' ')
+            {
+                tbtn_hear.doClick();
+                b = true;
+            }
+            return b;
+        }
+    }
+
     /**
      * A thread to handle incoming RP value changes and start one MusicGenerationTask at a time with the last available RP value.
      * <p>
