@@ -285,7 +285,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     private SongContext buildWorkContext()
     {
         // Get a song copy which uses the edited RP value
-        Song songCopy = SongFactory.getInstance().getCopy(songContext.getSong(), false); 
+        Song songCopy = SongFactory.getInstance().getCopy(songContext.getSong(), false);
         SongStructure ss = songCopy.getSongStructure();
         SongPart spt = ss.getSongPart(songContext.getBarRange().from);
 
@@ -386,7 +386,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             for (Track track : newSequence.getTracks())
             {
                 RhythmVoice rv = findRhythmVoice(MidiUtilities.getTrackName(track));
-                if (rv != null)
+                if (rv != null) 
                 {
                     LongRange tickRange = workContext.getTickRange().getTransformed(-songContext.getTickRange().from);
                     List<MidiEvent> midiEvents = MidiUtilities.getMidiEvents(track, me -> true, tickRange);
