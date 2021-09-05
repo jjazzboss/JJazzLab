@@ -71,11 +71,11 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
     private static final String PREF_OPEN_RECENT_FILES_UPON_STARTUP = "OpenRecentFilesUponStartup";
     private static final String PREF_FILES_TO_BE_REOPENED_UPON_STARTUP = "FilesToBeReOpenedUponStartup";
     private static final String NO_FILE = "__NO_FILE__";
-    private static final int MAX_FILES = 6;
-    private Option openOption = Option.defaultArguments();  // The command line arguments with no -x or --xyz option
-    private List<File> cmdLineFilesToOpen = new ArrayList<>();
+    private static final int MAX_FILES = 20;
+    private final Option openOption = Option.defaultArguments();  // The command line arguments with no -x or --xyz option
+    private final List<File> cmdLineFilesToOpen = new ArrayList<>();
     private boolean isUIready = false;
-    private static Preferences prefs = NbPreferences.forModule(StartupShutdownSongManager.class);
+    private static final Preferences prefs = NbPreferences.forModule(StartupShutdownSongManager.class);
     private static final Logger LOGGER = Logger.getLogger(StartupShutdownSongManager.class.getSimpleName());
 
     static public final StartupShutdownSongManager getInstance()

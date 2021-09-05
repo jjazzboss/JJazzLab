@@ -53,7 +53,7 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="fbtn_reset" alignment="1" min="-2" max="-2" attributes="0"/>
                       <Component id="tbtn_hear" alignment="1" min="-2" max="-2" attributes="0"/>
-                      <Component id="tbtn_bypass" alignment="1" min="-2" max="-2" attributes="0"/>
+                      <Component id="tbtn_compare" alignment="1" min="-2" max="-2" attributes="0"/>
                       <Component id="fbtn_ok" alignment="1" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace min="-2" pref="5" max="-2" attributes="0"/>
@@ -68,7 +68,7 @@
                       <Group type="102" attributes="0">
                           <Component id="tbtn_hear" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="tbtn_bypass" min="-2" max="-2" attributes="0"/>
+                          <Component id="tbtn_compare" min="-2" max="-2" attributes="0"/>
                           <EmptySpace type="unrelated" max="32767" attributes="0"/>
                           <Component id="fbtn_reset" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
@@ -93,13 +93,13 @@
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
         </Container>
-        <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_bypass">
+        <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_compare">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-OFF.png"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/api/Bundle.properties" key="RealTimeRpEditorDialog.tbtn_bypass.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/api/Bundle.properties" key="RealTimeRpEditorDialog.tbtn_compare.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
             <Property name="disabledIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-Disabled.png"/>
@@ -109,7 +109,7 @@
             </Property>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tbtn_bypassActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tbtn_compareActionPerformed"/>
           </Events>
         </Component>
         <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_hear">

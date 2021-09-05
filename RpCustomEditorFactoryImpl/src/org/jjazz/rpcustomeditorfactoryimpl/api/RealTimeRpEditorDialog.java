@@ -138,10 +138,10 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         setTitle(title == null ? buildDefaultTitle(spt0) : title);
         fbtn_ok.requestFocusInWindow();
         tbtn_hear.setSelected(false);
-        tbtn_bypass.setSelected(false);
-        tbtn_bypass.setEnabled(false);
-        String tt = ResUtil.getString(getClass(), "RealTimeRpEditorDialog.tbtn_bypass.toolTipText") + ": " + rpValue.toString();
-        tbtn_bypass.setToolTipText(tt);
+        tbtn_compare.setSelected(false);
+        // tbtn_compare.setEnabled(false);
+        String tt = ResUtil.getString(getClass(), "RealTimeRpEditorDialog.tbtn_compare.toolTipText") + ": " + rpValue.toString();
+        tbtn_compare.setToolTipText(tt);
 
     }
 
@@ -224,7 +224,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         if (evt.getSource() == editor && evt.getPropertyName().equals(RealTimeRpEditorComponent.PROP_EDITED_RP_VALUE))
         {
             LOGGER.fine("propertyChange() evt=" + evt);
-            if (tbtn_hear.isSelected() && !tbtn_bypass.isSelected())
+            if (tbtn_hear.isSelected() && !tbtn_compare.isSelected())
             {
                 // Transmit the value to our handler task
                 sendRpValueToThread((E) evt.getNewValue());
@@ -329,7 +329,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         }
 
         // Build song context with the original RP value or edited one
-        E rpValue = tbtn_bypass.isSelected() ? rpValueOriginal : editor.getEditedRpValue();
+        E rpValue = tbtn_compare.isSelected() ? rpValueOriginal : editor.getEditedRpValue();
         SongContext sgContext = buildPreviewContext(rpValue);
 
 
@@ -427,7 +427,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
         pnl_container = new javax.swing.JPanel();
         pnl_editor = new javax.swing.JPanel();
-        tbtn_bypass = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
+        tbtn_compare = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         tbtn_hear = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         fbtn_ok = new org.jjazz.ui.flatcomponents.api.FlatButton();
         fbtn_reset = new org.jjazz.ui.flatcomponents.api.FlatButton();
@@ -453,15 +453,15 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         pnl_editor.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         pnl_editor.setLayout(new java.awt.BorderLayout());
 
-        tbtn_bypass.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-OFF.png"))); // NOI18N
-        tbtn_bypass.setToolTipText(org.openide.util.NbBundle.getMessage(RealTimeRpEditorDialog.class, "RealTimeRpEditorDialog.tbtn_bypass.toolTipText")); // NOI18N
-        tbtn_bypass.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-Disabled.png"))); // NOI18N
-        tbtn_bypass.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-ON.png"))); // NOI18N
-        tbtn_bypass.addActionListener(new java.awt.event.ActionListener()
+        tbtn_compare.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-OFF.png"))); // NOI18N
+        tbtn_compare.setToolTipText(org.openide.util.NbBundle.getMessage(RealTimeRpEditorDialog.class, "RealTimeRpEditorDialog.tbtn_compare.toolTipText")); // NOI18N
+        tbtn_compare.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-Disabled.png"))); // NOI18N
+        tbtn_compare.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/api/resources/CompareArrows-ON.png"))); // NOI18N
+        tbtn_compare.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                tbtn_bypassActionPerformed(evt);
+                tbtn_compareActionPerformed(evt);
             }
         });
 
@@ -507,7 +507,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
                 .addGroup(pnl_containerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(fbtn_reset, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(tbtn_hear, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tbtn_bypass, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tbtn_compare, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(fbtn_ok, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(5, 5, 5))
         );
@@ -519,7 +519,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
                     .addGroup(pnl_containerLayout.createSequentialGroup()
                         .addComponent(tbtn_hear, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(tbtn_bypass, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(tbtn_compare, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(fbtn_reset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -553,13 +553,12 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         {
             MusicController.getInstance().stop();
         }
-        tbtn_bypass.setEnabled(tbtn_hear.isSelected());
+        // .setEnabled(tbtn_hear.isSelected());
     }//GEN-LAST:event_tbtn_hearActionPerformed
 
-    private void tbtn_bypassActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tbtn_bypassActionPerformed
-    {//GEN-HEADEREND:event_tbtn_bypassActionPerformed
-        assert tbtn_hear.isSelected();
-        if (tbtn_bypass.isSelected())
+    private void tbtn_compareActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tbtn_compareActionPerformed
+    {//GEN-HEADEREND:event_tbtn_compareActionPerformed
+        if (tbtn_compare.isSelected())
         {
             saveRpValue = editor.getEditedRpValue();
             editor.setEditedRpValue(rpValueOriginal);
@@ -571,9 +570,12 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
             editor.setEnabled(true);
         }
 
-        sendRpValueToThread(editor.getEditedRpValue());
+        if (tbtn_hear.isSelected())
+        {
+            sendRpValueToThread(editor.getEditedRpValue());
+        }
 
-    }//GEN-LAST:event_tbtn_bypassActionPerformed
+    }//GEN-LAST:event_tbtn_compareActionPerformed
 
     private void formWindowClosed(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosed
     {//GEN-HEADEREND:event_formWindowClosed
@@ -639,7 +641,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_reset;
     private javax.swing.JPanel pnl_container;
     private javax.swing.JPanel pnl_editor;
-    private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_bypass;
+    private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_compare;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_hear;
     // End of variables declaration//GEN-END:variables
 
@@ -660,8 +662,9 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         public boolean postProcessKeyEvent(KeyEvent e)
         {
             boolean b = false;
-            if (e.getID() == KeyEvent.KEY_TYPED &&  e.getKeyChar() == ' ')
+            if (e.getID() == KeyEvent.KEY_RELEASED && e.getKeyChar() == ' ')
             {
+                LOGGER.severe("postProcessKeyEvent() e=" + e);
                 tbtn_hear.doClick();
                 b = true;
             }

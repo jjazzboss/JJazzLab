@@ -83,7 +83,9 @@ public abstract class RealTimeRpEditorComponent<E> extends JComponent
     public abstract void cleanup();
 
     /**
-     * The dialog title.
+     * The dialog title to be used.
+     * <p>
+     * This is called after calling preset().
      *
      * @return If null a default title will be generated.
      */

@@ -23,7 +23,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JLayer;
 import javax.swing.JList;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.LayerUI;
 import org.jjazz.midi.api.JJazzMidiSystem;
@@ -77,9 +76,9 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
         initComponents();
 
-        list_rhythmVoices.setCellRenderer(new RhythmVoiceRenderer());        
-        
-        
+        list_rhythmVoices.setCellRenderer(new RhythmVoiceRenderer());
+
+
         // Remove and replace by a JLayer  (this way we can use pnl_overlay in Netbeans form designer)
         remove(pnl_overlay);
         overlayLayerUI = new TextOverlayLayerUI();
@@ -97,7 +96,8 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     @Override
     public String getTitle()
     {
-        return ResUtil.getString(getClass(), "RP_SYS_CustomPhrasePanel.DialogTitle");
+        String txt = songPart.getName() + " - bars " + (songPart.getBarRange().from + 1) + "..." + (songPart.getBarRange().to + 1);
+        return ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.DialogTitle", txt);
     }
 
     @Override
@@ -140,8 +140,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         Rhythm r = songPart.getRhythm();
         var rpVariation = RP_STD_Variation.getVariationRp(r);
         String strVariation = rpVariation == null ? "" : "/" + songPart.getRPValue(rpVariation).toString();
-        lbl_rhythm.setText(r.getName() + strVariation);
-        lbl_phraseInfo.setText(songPart.getName() + " [" + (songPart.getBarRange().from + 1) + ";" + (songPart.getBarRange().to + 1) + "]");
+        lbl_phraseInfo.setText(r.getName() + strVariation);
 
 
         // Start a task to generate the phrases 
@@ -252,7 +251,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
     private boolean isCustomizedPhrase(RhythmVoice rv)
     {
-        return uiValue.getRhythmVoices().contains(rv);
+        return uiValue == null ? false : uiValue.getRhythmVoices().contains(rv);
     }
 
     private void refreshUI()
@@ -261,19 +260,23 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         if (rv != null)
         {
             Phrase p = getPhrase(rv);
+            boolean isCustom = isCustomizedPhrase(rv);
             if (p != null)
             {
                 // Computed phrases are shifted to start at 0.
                 FloatRange beatRange0 = songPartBeatRange.getTransformed(-songPartBeatRange.from);
                 birdViewComponent.setModel(p, songPart.getRhythm().getTimeSignature(), beatRange0);
-                birdViewComponent.setForeground(isCustomizedPhrase(rv) ? PHRASE_COMP_CUSTOMIZED_FOREGROUND : PHRASE_COMP_FOREGROUND);
+                birdViewComponent.setForeground(isCustom ? PHRASE_COMP_CUSTOMIZED_FOREGROUND : PHRASE_COMP_FOREGROUND);
             }
-            btn_remove.setEnabled(p != null && isCustomizedPhrase(rv));
+            btn_remove.setEnabled(isCustom);
             btn_edit.setEnabled(true);
+            String txt = isCustom ? " [" + ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.Customized") + "]" : "";
+            lbl_rhythmVoice.setText(rv.getName() + txt);
         } else
         {
             btn_remove.setEnabled(false);
             btn_edit.setEnabled(false);
+            lbl_rhythmVoice.setText("");
         }
     }
 
@@ -343,7 +346,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
 
         // Activate the overlay to display a message while external editor is active
-        String msg = ResUtil.getString(getClass(), "RP_SYS_CustomPhrasePanel.WaitForEditorQuit");
+        String msg = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.WaitForEditorQuit");
         overlayLayerUI.setText(msg);        // This will trigger a repaint task on the EDT
 
 
@@ -386,7 +389,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             for (Track track : newSequence.getTracks())
             {
                 RhythmVoice rv = findRhythmVoice(MidiUtilities.getTrackName(track));
-                if (rv != null) 
+                if (rv != null)
                 {
                     LongRange tickRange = workContext.getTickRange().getTransformed(-songContext.getTickRange().from);
                     List<MidiEvent> midiEvents = MidiUtilities.getMidiEvents(track, me -> true, tickRange);
@@ -447,7 +450,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         pnl_overlay = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         list_rhythmVoices = new javax.swing.JList<>();
-        lbl_rhythm = new javax.swing.JLabel();
+        lbl_rhythmVoice = new javax.swing.JLabel();
         birdViewComponent = new org.jjazz.phrase.api.ui.PhraseBirdView();
         lbl_phraseInfo = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -470,9 +473,8 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         });
         jScrollPane1.setViewportView(list_rhythmVoices);
 
-        lbl_rhythm.setFont(lbl_rhythm.getFont().deriveFont(lbl_rhythm.getFont().getSize()-1f));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_rhythm, "Rhythm"); // NOI18N
-        lbl_rhythm.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_CustomPhraseComp.class, "RP_SYS_CustomPhraseComp.lbl_rhythm.toolTipText")); // NOI18N
+        lbl_rhythmVoice.setFont(lbl_rhythmVoice.getFont().deriveFont(lbl_rhythmVoice.getFont().getSize()-1f));
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_rhythmVoice, "Rhythm"); // NOI18N
 
         birdViewComponent.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         birdViewComponent.setForeground(new java.awt.Color(102, 153, 255));
@@ -554,7 +556,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(pnl_overlayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnl_overlayLayout.createSequentialGroup()
-                        .addComponent(lbl_rhythm)
+                        .addComponent(lbl_rhythmVoice)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(lbl_phraseInfo))
                     .addComponent(birdViewComponent, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -572,7 +574,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
                     .addComponent(btn_edit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnl_overlayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(lbl_phraseInfo)
-                        .addComponent(lbl_rhythm)))
+                        .addComponent(lbl_rhythmVoice)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_overlayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 183, Short.MAX_VALUE)
@@ -633,7 +635,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lbl_phraseInfo;
-    private javax.swing.JLabel lbl_rhythm;
+    private javax.swing.JLabel lbl_rhythmVoice;
     private javax.swing.JList<RhythmVoice> list_rhythmVoices;
     private javax.swing.JPanel pnl_overlay;
     // End of variables declaration//GEN-END:variables

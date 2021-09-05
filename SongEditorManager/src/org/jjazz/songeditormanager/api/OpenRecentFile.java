@@ -61,13 +61,13 @@ public final class OpenRecentFile extends AbstractAction implements Presenter.Me
     private static final String PREF_RECENT_FILES = "RecentFiles";
     private static final String PREF_MAX_NB_FILES = "NbMaxRecentFiles";
 
-    private JMenu subMenu;
+    private final JMenu subMenu;
     /**
      * Reference to the first menu item.
      */
     private JMenuItem firstMenuItem;
-    private ArrayList<File> recentFiles;
-    private static Preferences prefs = NbPreferences.forModule(OpenRecentFile.class);
+    private final ArrayList<File> recentFiles;
+    private static final Preferences prefs = NbPreferences.forModule(OpenRecentFile.class);
     private static final Logger LOGGER = Logger.getLogger(OpenRecentFile.class.getSimpleName());
 
     public OpenRecentFile()
