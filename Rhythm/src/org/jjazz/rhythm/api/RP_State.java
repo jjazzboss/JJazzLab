@@ -22,12 +22,12 @@
  */
 package org.jjazz.rhythm.api;
 
+import com.google.common.base.Preconditions;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
-import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.api.RpEnumerable;
 
 /**
  * A RhythmParemeter whose value can be some specified strings.
@@ -41,12 +41,13 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
     private String defaultValue;
     private String minValue;
     private String maxValue;
-    private String[] possibleValues;   
+    private String[] possibleValues;
     protected static final Logger LOGGER = Logger.getLogger(RP_State.class.getName());
 
     /**
      * @param id
      * @param name The name of the RhythmParameter.
+     * @param description
      * @param defaultValue String The default value.
      * @param possibleValues String[] The possible values for this parameter. By convention, min value is set to the 1st possible
      * value, max value to the last one.
@@ -193,7 +194,7 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
     }
 
     @Override
-    public String valueToString(String value)
+    public String saveAsString(String value)
     {
         String s = null;
         if (isValidValue(value))
@@ -204,15 +205,49 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
     }
 
     @Override
-    public String stringToValue(String s)
+    public String loadFromString(String s)
     {
-        return valueToString(s);
+        return saveAsString(s);
     }
 
     @Override
     public String getValueDescription(String value)
     {
         return null;
+    }
+
+    @Override
+    public boolean isCompatibleWith(RhythmParameter<?> rp)
+    {
+        return rp instanceof RP_State && rp.getId().equals(getId());
+    }
+
+    @Override
+    public <T> String convertValue(RhythmParameter<T> rp, T value)
+    {
+        Preconditions.checkArgument(isCompatibleWith(rp), "rp=%s is not compatible with this=%s", rp, this);
+        Preconditions.checkNotNull(value);
+
+        RP_State rpState = (RP_State) rp;
+        String strValue = (String) value;
+
+
+        // Try to directly reuse the value
+        if (Arrays.asList(possibleValues).contains(strValue))
+        {
+            return strValue;
+        }
+
+        // Otherwise convert via the percentage value
+        double percentage = rpState.calculatePercentage(strValue);
+        String res = calculateValue(percentage);
+        return res;
+    }
+
+    @Override
+    public String getDisplayValue(String value)
+    {
+        return value;
     }
 
     @Override

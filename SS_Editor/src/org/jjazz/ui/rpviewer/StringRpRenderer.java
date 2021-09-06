@@ -36,6 +36,7 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ui.rpviewer.api.RpViewer;
 import org.jjazz.ui.rpviewer.spi.StringRpRendererSettings;
 import org.jjazz.ui.rpviewer.api.RpViewerRenderer;
@@ -91,7 +92,7 @@ public class StringRpRenderer implements RpViewerRenderer, PropertyChangeListene
     {
         // Calculate preferred size from string bounds
         Insets ins = rpViewer.getInsets();
-        String strValue = formatter.apply(rpViewer.getSptModel().getRPValue(rpViewer.getRpModel()));
+        String strValue = getStringValue();
         FontMetrics fontMetrics = rpViewer.getFontMetrics(settings.getFont());
         int strWidth = fontMetrics.stringWidth(strValue);
         int strHeight = fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
@@ -123,7 +124,7 @@ public class StringRpRenderer implements RpViewerRenderer, PropertyChangeListene
         g2.setColor(settings.getFontColor());
 
         Insets ins = rpViewer.getInsets();
-        String strValue = formatter.apply(rpViewer.getSptModel().getRPValue(rpViewer.getRpModel()));
+        String strValue = getStringValue();
         FontMetrics fontMetrics = rpViewer.getFontMetrics(settings.getFont());
         int strWidth = fontMetrics.stringWidth(strValue);
         int strHeight = fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
@@ -164,10 +165,17 @@ public class StringRpRenderer implements RpViewerRenderer, PropertyChangeListene
     // ---------------------------------------------------------------
     // Private methods
     // ---------------------------------------------------------------  
-    public void fireChanged()
+    private void fireChanged()
     {
         ChangeEvent evt = new ChangeEvent(this);
         listeners.stream().forEach(l -> l.stateChanged(evt));
     }
 
+    private String getStringValue()
+    {
+        RhythmParameter rp = rpViewer.getRpModel();
+        Object value = rpViewer.getSptModel().getRPValue(rp);
+        String str = rp.getDisplayValue(value);
+        return formatter.apply(str);
+    }
 }

@@ -22,15 +22,13 @@
  */
 package org.jjazz.rhythm.api;
 
-import java.util.ArrayList;
+import com.google.common.base.Preconditions;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
-import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.api.RpEnumerable;
 
 /**
  * A RhythmParemeter composed of a set of strings.
@@ -296,7 +294,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
      * @return A string with format "[v1,v2,v5]"
      */
     @Override
-    public String valueToString(Set<String> value)
+    public String saveAsString(Set<String> value)
     {
         String s = null;
         if (isValidValue(value))
@@ -320,7 +318,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     }
 
     @Override
-    public Set<String> stringToValue(String s)
+    public Set<String> loadFromString(String s)
     {
         Set<String> res = null;
         if (s != null && "[]".equals(s.trim()))
@@ -353,6 +351,39 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     public String toString()
     {
         return getDisplayName();
+    }
+
+    @Override
+    public boolean isCompatibleWith(RhythmParameter<?> rp)
+    {
+        return rp instanceof RP_StringSet && rp.getId().equals(getId());
+    }
+
+    @Override
+    public <T> Set<String> convertValue(RhythmParameter<T> rp, T value)
+    {
+        Preconditions.checkArgument(isCompatibleWith(rp), "rp=%s is not compatible with this=%s", rp, this);
+        Preconditions.checkNotNull(value);
+
+        Set<String> res = new HashSet<>();
+        Set<String> setValue = (Set<String>) value;
+
+        for (String s : setValue)
+        {
+            if (possibleValues.contains(s))
+            {
+                res.add(s);
+            }
+        }
+
+        return res;
+    }
+
+    @Override
+    public String getDisplayValue(Set<String> value)
+    {
+        String s = value.toString();
+        return s.substring(1, s.length() - 1);       // Remove the "[]" 
     }
 
     // =============================================================================================

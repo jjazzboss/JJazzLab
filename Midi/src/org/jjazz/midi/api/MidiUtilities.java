@@ -23,7 +23,9 @@
 package org.jjazz.midi.api;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -63,7 +65,7 @@ public class MidiUtilities
      *
      * @param track
      * @param tester
-     * @param tickRange
+     * @param tickRange If null there is no filtering on tick position
      * @return
      */
     static public List<MidiEvent> getMidiEvents(Track track, Predicate<MidiEvent> tester, LongRange tickRange)
@@ -72,10 +74,10 @@ public class MidiUtilities
         for (int i = 0; i < track.size(); i++)
         {
             MidiEvent me = track.get(i);
-            if (me.getTick() < tickRange.from)
+            if (tickRange != null && me.getTick() < tickRange.from)
             {
                 continue;
-            } else if (me.getTick() > tickRange.to)
+            } else if (tickRange != null && me.getTick() > tickRange.to)
             {
                 break;
             }
@@ -88,18 +90,60 @@ public class MidiUtilities
     }
 
     /**
-     * Get track MidiEvents whose MidiMessage is instance of msgClass, whose tick position is within range [tickMin;tickMax] and
-     * which satisfy the specified tester.
+     * Get track MidiEvents whose MidiMessage is instance of msgClass, which satisfy the specified MidiMessage tester, and whose
+     * tick position is within range [tickMin;tickMax].
      *
+     * @param <T>
      * @param track
      * @param msgClass MidiMessage class
-     * @param tester
-     * @param tickRange
+     * @param msgTester
+     * @param tickRange If null there is no filtering on tick position
      * @return
      */
-    static public List<MidiEvent> getMidiEvents(Track track, Class<? extends MidiMessage> msgClass, Predicate<MidiEvent> tester, LongRange tickRange)
+    static public <T extends MidiMessage> List<MidiEvent> getMidiEvents(Track track, Class<T> msgClass, Predicate<T> msgTester, LongRange tickRange)
     {
-        return getMidiEvents(track, tester.and(me -> msgClass.isInstance(me.getMessage())), tickRange);
+        var res = new ArrayList<MidiEvent>();
+        for (int i = 0; i < track.size(); i++)
+        {
+            MidiEvent me = track.get(i);
+            if (tickRange != null && me.getTick() < tickRange.from)
+            {
+                continue;
+            } else if (tickRange != null && me.getTick() > tickRange.to)
+            {
+                break;
+            }
+            if (msgClass.isInstance(me.getMessage()))
+            {
+                T msg = (T) me.getMessage();
+                if (msgTester.test(msg))
+                {
+                    res.add(me);
+                }
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Return the channels used in the specified track.
+     *
+     * @param track
+     * @return
+     */
+    static public Set<Integer> getUsedChannels(Track track)
+    {
+        Set<Integer> res = new HashSet<>();
+        for (int i = 0; i < track.size(); i++)
+        {
+            MidiEvent me = track.get(i);
+            MidiMessage mm = me.getMessage();
+            if (mm instanceof ShortMessage)
+            {
+                res.add(((ShortMessage) mm).getChannel());
+            }
+        }
+        return res;
     }
 
     /**

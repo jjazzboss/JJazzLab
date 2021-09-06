@@ -467,8 +467,8 @@ public class SS_EditorController implements SS_EditorMouseListener
 
         if (e.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(e))
         {
-            if (selection.isSongPartSelected() || selection.isEmpty() || focusedRp == null || !RhythmParameter.
-                    checkCompatibility(rp, focusedRp)
+            if (selection.isSongPartSelected() || selection.isEmpty() || focusedRp == null 
+                    || !rp.isCompatibleWith(focusedRp)
                     || (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
             {
                 // SIMPLE CLICK, or no previous selection set on a similar item

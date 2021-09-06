@@ -1,9 +1,11 @@
 package org.jjazz.rhythm.api.rhythmparameters;
 
+import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.util.api.ResUtil;
 
 /**
@@ -66,13 +68,13 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
     }
 
     @Override
-    public String valueToString(RP_SYS_CustomPhraseValue v)
+    public String saveAsString(RP_SYS_CustomPhraseValue v)
     {
         return RP_SYS_CustomPhraseValue.saveAsString(v);
     }
 
     @Override
-    public RP_SYS_CustomPhraseValue stringToValue(String s)
+    public RP_SYS_CustomPhraseValue loadFromString(String s)
     {
         return RP_SYS_CustomPhraseValue.loadFromString(rhythm, s);
     }
@@ -89,6 +91,56 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
         return new RP_SYS_CustomPhraseValue(value);
     }
 
+    /**
+     * Compatible with another RP_SYS_CustomPhrase for the same rhythm time signature.
+     *
+     * @param rp
+     * @return
+     */
+    @Override
+    public boolean isCompatibleWith(RhythmParameter<?> rp)
+    {
+        if (!(rp instanceof RP_SYS_CustomPhrase) || !rp.getId().equals(getId()))
+        {
+            return false;
+        }
+        RP_SYS_CustomPhrase rpCustom = (RP_SYS_CustomPhrase) rp;
+        return getRhythm().getTimeSignature().equals(rpCustom.getRhythm().getTimeSignature());
+    }
+
+    @Override
+    public <T> RP_SYS_CustomPhraseValue convertValue(RhythmParameter<T> rp, T value)
+    {
+        Preconditions.checkArgument(isCompatibleWith(rp), "rp=%s is not compatible with this=%s", rp, this);
+        Preconditions.checkNotNull(value);
+
+        
+        RP_SYS_CustomPhraseValue rpValue = (RP_SYS_CustomPhraseValue) value;
+        RP_SYS_CustomPhraseValue res = getDefaultValue();
+        var rvs = getRhythm().getRhythmVoices();
+        
+        
+        for (RhythmVoice rpRv : rpValue.getCustomizedRhythmVoices())        
+        {
+            RhythmVoice rv = rvs.stream()
+                    .filter(rvi -> rvi.getType().equals(rpRv.getType()))
+                    .findAny().orElse(null);
+            if (rv!=null)
+            {
+                res = res.getCopyPlus(rv, rpValue.getCustomizedPhrase(rpRv));
+                rvs.remove(rv);     // Do not reuse this phrase
+            }
+        }
+
+        return res;
+    }
+
+    @Override
+    public String getDisplayValue(RP_SYS_CustomPhraseValue value)
+    {
+        return value.toString();
+    }
+    
     @Override
     public String toString()
     {

@@ -1,19 +1,26 @@
 package org.jjazz.rpcustomeditorfactoryimpl;
 
+import com.google.common.base.Joiner;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.InvalidDnDOperationException;
 import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorComponent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
@@ -24,9 +31,11 @@ import javax.swing.JLabel;
 import javax.swing.JLayer;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
+import static javax.swing.TransferHandler.COPY;
 import javax.swing.plaf.LayerUI;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
 import org.jjazz.phrase.api.Phrase;
@@ -45,10 +54,11 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.utilities.api.StringMetrics;
 import org.jjazz.util.api.FloatRange;
-import org.jjazz.util.api.LongRange;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.awt.StatusDisplayer;
+import org.openide.util.Exceptions;
 
 
 /**
@@ -57,6 +67,7 @@ import org.openide.NotifyDescriptor;
 public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_CustomPhraseValue>
 {
 
+    private static final float PHRASE_COMPARE_BEAT_WINDOW = 0.01f;
     private static final Color PHRASE_COMP_FOCUSED_BORDER_COLOR = new Color(131, 42, 21);
     private static final Color PHRASE_COMP_CUSTOMIZED_FOREGROUND = new Color(255, 102, 102);
     private static final Color PHRASE_COMP_FOREGROUND = new Color(102, 153, 255);
@@ -78,6 +89,9 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
         list_rhythmVoices.setCellRenderer(new RhythmVoiceRenderer());
 
+        // By default enable the drag in transfer handler
+        setAllTransferHandlers(new MidiFileDragInTransferHandler());
+
 
         // Remove and replace by a JLayer  (this way we can use pnl_overlay in Netbeans form designer)
         remove(pnl_overlay);
@@ -96,7 +110,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     @Override
     public String getTitle()
     {
-        String txt = songPart.getName() + " - bars " + (songPart.getBarRange().from + 1) + "..." + (songPart.getBarRange().to + 1);
+        String txt = "\"" + songPart.getName() + "\" - bars " + (songPart.getBarRange().from + 1) + "..." + (songPart.getBarRange().to + 1);
         return ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.DialogTitle", txt);
     }
 
@@ -198,6 +212,11 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     {
     }
 
+    @Override
+    public String toString()
+    {
+        return "RP_SYS_CustomPhraseComp[rp=" + rp + "]";
+    }
 
     // ===================================================================================
     // Private methods
@@ -213,7 +232,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         {
             return null;
         }
-        Phrase p = isCustomizedPhrase(rv) ? uiValue.getPhrase(rv) : mapRvPhrase.get(rv);
+        Phrase p = isCustomizedPhrase(rv) ? uiValue.getCustomizedPhrase(rv) : mapRvPhrase.get(rv);
         return p;
     }
 
@@ -251,7 +270,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
     private boolean isCustomizedPhrase(RhythmVoice rv)
     {
-        return uiValue == null ? false : uiValue.getRhythmVoices().contains(rv);
+        return uiValue == null ? false : uiValue.getCustomizedRhythmVoices().contains(rv);
     }
 
     private void refreshUI()
@@ -272,6 +291,9 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             btn_edit.setEnabled(true);
             String txt = isCustom ? " [" + ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.Customized") + "]" : "";
             lbl_rhythmVoice.setText(rv.getName() + txt);
+            MidiMix mm = songContext.getMidiMix();
+            int channel = mm.getChannel(rv) + 1;
+            lbl_rhythmVoice.setToolTipText("Midi channel " + channel);
         } else
         {
             btn_remove.setEnabled(false);
@@ -300,47 +322,128 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         return res;
     }
 
-
-    private void editCurrentPhrase()
+    /**
+     * Import phrases from the Midi file.
+     * <p>
+     * <p>
+     * Notify user if problems occur.
+     *
+     * @param midiFile
+     * @return True if import was successful
+     */
+    private boolean importMidiFile(File midiFile)
     {
-        // Create the temp file
-        File midiTempFile;
+        // Load file into a sequence
+        Sequence sequence;
         try
         {
-            midiTempFile = File.createTempFile("JJazzCustomPhrases", ".mid");
-            midiTempFile.deleteOnExit();
-        } catch (IOException ex)
+            sequence = MidiSystem.getSequence(midiFile);
+        } catch (IOException | InvalidMidiDataException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
-            return;
+            return false;
         }
+
+        // LOGGER.severe("importMidiFile() importSequence=" + MidiUtilities.toString(importSequence));
+
+        // Get one phrase per channel
+        Track[] tracks = sequence.getTracks();
+        List<Phrase> phrases = Phrase.getPhrases(tracks);
+
+
+        boolean contentFound = false;
+        List<RhythmVoice> impactedRvs = new ArrayList<>();
+
+
+        // Check which phrases are relevant and if they have changed
+        MidiMix mm = songContext.getMidiMix();
+        for (Phrase pNew : phrases)
+        {
+            RhythmVoice rv = mm.getRhythmVoice(pNew.getChannel());
+            if (rv != null)
+            {
+                contentFound = true;
+                Phrase pOld = getPhrase(rv);
+                if (!pNew.equalsLoosePosition(pOld, PHRASE_COMPARE_BEAT_WINDOW))
+                {
+                    // LOGGER.info("importMidiFile() setting custom phrase for rv=" + rv);
+                    addCustomizedPhrase(rv, pNew);
+                    impactedRvs.add(rv);
+                }
+            }
+        }
+
+
+        // Notify user
+        if (!contentFound)
+        {
+            String msg = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.NoContent", midiFile.getName());
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            LOGGER.info("importMidiFile() No relevant Midi notes found in file " + midiFile.getAbsolutePath());
+
+        } else if (impactedRvs.isEmpty())
+        {
+            String msg = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.NothingImported", midiFile.getName());
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            LOGGER.info("importMidiFile() No new phrase found in file " + midiFile.getAbsolutePath());
+
+        } else
+        {
+            // We customized at least 1 phrase
+            List<String> strs = impactedRvs.stream()
+                    .map(rv -> rv.getName())
+                    .collect(Collectors.toList());
+            String strRvs = Joiner.on(",").join(strs);
+            String msg = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.CustomizedRvs", strRvs);
+            StatusDisplayer.getDefault().setStatusText(msg);
+            LOGGER.info("importMidiFile() Successfully set custom phrases for " + strRvs + " from Midi file " + midiFile.getAbsolutePath());
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Build an exportable sequence with current custom phrase and store it in a temp file.
+     *
+     * @return The generated Midi temporary file.
+     * @throws IOException
+     * @throws MusicGenerationException
+     */
+    private File exportSequenceToMidiTempFile() throws IOException, MusicGenerationException
+    {
+        LOGGER.info("exportSequenceToMidiTempFile() -- ");
+        // Create the temp file
+        File midiFile = File.createTempFile("JJazz", ".mid"); // throws IOException
+        midiFile.deleteOnExit();
 
 
         // Build the sequence
         SongContext workContext = buildWorkContext();
-        SongSequence songSequence;
+        SongSequence songSequence = new SongSequenceBuilder(workContext).buildExportableSequence(true); // throws MusicGenerationException
+
+
+        // Write the midi file     
+        MidiSystem.write(songSequence.sequence, 1, midiFile);   // throws IOException
+
+        return midiFile;
+    }
+
+    private void editCurrentPhrase()
+    {
+        File midiFile;
         try
         {
-            songSequence = new SongSequenceBuilder(workContext).buildExportableSequence(false);
-        } catch (MusicGenerationException ex)
+            // Build and store sequence
+            midiFile = exportSequenceToMidiTempFile();
+        } catch (IOException | MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
-            midiTempFile.delete();
-            return;
-        }
-
-
-        // Write the midi file
-        try
-        {
-            MidiSystem.write(songSequence.sequence, 1, midiTempFile);
-        } catch (IOException ex)
-        {
-            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-            midiTempFile.delete();
+            LOGGER.warning("editCurrentPhrase() Can't create Midi file ex=" + ex.getMessage());
             return;
         }
 
@@ -356,12 +459,12 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             try
             {
                 // Start the midi editor
-                JJazzMidiSystem.getInstance().editMidiFileWithExternalEditor(midiTempFile); // Blocks until editor quits
+                JJazzMidiSystem.getInstance().editMidiFileWithExternalEditor(midiFile); // Blocks until editor quits
             } catch (IOException ex)
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
-                midiTempFile.delete();
+                LOGGER.warning("editCurrentPhrase() Can't launch external Midi editor. ex=" + ex.getMessage());
                 return;
             } finally
             {
@@ -370,64 +473,13 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             }
 
 
-            // Load file
-            Sequence newSequence = null;
-            try
-            {
-                newSequence = MidiSystem.getSequence(midiTempFile);
-            } catch (IOException | InvalidMidiDataException ex)
-            {
-                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(d);
-                midiTempFile.delete();
-                return;
-            }
-
-            // LOGGER.severe("editCurrentPhrase() newSequence=" + MidiUtilities.toString(newSequence));
-
-            // Extract the phrases and find which were modified
-            for (Track track : newSequence.getTracks())
-            {
-                RhythmVoice rv = findRhythmVoice(MidiUtilities.getTrackName(track));
-                if (rv != null)
-                {
-                    LongRange tickRange = workContext.getTickRange().getTransformed(-songContext.getTickRange().from);
-                    List<MidiEvent> midiEvents = MidiUtilities.getMidiEvents(track, me -> true, tickRange);
-                    Phrase pOld = getPhrase(rv);
-                    Phrase pNew = new Phrase(pOld.getChannel());
-                    pNew.add(midiEvents, 0);
-                    if (!pNew.equals(pOld))
-                    {
-//                        LOGGER.info("editCurrentPhrase() phrase differs for rv=" + rv);
-//                        LOGGER.info("   pOld=" + pOld);
-//                        LOGGER.info("   pNew=" + pNew);
-                        addCustomizedPhrase(rv, pNew);
-                    }
-                }
-            }
+            // Extract the custom phrases and add them
+            importMidiFile(midiFile);
         };
         SwingUtilities.invokeLater(r);
 
-
     }
 
-    /**
-     * Search the RhythmVoice corresponding to the specified track name.
-     *
-     * @param trackName Can be null
-     * @return Null if no matching RhythmVoice found
-     */
-    private RhythmVoice findRhythmVoice(String trackName)
-    {
-        if (trackName == null)
-        {
-            return null;
-        }
-        return mapRvPhrase.keySet().stream()
-                .filter(rv -> trackName.contains(rv.getName()))
-                .findAny()
-                .orElse(null);
-    }
 
     /**
      *
@@ -436,6 +488,13 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     private RhythmVoice getCurrentRhythmVoice()
     {
         return list_rhythmVoices.getSelectedValue();
+    }
+
+
+    private void setAllTransferHandlers(TransferHandler th)
+    {
+        setTransferHandler(th);
+        helpTextArea1.setTransferHandler(th);
     }
 
     /**
@@ -459,6 +518,13 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         btn_edit = new org.jjazz.ui.utilities.api.SmallFlatDarkLafButton();
 
         setPreferredSize(new java.awt.Dimension(500, 200));
+        addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+        {
+            public void mouseDragged(java.awt.event.MouseEvent evt)
+            {
+                formMouseDragged(evt);
+            }
+        });
         setLayout(new java.awt.BorderLayout());
 
         list_rhythmVoices.setFont(list_rhythmVoices.getFont().deriveFont(list_rhythmVoices.getFont().getSize()-1f));
@@ -626,6 +692,16 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         removeCustomizedPhrase(getCurrentRhythmVoice());
     }//GEN-LAST:event_btn_removeActionPerformed
 
+    private void formMouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_formMouseDragged
+    {//GEN-HEADEREND:event_formMouseDragged
+        if (SwingUtilities.isLeftMouseButton(evt))
+        {
+            // Use the drag export transfer handler
+            setAllTransferHandlers(new MidiFileDragOutTransferHandler());
+            getTransferHandler().exportAsDrag(this, evt, TransferHandler.COPY);
+        }
+    }//GEN-LAST:event_formMouseDragged
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.jjazz.phrase.api.ui.PhraseBirdView birdViewComponent;
@@ -664,7 +740,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             lbl.setText(rv.getName() + " [" + channel + "]");
             Font f = lbl.getFont();
             String tooltip = "Midi channel " + channel;
-            if (uiValue != null && uiValue.getRhythmVoices().contains(rv))
+            if (uiValue != null && uiValue.getCustomizedRhythmVoices().contains(rv))
             {
                 f = f.deriveFont(Font.ITALIC);
                 tooltip = "Customized - " + tooltip;
@@ -755,6 +831,223 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
             g2.dispose();
         }
+    }
+
+    private class MidiFileTransferable implements Transferable
+    {
+
+        private final DataFlavor dataFlavors[] =
+        {
+            DataFlavor.javaFileListFlavor
+        };
+
+        private List<File> data;
+
+        public MidiFileTransferable()
+        {
+            File midiFile;
+            try
+            {
+                midiFile = exportSequenceToMidiTempFile();
+            } catch (MusicGenerationException | IOException ex)
+            {
+                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                return;
+            }
+
+            data = midiFile == null ? null : Arrays.asList(midiFile);
+        }
+
+        @Override
+        public DataFlavor[] getTransferDataFlavors()
+        {
+            return data == null ? new DataFlavor[0] : dataFlavors;
+        }
+
+        @Override
+        public boolean isDataFlavorSupported(DataFlavor flavor)
+        {
+            LOGGER.info("isDataFlavorSupported() -- flavor=" + flavor);   //NOI18N
+            return data == null ? false : flavor.equals(DataFlavor.javaFileListFlavor);
+        }
+
+        @Override
+        public Object getTransferData(DataFlavor df) throws UnsupportedFlavorException, IOException
+        {
+            LOGGER.info("getTransferData()  df=" + df);   //NOI18N
+            if (!df.equals(DataFlavor.javaFileListFlavor))
+            {
+                return new UnsupportedFlavorException(df);
+            }
+
+            if (data == null)
+            {
+                throw new IOException("Midi file not available");
+            }
+
+            return data;
+        }
+
+    }
+
+    /**
+     * Our drag'n drop support to export Midi files when dragging from this component.
+     */
+    private class MidiFileDragOutTransferHandler extends TransferHandler
+    {
+
+        @Override
+        public int getSourceActions(JComponent c)
+        {
+            LOGGER.info("MidiFileDragOutTransferHandler.getSourceActions()  c=" + c);   //NOI18N
+            return TransferHandler.COPY_OR_MOVE;
+        }
+
+        @Override
+        public Transferable createTransferable(JComponent c)
+        {
+            LOGGER.info("MidiFileDragOutTransferHandler.createTransferable()  c=" + c);   //NOI18N
+            Transferable t = new MidiFileTransferable();
+            return t;
+        }
+
+        /**
+         *
+         * @param c
+         * @param data
+         * @param action
+         */
+        @Override
+        protected void exportDone(JComponent c, Transferable data, int action)
+        {
+            // Will be called if drag was initiated from this handler
+            LOGGER.info("MidiFileDragOutTransferHandler.exportDone()  c=" + c + " data=" + data + " action=" + action);   //NOI18N
+            // Restore the default handler
+            setAllTransferHandlers(new MidiFileDragInTransferHandler());
+        }
+
+        /**
+         * Overridden only to show a drag icon when dragging is still inside this component
+         *
+         * @param support
+         * @return
+         */
+        @Override
+        public boolean canImport(TransferHandler.TransferSupport support)
+        {
+            // Use copy drop icon
+            support.setDropAction(COPY);
+            return true;
+        }
+
+        /**
+         * Do nothing if we drop on ourselves.
+         *
+         * @param support
+         * @return
+         */
+        @Override
+        public boolean importData(TransferHandler.TransferSupport support)
+        {
+            return false;
+        }
+
+    }
+
+
+    /**
+     * Our drag'n drop support to accept external Midi files dragged into this component.
+     */
+    private class MidiFileDragInTransferHandler extends TransferHandler
+    {
+
+        @Override
+        public boolean canImport(TransferHandler.TransferSupport support)
+        {
+            LOGGER.info("MidiFileDragInTransferHandler.canImport() -- support=" + support);   //NOI18N
+
+            if (!isEnabled() || !support.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
+            {
+                return false;
+            }
+
+
+            // Copy mode must be supported
+            if ((COPY & support.getSourceDropActions()) != COPY)
+            {
+                return false;
+            }
+
+            // Need a single midi file
+            if (getMidiFile(support) == null)
+            {
+                return false;
+            }
+
+            // Use copy drop icon
+            support.setDropAction(COPY);
+
+            return true;
+        }
+
+        @Override
+        public boolean importData(TransferHandler.TransferSupport support)
+        {
+
+            // Need a single midi file
+            File midiFile = getMidiFile(support);
+            if (midiFile == null)
+            {
+                return false;
+            }
+
+            return importMidiFile(midiFile);
+
+        }
+
+
+        /**
+         *
+         * @param support
+         * @return Null if no valid Midi file found
+         */
+        private File getMidiFile(TransferHandler.TransferSupport support)
+        {
+            Transferable t = support.getTransferable();
+
+            File midiFile = null;
+            try
+            {
+                List<File> files = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
+                if (files.size() == 1 && files.get(0).getName().toLowerCase().endsWith(".mid"))
+                {
+                    midiFile = files.get(0);
+                }
+            } catch (UnsupportedFlavorException | IOException e)
+            {
+                return null;
+            } catch (InvalidDnDOperationException dontCare)
+            {
+                // We wish to test the content of the transfer data and
+                // determine if they are (a) files and (b) files we are
+                // actually interested in processing. So we need to
+                // call getTransferData() so that we can inspect the file names.
+                // Unfortunately, this will not always work.
+                // Under Windows, the Transferable instance
+                // will have transfer data ONLY while the mouse button is
+                // depressed.  However, when the user releases the mouse
+                // button, the method canImport() will be called one last time by the drop() method.  And
+                // when this method attempts to getTransferData, Java will throw
+                // an InvalidDnDOperationException.  Since we know that the
+                // exception is coming, we simply catch it and ignore it.
+                // Note that the same operation in importData() will work OK.
+                // See https://coderanch.com/t/664525/java/Invalid-Drag-Drop-Exception                
+                return new File("");    // Trick to not make canImport() fail
+            }
+            return midiFile;
+        }
+
     }
 
 }

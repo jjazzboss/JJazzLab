@@ -120,16 +120,18 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
             // Single spt selection is special case: we try to paste all buffer values on next compatible song parts
             var allSpts = sgs.getSongParts();
             int sptIndex = allSpts.indexOf(spts.get(0));
-            
+
             for (var itValue = values.iterator(); itValue.hasNext();)
             {
                 SongPart spt = allSpts.get(sptIndex);
-                if (spt.getRhythm() == buffer.getRhythm())
+
+
+                var crp = RhythmParameter.findFirstCompatibleRp(spt.getRhythm().getRhythmParameters(), rp);
+                if (crp != null)
                 {
-                    sgs.setRhythmParameterValue(spt, (RhythmParameter) rp, itValue.next());
-                } else
-                {
-                    break;
+                    Object value = itValue.next();
+                    Object newValue = crp.convertValue((RhythmParameter) rp, value);
+                    sgs.setRhythmParameterValue(spt, (RhythmParameter) crp, newValue);
                 }
 
                 sptIndex++;
@@ -145,8 +147,13 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
             Iterator<Object> itValue = Iterables.cycle(values).iterator();
             for (var spt : spts)
             {
-                Object value = itValue.next();
-                sgs.setRhythmParameterValue(spt, (RhythmParameter) rp, value);
+                var crp = RhythmParameter.findFirstCompatibleRp(spt.getRhythm().getRhythmParameters(), rp);
+                if (crp != null)
+                {
+                    Object value = itValue.next();
+                    Object newValue = crp.convertValue((RhythmParameter) rp, value);
+                    sgs.setRhythmParameterValue(spt, (RhythmParameter) rp, newValue);
+                }
             }
         }
 
@@ -184,7 +191,7 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
         if (selection.isRhythmParameterSelected())
         {
             res = selection.getSelectedSongPartParameters().stream()
-                    .filter(spp -> spp.getRp() == rp)
+                    .filter(spp -> spp.getRp().isCompatibleWith(rp))
                     .map(spp -> spp.getSpt())
                     .collect(Collectors.toList());
         } else

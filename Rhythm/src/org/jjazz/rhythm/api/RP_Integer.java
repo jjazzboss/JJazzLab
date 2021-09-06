@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythm.api;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -55,7 +56,7 @@ public class RP_Integer implements RhythmParameter<Integer>, RpEnumerable<Intege
                 || step < 0
                 || step > (maxValue - minValue))
         {
-            throw new IllegalArgumentException(   //NOI18N
+            throw new IllegalArgumentException( //NOI18N
                     "id=" + id + " n=" + name + " defaultVal=" + defaultVal + " min=" + minValue + " max=" + maxValue + " st=" + step);
         }
         this.id = id;
@@ -66,7 +67,7 @@ public class RP_Integer implements RhythmParameter<Integer>, RpEnumerable<Intege
         this.step = step;
         if (!isValidValue(defaultVal))
         {
-            throw new IllegalArgumentException(   //NOI18N
+            throw new IllegalArgumentException( //NOI18N
                     "n=" + name + " defaultVal=" + defaultVal + " min=" + minValue + " max=" + maxValue + " st=" + step);
         }
         this.defaultValue = defaultVal;
@@ -235,7 +236,7 @@ public class RP_Integer implements RhythmParameter<Integer>, RpEnumerable<Intege
     }
 
     @Override
-    public String valueToString(Integer value)
+    public String saveAsString(Integer value)
     {
         String s = null;
         if (isValidValue(value))
@@ -246,7 +247,7 @@ public class RP_Integer implements RhythmParameter<Integer>, RpEnumerable<Intege
     }
 
     @Override
-    public Integer stringToValue(String s)
+    public Integer loadFromString(String s)
     {
         Integer value = null;
         try
@@ -267,5 +268,32 @@ public class RP_Integer implements RhythmParameter<Integer>, RpEnumerable<Intege
     public String getValueDescription(Integer value)
     {
         return null;
+    }
+
+    @Override
+    public boolean isCompatibleWith(RhythmParameter<?> rp)
+    {
+        return rp instanceof RP_Integer && rp.getId().equals(getId());
+    }
+
+    @Override
+    public <T> Integer convertValue(RhythmParameter<T> rp, T value)
+    {
+        Preconditions.checkArgument(isCompatibleWith(rp), "rp=%s is not compatible with this=%s", rp, this);
+        Preconditions.checkNotNull(value);
+
+        RP_Integer rpInt = (RP_Integer) rp;
+        Integer intValue = (Integer) value;
+
+        // Convert via the percentage value
+        double percentage = rpInt.calculatePercentage(intValue);
+        Integer res = calculateValue(percentage);
+        return res;
+    }
+
+    @Override
+    public String getDisplayValue(Integer value)
+    {
+        return value.toString();
     }
 }

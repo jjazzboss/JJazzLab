@@ -41,7 +41,7 @@ public interface DefaultRpViewerRendererFactory extends RpViewerRendererFactory
      */
     public enum Type
     {
-        METER, STRING, STRING_SET, PERCENTAGE
+        METER, STRING
     }
 
     /**

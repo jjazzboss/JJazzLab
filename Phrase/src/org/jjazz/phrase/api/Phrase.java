@@ -22,6 +22,7 @@
  */
 package org.jjazz.phrase.api;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -30,6 +31,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -43,12 +46,13 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.util.api.FloatRange;
+import org.jjazz.util.api.LongRange;
 
 /**
  * A list of NoteEvents sorted by start position.
  * <p>
  * Use addOrdered() to add a NoteEvent: this will ensure NoteEvents are kept ordered by position. Use of add() methods should be
- * used for optimization only and not change the NoteEvents order.
+ * used for optimization only when you are sure it will not change the NoteEvents order.
  * <p>
  * LinkedList implementation to speed up item insertion/remove rather than random access.
  */
@@ -109,9 +113,10 @@ public class Phrase extends LinkedList<NoteEvent>
      *
      * @param midiEvents MidiEvents which are not ShortMessage.Note_ON/OFF are ignored. Must be ordered by tick position.
      * @param posInBeatsOffset The position in natural beats of the first tick of the track.
+     * @param ignoreChannel If true, add also NoteEvents for MidiEvents which do not match this phrase channel.
      * @see MidiUtilities#getMidiEvents(javax.sound.midi.Track, java.util.function.Predicate, LongRange)
      */
-    public void add(List<MidiEvent> midiEvents, float posInBeatsOffset)
+    public void add(List<MidiEvent> midiEvents, float posInBeatsOffset, boolean ignoreChannel)
     {
 
         // Build the NoteEvents
@@ -128,6 +133,14 @@ public class Phrase extends LinkedList<NoteEvent>
 
             int pitch = sm.getData1();
             int velocity = sm.getData2();
+            int eventChannel = sm.getChannel();
+
+
+            if (!ignoreChannel && channel != eventChannel)
+            {
+                // Different channel, ignore
+                continue;
+            }
 
             if (sm.getCommand() == ShortMessage.NOTE_ON && velocity > 0)
             {
@@ -797,6 +810,33 @@ public class Phrase extends LinkedList<NoteEvent>
     }
 
     /**
+     * Compare the specified phrase with this phrase, but tolerate slight differences in position and duration.
+     *
+     *
+     * @param p
+     * @param beatWindow Used to compare NoteEvents position and duration.
+     * @return
+     * @see NoteEvent#equalsLoosePosition(org.jjazz.phrase.api.NoteEvent, float)
+     */
+    public boolean equalsLoosePosition(Phrase p, float beatWindow)
+    {
+        checkNotNull(p);
+        if (size() != p.size())
+        {
+            return false;
+        }
+        Iterator<NoteEvent> pIt = p.iterator();
+        for (NoteEvent ne : this)
+        {
+            if (!pIt.next().equalsLoosePosition(ne, beatWindow))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Save the specified Phrase as a string.
      * <p>
      * Example "[8|NoteEventStr0|NoteEventStr1]" means a Phrase for channel 8 with 2 NoteEvents.
@@ -854,7 +894,7 @@ public class Phrase extends LinkedList<NoteEvent>
             } catch (IllegalArgumentException ex)
             {
                 // Nothing
-                LOGGER.warning("loadAsString() Invalid string s=" + s+", ex="+ex.getMessage());
+                LOGGER.warning("loadAsString() Invalid string s=" + s + ", ex=" + ex.getMessage());
             }
 
         }
@@ -971,5 +1011,37 @@ public class Phrase extends LinkedList<NoteEvent>
         return p;
     }
 
+
+    /**
+     * Parse all tracks to build one phrase per used channel.
+     * <p>
+     * A track can use notes from different channels. Notes from a given channel can be on several tracks.
+     *
+     * @param tracks
+     * @return
+     */
+    static public List<Phrase> getPhrases(Track[] tracks)
+    {
+        Map<Integer, Phrase> mapRes = new HashMap<>();
+        for (Track track : tracks)
+        {
+            var trackEvents = MidiUtilities.getMidiEvents(track,
+                    ShortMessage.class,
+                    sm -> sm.getCommand() == ShortMessage.NOTE_OFF || sm.getCommand() == ShortMessage.NOTE_ON,
+                    null);
+            for (int channel : MidiUtilities.getUsedChannels(track))
+            {
+                Phrase p = mapRes.get(channel);
+                if (p == null)
+                {
+                    p = new Phrase(channel);
+                    mapRes.put(channel, p);
+                }
+                p.add(trackEvents, 0, false);
+            }
+        }
+
+        return new ArrayList<>(mapRes.values());
+    }
 
 }

@@ -22,6 +22,7 @@
  */
 package org.jjazz.phrase.api;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +54,8 @@ public class NoteEvent extends Note implements Cloneable
         {
             throw new IllegalArgumentException("posInBeats=" + posInBeats);   //NOI18N
         }
-        position = Note.roundForMusic(posInBeats);
+        // position = Note.roundForMusic(posInBeats);
+        position = posInBeats;
     }
 
     /**
@@ -215,6 +217,41 @@ public class NoteEvent extends Note implements Cloneable
         return new FloatRange(position, position + getDurationInBeats());
     }
 
+
+    /**
+     * Compare the specified NoteEvent with this NoteEvent, but tolerate slight differences in position and duration.
+     * <p>
+     * If the positions are equals +/- beatWindow, positions are considered equal. If the durations are equals +/- 2*beatWindow,
+     * durations are considered equal.
+     * <p>
+     * ClientProperties are ignored.
+     *
+     * @param ne
+     * @param beatWindow
+     * @return
+     */
+    public boolean equalsLoosePosition(NoteEvent ne, float beatWindow)
+    {
+        Preconditions.checkNotNull(ne);
+        if (ne.getPitch() != getPitch())
+        {
+            return false;
+        }
+        if (ne.getVelocity() != getVelocity())
+        {
+            return false;
+        }
+        if (ne.getPositionInBeats() < getPositionInBeats() - beatWindow || ne.getPositionInBeats() > getPositionInBeats() + beatWindow)
+        {
+            return false;
+        }
+        if (ne.getDurationInBeats() < getDurationInBeats() - 2 * beatWindow || ne.getDurationInBeats() > getDurationInBeats() + 2 * beatWindow)
+        {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Client properties are ignored.
      *
@@ -308,7 +345,7 @@ public class NoteEvent extends Note implements Cloneable
             } catch (IllegalArgumentException ex)
             {
                 // Nothing
-                LOGGER.warning("loadAsString() Invalid string s=" + s + ", ex="+ex.getMessage());
+                LOGGER.warning("loadAsString() Invalid string s=" + s + ", ex=" + ex.getMessage());
             }
         }
 

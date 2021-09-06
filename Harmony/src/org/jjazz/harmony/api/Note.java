@@ -135,11 +135,7 @@ public class Note implements Comparable<Note>, Cloneable
             throw new IllegalArgumentException("p=" + p + " bd=" + bd + " alt=" + alt + " v=" + v);   //NOI18N
         }
         pitch = p;
-        beatDuration = roundForMusic(bd);
-        if (beatDuration == 0)
-        {
-            beatDuration = 0.01f;   // Must be consistent with roundMusic()
-        }
+        beatDuration = bd;
         symbolicDuration = SymbolicDuration.getSymbolicDuration(beatDuration);;
         alterationDisplay = alt;
         velocity = v;
@@ -912,13 +908,13 @@ public class Note implements Comparable<Note>, Cloneable
      * @param oldValue
      * @return
      */
-    static public float roundForMusic(float oldValue)
-    {
-        float newValue = 100f * oldValue;
-        newValue = Math.round(newValue);
-        newValue = newValue / 100f;
-        return newValue;
-    }
+//    static public float roundForMusic(float oldValue)
+//    {
+//        float newValue = 100f * oldValue;
+//        newValue = Math.round(newValue);
+//        newValue = newValue / 100f;
+//        return newValue;
+//    }
 
     //----------------------------------------------------------------------------------------------
     // Private methods

@@ -243,29 +243,20 @@ public class SongPartImpl implements SongPart, Serializable
             throw new IllegalArgumentException("r=" + r + " newRhythm=" + newRhythm + " cliSection=" + cliSection);   //NOI18N
         }
 
+        
         SongPartImpl newSpt = new SongPartImpl(newRhythm, newStartBarIndex, newNbBars, cliSection);
         newSpt.setContainer(container);
         newSpt.setName(name);
 
+        
         // Update the values for compatible RhythmParameters
         for (RhythmParameter<?> newRp : newRhythm.getRhythmParameters())
         {
-            RhythmParameter crp = findCompatibleRP(newRp);
+            RhythmParameter crp = RhythmParameter.findFirstCompatibleRp(getRhythm().getRhythmParameters(), newRp);
             if (crp != null)
-            {
-                // rp can reuse existing crp value: try first using the RP string value, then use percentageValue 
-                Object crpValue = mapRpValue.getValue(crp);
-                Object newRpValue = null;
-                String crpStringValue = crp.valueToString(crpValue);
-                if (crpStringValue != null)
-                {
-                    newRpValue = newRp.stringToValue(crpStringValue);     // May return null
-                }
-                if (newRpValue == null && newRp instanceof RpEnumerable && crp instanceof RpEnumerable)
-                {
-                    double crpPercentageValue = ((RpEnumerable) crp).calculatePercentage(crpValue);
-                    newRpValue = ((RpEnumerable) newRp).calculateValue(crpPercentageValue);
-                }
+            {                
+                Object crpValue = getRPValue(crp);
+                Object newRpValue = newRp.convertValue(crp, crpValue);
                 if (newRpValue != null)
                 {
                     newSpt.mapRpValue.putValue(newRp, newRpValue);
@@ -384,25 +375,8 @@ public class SongPartImpl implements SongPart, Serializable
     // -------------------------------------------------------------------------------------------
     // Private methods
     // -------------------------------------------------------------------------------------------
-    /**
-     * Find the first RhythmParameter compatible with rp in this object's Rhythm.
-     * <p>
-     * Compatible = same name ignoring case and value has same class.
-     *
-     * @param rp
-     * @return Null if not found.
-     */
-    private RhythmParameter<?> findCompatibleRP(RhythmParameter<?> rp)
-    {
-        for (RhythmParameter<?> rpi : getRhythm().getRhythmParameters())
-        {
-            if (RhythmParameter.checkCompatibility(rp, rpi))
-            {
-                return rpi;
-            }
-        }
-        return null;
-    }
+ 
+    
 
     // --------------------------------------------------------------------- 
     // Serialization
@@ -464,7 +438,7 @@ public class SongPartImpl implements SongPart, Serializable
                 double percentage = rp instanceof RpEnumerable ? ((RpEnumerable) rp).calculatePercentage(value) : -1;
                 spMapRpIdPercentageValue.putValue(rp.getId(), percentage);
                 spMapRpIdDisplayName.putValue(rp.getId(), rp.getDisplayName());
-                String strValue = rp.valueToString(value);
+                String strValue = rp.saveAsString(value);
                 if (strValue != null)
                 {
                     spMapRpIdValue.putValue(rp.getId(), strValue);
@@ -520,7 +494,7 @@ public class SongPartImpl implements SongPart, Serializable
                     String savedRpStringValue = spMapRpIdValue.getValue(savedRpId);
                     if (savedRpStringValue != null)
                     {
-                        newValue = newRp.stringToValue(savedRpStringValue);      // newValue can still be null after this
+                        newValue = newRp.loadFromString(savedRpStringValue);      // newValue can still be null after this
                     }
                     if (newValue == null && newRp instanceof RpEnumerable)
                     {

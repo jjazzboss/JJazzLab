@@ -721,14 +721,14 @@ public class SongSequenceBuilder
 
             // Get the RP value and process each customized phrase
             RP_SYS_CustomPhraseValue rpValue = spt.getRPValue(rpCustomPhrase);
-            for (RhythmVoice rv : rpValue.getRhythmVoices())
+            for (RhythmVoice rv : rpValue.getCustomizedRhythmVoices())
             {
                 // Remove a slice for the current songpart            
                 Phrase p = rvPhrases.get(rv);
                 p.split(sptBeatRange, true, false);
                                 
                 // Get the custom phrase, starts at beat 0
-                Phrase pCustom = rpValue.getPhrase(rv); 
+                Phrase pCustom = rpValue.getCustomizedPhrase(rv); 
                 
                 // Make sure it's not too long (if song has changed after the customization)
                 pCustom.silenceAfter(sptBeatRange.size());

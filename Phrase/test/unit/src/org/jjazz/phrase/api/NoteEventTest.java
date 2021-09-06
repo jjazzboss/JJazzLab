@@ -78,7 +78,7 @@ public class NoteEventTest
         for (int i = 0; i < 50000000; i++)
         {
             float pos = (float) (Math.random() * 100f);
-            float dur = (float) (Math.random() * 4f)+0.0001f;
+            float dur = (float) (Math.random() * 4f) + 0.0001f;
 //        float pos = 9.861717f;
 //        float dur = 3.7923956f;
             //System.out.println("ORIGINAL: pos=" + pos + ", dur=" + dur);
@@ -92,12 +92,12 @@ public class NoteEventTest
             long tickOff = (long) ((ne1Pos + ne1Dur) * MidiConst.PPQ_RESOLUTION);
             //System.out.println("          tickOn=" + tickOn + ", tickOff=" + tickOff + ", tickDur=" + (tickOff - tickOn));
 
-            float newDur = ((float) tickOff - tickOn) / MidiConst.PPQ_RESOLUTION;
+            float newDur = ((float) tickOff - tickOn) / MidiConst.PPQ_RESOLUTION + 0.00001f;
             float newPos = ((float) tickOn / MidiConst.PPQ_RESOLUTION);
             // System.out.println("AFTER:  =>  newPos=" + newPos + " newDur=" + newDur);
             List<MidiEvent> midiEvents = ne1.toMidiEvents(0);
             Phrase p = new Phrase(0);
-            p.add(midiEvents, 0);
+            p.add(midiEvents, 0, true);
             NoteEvent ne2 = p.get(0);
             if (!ne1.equals(ne2))
             {

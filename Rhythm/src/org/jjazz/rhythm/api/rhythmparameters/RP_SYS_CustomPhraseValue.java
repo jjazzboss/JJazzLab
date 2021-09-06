@@ -1,11 +1,16 @@
 package org.jjazz.rhythm.api.rhythmparameters;
 
+import com.google.common.base.Joiner;
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -35,9 +40,9 @@ public class RP_SYS_CustomPhraseValue
     public RP_SYS_CustomPhraseValue(RP_SYS_CustomPhraseValue value)
     {
         this(value.getRhythm());
-        for (var rv : value.getRhythmVoices())
+        for (var rv : value.getCustomizedRhythmVoices())
         {
-            Phrase p = value.getPhrase(rv).clone();
+            Phrase p = value.getCustomizedPhrase(rv).clone();
             mapRvPhrase.put(rv, p);
         }
     }
@@ -98,9 +103,9 @@ public class RP_SYS_CustomPhraseValue
      * Get the custom phrase for the specified RhythmVoice.
      *
      * @param rv
-     * @return Can be null
+     * @return Null if no customized phrase for rv
      */
-    public Phrase getPhrase(RhythmVoice rv)
+    public Phrase getCustomizedPhrase(RhythmVoice rv)
     {
         return mapRvPhrase.get(rv);
     }
@@ -110,14 +115,23 @@ public class RP_SYS_CustomPhraseValue
      *
      * @return Empty if no custom phrase.
      */
-    public Set<RhythmVoice> getRhythmVoices()
+    public Set<RhythmVoice> getCustomizedRhythmVoices()
     {
-        return mapRvPhrase.keySet();
+        return new HashSet<>(mapRvPhrase.keySet());
     }
 
+    /**
+     * The list of RhythmVoice names sorted by preferred channel.
+     *
+     * @return
+     */
     public String toDescriptionString()
     {
-        return mapRvPhrase.keySet().toString();
+        List<String> strs = mapRvPhrase.keySet().stream()
+                .sorted(Comparator.comparingInt(RhythmVoice::getPreferredChannel))
+                .map(rv -> rv.getName())
+                .collect(Collectors.toList());
+        return Joiner.on(",").join(strs);
     }
 
     /**
@@ -133,9 +147,9 @@ public class RP_SYS_CustomPhraseValue
     {
         StringBuilder sb = new StringBuilder();
         boolean first = true;
-        for (RhythmVoice rv : v.getRhythmVoices())
+        for (RhythmVoice rv : v.getCustomizedRhythmVoices())
         {
-            Phrase p = v.getPhrase(rv);
+            Phrase p = v.getCustomizedPhrase(rv);
             sb.append(rv.getName())
                     .append("%")
                     .append(Phrase.saveAsString(p));

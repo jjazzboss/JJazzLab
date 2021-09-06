@@ -203,8 +203,6 @@ public class RP_SYS_DrumsMixValue
             }
             sb.append("OT:").append(percOffset);
         }
-        sb.insert(0, "[");
-        sb.append("]");
 
         return sb.toString();
     }

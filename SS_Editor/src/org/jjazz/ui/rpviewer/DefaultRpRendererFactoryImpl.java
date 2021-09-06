@@ -63,25 +63,7 @@ public class DefaultRpRendererFactoryImpl implements DefaultRpViewerRendererFact
                 renderer = new MeterRpRenderer();
                 break;
             case STRING:
-                renderer = new StringRpRenderer(rpValue -> rpValue.toString(), settings.getStringRpRendererSettings());
-                break;
-            case STRING_SET:
-                renderer = new StringRpRenderer(rpValue ->
-                {
-                    String res = rpValue.toString();
-                    return res.equals("[]") ? "" : res;
-                }, settings.getStringRpRendererSettings());
-                break;
-            case PERCENTAGE:
-                renderer = new StringRpRenderer(rpValue ->
-                {
-                    String res = rpValue.toString();
-                    if (res.isBlank())
-                    {
-                        return "";
-                    }
-                    return res + "%";
-                }, settings.getStringRpRendererSettings());
+                renderer = new StringRpRenderer(rpStrValue -> rpStrValue.toString(), settings.getStringRpRendererSettings());
                 break;
             default:
                 throw new AssertionError(type.name());
@@ -97,13 +79,13 @@ public class DefaultRpRendererFactoryImpl implements DefaultRpViewerRendererFact
 
         if (rp instanceof RP_SYS_TempoFactor)
         {
-            rpr = getRpViewerRenderer(Type.PERCENTAGE, settings);
+            rpr = getRpViewerRenderer(Type.STRING, settings);
         } else if (rp instanceof RP_Integer)
         {
             rpr = getRpViewerRenderer(Type.METER, settings);
         } else if (rp instanceof RP_StringSet)
         {
-            rpr = getRpViewerRenderer(Type.STRING_SET, settings);
+            rpr = getRpViewerRenderer(Type.STRING, settings);
         } else
         {
             rpr = getRpViewerRenderer(Type.STRING, settings);

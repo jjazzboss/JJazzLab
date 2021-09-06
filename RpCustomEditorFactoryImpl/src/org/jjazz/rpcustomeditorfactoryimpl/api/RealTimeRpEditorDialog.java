@@ -139,7 +139,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         fbtn_ok.requestFocusInWindow();
         tbtn_hear.setSelected(false);
         tbtn_compare.setSelected(false);
-        // tbtn_compare.setEnabled(false);
         String tt = ResUtil.getString(getClass(), "RealTimeRpEditorDialog.tbtn_compare.toolTipText") + ": " + rpValue.toString();
         tbtn_compare.setToolTipText(tt);
 
@@ -272,7 +271,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private String buildDefaultTitle(SongPart spt)
     {
         String strSongPart = ResUtil.getString(getClass(), "RealTimeRpEditorDialog.song_part");
-        return getRhythmParameter().getDisplayName() + " - " + strSongPart + " '" + spt.getName() + "'";
+        strSongPart += " \"" + spt.getName() + "\" - bars " + (spt.getBarRange().from + 1) + "..." + (spt.getBarRange().to + 1);
+        return getRhythmParameter().getDisplayName() + " - " + strSongPart;
     }
 
 
@@ -553,7 +553,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         {
             MusicController.getInstance().stop();
         }
-        // .setEnabled(tbtn_hear.isSelected());
     }//GEN-LAST:event_tbtn_hearActionPerformed
 
     private void tbtn_compareActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tbtn_compareActionPerformed

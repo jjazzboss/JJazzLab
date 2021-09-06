@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythm.api.rhythmparameters;
 
+import java.util.Set;
 import org.jjazz.rhythm.api.RP_Integer;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.util.api.ResUtil;
@@ -67,5 +68,11 @@ public final class RP_SYS_TempoFactor extends RP_Integer
             throw new NullPointerException("r");   //NOI18N
         }
         return r.getRhythmParameters().contains(INSTANCE) ? INSTANCE : null;
+    }
+
+    @Override
+    public String getDisplayValue(Integer value)
+    {
+        return value + "%";
     }
 }

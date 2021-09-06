@@ -1,5 +1,6 @@
 package org.jjazz.rhythm.api.rhythmparameters;
 
+import com.google.common.base.Preconditions;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -62,13 +63,13 @@ public class RP_SYS_DrumsMix implements RhythmParameter<RP_SYS_DrumsMixValue>
     }
 
     @Override
-    public String valueToString(RP_SYS_DrumsMixValue v)
+    public String saveAsString(RP_SYS_DrumsMixValue v)
     {
         return RP_SYS_DrumsMixValue.saveAsString(v);
     }
 
     @Override
-    public RP_SYS_DrumsMixValue stringToValue(String s)
+    public RP_SYS_DrumsMixValue loadFromString(String s)
     {
         return RP_SYS_DrumsMixValue.loadFromString(s);
     }
@@ -91,6 +92,26 @@ public class RP_SYS_DrumsMix implements RhythmParameter<RP_SYS_DrumsMixValue>
         return "RP_SYS_DrumsMix[rhythmVoice=" + rhythmVoice + "]";
     }
 
+    @Override
+    public boolean isCompatibleWith(RhythmParameter<?> rp)
+    {
+        return rp instanceof RP_SYS_DrumsMix && rp.getId().equals(getId());
+    }
+
+    @Override
+    public <T> RP_SYS_DrumsMixValue convertValue(RhythmParameter<T> rp, T value)
+    {
+        Preconditions.checkArgument(isCompatibleWith(rp), "rp=%s is not compatible with this=%s", rp, this);
+        Preconditions.checkNotNull(value);
+        return (RP_SYS_DrumsMixValue) value;
+    }
+
+    @Override
+    public String getDisplayValue(RP_SYS_DrumsMixValue value)
+    {
+        return value.toString();
+    }
+
     /**
      * Find the first RP_SYS_DrumsMix instance in the rhythm parameters of r.
      *
@@ -109,5 +130,7 @@ public class RP_SYS_DrumsMix implements RhythmParameter<RP_SYS_DrumsMixValue>
                 .findAny()
                 .orElse(null);
     }
+
+
 
 }

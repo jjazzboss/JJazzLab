@@ -84,11 +84,7 @@ public class RpValueCopyBuffer
         valueBuffer.clear();
         for (E value : values)
         {
-            // Clone the data
-            String s = rp.valueToString(value);
-            assert s != null : "rp=" + rp + " value=" + value;
-            E newValue = rp.stringToValue(s);
-            assert newValue != null : " rp=" + rp + " s=" + s;
+            E newValue = rp.cloneValue(value);
             valueBuffer.add(rp.cloneValue(value));
         }
         rhythmParameter = rp;

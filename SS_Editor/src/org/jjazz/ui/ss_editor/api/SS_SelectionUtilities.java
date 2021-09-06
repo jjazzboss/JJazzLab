@@ -172,7 +172,7 @@ final public class SS_SelectionUtilities
             {
                 isSameRhythm = false;
             }
-            if (!RhythmParameter.checkCompatibility(refRp, sptp.getRp()))
+            if (!sptp.getRp().isCompatibleWith(refRp))
             {
                 isRhythmParameterCompatible = false;
             }

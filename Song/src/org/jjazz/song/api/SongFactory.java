@@ -149,8 +149,11 @@ public class SongFactory implements PropertyChangeListener
         xstream.alias("Song", Song.class);
         // From 3.0 all public packages are renamed with api or spi somewhere in the path
         // Need package aliasing required to be able to load old sng/mix files
+        xstream.aliasPackage("org.jjazz.harmony.api", "org.jjazz.harmony.api"); // Make sure new package name is not replaced by next alias
         xstream.aliasPackage("org.jjazz.harmony", "org.jjazz.harmony.api");
+        xstream.aliasPackage("org.jjazz.midi.api", "org.jjazz.midi.api");   // Make sure new package name is not replaced by next alias
         xstream.aliasPackage("org.jjazz.midi", "org.jjazz.midi.api");
+        xstream.aliasPackage("org.jjazz.midimix.api", "org.jjazz.midimix.api");   // Make sure new package name is not replaced by next alias
         xstream.aliasPackage("org.jjazz.midimix", "org.jjazz.midimix.api");
 
 

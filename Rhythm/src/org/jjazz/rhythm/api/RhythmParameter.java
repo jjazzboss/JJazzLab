@@ -38,38 +38,19 @@ import java.util.List;
 public interface RhythmParameter<E>
 {
 
-    /**
-     * Helper method to check compatibility of 2 Rps.
-     *
-     * @param <T>
-     * @param <S>
-     * @param rp1
-     * @param rp2
-     * @return True if Rps have the same id, or the same DisplayName (ignoring case) with the same value class.
-     */
-    static public <T, S> boolean checkCompatibility(RhythmParameter<T> rp1, RhythmParameter<S> rp2)
-    {
-        return rp1.getId().equals(rp2.getId())
-                || (rp1.getDisplayName().equalsIgnoreCase(rp2.getDisplayName()) && rp1.getDefaultValue().getClass() == rp2.getDefaultValue().getClass());
-    }
 
     /**
-     * Return the first compatible RhythmParameter in rps compatible with rp.
+     * Return the first RhythmParameter in rps compatible with rp.
      *
      * @param rps
      * @param rp
-     * @return Can be null.
+     * @return Null if no compatible RhythmParameter found
      */
     static public RhythmParameter<?> findFirstCompatibleRp(List<? extends RhythmParameter<?>> rps, RhythmParameter<?> rp)
     {
-        for (RhythmParameter<?> rpi : rps)
-        {
-            if (checkCompatibility(rp, rpi))
-            {
-                return rpi;
-            }
-        }
-        return null;
+        return rps.stream()
+                .filter(rpi -> rpi.isCompatibleWith(rp))
+                .findFirst().orElse(null);
     }
 
     /**
@@ -82,12 +63,21 @@ public interface RhythmParameter<E>
      */
     String getDisplayName();
 
+
     /**
      * The description of this rhythm parameter.
      *
      * @return
      */
     String getDescription();
+
+    /**
+     * Get a short String representation of the value.
+     *
+     * @param value
+     * @return Can be an empty String.
+     */
+    String getDisplayValue(E value);
 
     /**
      * Provide an optional description or help text associated to the specified value.
@@ -107,16 +97,18 @@ public interface RhythmParameter<E>
      *
      * @param value
      * @return Can be null if value is invalid or RhytmParameter does not have this capability.
+     * @see loadFromString(String)
      */
-    String valueToString(E value);
+    String saveAsString(E value);
 
     /**
      * Try to convert the specified string to a RhythmParameter value.
      *
      * @param s A string produced by valueToString().
      * @return Can be null if conversion failed.
+     * @see saveAsString(E)
      */
-    E stringToValue(String s);
+    E loadFromString(String s);
 
     /**
      * @param value
@@ -137,5 +129,27 @@ public interface RhythmParameter<E>
     {
         return value;
     }
+
+    /**
+     * Indicate if rp is compatible with this RhythmParameter.
+     * <p>
+     * NOTE: if rp1 is compatible with rp2, then rp2 must be compatible with rp1 as well.
+     *
+     * @param rp
+     * @return True if a rp's value can be converted to a value for this RhythmParameter.
+     */
+    boolean isCompatibleWith(RhythmParameter<?> rp);
+
+
+    /**
+     * Convert the value of a compatible RhythmParameter to a value for this RhythmParameter.
+     *
+     * @param <T> A RhythmParameter value
+     * @param rp A compatible RhythmParameter
+     * @param value The value to convert
+     * @return The value converted for this RhythmParameter. Can't be null.
+     * @throws IllegalArgumentException If rp is not a compatible with this RhythmParameter.
+     */
+    <T> E convertValue(RhythmParameter<T> rp, T value);
 
 }

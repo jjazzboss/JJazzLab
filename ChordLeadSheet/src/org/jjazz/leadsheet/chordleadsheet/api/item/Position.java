@@ -84,7 +84,7 @@ public final class Position implements Comparable<Position>, Serializable
             throw new IllegalArgumentException("b=" + beat + " bar=" + bar);   //NOI18N
         }
         this.bar = bar;
-        this.beat = Note.roundForMusic(beat);
+        this.beat = beat;
     }
 
     public void setBeat(float beat)
@@ -94,7 +94,8 @@ public final class Position implements Comparable<Position>, Serializable
             throw new IllegalArgumentException("beat=" + beat);   //NOI18N
         }
         float old = this.beat;
-        this.beat = Note.roundForMusic(beat);
+//        this.beat = Note.roundForMusic(beat);
+        this.beat = beat;
         pcs.firePropertyChange(PROP_BEAT, old, this.beat);
 
     }
