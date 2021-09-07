@@ -2,6 +2,7 @@ package org.jjazz.rhythm.api.rhythmparameters;
 
 import com.google.common.base.Joiner;
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.text.ParseException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,9 +12,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.openide.util.Exceptions;
 
 /**
  * A RhythmParameter to replace one or more RhythmVoice phrases by custom phrases.
@@ -22,7 +26,7 @@ public class RP_SYS_CustomPhraseValue
 {
 
     private Rhythm rhythm;
-    private Map<RhythmVoice, Phrase> mapRvPhrase = new HashMap<>();
+    private Map<RhythmVoice, SptPhrase> mapRvPhrase = new HashMap<>();
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhraseValue.class.getSimpleName());
 
 
@@ -42,7 +46,7 @@ public class RP_SYS_CustomPhraseValue
         this(value.getRhythm());
         for (var rv : value.getCustomizedRhythmVoices())
         {
-            Phrase p = value.getCustomizedPhrase(rv).clone();
+            SptPhrase p = (SptPhrase) value.getCustomizedPhrase(rv).clone();
             mapRvPhrase.put(rv, p);
         }
     }
@@ -53,22 +57,22 @@ public class RP_SYS_CustomPhraseValue
      * <p>
      * If a phrase was already associated for rv, it is replaced.
      * <p>
-     * NOTE: Phrases are not deeply cloned.
+     * NOTE: Phrases are not cloned.
      *
      * @param rv It must be a RhythmVoice from our rhythm.
-     * @param p
+     * @param sp
      * @return
      */
-    public RP_SYS_CustomPhraseValue getCopyPlus(RhythmVoice rv, Phrase p)
+    public RP_SYS_CustomPhraseValue getCopyPlus(RhythmVoice rv, SptPhrase sp)
     {
-        checkNotNull(p);
+        checkNotNull(sp);
         if (!rhythm.getRhythmVoices().contains(rv))
         {
-            throw new IllegalArgumentException("rhythm=" + rhythm + " rv=" + rv + " p=" + p);
+            throw new IllegalArgumentException("rhythm=" + rhythm + " rv=" + rv + " sp=" + sp);
         }
         RP_SYS_CustomPhraseValue res = new RP_SYS_CustomPhraseValue(rhythm);
-        res.mapRvPhrase = (Map<RhythmVoice, Phrase>) ((HashMap) mapRvPhrase).clone();
-        res.mapRvPhrase.put(rv, p);
+        res.mapRvPhrase = (Map<RhythmVoice, SptPhrase>) ((HashMap) mapRvPhrase).clone();
+        res.mapRvPhrase.put(rv, sp);
         return res;
 
     }
@@ -76,7 +80,7 @@ public class RP_SYS_CustomPhraseValue
     /**
      * Create a shallow copy of this RP value with a phrase removed for the specified RhythmVoice.
      * <p>
-     * NOTE: Phrases are not deeply cloned.
+     * NOTE: Phrases are not cloned.
      *
      * @param minusRv
      * @return
@@ -84,7 +88,8 @@ public class RP_SYS_CustomPhraseValue
     public RP_SYS_CustomPhraseValue getCopyMinus(RhythmVoice minusRv)
     {
         RP_SYS_CustomPhraseValue res = new RP_SYS_CustomPhraseValue(rhythm);
-        res.mapRvPhrase = (Map<RhythmVoice, Phrase>) ((HashMap) mapRvPhrase).clone();
+//        res.mapRvPhrase = (Map<RhythmVoice, SptPhrase>) ((HashMap) mapRvPhrase).clone();
+        res.mapRvPhrase = (Map<RhythmVoice, SptPhrase>) ((HashMap) mapRvPhrase).clone();
         res.mapRvPhrase.remove(minusRv);
         return res;
     }
@@ -100,14 +105,14 @@ public class RP_SYS_CustomPhraseValue
     }
 
     /**
-     * Get the custom phrase for the specified RhythmVoice.
+     * Get a copy of the custom phrase for the specified RhythmVoice.
      *
      * @param rv
      * @return Null if no customized phrase for rv
      */
-    public Phrase getCustomizedPhrase(RhythmVoice rv)
+    public SptPhrase getCustomizedPhrase(RhythmVoice rv)
     {
-        return mapRvPhrase.get(rv);
+        return mapRvPhrase.get(rv).clone();
     }
 
     /**
@@ -195,7 +200,7 @@ public class RP_SYS_CustomPhraseValue
                         break;
                     }
 
-                    Phrase p = Phrase.loadAsString(strs2[1]);
+                    SptPhrase p = SptPhrase.loadAsString(strs2[1]);
                     res.mapRvPhrase.put(rv, p);
 
                 } catch (IllegalArgumentException ex)
@@ -258,6 +263,141 @@ public class RP_SYS_CustomPhraseValue
     }
 
     // ===================================================================================
+    // public  classes
+    // ===================================================================================  
+    /**
+     * A phrase with 2 additional fields.
+     */
+    static public class SptPhrase extends Phrase
+    {
+
+        private float sizeInBeats;
+        private TimeSignature timeSignature;
+
+        public SptPhrase(int channel, float nbBeats, TimeSignature ts)
+        {
+            super(channel);
+            sizeInBeats = nbBeats;
+            timeSignature = ts;
+        }
+
+        public SptPhrase(Phrase p, float nbBeats, TimeSignature ts)
+        {
+            super(p.getChannel());
+            add(p);
+            sizeInBeats = nbBeats;
+            timeSignature = ts;
+        }
+
+
+        @Override
+        public SptPhrase clone()
+        {
+            Phrase p = super.clone();
+            return new SptPhrase(p, getSizeInBeats(), getTimeSignature());
+        }
+
+        /**
+         * @return the sizeInBeats
+         */
+        public float getSizeInBeats()
+        {
+            return sizeInBeats;
+        }
+
+        /**
+         * @return the timeSignature
+         */
+        public TimeSignature getTimeSignature()
+        {
+            return timeSignature;
+        }
+
+
+        /**
+         * Save the specified SptPhrase as a string.
+         * <p>
+         * Example "[8|12|4/4|NoteEventStr0|NoteEventStr1]" means a Phrase for channel 8, size=12 natural beats, in 4/4, with 2
+         * NoteEvents.
+         *
+         * @param sp
+         * @return
+         * @see loadAsString(String)
+         */
+        static public String saveAsString(SptPhrase sp)
+        {
+            StringBuilder sb = new StringBuilder();
+            String delimiter = "|";
+            sb.append("[");
+            sb.append(sp.getChannel()).append(delimiter);
+            sb.append(sp.getSizeInBeats()).append(delimiter);
+            sb.append(sp.getTimeSignature()).append(delimiter);
+            boolean first = true;
+            for (NoteEvent ne : sp)
+            {
+                if (first)
+                {
+                    first = false;
+                } else
+                {
+                    sb.append(delimiter);
+                }
+                sb.append(NoteEvent.saveAsString(ne));
+            }
+            sb.append("]");
+            return sb.toString();
+        }
+
+        /**
+         * Create a SptPhrase from the specified string.
+         * <p>
+         *
+         * @param s
+         * @return
+         * @throws IllegalArgumentException If s is not a valid string.
+         * @see saveAsString(SptPhrase)
+         */
+        static public SptPhrase loadAsString(String s) throws IllegalArgumentException
+        {
+            SptPhrase sp = null;
+            if (s.length() >= 10 && s.charAt(0) == '[' && s.charAt(s.length() - 1) == ']')    // minimum string is e.g. [2|1|4/4|]
+            {
+                String[] strs = s.substring(1, s.length() - 1).split("\\|");
+                if (strs.length >= 3)
+                {
+                    try
+                    {
+                        int channel = Integer.parseInt(strs[0]);
+                        float sizeInBeats = Float.parseFloat(strs[1]);
+                        TimeSignature ts = TimeSignature.parse(strs[2]);
+                        sp = new SptPhrase(channel, sizeInBeats, ts);
+                        for (int i = 3; i < strs.length; i++)
+                        {
+                            NoteEvent ne = NoteEvent.loadAsString(strs[i]);
+                            sp.addOrdered(ne);
+                        }
+                    } catch (IllegalArgumentException | ParseException ex)
+                    {
+                        // Nothing
+                        LOGGER.warning("loadAsString() Invalid string s=" + s + ", ex=" + ex.getMessage());
+                    }
+                }
+            }
+
+            if (sp == null)
+            {
+                throw new IllegalArgumentException("loadAsString() Invalid SptPhrase string s=" + s);
+            }
+            return sp;
+        }
+
+    }
+    // ===================================================================================
     // Private methods
-    // ===================================================================================    
+    // ===================================================================================   
+    // ===================================================================================
+    // Private classes
+    // ===================================================================================   
+
+
 }

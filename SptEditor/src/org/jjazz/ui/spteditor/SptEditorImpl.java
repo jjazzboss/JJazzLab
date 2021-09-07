@@ -26,7 +26,6 @@ import org.jjazz.ui.spteditor.api.RpEditor;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -37,8 +36,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.JTable;
-import javax.swing.KeyStroke;
 import org.jjazz.leadsheet.chordleadsheet.api.Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -62,8 +59,6 @@ import org.jjazz.util.api.ResUtil;
 import org.jjazz.ui.spteditor.spi.RpEditorComponentFactory;
 import org.jjazz.ui.spteditor.spi.DefaultRpEditorComponentFactory;
 import org.jjazz.ui.spteditor.spi.RpEditorComponent;
-import static org.jjazz.ui.utilities.api.Utilities.getGenericControlKeyStroke;
-import org.openide.awt.Actions;
 
 public class SptEditorImpl extends SptEditor implements PropertyChangeListener
 {
@@ -122,8 +117,8 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         songLkpResult = context.lookupResult(Song.class);
         songLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, songLkpListener, songLkpResult));
         songPresenceChanged();
-        
-        
+
+
     }
 
     @Override
@@ -494,10 +489,16 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         // Update the labels
         lbl_ParentSection.setText(getParentSectionText(spt0));
         int spt0index = songModel.getSongStructure().getSongParts().indexOf(spt0) + 1;
-        String sptText = ResUtil.getString(getClass(), "CTL_SongParts") + " #" + spt0index;
-        if (songParts.size() > 1)
+        int sptLastIndex = songModel.getSongStructure().getSongParts().indexOf(songParts.get(songParts.size() - 1)) + 1;
+        if (spt0index > sptLastIndex)
         {
-            int sptLastIndex = songModel.getSongStructure().getSongParts().indexOf(songParts.get(songParts.size() - 1)) + 1;
+            int tmp = spt0index;
+            spt0index = sptLastIndex;
+            sptLastIndex = tmp;
+        }
+        String sptText = ResUtil.getString(getClass(), "CTL_SongParts") + " #" + spt0index;
+        if (sptLastIndex > spt0index)
+        {
             sptText += "...#" + sptLastIndex;
         }
         lbl_SptSelection.setText(sptText);

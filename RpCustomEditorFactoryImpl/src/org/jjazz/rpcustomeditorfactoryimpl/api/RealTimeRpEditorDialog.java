@@ -77,7 +77,7 @@ import org.openide.util.Exceptions;
 public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements PropertyChangeListener
 {
 
-    public static final int DEFAULT_PREVIEW_MAX_NB_BARS = 4;
+    public static final int DEFAULT_PREVIEW_MAX_NB_BARS = 64;
     public static final int DEFAULT_POST_UPDATE_SLEEP_TIME_MS = 100;
     private int previewMaxNbBars = DEFAULT_PREVIEW_MAX_NB_BARS;
     private int postUpdateSleepTime = DEFAULT_POST_UPDATE_SLEEP_TIME_MS;
@@ -133,12 +133,13 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
         // Reset UI
         editor.setEnabled(true);
+        fbtn_reset.setEnabled(true);
         editor.preset(rpValue, sgContext);
         String title = editor.getTitle();
         setTitle(title == null ? buildDefaultTitle(spt0) : title);
         fbtn_ok.requestFocusInWindow();
         tbtn_hear.setSelected(false);
-        tbtn_compare.setSelected(false);
+        tbtn_compare.setSelected(false);        
         String tt = ResUtil.getString(getClass(), "RealTimeRpEditorDialog.tbtn_compare.toolTipText") + ": " + rpValue.toString();
         tbtn_compare.setToolTipText(tt);
 
@@ -573,6 +574,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         {
             sendRpValueToThread(editor.getEditedRpValue());
         }
+        fbtn_reset.setEnabled(!tbtn_compare.isSelected());
 
     }//GEN-LAST:event_tbtn_compareActionPerformed
 

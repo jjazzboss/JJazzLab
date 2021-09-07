@@ -59,6 +59,7 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue.SptPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMix;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMixValue;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
@@ -434,6 +435,7 @@ public class SongSequenceBuilder
         // Handle the RP_SYS_CustomPhrase changes
         processCustomPhrases(songContext, res);
 
+
         // Merge the phrases from delegate RhythmVoices to the source phrase, and remove the delegate phrases            
         for (var it = res.keySet().iterator(); it.hasNext();)
         {
@@ -709,7 +711,7 @@ public class SongSequenceBuilder
         for (SongPart spt : context.getSongParts())
         {
             FloatRange sptBeatRange = context.getSptBeatRange(spt);
-            
+
             // Get the RhythmParameter
             Rhythm r = spt.getRhythm();
             RP_SYS_CustomPhrase rpCustomPhrase = RP_SYS_CustomPhrase.getCustomPhraseRp(r);
@@ -723,21 +725,50 @@ public class SongSequenceBuilder
             RP_SYS_CustomPhraseValue rpValue = spt.getRPValue(rpCustomPhrase);
             for (RhythmVoice rv : rpValue.getCustomizedRhythmVoices())
             {
+                
                 // Remove a slice for the current songpart            
                 Phrase p = rvPhrases.get(rv);
                 p.split(sptBeatRange, true, false);
-                                
+
+                
                 // Get the custom phrase, starts at beat 0
-                Phrase pCustom = rpValue.getCustomizedPhrase(rv); 
+                SptPhrase spCustom = rpValue.getCustomizedPhrase(rv);
+                float sizeInBeats = spCustom.getSizeInBeats();
+                TimeSignature ts = spCustom.getTimeSignature();
+
                 
-                // Make sure it's not too long (if song has changed after the customization)
-                pCustom.silenceAfter(sptBeatRange.size());
+                // If custom phrase is at least one bar shorter than current song part, duplicate the custom phrase to fill the remaining space
+                if (sizeInBeats <= sptBeatRange.size() - ts.getNbNaturalBeats())
+                {
+                    float offset = sizeInBeats;
+                    List<NoteEvent> toAdd = new ArrayList<>();
+                    while (offset < sptBeatRange.size())
+                    {
+                        for (NoteEvent ne: spCustom)
+                        {
+                            float newPosInBeats = ne.getPositionInBeats() + offset;
+                            if (newPosInBeats >= sptBeatRange.size())
+                            {
+                                break;
+                            }
+                            toAdd.add(new NoteEvent(ne, ne.getDurationInBeats(), newPosInBeats));
+                        }
+                        offset += sizeInBeats;
+                    }
+                    
+                    toAdd.forEach(ne -> spCustom.add(ne));  // No need for addOrdered() here
+                }
+
                 
+                // Make sure it's not too long 
+                spCustom.silenceAfter(sptBeatRange.size());
+
+
                 // Shift to fit the current song part position
-                pCustom.shiftEvents(sptBeatRange.from);
-                
+                spCustom.shiftEvents(sptBeatRange.from);
+
                 // Update the current phrase
-                p.add(pCustom);
+                p.add(spCustom);
             }
         }
     }

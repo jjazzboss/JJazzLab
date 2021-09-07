@@ -45,6 +45,7 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue.SptPhrase;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder.SongSequence;
 import org.jjazz.song.api.Song;
@@ -241,9 +242,9 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         mapRvPhrase = map;
     }
 
-    private void addCustomizedPhrase(RhythmVoice rv, Phrase p)
+    private void addCustomizedPhrase(RhythmVoice rv, SptPhrase sp)
     {
-        uiValue = uiValue.getCopyPlus(rv, p);
+        uiValue = uiValue.getCopyPlus(rv, sp);
         fireUiValueChanged();
         forceListRepaint();
     }
@@ -368,7 +369,8 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
                 if (!pNew.equalsLoosePosition(pOld, PHRASE_COMPARE_BEAT_WINDOW))
                 {
                     // LOGGER.info("importMidiFile() setting custom phrase for rv=" + rv);
-                    addCustomizedPhrase(rv, pNew);
+                    SptPhrase sp = new SptPhrase(pNew, songContext.getBeatRange().size(), songPart.getRhythm().getTimeSignature());
+                    addCustomizedPhrase(rv, sp);
                     impactedRvs.add(rv);
                 }
             }

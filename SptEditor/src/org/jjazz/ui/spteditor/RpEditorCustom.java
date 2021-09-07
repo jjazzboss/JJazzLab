@@ -92,8 +92,16 @@ public class RpEditorCustom extends RpEditorComponent
     public void updateEditorValue(Object value)
     {
         this.value = value;
-        btn_edit.setText(Utilities.truncateWithDots(value.toString(), 30));
-        btn_edit.setToolTipText(rp.getValueDescription(value) + " - Click to edit");
+        String strValue = rp.getDisplayValue(value);
+        strValue = Utilities.truncateWithDots(strValue, 20);
+        if (strValue.isBlank())
+        {
+            strValue = "edit";   
+        }
+        btn_edit.setText(strValue);
+        String strDesc = rp.getValueDescription(value);
+        strDesc = strDesc == null ? "" : strDesc + " - ";
+        btn_edit.setToolTipText(strDesc + "Click to edit");
     }
 
     public Song getSongModel()
@@ -128,12 +136,12 @@ public class RpEditorCustom extends RpEditorComponent
         Rectangle r = btn_edit.getBounds();
         Point p = r.getLocation();
         SwingUtilities.convertPointToScreen(p, btn_edit.getParent());
-        int x =  p.x + r.width + 10;
+        int x = p.x + r.width + 10;
         int y = Math.max(2, p.y + r.height / 2 - dlgEditor.getHeight() / 2);
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         x = Math.min(x, screen.width - dlgEditor.getWidth());
         y = Math.min(y, screen.height - dlgEditor.getHeight());
-        Point pd = new Point(x,y);        
+        Point pd = new Point(x, y);
         SwingUtilities.convertPointFromScreen(pd, dlgEditor.getParent());
         dlgEditor.setLocation(x, y);
         dlgEditor.setVisible(true);

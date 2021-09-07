@@ -32,6 +32,7 @@ import java.beans.PropertyChangeListener;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Vector;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -483,6 +484,8 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
 
     private void updateComboModel()
     {
+        LOGGER.fine("updateComboModel() -- ");
+
         // Disable listening while updating the model
         cmb_srcChannel.removeActionListener(this);
 
@@ -502,6 +505,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
                 lastSelection = element;
             }
         }
+        LOGGER.log(Level.FINE, "updateComboModel() data={0}", data);
         cmb_srcChannel.setModel(new DefaultComboBoxModel<>(data));
         cmb_srcChannel.setPrototypeDisplayValue(new ComboChannelElement(null, 0));
 
