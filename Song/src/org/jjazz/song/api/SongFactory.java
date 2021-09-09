@@ -310,7 +310,7 @@ public class SongFactory implements PropertyChangeListener
      * Return a deep copy of the specified song.
      * <p>
      * Copy only the following variables: chordleadsheet, songStructure, name, tempo, comments, tags<br>
-     * Listeners or file are NOT copied. Created song is registered.
+     * Listeners or file are NOT copied. 
      *
      * @param song
      * @param register If true register the created song
@@ -387,7 +387,6 @@ public class SongFactory implements PropertyChangeListener
      * WARNING: Because SongStructure and ChordLeadsheet are not linked, changing them might result in inconsistent states. This
      * should be used only in special cases.<p>
      * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags. Listeners or file are NOT copied.
-     * Created song is registered.
      *
      * @param song
      * @param register If true register the created song.

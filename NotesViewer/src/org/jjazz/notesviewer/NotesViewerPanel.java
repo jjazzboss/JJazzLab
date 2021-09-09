@@ -41,6 +41,7 @@ import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.ToolTipManager;
 import javax.swing.border.Border;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -85,6 +86,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     private final Font chordSymbolFont;
     private HashMap<NotesViewer, FlatButton> mapViewerButton = new HashMap<>();
     private CL_ContextActionSupport cap;
+    private int saveInitalTooltipDelay = 500;
 
     private static final Logger LOGGER = Logger.getLogger(NotesViewerPanel.class.getSimpleName());
 
@@ -517,6 +519,10 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         if (lastSelection != null)
         {
             cmb_srcChannel.setSelectedItem(lastSelection);       // This will fire a action event so channelChanged() will be called
+        } else
+        {
+            // First time use of the panel
+            channelChanged();                   
         }
 
     }

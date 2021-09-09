@@ -36,7 +36,7 @@ public class Chord implements Cloneable
     /**
      * The notes of the chord
      */
-    private ArrayList<Note> notes = new ArrayList<>();
+    private List<Note> notes = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(Chord.class.getName());
 
     public Chord()
@@ -60,6 +60,8 @@ public class Chord implements Cloneable
      * Add a Note to the chord.
      * <p>
      * Nothing is done if note's pitch is already present. Notes are kept ordered by pitch.
+     *
+     * @param note
      */
     public void add(Note note)
     {
