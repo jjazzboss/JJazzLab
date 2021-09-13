@@ -25,13 +25,22 @@ package org.jjazz.arranger;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.Receiver;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Transmitter;
 import org.jjazz.activesong.api.ActiveSongManager;
+import org.jjazz.harmony.api.ChordSymbol;
+import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
 import org.jjazz.uisettings.api.GeneralUISettings;
+import org.openide.util.Exceptions;
 
 /**
  *
@@ -41,7 +50,9 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
 {
 
     private Font chordSymbolFont;
-    ArrangerController controller;
+    private ArrangerController controller;
+    private Transmitter transmitter;
+    private Arranger arranger;
     private Song song;
     private MidiMix midiMix;
 
@@ -53,18 +64,27 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         // Used by initComponents
         chordSymbolFont = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(Font.BOLD, 16f);
         initComponents();
-        
-        this.controller = controller;        
+
+        this.controller = controller;
+
     }
 
     public void closing()
     {
-
+        if (transmitter != null)
+        {
+            transmitter.close();
+        }
     }
 
     public void opened()
     {
-
+        if (transmitter != null)
+        {
+            transmitter.close();
+        }
+        transmitter = JJazzMidiSystem.getInstance().getJJazzMidiInDevice().getTransmitter();
+        transmitter.setReceiver(new PianoReceiver());
     }
 
     @Override
@@ -77,9 +97,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         kbdComponent.setEnabled(b);
     }
 
-   
-    
-    
+
     // ================================================================================    
     // Private methods
     // ================================================================================    
@@ -87,13 +105,31 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     {
         if (tbtn_playPause.isSelected())
         {
+            if (arranger != null)
+            {
+                arranger.removePropertyListener(this);
+                arranger.cleanup();
+            }
 
+            Song activeSong = ActiveSongManager.getInstance().getActiveSong();
+            MidiMix mm = ActiveSongManager.getInstance().getActiveMidiMix();
+            assert activeSong != null && mm != null : "activeSong=" + activeSong + " mm=" + mm;
+            SongContext sgContext = new SongContext(activeSong, mm);
+            arranger = new Arranger(sgContext);
+            arranger.addPropertyListener(this);
+            try
+            {
+                arranger.play();
+            } catch (MusicGenerationException ex)
+            {
+                Exceptions.printStackTrace(ex);
+            }
         } else
         {
-
+            arranger.stop();
         }
     }
-    
+
     /**
      *
      * @param sg Can be null
@@ -109,7 +145,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
 
         }
     }
-    
+
 
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
@@ -210,4 +246,61 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     private javax.swing.JLabel lbl_songPart;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_playPause;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == arranger)
+        {
+            if (evt.getPropertyName().equals(Arranger.PROP_CHORD_SYMBOL))
+            {
+                ChordSymbol cs = (ChordSymbol) evt.getNewValue();
+                lbl_chordSymbol.setText(cs.getName());
+                
+            } else if (evt.getPropertyName().equals(Arranger.PROP_PLAYING))
+            {
+
+            }
+        }
+    }
+
+
+    // ================================================================================    
+    // Private classes
+    // ================================================================================ 
+    private class PianoReceiver implements Receiver
+    {
+
+        @Override
+        public void send(MidiMessage msg, long timeStamp)
+        {
+            if (!ArrangerPanel.this.isShowing())        // But might be showing AND hidden behind another TopComponent
+            {
+                return;
+            }
+
+            ShortMessage noteMsg = MidiUtilities.getNoteOnMidiEvent(msg);
+            if (noteMsg != null)
+            {
+                // Note ON
+                int pitch = noteMsg.getData1();
+                int velocity = noteMsg.getData2();
+
+                kbdComponent.setPressed(pitch, velocity, null);
+
+            } else if ((noteMsg = MidiUtilities.getNoteOffMidiEvent(msg)) != null)
+            {
+                // Note OFF
+                int pitch = noteMsg.getData1();
+                kbdComponent.setReleased(pitch);
+            }
+        }
+
+        @Override
+        public void close()
+        {
+            // Nothing
+        }
+
+    }
 }

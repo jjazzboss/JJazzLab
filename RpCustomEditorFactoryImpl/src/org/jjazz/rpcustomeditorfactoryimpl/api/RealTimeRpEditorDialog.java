@@ -30,12 +30,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequencer;
 import javax.swing.AbstractAction;
@@ -47,10 +41,8 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
-import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
-import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
-import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession.Update;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
@@ -61,7 +53,6 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.rpviewer.spi.RpCustomEditor;
 import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
-import org.jjazz.util.api.Utilities;
 import org.openide.*;
 import org.openide.util.Exceptions;
 
@@ -78,16 +69,13 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 {
 
     public static final int DEFAULT_PREVIEW_MAX_NB_BARS = 64;
-    public static final int DEFAULT_POST_UPDATE_SLEEP_TIME_MS = 100;
     private int previewMaxNbBars = DEFAULT_PREVIEW_MAX_NB_BARS;
-    private int postUpdateSleepTime = DEFAULT_POST_UPDATE_SLEEP_TIME_MS;
     private final RealTimeRpEditorComponent<E> editor;
     private boolean exitOk;
     private UpdatableSongSession session;
     private SongContext songContextOriginal;
+    private SongContext previewContext;
     private E rpValueOriginal;
-    private Queue<E> queue;
-    private RpValueChangesHandlingTask rpValueChangesHandlingTask;
     private E saveRpValue;
     private GlobalKeyActionListener globalKeyListener;
     private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());  //NOI18N
@@ -99,7 +87,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         setResizable(editor.isResizable());
 
         initComponents();
-
 
         pnl_editor.add(editor, BorderLayout.CENTER);
         pack();
@@ -139,7 +126,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         setTitle(title == null ? buildDefaultTitle(spt0) : title);
         fbtn_ok.requestFocusInWindow();
         tbtn_hear.setSelected(false);
-        tbtn_compare.setSelected(false);        
+        tbtn_compare.setSelected(false);
         String tt = ResUtil.getString(getClass(), "RealTimeRpEditorDialog.tbtn_compare.toolTipText") + ": " + rpValue.toString();
         tbtn_compare.setToolTipText(tt);
 
@@ -191,30 +178,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         this.previewMaxNbBars = previewMaxNbBars;
     }
 
-    /**
-     * Get the sleep time (in milliseconds) added after a sequence update in order to avoid too many sequence changes in a short
-     * period of time.
-     * <p>
-     * An update on a given track stops ringing notes on that track, so very frequent changes should be avoided when possible.
-     * <p>
-     */
-    public int getPostUpdateSleepTime()
-    {
-        return postUpdateSleepTime;
-    }
-
-    /**
-     * Get the sleep time added after an update to avoid too many close sequence changes.
-     * <p>
-     * Track changes stop ringing notes on that track, so very frequent changes should be avoided when possible.
-     *
-     * @param postUpdateSleepTime In milliseconds
-     */
-    public void setPostUpdateSleepTime(int postUpdateSleepTime)
-    {
-        this.postUpdateSleepTime = postUpdateSleepTime;
-    }
-
     // ======================================================================================
     // PropertyChangeListener interface
     // ======================================================================================
@@ -226,8 +189,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
             LOGGER.fine("propertyChange() evt=" + evt);
             if (tbtn_hear.isSelected() && !tbtn_compare.isSelected())
             {
-                // Transmit the value to our handler task
-                sendRpValueToThread((E) evt.getNewValue());
+                updateRpValueInPreviewContext((E) evt.getNewValue());
             }
         }
     }
@@ -242,32 +204,11 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         mc.stop();
 
 
-        stopThread();
-
-
         exitOk = ok;
         setVisible(false);
         dispose();
     }
 
-
-    private void startThread()
-    {
-        if (rpValueChangesHandlingTask == null)
-        {
-            queue = new ConcurrentLinkedQueue<>();
-            rpValueChangesHandlingTask = new RpValueChangesHandlingTask(queue);
-            rpValueChangesHandlingTask.start();
-        }
-    }
-
-    private void stopThread()
-    {
-        if (rpValueChangesHandlingTask != null)
-        {
-            rpValueChangesHandlingTask.stop();
-        }
-    }
 
     private String buildDefaultTitle(SongPart spt)
     {
@@ -331,18 +272,20 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
         // Build song context with the original RP value or edited one
         E rpValue = tbtn_compare.isSelected() ? rpValueOriginal : editor.getEditedRpValue();
-        SongContext sgContext = buildPreviewContext(rpValue);
+        previewContext = buildPreviewContext(rpValue);
 
 
-        var basicSession = StaticSongSession.getSession(sgContext,
+        // DynamicSongSession automatically generates updates if a RhythmParameter value changes
+        var dynSession = DynamicSongSession.getSession(previewContext,
                 true,
                 false,
                 false,
                 true,
+                false,
                 Sequencer.LOOP_CONTINUOUSLY,
                 null);
 
-        session = UpdatableSongSession.getSession(basicSession);
+        session = UpdatableSongSession.getSession(dynSession);
         try
         {
             session.generate(false);
@@ -375,12 +318,17 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     }
 
 
-    private void sendRpValueToThread(E rpValue)
+    /**
+     * Update the RhythmParameter value in the preview context.
+     *
+     * @param rpValue
+     */
+    private void updateRpValueInPreviewContext(E rpValue)
     {
-        assert rpValue != null;
-        queue.offer(rpValue);
+        SongStructure ss = previewContext.getSong().getSongStructure();
+        SongPart spt = ss.getSongPart(songContextOriginal.getBarRange().from);
+        ss.setRhythmParameterValue(spt, (RhythmParameter) editor.getRhythmParameter(), rpValue);
     }
-
 
     /**
      * Overridden to add global key bindings
@@ -545,11 +493,10 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
     private void tbtn_hearActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tbtn_hearActionPerformed
     {//GEN-HEADEREND:event_tbtn_hearActionPerformed
-        startThread();
+
         if (tbtn_hear.isSelected())
         {
             startPlayback();
-
         } else
         {
             MusicController.getInstance().stop();
@@ -572,7 +519,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
         if (tbtn_hear.isSelected())
         {
-            sendRpValueToThread(editor.getEditedRpValue());
+            updateRpValueInPreviewContext(editor.getEditedRpValue());
         }
         fbtn_reset.setEnabled(!tbtn_compare.isSelected());
 
@@ -673,153 +620,4 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         }
     }
 
-    /**
-     * A thread to handle incoming RP value changes and start one MusicGenerationTask at a time with the last available RP value.
-     * <p>
-     */
-    private class RpValueChangesHandlingTask implements Runnable
-    {
-
-        private final Queue<E> queue;
-        private E lastRpValue;
-        private ExecutorService executorService;
-        private ExecutorService generationExecutorService;
-        private Future<?> generationFuture;
-        private volatile boolean running;
-
-        public RpValueChangesHandlingTask(Queue<E> bQueue)
-        {
-            queue = bQueue;
-        }
-
-        public void start()
-        {
-            if (!running)
-            {
-                running = true;
-                executorService = Executors.newSingleThreadExecutor();
-                executorService.submit(this);
-                generationExecutorService = Executors.newSingleThreadExecutor();
-            }
-        }
-
-        public void stop()
-        {
-            if (running)
-            {
-                running = false;
-                Utilities.shutdownAndAwaitTermination(generationExecutorService, 1000, 100);
-                Utilities.shutdownAndAwaitTermination(executorService, 1, 1);
-            }
-        }
-
-
-        @Override
-        public void run()
-        {
-            while (running)
-            {
-                E rpValue = queue.poll();           // Does not block if empty
-                if (rpValue == null)
-                {
-                    // No incoming RpValue, check if we have a waiting RpValue                        
-                    if (lastRpValue != null)
-                    {
-                        // We have a RpValue, can we start a musicGenerationTask ?
-                        if (generationFuture == null || generationFuture.isDone())
-                        {
-                            // yes
-                            startMusicGenerationTask();
-                        } else
-                        {
-                            // Need to wait a little more for the previous musicGenerationTask to complete                        
-                        }
-                    }
-                } else
-                {
-                    lastRpValue = rpValue;
-
-//                    LOGGER.info("RpValueChangesHandlingTask.run() rpValue received=" + rpValue);
-
-                    // We have an incoming RpValue, start a musicGenerationTask if possible
-                    if (generationFuture == null || generationFuture.isDone())
-                    {
-                        startMusicGenerationTask();
-                    } else
-                    {
-                        // Need to wait a little more for the previous musicGenerationTask to complete                        
-//                        LOGGER.info("                                   => can't start generation task, maybe next loop?");
-                    }
-                }
-            }
-        }
-
-        private void startMusicGenerationTask()
-        {
-            try
-            {
-                generationFuture = generationExecutorService.submit(new MusicGenerationTask(lastRpValue));
-            } catch (RejectedExecutionException ex)
-            {
-                // Task is being shutdown 
-                generationFuture = null;
-            }
-            lastRpValue = null;
-
-        }
-
-    }
-
-    private class MusicGenerationTask implements Runnable
-    {
-
-        private final E rpValue;
-
-        MusicGenerationTask(E rpValue)
-        {
-            this.rpValue = rpValue;
-        }
-
-        @Override
-        public void run()
-        {
-//            LOGGER.info("MusicGenerationTask.run() >>> STARTING generation with rpValue=" + rpValue);
-
-            SongContext sgContext = buildPreviewContext(rpValue);
-            StaticSongSession tmpSession = StaticSongSession.getSession(sgContext, true, false, false, true, 0, null);
-            if (tmpSession.getState().equals(PlaybackSession.State.NEW))
-            {
-                try
-                {
-                    tmpSession.generate(true);          // This can block for some time, possibly a few seconds on slow computers/complex rhythms
-                } catch (MusicGenerationException ex)
-                {
-                    LOGGER.warning("MusicGenerationTask.run() ex=" + ex.getMessage());
-                    NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
-                    DialogDisplayer.getDefault().notify(d);
-                    return;
-                }
-            }
-
-
-            // Perform the update 
-            Update update = new Update(tmpSession.getRvPhraseMap(), null);
-            session.updateSequence(update);
-
-
-            // Avoid to have too many sequencer changes in a short period of time, which can cause audio issues
-            // with notes muted/unmuted too many times
-            try
-            {
-                Thread.sleep(getPostUpdateSleepTime());
-            } catch (InterruptedException ex)
-            {
-                return;
-            }
-
-//            LOGGER.info("MusicGenerationTask.run() <<< ENDING generation with rpValue=" + rpValue);
-        }
-
-
-    }
 }

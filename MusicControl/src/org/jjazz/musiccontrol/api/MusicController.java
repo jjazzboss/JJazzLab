@@ -42,6 +42,7 @@ import javax.sound.midi.Receiver;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Track;
 import javax.sound.midi.Transmitter;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -670,9 +671,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 if (playbackSession instanceof ControlTrackProvider)
                 {
                     ControlTrackProvider controlTrackProvider = (ControlTrackProvider) playbackSession;
-                    List<Position> naturalBeatPositions = controlTrackProvider.getControlTrack().getSongPositions();
-                    if (naturalBeatPositions != null && playbackSession.getLoopStartTick() != -1)
+                    ControlTrack controlTrack = controlTrackProvider.getControlTrack(); // Might be null for a specific BaseSongSession instance
+                    if (controlTrack != null && playbackSession.getLoopStartTick() != -1)
                     {
+                        List<Position> naturalBeatPositions = controlTrackProvider.getControlTrack().getSongPositions();
                         long tick = sequencer.getTickPosition() - playbackSession.getLoopStartTick();
                         int index = (int) (tick / MidiConst.PPQ_RESOLUTION);
                         long remainder = tick % MidiConst.PPQ_RESOLUTION;
@@ -720,13 +722,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 if (playbackSession instanceof ControlTrackProvider)
                 {
                     ControlTrackProvider controlTrackProvider = (ControlTrackProvider) playbackSession;
-
-
-                    // Fire chord symbol change
-                    int csIndex = Integer.valueOf(s.substring(8));
-                    ContextChordSequence cSeq = controlTrackProvider.getControlTrack().getContextChordGetSequence();
-                    if (cSeq != null)
+                    ControlTrack controlTrack = controlTrackProvider.getControlTrack(); // Might be null for a specific BaseSongSession instance
+                    if (controlTrack != null)
                     {
+                        // Fire chord symbol change
+                        ContextChordSequence cSeq = controlTrack.getContextChordGetSequence();
+                        int csIndex = Integer.valueOf(s.substring(8));
+
                         CLI_ChordSymbol cliCs = cSeq.get(csIndex);
                         fireChordSymbolChanged(cliCs);
 
@@ -1041,9 +1043,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 if (sgContext != null && playbackSession instanceof ControlTrackProvider)
                 {
                     ControlTrackProvider controlTrackProvider = (ControlTrackProvider) playbackSession;
-                    ContextChordSequence cSeq = controlTrackProvider.getControlTrack().getContextChordGetSequence();
-                    if (cSeq != null)
+                    ControlTrack controlTrack = controlTrackProvider.getControlTrack();    // Might be null if disabled for a BaseSongSession instance
+                    if (controlTrack != null)
                     {
+                        ContextChordSequence cSeq = controlTrack.getContextChordGetSequence();
                         // Fire chord symbol change if no chord symbol at current position (current chord symbol is the previous one)
                         // Fire a song part change event
                         long loopStartTick = playbackSession.getLoopStartTick();

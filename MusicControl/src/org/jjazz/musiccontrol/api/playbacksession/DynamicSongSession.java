@@ -52,6 +52,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.event.SectionMovedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.ControlTrack;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
@@ -98,13 +99,16 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
      * Property change event fired when updates become disabled (it's enabled by default)
      */
     public static final String PROP_UPDATES_ENABLED = "PropUpdatesEnabled";
-    private static final int DEFAULT_PRE_UPDATE_BUFFER_TIME_MS = 300;
-    private static final int DEFAULT_POST_UPDATE_SLEEP_TIME_MS = 700;
+    public static final int DEFAULT_PRE_UPDATE_BUFFER_TIME_MS = 300;
+    public static final int DEFAULT_POST_UPDATE_SLEEP_TIME_MS = 700;
+    private int preUpdateBufferTimeMs = DEFAULT_PRE_UPDATE_BUFFER_TIME_MS;
+    private int postUpdateSleepTimeMs = DEFAULT_POST_UPDATE_SLEEP_TIME_MS;
     private Update update;
     private ClsSgsChange currentClsChange;
     private ClsSgsChange currentSgsChange;
     private boolean isUpdatable = true;
     private boolean isControlTrackEnabled = true;
+    private final boolean isUpdateControlEnabled;
     private UpdateRequestsHandler updateRequestsHandler;
     private static final List<DynamicSongSession> sessions = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(DynamicSongSession.class.getSimpleName());  //NOI18N
@@ -123,6 +127,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
      * @param includeClickTrack If true add the click track, and its muted/unmuted state will depend on the PlaybackSettings
      * @param includePrecountTrack If true add the precount track, and loopStartTick will depend on the PlaybackSettings
      * @param includeControlTrack if true add a control track (beat positions + chord symbol markers)
+     * @param enableUpdateControl If true updates are authorized depending on the PlaybackSettings AutoUpdateEnabled value.
      * @param loopCount See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the PlaybackSettings instance
      * value.
      * @param endOfPlaybackAction Action executed when playback is stopped. Can be null.
@@ -130,6 +135,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
      */
     static public DynamicSongSession getSession(SongContext sgContext,
             boolean enablePlaybackTransposition, boolean includeClickTrack, boolean includePrecountTrack, boolean includeControlTrack,
+            boolean enableUpdateControl,
             int loopCount,
             ActionListener endOfPlaybackAction)
     {
@@ -139,15 +145,17 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         }
         DynamicSongSession session = findSession(sgContext,
                 enablePlaybackTransposition, includeClickTrack, includePrecountTrack, includeControlTrack,
+                enableUpdateControl,
                 loopCount,
                 endOfPlaybackAction);
         if (session == null)
         {
             final DynamicSongSession newSession = new DynamicSongSession(sgContext,
                     enablePlaybackTransposition, includeClickTrack, includePrecountTrack, includeControlTrack,
+                    enableUpdateControl,
                     loopCount,
                     endOfPlaybackAction);
-
+            
             sessions.add(newSession);
             return newSession;
         } else
@@ -157,7 +165,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     }
 
     /**
-     * Same as getSession(sgContext, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
+     * Same as getSession(sgContext, true, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
      * <p>
      *
      * @param sgContext
@@ -165,37 +173,97 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
      */
     static public DynamicSongSession getSession(SongContext sgContext)
     {
-        return getSession(sgContext, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
+        return getSession(sgContext, true, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
     }
-
-    private DynamicSongSession(SongContext sgContext, boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack, int loopCount, ActionListener endOfPlaybackAction)
+    
+    private DynamicSongSession(SongContext sgContext,
+            boolean enablePlaybackTransposition,
+            boolean includeClickTrack, boolean includePrecountTrack, boolean includeControlTrack,
+            boolean enableUpdateControl,
+            int loopCount, ActionListener endOfPlaybackAction)
     {
-        super(sgContext, enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack, loopCount, endOfPlaybackAction);
-
+        super(sgContext,
+                enablePlaybackTransposition,
+                includeClickTrack, includePrecountTrack, includeControlTrack,
+                loopCount, endOfPlaybackAction);
+        
+        isUpdateControlEnabled = enableUpdateControl;
     }
-
+    
     @Override
     public void generate(boolean silent) throws MusicGenerationException
     {
         super.generate(silent);
-
+        
         getSongContext().getSong().getChordLeadSheet().addClsChangeListener(this);
         getSongContext().getSong().getSongStructure().addSgsChangeListener(this);
     }
-
+    
     @Override
     public void close()
     {
         super.close();
-
+        
         getSongContext().getSong().getChordLeadSheet().removeClsChangeListener(this);
         getSongContext().getSong().getSongStructure().removeSgsChangeListener(this);
         sessions.remove(this);
     }
-
+    
     public boolean isUpdatable()
     {
         return isUpdatable;
+    }
+
+    /**
+     * True if updates are authorized/blocked depending on the PlaybackSettings auto update value.
+     *
+     * @return
+     */
+    public boolean isUpdateControlEnabled()
+    {
+        return isUpdateControlEnabled;
+    }
+
+    /**
+     * Wait this time from the first received change before triggering an update.
+     * <p>
+     * This helps filtering out meaningless changes when a user action generates several changes (e.g. mouse drag).
+     *
+     * @return
+     */
+    public int getPreUpdateBufferTimeMs()
+    {
+        return preUpdateBufferTimeMs;
+    }
+
+    /**
+     * @param preUpdateBufferTimeMs
+     * @see DynamicSongSession#getPreUpdateBufferTimeMs()
+     */
+    public void setPreUpdateBufferTimeMs(int preUpdateBufferTimeMs)
+    {
+        this.preUpdateBufferTimeMs = preUpdateBufferTimeMs;
+    }
+
+    /**
+     * The minimum delay between 2 consecutive updates.
+     * <p>
+     * This avoids too many sequencer changes in a short period of time, which can cause audio issues with notes muted/unmuted too
+     * many times.
+     * <p>
+     */
+    public int getPostUpdateSleepTimeMs()
+    {
+        return postUpdateSleepTimeMs;
+    }
+
+    /**
+     * @param postUpdateSleepTimeMs
+     * @see DynamicSongSession#getPostUpdateSleepTimeMs()
+     */
+    public void setPostUpdateSleepTimeMs(int postUpdateSleepTimeMs)
+    {
+        this.postUpdateSleepTimeMs = postUpdateSleepTimeMs;
     }
 
     // ==========================================================================================================
@@ -206,7 +274,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     {
         super.propertyChange(e);            // Important
 
-
+        
         if (getState().equals(State.CLOSED) || !isUpdatable())
         {
             return;
@@ -217,8 +285,8 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         // LOGGER.fine("propertyChange() e=" + e);
         boolean dirty = false;
         boolean update = false;
-
-
+        
+        
         if (e.getSource() == getSongContext().getMidiMix())
         {
             switch (e.getPropertyName())
@@ -228,18 +296,18 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                     // In both cases we don't care: if it's the user channel there is no impact, and if it's an added/removed rhythm 
                     // we'll get the change directly via our SgsChangeListener
                     break;
-
+                
                 case MidiMix.PROP_CHANNEL_DRUMS_REROUTED:
                 case MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP:
                 case MidiMix.PROP_INSTRUMENT_TRANSPOSITION:
                 case MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT:
                     update = true;
-
+                
                 default:    // e.g.  case MidiMix.PROP_INSTRUMENT_MUTE:
                     // Nothing
                     break;
             }
-
+            
         } else if (e.getSource() == PlaybackSettings.getInstance())
         {
             switch (e.getPropertyName())
@@ -247,7 +315,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 case PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION:
                     update = true;
                     break;
-
+                
                 case PlaybackSettings.PROP_CLICK_PITCH_HIGH:
                 case PlaybackSettings.PROP_CLICK_PITCH_LOW:
                 case PlaybackSettings.PROP_CLICK_PREFERRED_CHANNEL:
@@ -257,20 +325,20 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 case PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED:
                     dirty = true;
                     break;
-
+                
                 case PlaybackSettings.PROP_AUTO_UPDATE_ENABLED:
                     if (PlaybackSettings.getInstance().isAutoUpdateEnabled())
                     {
                         // Auto-Update switched to ON: try to update to be up-to-date again
                         update = true;
                     }
-
+                
                 default:   // PROP_VETO_PRE_PLAYBACK, PROP_LOOPCOUNT, PROP_PLAYBACK_CLICK_ENABLED
                     // Do nothing
                     break;
             }
         }
-
+        
         synchronized (this)
         {
             // Synchonize because the UpdateGenerationTask thread might call setDirty(), so this makes sure
@@ -302,7 +370,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     {
         // Nothing
     }
-
+    
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
     {
@@ -312,11 +380,11 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         {
             return;
         }
-
+        
         LOGGER.info("chordLeadSheetChanged()  -- event=" + event);
-
+        
         boolean disableUpdates = false;
-
+        
         if (event instanceof ClsActionEvent)
         {
             var e = (ClsActionEvent) event;
@@ -326,7 +394,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 LOGGER.info("chordLeadSheetChanged()  NEW ActionEvent(" + e + ")");
                 assert currentClsChange == null : "currentClsChange=" + currentClsChange + " e=" + e;
                 currentClsChange = new ClsSgsChange(e.getActionId());
-
+                
             } else
             {
                 // ClsActionEvent complete, check the status and update
@@ -338,27 +406,27 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 }
                 currentClsChange = null;
             }
-
+            
         } else if (event instanceof SizeChangedEvent)
         {
             disableUpdates = true;
-
+            
         } else if ((event instanceof ItemAddedEvent)
                 || (event instanceof ItemRemovedEvent))
         {
-
+            
             var contextItems = event.getItems().stream()
                     .filter(cli -> isClsBarIndexPartOfContext(cli.getPosition().getBar()))
                     .collect(Collectors.toList());
             disableUpdates = contextItems.stream().anyMatch(cli -> !(cli instanceof CLI_ChordSymbol));
             assert currentClsChange != null : "event=" + event;
             currentClsChange.doUpdate = contextItems.stream().allMatch(cli -> cli instanceof CLI_ChordSymbol);
-
+            
         } else if (event instanceof ItemBarShiftedEvent)
         {
             // Bars were inserted/deleted
             disableUpdates = true;
-
+            
         } else if (event instanceof ItemChangedEvent)
         {
             ItemChangedEvent e = (ItemChangedEvent) event;
@@ -379,7 +447,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                     currentClsChange.doUpdate = true;
                 }
             }
-
+            
         } else if (event instanceof ItemMovedEvent)
         {
             ItemMovedEvent e = (ItemMovedEvent) event;
@@ -388,34 +456,34 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 assert currentClsChange != null : "event=" + event;
                 currentClsChange.doUpdate = true;
             }
-
+            
         } else if (event instanceof SectionMovedEvent)
         {
             disableUpdates = true;
-
+            
         }
-
+        
         LOGGER.info("chordLeadSheetChanged()  => disableUpdates=" + disableUpdates + " currentClsChange=" + currentClsChange);
-
+        
         if (disableUpdates)
         {
             currentClsChange = null;
             disableUpdates();
         }
-
-
+        
+        
     }
     // ==========================================================================================================
     // SgsChangeListener interface
     // ==========================================================================================================
 
     @Override
-
+    
     public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
     {
         // Nothing
     }
-
+    
     @Override
     public void songStructureChanged(SgsChangeEvent event)
     {
@@ -425,16 +493,16 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         {
             return;
         }
-
+        
         LOGGER.info("songStructureChanged()  -- event=" + event);
-
-
+        
+        
         boolean disableUpdates = false;
 
         // Context song parts (at the time of the SongContext object creation)
         List<SongPart> contextSongParts = getSongContext().getSongParts();
-
-
+        
+        
         if (event instanceof SgsActionEvent)
         {
             var e = (SgsActionEvent) event;
@@ -444,7 +512,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 LOGGER.info("songStructureChanged()  NEW ActionEvent(" + e + ")");
                 assert currentSgsChange == null : "currentSgsChange=" + currentSgsChange + " e=" + e;
                 currentSgsChange = new ClsSgsChange(e.getActionId());
-
+                
             } else
             {
                 // ClsActionEvent complete, check the status and update
@@ -456,28 +524,28 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 }
                 currentSgsChange = null;
             }
-
+            
         } else if ((event instanceof SptRemovedEvent)
                 || (event instanceof SptAddedEvent))
         {
             // Ok only if removed spt is after our context
             disableUpdates = event.getSongParts().stream()
                     .anyMatch(spt -> spt.getStartBarIndex() <= getSongContext().getBarRange().to);
-
+            
         } else if (event instanceof SptReplacedEvent)
         {
             // Ok if replaced spt is not in the context
             SptReplacedEvent re = (SptReplacedEvent) event;
             disableUpdates = re.getSongParts().stream()
                     .anyMatch(spt -> contextSongParts.contains(spt));
-
+            
         } else if (event instanceof SptResizedEvent)
         {
             // Ok if replaced spt is not in the context
             SptResizedEvent re = (SptResizedEvent) event;
             disableUpdates = re.getMapOldSptSize().getKeys().stream()
                     .anyMatch(spt -> contextSongParts.contains(spt));
-
+            
         } else if (event instanceof SptRenamedEvent)
         {
             // Nothing
@@ -487,15 +555,15 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             assert currentSgsChange != null : "event=" + event;
             currentSgsChange.doUpdate = contextSongParts.contains(event.getSongPart());
         }
-
+        
         LOGGER.info("songStructureChanged()  => disableUpdates=" + disableUpdates);
-
-
+        
+        
         if (disableUpdates)
         {
             disableUpdates();
         }
-
+        
     }
 
     // ==========================================================================================================
@@ -518,8 +586,8 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             return;
         }
 
-        // We should update but not allowed by user
-        if (!PlaybackSettings.getInstance().isAutoUpdateEnabled())
+        // We should update but may not be allowed by user
+        if (isUpdateControlEnabled() && !PlaybackSettings.getInstance().isAutoUpdateEnabled())
         {
             // Make sure a new session is used when playback restarts or resumes.
             // Note that if song is playing and user restores auto-update while playing, an update will be generated 
@@ -528,10 +596,11 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             return;
         }
 
+
         // Start our update handler thread if first time
         if (updateRequestsHandler == null)
         {
-            updateRequestsHandler = new UpdateRequestsHandler(DEFAULT_PRE_UPDATE_BUFFER_TIME_MS, DEFAULT_POST_UPDATE_SLEEP_TIME_MS);
+            updateRequestsHandler = new UpdateRequestsHandler(getPreUpdateBufferTimeMs(), getPostUpdateSleepTimeMs());
             updateRequestsHandler.start();
         }
 
@@ -551,7 +620,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             LOGGER.warning("generateUpdate() unexpected updateRequestsHandler.getQueue().size()=" + updateRequestsHandler.getQueue().size());
             Exceptions.printStackTrace(e);
         }
-
+        
     }
 
 
@@ -568,7 +637,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         CLI_Section section = cls.getSection(clsBarIndex);
         return sgContext.getSongParts().stream().anyMatch(spt -> spt.getParentSection() == section);
     }
-
+    
     private void disableUpdates()
     {
         if (isUpdatable())
@@ -580,10 +649,10 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             firePropertyChange(PROP_UPDATES_ENABLED, true, false);
         }
     }
-
+    
     private void disableControlTrack()
     {
-        if (isControlTrackEnabled)
+        if (isControlTrackEnabled && isControlTrackIncluded())
         {
             isControlTrackEnabled = false;
             firePropertyChange(ControlTrackProvider.ENABLED_STATE, true, false);
@@ -596,7 +665,8 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
      * @return Null if not found
      */
     static private DynamicSongSession findSession(SongContext sgContext,
-            boolean includePlaybackTransposition, boolean includeClickTrack, boolean includePrecount, boolean includeControlTrack,
+            boolean enablePlaybackTransposition, boolean includeClickTrack, boolean includePrecount, boolean includeControlTrack,
+            boolean enableUpdateControl,
             int loopCount,
             ActionListener endOfPlaybackAction)
     {
@@ -605,10 +675,11 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             if ((session.getState().equals(PlaybackSession.State.GENERATED) || session.getState().equals(PlaybackSession.State.NEW))
                     && !session.isDirty()
                     && sgContext.equals(session.getSongContext())
-                    && includePlaybackTransposition == session.isPlaybackTranspositionEnabled()
+                    && enablePlaybackTransposition == session.isPlaybackTranspositionEnabled()
                     && includeClickTrack == session.isClickTrackIncluded()
                     && includePrecount == session.isPrecountTrackIncluded()
                     && includeControlTrack == session.isControlTrackIncluded()
+                    && enableUpdateControl == session.isUpdateControlEnabled()
                     && loopCount == session.loopCount // Do NOT use getLoopCount(), because of PLAYBACK_SETTINGS_LOOP_COUNT handling
                     && endOfPlaybackAction == session.getEndOfPlaybackAction())
             {
@@ -631,7 +702,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
      */
     private class UpdateRequestsHandler implements Runnable
     {
-
+        
         private final Queue<SongContext> queue = new ConcurrentLinkedQueue<>();
         private ExecutorService executorService;
         private ScheduledExecutorService generationExecutorService;
@@ -655,17 +726,17 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             this.preUpdateBufferTimeMs = preUpdateBufferTimeMs;
             this.postUpdateSleepTimeMs = postUpdateSleepTimeMs;
         }
-
+        
         public Queue<SongContext> getQueue()
         {
             return queue;
         }
-
+        
         public boolean isRunning()
         {
             return running;
         }
-
+        
         public void start()
         {
             if (!running)
@@ -676,7 +747,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 generationExecutorService = Executors.newScheduledThreadPool(1);
             }
         }
-
+        
         public void stop()
         {
             if (running)
@@ -686,7 +757,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 Utilities.shutdownAndAwaitTermination(executorService, 1, 1);
             }
         }
-
+        
         @Override
         public void run()
         {
@@ -697,10 +768,11 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 if (incoming != null)
                 {
                     LOGGER.info("UpdateRequestsHandler.run() handling incoming=" + incoming);
+                    // LOGGER.info("UpdateRequestsHandler.run() handling cls=" + toDebugString(incoming.getSong().getChordLeadSheet()));
 
                     // Handle new context, save as pending if handling failed
                     pendingSongContext = handleContext(incoming) ? null : incoming;
-
+                    
                 } else if (pendingSongContext != null)
                 {
                     // Handle the last pending context, reset it if handling was successful
@@ -722,6 +794,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             }
         }
 
+
         /**
          * Try to start a new task or update existing task if possible.
          * <p>
@@ -736,34 +809,33 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             if (generationFuture == null)
             {
                 // No generation task created yet, start one
-                LOGGER.info("handleContext() start generatino FIRST TIME");
+                LOGGER.info("handleContext() start generation FIRST TIME");
                 startGenerationTask(sgContext);
                 b = true;
-
+                
             } else if (generationFuture.isDone())
             {
                 // There is a generation task but it is complete, restart one
                 LOGGER.info("handleContext() start generation");
                 startGenerationTask(sgContext);
                 b = true;
-
+                
             } else
             {
-                // There is a generation task but not complete yet: it is waiting or generating music
-                // Try to update it
+                // There is a generation task but not started yet (wait preUpdateBufferTimeMs), try to update it
                 if (generationTask.changeContext(sgContext))
                 {
                     LOGGER.info("handleContext() changed context of current generation task");
                     // OK, task was waiting, we're done
                     b = true;
-
+                    
                 } else
                 {
                     // NOK, task is generating music
                     b = false;
                 }
             }
-
+            
             return b;
         }
 
@@ -786,7 +858,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 generationTask = null;
             }
         }
-
+        
     }
 
     /**
@@ -794,7 +866,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
      */
     private class UpdateGenerationTask implements Runnable
     {
-
+        
         private boolean started = false;
         private SongContext songContext;
         private final int postUpdateSleepTime;
@@ -814,9 +886,9 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         }
 
         /**
-         * Change the context for which to generate the update.
+         * Change the context for which to generate the update
          * <p>
-         * Once the task is started the context can't be changed anymore.
+         * Once the task has started (run() was called) the context can't be changed anymore.
          *
          * @param sgContext This must be an immutable instance (e.g. song must not be modified in parallel)
          * @return True if context could be changed (task is not started yet)
@@ -830,8 +902,8 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             }
             return false;
         }
-
-
+        
+        
         @Override
         public void run()
         {
@@ -839,9 +911,10 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             {
                 started = true;
             }
-
-
+            
+            
             LOGGER.info("UpdateGenerationTask.run() >>> STARTING generation");
+            // LOGGER.info("UpdateGenerationTask.run() >>> STARTING generation cls=" + toDebugString(songContext.getSong().getChordLeadSheet()));
 
 
             // Recompute the RhythmVoice phrases
@@ -853,6 +926,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             } catch (SongSequenceBuilder.UserErrorException ex)
             {
                 // Notify user lightly (no blocking dialog) and make sure that a regeneration will be done on next start
+                LOGGER.warning(ex.getMessage());
                 StatusDisplayer.getDefault().setStatusText(ex.getMessage());
                 setDirty();
                 return;
@@ -867,7 +941,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
 
             // Create a new control track
             ControlTrack cTrack = null;
-            if (isControlTrackEnabled)              // Normaly useless since control track is disabled when updates are disabled
+            if (isControlTrackEnabled && isControlTrackIncluded())  // Normaly useless since control track is disabled when updates are disabled
             {
                 cTrack = new ControlTrack(songContext, getControlTrack().getTrackId());
             }
@@ -879,8 +953,8 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
 
             // Notify listeners, normally an UpdatableSongSession
             firePropertyChange(UpdatableSongSession.UpdateProvider.PROP_UPDATE_AVAILABLE, false, true);
-
-
+            
+            
             try
             {
                 Thread.sleep(postUpdateSleepTime);
@@ -889,26 +963,26 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 LOGGER.warning("UpdateGenerator.run() Unexpected UpdateGenerator thread.sleep interruption ex=" + ex.getMessage());
                 return;
             }
-
-
+            
+            
             LOGGER.info("UpdateGenerationTask.run() <<< ENDING generation");
-
+            
         }
-
-
+        
+        
     }
-
+    
     static private class ClsSgsChange
     {
-
+        
         boolean doUpdate;
         String actionId;
-
+        
         private ClsSgsChange(String actionId)
         {
             this.actionId = actionId;
         }
-
+        
         @Override
         public String toString()
         {
@@ -917,4 +991,26 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     }
 
 
+    /**
+     * Debug method.
+     *
+     * @return
+     */
+    static private String toDebugString(ChordLeadSheet cls)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(cls);
+        for (ChordLeadSheetItem<?> item : cls.getItems())
+        {
+            if (item instanceof CLI_Section)
+            {
+                sb.append('\n').append(" ").append(item.getData()).append(item.getPosition()).append(" : ");
+            } else
+            {
+                sb.append(item.getData()).append(item.getPosition()).append(" ");
+            }
+        }
+        return sb.toString();
+    }
+    
 }

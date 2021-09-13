@@ -773,13 +773,7 @@ public final class JJazzMidiSystem
         {
             return;
         }
-        if (b)
-        {
-            jjazzMidiOut.setFilterConfig(EnumSet.noneOf(MidiFilter.Config.class));
-        } else
-        {
-            jjazzMidiOut.setFilterConfig(EnumSet.of(MidiFilter.Config.FILTER_EVERYTHING));
-        }
+        thruFilter.setFilterConfig(b ? EnumSet.noneOf(MidiFilter.Config.class) : EnumSet.of(MidiFilter.Config.FILTER_EVERYTHING));
         prefs.putBoolean(PROP_MIDI_THRU, b);
         LOGGER.info("setThruMode() b=" + b);   //NOI18N
         pcs.firePropertyChange(PROP_MIDI_THRU, !b, b);

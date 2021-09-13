@@ -72,8 +72,8 @@ import org.jjazz.util.api.ResUtil;
  */
 public class BaseSongSession implements PropertyChangeListener, PlaybackSession, ControlTrackProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
-
-
+    
+    
     public static final int PLAYBACK_SETTINGS_LOOP_COUNT = -1298;
     private State state = State.NEW;
     private boolean isDirty;
@@ -124,10 +124,10 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         this.isControlTrackIncluded = enableControlTrack;
         this.loopCount = loopCount;
         this.endOfPlaybackAction = endOfPlaybackAction;
-
+        
     }
-
-
+    
+    
     @Override
     public synchronized State getState()
     {
@@ -157,8 +157,8 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         {
             throw new IllegalStateException("state=" + state);
         }
-
-
+        
+        
         SongContext workContext = songContext;
         int t = PlaybackSettings.getInstance().getPlaybackKeyTransposition();
         if (isPlaybackTranspositionEnabled() && t != 0)
@@ -216,15 +216,13 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
             precountClickTrackId = sequence.getTracks().length - 1;
             mapTrackIdMuted.put(precountClickTrackId, false);
         }
-
-
+        
+        
         loopEndTick = loopStartTick + Math.round(workContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
 
 
         // Update the sequence if rerouting is needed
         // rerouteDrumsChannels(sequence, workContext.getMidiMix());
-
-
         // Listen to changes that can be handled without going dirty
         this.songContext.getSong().addPropertyChangeListener(this); // tempo changes
         this.songContext.getMidiMix().addPropertyChangeListener(this);      // muted changes
@@ -233,7 +231,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
         // Change state
         setState(State.GENERATED);
-
+        
     }
 
 
@@ -247,37 +245,37 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     {
         return isDirty;
     }
-
+    
     @Override
     public int getTempo()
     {
         return songContext.getSong().getTempo();
     }
-
+    
     @Override
     public Sequence getSequence()
     {
         return state.equals(State.GENERATED) ? sequence : null;
     }
-
+    
     @Override
     public long getLoopStartTick()
     {
         return state.equals(State.GENERATED) ? loopStartTick : -1;
     }
-
+    
     @Override
     public long getLoopEndTick()
     {
         return state.equals(State.GENERATED) ? loopEndTick : -1;
     }
-
+    
     @Override
     public int getLoopCount()
     {
         return loopCount == PLAYBACK_SETTINGS_LOOP_COUNT ? PlaybackSettings.getInstance().getLoopCount() : loopCount;
     }
-
+    
     @Override
     public long getTick(int barIndex)
     {
@@ -300,7 +298,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         }
         return tick;
     }
-
+    
     @Override
     public IntRange getBarRange()
     {
@@ -319,19 +317,19 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     {
         return state.equals(State.GENERATED) ? new HashMap<>(mapTrackIdMuted) : null;
     }
-
+    
     @Override
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
-
+    
     @Override
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
     }
-
+    
     @Override
     public void close()
     {
@@ -386,22 +384,22 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     {
         return precountClickTrackId;
     }
-
+    
     public boolean isPlaybackTranspositionEnabled()
     {
         return isPlaybackTranspositionEnabled;
     }
-
+    
     public boolean isClickTrackIncluded()
     {
         return isClickTrackIncluded;
     }
-
+    
     public boolean isPrecountTrackIncluded()
     {
         return isPrecountTrackIncluded;
     }
-
+    
     public boolean isControlTrackIncluded()
     {
         return isControlTrackIncluded;
@@ -449,13 +447,13 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         // If here state=GENERATED
 
         LOGGER.fine("propertyChange() e=" + e);
-
+        
         if (e.getSource() == songContext.getSong())
         {
             if (e.getPropertyName().equals(Song.PROP_TEMPO))
             {
                 pcs.firePropertyChange(PROP_TEMPO, (Integer) e.getOldValue(), (Integer) e.getNewValue());
-
+                
             } else if (e.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 close();
@@ -474,14 +472,14 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                         mapTrackIdMuted.put(trackId, insMix.isMute());
                         pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
                     }
-
+                    
                     break;
-
+                
                 default:
                     // E.g MidiMix.PROP_USER_CHANNEL: do nothing
                     break;
             }
-
+            
         } else if (e.getSource() == PlaybackSettings.getInstance())
         {
             switch (e.getPropertyName())
@@ -490,22 +488,22 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                     mapTrackIdMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
                     pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
                     break;
-
+                
                 case PlaybackSettings.PROP_LOOPCOUNT:
                     if (loopCount == PLAYBACK_SETTINGS_LOOP_COUNT)
                     {
                         pcs.firePropertyChange(PROP_LOOP_COUNT, (Integer) e.getOldValue(), (Integer) e.getNewValue());
                     }
                     break;
-
+                
                 default:   // E.g. PROP_PLAYBACK_KEY_TRANSPOSITION
                 // Nothing
             }
-
-
+            
+            
         }
     }
-
+    
     @Override
     public String toString()
     {
@@ -531,17 +529,18 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     {
         if (!isDirty)
         {
+            LOGGER.info("setDirty() --");
             isDirty = true;
             pcs.firePropertyChange(PROP_DIRTY, false, true);
         }
     }
-
+    
     protected void firePropertyChange(String propertyName, Object oldValue, Object newValue)
     {
         pcs.firePropertyChange(propertyName, oldValue, newValue);
     }
-
-
+    
+    
     protected int preparePlaybackClickTrack(Sequence sequence, SongContext context)
     {
         // Add the click track
@@ -557,7 +556,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 //        }
         return trackId;
     }
-
+    
     protected void rerouteDrumsChannels(Sequence seq, MidiMix mm)
     {
         List<Integer> toBeRerouted = mm.getDrumsReroutedChannels();
@@ -574,11 +573,11 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
      */
     protected SongContext getContextCopy(SongContext context, int chordSymbolTransposition)
     {
-
+        
         SongFactory sf = SongFactory.getInstance();
         CLI_Factory clif = CLI_Factory.getDefault();
         Song songCopy = sf.getCopy(context.getSong(), false);
-
+        
         ChordLeadSheet clsCopy = songCopy.getChordLeadSheet();
         if (chordSymbolTransposition != 0)
         {

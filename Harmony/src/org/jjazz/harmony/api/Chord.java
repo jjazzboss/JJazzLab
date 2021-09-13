@@ -24,6 +24,7 @@ package org.jjazz.harmony.api;
 
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * A chord is an array of notes which have different pitches.
@@ -118,11 +119,23 @@ public class Chord implements Cloneable
     /**
      * Return the notes of this chord.
      *
-     * @return An array of Note objects ordered by ascending pitch.
+     * @return A list of Note objects ordered by ascending pitch.
      */
     public List<Note> getNotes()
     {
         return new ArrayList<>(notes);
+    }
+
+    /**
+     * Return the pitches of this chord.
+     *
+     * @return A list ordered by ascending pitch.
+     */
+    public List<Integer> getPitches()
+    {
+        return notes.stream()
+                .map(n -> n.getPitch())
+                .collect(Collectors.toList());
     }
 
     /**

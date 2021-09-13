@@ -22,16 +22,26 @@
  */
 package org.jjazz.arranger;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
-import javax.sound.midi.MidiUnavailableException;
+import java.util.logging.Logger;
 import javax.sound.midi.Sequencer;
+import javax.sound.midi.Transmitter;
 import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.harmony.api.ChordSymbol;
+import org.jjazz.harmony.api.ChordSymbolFinder;
+import org.jjazz.harmony.api.ChordTypeDatabase;
+import org.jjazz.harmony.api.Note;
+import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
@@ -55,20 +65,29 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
 {
 
     public static final String PROP_PLAYING = "PropPlaying";
+    public static final String PROP_CHORD_SYMBOL = "PropChordSymbol";
     private final SongContext songContextRef;
     private final SongPart songPartRef;
+    private SongContext workContext;
+    private CLI_ChordSymbol firstChordSymbol;
+    private ChordSymbolFinder chordSymbolFinder;
+    private boolean lowerNoteIsBass;
+    private int maxNotes = 4;
     private boolean playing;
+    private Transmitter transmitter;
+    private ChordReceiver chordReceiver;
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private static final Logger LOGGER = Logger.getLogger(Arranger.class.getSimpleName());  //NOI18N    
 
     /**
      * Create an arranger for the specified song context.
      *
-     * @param sgContext Must contain only 1 songpart
+     * @param sgContext
      */
     public Arranger(SongContext sgContext)
     {
         checkNotNull(sgContext);
-        Preconditions.checkArgument(sgContext.getSongParts().size() == 1, "songParts=%s", sgContext.getSongParts());
+        checkArgument(sgContext.getSongParts().size() > 0, "songParts=%s", sgContext.getSongParts());
         songContextRef = sgContext;
         songPartRef = songContextRef.getSongParts().get(0);
 
@@ -76,6 +95,43 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         songContextRef.getSong().getSongStructure().addSgsChangeListener(this);
         MusicController.getInstance().addPropertyChangeListener(this);
 
+
+        ChordSymbolFinder.buildStaticData();
+        chordSymbolFinder = new ChordSymbolFinder();
+
+    }
+
+    /**
+     * @return the lowerNoteIsBass
+     */
+    public boolean isLowerNoteIsBass()
+    {
+        return lowerNoteIsBass;
+    }
+
+    /**
+     * @param lowerNoteIsBass the lowerNoteIsBass to set
+     */
+    public void setLowerNoteIsBass(boolean lowerNoteIsBass)
+    {
+        this.lowerNoteIsBass = lowerNoteIsBass;
+    }
+
+    /**
+     * @return the maxNotes
+     */
+    public int getMaxNotes()
+    {
+        return maxNotes;
+    }
+
+    /**
+     * @param maxNotes Must be 3,4 or 5.
+     */
+    public void setMaxNotes(int maxNotes)
+    {
+        checkArgument(maxNotes >= 3 && maxNotes <= 5, "maxNotes=%s", maxNotes);
+        this.maxNotes = maxNotes;
     }
 
     public boolean isPlaying()
@@ -109,14 +165,17 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         mc.stop();
 
 
-        
-        startChordRecognitionThread();
+        // Connect our chord receiver
+        chordReceiver = new ChordReceiver();
+        chordReceiver.addChordListener(this::processIncomingChord);
+        transmitter = JJazzMidiSystem.getInstance().getJJazzMidiInDevice().getTransmitter();
+        transmitter.setReceiver(chordReceiver);
 
 
         // Start playback
-        SongContext workContext = buildWorkContext(4);
-        var dynSession = DynamicSongSession.getSession(workContext, true, true, false, false, Sequencer.LOOP_CONTINUOUSLY, null);
-        var updatableSession = UpdatableSongSession.getSession(dynSession);        
+        workContext = buildWorkContext(4);
+        var dynSession = DynamicSongSession.getSession(workContext, true, true, false, false, false, Sequencer.LOOP_CONTINUOUSLY, null);
+        var updatableSession = UpdatableSongSession.getSession(dynSession);
         mc.setPlaybackSession(updatableSession);
         mc.play(0);
 
@@ -129,6 +188,9 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
     {
         if (playing)
         {
+            transmitter.close();
+            chordReceiver = null;
+            MusicController.getInstance().stop();
             playing = false;
             pcs.firePropertyChange(PROP_PLAYING, true, false);
         }
@@ -146,6 +208,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
 
     public void cleanup()
     {
+        stop();
         songContextRef.getSong().getSongStructure().removeSgsChangeListener(this);
         MusicController.getInstance().removePropertyChangeListener(this);
     }
@@ -212,6 +275,8 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
 
     /**
      * Prepare a context with only one useful SongPart (or 2 if songPart uses an AdaptedRhythm).
+     * <p>
+     * Make sure there is only one chord symbol at the start of the chord leadsheet.
      *
      * @param maxNbBars The max size of the useful SongPart (section).
      * @return
@@ -300,15 +365,84 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         }
 
 
+        // Make sure there is only one chord symbol at the beginning
+        CLI_Section cliSection = spt.getParentSection();
+        var clis = cls.getItems(cliSection, CLI_ChordSymbol.class);
+        if (clis.isEmpty())
+        {
+            // Add a "C" chord symbol at the start of the section
+            ExtChordSymbol ecs = new ExtChordSymbol(new Note(0), ChordTypeDatabase.getInstance().getChordType(0));
+            CLI_ChordSymbol cliCs = CLI_Factory.getDefault().createChordSymbol(cls, ecs, cliSection.getPosition());
+            cls.addItem(cliCs);
+            firstChordSymbol = cliCs;
+
+        } else if (!clis.get(0).getPosition().equals(cliSection.getPosition()))
+        {
+            // There is a chord symbol but not at the right position
+            cls.moveItem(clis.get(0), cliSection.getPosition());
+        }
+
+        if (!clis.isEmpty())
+        {
+            firstChordSymbol = clis.get(0);
+            clis.stream()
+                    .skip(1)
+                    .forEach(item -> cls.removeItem(item));
+        }
+
+
         // Return the new context 
-        SongContext workContext = new SongContext(songCopy, songContextRef.getMidiMix(), spt.getBarRange());
-        return workContext;
+        return new SongContext(songCopy, songContextRef.getMidiMix(), spt.getBarRange());
 
     }
 
-    private void startChordRecognitionThread()
+    private void updateChordSymbol(ChordSymbol newCs)
     {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        LOGGER.severe("updateChordSymbol() -- newCs=" + newCs);
+        ChordLeadSheet cls = workContext.getSong().getChordLeadSheet();
+        assert firstChordSymbol != null;
+
+        var old = firstChordSymbol.getData().getChordSymbol(null);
+        
+        // Prepare the new CLI_ChordSymbol
+        var firstEcs = firstChordSymbol.getData();
+        var newEcs = new ExtChordSymbol(newCs, firstEcs.getRenderingInfo(), firstEcs.getAlternateChordSymbol(), firstEcs.getAlternateFilter());
+        CLI_ChordSymbol newCliCs = CLI_Factory.getDefault().createChordSymbol(cls, newEcs, firstChordSymbol.getPosition());
+
+
+        // Update the chord leadsheet
+        cls.removeItem(firstChordSymbol);
+        cls.addItem(newCliCs);
+        firstChordSymbol = newCliCs;
+        
+        // Fire property change event
+        pcs.firePropertyChange(PROP_CHORD_SYMBOL, old, newEcs.getChordSymbol(null));
     }
+
+    private void processIncomingChord(List<Note> notes)
+    {
+        LOGGER.severe("processIncomingChord() -- notes=" + notes);
+        if (notes.size() < 3 || notes.size() > getMaxNotes())
+        {
+            return;
+        }
+        var chordSymbols = chordSymbolFinder.find(notes);
+        LOGGER.severe("                  chordSymbols=" + chordSymbols);
+        if (chordSymbols != null)
+        {
+            var chordSymbol = chordSymbolFinder.getChordSymbol(notes, chordSymbols, isLowerNoteIsBass());
+            if (chordSymbol != null)
+            {
+                updateChordSymbol(chordSymbol);
+            }
+        }
+    }
+
+    // =========================================================================================
+    // Private class
+    // =========================================================================================
+
+
+
 
 }

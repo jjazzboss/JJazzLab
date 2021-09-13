@@ -187,10 +187,22 @@ public class RemoteController
                     int pitch = sm.getData1();
                     if (pitch == startPauseNote)
                     {
-                        r = () -> playAction.actionPerformed(null);
+                        r = () ->
+                        {
+                            if (playAction.isEnabled())
+                            {
+                                playAction.actionPerformed(null);
+                            }
+                        };
                     } else if (pitch == stopNote)
                     {
-                        r = () -> stopAction.setSelected(true);
+                        r = () ->
+                        {
+                            if (stopAction.isEnabled())
+                            {
+                                stopAction.setSelected(true);
+                            }
+                        };
                     }
 
                     if (r != null)
