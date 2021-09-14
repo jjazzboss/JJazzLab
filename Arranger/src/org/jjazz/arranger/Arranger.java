@@ -205,6 +205,25 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
     {
 
     }
+    
+    public void processIncomingChord(List<Note> notes)
+    {
+        LOGGER.severe("processIncomingChord() -- notes=" + notes);
+        if (notes.size() < 3 || notes.size() > getMaxNotes())
+        {
+            return;
+        }
+        var chordSymbols = chordSymbolFinder.find(notes);
+        LOGGER.severe("                  chordSymbols=" + chordSymbols);
+        if (chordSymbols != null)
+        {
+            var chordSymbol = chordSymbolFinder.getChordSymbol(notes, chordSymbols, isLowerNoteIsBass());
+            if (chordSymbol != null)
+            {
+                updateChordSymbol(chordSymbol);
+            }
+        }
+    }
 
     public void cleanup()
     {
@@ -419,24 +438,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         pcs.firePropertyChange(PROP_CHORD_SYMBOL, old, newEcs.getChordSymbol(null));
     }
 
-    private void processIncomingChord(List<Note> notes)
-    {
-        LOGGER.severe("processIncomingChord() -- notes=" + notes);
-        if (notes.size() < 3 || notes.size() > getMaxNotes())
-        {
-            return;
-        }
-        var chordSymbols = chordSymbolFinder.find(notes);
-        LOGGER.severe("                  chordSymbols=" + chordSymbols);
-        if (chordSymbols != null)
-        {
-            var chordSymbol = chordSymbolFinder.getChordSymbol(notes, chordSymbols, isLowerNoteIsBass());
-            if (chordSymbol != null)
-            {
-                updateChordSymbol(chordSymbol);
-            }
-        }
-    }
+    
 
     // =========================================================================================
     // Private class

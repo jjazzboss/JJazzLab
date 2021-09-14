@@ -156,13 +156,14 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     private void initComponents()
     {
 
-        kbdComponent = new KeyboardComponent(KeyboardRange._49_KEYS);
+        kbdComponent = new KeyboardComponent(KeyboardRange._76_KEYS);
         lbl_chordSymbol = new javax.swing.JLabel();
         lbl_songPart = new javax.swing.JLabel();
         lbl_rhythm = new javax.swing.JLabel();
         tbtn_playPause = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         fbtn_previous = new org.jjazz.ui.flatcomponents.api.FlatButton();
         fbtn_next = new org.jjazz.ui.flatcomponents.api.FlatButton();
+        cb_lowerNoteIsBass = new javax.swing.JCheckBox();
 
         kbdComponent.setPreferredSize(new java.awt.Dimension(300, 60));
 
@@ -188,6 +189,9 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
 
         fbtn_next.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/arranger/resources/Next.png"))); // NOI18N
 
+        org.openide.awt.Mnemonics.setLocalizedText(cb_lowerNoteIsBass, org.openide.util.NbBundle.getMessage(ArrangerPanel.class, "ArrangerPanel.cb_lowerNoteIsBass.text")); // NOI18N
+        cb_lowerNoteIsBass.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -195,6 +199,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(kbdComponent, javax.swing.GroupLayout.DEFAULT_SIZE, 336, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lbl_chordSymbol, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -205,12 +210,12 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
                                 .addGap(1, 1, 1)
                                 .addComponent(tbtn_playPause, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(1, 1, 1)
-                                .addComponent(fbtn_next, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addContainerGap())
-                    .addComponent(kbdComponent, javax.swing.GroupLayout.DEFAULT_SIZE, 336, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(lbl_rhythm)
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                                .addComponent(fbtn_next, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lbl_rhythm)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(cb_lowerNoteIsBass, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -224,9 +229,11 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
                 .addGap(18, 18, 18)
                 .addComponent(lbl_chordSymbol)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(kbdComponent, javax.swing.GroupLayout.DEFAULT_SIZE, 46, Short.MAX_VALUE)
+                .addComponent(kbdComponent, javax.swing.GroupLayout.DEFAULT_SIZE, 45, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(lbl_rhythm)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lbl_rhythm)
+                    .addComponent(cb_lowerNoteIsBass))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -238,6 +245,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox cb_lowerNoteIsBass;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_next;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_previous;
     private org.jjazz.ui.keyboardcomponent.api.KeyboardComponent kbdComponent;

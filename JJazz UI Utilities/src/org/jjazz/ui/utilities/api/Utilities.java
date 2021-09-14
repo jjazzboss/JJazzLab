@@ -24,15 +24,21 @@ package org.jjazz.ui.utilities.api;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.util.ArrayList;
@@ -41,9 +47,11 @@ import java.util.Objects;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JRootPane;
 import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -100,6 +108,100 @@ public class Utilities
         res.width = bounds.width - screenInsets.left - screenInsets.right;
 
         return res;
+    }
+
+    /**
+     * Positions a dialog at a position relative to an anchor component.
+     *
+     * @param dialog the dialog to be positioned.
+     * @param anchorComponent the anchor component
+     * @param padding The maximum space between dialog and anchor component.
+     * @param horizontalPercent 0 means left of anchor component, 1 is right, 0.5 is center
+     * @param verticalPercent 0 means above of anchor component, 1 is below, 0.5 is center
+     */
+    public static void setDialogLocationRelativeTo(final Dialog dialog,
+            final Component anchorComponent,
+            final int padding,
+            final double horizontalPercent,
+            final double verticalPercent)
+    {
+        final Dimension dlgSize = dialog.getSize();
+        final Dimension anchorSize = anchorComponent.getSize();
+        final Point anchorLocation = anchorComponent.getLocationOnScreen();
+
+        final int baseX = anchorLocation.x - padding - dlgSize.width;
+        final int baseY = anchorLocation.y - padding - dlgSize.height;
+        final int w = dlgSize.width + padding + anchorSize.width + padding;
+        final int h = dlgSize.height + padding + anchorSize.height + padding;
+        int x = baseX + (int) (horizontalPercent * w);
+        int y = baseY + (int) (verticalPercent * h);
+
+        // make sure the dialog fits completely on the screen...
+        final Rectangle rScreen = getEffectiveScreenArea(anchorComponent);
+        x = Math.min(x, rScreen.width - dlgSize.width);
+        x = Math.max(x, 0);
+        y = Math.min(y, rScreen.height - dlgSize.height);
+        y = Math.max(y, 0);
+
+        dialog.setLocation(x + rScreen.x, y + rScreen.y);
+    }
+
+    /**
+     * Install an action on a dialog when the ESCAPE key is pressed.
+     *
+     * @param dialog
+     * @param r Call r.run() when ESCAPE is pressed. If r is null pressing ESCAPE closes the dialog.
+     */
+    public static void installEscapeKeyAction(JDialog dialog, Runnable r)
+    {
+        Action a = new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent event)
+            {
+                if (r == null)
+                {
+                    dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
+                } else
+                {
+                    r.run();
+                }
+            }
+        };
+
+        JRootPane rootPane = dialog.getRootPane();
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "EscapeAction898726");
+        rootPane.getActionMap().put("EscapeAction898726", a);
+
+    }
+
+    /**
+     * Install an action on a dialog when the ENTER key is pressed.
+     *
+     * @param dialog
+     * @param r Call r.run() when ENTER is pressed. If r is null pressing ENTER closes the dialog.
+     */
+    public static void installEnterKeyAction(JDialog dialog, Runnable r)
+    {
+        Action a = new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent event)
+            {
+                if (r == null)
+                {
+                    dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
+                } else
+                {
+                    r.run();
+                }
+            }
+        };
+
+        JRootPane rootPane = dialog.getRootPane();
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "EnterAction0023");
+        rootPane.getActionMap().put("EnterAction0023", a);
+
     }
 
     /**

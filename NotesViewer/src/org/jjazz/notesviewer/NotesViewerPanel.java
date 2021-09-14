@@ -41,7 +41,6 @@ import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.ToolTipManager;
 import javax.swing.border.Border;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -308,7 +307,7 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         pnl_low = new javax.swing.JPanel();
         pnl_buttons = new javax.swing.JPanel();
         pnl_help = new javax.swing.JPanel();
-        lbl_helpIcon = new javax.swing.JLabel();
+        helpButton = new org.jjazz.ui.flatcomponents.api.FlatHelpButton();
         rbtn_playback = new javax.swing.JRadioButton();
         rbtn_selection = new javax.swing.JRadioButton();
         pnl_chordSymbolScaleName = new javax.swing.JPanel();
@@ -341,9 +340,8 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
 
         pnl_help.setLayout(new javax.swing.BoxLayout(pnl_help, javax.swing.BoxLayout.LINE_AXIS));
 
-        lbl_helpIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/notesviewer/resources/HelpIcon16x16.png"))); // NOI18N
-        lbl_helpIcon.setToolTipText(org.openide.util.NbBundle.getMessage(NotesViewerPanel.class, "NotesViewerPanel.lbl_helpIcon.toolTipText")); // NOI18N
-        pnl_help.add(lbl_helpIcon);
+        helpButton.setHelpText(org.openide.util.NbBundle.getMessage(NotesViewerPanel.class, "NotesViewerPanel.helpButton.helpText")); // NOI18N
+        pnl_help.add(helpButton);
 
         pnl_low.add(pnl_help, java.awt.BorderLayout.EAST);
 
@@ -824,9 +822,9 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup btn_group;
     private javax.swing.JComboBox<ComboChannelElement> cmb_srcChannel;
+    private org.jjazz.ui.flatcomponents.api.FlatHelpButton helpButton;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel lbl_chordSymbol;
-    private javax.swing.JLabel lbl_helpIcon;
     private javax.swing.JLabel lbl_scale;
     private javax.swing.JPanel pnl_buttons;
     private javax.swing.JPanel pnl_chordSymbol;
