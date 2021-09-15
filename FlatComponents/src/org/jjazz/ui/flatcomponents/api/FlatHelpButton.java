@@ -43,7 +43,8 @@ import org.openide.windows.WindowManager;
  * A help icon button that display text as a dialog when clicked.
  */
 public class FlatHelpButton extends FlatButton implements PropertyChangeListener
-{    
+{
+
     @StaticResource(relative = true)
     private static final String ICON = "resources/HelpIcon16x16.png";
     @StaticResource(relative = true)
@@ -78,6 +79,19 @@ public class FlatHelpButton extends FlatButton implements PropertyChangeListener
         a.putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "HelpToolTip"));
         a.putValue("hideActionText", true);
         setAction(a);
+    }
+
+    /**
+     * Overridden to return -1 (no available baseline since icon-only button).
+     *
+     * @param w
+     * @param h
+     * @return
+     */
+    @Override
+    public int getBaseline(int w, int h)
+    {
+        return -1;
     }
 
     /**

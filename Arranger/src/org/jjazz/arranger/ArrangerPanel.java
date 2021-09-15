@@ -43,14 +43,12 @@ import org.jjazz.uisettings.api.GeneralUISettings;
 import org.openide.util.Exceptions;
 
 /**
- *
- * @author Jerome
+ * The arranger UI. 
  */
 public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeListener
 {
 
-    private Font chordSymbolFont;
-    private ArrangerController controller;
+    private final Font chordSymbolFont;
     private Transmitter transmitter;
     private Arranger arranger;
     private Song song;
@@ -59,13 +57,12 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     /**
      * Creates new form ArrangerPanel
      */
-    public ArrangerPanel(ArrangerController controller)
+    public ArrangerPanel()
     {
         // Used by initComponents
         chordSymbolFont = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(Font.BOLD, 16f);
         initComponents();
 
-        this.controller = controller;
 
     }
 
@@ -164,6 +161,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         fbtn_previous = new org.jjazz.ui.flatcomponents.api.FlatButton();
         fbtn_next = new org.jjazz.ui.flatcomponents.api.FlatButton();
         cb_lowerNoteIsBass = new javax.swing.JCheckBox();
+        flatHelpButton1 = new org.jjazz.ui.flatcomponents.api.FlatHelpButton();
 
         kbdComponent.setPreferredSize(new java.awt.Dimension(300, 60));
 
@@ -186,11 +184,15 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         });
 
         fbtn_previous.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/arranger/resources/Previous.png"))); // NOI18N
+        fbtn_previous.setToolTipText(org.openide.util.NbBundle.getMessage(ArrangerPanel.class, "ArrangerPanel.fbtn_previous.toolTipText")); // NOI18N
 
         fbtn_next.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/arranger/resources/Next.png"))); // NOI18N
+        fbtn_next.setToolTipText(org.openide.util.NbBundle.getMessage(ArrangerPanel.class, "ArrangerPanel.fbtn_next.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_lowerNoteIsBass, org.openide.util.NbBundle.getMessage(ArrangerPanel.class, "ArrangerPanel.cb_lowerNoteIsBass.text")); // NOI18N
-        cb_lowerNoteIsBass.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        cb_lowerNoteIsBass.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+
+        flatHelpButton1.setHelpText(org.openide.util.NbBundle.getMessage(ArrangerPanel.class, "ArrangerPanel.flatHelpButton1.helpText")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -199,7 +201,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(kbdComponent, javax.swing.GroupLayout.DEFAULT_SIZE, 336, Short.MAX_VALUE)
+                    .addComponent(kbdComponent, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lbl_chordSymbol, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -213,8 +215,10 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
                                 .addComponent(fbtn_next, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(lbl_rhythm)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(cb_lowerNoteIsBass, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(cb_lowerNoteIsBass, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(6, 6, 6)
+                                .addComponent(flatHelpButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addContainerGap())))
         );
         layout.setVerticalGroup(
@@ -229,12 +233,14 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
                 .addGap(18, 18, 18)
                 .addComponent(lbl_chordSymbol)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(kbdComponent, javax.swing.GroupLayout.DEFAULT_SIZE, 45, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lbl_rhythm)
-                    .addComponent(cb_lowerNoteIsBass))
-                .addContainerGap())
+                .addComponent(kbdComponent, javax.swing.GroupLayout.DEFAULT_SIZE, 37, Short.MAX_VALUE)
+                .addGap(28, 28, 28)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(flatHelpButton1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(lbl_rhythm)
+                        .addComponent(cb_lowerNoteIsBass)))
+                .addGap(3, 3, 3))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -248,6 +254,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     private javax.swing.JCheckBox cb_lowerNoteIsBass;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_next;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_previous;
+    private org.jjazz.ui.flatcomponents.api.FlatHelpButton flatHelpButton1;
     private org.jjazz.ui.keyboardcomponent.api.KeyboardComponent kbdComponent;
     private javax.swing.JLabel lbl_chordSymbol;
     private javax.swing.JLabel lbl_rhythm;

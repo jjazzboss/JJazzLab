@@ -62,7 +62,7 @@ public final class ArrangerTopComponent extends TopComponent
 
         initComponents();
 
-        arrangerPanel = new ArrangerPanel(null);
+        arrangerPanel = new ArrangerPanel();
         add(arrangerPanel);
     }
 
