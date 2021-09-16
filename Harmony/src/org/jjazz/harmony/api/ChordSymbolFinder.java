@@ -38,13 +38,33 @@ import org.jjazz.util.api.Utilities;
 public class ChordSymbolFinder
 {
 
-    static public final int MAX_NOTES = 4;
+
+    static public final int MAX_NOTES = 5;
     static long[] positions3;
     static long[] positions4;
     static long[] positions5;
     static private List<ChordType> allChordTypes;
+    private final int maxNbNotes;
     private static final Logger LOGGER = Logger.getLogger(ChordSymbolFinder.class.getSimpleName());  //NOI18N
 
+
+    /**
+     *
+     * @param maxNbNotes The maximum of chord notes handled : 3, 4 or 5.
+     */
+    public ChordSymbolFinder(int maxNbNotes)
+    {
+        checkArgument(maxNbNotes >= 3 && maxNbNotes <= MAX_NOTES, "maxNbNotes=%s", maxNbNotes);
+        this.maxNbNotes = maxNbNotes;
+    }
+
+    /**
+     * @return The maximum number of chord notes: 3, 4, or 5.
+     */
+    public int getMaxNbNotes()
+    {
+        return maxNbNotes;
+    }
 
     /**
      * This must be called once before using any ChordFinder instance.
@@ -69,6 +89,7 @@ public class ChordSymbolFinder
      * @param chordSymbols The ChordSymbols to choose from. Can't be empty.
      * @param lowerNoteIsBass For ex. G-C-E pitches will return C/G.
      * @return
+     * @see ChordSymbolFinder#find(java.util.List)
      */
     public ChordSymbol getChordSymbol(List<Note> notes, List<ChordSymbol> chordSymbols, boolean lowerNoteIsBass)
     {
@@ -119,7 +140,7 @@ public class ChordSymbolFinder
         checkStaticData();
 
         List<ChordSymbol> res = new ArrayList<>();
-        if (notes.size() < 3 || notes.size() > MAX_NOTES)
+        if (notes.size() < 3 || notes.size() > getMaxNbNotes())
         {
             return res;
         }

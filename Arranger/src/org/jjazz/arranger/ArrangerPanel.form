@@ -19,25 +19,21 @@
           <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="kbdComponent" max="32767" attributes="0"/>
+                  <Component id="kbdComponent" pref="353" max="32767" attributes="0"/>
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="lbl_chordSymbol" max="32767" attributes="0"/>
-                          <Group type="102" attributes="0">
-                              <Component id="lbl_songPart" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="32767" attributes="0"/>
-                              <Component id="fbtn_previous" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
-                              <Component id="tbtn_playPause" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
-                              <Component id="fbtn_next" min="-2" max="-2" attributes="0"/>
-                          </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="lbl_rhythm" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="cb_lowerNoteIsBass" min="-2" pref="190" max="-2" attributes="0"/>
-                              <EmptySpace min="-2" pref="6" max="-2" attributes="0"/>
+                              <Component id="cb_lowerNoteIsBass" max="32767" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
                               <Component id="flatHelpButton1" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="1" attributes="0">
+                              <Component id="lbl_songPart" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="32767" attributes="0"/>
+                              <Component id="tbtn_playPause" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
@@ -52,21 +48,17 @@
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="lbl_songPart" min="-2" max="-2" attributes="0"/>
-                  <Component id="fbtn_next" min="-2" max="-2" attributes="0"/>
                   <Component id="tbtn_playPause" min="-2" max="-2" attributes="0"/>
-                  <Component id="fbtn_previous" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
               <Component id="lbl_chordSymbol" min="-2" max="-2" attributes="0"/>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Component id="kbdComponent" pref="37" max="32767" attributes="0"/>
+              <Component id="kbdComponent" pref="34" max="32767" attributes="0"/>
               <EmptySpace min="-2" pref="28" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="flatHelpButton1" alignment="1" min="-2" max="-2" attributes="0"/>
-                  <Group type="103" alignment="1" groupAlignment="3" attributes="0">
-                      <Component id="lbl_rhythm" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="cb_lowerNoteIsBass" alignment="3" min="-2" max="-2" attributes="0"/>
-                  </Group>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lbl_rhythm" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cb_lowerNoteIsBass" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="flatHelpButton1" alignment="0" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="-2" pref="3" max="-2" attributes="0"/>
           </Group>
@@ -95,22 +87,21 @@
     </Component>
     <Component class="javax.swing.JLabel" name="lbl_songPart">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/arranger/Bundle.properties" key="ArrangerPanel.lbl_songPart.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="Song Part &quot;A&quot; bar 23" noResource="true"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="lbl_rhythm">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/arranger/Bundle.properties" key="ArrangerPanel.lbl_rhythm.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="SlowBossa-s232.sty - Main A" noResource="true"/>
       </Properties>
     </Component>
     <Component class="org.jjazz.ui.flatcomponents.api.FlatToggleButton" name="tbtn_playPause">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/org/jjazz/arranger/resources/PlayPause.png"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="org/jjazz/arranger/Bundle.properties" key="ArrangerPanel.tbtn_playPause.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
         <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
           <Image iconType="3" name="/org/jjazz/arranger/resources/PlayPause-ON.png"/>
@@ -119,26 +110,6 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tbtn_playPauseActionPerformed"/>
       </Events>
-    </Component>
-    <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_previous">
-      <Properties>
-        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/org/jjazz/arranger/resources/Previous.png"/>
-        </Property>
-        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/arranger/Bundle.properties" key="ArrangerPanel.fbtn_previous.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
-      </Properties>
-    </Component>
-    <Component class="org.jjazz.ui.flatcomponents.api.FlatButton" name="fbtn_next">
-      <Properties>
-        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/org/jjazz/arranger/resources/Next.png"/>
-        </Property>
-        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/arranger/Bundle.properties" key="ArrangerPanel.fbtn_next.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
-      </Properties>
     </Component>
     <Component class="javax.swing.JCheckBox" name="cb_lowerNoteIsBass">
       <Properties>

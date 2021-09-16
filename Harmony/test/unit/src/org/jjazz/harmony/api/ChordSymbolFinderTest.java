@@ -120,7 +120,7 @@ public class ChordSymbolFinderTest
             int rootNote = (int) Math.round(Math.random() * 11);
             ChordSymbol cs = new ChordSymbol(new Note(rootNote), ct);
             Chord chord = cs.getChord();
-            if (chord.size() >= 3 && chord.size() <= ChordSymbolFinder.MAX_NOTES)
+            if (chord.size() >= 3 && chord.size() <= ChordSymbolFinder.maxNotes)
             {
                 System.out.print("testPitches() chord=" + chord.getPitches() + " => ");
                 testPitches(instance, chord.getNotes());
