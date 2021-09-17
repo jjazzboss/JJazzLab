@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
-import org.jjazz.harmony.api.ChordSymbolFinder;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.MidiUtilities;
 
@@ -40,6 +39,9 @@ import org.jjazz.midi.api.MidiUtilities;
  */
 public class ChordReceiver implements Receiver
 {
+
+
+    public static final int DEFAULT_SPLIT_POINT_NOTE = 52; // E3
 
     public interface ChordListener
     {
@@ -53,10 +55,32 @@ public class ChordReceiver implements Receiver
          */
         void chordChanged(List<Note> notes);
     }
-
-    private List<ChordListener> listeners = new ArrayList<>();
-    private List<Note> notes = new LinkedList<>();
+    private int splitNote = DEFAULT_SPLIT_POINT_NOTE;
+    private final List<ChordListener> listeners = new ArrayList<>();
+    private final List<Note> notes = new LinkedList<>();
     private static final Logger LOGGER = Logger.getLogger(ChordReceiver.class.getSimpleName());  //NOI18N
+
+
+    public synchronized int getSplitNote()
+    {
+        return splitNote;
+    }
+
+
+    public synchronized void setSplitNote(int newSplitNote)
+    {
+        if (newSplitNote < this.splitNote)
+        {
+            for (var it = notes.iterator(); it.hasNext();)
+            {
+                if (it.next().getPitch() > newSplitNote)
+                {
+                    it.remove();
+                }
+            }
+        }
+        this.splitNote = newSplitNote;
+    }
 
     public void reset()
     {
@@ -73,33 +97,44 @@ public class ChordReceiver implements Receiver
             int pitch = noteMsg.getData1();
             int velocity = noteMsg.getData2();
 
-            // Add new Note ordered by pitch
-            Note newNote = new Note(pitch, 1, velocity);
-            var lIt = notes.listIterator();
-            while (lIt.hasNext())
+            if (pitch > getSplitNote())
             {
-                if (pitch <= lIt.next().getPitch())
+                noteMsg = null;
+            } else
+            {
+                // Add new Note ordered by pitch
+                Note newNote = new Note(pitch, 1, velocity);
+                var lIt = notes.listIterator();
+                while (lIt.hasNext())
                 {
-                    lIt.previous();
-                    break;
+                    if (pitch <= lIt.next().getPitch())
+                    {
+                        lIt.previous();
+                        break;
+                    }
                 }
+                lIt.add(newNote);
             }
-            lIt.add(newNote);
-
         } else if ((noteMsg = MidiUtilities.getNoteOffMidiEvent(msg)) != null)
         {
             // Note OFF
             int pitch = noteMsg.getData1();
 
-            // Remove Note
-            var it = notes.iterator();
-            while (it.hasNext())
+            if (pitch > getSplitNote())
             {
-                var n = it.next();
-                if (n.getPitch() == pitch)
+                noteMsg = null;
+            } else
+            {
+                // Remove Note
+                var it = notes.iterator();
+                while (it.hasNext())
                 {
-                    it.remove();
-                    break;
+                    var n = it.next();
+                    if (n.getPitch() == pitch)
+                    {
+                        it.remove();
+                        break;
+                    }
                 }
             }
         }

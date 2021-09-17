@@ -91,6 +91,11 @@ public final class ArrangerTopComponent extends TopComponent
     {
         arrangerPanel.closing();
     }
+    
+    public ArrangerPanel getArrangerPanel()
+    {
+        return arrangerPanel;
+    }
 
     /**
      *

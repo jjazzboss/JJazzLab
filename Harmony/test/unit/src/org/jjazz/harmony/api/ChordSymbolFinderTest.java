@@ -100,7 +100,7 @@ public class ChordSymbolFinderTest
     public void testFind()
     {
         System.out.println("\n\ntestFind() ========================");
-        ChordSymbolFinder instance = new ChordSymbolFinder();
+        ChordSymbolFinder instance = new ChordSymbolFinder(5);
         for (var strTest : testDatabase.keySet())
         {
             System.out.print("testFind() strTest=" + strTest + " => ");
@@ -114,13 +114,14 @@ public class ChordSymbolFinderTest
     public void testAllChordTypes()
     {
         System.out.println("\n\ntestAllChordTypes() ========================");
-        ChordSymbolFinder instance = new ChordSymbolFinder();
+        final int nbNotes = 5;
+        ChordSymbolFinder instance = new ChordSymbolFinder(nbNotes);
         for (ChordType ct : ChordTypeDatabase.getInstance().getChordTypes())
         {
             int rootNote = (int) Math.round(Math.random() * 11);
             ChordSymbol cs = new ChordSymbol(new Note(rootNote), ct);
             Chord chord = cs.getChord();
-            if (chord.size() >= 3 && chord.size() <= ChordSymbolFinder.maxNotes)
+            if (chord.size() >= 3 && chord.size() <= nbNotes)
             {
                 System.out.print("testPitches() chord=" + chord.getPitches() + " => ");
                 testPitches(instance, chord.getNotes());

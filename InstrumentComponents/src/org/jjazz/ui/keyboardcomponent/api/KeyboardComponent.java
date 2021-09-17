@@ -232,7 +232,7 @@ public class KeyboardComponent extends JPanel
     /**
      * Set the pressed status of specified key.
      * <p>
-     * Method just delegates to setVelocity() of the relevant PianoKey.
+     * Method delegates to setPressed() of the relevant PianoKey.
      * <p>
      * If pitch is outside the KeyboardRange, show an indicator on the leftmost/rightmost note.
      *
@@ -248,6 +248,23 @@ public class KeyboardComponent extends JPanel
         } else
         {
             showOutOfRangeNoteIndicator(pitch < keyboardRange.lowPitch, true);
+        }
+    }
+
+    /**
+     * Set the marked status of specified key.
+     * <p>
+     * Method delegates to setMarked() of the relevant PianoKey.
+     * <p>
+     *
+     * @param pitch
+     * @param markColor If null remove the mark.
+     */
+    public void setMarked(int pitch, Color markColor)
+    {
+        if (keyboardRange.isValid(pitch))
+        {
+            getPianoKey(pitch).setMarked(markColor);
         }
     }
 

@@ -993,7 +993,7 @@ public class MidiUtilities
             {
                 // Display the note instead of pitch
                 Note n = new Note(sm.getData1());
-                d1 = n.toAbsoluteNoteString();
+                d1 = n.toPianoOctaveString();
             }
             sb.append(String.format(" d1=%-4s", d1));
             sb.append(String.format("  d2=%-3d", sm.getData2()));

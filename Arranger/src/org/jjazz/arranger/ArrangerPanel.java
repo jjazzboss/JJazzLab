@@ -22,9 +22,12 @@
  */
 package org.jjazz.arranger;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyVetoException;
+import java.text.ParseException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -36,14 +39,16 @@ import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Transmitter;
+import javax.swing.SpinnerListModel;
 import org.jjazz.activesong.api.ActiveSongManager;
-import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordSymbolFinder;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
@@ -67,7 +72,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
 
     private final Font chordSymbolFont;
     private Transmitter transmitterKbdComponent;
-    private Arranger arranger;
+    protected Arranger arranger;        // Protected for test only!!! must be private!
     private Song song;
     private MidiMix midiMix;
     private SongPart songPart;
@@ -85,6 +90,15 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         // Used by initComponents
         chordSymbolFont = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(Font.BOLD, 16f);
         initComponents();
+
+
+        // Set spinner model
+        String notes[] = new String[128];
+        for (int i = 0; i < 128; i++)
+        {
+            notes[i] = new Note(i).toPianoOctaveString();
+        }
+        spn_splitNote.setModel(new SpinnerListModel(notes));
 
 
         // Listen to active song changes
@@ -130,6 +144,8 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         }
         chordReceiver = new ChordReceiver();
         chordReceiver.addChordListener(this::processIncomingChord);
+        updateSplitNoteUI(chordReceiver.getSplitNote());
+
         transmitterChordSymbolFinder = JJazzMidiSystem.getInstance().getJJazzMidiInDevice().getTransmitter();
         transmitterChordSymbolFinder.setReceiver(chordReceiver);
     }
@@ -162,7 +178,13 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         {
             if (evt.getPropertyName().equals(Arranger.PROP_PLAYING))
             {
-                arrangerStopped();
+                if (arranger.isPlaying())
+                {
+                    updateSptUI();
+                } else
+                {
+                    arrangerStopped();
+                }
             }
         }
     }
@@ -187,9 +209,11 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     // ================================================================================    
     private void togglePlayPause()
     {
+        LOGGER.info("togglePlayPause() --  isSelected()=" + tbtn_playPause.isSelected());
+
         try
         {
-            // Wait in case ChordSymbolFinder.buildStaticData() is not yet complete (
+            // Wait in case ChordSymbolFinder.buildStaticData() is not yet complete
             chordSymbolFinderBuildFuture.get(5, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException ex)
         {
@@ -219,10 +243,54 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
                 tbtn_playPause.setSelected(false);
                 return;
             }
+            var jms = JJazzMidiSystem.getInstance();
+//            if (jms.getDefaultInDevice() == null)
+//            {
+//                String msg = ResUtil.getString(getClass(), "ErrNoMidiInputDevice");
+//                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+//                DialogDisplayer.getDefault().notify(nd);
+//                // Rollback UI
+//                tbtn_playPause.setSelected(false);
+//                return;
+//            }
+            LOGGER.severe("togglePlayPause() ========DEBUG bypassed MidiINput check!!!!===========");
+            MusicController mc = MusicController.getInstance();
+            if (mc.getState().equals(MusicController.State.PLAYING))
+            {
+                String msg = ResUtil.getString(getClass(), "ErrSequenceAlreadyPlaying");
+                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(nd);
+                // Rollback UI
+                tbtn_playPause.setSelected(false);
+                return;
+            }
+
+
             songPart = song.getSongStructure().getSongParts().get(0);
+
 
             // Prepare the arranger 
             SongContext sgContext = new SongContext(song, midiMix, songPart.getBarRange());
+
+
+            try
+            {
+                // Check that all listeners are OK to start playback (trigger MidiMix fix helper if required)
+                PlaybackSettings.getInstance().firePlaybackStartVetoableChange(sgContext);  // can raise PropertyVetoException
+            } catch (PropertyVetoException ex)
+            {
+                if (ex.getMessage() != null)
+                {
+                    NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                    DialogDisplayer.getDefault().notify(d);
+                }
+                // Rollback UI
+                songPart = null;
+                tbtn_playPause.setSelected(false);
+                return;
+            }
+
+
             if (arranger != null)
             {
                 arranger.removePropertyListener(this);
@@ -235,7 +303,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             // Start playback
             try
             {
-                arranger.play();
+                arranger.play();            // Will generate an Arranger playing change event
             } catch (MusicGenerationException ex)
             {
                 NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -244,14 +312,14 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
                 tbtn_playPause.setSelected(false);
                 arranger.removePropertyListener(this);
                 arranger.cleanup();
+                songPart = null;
                 arranger = null;
                 return;
             }
 
-            updateSptUI();
         } else
         {
-            arranger.stop();
+            arranger.stop();        // Will generate an Arranger playing change event
         }
     }
 
@@ -282,7 +350,11 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         updateSptUI();
     }
 
-    private void processIncomingChord(List<Note> notes)
+    /**
+     *
+     * @param notes
+     */
+    protected void processIncomingChord(List<Note> notes)       // protected for testing!!! => private
     {
         LOGGER.severe("processIncomingChord() -- notes=" + notes);
         if (notes.size() < 3 || notes.size() > chordSymbolFinder.getMaxNbNotes())
@@ -317,12 +389,11 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         String sSpt, sRhythm;
         if (songPart == null)
         {
-            sSpt = "-";
-            sRhythm = "-";
+            sSpt = " "; // Must not be "" to keep JLabel height unchanged
+            sRhythm = " ";
         } else
         {
             sSpt = ResUtil.getString(getClass(), "SongPartRef", songPart.getName(), songPart.getStartBarIndex() + 1);
-
             Rhythm r = songPart.getRhythm();
             var rpVariation = RP_STD_Variation.getVariationRp(r);
             String strVariation = rpVariation == null ? "" : "/" + songPart.getRPValue(rpVariation);
@@ -337,6 +408,13 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
                 && song.getSongStructure().getSongParts().contains(songPart);
         lbl_songPart.setEnabled(b);
         lbl_rhythm.setEnabled(b);
+    }
+
+    private void updateSplitNoteUI(int splitNote)
+    {
+        kbdComponent.reset();
+        kbdComponent.setMarked(splitNote, Color.LIGHT_GRAY);
+        spn_splitNote.setValue(new Note(splitNote).toPianoOctaveString());
     }
 
     private void arrangerStopped()
@@ -364,6 +442,8 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         tbtn_playPause = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         cb_lowerNoteIsBass = new javax.swing.JCheckBox();
         flatHelpButton1 = new org.jjazz.ui.flatcomponents.api.FlatHelpButton();
+        spn_splitNote = new org.jjazz.ui.utilities.api.WheelSpinner();
+        jLabel1 = new javax.swing.JLabel();
 
         kbdComponent.setPreferredSize(new java.awt.Dimension(300, 60));
 
@@ -391,6 +471,18 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
 
         flatHelpButton1.setHelpText(org.openide.util.NbBundle.getMessage(ArrangerPanel.class, "ArrangerPanel.flatHelpButton1.helpText")); // NOI18N
 
+        spn_splitNote.setToolTipText(org.openide.util.NbBundle.getMessage(ArrangerPanel.class, "ArrangerPanel.spn_splitNote.toolTipText")); // NOI18N
+        spn_splitNote.addChangeListener(new javax.swing.event.ChangeListener()
+        {
+            public void stateChanged(javax.swing.event.ChangeEvent evt)
+            {
+                spn_splitNoteStateChanged(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(ArrangerPanel.class, "ArrangerPanel.jLabel1.text")); // NOI18N
+        jLabel1.setToolTipText(spn_splitNote.getToolTipText());
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -403,13 +495,17 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lbl_chordSymbol, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(lbl_rhythm)
+                                .addComponent(spn_splitNote, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(cb_lowerNoteIsBass, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(flatHelpButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(lbl_songPart)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(lbl_songPart)
+                                    .addComponent(lbl_rhythm))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(tbtn_playPause, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addContainerGap())))
@@ -419,18 +515,23 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lbl_songPart)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lbl_songPart)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lbl_rhythm))
                     .addComponent(tbtn_playPause, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(18, 18, 18)
                 .addComponent(lbl_chordSymbol)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(kbdComponent, javax.swing.GroupLayout.DEFAULT_SIZE, 34, Short.MAX_VALUE)
-                .addGap(28, 28, 28)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lbl_rhythm)
-                    .addComponent(cb_lowerNoteIsBass)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(kbdComponent, javax.swing.GroupLayout.DEFAULT_SIZE, 43, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(spn_splitNote, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel1)
+                        .addComponent(cb_lowerNoteIsBass))
                     .addComponent(flatHelpButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(3, 3, 3))
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -439,14 +540,36 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         togglePlayPause();
     }//GEN-LAST:event_tbtn_playPauseActionPerformed
 
+    private void spn_splitNoteStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_spn_splitNoteStateChanged
+    {//GEN-HEADEREND:event_spn_splitNoteStateChanged
+        if (chordReceiver != null)
+        {
+            int splitNote = 0;
+            try
+            {
+                Note note = Note.parsePianoOctaveString((String) spn_splitNote.getValue());
+                splitNote = note.getPitch();
+            } catch (ParseException ex)
+            {
+                // Should never happen
+                Exceptions.printStackTrace(ex);
+                return;
+            }
+            chordReceiver.setSplitNote(splitNote);
+            updateSplitNoteUI(splitNote);
+        }
+    }//GEN-LAST:event_spn_splitNoteStateChanged
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox cb_lowerNoteIsBass;
     private org.jjazz.ui.flatcomponents.api.FlatHelpButton flatHelpButton1;
+    private javax.swing.JLabel jLabel1;
     private org.jjazz.ui.keyboardcomponent.api.KeyboardComponent kbdComponent;
     private javax.swing.JLabel lbl_chordSymbol;
     private javax.swing.JLabel lbl_rhythm;
     private javax.swing.JLabel lbl_songPart;
+    private org.jjazz.ui.utilities.api.WheelSpinner spn_splitNote;
     private org.jjazz.ui.flatcomponents.api.FlatToggleButton tbtn_playPause;
     // End of variables declaration//GEN-END:variables
 

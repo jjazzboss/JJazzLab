@@ -166,7 +166,7 @@ public class PianoKey extends JComponent
         // Tooltip
         Note n = new Note(pitch);
 
-        setToolTipText(n.toAbsoluteNoteString() + " (Midi pitch=" + pitch + ")");
+        setToolTipText(n.toPianoOctaveString() + " (Midi pitch=" + pitch + ")");
     }
 
     public Color getColorProperty(String key)

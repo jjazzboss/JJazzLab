@@ -194,24 +194,30 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     public void propertyChange(PropertyChangeEvent evt)
     {
         // UI changed, update model
-        if (evt.getSource() == this.knob_chorus && evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
+        if (evt.getSource() == this.knob_chorus)
         {
-            model.setChorus(knob_chorus.getValue());
-            if ("enabled".equals(evt.getPropertyName()))
+            if (evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
+            {
+                model.setChorus(knob_chorus.getValue());
+            } else if ("enabled".equals(evt.getPropertyName()))
             {
                 lbl_cho.setEnabled(knob_chorus.isEnabled());
             }
-        } else if (evt.getSource() == this.knob_reverb && evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
+        } else if (evt.getSource() == this.knob_reverb)
         {
-            model.setReverb(knob_reverb.getValue());
-            if ("enabled".equals(evt.getPropertyName()))
+            if (evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
+            {
+                model.setChorus(knob_reverb.getValue());
+            } else if ("enabled".equals(evt.getPropertyName()))
             {
                 lbl_rev.setEnabled(knob_reverb.isEnabled());
             }
-        } else if (evt.getSource() == this.knob_panoramic && evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
+        } else if (evt.getSource() == this.knob_panoramic)
         {
-            model.setPanoramic(knob_panoramic.getValue());
-            if ("enabled".equals(evt.getPropertyName()))
+            if (evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
+            {
+                model.setChorus(knob_panoramic.getValue());
+            } else if ("enabled".equals(evt.getPropertyName()))
             {
                 lbl_pan.setEnabled(knob_panoramic.isEnabled());
             }

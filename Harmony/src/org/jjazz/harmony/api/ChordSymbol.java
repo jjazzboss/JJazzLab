@@ -68,7 +68,7 @@ public class ChordSymbol implements Cloneable
      */
     private ChordType chordType;
 
-    private static final Logger LOGGER = Logger.getLogger(ChordSymbol.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ChordSymbol.class.getSimpleName());
 
     public ChordSymbol()
     {
@@ -434,11 +434,29 @@ public class ChordSymbol implements Cloneable
         return hash;
     }
 
+    /**
+     * Create a random chord symbol: random root note and chord type, sometimes with a different bass note.
+     *
+     * @return
+     */
+    static public ChordSymbol getRandom()
+    {
+        int rootPitch = (int) Math.round(Math.random() * 11);
+        int bassPitch = Math.round(1) > 0.7 ? rootPitch : (int) Math.round(Math.random() * 11);
+        var chordTypes = ChordTypeDatabase.getInstance().getChordTypes();
+        int index = (int) Math.round(Math.random() * (chordTypes.length-1));
+        ChordType ct = chordTypes[index];
+        ChordSymbol res = new ChordSymbol(new Note(rootPitch), new Note(bassPitch), ct);
+        return res;
+    }
+
     // --------------------------------------------------------------------- 
     // Private methods
     // ---------------------------------------------------------------------
     /**
      * Compute default name from ChordSymbol components.
+     *
+     * @return
      */
     protected String computeName()
     {

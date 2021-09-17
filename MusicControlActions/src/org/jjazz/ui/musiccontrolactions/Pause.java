@@ -136,9 +136,9 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
                         mc.resume();
                     } catch (MusicGenerationException ex)
                     {
-                        if (ex.getLocalizedMessage() != null)
+                        if (ex.getMessage() != null)
                         {
-                            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
                             DialogDisplayer.getDefault().notify(d);
                         }
                         setBooleanState(!newState);

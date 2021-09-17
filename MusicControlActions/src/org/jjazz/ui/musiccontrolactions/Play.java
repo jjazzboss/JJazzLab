@@ -190,9 +190,9 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                             session.close();
                         }
 
-                        if (ex.getLocalizedMessage() != null)
+                        if (ex.getMessage() != null)
                         {
-                            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
                             DialogDisplayer.getDefault().notify(d);
                         }
 

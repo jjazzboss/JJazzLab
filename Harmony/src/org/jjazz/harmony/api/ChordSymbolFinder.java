@@ -49,8 +49,9 @@ public class ChordSymbolFinder
 
 
     /**
-     *
-     * @param maxNbNotes The maximum of chord notes handled : 3, 4 or 5.
+     * Create an instance.
+     * 
+     * @param maxNbNotes The maximum number of chord notes supported : 3, 4 or 5.
      */
     public ChordSymbolFinder(int maxNbNotes)
     {
@@ -59,7 +60,7 @@ public class ChordSymbolFinder
     }
 
     /**
-     * @return The maximum number of chord notes: 3, 4, or 5.
+     * @return The maximum number of chord notes supported: 3, 4, or 5.
      */
     public int getMaxNbNotes()
     {

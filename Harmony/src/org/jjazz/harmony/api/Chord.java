@@ -512,7 +512,7 @@ public class Chord implements Cloneable
 
         for (Note n : notes)
         {
-            sb.append(n.toAbsoluteNoteString()).append(",");
+            sb.append(n.toPianoOctaveString()).append(",");
         }
 
         if (!notes.isEmpty())
