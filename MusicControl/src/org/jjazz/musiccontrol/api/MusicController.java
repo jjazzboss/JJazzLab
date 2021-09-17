@@ -365,7 +365,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * @param fromBarIndex
      * @throws MusicGenerationException If a problem occurred which prevents song playing: no Midi out, rhythm music generation
      * problem, MusicController state is not PAUSED nor STOPPED, etc.
-     * @throws IllegalStateException If current session is not in the GENERATED state, if fromBarIndex is invalid
+     * @throws IllegalStateException If current session is not in the GENERATED state, or if fromBarIndex is invalid
      *
      */
     public void play(int fromBarIndex) throws MusicGenerationException

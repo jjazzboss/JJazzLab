@@ -39,10 +39,11 @@ import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -56,7 +57,6 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.event.RpChangedEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.util.api.ResUtil;
 import org.openide.util.Exceptions;
 
 /**
@@ -68,7 +68,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
 {
 
     public static final String PROP_PLAYING = "PropPlaying";
-    public static final int SONG_PART_BAR_SIZE = 4;
+    public static final int SONG_PART_MAX_BAR_SIZE = 16;
     private final SongContext songContextRef;
     private final SongPart songPartRef;
     private SongContext songContextWork;
@@ -108,12 +108,32 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         return songContextRef;
     }
 
- 
 
     public boolean isPlaying()
     {
         return playing;
     }
+
+    public CLI_ChordSymbol getCurrentChordSymbol()
+    {
+        return firstChordSymbol;
+    }
+
+    /**
+     * Update the tempo once arranger has started playing.
+     * <p>
+     * Do nothing if arranger is not started.
+     *
+     * @param tempo
+     */
+    public void updateTempo(int tempo)
+    {
+        if (songContextWork != null)
+        {
+            songContextWork.getSong().setTempo(tempo);
+        }
+    }
+
 
     /**
      * Start playback of songPart using Midi chord input.
@@ -127,21 +147,25 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
             return;
         }
 
-        
+
         // Make sure it's stopped
-        MusicController mc = MusicController.getInstance();        
+        MusicController mc = MusicController.getInstance();
         mc.stop();
 
 
         // Prepare session
-        songContextWork = buildWorkContext(songContextRef, songPartRef, SONG_PART_BAR_SIZE);
+        songContextWork = buildWorkContext(songContextRef, songPartRef, SONG_PART_MAX_BAR_SIZE);
         songPartWork = songContextWork.getSongParts().get(0);
         firstChordSymbol = songContextWork.getSong().getChordLeadSheet().getItems(songPartWork.getParentSection(), CLI_ChordSymbol.class).get(0);
         var dynSession = DynamicSongSession.getSession(songContextWork, true, true, false, false, false, Sequencer.LOOP_CONTINUOUSLY, null);
         var updatableSession = UpdatableSongSession.getSession(dynSession);
+        if (updatableSession.getState().equals(PlaybackSession.State.NEW))
+        {
+            updatableSession.generate(false);        // can raise MusicGenerationException
+            mc.setPlaybackSession(updatableSession); // can raise MusicGenerationException
+        }
 
-        // Start playback
-        mc.setPlaybackSession(updatableSession);
+        // Start playback        
         mc.play(0);
 
         playing = true;
@@ -153,8 +177,8 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         if (playing)
         {
             LOGGER.severe("stop()");
+            playing = false;                // Must be before calling stop() below    
             MusicController.getInstance().stop();
-            playing = false;
             pcs.firePropertyChange(PROP_PLAYING, true, false);
         }
     }
@@ -171,7 +195,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         {
             LOGGER.warning("updateChordSymbol() songContextWork is null!");
         }
-        
+
         ChordLeadSheet cls = songContextWork.getSong().getChordLeadSheet();
         assert firstChordSymbol != null;
 
@@ -266,22 +290,27 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
     // =========================================================================================
 
     /**
-     * Use the parameters to prepare a new work song context with only one work SongPart (or 2 if songPart uses an AdaptedRhythm).
+     * Use the parameters to prepare a song context which contains only one SongPart (or 2 if songPart uses an AdaptedRhythm).
      * <p>
-     * Size of the work song part is newSptSize. Make sure there is only one chord symbol at the start of the chord leadsheet.
+     * Make sure there is only one chord symbol at the start of the chord leadsheet, and that the section/song part size is not
+     * greater than maxSptWorkNbBars.
      *
      * @param sgContext
      * @param spt
-     * @param workSptSize
+     * @param maxSptWorkNbBars
      * @return
      */
-    private SongContext buildWorkContext(SongContext sgContext, SongPart spt, int workSptSize)
+    private SongContext buildWorkContext(SongContext sgContext, SongPart spt, int maxSptWorkNbBars)
     {
+        LOGGER.info("buildWorkContext() sgContext=" + sgContext + " spt=" + spt);
+
         // Get a work copy
         Song songWork = SongFactory.getInstance().getCopy(sgContext.getSong(), false);
+        songWork.setName("Arranger song copy of " + sgContext.getSong().getName());
         var sgsWork = songWork.getSongStructure();
         var spts = sgsWork.getSongParts();
         var clsWork = songWork.getChordLeadSheet();
+        LOGGER.info("              clsWork BEFORE: " + toDumpString(clsWork));
         SongPart sptWork = sgsWork.getSongPart(spt.getStartBarIndex());
         Rhythm r = sptWork.getRhythm();
 
@@ -302,11 +331,11 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
                     Exceptions.printStackTrace(ex);
                 }
 
-                // Adjust section size if required
-                if (sptWork.getNbBars() != workSptSize)
+                // Shorten section size if required
+                if (sptWork.getNbBars() > maxSptWorkNbBars)
                 {
                     var parentSection = sptWork.getParentSection();
-                    clsWork.setSize(parentSection.getPosition().getBar() + workSptSize - 1);  // throws UnsupportedEditException
+                    clsWork.setSize(parentSection.getPosition().getBar() + maxSptWorkNbBars);  // throws UnsupportedEditException
                 }
 
             } else
@@ -315,42 +344,52 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
                 AdaptedRhythm ar = (AdaptedRhythm) r;
                 Rhythm sr = ar.getSourceRhythm();
 
+
                 // Clean everything
                 sgsWork.removeSongParts(spts);
 
+
                 // Prepare the added song parts
                 List<SongPart> addSpts = new ArrayList<>();
-                addSpts.add(sptWork.clone(null, 0, sptWork.getNbBars(), sptWork.getParentSection()));   // New work song part starts at 0
+                sptWork = sptWork.clone(null, 0, sptWork.getNbBars(), sptWork.getParentSection());
+                addSpts.add(sptWork);   // New work song part starts at 0
+
 
                 // Find the first song part which uses the source rhythm
-                SongPart srSpt = spts.stream()
+                SongPart srcSptWork = spts.stream()
                         .filter(spti -> spti.getRhythm() == sr)
                         .findAny()
                         .orElse(null);
-                assert srSpt != null : "spts=" + spts;
-                addSpts.add(srSpt.clone(null, sptWork.getNbBars(), srSpt.getNbBars(), srSpt.getParentSection()));   // starts after spt
+                assert srcSptWork != null : "spts=" + spts;
+                int startBar = sptWork.getNbBars(); // Will be right after sptWork
+                srcSptWork = srcSptWork.clone(null, startBar, srcSptWork.getNbBars(), srcSptWork.getParentSection());
+                addSpts.add(srcSptWork);
+
 
                 // Add the SongParts
                 sgsWork.addSongParts(addSpts);
 
+
                 // Adjust section size if required
-                if (sptWork.getNbBars() > workSptSize)
+                if (sptWork.getNbBars() > maxSptWorkNbBars)
                 {
-                    var sptParentSection = sptWork.getParentSection();
-                    int sptParentSectionBar = sptParentSection.getPosition().getBar();
-                    var srSptParentSection = srSpt.getParentSection();
-                    int srSptParentSectionBar = srSptParentSection.getPosition().getBar();
-                    if (sptParentSectionBar > srSptParentSectionBar)
+                    var sptWorkParentSection = sptWork.getParentSection();
+                    int sptWorkParentSectionBar = sptWorkParentSection.getPosition().getBar();
+                    var srcSptWorkParentSection = srcSptWork.getParentSection();
+                    int srcSptWorkParentSectionBar = srcSptWorkParentSection.getPosition().getBar();
+                    if (sptWorkParentSectionBar > srcSptWorkParentSectionBar)
                     {
                         // We can just shorten the chord leadsheet
-                        clsWork.setSize(sptParentSectionBar + workSptSize - 1);   // throws UnsupportedEditException
+                        clsWork.setSize(sptWorkParentSectionBar + maxSptWorkNbBars);   // throws UnsupportedEditException
                     } else
                     {
-                        // Can't shorten size, need to move the next section
-                        var nextSection = clsWork.getSection(sptParentSectionBar + sptWork.getNbBars());
-                        clsWork.moveSection(nextSection, sptParentSectionBar + workSptSize);
+                        // Can't shorten cls size, need to move the next section
+                        var nextSection = clsWork.getSection(sptWorkParentSectionBar + sptWork.getNbBars());
+                        clsWork.moveSection(nextSection, sptWorkParentSectionBar + maxSptWorkNbBars);
                     }
                 }
+
+
             }
         } catch (UnsupportedEditException ex)
         {
@@ -382,12 +421,32 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
                     .forEach(item -> clsWork.removeItem(item));
         }
 
+        LOGGER.info("              clsWork AFTER: " + toDumpString(clsWork));
+        LOGGER.info("              sptWork AFTER: " + sptWork);
+        LOGGER.info("              sgsWork AFTER: " + sgsWork);
+
 
         // Return the new context 
         return new SongContext(songWork, sgContext.getMidiMix(), sptWork.getBarRange());
 
     }
 
+    static private String toDumpString(ChordLeadSheet cls)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(cls.toString());
+        for (ChordLeadSheetItem<?> item : cls.getItems())
+        {
+            if (item instanceof CLI_Section)
+            {
+                sb.append('\n').append(" ").append(item.getData()).append(item.getPosition()).append(" : ");
+            } else
+            {
+                sb.append(item.getData()).append(item.getPosition()).append(" ");
+            }
+        }
+        return sb.toString();
+    }
 
     // =========================================================================================
     // Private class

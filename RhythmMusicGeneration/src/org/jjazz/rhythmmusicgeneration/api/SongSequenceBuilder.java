@@ -28,11 +28,13 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
@@ -54,6 +56,7 @@ import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
@@ -436,33 +439,35 @@ public class SongSequenceBuilder
         processCustomPhrases(songContext, res);
 
 
-        // Merge the phrases from delegate RhythmVoices to the source phrase, and remove the delegate phrases            
-        for (var it = res.keySet().iterator(); it.hasNext();)
+        // Merge the phrases from delegate RhythmVoices to the source phrase, then remove the delegate phrases        
+        for (var rv : res.keySet().toArray(new RhythmVoice[0]))
         {
-            var rv = it.next();
             if (rv instanceof RhythmVoiceDelegate)
             {
                 RhythmVoiceDelegate rvd = (RhythmVoiceDelegate) rv;
                 Phrase p = res.get(rvd);
-                Phrase pDest = res.get(rvd.getSource());
+                RhythmVoice rvds = rvd.getSource();
+                Phrase pDest = res.get(rvds);
                 if (pDest == null)
                 {
-                    throw new IllegalStateException("rv=" + rv + " res=" + res);   //NOI18N
+                    // Might happen if the context range contains only SongParts with AdaptedRhythms (source rhythms are excluded)
+                    pDest = new Phrase(p.getChannel());
+                    res.put(rvds, pDest);
                 }
 
                 // There should be no overlap of phrases since the delegate is from a different rhythm, so for different song parts 
                 pDest.add(p);
 
-                // Remove the delegate
-                it.remove();
+                // Remove the delegate phrase
+                res.remove(rvd);
             }
         }
+
+
         // 
         // From here no more SongPart-based processing allowed, since the phrases for SongParts using an AdaptedRhythm have 
         // been merged into the tracks of its source rhythm.
         // 
-
-
         // Handle instrument settings which impact the phrases: transposition, velocity shift, ...
         processInstrumentsSettings(songContext, res);
 
@@ -505,30 +510,48 @@ public class SongSequenceBuilder
         // Other tracks : create one per RhythmVoice
         int trackId = 1;
         res.mapRvTrackId = new HashMap<>();
-        for (Rhythm r : songContext.getUniqueRhythms())
-        {
 
-            // Group tracks per rhythm
+
+        // Normally process only normal rhythms, but if context does not use a source rhythm of an adapted rhythm, we need to process it too
+        var contextRhythms = songContext.getUniqueRhythms();      // Contains AdaptedRhythms
+        Set<Rhythm> targetRhythms = new HashSet<>();
+        for (Rhythm r : contextRhythms)
+        {
+            if (r instanceof AdaptedRhythm)
+            {
+                AdaptedRhythm ar = (AdaptedRhythm) r;
+                Rhythm sr = ar.getSourceRhythm();
+                if (!contextRhythms.contains(sr))
+                {
+                    // Add the source rhythm if not present in context range
+                    targetRhythms.add(sr);
+                }
+            } else
+            {
+                targetRhythms.add(r);
+            }
+        }
+
+
+        // Process all these "normal" rhythms
+        for (Rhythm r : targetRhythms)
+        {         
             for (RhythmVoice rv : r.getRhythmVoices())
             {
 
-                // Delegate phrases have already been merged
-                if (!(rv instanceof RhythmVoiceDelegate))
-                {
-                    Track track = res.sequence.createTrack();
+                Track track = res.sequence.createTrack();
 
-                    // First event will be the name of the track: rhythm - rhythmVoice - channel
-                    String name = rv.getContainer().getName() + "-" + rv.getName() + "-channel:" + songContext.getMidiMix().getChannel(rv) + " (0-15)";
-                    MidiUtilities.addTrackNameEvent(track, name);
+                // First event will be the name of the track: rhythm - rhythmVoice - channel
+                String name = rv.getContainer().getName() + "-" + rv.getName() + "-channel:" + songContext.getMidiMix().getChannel(rv) + " (0-15)";
+                MidiUtilities.addTrackNameEvent(track, name);
 
-                    // Fill the track
-                    Phrase p = rvPhrases.get(rv);
-                    p.fillTrack(track);
+                // Fill the track
+                Phrase p = rvPhrases.get(rv);
+                p.fillTrack(track);
 
-                    // Store the track with the RhythmVoice
-                    res.mapRvTrackId.put(rv, trackId);
-                    trackId++;
-                }
+                // Store the track with the RhythmVoice
+                res.mapRvTrackId.put(rv, trackId);
+                trackId++;
             }
         }
         fixEndOfTracks(songContext, res.sequence);
@@ -557,14 +580,15 @@ public class SongSequenceBuilder
     }
 
     /**
-     * Check that there is a starting chord symbol for each section.
+     * Check that there is a starting chord symbol for each section used in the specified context.
      *
-     * @throws MusicGenerationException
+     * @param context
+     * @throws UserErrorException
      */
     private void checkStartChordPresence(SongContext context) throws UserErrorException
     {
         ChordLeadSheet cls = context.getSong().getChordLeadSheet();
-        for (CLI_Section section : cls.getItems(CLI_Section.class))
+        for (CLI_Section section : getContextSections(context))
         {
             Position pos = section.getPosition();
             List<? extends CLI_ChordSymbol> clis = cls.getItems(section, CLI_ChordSymbol.class);
@@ -576,30 +600,51 @@ public class SongSequenceBuilder
     }
 
     /**
-     * Check if the ChordLeadSheet contains 2 chord symbols at the same position.
+     * Check if the ChordLeadSheet contains 2 chord symbols at the same position in the passed context.
+     *
+     * @param context
+     * @throws org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder.UserErrorException
      */
     private void checkChordsAtSamePosition(SongContext context) throws UserErrorException
     {
         HashMap<Position, CLI_ChordSymbol> mapPosCs = new HashMap<>();
         ChordLeadSheet cls = context.getSong().getChordLeadSheet();
-        List<? extends CLI_ChordSymbol> clis = cls.getItems(CLI_ChordSymbol.class);
-        for (CLI_ChordSymbol cliCs : clis)
+
+        for (CLI_Section cliSection : getContextSections(context))
         {
-            Position pos = cliCs.getPosition();
-            CLI_ChordSymbol existingCliCs = mapPosCs.get(pos);
-            if (existingCliCs != null)
+            List<? extends CLI_ChordSymbol> clis = cls.getItems(cliSection, CLI_ChordSymbol.class);
+            for (CLI_ChordSymbol cliCs : clis)
             {
-                StringBuilder sb = new StringBuilder();
-                sb.append(ResUtil.getString(getClass(), "ERR_ChordSymbolPositionConflict"));
-                sb.append(cliCs.getData().toString()).append(cliCs.getPosition().toUserString());
-                sb.append(" - ");
-                sb.append(existingCliCs.getData().toString()).append(existingCliCs.getPosition().toUserString());
-                throw new UserErrorException(sb.toString());
-            } else
-            {
-                mapPosCs.put(pos, cliCs);
+                Position pos = cliCs.getPosition();
+                CLI_ChordSymbol existingCliCs = mapPosCs.get(pos);
+                if (existingCliCs != null)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(ResUtil.getString(getClass(), "ERR_ChordSymbolPositionConflict"));
+                    sb.append(cliCs.getData().toString()).append(cliCs.getPosition().toUserString());
+                    sb.append(" - ");
+                    sb.append(existingCliCs.getData().toString()).append(existingCliCs.getPosition().toUserString());
+                    throw new UserErrorException(sb.toString());
+                } else
+                {
+                    mapPosCs.put(pos, cliCs);
+                }
             }
         }
+    }
+
+    /**
+     * Get the list of sections for the given context.
+     *
+     * @param context
+     * @return
+     */
+    private List<CLI_Section> getContextSections(SongContext context)
+    {
+        List<CLI_Section> res = context.getSong().getSongStructure().getSongParts().stream()
+                .map(spt -> spt.getParentSection())
+                .collect(Collectors.toList());
+        return res;
     }
 
     /**
@@ -725,18 +770,18 @@ public class SongSequenceBuilder
             RP_SYS_CustomPhraseValue rpValue = spt.getRPValue(rpCustomPhrase);
             for (RhythmVoice rv : rpValue.getCustomizedRhythmVoices())
             {
-                
+
                 // Remove a slice for the current songpart            
                 Phrase p = rvPhrases.get(rv);
                 p.split(sptBeatRange, true, false);
 
-                
+
                 // Get the custom phrase, starts at beat 0
                 SptPhrase spCustom = rpValue.getCustomizedPhrase(rv);
                 float sizeInBeats = spCustom.getSizeInBeats();
                 TimeSignature ts = spCustom.getTimeSignature();
 
-                
+
                 // If custom phrase is at least one bar shorter than current song part, duplicate the custom phrase to fill the remaining space
                 if (sizeInBeats <= sptBeatRange.size() - ts.getNbNaturalBeats())
                 {
@@ -744,7 +789,7 @@ public class SongSequenceBuilder
                     List<NoteEvent> toAdd = new ArrayList<>();
                     while (offset < sptBeatRange.size())
                     {
-                        for (NoteEvent ne: spCustom)
+                        for (NoteEvent ne : spCustom)
                         {
                             float newPosInBeats = ne.getPositionInBeats() + offset;
                             if (newPosInBeats >= sptBeatRange.size())
@@ -755,11 +800,11 @@ public class SongSequenceBuilder
                         }
                         offset += sizeInBeats;
                     }
-                    
+
                     toAdd.forEach(ne -> spCustom.add(ne));  // No need for addOrdered() here
                 }
 
-                
+
                 // Make sure it's not too long 
                 spCustom.silenceAfter(sptBeatRange.size());
 

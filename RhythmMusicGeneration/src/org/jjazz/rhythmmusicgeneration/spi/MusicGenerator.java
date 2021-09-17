@@ -42,21 +42,23 @@ public interface MusicGenerator
      * Notes must be generated for the context bars which use this generator's rhythm. For example, if context range is bars 3-4
      * with rhythm1 on bar3 and rhythm2 on bar4, then the rhythm1 generator must add notes for bar 3 only.
      * <p>
-     * The MidiMix from <code>context</code> is used to retrieve the Midi channel associated to each RhythmVoice. Use
+     * The MidiMix from <code>context</code> should be only used to retrieve the Midi channel associated to each RhythmVoice. Use
      * <code>MidiMix.getChannel(RhythmVoice)</code> for a standard <code>RhythmVoice</code>, and
      * <code>MidiMix.getChannel(RhythmVoiceDelegate.getSource())</code> for a <code>RhythmVoiceDelegate</code>.
      * <p>
      * If the context song contains several rhythms, the method must add notes ONLY for bars which use this MidiMusicGenerator's
      * rhythm.
      * <p>
-     * Note that some features are directly managed by the JJazzLab framework (by postprocessing the output of generateMusic())
+     * Note that the following features are directly managed by the JJazzLab framework (by postprocessing the output of generateMusic())
      * :<br>
-     * - Instrument selection and settings (Program changes, Midi controller messages such as bank select, volume, reverb,
-     * panoramic, etc.) <br>
+     * - Midi Instrument selection and settings (Program changes, Midi controller messages such as bank select, volume, reverb,
+     * panoramic) <br>
      * - RP_SYS_Mute rhythm parameter handling (muting a specific track for a specific SongPart)<br>
      * - RP_SYS_DrumsMix rhythm parameter handling (adjusting some drums track instruments velocity)<br>
+     * - RP_SYS_CustomPhrase rhythm parameter handling <br>
      * - Handling of the channel's specific velocity shift<br>
      * - Handling of the instrument's specific transposition<br>
+     * - Drums rerouting<br>
      *
      * @param context The information to be used for music generation
      * @return One Phrase per rhythm voice/channel.

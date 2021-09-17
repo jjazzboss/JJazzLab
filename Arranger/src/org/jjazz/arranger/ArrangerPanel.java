@@ -44,6 +44,7 @@ import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.harmony.api.ChordSymbolFinder;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
@@ -186,6 +187,15 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
                     arrangerStopped();
                 }
             }
+        } else if (evt.getSource() == song)
+        {
+            if (evt.getPropertyName().equals(Song.PROP_TEMPO))
+            {
+                if (arranger != null)
+                {
+                    arranger.updateTempo(song.getTempo());
+                }
+            }
         }
     }
 
@@ -244,16 +254,15 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
                 return;
             }
             var jms = JJazzMidiSystem.getInstance();
-//            if (jms.getDefaultInDevice() == null)
-//            {
-//                String msg = ResUtil.getString(getClass(), "ErrNoMidiInputDevice");
-//                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-//                DialogDisplayer.getDefault().notify(nd);
-//                // Rollback UI
-//                tbtn_playPause.setSelected(false);
-//                return;
-//            }
-            LOGGER.severe("togglePlayPause() ========DEBUG bypassed MidiINput check!!!!===========");
+            if (jms.getDefaultInDevice() == null)
+            {
+                String msg = ResUtil.getString(getClass(), "ErrNoMidiInputDevice");
+                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(nd);
+                // Rollback UI
+                tbtn_playPause.setSelected(false);
+                return;
+            }
             MusicController mc = MusicController.getInstance();
             if (mc.getState().equals(MusicController.State.PLAYING))
             {
@@ -264,6 +273,10 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
                 tbtn_playPause.setSelected(false);
                 return;
             }
+
+
+            // Reset chord symbol label
+            lbl_chordSymbol.setText("-");
 
 
             songPart = song.getSongStructure().getSongParts().get(0);
@@ -317,6 +330,13 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
                 return;
             }
 
+            // Update chord symbol label
+            CLI_ChordSymbol cliCs = arranger.getCurrentChordSymbol();
+            if (cliCs != null)
+            {
+                lbl_chordSymbol.setText(cliCs.getData().getName());
+            }
+
         } else
         {
             arranger.stop();        // Will generate an Arranger playing change event
@@ -336,6 +356,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             if (song != null)
             {
                 song.getSongStructure().removeSgsChangeListener(this);
+                song.removePropertyChangeListener(this);
             }
 
             song = sg;
@@ -344,6 +365,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             if (song != null)
             {
                 song.getSongStructure().addSgsChangeListener(this);
+                song.addPropertyChangeListener(this);
             }
         }
 
@@ -385,7 +407,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
      */
     private void updateSptUI()
     {
-        LOGGER.info("updateSptUI() -- songPart=" + songPart);
+        LOGGER.fine("updateSptUI() -- songPart=" + songPart);
         String sSpt, sRhythm;
         if (songPart == null)
         {
