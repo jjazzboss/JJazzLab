@@ -22,6 +22,8 @@
  */
 package org.jjazz.midi.api;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -411,6 +413,16 @@ public class MidiUtilities
     static public ShortMessage getPanoramicMessage(int channel, int data)
     {
         return buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_PAN_MSB, data);
+    }
+
+    static public ShortMessage getNoteOnMessage(int channel, int pitch, int velocity)
+    {
+        return buildMessage(ShortMessage.NOTE_ON, channel, pitch, velocity);
+    }
+
+    static public ShortMessage getNoteOffMessage(int channel, int pitch)
+    {
+        return buildMessage(ShortMessage.NOTE_OFF, channel, pitch, 0);
     }
 
     static public MetaMessage getTimeSignatureMessage(TimeSignature ts)
@@ -1078,6 +1090,114 @@ public class MidiUtilities
         }
         sb.append("Sequence End\n");
         return sb.toString();
+    }
+
+    /**
+     * Convert a MidiMessage as a String for backup purpose.
+     * <p>
+     * Example: "SM-A1-27-C3"
+     *
+     * @param mm
+     * @return
+     * @see #loadMidiMessageFromString(java.lang.String)
+     */
+    static public String saveMidiMessageAsString(MidiMessage mm)
+    {
+        checkNotNull(mm);
+        StringBuilder s = new StringBuilder();
+        if (mm instanceof ShortMessage)
+        {
+            s.append("SM");
+        } else if (mm instanceof MetaMessage)
+        {
+            s.append("MM");
+        } else
+        {
+            s.append("XM");
+        }
+        for (byte b : mm.getMessage())
+        {
+            s.append("-").append(Integer.toHexString(b));
+        }
+        return s.toString();
+    }
+
+    /**
+     * Retrieve a MidiMessage from a save string.
+     *
+     * @param s
+     * @return
+     * @throws java.text.ParseException
+     * @throws javax.sound.midi.InvalidMidiDataException
+     * @see #saveMidiMessageAsString(javax.sound.midi.MidiMessage)
+     */
+    static public MidiMessage loadMidiMessageFromString(String s) throws ParseException, InvalidMidiDataException
+    {
+        // Our own subclasses to get access to the protected MidiMessage.setMessage(byte[]) method
+        class ShortMessageSpecial extends ShortMessage
+        {
+
+            public void setMessage(byte[] data) throws InvalidMidiDataException
+            {
+                super.setMessage(data, data.length);
+            }
+        }
+
+        class MetaMessageSpecial extends MetaMessage
+        {
+
+            public void setMessage(byte[] data) throws InvalidMidiDataException
+            {
+                super.setMessage(data, data.length);
+            }
+        }
+
+        class SysexMessageSpecial extends SysexMessage
+        {
+
+            public void setMessage(byte[] data) throws InvalidMidiDataException
+            {
+                super.setMessage(data, data.length);
+            }
+        }
+
+        checkNotNull(s);
+        String[] strs = s.split("-");
+        if (strs.length < 2)
+        {
+            throw new ParseException("Invalid Midi message save string '" + s + "'", 0);
+        }
+        byte[] data = new byte[strs.length - 1];
+
+
+        for (int i = 1; i < strs.length; i++)
+        {
+            data[i - 1] = (byte) Integer.parseInt(strs[i], 16);
+        }
+
+        MidiMessage mm;
+
+        if (strs[0].equals("SM"))
+        {
+            ShortMessageSpecial res = new ShortMessageSpecial();
+            res.setMessage(data);
+            mm = res;
+        } else if (strs[0].equals("MM"))
+        {
+            MetaMessageSpecial res = new MetaMessageSpecial();
+            res.setMessage(data);
+            mm = res;
+        } else if (strs[0].equals("XM"))
+        {
+            SysexMessageSpecial res = new SysexMessageSpecial();
+            res.setMessage(data);
+            mm = res;
+        } else
+        {
+            throw new ParseException("Invalid Midi message save string '" + s + "'", 0);
+        }
+
+        return mm;
     }
 
     /**

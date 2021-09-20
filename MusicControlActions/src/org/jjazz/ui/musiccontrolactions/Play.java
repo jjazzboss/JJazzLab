@@ -27,7 +27,10 @@ import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
@@ -44,6 +47,8 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
+import org.jjazz.ui.musiccontrolactions.api.RemoteAction;
+import org.jjazz.ui.musiccontrolactions.api.RemoteActionProvider;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -55,8 +60,10 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
+import org.openide.util.NbPreferences;
 import org.openide.util.Utilities;
 import org.openide.util.actions.BooleanStateAction;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Show/hide the playback point in editors during song playback.
@@ -288,7 +295,22 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
             }
         }
     }
-
+    // ======================================================================
+    // Inner classes
+    // ======================================================================   
+    
+    @ServiceProvider (service=RemoteActionProvider.class)
+    public static class PlayRemoteActionProvider implements RemoteActionProvider
+    {       
+        @Override
+        public List<RemoteAction> getRemoteActions()
+        {
+            RemoteAction ra = new RemoteAction("MusicControls", "org.jjazz.ui.musiccontrolactions.play");
+            ra.setControlNote(0, 24);
+            return Arrays.asList(ra);
+        }
+    }
+    
     // ======================================================================
     // Private methods
     // ======================================================================   

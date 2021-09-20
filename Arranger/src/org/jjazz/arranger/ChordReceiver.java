@@ -26,11 +26,14 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import org.jjazz.harmony.api.Note;
+import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
+import org.openide.util.NbPreferences;
 
 
 /**
@@ -40,8 +43,8 @@ import org.jjazz.midi.api.MidiUtilities;
 public class ChordReceiver implements Receiver
 {
 
-
-    public static final int DEFAULT_SPLIT_POINT_NOTE = 52; // E3
+    public static final int DEFAULT_SPLIT_POINT_NOTE = 60; // E3
+    private static final String PREF_SPLIT_NOTE = "SplitNote";
 
     public interface ChordListener
     {
@@ -55,11 +58,21 @@ public class ChordReceiver implements Receiver
          */
         void chordChanged(List<Note> notes);
     }
-    private int splitNote = DEFAULT_SPLIT_POINT_NOTE;
+    private int splitNote;
     private final List<ChordListener> listeners = new ArrayList<>();
     private final List<Note> notes = new LinkedList<>();
+    private static Preferences prefs = NbPreferences.forModule(JJazzMidiSystem.class);
     private static final Logger LOGGER = Logger.getLogger(ChordReceiver.class.getSimpleName());  //NOI18N
 
+    public ChordReceiver()
+    {
+        // Restore the split note
+        splitNote = prefs.getInt(PREF_SPLIT_NOTE, DEFAULT_SPLIT_POINT_NOTE);
+        if (splitNote < 11 || splitNote > 127)
+        {
+            splitNote = DEFAULT_SPLIT_POINT_NOTE;
+        }
+    }
 
     public synchronized int getSplitNote()
     {
@@ -80,6 +93,7 @@ public class ChordReceiver implements Receiver
             }
         }
         this.splitNote = newSplitNote;
+        prefs.putInt(PREF_SPLIT_NOTE, this.splitNote);
     }
 
     public void reset()

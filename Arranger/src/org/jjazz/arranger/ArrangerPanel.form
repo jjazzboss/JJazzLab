@@ -85,7 +85,7 @@
         </Property>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new KeyboardComponent(KeyboardRange._76_KEYS);"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new KeyboardComponent(KeyboardRange._88_KEYS);"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JLabel" name="lbl_chordSymbol">

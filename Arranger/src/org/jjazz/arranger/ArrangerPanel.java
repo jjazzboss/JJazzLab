@@ -60,6 +60,9 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardComponent;
 import org.jjazz.ui.keyboardcomponent.api.KeyboardRange;
+import org.jjazz.ui.ss_editor.api.SS_Editor;
+import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
+import org.jjazz.ui.ss_editor.api.SS_SelectionUtilities;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
 import org.openide.*;
@@ -232,45 +235,47 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             return;
         }
 
+
+        var jms = JJazzMidiSystem.getInstance();
+        MusicController mc = MusicController.getInstance();
+
+
         if (tbtn_playPause.isSelected())
         {
 
             // Check everything is OK
-            if (song == null)
-            {
-                String msg = ResUtil.getString(getClass(), "ErrNoActiveSong");
-                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(nd);
-                tbtn_playPause.setSelected(false);
-                return;
-            }
-            if (song.getSongStructure().getSongParts().isEmpty())
-            {
-                String msg = ResUtil.getString(getClass(), "ErrNoSongPart");
-                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(nd);
-                // Rollback UI
-                tbtn_playPause.setSelected(false);
-                return;
-            }
-            var jms = JJazzMidiSystem.getInstance();
+            String errorMessage = null;
+
+
             if (jms.getDefaultInDevice() == null)
             {
-                String msg = ResUtil.getString(getClass(), "ErrNoMidiInputDevice");
-                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(nd);
-                // Rollback UI
-                tbtn_playPause.setSelected(false);
-                return;
+                errorMessage = ResUtil.getString(getClass(), "ErrNoMidiInputDevice");
             }
-            MusicController mc = MusicController.getInstance();
+
             if (mc.getState().equals(MusicController.State.PLAYING))
             {
-                String msg = ResUtil.getString(getClass(), "ErrSequenceAlreadyPlaying");
-                NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(nd);
-                // Rollback UI
+                errorMessage = ResUtil.getString(getClass(), "ErrSequenceAlreadyPlaying");
+            }
+
+            if (song == null)
+            {
+                errorMessage = ResUtil.getString(getClass(), "ErrNoActiveSong");
+            }
+
+            SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(song.getSongStructure());
+            SS_Editor ssEditor = ssTc.getSS_Editor();
+            SS_SelectionUtilities selection = new SS_SelectionUtilities(ssEditor.getLookup());
+            if (selection.isEmpty())
+            {
+                errorMessage = ResUtil.getString(getClass(), "ErrNoSelectedSongPart");
+            }
+
+            // If error notify error and rollback UI
+            if (errorMessage != null)
+            {
                 tbtn_playPause.setSelected(false);
+                NotifyDescriptor nd = new NotifyDescriptor.Message(errorMessage, NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(nd);
                 return;
             }
 
@@ -279,7 +284,15 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             lbl_chordSymbol.setText("-");
 
 
-            songPart = song.getSongStructure().getSongParts().get(0);
+            // Reference song part is the first selected
+            songPart = selection.isRhythmParameterSelected()
+                    ? selection.getSelectedSongPartParameters().get(0).getSpt()
+                    : selection.getSelectedSongParts().get(0);
+            
+            
+            // Make selection become only our song part
+            selection.unselectAll(ssEditor);
+            ssEditor.selectSongPart(songPart, true);
 
 
             // Prepare the arranger 
@@ -313,6 +326,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             arranger.addPropertyListener(this);
 
 
+            
             // Start playback
             try
             {
@@ -379,7 +393,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
      */
     protected void processIncomingChord(List<Note> notes)       // protected for testing, should be private
     {
-        LOGGER.severe("processIncomingChord() -- notes=" + notes + " nanoTime()="+System.nanoTime());
+        LOGGER.severe("processIncomingChord() -- notes=" + notes + " nanoTime()=" + System.nanoTime());
         if (notes.size() < 3 || notes.size() > chordSymbolFinder.getMaxNbNotes())
         {
             return;
@@ -458,7 +472,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     private void initComponents()
     {
 
-        kbdComponent = new KeyboardComponent(KeyboardRange._76_KEYS);
+        kbdComponent = new KeyboardComponent(KeyboardRange._88_KEYS);
         lbl_chordSymbol = new javax.swing.JLabel();
         lbl_songPart = new javax.swing.JLabel();
         lbl_rhythm = new javax.swing.JLabel();
