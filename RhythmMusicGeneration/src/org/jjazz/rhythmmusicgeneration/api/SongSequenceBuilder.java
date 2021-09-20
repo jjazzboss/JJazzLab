@@ -634,16 +634,16 @@ public class SongSequenceBuilder
     }
 
     /**
-     * Get the list of sections for the given context.
+     * Get the set of sections for the given context.
      *
      * @param context
      * @return
      */
-    private List<CLI_Section> getContextSections(SongContext context)
+    private Set<CLI_Section> getContextSections(SongContext context)
     {
-        List<CLI_Section> res = context.getSong().getSongStructure().getSongParts().stream()
+        Set<CLI_Section> res = context.getSong().getSongStructure().getSongParts().stream()
                 .map(spt -> spt.getParentSection())
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
         return res;
     }
 

@@ -363,7 +363,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     {
         return state.equals(State.GENERATED) ? new HashMap<>(mapRvPhrase) : null;
     }
-
+    
 
     /**
      * Get the click sequence track number.

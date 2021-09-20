@@ -373,12 +373,13 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     }
 
     /**
+     * Called by the ChordReceiver when a chord was changed.
      *
      * @param notes
      */
-    protected void processIncomingChord(List<Note> notes)       // protected for testing!!! => private
+    protected void processIncomingChord(List<Note> notes)       // protected for testing, should be private
     {
-        LOGGER.severe("processIncomingChord() -- notes=" + notes);
+        LOGGER.severe("processIncomingChord() -- notes=" + notes + " nanoTime()="+System.nanoTime());
         if (notes.size() < 3 || notes.size() > chordSymbolFinder.getMaxNbNotes())
         {
             return;

@@ -22,7 +22,7 @@ import org.openide.util.NbBundle.Messages;
 @ActionReferences(
         {
             @ActionReference(path = "Menu/File", position = -100),
-            @ActionReference(path = "Shortcuts", name = "O-T")
+            @ActionReference(path = "Shortcuts", name = "O-N")
         })
 @Messages("CTL_TestGenerateChordChange=Generate chord change")
 public final class TestGenerateChordChange implements ActionListener

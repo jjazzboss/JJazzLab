@@ -42,7 +42,6 @@ import javax.sound.midi.Receiver;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
-import javax.sound.midi.Track;
 import javax.sound.midi.Transmitter;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -105,9 +104,17 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
     private State state;
     /**
-     * The current beat position during playback.
+     * The current beat position during playback (for ControlTrackProvider sessions only).
      */
-    Position currentBeatPosition = new Position();
+    private Position currentBeatPosition = new Position();
+    /**
+     * The current chord symbol during playback (for ControlTrackProvider sessions only).
+     */
+    private CLI_ChordSymbol currentChordSymbol;
+    /**
+     * The current song part during playback (for ControlTrackProvider sessions only).
+     */
+    private SongPart currentSongPart;
 
     /**
      * Sequencer lock by an external entity.
@@ -320,7 +327,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
         try
         {
-            // Reset sequence, so that if
+            // Reset sequence
             sequencer.setSequence((Sequence) null);
         } catch (InvalidMidiDataException ex)
         {
@@ -329,6 +336,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
 
         PlaybackSession oldSession = playbackSession;
+
 
         // Update the session
         closeCurrentPlaybackSession();
@@ -523,6 +531,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
         // Update state
+        currentSongPart = null;
+        currentChordSymbol = null;
         songPartTempoFactor = 1;
         setState(State.STOPPED);
 
@@ -538,7 +548,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Stop the playback of the sequence and leave the position unchanged.
      * <p>
-     * If state is not PLAYING, nothing is done. If session is dirty, use stop() instead.
+     * If state is not PLAYING, do nothing. If session is dirty, use stop() instead.
      */
     public void pause()
     {
@@ -567,13 +577,67 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * The current playback position updated at every beat (beat is an integer).
+     * Change the current bar when in PAUSED state.
+     * <p>
+     * Do nothing if not in PAUSED state.
+     *
+     * @param barIndex
+     * @throws IllegalArgumentException If bar index is not valid for the current PlaybackSession.
+     */
+    public void changePausedBar(int barIndex)
+    {
+        if (!state.equals(State.PAUSED))
+        {
+            return;
+        }
+        if (!playbackSession.getBarRange().contains(barIndex))
+        {
+            throw new IllegalArgumentException("Invalid barIndex=" + barIndex + " playbackSession.getBarRange()=" + playbackSession.getBarRange());
+        }
+
+        setPosition(barIndex);
+    }
+
+    /**
+     * The current playback position updated at every natural beat (eg 0, 1, 2, 3 in 4/4).
+     * <p>
+     * Note: value is meaningful only for PlaybackSessions which are also ControlTrackProviders. Otherwise returned value is
+     * always bar=0, beat=0.
      *
      * @return
+     * @see PlaybackListener
      */
-    public Position getBeatPosition()
+    public Position getCurrentBeatPosition()
     {
         return currentBeatPosition;
+    }
+
+    /**
+     * The current CLI_ChordSymbol being played.
+     * <p>
+     * Note: value is meaningful only when playback is on or paused, and for PlaybackSessions which are also
+     * ControlTrackProviders. Otherwise return value is null.
+     *
+     * @return Can be null.
+     * @see PlaybackListener
+     */
+    public CLI_ChordSymbol getCurrentChordSymbol()
+    {
+        return currentChordSymbol;
+    }
+
+    /**
+     * The current SongPart being played.
+     * <p>
+     * Note: value is meaningful only when playback is on or paused, and for PlaybackSessions which are also ControlTrackProviders
+     * and SongContextProviders. Otherwise return value is null.
+     *
+     * @return Can be null.
+     * @see PlaybackListener
+     */
+    public SongPart getCurrentSongPart()
+    {
+        return currentSongPart;
     }
 
     public State getState()
@@ -731,26 +795,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
                         CLI_ChordSymbol cliCs = cSeq.get(csIndex);
                         fireChordSymbolChanged(cliCs);
-
-
-                        // Possibly fire a songpart change as well
-                        SongContext sgContext = getSongContext(playbackSession);
-                        if (sgContext != null)
-                        {
-                            // Check if there is a song part change as well on the same position
-                            Position pos = cliCs.getPosition();
-                            if (pos.isFirstBarBeat())
-                            {
-                                SongPart newSpt = sgContext.getSongParts().stream()
-                                        .filter(spt -> spt.getStartBarIndex() == pos.getBar())
-                                        .findFirst().orElse(null);
-                                if (newSpt != null)
-                                {
-
-                                    fireSongPartChanged(newSpt);
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -889,13 +933,17 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             throw new IllegalArgumentException("cliCs=" + cliCs);
         }
-        fireLatencyAwareEvent(() ->
+        if (currentChordSymbol != cliCs)
         {
-            for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
+            currentChordSymbol = cliCs;
+            fireLatencyAwareEvent(() ->
             {
-                pl.chordSymbolChanged(cliCs);
-            }
-        });
+                for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
+                {
+                    pl.chordSymbolChanged(cliCs);
+                }
+            });
+        }
     }
 
     private void fireBeatChanged(Position oldPos, Position newPos)
@@ -911,13 +959,17 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
     private void fireSongPartChanged(SongPart newSpt)
     {
-        fireLatencyAwareEvent(() ->
+        if (currentSongPart != newSpt)
         {
-            for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
+            currentSongPart = newSpt;
+            fireLatencyAwareEvent(() ->
             {
-                pl.songPartChanged(newSpt);
-            }
-        });
+                for (PlaybackListener pl : playbackListeners.toArray(new PlaybackListener[0]))
+                {
+                    pl.songPartChanged(newSpt);
+                }
+            });
+        }
     }
 
     private void fireNoteOn(long tick, int channel, int pitch, int velocity)
@@ -1021,8 +1073,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * <p>
      * If sequencer is already playing or is disabled, do nothing.
      * <p>
-     * If playbackSession is a PlaybackSession, and if there is no chord symbol at current position, then fire a chord change
-     * event using the previous chord symbol (ie the current chord symbol at this start position).
+     * If playbackSession is a SongContextProvider and a ControlTrackProvider, and if there is no chord symbol at current
+     * position, then fire a chord change event using the previous chord symbol (ie the current chord symbol at this start
+     * position).
      */
     private void seqStart()
     {
@@ -1085,10 +1138,27 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         Position oldPos = new Position(currentBeatPosition);
         currentBeatPosition.setBar(bar);
         currentBeatPosition.setBeat(beat);
+
+
+        // Fire events
         fireBeatChanged(oldPos, new Position(currentBeatPosition));
         if (beat == 0)
         {
             fireBarChanged(oldPos.getBar(), bar);
+        }
+
+
+        // Possibly fire a songpart change as well
+        SongContext sgContext = getSongContext(playbackSession);
+        if (sgContext != null)
+        {
+            SongPart newSpt = sgContext.getSongParts().stream()
+                    .filter(spt -> spt.getBarRange().contains(bar))
+                    .findFirst().orElse(null);
+            if (newSpt != null)
+            {
+                fireSongPartChanged(newSpt);
+            }
         }
     }
 

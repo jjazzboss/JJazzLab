@@ -88,7 +88,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
             @Override
             public void enabledChanged(boolean b)
             {
-                LOGGER.info("PlaybackListener.enabledChanged() -- b="+b);
+                // LOGGER.info("PlaybackListener.enabledChanged() -- b="+b);
                 playbackListenerDisabled = !b;
                 updateShowing();
                 updateEnabled();
@@ -348,7 +348,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
             MusicController mc = MusicController.getInstance();
             currentCL_Editor = SongEditorManager.getInstance().getEditors(currentSong).getTcCle().getCL_Editor();
             currentRL_Editor = SongEditorManager.getInstance().getEditors(currentSong).getTcRle().getSS_Editor();
-            newSgsPos.set(mc.getBeatPosition());
+            newSgsPos.set(mc.getCurrentBeatPosition());
             Position newClsPos = convertToClsPosition(newSgsPos);
             if (newClsPos != null)
             {

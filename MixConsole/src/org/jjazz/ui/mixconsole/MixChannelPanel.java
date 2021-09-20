@@ -207,7 +207,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         {
             if (evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
             {
-                model.setChorus(knob_reverb.getValue());
+                model.setReverb(knob_reverb.getValue());
             } else if ("enabled".equals(evt.getPropertyName()))
             {
                 lbl_rev.setEnabled(knob_reverb.isEnabled());
@@ -216,7 +216,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         {
             if (evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
             {
-                model.setChorus(knob_panoramic.getValue());
+                model.setPanoramic(knob_panoramic.getValue());
             } else if ("enabled".equals(evt.getPropertyName()))
             {
                 lbl_pan.setEnabled(knob_panoramic.isEnabled());

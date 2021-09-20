@@ -43,7 +43,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.DynamicSongSession;
-import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -67,6 +66,10 @@ import org.openide.util.Exceptions;
 public class Arranger implements SgsChangeListener, PropertyChangeListener
 {
 
+    /**
+     * The internal song name for the work song copy used by the arranger.
+     */
+    public static final String ARRANGER_WORK_SONG_NAME = "*!ArrangerSONG!*";
     public static final String PROP_PLAYING = "PropPlaying";
     public static final int SONG_PART_MAX_BAR_SIZE = 16;
     private final SongContext songContextRef;
@@ -158,15 +161,15 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         songPartWork = songContextWork.getSongParts().get(0);
         firstChordSymbol = songContextWork.getSong().getChordLeadSheet().getItems(songPartWork.getParentSection(), CLI_ChordSymbol.class).get(0);
         var dynSession = DynamicSongSession.getSession(songContextWork, true, true, false, false, false, Sequencer.LOOP_CONTINUOUSLY, null);
+        dynSession.setPreUpdateBufferTimeMs(1);     // Each user chord change generates only 2 song changes (remove and add 1 CLI_ChordSymbol)
+        dynSession.setPostUpdateSleepTimeMs(300);    // This allow user to change chord quickly
         var updatableSession = UpdatableSongSession.getSession(dynSession);
-        if (updatableSession.getState().equals(PlaybackSession.State.NEW))
-        {
-            updatableSession.generate(false);        // can raise MusicGenerationException
-            mc.setPlaybackSession(updatableSession); // can raise MusicGenerationException
-        }
+        mc.setPlaybackSession(updatableSession); // Will generate session is state==NEW. Can raise MusicGenerationException
+
 
         // Start playback        
         mc.play(0);
+
 
         playing = true;
         pcs.firePropertyChange(PROP_PLAYING, false, true);
@@ -190,7 +193,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
      */
     public void updateChordSymbol(ChordSymbol newCs)
     {
-        LOGGER.info("updateChordSymbol() -- newCs=" + newCs);
+        LOGGER.info("updateChordSymbol() -- newCs=" + newCs + " nanoTime()=" + System.nanoTime());
         if (songContextWork == null)
         {
             LOGGER.warning("updateChordSymbol() songContextWork is null!");
@@ -306,7 +309,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
 
         // Get a work copy
         Song songWork = SongFactory.getInstance().getCopy(sgContext.getSong(), false);
-        songWork.setName("Arranger song copy of " + sgContext.getSong().getName());
+        songWork.setName(ARRANGER_WORK_SONG_NAME);
         var sgsWork = songWork.getSongStructure();
         var spts = sgsWork.getSongParts();
         var clsWork = songWork.getChordLeadSheet();

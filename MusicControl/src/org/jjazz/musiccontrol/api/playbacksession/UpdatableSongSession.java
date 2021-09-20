@@ -82,7 +82,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
          * The updated phrases for one or more RhythmVoices.
          * <p>
          * Can be null (no update) if controlTrack is not null.
-         * @return 
+         *
+         * @return
          */
         public Map<RhythmVoice, Phrase> getMapRvPhrases()
         {
@@ -93,7 +94,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
          * The updated control track.
          * <p>
          * Can be null (no update) if mapRvPhrases is not null.
-         * @return 
+         *
+         * @return
          */
         public ControlTrack getControlTrack()
         {
@@ -261,7 +263,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      */
     public void updateSequence(Update update)
     {
-        LOGGER.info("updateSequence() ---- update=" + update);
+        LOGGER.info("updateSequence() ---- update=" + update + " nanoTime()=" + System.nanoTime());
 
         if (!getState().equals(PlaybackSession.State.GENERATED))
         {
@@ -314,7 +316,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             currentControlTrack = update.getControlTrack();
             int trackId = update.getControlTrack().getTrackId();
             updateTrack(trackId, currentControlTrack.getMidiEvents(), precountShift);
-            
+
         }
 
 

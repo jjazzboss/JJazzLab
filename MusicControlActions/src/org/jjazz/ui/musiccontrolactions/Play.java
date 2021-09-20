@@ -55,7 +55,6 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
-import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.util.actions.BooleanStateAction;
 
@@ -68,10 +67,6 @@ import org.openide.util.actions.BooleanStateAction;
         {
             // 
             @ActionReference(path = "Shortcuts", name = "SPACE")
-        })
-@NbBundle.Messages(
-        {
-
         })
 public class Play extends BooleanStateAction implements PropertyChangeListener, LookupListener
 {
@@ -136,9 +131,9 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                         mc.resume();
                     } catch (MusicGenerationException ex)
                     {
-                        if (ex.getLocalizedMessage() != null)
+                        if (ex.getMessage() != null)
                         {
-                            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
                             DialogDisplayer.getDefault().notify(d);
                         }
                         setBooleanState(!newState);
