@@ -28,10 +28,21 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
+import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
+import javax.swing.Action;
+import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.util.api.ResUtil;
+import org.netbeans.api.progress.BaseProgressUtils;
+import org.netbeans.api.progress.ProgressRunnable;
+import org.openide.awt.Actions;
+import org.openide.util.Exceptions;
+import org.openide.util.NbPreferences;
 
 /**
  * A remote action stores the list of MidiMessages which can trigger an action.
@@ -42,17 +53,18 @@ public class RemoteAction
     private final String actionId;
     private final String actionCategory;
     private List<MidiMessage> midiMessages;
-    private int controlNote = -1;
-    private int controlNoteChannel = -1;
+    private final Action action;
     private int validIndex = 0;
     private boolean enabled = true;
-
+    private static final Preferences prefs = NbPreferences.forModule(RemoteAction.class);
+    private static final Logger LOGGER = Logger.getLogger(RemoteAction.class.getSimpleName());
 
     /**
      * Create a RemoteAction with no MidiMessage.
      *
-     * @param actionCategory Can't be blank
-     * @param actionId Can't be blank
+     * @param actionCategory Must be a valid JJazzLab/Netbeans action category.
+     * @param actionId Must be a valid JJazzLab/Netbeans action id.
+     * @throws IllegalArgumentException If parameters do not represent a valid JJazzLab action.
      */
     public RemoteAction(String actionCategory, String actionId)
     {
@@ -63,40 +75,150 @@ public class RemoteAction
 
         this.actionId = actionId;
         this.actionCategory = actionCategory;
+        action = Actions.forID(actionCategory, actionId);
+        if (action == null)
+        {
+            throw new IllegalArgumentException("No Netbeans action found for actionCategory=" + actionCategory + " actionId=" + actionId);
+        }
     }
 
-
     /**
-     * Set MidiMessages to trigger the action when a NOTE_ON with pitch is received on the specified channel.
+     * The associated action.
      *
-     * @param channel
-     * @param pitch
+     * @return Can't be null
      */
-    public void setControlNote(int channel, int pitch)
+    public Action getAction()
     {
-        setMidiMessages(noteOnMidiMessages(channel, pitch));
-        this.controlNoteChannel = channel;
-        this.controlNote = pitch;
+        return action;
     }
 
     /**
-     *
-     * @return -1 if MidiMessages have not been set using setControlNote()
-     * @see #setControlNote(int, int)
+     * Save this RemoteAction as a preference.
+     * <p>
+     * Do nothing of this instance has no MidiMessages defined.
      */
-    public int getControlNote()
+    public void saveAsPreference()
     {
-        return controlNote;
+        if (midiMessages != null && !midiMessages.isEmpty())
+        {
+            prefs.put(getPrefMidiMessagesKey(actionCategory, actionId), MidiUtilities.saveMidiMessagesAsString(midiMessages));
+            prefs.putBoolean(getPrefEnabledKey(actionCategory, actionId), enabled);
+        }
+    }
+
+    /**
+     * Try to create an instance from the saved preferences.
+     *
+     * @param actionCategory
+     * @param actionId
+     * @return Null if no instance found for the specified parameters.
+     */
+    static public RemoteAction loadFromPreference(String actionCategory, String actionId)
+    {
+        String s = prefs.get(getPrefMidiMessagesKey(actionCategory, actionId), null);
+        if (s == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var mms = MidiUtilities.loadMidiMessagesFromString(s);      // Throws exceptions
+
+            RemoteAction res = new RemoteAction(actionCategory, actionId);
+            res.setMidiMessages(mms);
+            res.setEnabled(prefs.getBoolean(getPrefEnabledKey(actionCategory, actionId), true));
+            return res;
+
+        } catch (ParseException | InvalidMidiDataException ex)
+        {
+            LOGGER.warning("loadFromPreference() Invalid save string: " + s);
+            return null;
+        }
+    }
+
+    /**
+     * Start a Midi learn session.
+     * <p>
+     * Listen during timeOutMs Midi input to acquire MidiMessages that will trigger this action.
+     *
+     * @param timeOutMs In milliseconds.
+     * @return True If new MidiMessages were learnt.
+     */
+    public boolean startMidiLearnSession(int timeOutMs)
+    {
+
+        // Prepare our receiver
+        var jms = JJazzMidiSystem.getInstance();
+        var transmitter = jms.getJJazzMidiInDevice().getTransmitter();
+        var receiver = new MidiLearnReceiver();
+        transmitter.setReceiver(receiver);
+
+        // Show a progress dialog during timeOutMs
+        ProgressRunnable<?> pr = ph ->
+        {
+            try
+            {
+                int steps = 4;
+                ph.start(steps);
+                while (steps > 0)
+                {
+                    Thread.sleep(timeOutMs / steps);
+                    ph.progress(1);
+                    steps--;
+                }
+                ph.finish();
+            } catch (InterruptedException ex)
+            {
+                // Should never happen
+                Exceptions.printStackTrace(ex);
+            }
+            return null;
+        };
+        BaseProgressUtils.showProgressDialogAndRun(pr, ResUtil.getString(getClass(), "MidiLearnOn"), true);
+
+
+        receiver.close();
+        transmitter.close();
+
+        var learntMessages = receiver.getLearntMessages();
+        if (!learntMessages.isEmpty())
+        {
+            midiMessages = learntMessages;
+            return true;
+        }
+
+        return false;
     }
 
     /**
      *
-     * @return -1 if MidiMessages have not been set using setControlNote()
-     * @see #setControlNote(int, int)
+     * @return The control note pitch if MidiMessages correspond to a single Note_ON ShortMessage. -1 otherwise.
+     * @see #setMidiMessages(int, int)
+     */
+    public int getControlNotePitch()
+    {
+        if (midiMessages == null || midiMessages.size() != 1)
+        {
+            return -1;
+        }
+        ShortMessage sm = MidiUtilities.getNoteOnMidiEvent(midiMessages.get(0));
+        return sm == null ? -1 : sm.getData1();
+    }
+
+    /**
+     *
+     * @return The control note channel if MidiMessages correspond to a single Note_ON ShortMessage. -1 otherwise.
+     * @see #setMidiMessages(int, int)
      */
     public int getControlNoteChannel()
     {
-        return controlNoteChannel;
+        if (midiMessages == null || midiMessages.size() != 1)
+        {
+            return -1;
+        }
+        ShortMessage sm = MidiUtilities.getNoteOnMidiEvent(midiMessages.get(0));
+        return sm == null ? -1 : sm.getChannel();
     }
 
     public String getActionCategory()
@@ -115,17 +237,25 @@ public class RemoteAction
     }
 
     /**
-     * Set the MidiMessages to be recognized to trigger this action.
+     * Set the MidiMessages so that a single NOTE_ON with specified channel and pitch triggers the action.
+     *
+     * @param channel
+     * @param pitch
+     */
+    public void setMidiMessages(int channel, int pitch)
+    {
+        setMidiMessages(noteOnMidiMessages(channel, pitch));
+    }
+
+    /**
+     * Set the MidiMessages which trigger this action when received.
      * <p>
-     * The method also resets the control note/channel to -1.
      *
      * @param messages
      */
     public synchronized void setMidiMessages(List<MidiMessage> messages)
     {
         this.midiMessages = messages;
-        this.controlNote = -1;
-        this.controlNoteChannel = -1;
         this.validIndex = 0;
     }
 
@@ -188,50 +318,10 @@ public class RemoteAction
         return false;
     }
 
-    /**
-     *
-     * @return @see #loadFromString(java.lang.String)
-     */
-    public String saveAsString()
+    @Override
+    public String toString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append(actionId);
-        for (MidiMessage mm : midiMessages)
-        {
-            sb.append(":").append(MidiUtilities.saveMidiMessageAsString(mm));
-        }
-        return sb.toString();
-    }
-
-    /**
-     *
-     * @param s
-     * @return
-     * @throws java.text.ParseException @see #saveAsString()
-     * @throws javax.sound.midi.InvalidMidiDataException
-     * @see #saveAsString()
-     */
-    static public RemoteAction loadFromString(String s) throws ParseException, InvalidMidiDataException
-    {
-        String[] strs = s.split(":");
-        if (strs.length < 2)
-        {
-            throw new ParseException("Invalid RemoteAction string '" + s + "'", 0);
-        }
-
-        String id = strs[0];
-
-        List<MidiMessage> mms = new ArrayList<>();
-        for (int i = 1; i < strs.length; i++)
-        {
-            mms.add(MidiUtilities.loadMidiMessageFromString(strs[i]));
-        }
-
-        RemoteAction res = new RemoteAction(id);
-        res.setEnabled(false);
-        res.setMidiMessages(mms);
-        res.setEnabled(true);
-        return res;
+        return actionCategory + "#" + actionId + " msgs=" + midiMessages + " enabled=" + enabled;
     }
 
     // ================================================================================================
@@ -275,9 +365,51 @@ public class RemoteAction
         }
     }
 
+    static private String getPrefMidiMessagesKey(String actionCategory, String actionId)
+    {
+        return actionCategory + "#" + actionId;
+    }
+
+    static private String getPrefEnabledKey(String actionCategory, String actionId)
+    {
+        return getPrefMidiMessagesKey(actionCategory, actionId) + "_enabled";
+    }
+
 
     static private List<MidiMessage> noteOnMidiMessages(int channel, int pitch)
     {
         return Arrays.asList(MidiUtilities.getNoteOnMessage(channel, pitch, 64));
     }
+
+    // ================================================================================================
+    // Inner classes
+    // ================================================================================================
+    private class MidiLearnReceiver implements Receiver
+    {
+
+        private boolean open = true;
+        private List<MidiMessage> mms = new ArrayList<>();
+
+        @Override
+        public void send(MidiMessage msg, long timeStamp)
+        {
+            if (open)
+            {
+                mms.add(msg);
+            }
+        }
+
+        public List<MidiMessage> getLearntMessages()
+        {
+            return mms;
+        }
+
+        @Override
+        public void close()
+        {
+            open = false;
+        }
+
+    }
+
 }

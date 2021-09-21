@@ -29,16 +29,9 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
-import javax.sound.midi.ShortMessage;
 import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.ui.musiccontrolactions.Play;
-import org.jjazz.ui.musiccontrolactions.PlaybackToNextSongPart;
-import org.jjazz.ui.musiccontrolactions.PlaybackToPreviousSongPart;
-import org.jjazz.ui.musiccontrolactions.Stop;
-import org.openide.awt.Actions;
 import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
 import org.openide.windows.OnShowing;
@@ -49,24 +42,13 @@ import org.openide.windows.OnShowing;
 public class RemoteController
 {
 
+    public static final String PREF_ENABLED = "PrefEnabled";
     private static RemoteController INSTANCE = null;
-    private List<RemoteAction> remoteActions;
-
-    public final static String PREF_ENABLED = "RemoteEnabled";
-    public final static String PREF_START_PAUSE_NOTE = "StartPauseNote";
-    public final static String PREF_STOP_NOTE = "StopNote";
-    public final static String PREF_NEXT_SONG_PART = "NextSongPartNote";
-    public final static String PREF_PREVIOUS_SONG_PART = "PreviousSongPartNote";
-
-    // Use local variables to duplicate preference values in order to speed up processing in our Midi Receiver
+    private final List<RemoteAction> remoteActions;
     private boolean isEnabled;
-    private int startPauseNote, stopNote, nextSongPartNote, previousSongPartNote;
-    private final Play playAction;
-    private final Stop stopAction;
-    private final PlaybackToPreviousSongPart previousSongPartAction;
-    private final PlaybackToNextSongPart nextSongPartAction;
-    private static final Preferences prefs = NbPreferences.forModule(RemoteController.class);
+
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private static final Preferences prefs = NbPreferences.forModule(RemoteController.class);
     private static final Logger LOGGER = Logger.getLogger(RemoteController.class.getSimpleName());
 
     static public RemoteController getInstance()
@@ -83,28 +65,15 @@ public class RemoteController
 
     private RemoteController()
     {
-        remoteActions = getDefaultRemoteActions();
-
-
         isEnabled = prefs.getBoolean(PREF_ENABLED, false);
-        startPauseNote = MidiUtilities.limit(prefs.getInt(PREF_START_PAUSE_NOTE, 24));
-        stopNote = MidiUtilities.limit(prefs.getInt(PREF_STOP_NOTE, 26));
-        nextSongPartNote = MidiUtilities.limit(prefs.getInt(PREF_NEXT_SONG_PART, 25));
-        previousSongPartNote = MidiUtilities.limit(prefs.getInt(PREF_PREVIOUS_SONG_PART, 27));
 
 
-        LOGGER.info("RemoteController() enabled=" + isEnabled + " startPauseNote=" + startPauseNote + " stopNote=" + stopNote
-                + " nextSongPartNote=" + nextSongPartNote + " previousSongPartNote=" + previousSongPartNote
-        );
-
-        playAction = (Play) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.play");
-        assert playAction != null;
-        stopAction = (Stop) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.stop");
-        assert stopAction != null;
-        previousSongPartAction = (PlaybackToPreviousSongPart) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktoprevioussongpart");
-        assert previousSongPartAction != null;
-        nextSongPartAction = (PlaybackToNextSongPart) Actions.forID("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktonextsongpart");
-        assert nextSongPartAction != null;
+        // Get all the RemoteAction instances from providers
+        remoteActions = new ArrayList<>();
+        for (var rap : Lookup.getDefault().lookupAll(RemoteActionProvider.class))
+        {
+            remoteActions.addAll(rap.getRemoteActions());
+        }
 
 
         JJazzMidiSystem.getInstance().getJJazzMidiInDevice().getTransmitter().setReceiver(new RemoteControlReceiver());
@@ -115,7 +84,7 @@ public class RemoteController
         return isEnabled;
     }
 
-    synchronized public void setEnabled(boolean b)
+    public void setEnabled(boolean b)
     {
         boolean old = isEnabled;
         if (old != b)
@@ -128,87 +97,13 @@ public class RemoteController
     }
 
     /**
-     * Retrieve all the RemoteAction instances from RemoteActionProviders.
+     * Get all the RemoteAction instances.
      *
      * @return
      */
-    public List<RemoteAction> getDefaultRemoteActions()
+    public final List<RemoteAction> getRemoteActions()
     {
-        List<RemoteAction> res = new ArrayList<>();
-        for (var rap : Lookup.getDefault().lookupAll(RemoteActionProvider.class))
-        {
-            res.addAll(rap.getRemoteActions());
-        }
-        return res;
-    }
-
-
-    public int getStartPauseNote()
-    {
-        return startPauseNote;
-    }
-
-    synchronized public void setStartPauseNote(int pitch)
-    {
-        int old = startPauseNote;
-        if (old != pitch)
-        {
-            startPauseNote = MidiUtilities.limit(pitch);
-            prefs.putInt(PREF_START_PAUSE_NOTE, startPauseNote);
-            pcs.firePropertyChange(PREF_START_PAUSE_NOTE, old, startPauseNote);
-            LOGGER.info("setStartNote() startPauseNote=" + startPauseNote);
-        }
-    }
-
-    public int getStopNote()
-    {
-        return stopNote;
-    }
-
-    synchronized public void setStopNote(int pitch)
-    {
-        int old = stopNote;
-        if (old != pitch)
-        {
-            stopNote = MidiUtilities.limit(pitch);
-            prefs.putInt(PREF_STOP_NOTE, stopNote);
-            pcs.firePropertyChange(PREF_STOP_NOTE, old, stopNote);
-            LOGGER.info("setStartNote() stopNote=" + stopNote);
-        }
-    }
-
-    public int getNextSongPartNote()
-    {
-        return nextSongPartNote;
-    }
-
-    synchronized public void setNextSongPartNote(int pitch)
-    {
-        int old = nextSongPartNote;
-        if (old != pitch)
-        {
-            nextSongPartNote = MidiUtilities.limit(pitch);
-            prefs.putInt(PREF_NEXT_SONG_PART, nextSongPartNote);
-            pcs.firePropertyChange(PREF_NEXT_SONG_PART, old, nextSongPartNote);
-            LOGGER.info("setNextSongPartNote() nextSongPartNote=" + nextSongPartNote);
-        }
-    }
-
-    public int getPreviousSongPartNote()
-    {
-        return previousSongPartNote;
-    }
-
-    synchronized public void setPreviousSongPartNote(int pitch)
-    {
-        int old = previousSongPartNote;
-        if (old != pitch)
-        {
-            previousSongPartNote = MidiUtilities.limit(pitch);
-            prefs.putInt(PREF_PREVIOUS_SONG_PART, previousSongPartNote);
-            pcs.firePropertyChange(PREF_PREVIOUS_SONG_PART, old, previousSongPartNote);
-            LOGGER.info("setPreviousSongPartNote() previousSongPartNote=" + previousSongPartNote);
-        }
+        return new ArrayList<>(remoteActions);
     }
 
     public void addPropertyChangeListener(PropertyChangeListener l)
@@ -224,25 +119,10 @@ public class RemoteController
     // Private methods
     // ==============================================================   
 
-    /**
-     * Check the preferences for customized actions.
-     */
-    private void updateDefaultRemoteActions()
-    {
-        for (var ra : remoteActions)
-        {
-            String s = prefs.get(ra.getActionCategory() + "#" + ra.getActionId(), null);
-            if (s != null)
-            {
-
-            }
-        }
-    }
 
     // ==============================================================
     // Public classes
     // ==============================================================   
-
     @OnShowing
     public static class StartClass implements Runnable
     {
@@ -270,57 +150,15 @@ public class RemoteController
                 return;
             }
 
-            if (msg instanceof ShortMessage)
+            for (RemoteAction ra : remoteActions)
             {
-                ShortMessage sm = (ShortMessage) msg;
-                if (sm.getCommand() == ShortMessage.NOTE_ON && sm.getData2() > 0)
+                if (ra.check(msg))
                 {
-                    Runnable r = null;
-                    int pitch = sm.getData1();
-                    if (pitch == startPauseNote)
-                    {
-                        r = () ->
-                        {
-                            if (playAction.isEnabled())
-                            {
-                                playAction.actionPerformed(null);
-                            }
-                        };
-                    } else if (pitch == stopNote)
-                    {
-                        r = () ->
-                        {
-                            if (stopAction.isEnabled())
-                            {
-                                stopAction.actionPerformed(null);
-                            }
-                        };
-                    } else if (pitch == nextSongPartNote)
-                    {
-                        r = () ->
-                        {
-                            if (nextSongPartAction.isEnabled())
-                            {
-                                nextSongPartAction.actionPerformed(null);
-                            }
-                        };
-                    } else if (pitch == previousSongPartNote)
-                    {
-                        r = () ->
-                        {
-                            if (previousSongPartAction.isEnabled())
-                            {
-                                previousSongPartAction.actionPerformed(null);
-                            }
-                        };
-                    }
-
-                    if (r != null)
-                    {
-                        SwingUtilities.invokeLater(r);
-                    }
+                    Runnable r = () -> ra.getAction().actionPerformed(null);
+                    SwingUtilities.invokeLater(r);
                 }
             }
+
         }
 
         @Override

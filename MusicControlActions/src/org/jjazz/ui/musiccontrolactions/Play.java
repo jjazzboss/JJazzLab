@@ -174,7 +174,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                             session.generate(false);        // can raise MusicGenerationException
                             mc.setPlaybackSession(session); // can raise MusicGenerationException
                         }
-                        
+
                         // Start sequencer
                         mc.play(0);
 
@@ -298,19 +298,24 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
     // ======================================================================
     // Inner classes
     // ======================================================================   
-    
-    @ServiceProvider (service=RemoteActionProvider.class)
+
+    @ServiceProvider(service = RemoteActionProvider.class)
     public static class PlayRemoteActionProvider implements RemoteActionProvider
-    {       
+    {
+
         @Override
         public List<RemoteAction> getRemoteActions()
         {
-            RemoteAction ra = new RemoteAction("MusicControls", "org.jjazz.ui.musiccontrolactions.play");
-            ra.setControlNote(0, 24);
+            RemoteAction ra = RemoteAction.loadFromPreference("MusicControls", "org.jjazz.ui.musiccontrolactions.play");
+            if (ra == null)
+            {
+                ra = new RemoteAction("MusicControls", "org.jjazz.ui.musiccontrolactions.play");
+                ra.setMidiMessages(0, 24);
+            }
             return Arrays.asList(ra);
         }
     }
-    
+
     // ======================================================================
     // Private methods
     // ======================================================================   

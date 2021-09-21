@@ -22,6 +22,7 @@
  */
 package org.jjazz.midi.api;
 
+import com.google.common.base.Joiner;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -1092,10 +1093,37 @@ public class MidiUtilities
         return sb.toString();
     }
 
+
+    /**
+     * Convert a list of MidiMessages to a save string.
+     * <p>
+     * Example: "SM.A1.27.C3-MM.BA.3.12"
+     *
+     * @param mms
+     * @return
+     * @see #loadMidiMessagesFromString(java.lang.String)
+     *
+     */
+    static public String saveMidiMessagesAsString(List<MidiMessage> mms)
+    {
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (var mm : mms)
+        {
+            if (!first)
+            {
+                sb.append("-");
+            }
+            sb.append(saveMidiMessageAsString(mm));
+            first = false;
+        }
+        return sb.toString();
+    }
+
     /**
      * Convert a MidiMessage as a String for backup purpose.
      * <p>
-     * Example: "SM-A1-27-C3"
+     * Example: "SM.A1.27.C3"
      *
      * @param mm
      * @return
@@ -1117,9 +1145,30 @@ public class MidiUtilities
         }
         for (byte b : mm.getMessage())
         {
-            s.append("-").append(Integer.toHexString(b));
+            s.append(".").append(Integer.toHexString(b));
         }
         return s.toString();
+    }
+
+    /**
+     * Retrieve a list of MidiMessages from a save string.
+     *
+     * @param s
+     * @return
+     * @throws java.text.ParseException
+     * @throws javax.sound.midi.InvalidMidiDataException
+     * @see #saveMidiMessagesAsString(java.util.List)
+     */
+    static public List<MidiMessage> loadMidiMessagesFromString(String s) throws ParseException, InvalidMidiDataException
+    {
+        List<MidiMessage> res = new ArrayList<>();
+        String[] strs = s.split("-");
+        for (String str : strs)
+        {
+            MidiMessage mm = loadMidiMessageFromString(str);
+            res.add(mm);
+        }
+        return res;
     }
 
     /**
@@ -1162,7 +1211,7 @@ public class MidiUtilities
         }
 
         checkNotNull(s);
-        String[] strs = s.split("-");
+        String[] strs = s.split("\\.");
         if (strs.length < 2)
         {
             throw new ParseException("Invalid Midi message save string '" + s + "'", 0);
