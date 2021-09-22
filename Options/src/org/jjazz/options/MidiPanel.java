@@ -179,7 +179,7 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
 
         RemoteController rc = RemoteController.getInstance();
         rc.setEnabled(cb_enableRemoteControl.isSelected());
-        for (RemoteAction ra: rc.getRemoteActions())
+        for (RemoteAction ra : rc.getRemoteActions())
         {
             ra.saveAsPreference();
         }
@@ -710,6 +710,10 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
             return;
         }
 
+        // Disable remote control while learning
+        var rc = RemoteController.getInstance();
+        boolean saveEnabled = rc.isEnabled();
+        rc.setEnabled(false);
         if (!ra.startMidiLearnSession(MIDI_LEARN_TIME_OUT_MS))
         {
             String msg = "Nothing was received on Midi input";
@@ -719,6 +723,7 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
         {
             valueChanged(null);
         }
+        rc.setEnabled(saveEnabled);
     }//GEN-LAST:event_btn_learnActionPerformed
 
     private void btn_resetActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetActionPerformed

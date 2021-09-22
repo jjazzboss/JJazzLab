@@ -117,7 +117,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
 
     public synchronized void setSelected(boolean newState)
     {
-        if (newState == getBooleanState())
+        if (newState == getBooleanState() || currentSong == null)
         {
             return;
         }
@@ -133,7 +133,6 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                 if (newState)
                 {
                     // Start from last position
-                    assert currentSong != null; // Otherwise button should be disabled   //NOI18N
                     try
                     {
                         mc.resume();
@@ -155,8 +154,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
             case STOPPED:
                 if (newState)
                 {
-                    // Start playback from initial position
-                    assert currentSong != null; // Otherwise button should be disabled   //NOI18N
+                    // Start playback from initial position   
                     UpdatableSongSession session = null;
                     try
                     {
