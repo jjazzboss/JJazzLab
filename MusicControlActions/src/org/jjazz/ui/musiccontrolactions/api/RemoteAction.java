@@ -53,6 +53,7 @@ public class RemoteAction
     private final String actionId;
     private final String actionCategory;
     private List<MidiMessage> midiMessages;
+    private List<MidiMessage> defaultMidiMessages;
     private final Action action;
     private int validIndex = 0;
     private boolean enabled = true;
@@ -64,7 +65,8 @@ public class RemoteAction
      *
      * @param actionCategory Must be a valid JJazzLab/Netbeans action category.
      * @param actionId Must be a valid JJazzLab/Netbeans action id.
-     * @throws IllegalArgumentException If parameters do not represent a valid JJazzLab action.
+     * @throws IllegalArgumentException If parameters do not represent a valid JJazzLab action, or if the action does not have a
+     * NAME property defined.
      */
     public RemoteAction(String actionCategory, String actionId)
     {
@@ -76,9 +78,11 @@ public class RemoteAction
         this.actionId = actionId;
         this.actionCategory = actionCategory;
         action = Actions.forID(actionCategory, actionId);
-        if (action == null)
+        if (action == null || action.getValue(Action.NAME) == null
+                || !(action.getValue(Action.NAME) instanceof String)
+                || ((String) action.getValue(Action.NAME)).isBlank())
         {
-            throw new IllegalArgumentException("No Netbeans action found for actionCategory=" + actionCategory + " actionId=" + actionId);
+            throw new IllegalArgumentException("No Netbeans action found for actionCategory=" + actionCategory + " actionId=" + actionId + "action=" + action);
         }
     }
 
@@ -159,13 +163,12 @@ public class RemoteAction
         {
             try
             {
-                int steps = 4;
-                ph.start(steps);
-                while (steps > 0)
+                int steps = 10;
+                ph.switchToDeterminate(steps);
+                for (int i = 0; i < steps; i++)
                 {
                     Thread.sleep(timeOutMs / steps);
-                    ph.progress(1);
-                    steps--;
+                    ph.progress(i);
                 }
                 ph.finish();
             } catch (InterruptedException ex)
@@ -184,6 +187,7 @@ public class RemoteAction
         var learntMessages = receiver.getLearntMessages();
         if (!learntMessages.isEmpty())
         {
+            simplify(learntMessages);
             midiMessages = learntMessages;
             return true;
         }
@@ -202,7 +206,7 @@ public class RemoteAction
         {
             return -1;
         }
-        ShortMessage sm = MidiUtilities.getNoteOnMidiEvent(midiMessages.get(0));
+        ShortMessage sm = MidiUtilities.getNoteOnShortMessage(midiMessages.get(0));
         return sm == null ? -1 : sm.getData1();
     }
 
@@ -217,7 +221,7 @@ public class RemoteAction
         {
             return -1;
         }
-        ShortMessage sm = MidiUtilities.getNoteOnMidiEvent(midiMessages.get(0));
+        ShortMessage sm = MidiUtilities.getNoteOnShortMessage(midiMessages.get(0));
         return sm == null ? -1 : sm.getChannel();
     }
 
@@ -236,15 +240,29 @@ public class RemoteAction
         return midiMessages;
     }
 
+
     /**
-     * Set the MidiMessages so that a single NOTE_ON with specified channel and pitch triggers the action.
+     * Set the default Midi messages to be used when this RemoteAction is reset.
      *
-     * @param channel
-     * @param pitch
+     * @param messages Must be non null and non empty
      */
-    public void setMidiMessages(int channel, int pitch)
+    public void setDefaultMidiMessages(List<MidiMessage> messages)
     {
-        setMidiMessages(noteOnMidiMessages(channel, pitch));
+        if (messages != null && !messages.isEmpty())
+        {
+            defaultMidiMessages = messages;
+        }
+    }
+
+    /**
+     * If valid default Midi messages are defined, use them as Midi messages.
+     */
+    public void reset()
+    {
+        if (defaultMidiMessages != null && !defaultMidiMessages.isEmpty())
+        {
+            midiMessages = new ArrayList<>(defaultMidiMessages);
+        }
     }
 
     /**
@@ -324,6 +342,18 @@ public class RemoteAction
         return actionCategory + "#" + actionId + " msgs=" + midiMessages + " enabled=" + enabled;
     }
 
+    /**
+     * Get the MidiMessages for a command which is a note pressed on the specified channel.
+     *
+     * @param channel
+     * @param pitch
+     * @return
+     */
+    static public List<MidiMessage> noteOnMidiMessages(int channel, int pitch)
+    {
+        return Arrays.asList(MidiUtilities.getNoteOnMessage(channel, pitch, 64));
+    }
+
     // ================================================================================================
     // Private methods
     // ================================================================================================
@@ -375,11 +405,30 @@ public class RemoteAction
         return getPrefMidiMessagesKey(actionCategory, actionId) + "_enabled";
     }
 
-
-    static private List<MidiMessage> noteOnMidiMessages(int channel, int pitch)
+    /**
+     * If there are only 2 events NoteON/NoteOff on a same pitch, remove the NoteOff.
+     *
+     * @param messages
+     */
+    private void simplify(List<MidiMessage> messages)
     {
-        return Arrays.asList(MidiUtilities.getNoteOnMessage(channel, pitch, 64));
+        if (messages.size() == 2)
+        {
+            var mm0 = messages.get(0);
+            var mm1 = messages.get(1);
+            var sm0 = MidiUtilities.getNoteOnShortMessage(mm0);
+            if (sm0 != null)
+            {
+                int pitch = sm0.getData1();
+                var sm1 = MidiUtilities.getNoteOffShortMessage(mm1);
+                if (sm1 != null && sm1.getData1() == pitch)
+                {
+                    messages.remove(1);
+                }
+            }
+        }
     }
+
 
     // ================================================================================================
     // Inner classes

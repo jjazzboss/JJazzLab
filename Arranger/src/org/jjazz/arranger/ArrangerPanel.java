@@ -625,7 +625,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
                 return;
             }
 
-            ShortMessage noteMsg = MidiUtilities.getNoteOnMidiEvent(msg);
+            ShortMessage noteMsg = MidiUtilities.getNoteOnShortMessage(msg);
             if (noteMsg != null)
             {
                 // Note ON
@@ -634,7 +634,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
 
                 kbdComponent.setPressed(pitch, velocity, null);
 
-            } else if ((noteMsg = MidiUtilities.getNoteOffMidiEvent(msg)) != null)
+            } else if ((noteMsg = MidiUtilities.getNoteOffShortMessage(msg)) != null)
             {
                 // Note OFF
                 int pitch = noteMsg.getData1();

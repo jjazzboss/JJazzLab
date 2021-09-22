@@ -22,9 +22,12 @@
  */
 package org.jjazz.options;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiDevice;
@@ -33,56 +36,58 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Synthesizer;
-import javax.swing.DefaultComboBoxModel;
+import javax.swing.Action;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JList;
 import javax.swing.Timer;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.UserChannelRvKey;
 import org.jjazz.musiccontrol.api.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.ui.musiccontrolactions.api.RemoteAction;
 import org.jjazz.ui.musiccontrolactions.api.RemoteController;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.ResUtil;
 import org.openide.*;
 import org.openide.windows.WindowManager;
 
-final class MidiPanel extends javax.swing.JPanel
+final class MidiPanel extends javax.swing.JPanel implements ListSelectionListener
 {
-    
+
     private static final String NO_INCOMING_NOTE = "-";
+    private static final int MIDI_LEARN_TIME_OUT_MS = 4000;
     private final MidiOptionsPanelController controller;
     private boolean loadInProgress;
     private MidiDevice saveOutDevice;      // For cancel operation
     private MidiDevice saveInDevice;       // For cancel operation
     private boolean saveMidiThru;          // For cancel operation
     private boolean saveRemoteControlEnabled;          // For cancel operation
-    private int saveStartPitch;          // For cancel operation
-    private int saveStopPitch;          // For cancel operation
+    private final List<List<MidiMessage>> saveMidiMessages = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(MidiPanel.class.getSimpleName());
-    
+
     MidiPanel(MidiOptionsPanelController controller)
     {
         this.controller = controller;
         initComponents();
-        
-        String[] notes = new String[128];
-        for (int i = 0; i < 128; i++)
-        {
-            notes[i] = pitchString(i);
-        }
-        cmb_startPauseNote.setModel(new DefaultComboBoxModel<>(notes));
-        cmb_stopNote.setModel(new DefaultComboBoxModel<>(notes));
-        
+
+        list_actions.addListSelectionListener(this);
+        list_actions.setCellRenderer(new RemoteActionRenderer());
+
         btn_test.setEnabled(false);
         spn_preferredUserChannel.addChangeListener(cl -> controller.changed());
-        
+
         JJazzMidiSystem.getInstance().getJJazzMidiInDevice().getTransmitter().setReceiver(new LastNoteDisplayer());
     }
-    
+
     void load()
     {
         LOGGER.log(Level.FINE, "load() --");   //NOI18N
@@ -98,8 +103,10 @@ final class MidiPanel extends javax.swing.JPanel
 
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
 
+
         // In devices : easy
         list_InDevices.setListData(jms.getInDeviceList().toArray(new MidiDevice[0]));
+
 
         // Select default devices (can be null)
         saveOutDevice = jms.getDefaultOutDevice();
@@ -108,50 +115,50 @@ final class MidiPanel extends javax.swing.JPanel
         list_OutDevices.setSelectedValue(saveOutDevice, true);
         list_InDevices.setSelectedValue(saveInDevice, true);
 
+
         // Remote control
         RemoteController rc = RemoteController.getInstance();
         saveRemoteControlEnabled = rc.isEnabled();
-        saveStartPitch = rc.getStartPauseNote();
-        saveStopPitch = rc.getStopNote();
         cb_enableRemoteControl.setSelected(saveRemoteControlEnabled);
-        cmb_startPauseNote.setEnabled(saveRemoteControlEnabled);
-        cmb_stopNote.setEnabled(saveRemoteControlEnabled);
-        lbl_startPause.setEnabled(saveRemoteControlEnabled);
-        lbl_stop.setEnabled(saveRemoteControlEnabled);
-        cmb_startPauseNote.setSelectedIndex(saveStartPitch);
-        cmb_stopNote.setSelectedIndex(saveStopPitch);
+        var remoteActions = rc.getRemoteActions();
+        list_actions.removeListSelectionListener(this);
+        list_actions.setListData(remoteActions.toArray(new RemoteAction[0]));
+        list_actions.addListSelectionListener(this);
+        list_actions.setSelectedIndex(0);
+        saveRemoteActions(remoteActions);
+
+
         lbl_inNote.setText(NO_INCOMING_NOTE);
         enableRemoteControlUI(saveInDevice != null);
 
         // Other stuff
         saveMidiThru = jms.isThruMode();
         cb_midiThru.setSelected(saveMidiThru);
-        
+
         btn_test.setEnabled(saveOutDevice != null);
 
         // Soundbank enabled only if Out device is a synth
         boolean b = (saveOutDevice instanceof Synthesizer);
         org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, pnl_soundbankFile);
         updateSoundbankText();
-        
+
         spn_preferredUserChannel.setValue(UserChannelRvKey.getInstance().getPreferredUserChannel() + 1);
-        
+
         loadInProgress = false;
     }
-    
+
     public void cancel()
     {
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
         jms.setThruMode(saveMidiThru);
         openInDevice(saveInDevice);
         openOutDevice(saveOutDevice);
-        
+
         RemoteController rc = RemoteController.getInstance();
         rc.setEnabled(saveRemoteControlEnabled);
-        rc.setStartPauseNote(saveStartPitch);
-        rc.setStopNote(saveStopPitch);
+        restoreRemoteActions(RemoteController.getInstance().getRemoteActions());
     }
-    
+
     void store()
     {
         LOGGER.log(Level.FINE, "store() --");   //NOI18N
@@ -169,13 +176,15 @@ final class MidiPanel extends javax.swing.JPanel
         MidiDevice outDevice = list_OutDevices.getSelectedValue();
         openOutDevice(outDevice);
         UserChannelRvKey.getInstance().setPreferredUserChannel(((Integer) spn_preferredUserChannel.getValue()) - 1);
-        
+
         RemoteController rc = RemoteController.getInstance();
         rc.setEnabled(cb_enableRemoteControl.isSelected());
-        rc.setStartPauseNote(cmb_startPauseNote.getSelectedIndex());
-        rc.setStopNote(cmb_stopNote.getSelectedIndex());
-        
-        
+        for (RemoteAction ra: rc.getRemoteActions())
+        {
+            ra.saveAsPreference();
+        }
+
+
         if (outDevice != saveOutDevice)
         {
             Analytics.setProperties(Analytics.buildMap("Midi Out", outDevice.getDeviceInfo().getName()));
@@ -231,12 +240,34 @@ final class MidiPanel extends javax.swing.JPanel
         }
         return true;
     }
-    
+
     boolean valid()
     {
         // LOGGER.log(Level.INFO, "valid()");
         // TODO check whether form is consistent and complete
         return true;
+    }
+    // ===========================================================================================
+    // ListSelectionListener interface
+    // ===========================================================================================
+
+    @Override
+    public void valueChanged(ListSelectionEvent e)
+    {
+        if (e != null && e.getValueIsAdjusting())
+        {
+            return;
+        }
+
+        list_actions.setEnabled(cb_enableRemoteControl.isSelected());
+        lbl_midiMessages.setEnabled(cb_enableRemoteControl.isSelected());
+
+        RemoteAction ra = list_actions.getSelectedValue();
+        boolean b = ra != null && cb_enableRemoteControl.isSelected();
+        btn_reset.setEnabled(b);
+        btn_learn.setEnabled(b);
+        tf_midiMessages.setEnabled(b);
+        tf_midiMessages.setText(b ? getMidiMessageString(ra.getMidiMessages()) : "");
     }
 
     /**
@@ -267,10 +298,12 @@ final class MidiPanel extends javax.swing.JPanel
         list_InDevices = new org.jjazz.midi.api.ui.MidiInDeviceList();
         pnl_remoteControl = new javax.swing.JPanel();
         cb_enableRemoteControl = new javax.swing.JCheckBox();
-        cmb_startPauseNote = new javax.swing.JComboBox<>();
-        cmb_stopNote = new javax.swing.JComboBox<>();
-        lbl_startPause = new javax.swing.JLabel();
-        lbl_stop = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        list_actions = new javax.swing.JList<>();
+        btn_learn = new javax.swing.JButton();
+        lbl_midiMessages = new javax.swing.JLabel();
+        btn_reset = new javax.swing.JButton();
+        tf_midiMessages = new javax.swing.JTextField();
         lbl_inNote = new javax.swing.JLabel();
         lbl_midiInNote = new javax.swing.JLabel();
 
@@ -403,25 +436,35 @@ final class MidiPanel extends javax.swing.JPanel
             }
         });
 
-        cmb_startPauseNote.addActionListener(new java.awt.event.ActionListener()
+        list_actions.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        list_actions.setVisibleRowCount(6);
+        jScrollPane2.setViewportView(list_actions);
+
+        org.openide.awt.Mnemonics.setLocalizedText(btn_learn, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_learn.text")); // NOI18N
+        btn_learn.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_learn.toolTipText")); // NOI18N
+        btn_learn.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                cmb_startPauseNoteActionPerformed(evt);
+                btn_learnActionPerformed(evt);
             }
         });
 
-        cmb_stopNote.addActionListener(new java.awt.event.ActionListener()
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_midiMessages, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.lbl_midiMessages.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(btn_reset, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_reset.text")); // NOI18N
+        btn_reset.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.btn_reset.toolTipText")); // NOI18N
+        btn_reset.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                cmb_stopNoteActionPerformed(evt);
+                btn_resetActionPerformed(evt);
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_startPause, org.openide.util.NbBundle.getBundle(MidiPanel.class).getString("MidiPanel.lbl_startPause.text")); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_stop, org.openide.util.NbBundle.getBundle(MidiPanel.class).getString("MidiPanel.lbl_stop.text")); // NOI18N
+        tf_midiMessages.setEditable(false);
+        tf_midiMessages.setText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.tf_midiMessages.text")); // NOI18N
+        tf_midiMessages.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.tf_midiMessages.toolTipText")); // NOI18N
 
         javax.swing.GroupLayout pnl_remoteControlLayout = new javax.swing.GroupLayout(pnl_remoteControl);
         pnl_remoteControl.setLayout(pnl_remoteControlLayout);
@@ -430,30 +473,42 @@ final class MidiPanel extends javax.swing.JPanel
             .addGroup(pnl_remoteControlLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnl_remoteControlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(cb_enableRemoteControl)
                     .addGroup(pnl_remoteControlLayout.createSequentialGroup()
-                        .addComponent(cmb_startPauseNote, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(lbl_startPause))
+                        .addComponent(cb_enableRemoteControl)
+                        .addContainerGap())
                     .addGroup(pnl_remoteControlLayout.createSequentialGroup()
-                        .addComponent(cmb_stopNote, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(lbl_stop)))
-                .addContainerGap(32, Short.MAX_VALUE))
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(pnl_remoteControlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(pnl_remoteControlLayout.createSequentialGroup()
+                                .addComponent(lbl_midiMessages)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(pnl_remoteControlLayout.createSequentialGroup()
+                                .addGroup(pnl_remoteControlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(tf_midiMessages)
+                                    .addGroup(pnl_remoteControlLayout.createSequentialGroup()
+                                        .addComponent(btn_learn)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btn_reset)
+                                        .addGap(0, 17, Short.MAX_VALUE)))
+                                .addContainerGap())))))
         );
         pnl_remoteControlLayout.setVerticalGroup(
             pnl_remoteControlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnl_remoteControlLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(cb_enableRemoteControl)
-                .addGap(18, 18, 18)
-                .addGroup(pnl_remoteControlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cmb_startPauseNote, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lbl_startPause))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(pnl_remoteControlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cmb_stopNote, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lbl_stop))
+                .addGroup(pnl_remoteControlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnl_remoteControlLayout.createSequentialGroup()
+                        .addComponent(lbl_midiMessages)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tf_midiMessages, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(pnl_remoteControlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btn_learn)
+                            .addComponent(btn_reset)))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -505,8 +560,8 @@ final class MidiPanel extends javax.swing.JPanel
                     .addComponent(lbl_InDevices))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
-                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE))
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
+                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -572,7 +627,7 @@ final class MidiPanel extends javax.swing.JPanel
        {
            return;
        }
-       
+
        boolean b = jms.loadSoundbankFileOnSynth(f, false);
        if (!b)
        {
@@ -580,9 +635,9 @@ final class MidiPanel extends javax.swing.JPanel
            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
            DialogDisplayer.getDefault().notify(d);
        }
-       
+
        Analytics.logEvent("Load SoundBank File", Analytics.buildMap("File", f.getName()));
-       
+
        updateSoundbankText();
    }//GEN-LAST:event_btn_changeSoundbankFileActionPerformed
 
@@ -642,56 +697,69 @@ final class MidiPanel extends javax.swing.JPanel
     private void cb_enableRemoteControlActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_enableRemoteControlActionPerformed
     {//GEN-HEADEREND:event_cb_enableRemoteControlActionPerformed
         boolean b = cb_enableRemoteControl.isSelected();
-        cmb_startPauseNote.setEnabled(b);
-        cmb_stopNote.setEnabled(b);
-        lbl_startPause.setEnabled(b);
-        lbl_stop.setEnabled(b);
-        
+        valueChanged(null);
         controller.applyChanges();
         controller.changed();
     }//GEN-LAST:event_cb_enableRemoteControlActionPerformed
 
-    private void cmb_startPauseNoteActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cmb_startPauseNoteActionPerformed
-    {//GEN-HEADEREND:event_cmb_startPauseNoteActionPerformed
-        controller.applyChanges();
-        controller.changed();
+    private void btn_learnActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_learnActionPerformed
+    {//GEN-HEADEREND:event_btn_learnActionPerformed
+        var ra = list_actions.getSelectedValue();
+        if (ra == null)
+        {
+            return;
+        }
 
-    }//GEN-LAST:event_cmb_startPauseNoteActionPerformed
+        if (!ra.startMidiLearnSession(MIDI_LEARN_TIME_OUT_MS))
+        {
+            String msg = "Nothing was received on Midi input";
+            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.WARNING_MESSAGE);
+            DialogDisplayer.getDefault().notify(nd);
+        } else
+        {
+            valueChanged(null);
+        }
+    }//GEN-LAST:event_btn_learnActionPerformed
 
-    private void cmb_stopNoteActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cmb_stopNoteActionPerformed
-    {//GEN-HEADEREND:event_cmb_stopNoteActionPerformed
-        controller.applyChanges();
-        controller.changed();
-
-    }//GEN-LAST:event_cmb_stopNoteActionPerformed
+    private void btn_resetActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_resetActionPerformed
+    {//GEN-HEADEREND:event_btn_resetActionPerformed
+        var ra = list_actions.getSelectedValue();
+        if (ra != null)
+        {
+            ra.reset();
+            valueChanged(null);
+        }
+    }//GEN-LAST:event_btn_resetActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_changeSoundbankFile;
+    private javax.swing.JButton btn_learn;
     private javax.swing.JButton btn_refresh;
     private javax.swing.JButton btn_refreshIn;
+    private javax.swing.JButton btn_reset;
     private javax.swing.JButton btn_resetSoundbank;
     private javax.swing.JButton btn_test;
     private javax.swing.JCheckBox cb_enableRemoteControl;
     private javax.swing.JCheckBox cb_midiThru;
-    private javax.swing.JComboBox<String> cmb_startPauseNote;
-    private javax.swing.JComboBox<String> cmb_stopNote;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JLabel lbl_InDevices;
     private javax.swing.JLabel lbl_OutDevices;
     private javax.swing.JLabel lbl_inNote;
     private javax.swing.JLabel lbl_midiInNote;
+    private javax.swing.JLabel lbl_midiMessages;
     private javax.swing.JLabel lbl_preferredUserChannel;
-    private javax.swing.JLabel lbl_startPause;
-    private javax.swing.JLabel lbl_stop;
     private org.jjazz.midi.api.ui.MidiInDeviceList list_InDevices;
     private org.jjazz.midi.api.ui.MidiOutDeviceList list_OutDevices;
+    private javax.swing.JList<RemoteAction> list_actions;
     private org.jjazz.midi.api.ui.MidiInDeviceList midiInDeviceList1;
     private javax.swing.JPanel pnl_remoteControl;
     private javax.swing.JPanel pnl_soundbankFile;
     private org.jjazz.ui.utilities.api.WheelSpinner spn_preferredUserChannel;
+    private javax.swing.JTextField tf_midiMessages;
     private javax.swing.JTextField txtf_soundbankFile;
     // End of variables declaration//GEN-END:variables
 
@@ -721,7 +789,7 @@ final class MidiPanel extends javax.swing.JPanel
                 list_OutDevices.setEnabled(true);
             }
         };
-        
+
         TestPlayer tp = TestPlayer.getInstance();
         try
         {
@@ -733,7 +801,7 @@ final class MidiPanel extends javax.swing.JPanel
             DialogDisplayer.getDefault().notify(d);
         }
     }
-    
+
     private void enableRemoteControlUI(boolean b)
     {
         org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, pnl_remoteControl);
@@ -744,21 +812,94 @@ final class MidiPanel extends javax.swing.JPanel
         lbl_inNote.setEnabled(b);
         lbl_midiInNote.setEnabled(b);
     }
-    
-    private String pitchString(int pitch)
+
+    private String getNoteString(int pitch)
     {
-        Note n = new Note(pitch);
-        return n.toRelativeNoteString() + (n.getOctave() - 1) + "  (" + pitch + ")";
+        return new Note(pitch).toPianoOctaveString() + " (" + pitch + ")";
     }
+
+    /**
+     * Get a string representing the Midi Messages.
+     * <p>
+     * If MidiMessages represent a single Note, return a special string.
+     *
+     * @param messages
+     * @return
+     */
+    private String getMidiMessageString(List<MidiMessage> messages)
+    {
+        var mm0 = messages.get(0);
+        if (messages.size() == 1)
+        {
+            var sm0 = MidiUtilities.getNoteOnShortMessage(mm0);
+            if (sm0 != null)
+            {
+                return getNoteString(sm0.getData1()) + " on channel " + sm0.getChannel();
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (var mm : messages)
+        {
+            if (!first)
+            {
+                sb.append(", ");
+            }
+            for (byte b : mm.getMessage())
+            {
+                int bi = (int) (b & 0xFF);
+                sb.append(String.format("%02X", bi));
+                sb.append(" ");
+            }
+            first = false;
+        }
+        return sb.toString();
+    }
+
+    private void saveRemoteActions(List<RemoteAction> remoteActions)
+    {
+        saveMidiMessages.clear();
+        for (var ra : remoteActions)
+        {
+            saveMidiMessages.add(ra.getMidiMessages());
+        }
+    }
+
+    private void restoreRemoteActions(List<RemoteAction> remoteActions)
+    {
+        int i = 0;
+        for (var ra : remoteActions)
+        {
+            ra.setMidiMessages(saveMidiMessages.get(i));
+            i++;
+        }
+    }
+
 
     // ===========================================================================================
     // Private classes
     // ===========================================================================================
+    private class RemoteActionRenderer extends DefaultListCellRenderer
+    {
+
+        @Override
+        @SuppressWarnings("rawtypes")
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+        {
+            JComponent jc = (JComponent) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            RemoteAction ra = (RemoteAction) value;
+            String txt = (String) ra.getAction().getValue(Action.NAME);
+            setText(txt);
+            return jc;
+        }
+    }
+
     private class LastNoteDisplayer implements Receiver, ActionListener
     {
-        
+
         Timer t = new Timer(1000, this);
-        
+
         @Override
         public void send(MidiMessage msg, long timeStamp)
         {
@@ -767,24 +908,24 @@ final class MidiPanel extends javax.swing.JPanel
                 ShortMessage sm = (ShortMessage) msg;
                 if (sm.getCommand() == ShortMessage.NOTE_ON && MidiPanel.this.isShowing())
                 {
-                    lbl_inNote.setText(pitchString(sm.getData1()));
+                    lbl_inNote.setText(getNoteString(sm.getData1()));
                     t.restart();
                 }
             }
         }
-        
+
         @Override
         public void close()
         {
             // Nothing
         }
-        
+
         @Override
         public void actionPerformed(ActionEvent e)
         {
             lbl_inNote.setText(NO_INCOMING_NOTE);
         }
-        
+
     }
-    
+
 }

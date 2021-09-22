@@ -124,7 +124,7 @@ public class Phrase extends LinkedList<NoteEvent>
         for (MidiEvent me : midiEvents)
         {
             long tick = me.getTick();
-            ShortMessage sm = MidiUtilities.getNoteMidiEvent(me.getMessage());
+            ShortMessage sm = MidiUtilities.getNoteShortMessage(me.getMessage());
             if (sm == null)
             {
                 // It's not a note ON/OFF message

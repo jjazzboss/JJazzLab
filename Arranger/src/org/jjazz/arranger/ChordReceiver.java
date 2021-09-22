@@ -104,7 +104,7 @@ public class ChordReceiver implements Receiver
     @Override
     public void send(MidiMessage msg, long timeStamp)
     {
-        ShortMessage noteMsg = MidiUtilities.getNoteOnMidiEvent(msg);
+        ShortMessage noteMsg = MidiUtilities.getNoteOnShortMessage(msg);
         if (noteMsg != null)
         {
             // Note ON
@@ -129,7 +129,7 @@ public class ChordReceiver implements Receiver
                 }
                 lIt.add(newNote);
             }
-        } else if ((noteMsg = MidiUtilities.getNoteOffMidiEvent(msg)) != null)
+        } else if ((noteMsg = MidiUtilities.getNoteOffShortMessage(msg)) != null)
         {
             // Note OFF
             int pitch = noteMsg.getData1();

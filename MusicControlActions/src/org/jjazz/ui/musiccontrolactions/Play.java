@@ -86,6 +86,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
     {
         setBooleanState(false);
 
+        putValue(Action.NAME, "Play/Pause");
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButton-24x24.png")));
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonOn-24x24-orange.png")));
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_PlayToolTip"));
@@ -310,8 +311,9 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
             if (ra == null)
             {
                 ra = new RemoteAction("MusicControls", "org.jjazz.ui.musiccontrolactions.play");
-                ra.setMidiMessages(0, 24);
+                ra.setMidiMessages(RemoteAction.noteOnMidiMessages(0, 24));
             }
+            ra.setDefaultMidiMessages(RemoteAction.noteOnMidiMessages(0, 24));
             return Arrays.asList(ra);
         }
     }

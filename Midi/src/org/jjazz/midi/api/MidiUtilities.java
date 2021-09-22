@@ -195,7 +195,7 @@ public class MidiUtilities
      * @param mm
      * @return
      */
-    static public ShortMessage getNoteMidiEvent(MidiMessage mm)
+    static public ShortMessage getNoteShortMessage(MidiMessage mm)
     {
         if (mm instanceof ShortMessage)
         {
@@ -214,7 +214,7 @@ public class MidiUtilities
      * @param mm
      * @return
      */
-    static public ShortMessage getNoteOnMidiEvent(MidiMessage mm)
+    static public ShortMessage getNoteOnShortMessage(MidiMessage mm)
     {
         if (mm instanceof ShortMessage)
         {
@@ -233,7 +233,7 @@ public class MidiUtilities
      * @param mm
      * @return
      */
-    static public ShortMessage getNoteOffMidiEvent(MidiMessage mm)
+    static public ShortMessage getNoteOffShortMessage(MidiMessage mm)
     {
         if (mm instanceof ShortMessage)
         {
