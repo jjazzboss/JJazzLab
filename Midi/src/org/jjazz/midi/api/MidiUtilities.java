@@ -1145,7 +1145,7 @@ public class MidiUtilities
         }
         for (byte b : mm.getMessage())
         {
-            s.append(".").append(Integer.toHexString(b));
+            s.append(".").append(Integer.toHexString((int)(b &0xFF)));
         }
         return s.toString();
     }
