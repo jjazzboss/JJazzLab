@@ -50,6 +50,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.openide.*;
 import org.openide.filesystems.FileObject;
+import org.openide.util.Exceptions;
 
 /**
  * Various convenience functions.
@@ -1006,6 +1007,7 @@ public class Utilities
             try
             {
                 Desktop.getDesktop().open(file);
+
             } catch (IOException | UnsupportedOperationException ex)
             {
                 errMsg = ex.getLocalizedMessage();
@@ -1018,6 +1020,59 @@ public class Utilities
         if (errMsg != null)
         {
             LOGGER.warning("openFile() file=" + file + "  ex=" + errMsg);
+
+            if (!silentError)
+            {
+                NotifyDescriptor d = new NotifyDescriptor.Message(errMsg, NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+            }
+        }
+
+        return errMsg == null;
+    }
+
+    /**
+     * Browse in a file browser a folder containing the specified file .
+     * <p>
+     * Unless silentError is true, user is notified if an error occured.
+     *
+     * @param file
+     * @param silentError Do not notify user if error occured
+     * @return False if an error occured
+     */
+    public static boolean browseFileDirectory(File file, boolean silentError)
+    {
+        String errMsg = null;
+        if (org.openide.util.Utilities.isWindows())
+        {
+            // Desktop.browseFileDirectory is not implemented on WIN10 !!
+            String path = file.getParentFile().getAbsolutePath();
+            String completeCmd = "explorer.exe /select," + path;
+            try
+            {
+                new ProcessBuilder(("explorer.exe " + completeCmd).split(" ")).start();
+            } catch (IOException ex)
+            {
+                errMsg = ex.getLocalizedMessage();
+            }
+        } else if (Desktop.isDesktopSupported())
+        {
+            try
+            {
+                Desktop.getDesktop().browseFileDirectory(file);
+
+            } catch (UnsupportedOperationException ex)
+            {
+                errMsg = ex.getLocalizedMessage();
+            }
+        } else
+        {
+            errMsg = org.openide.util.NbBundle.getBundle(org.jjazz.util.api.Utilities.class).getString("ErrNoExternalCommand");
+        }
+
+        if (errMsg != null)
+        {
+            LOGGER.warning("browseFileDirectory() file=" + file + "  ex=" + errMsg);
 
             if (!silentError)
             {

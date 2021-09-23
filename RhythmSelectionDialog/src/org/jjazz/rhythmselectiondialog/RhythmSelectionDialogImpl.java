@@ -334,6 +334,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
             LOGGER.fine("valueChanged() selected rhythm ri=" + ri);   //NOI18N
 
+            btn_deleteRhythm.setEnabled(ri != null && !ri.getFile().getName().equals(""));
+            btn_openFolder.setEnabled(ri != null && !ri.getFile().getName().equals(""));
 
             // Manage rhythm preview
             if (rhythmPreviewProvider != null)
@@ -834,6 +836,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         jPanel2 = new javax.swing.JPanel();
         fbtn_autoPreviewMode = new org.jjazz.ui.flatcomponents.api.FlatToggleButton();
         cmb_variation = new javax.swing.JComboBox<>();
+        btn_deleteRhythm = new javax.swing.JButton();
+        btn_openFolder = new javax.swing.JButton();
         lbl_Title = new javax.swing.JLabel();
         cb_applyRhythmToNextSpts = new javax.swing.JCheckBox();
         cb_useRhythmTempo = new javax.swing.JCheckBox();
@@ -930,6 +934,26 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         cmb_variation.setEnabled(false);
         jPanel2.add(cmb_variation);
 
+        org.openide.awt.Mnemonics.setLocalizedText(btn_deleteRhythm, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.btn_deleteRhythm.text")); // NOI18N
+        btn_deleteRhythm.setEnabled(false);
+        btn_deleteRhythm.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_deleteRhythmActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(btn_openFolder, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.btn_openFolder.text")); // NOI18N
+        btn_openFolder.setToolTipText(org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.btn_openFolder.toolTipText")); // NOI18N
+        btn_openFolder.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_openFolderActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -945,7 +969,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                         .addComponent(lbl_timeSignature)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(lbl_rhythms)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 67, Short.MAX_VALUE)
                         .addComponent(btn_clearFilter)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_Filter)
@@ -954,14 +978,17 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(btn_addRhythms)
-                                .addGap(0, 0, Short.MAX_VALUE)))
-                        .addContainerGap())
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(btn_deleteRhythm, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(btn_addRhythms, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(btn_openFolder, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGap(0, 66, Short.MAX_VALUE)))
+                        .addContainerGap())))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -977,13 +1004,17 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 476, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 433, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 338, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(btn_addRhythms)))
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 192, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(85, 85, 85)
+                        .addComponent(btn_addRhythms)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_deleteRhythm)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_openFolder)))
                 .addContainerGap())
         );
 
@@ -1013,25 +1044,22 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addComponent(lbl_Title)
+                        .addGap(99, 99, 99)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tf_userRhythmDir)
+                        .addContainerGap())
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(12, 12, 12)
-                                .addComponent(lbl_Title)
-                                .addGap(99, 99, 99)
-                                .addComponent(jLabel1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(tf_userRhythmDir))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(cb_useRhythmTempo)
-                                        .addGap(0, 0, Short.MAX_VALUE))
-                                    .addComponent(cb_applyRhythmToNextSpts))
-                                .addGap(341, 341, 341)
-                                .addComponent(btn_Ok, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btn_Cancel)))
-                        .addContainerGap())))
+                            .addComponent(cb_useRhythmTempo)
+                            .addComponent(cb_applyRhythmToNextSpts))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btn_Ok, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_Cancel)
+                        .addGap(8, 8, 8))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1049,10 +1077,11 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                         .addComponent(cb_useRhythmTempo)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(cb_applyRhythmToNextSpts))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(btn_Cancel)
-                        .addComponent(btn_Ok)))
-                .addContainerGap())
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btn_Ok)
+                            .addComponent(btn_Cancel))
+                        .addContainerGap())))
         );
 
         pack();
@@ -1120,12 +1149,44 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         addRhythms();
     }//GEN-LAST:event_btn_addRhythmsActionPerformed
 
+    private void btn_deleteRhythmActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_deleteRhythmActionPerformed
+    {//GEN-HEADEREND:event_btn_deleteRhythmActionPerformed
+        var ri = getSelectedRhythm();
+        if (ri == null || ri.getFile().getName().equals(""))
+        {
+            return;
+        }
+
+        String msg = ResUtil.getString(getClass(), "CTL_ConfirmRhythmFileDelete", ri.getFile().getAbsolutePath());
+        NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
+        Object result = DialogDisplayer.getDefault().notify(d);
+        if (NotifyDescriptor.YES_OPTION == result)
+        {
+            ri.getFile().deleteOnExit();
+            RhythmDatabase.getDefault().forceRescan(false);
+        }
+
+    }//GEN-LAST:event_btn_deleteRhythmActionPerformed
+
+    private void btn_openFolderActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_openFolderActionPerformed
+    {//GEN-HEADEREND:event_btn_openFolderActionPerformed
+        var ri = getSelectedRhythm();
+        if (ri == null || ri.getFile().getName().equals(""))
+        {
+            return;
+        }
+        org.jjazz.util.api.Utilities.browseFileDirectory(ri.getFile(), false);
+
+    }//GEN-LAST:event_btn_openFolderActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_Cancel;
     private javax.swing.JButton btn_Filter;
     private javax.swing.JButton btn_Ok;
     private javax.swing.JButton btn_addRhythms;
     private javax.swing.JButton btn_clearFilter;
+    private javax.swing.JButton btn_deleteRhythm;
+    private javax.swing.JButton btn_openFolder;
     private javax.swing.JCheckBox cb_applyRhythmToNextSpts;
     private javax.swing.JCheckBox cb_useRhythmTempo;
     private javax.swing.JComboBox<String> cmb_variation;
