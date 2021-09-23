@@ -556,8 +556,12 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         if (mc.getState().equals(State.PLAYING))
         {
             mc.stop();
-            tbtn_hear.setSelected(true);
-            tbtn_hearActionPerformed(null);     // This will start playing the preview
+
+            if (!mc.isArrangerPlaying())
+            {
+                tbtn_hear.setSelected(true);
+                tbtn_hearActionPerformed(null);     // This will start playing the preview
+            }
         }
 
 

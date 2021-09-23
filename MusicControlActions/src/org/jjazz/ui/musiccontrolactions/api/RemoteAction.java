@@ -31,9 +31,11 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
+import javax.sound.midi.SysexMessage;
 import javax.swing.Action;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
@@ -82,7 +84,7 @@ public class RemoteAction
                 || !(action.getValue(Action.NAME) instanceof String)
                 || ((String) action.getValue(Action.NAME)).isBlank())
         {
-            throw new IllegalArgumentException("No Netbeans action found for actionCategory=" + actionCategory + " actionId=" + actionId + "action=" + action);
+            throw new IllegalArgumentException("No Netbeans action found for actionCategory=" + actionCategory + " actionId=" + actionId + " action=" + action);
         }
     }
 
@@ -163,7 +165,7 @@ public class RemoteAction
         {
             try
             {
-                int steps = 10;
+                int steps = 5;
                 ph.switchToDeterminate(steps);
                 for (int i = 0; i < steps; i++)
                 {
@@ -359,12 +361,7 @@ public class RemoteAction
     // ================================================================================================
     private boolean compare(MidiMessage mmRef, MidiMessage mm)
     {
-        if (mmRef.getClass() != mm.getClass())
-        {
-            return false;
-        }
-
-        if (mmRef instanceof ShortMessage)
+        if (mmRef instanceof ShortMessage && mm instanceof ShortMessage)          // Can't just compare == classes, because both JJazzLab and JDK use their own ShortMessage subclasses
         {
             ShortMessage smRef = (ShortMessage) mmRef;
             ShortMessage sm = (ShortMessage) mm;
@@ -388,11 +385,17 @@ public class RemoteAction
                 return smRef.getData1() == sm.getData1();
             }
             return false;
-        } else
+            
+        } else if (mmRef instanceof SysexMessage && mm instanceof SysexMessage) // Can't just compare == classes, because both JJazzLab and JDK might use their own subclasses
         {
-            // Meta or SysEx messages
+            return Arrays.equals(mmRef.getMessage(), mm.getMessage());
+            
+        } else if (mmRef instanceof MetaMessage && mm instanceof MetaMessage)  // Can't just compare == classes, because both JJazzLab and JDK might use their own subclasses
+        {
             return Arrays.equals(mmRef.getMessage(), mm.getMessage());
         }
+
+        return false;
     }
 
     static private String getPrefMidiMessagesKey(String actionCategory, String actionId)

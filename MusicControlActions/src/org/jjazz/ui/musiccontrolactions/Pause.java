@@ -89,7 +89,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
         // Listen to the current Song changes
         lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
         lookupResult.addLookupListener(this);
-        currentSongChanged();
+        updateEnabledAndSelectedState();
     }
 
     @Override
@@ -181,7 +181,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
             }
             currentSong = newSong;
             currentSong.addPropertyChangeListener(this);
-            currentSongChanged();
+            updateEnabledAndSelectedState();
         } else
         {
             // Do nothing : pause is still using the last valid song
@@ -215,19 +215,19 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_STATE)
+            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
             {
-                playbackStateChanged();
+                updateEnabledAndSelectedState();
             }
         } else if (evt.getSource() == ActiveSongManager.getInstance())
         {
-            if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
+            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
-                activeSongChanged();
+                updateEnabledAndSelectedState();
             }
         } else if (evt.getSource() == currentSong)
         {
-            if (evt.getPropertyName() == Song.PROP_CLOSED)
+            if (evt.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 currentSongClosed();
             }
@@ -237,31 +237,24 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
     // ======================================================================
     // Private methods
     // ======================================================================   
-    private void activeSongChanged()
-    {
-        currentSongChanged();    // Enable/Disable components            
-    }
 
-    private void currentSongChanged()
+    private void updateEnabledAndSelectedState()
     {
         Song activeSong = ActiveSongManager.getInstance().getActiveSong();
-        boolean b = (currentSong != null) && (currentSong == activeSong);
+        boolean b = (currentSong != null && currentSong == activeSong);
+
+        MusicController mc = MusicController.getInstance();
+        b &= !mc.isArrangerPlaying() && (mc.getState().equals(MusicController.State.PLAYING) || mc.getState().equals(MusicController.State.PAUSED));
         setEnabled(b);
+        setBooleanState(mc.getState().equals(MusicController.State.PAUSED));
     }
+
 
     private void currentSongClosed()
     {
         currentSong.removePropertyChangeListener(this);
         currentSong = null;
-        currentSongChanged();
-    }
-
-    private void playbackStateChanged()
-    {
-        MusicController mc = MusicController.getInstance();
-        LOGGER.fine("playbackStateChanged() actionState=" + getBooleanState() + " mc.getPlaybackState()=" + mc.getState());           //NOI18N
-        setEnabled(!mc.getState().equals(State.DISABLED));
-        setBooleanState(mc.getState().equals(MusicController.State.PAUSED));
+        updateEnabledAndSelectedState();
     }
 
 }

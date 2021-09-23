@@ -26,6 +26,8 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
@@ -33,6 +35,8 @@ import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.api.FlatToggleButton;
+import org.jjazz.ui.musiccontrolactions.api.RemoteAction;
+import org.jjazz.ui.musiccontrolactions.api.RemoteActionProvider;
 import org.jjazz.util.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -45,6 +49,7 @@ import org.openide.util.LookupListener;
 import org.openide.util.Utilities;
 import org.openide.util.actions.BooleanStateAction;
 import org.openide.util.actions.Presenter;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Show/hide the stopback point in editors during song stopback.
@@ -66,6 +71,7 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
     {
         setBooleanState(true);
 
+        putValue(Action.NAME, "Stop");        // For our RemoteActionProvider
 //        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButtonBorderOff-24x24.png")));
 //        putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButtonBorderOn-24x24.png")));
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/StopButton-24x24.png")));
@@ -210,6 +216,27 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
             }
         }
     }
+    // ======================================================================
+    // Inner classes
+    // ======================================================================   
+
+    @ServiceProvider(service = RemoteActionProvider.class)
+    public static class StopRemoteActionProvider implements RemoteActionProvider
+    {
+
+        @Override
+        public List<RemoteAction> getRemoteActions()
+        {
+            RemoteAction ra = RemoteAction.loadFromPreference("MusicControls", "org.jjazz.ui.musiccontrolactions.stop");
+            if (ra == null)
+            {
+                ra = new RemoteAction("MusicControls", "org.jjazz.ui.musiccontrolactions.stop");
+                ra.setMidiMessages(RemoteAction.noteOnMidiMessages(0, 26));
+            }
+            ra.setDefaultMidiMessages(RemoteAction.noteOnMidiMessages(0, 26));
+            return Arrays.asList(ra);
+        }
+    }
 
     // ======================================================================
     // Private methods
@@ -241,5 +268,6 @@ public class Stop extends BooleanStateAction implements PropertyChangeListener, 
         setEnabled(!mc.getState().equals(MusicController.State.DISABLED));
         setBooleanState(mc.getState() == MusicController.State.STOPPED);
     }
+
 
 }

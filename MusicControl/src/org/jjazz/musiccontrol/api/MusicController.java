@@ -63,6 +63,7 @@ import org.jjazz.util.api.Utilities;
 import org.openide.util.Exceptions;
 import org.jjazz.musiccontrol.api.playbacksession.ControlTrackProvider;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
+import org.jjazz.song.api.Song;
 import org.openide.awt.StatusDisplayer;
 
 /**
@@ -653,6 +654,21 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     public PlaybackSession getPlaybackSession()
     {
         return playbackSession;
+    }
+
+    /**
+     * True if the current playing session is a special arranger session.
+     *
+     * @return
+     */
+    public boolean isArrangerPlaying()
+    {
+        if (!state.equals(State.PLAYING) || !(playbackSession instanceof SongContextProvider))
+        {
+            return false;
+        }
+        Song song = ((SongContextProvider) playbackSession).getSongContext().getSong();
+        return song.getName().startsWith("*!ArrangerSONG!*");
     }
 
     public void setDebugPlayedSequence(boolean b)

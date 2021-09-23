@@ -9,9 +9,9 @@
    id="svg8"
    inkscape:version="1.1 (c68e22c387, 2021-05-23)"
    sodipodi:docname="MusicControls.svg"
-   inkscape:export-filename="C:\Users\Jerome\Documents\JJazzLab\src\JJazzLab-X\Graphics\Previous.png"
-   inkscape:export-xdpi="31.040001"
-   inkscape:export-ydpi="31.040001"
+   inkscape:export-filename="C:\Users\Jerome\Documents\JJazzLab\src\JJazzLab-X\Graphics\NextSongpart-24x24.png"
+   inkscape:export-xdpi="33.869999"
+   inkscape:export-ydpi="33.869999"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -5605,7 +5605,7 @@
     </g>
     <g
        id="g3976"
-       transform="matrix(-1,0,0,1,-288.09769,133.97806)">
+       transform="translate(306.09768,133.97806)">
       <g
          transform="matrix(3.3218032,0,0,3.3218032,111.65485,84.117018)"
          id="g3968">

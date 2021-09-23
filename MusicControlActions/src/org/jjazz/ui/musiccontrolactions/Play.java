@@ -30,7 +30,6 @@ import java.beans.PropertyVetoException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
@@ -60,7 +59,6 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
-import org.openide.util.NbPreferences;
 import org.openide.util.Utilities;
 import org.openide.util.actions.BooleanStateAction;
 import org.openide.util.lookup.ServiceProvider;
@@ -86,7 +84,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
     {
         setBooleanState(false);
 
-        putValue(Action.NAME, "Play/Pause");
+        putValue(Action.NAME, "Play/Pause");        // For our RemoteActionProvider
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButton-24x24.png")));
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/PlayButtonOn-24x24-orange.png")));
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_PlayToolTip"));

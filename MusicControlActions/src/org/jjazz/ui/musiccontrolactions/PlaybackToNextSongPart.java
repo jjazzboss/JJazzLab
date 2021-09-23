@@ -23,10 +23,16 @@
 package org.jjazz.ui.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequencer;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ImageIcon;
+import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
@@ -42,6 +48,14 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ui.musiccontrolactions.api.RemoteAction;
+import org.jjazz.ui.musiccontrolactions.api.RemoteActionProvider;
+import org.jjazz.util.api.ResUtil;
+import org.openide.util.Lookup;
+import org.openide.util.LookupEvent;
+import org.openide.util.LookupListener;
+import org.openide.util.Utilities;
+import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Make playback jump to next song part.
@@ -54,11 +68,31 @@ import org.jjazz.songstructure.api.SongPart;
         {
             @ActionReference(path = "Shortcuts", name = "F2")
         })
-public class PlaybackToNextSongPart extends AbstractAction
+public class PlaybackToNextSongPart extends AbstractAction implements PropertyChangeListener, LookupListener
 {
 
+    private Lookup.Result<Song> lookupResult;
+    private Song currentSong;
     private static final Logger LOGGER = Logger.getLogger(PlaybackToNextSongPart.class.getSimpleName());
 
+    public PlaybackToNextSongPart()
+    {
+        putValue(Action.NAME, ResUtil.getString(getClass(), "CTL_PlaybackToNextSongPart"));        // For our RemoteActionProvider
+        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/NextSongpart-24x24.png")));
+        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_PlaybackToNextSongPartTooltip"));
+        putValue("hideActionText", true);
+
+        // Listen to playbackState and position changes
+        MusicController.getInstance().addPropertyChangeListener(this);
+
+        // Listen to the Midi active song changes
+        ActiveSongManager.getInstance().addPropertyListener(this);
+
+        // Listen to the current Song changes
+        lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
+        lookupResult.addLookupListener(this);
+        updateEnabledState();
+    }
 
     @Override
     public void actionPerformed(ActionEvent e)
@@ -87,8 +121,7 @@ public class PlaybackToNextSongPart extends AbstractAction
             return;
         }
         SongContext songContext = ((SongContextProvider) session).getSongContext();
-        Song song = songContext.getSong();
-        if (song.getName().startsWith("*!ArrangerSONG!*"))
+        if (mc.isArrangerPlaying())
         {
             // Special case, dont mess with the arranger mode            
             return;
@@ -135,10 +168,88 @@ public class PlaybackToNextSongPart extends AbstractAction
             }
         }
     }
+    // ======================================================================
+    // LookupListener interface
+    // ======================================================================  
+
+    @Override
+    public synchronized void resultChanged(LookupEvent ev)
+    {
+        int i = 0;
+        Song newSong = null;
+        for (Song s : lookupResult.allInstances())
+        {
+            newSong = s;
+            i++;
+        }
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   //NOI18N
+        if (newSong != null)
+        {
+            // Current song has changed
+            currentSong = newSong;
+            updateEnabledState();
+        } else
+        {
+            // Do nothing : player is still using the last valid song
+        }
+    }
+    // ======================================================================
+    // PropertyChangeListener interface
+    // ======================================================================    
+
+    @Override
+    public synchronized void propertyChange(PropertyChangeEvent evt)
+    {
+        MusicController mc = MusicController.getInstance();
+        if (evt.getSource() == mc)
+        {
+            if (evt.getPropertyName() == MusicController.PROP_STATE)
+            {
+                updateEnabledState();
+            }
+        } else if (evt.getSource() == ActiveSongManager.getInstance())
+        {
+            if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
+            {
+                updateEnabledState();
+            }
+        }
+    }
+    // ======================================================================
+    // Inner classes
+    // ======================================================================   
+
+    @ServiceProvider(service = RemoteActionProvider.class)
+    public static class NextSongPartRemoteActionProvider implements RemoteActionProvider
+    {
+
+        @Override
+        public List<RemoteAction> getRemoteActions()
+        {
+            RemoteAction ra = RemoteAction.loadFromPreference("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktonextsongpart");
+            if (ra == null)
+            {
+                ra = new RemoteAction("MusicControls", "org.jjazz.ui.musiccontrolactions.playbacktonextsongpart");
+                ra.setMidiMessages(RemoteAction.noteOnMidiMessages(0, 27));
+            }
+            ra.setDefaultMidiMessages(RemoteAction.noteOnMidiMessages(0, 27));
+            return Arrays.asList(ra);
+        }
+    }
 
     //=====================================================================================
     // Private methods
     //=====================================================================================    
+
+
+    private void updateEnabledState()
+    {
+        MusicController mc = MusicController.getInstance();
+        Song activeSong = ActiveSongManager.getInstance().getActiveSong();
+        boolean b = (currentSong != null && currentSong == activeSong);
+        b &= !mc.isArrangerPlaying() && (mc.getState().equals(MusicController.State.PLAYING) || mc.getState().equals(MusicController.State.PAUSED));
+        setEnabled(b);
+    }
 
     static private SongPart getNextSongPart(PlaybackSession session, List<SongPart> spts, SongPart songPart)
     {
