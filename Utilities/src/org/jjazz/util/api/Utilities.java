@@ -1008,7 +1008,7 @@ public class Utilities
             {
                 Desktop.getDesktop().open(file);
 
-            } catch (IOException | UnsupportedOperationException ex)
+            } catch (IOException | UnsupportedOperationException | IllegalArgumentException ex)
             {
                 errMsg = ex.getLocalizedMessage();
             }

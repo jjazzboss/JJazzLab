@@ -46,7 +46,7 @@ import org.openide.util.actions.BooleanStateAction;
 public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyChangeListener, LookupListener
 {
 
-    private Lookup.Result<Song> lookupResult;
+    private final Lookup.Result<Song> lookupResult;
     private Song currentSong;
     private Position posModel;
     private static final Logger LOGGER = Logger.getLogger(ControlToolbarPanel.class.getSimpleName());

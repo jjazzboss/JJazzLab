@@ -81,13 +81,13 @@ public class PlaybackToPreviousSongPart extends AbstractAction implements Proper
         // Listen to the current Song changes
         lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
         lookupResult.addLookupListener(this);
-        updateEnabledState();
+        resultChanged(null); 
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-
+        LOGGER.info("actionPerformed() this=" + this);
         PlaybackToNextSongPart.jumpToSongPart(false);
 
     }
