@@ -77,7 +77,6 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
 
     public PlaybackToNextSongPart()
     {
-        LOGGER.severe("PlaybackToNextSongPart() --");
         putValue(Action.NAME, ResUtil.getString(getClass(), "CTL_PlaybackToNextSongPart"));        // For our RemoteActionProvider
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/ui/musiccontrolactions/resources/NextSongpart-24x24.png")));
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_PlaybackToNextSongPartTooltip"));
@@ -98,7 +97,6 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.info("actionPerformed() this=" + this);
         jumpToSongPart(true);
     }
 

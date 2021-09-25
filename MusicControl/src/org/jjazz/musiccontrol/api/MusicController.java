@@ -63,6 +63,7 @@ import org.jjazz.util.api.Utilities;
 import org.openide.util.Exceptions;
 import org.jjazz.musiccontrol.api.playbacksession.ControlTrackProvider;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
+import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.song.api.Song;
 import org.openide.awt.StatusDisplayer;
 
@@ -353,7 +354,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 try
                 {
                     playbackSession.generate(true);         // Throws MusicGenerationException
-                } catch (SongSequenceBuilder.UserErrorException ex)
+                } catch (UserErrorGenerationException ex)
                 {
                     // playbackSession will remain NEW
                     // Notify user lightly (no blocking dialog) because it is just a pre-generation tentative
@@ -791,7 +792,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             // This method  is called from the Sequencer thread, NOT from the EDT !
             // So if this method impacts the UI, it must use SwingUtilities.InvokeLater() (or InvokeAndWait())
-            LOGGER.info("Sequence end reached");  //NOI18N        
+            LOGGER.fine("Sequence end reached");  //NOI18N        
             SwingUtilities.invokeLater(() -> stop());
 
         } else if (meta.getType() == 6)     // Marker
@@ -1253,15 +1254,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         if (mapTrackMute != null && sequencer.getSequence() != null)
         {
 
-            LOGGER.info("updateTracksMuteStatus() mapTrackMute=" + mapTrackMute);
+            LOGGER.log(Level.FINE, "updateTracksMuteStatus() mapTrackMute={0}", mapTrackMute);
             for (int trackId : mapTrackMute.keySet())
             {
                 boolean b = mapTrackMute.get(trackId);
                 sequencer.setTrackMute(trackId, b);
                 if (sequencer.getTrackMute(trackId) != b)
                 {
-                    LOGGER.severe("updateTracksMuteStatus() setTrackMute(" + trackId + "," + b + ") failed");
-                    LOGGER.severe("                          sequencer" + sequencer.isRunning());
+                    LOGGER.log(Level.FINE, "updateTracksMuteStatus() setTrackMute({0},{1}) failed", new Object[]{trackId, b});
+                    LOGGER.log(Level.FINE, "                          sequencer{0}", sequencer.isRunning());
                 }
             }
         }
@@ -1282,7 +1283,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         public static final int ACTIVITY_MIN_PERIOD_MS = 100;
 
         // Store the last Note On millisecond position for each note. Use -1 if initialized.
-        private long lastNoteOnMs[] = new long[16];
+        private final long lastNoteOnMs[] = new long[16];
         private boolean enabled;
 
         public McReceiver()
@@ -1304,7 +1305,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
          *
          * @param enabled the enabled to set
          */
-        public void setEnabled(boolean enabled)
+        public final void setEnabled(boolean enabled)
         {
             if (this.enabled != enabled)
             {

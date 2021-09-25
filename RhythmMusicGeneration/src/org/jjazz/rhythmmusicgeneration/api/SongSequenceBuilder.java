@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.songcontext.api.SongContext;
@@ -92,19 +93,6 @@ public class SongSequenceBuilder
         public Map<RhythmVoice, Phrase> mapRvPhrase;
     }
 
-    /**
-     * A special kind of MusicGenerationException for errors that user can fix, such as 2 chord symbols at the same position, no
-     * chord symbol at section start, etc.
-     */
-    static public class UserErrorException extends MusicGenerationException
-    {
-
-        public UserErrorException(String msg)
-        {
-            super(msg);
-        }
-
-    }
 
     private SongContext songContext;
 
@@ -585,7 +573,7 @@ public class SongSequenceBuilder
      * @param context
      * @throws UserErrorException
      */
-    private void checkStartChordPresence(SongContext context) throws UserErrorException
+    private void checkStartChordPresence(SongContext context) throws UserErrorGenerationException
     {
         ChordLeadSheet cls = context.getSong().getChordLeadSheet();
         for (CLI_Section section : getContextSections(context))
@@ -594,7 +582,7 @@ public class SongSequenceBuilder
             List<? extends CLI_ChordSymbol> clis = cls.getItems(section, CLI_ChordSymbol.class);
             if (clis.isEmpty() || !clis.get(0).getPosition().equals(pos))
             {
-                throw new UserErrorException(ResUtil.getString(getClass(), "ERR_MissingChordSymbolAtSection", section.getData().getName(), (pos.getBar() + 1)));
+                throw new UserErrorGenerationException(ResUtil.getString(getClass(), "ERR_MissingChordSymbolAtSection", section.getData().getName(), (pos.getBar() + 1)));
             }
         }
     }
@@ -605,7 +593,7 @@ public class SongSequenceBuilder
      * @param context
      * @throws org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder.UserErrorException
      */
-    private void checkChordsAtSamePosition(SongContext context) throws UserErrorException
+    private void checkChordsAtSamePosition(SongContext context) throws UserErrorGenerationException
     {
         HashMap<Position, CLI_ChordSymbol> mapPosCs = new HashMap<>();
         ChordLeadSheet cls = context.getSong().getChordLeadSheet();
@@ -624,7 +612,7 @@ public class SongSequenceBuilder
                     sb.append(cliCs.getData().toString()).append(cliCs.getPosition().toUserString());
                     sb.append(" - ");
                     sb.append(existingCliCs.getData().toString()).append(existingCliCs.getPosition().toUserString());
-                    throw new UserErrorException(sb.toString());
+                    throw new UserErrorGenerationException(sb.toString());
                 } else
                 {
                     mapPosCs.put(pos, cliCs);
@@ -871,11 +859,11 @@ public class SongSequenceBuilder
 
     }
 
-    private void checkEmptyRange(SongContext context) throws UserErrorException
+    private void checkEmptyRange(SongContext context) throws UserErrorGenerationException
     {
         if (context.getBarRange().isEmpty())
         {
-            throw new UserErrorException(ResUtil.getString(getClass(), "ERR_NothingToPlay"));
+            throw new UserErrorGenerationException(ResUtil.getString(getClass(), "ERR_NothingToPlay"));
         }
     }
 

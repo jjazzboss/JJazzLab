@@ -25,6 +25,7 @@ package org.jjazz.arranger;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.sound.midi.MidiMessage;
@@ -183,7 +184,7 @@ public class ChordReceiver implements Receiver
 
     private void fireChordChanged(List<Note> notes)
     {
-        LOGGER.severe("fireChordChanged() notes=" + notes);
+        LOGGER.log(Level.FINE, "fireChordChanged() notes={0}", notes);
         listeners.forEach(l -> l.chordChanged(notes));
     }
 

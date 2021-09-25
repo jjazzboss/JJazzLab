@@ -87,7 +87,6 @@ public class PlaybackToPreviousSongPart extends AbstractAction implements Proper
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.info("actionPerformed() this=" + this);
         PlaybackToNextSongPart.jumpToSongPart(false);
 
     }

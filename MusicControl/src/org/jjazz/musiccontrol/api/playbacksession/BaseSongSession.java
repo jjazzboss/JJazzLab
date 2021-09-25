@@ -529,7 +529,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     {
         if (!isDirty)
         {
-            LOGGER.info("setDirty() --");
+            LOGGER.fine("setDirty() --");
             isDirty = true;
             pcs.firePropertyChange(PROP_DIRTY, false, true);
         }

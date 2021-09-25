@@ -34,6 +34,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
@@ -222,7 +223,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     // ================================================================================    
     private void togglePlayPause()
     {
-        LOGGER.info("togglePlayPause() --  isSelected()=" + tbtn_playPause.isSelected());
+        LOGGER.log(Level.FINE, "togglePlayPause() --  isSelected()={0}", tbtn_playPause.isSelected());
 
         try
         {
@@ -288,8 +289,8 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             songPart = selection.isRhythmParameterSelected()
                     ? selection.getSelectedSongPartParameters().get(0).getSpt()
                     : selection.getSelectedSongParts().get(0);
-            
-            
+
+
             // Make selection become only our song part
             selection.unselectAll(ssEditor);
             ssEditor.selectSongPart(songPart, true);
@@ -326,7 +327,6 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             arranger.addPropertyListener(this);
 
 
-            
             // Start playback
             try
             {
@@ -393,13 +393,15 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
      */
     protected void processIncomingChord(List<Note> notes)       // protected for testing, should be private
     {
-        LOGGER.severe("processIncomingChord() -- notes=" + notes + " nanoTime()=" + System.nanoTime());
+        LOGGER.log(Level.FINE, "processIncomingChord() -- notes={0} nanoTime()={1}", new Object[]
+        {
+            notes, System.nanoTime()
+        });
         if (notes.size() < 3 || notes.size() > chordSymbolFinder.getMaxNbNotes())
         {
             return;
         }
         var chordSymbols = chordSymbolFinder.find(notes);
-        LOGGER.severe("                  chordSymbols=" + chordSymbols);
         if (chordSymbols != null)
         {
             var chordSymbol = chordSymbolFinder.getChordSymbol(notes, chordSymbols, cb_lowerNoteIsBass.isSelected());
@@ -422,7 +424,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
      */
     private void updateSptUI()
     {
-        LOGGER.fine("updateSptUI() -- songPart=" + songPart);
+        LOGGER.log(Level.FINE, "updateSptUI() -- songPart={0}", songPart);
         String sSpt, sRhythm;
         if (songPart == null)
         {
@@ -456,7 +458,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
 
     private void arrangerStopped()
     {
-        LOGGER.info("arrangerStopped() --");
+        LOGGER.fine("arrangerStopped() --");
         arranger.cleanup();
         tbtn_playPause.setSelected(false);
         songPart = null;

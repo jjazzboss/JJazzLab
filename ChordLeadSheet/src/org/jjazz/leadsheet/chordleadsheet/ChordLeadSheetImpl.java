@@ -113,6 +113,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
 
+
     @Override
     public void removeSection(final CLI_Section cliSection) throws UnsupportedEditException
     {

@@ -28,6 +28,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequencer;
 import javax.swing.event.SwingPropertyChangeSupport;
@@ -161,8 +162,10 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         songPartWork = songContextWork.getSongParts().get(0);
         firstChordSymbol = songContextWork.getSong().getChordLeadSheet().getItems(songPartWork.getParentSection(), CLI_ChordSymbol.class).get(0);
         var dynSession = DynamicSongSession.getSession(songContextWork, true, true, false, false, false, Sequencer.LOOP_CONTINUOUSLY, null);
-        dynSession.setPreUpdateBufferTimeMs(1);     // Each user chord change generates only 2 song changes (remove and add 1 CLI_ChordSymbol)
-        dynSession.setPostUpdateSleepTimeMs(300);    // This allow user to change chord quickly
+        dynSession.setPreUpdateBufferTimeMs(5);     // Each user chord change generates only 2 song changes (remove and add 1 CLI_ChordSymbol)
+        dynSession.setPostUpdateSleepTimeMs(100);    // This allow user to change chord quickly
+        dynSession.setUserErrorExceptionHandler(null);  // User execption may occur depending on timing, as we remove then add a chord symbol at section start
+
         var updatableSession = UpdatableSongSession.getSession(dynSession);
         mc.setPlaybackSession(updatableSession); // Will generate session is state==NEW. Can raise MusicGenerationException
 
@@ -179,7 +182,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
     {
         if (playing)
         {
-            LOGGER.severe("stop()");
+            LOGGER.fine("stop()");
             playing = false;                // Must be before calling stop() below    
             MusicController.getInstance().stop();
             pcs.firePropertyChange(PROP_PLAYING, true, false);
@@ -193,7 +196,10 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
      */
     public void updateChordSymbol(ChordSymbol newCs)
     {
-        LOGGER.info("updateChordSymbol() -- newCs=" + newCs + " nanoTime()=" + System.nanoTime());
+        LOGGER.log(Level.FINE, "updateChordSymbol() -- newCs={0} nanoTime()={1}", new Object[]
+        {
+            newCs, System.nanoTime()
+        });
         if (songContextWork == null)
         {
             LOGGER.warning("updateChordSymbol() songContextWork is null!");
@@ -202,7 +208,6 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         ChordLeadSheet cls = songContextWork.getSong().getChordLeadSheet();
         assert firstChordSymbol != null;
 
-        var old = firstChordSymbol.getData().getChordSymbol(null);
 
         // Prepare the new CLI_ChordSymbol
         var firstEcs = firstChordSymbol.getData();
@@ -305,7 +310,10 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
      */
     private SongContext buildWorkContext(SongContext sgContext, SongPart spt, int maxSptWorkNbBars)
     {
-        LOGGER.info("buildWorkContext() sgContext=" + sgContext + " spt=" + spt);
+        LOGGER.log(Level.FINE, "buildWorkContext() sgContext={0} spt={1}", new Object[]
+        {
+            sgContext, spt
+        });
 
         // Get a work copy
         Song songWork = SongFactory.getInstance().getCopy(sgContext.getSong(), false);
@@ -313,7 +321,6 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         var sgsWork = songWork.getSongStructure();
         var spts = sgsWork.getSongParts();
         var clsWork = songWork.getChordLeadSheet();
-        LOGGER.info("              clsWork BEFORE: " + toDumpString(clsWork));
         SongPart sptWork = sgsWork.getSongPart(spt.getStartBarIndex());
         Rhythm r = sptWork.getRhythm();
 
@@ -424,9 +431,9 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
                     .forEach(item -> clsWork.removeItem(item));
         }
 
-        LOGGER.info("              clsWork AFTER: " + toDumpString(clsWork));
-        LOGGER.info("              sptWork AFTER: " + sptWork);
-        LOGGER.info("              sgsWork AFTER: " + sgsWork);
+        // LOGGER.info("              clsWork AFTER: " + toDumpString(clsWork));
+        LOGGER.log(Level.FINE, "              sptWork AFTER: {0}", sptWork);
+        LOGGER.log(Level.FINE, "              sgsWork AFTER: {0}", sgsWork);
 
 
         // Return the new context 

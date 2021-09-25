@@ -26,6 +26,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
@@ -212,7 +213,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
     // ======================================================================   
     private void activeSongChanged()
     {
-        LOGGER.info("activeSongChanged() --");
+        LOGGER.fine("activeSongChanged() --");
 
         MusicController.getInstance().stop();  // In case the last active song was playing or in pause mode
         updateEnabledAndSelected();    // Enable/Disable and select/unselect button    
@@ -225,7 +226,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
         {
             try
             {
-                LOGGER.info("activeSongChanged() activeSong=" + null + ", resetting MusicController playback session");
+                LOGGER.fine("activeSongChanged() activeSong=null, resetting MusicController playback session");
                 MusicController.getInstance().setPlaybackSession(null);
             } catch (MusicGenerationException ex)
             {
@@ -242,7 +243,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
      */
     private void updatePlaybackSession(Song activeSong)
     {
-        LOGGER.info("updatePlaybackSession() -- activeSong=" + activeSong);
+        LOGGER.log(Level.FINE, "updatePlaybackSession() -- activeSong={0}", activeSong);
         try
         {
             MidiMix midiMix = MidiMixManager.getInstance().findMix(activeSong);      // Can raise MidiUnavailableException

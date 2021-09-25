@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
@@ -263,7 +264,10 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      */
     public void updateSequence(Update update)
     {
-        LOGGER.info("updateSequence() ---- update=" + update + " nanoTime()=" + System.nanoTime());
+        LOGGER.log(Level.FINE, "updateSequence() ---- update={0} nanoTime()={1}", new Object[]
+        {
+            update, System.nanoTime()
+        });
 
         if (!getState().equals(PlaybackSession.State.GENERATED))
         {
@@ -298,7 +302,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             } else
             {
                 // Replace the current events
-                LOGGER.info("updateSequence()     changes detected for rv=" + rv + ", updating");
+                LOGGER.log(Level.FINE, "updateSequence()     changes detected for rv={0}, updating", rv);
                 currentMapRvPhrase.put(rv, newPhrase);
             }
 
@@ -589,10 +593,9 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         }
 
 
-        LOGGER.info("generate() mapTrackIdMuted=" + mapTrackIdMuted);
-        LOGGER.info("generate() mapRvTrackId=" + baseSongSession.getRvTrackIdMap());
-        LOGGER.info("generate() trackSet=" + trackSet.toString());
-//        LOGGER.info(" Original sequence=" + MidiUtilities.toString(sequence));
+        LOGGER.log(Level.FINE, "generate() mapTrackIdMuted={0}", mapTrackIdMuted);
+        LOGGER.log(Level.FINE, "generate() mapRvTrackId={0}", baseSongSession.getRvTrackIdMap());
+        LOGGER.log(Level.FINE, "generate() trackSet={0}", trackSet);
     }
 
 

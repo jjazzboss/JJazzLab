@@ -35,6 +35,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -61,6 +63,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
+import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
@@ -106,6 +109,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     private Update update;
     private ClsSgsChange currentClsChange;
     private ClsSgsChange currentSgsChange;
+    private Consumer<UserErrorGenerationException> userErrorExceptionHandler;
     private boolean isUpdatable = true;
     private boolean isControlTrackEnabled = true;
     private final boolean isUpdateControlEnabled;
@@ -188,6 +192,9 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 loopCount, endOfPlaybackAction);
 
         isUpdateControlEnabled = enableUpdateControl;
+
+        // Our default handler        
+        userErrorExceptionHandler = e -> StatusDisplayer.getDefault().setStatusText(e.getLocalizedMessage());
     }
 
     @Override
@@ -264,6 +271,19 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     public void setPostUpdateSleepTimeMs(int postUpdateSleepTimeMs)
     {
         this.postUpdateSleepTimeMs = postUpdateSleepTimeMs;
+    }
+
+
+    /**
+     * The handler for exception during music generation due to user error.
+     * <p>
+     * By default the handler displays the exception error message using StatusDisplayer.
+     *
+     * @param handler Can be null
+     */
+    public void setUserErrorExceptionHandler(Consumer<UserErrorGenerationException> handler)
+    {
+        userErrorExceptionHandler = handler;
     }
 
     // ==========================================================================================================
@@ -381,7 +401,10 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             return;
         }
 
-        LOGGER.info("chordLeadSheetChanged()  -- event=" + event + " nanoTime()=" + System.nanoTime());
+        LOGGER.log(Level.FINE, "chordLeadSheetChanged()  -- event={0} nanoTime()={1}", new Object[]
+        {
+            event, System.nanoTime()
+        });
 
         boolean disableUpdates = false;
 
@@ -391,7 +414,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             if (e.isActionStarted())
             {
                 // New ClsActionEvent, save it
-                LOGGER.info("chordLeadSheetChanged()  NEW ActionEvent(" + e + ")");
+                LOGGER.log(Level.FINE, "chordLeadSheetChanged()  NEW ActionEvent({0})", e);
                 assert currentClsChange == null : "currentClsChange=" + currentClsChange + " e=" + e;
                 currentClsChange = new ClsSgsChange(e.getActionId());
 
@@ -399,7 +422,10 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             {
                 // ClsActionEvent complete, check the status and update
                 assert currentClsChange != null && e.getActionId().equals(currentClsChange.actionId) : "currentClsChange=" + currentClsChange + " e=" + e;
-                LOGGER.info("chordLeadSheetChanged()  ActionEvent(" + currentClsChange.actionId + ") complete, doUpdate=" + currentClsChange.doUpdate);
+                LOGGER.log(Level.FINE, "chordLeadSheetChanged()  ActionEvent({0}) complete, doUpdate={1}", new Object[]
+                {
+                    currentClsChange.actionId, currentClsChange.doUpdate
+                });
                 if (currentClsChange.doUpdate)
                 {
                     generateUpdate();
@@ -463,7 +489,10 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
 
         }
 
-        LOGGER.info("chordLeadSheetChanged()  => disableUpdates=" + disableUpdates + " currentClsChange=" + currentClsChange);
+        LOGGER.log(Level.FINE, "chordLeadSheetChanged()  => disableUpdates={0} currentClsChange={1}", new Object[]
+        {
+            disableUpdates, currentClsChange
+        });
 
         if (disableUpdates)
         {
@@ -494,7 +523,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             return;
         }
 
-        LOGGER.info("songStructureChanged()  -- event=" + event);
+        LOGGER.log(Level.FINE, "songStructureChanged()  -- event={0}", event);
 
 
         boolean disableUpdates = false;
@@ -509,7 +538,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             if (e.isActionStarted())
             {
                 // New SgsActionEvent, save it
-                LOGGER.info("songStructureChanged()  NEW ActionEvent(" + e + ")");
+                LOGGER.log(Level.FINE, "songStructureChanged()  NEW ActionEvent({0})", e);
                 assert currentSgsChange == null : "currentSgsChange=" + currentSgsChange + " e=" + e;
                 currentSgsChange = new ClsSgsChange(e.getActionId());
 
@@ -517,7 +546,10 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             {
                 // ClsActionEvent complete, check the status and update
                 assert currentSgsChange != null && e.getActionId().equals(currentSgsChange.actionId) : "currentSgsChange=" + currentSgsChange + " e=" + e;
-                LOGGER.info("songStructureChanged()  COMPLETED ActionEvent(" + currentSgsChange.actionId + "), doUpdate=" + currentSgsChange.doUpdate);
+                LOGGER.log(Level.FINE, "songStructureChanged()  COMPLETED ActionEvent({0}), doUpdate={1}", new Object[]
+                {
+                    currentSgsChange.actionId, currentSgsChange.doUpdate
+                });
                 if (currentSgsChange.doUpdate)
                 {
                     generateUpdate();
@@ -556,7 +588,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             currentSgsChange.doUpdate = contextSongParts.contains(event.getSongPart());
         }
 
-        LOGGER.info("songStructureChanged()  => disableUpdates=" + disableUpdates);
+        LOGGER.log(Level.FINE, "songStructureChanged()  => disableUpdates={0}", disableUpdates);
 
 
         if (disableUpdates)
@@ -580,7 +612,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
 
     private void generateUpdate()
     {
-        LOGGER.info("generateUpdate() -- "+ " nanoTime()=" + System.nanoTime());
+        LOGGER.log(Level.FINE, "generateUpdate() --  nanoTime()={0}", System.nanoTime());
         if (!getState().equals(State.GENERATED))
         {
             return;
@@ -642,7 +674,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     {
         if (isUpdatable())
         {
-            LOGGER.info("disableUpdates() -- ");
+            LOGGER.fine("disableUpdates() -- ");
             isUpdatable = false;
             setDirty();
             disableControlTrack();
@@ -716,7 +748,6 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
         /**
          * Create the handler.
          *
-         * @param queue SongContext should not change once posted here
          * @param preUpdateBufferTimeMs (milliseconds) Wait this time upon receiving the first request before starting the music
          * generation
          * @param postUpdateSleepTimeMs (milliseconds) Wait this time before restarting a music generation
@@ -767,7 +798,10 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
 
                 if (incoming != null)
                 {
-                    LOGGER.info("UpdateRequestsHandler.run() handling incoming=" + incoming+ " nanoTime()=" + System.nanoTime());
+                    LOGGER.log(Level.FINE, "UpdateRequestsHandler.run() handling incoming={0} nanoTime()={1}", new Object[]
+                    {
+                        incoming, System.nanoTime()
+                    });
                     // LOGGER.info("UpdateRequestsHandler.run() handling cls=" + toDebugString(incoming.getSong().getChordLeadSheet()));
 
                     // Handle new context, save as pending if handling failed
@@ -778,7 +812,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                     // Handle the last pending context, reset it if handling was successful
                     if (handleContext(pendingSongContext))
                     {
-                        LOGGER.info("UpdateRequestsHandler.run() handled pendingSongContext=" + pendingSongContext);
+                        LOGGER.log(Level.FINE, "UpdateRequestsHandler.run() handled pendingSongContext={0}", pendingSongContext);
                         pendingSongContext = null;
                     }
                 }
@@ -809,14 +843,14 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             if (generationFuture == null)
             {
                 // No generation task created yet, start one
-                LOGGER.info("handleContext() start generation FIRST TIME");
+                LOGGER.fine("handleContext() start generation FIRST TIME");
                 startGenerationTask(sgContext);
                 b = true;
 
             } else if (generationFuture.isDone())
             {
                 // There is a generation task but it is complete, restart one
-                LOGGER.info("handleContext() start generation");
+                LOGGER.fine("handleContext() start generation");
                 startGenerationTask(sgContext);
                 b = true;
 
@@ -825,7 +859,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 // There is a generation task but not started yet (wait preUpdateBufferTimeMs), try to update it
                 if (generationTask.changeContext(sgContext))
                 {
-                    LOGGER.info("handleContext() changed context of current generation task");
+                    LOGGER.fine("handleContext() changed context of current generation task");
                     // OK, task was waiting, we're done
                     b = true;
 
@@ -913,7 +947,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             }
 
 
-            LOGGER.info("UpdateGenerationTask.run() >>> STARTING generation"+ " nanoTime()=" + System.nanoTime());
+            LOGGER.log(Level.FINE, "UpdateGenerationTask.run() >>> STARTING generation nanoTime()={0}", System.nanoTime());
             // LOGGER.info("UpdateGenerationTask.run() >>> STARTING generation cls=" + toDebugString(songContext.getSong().getChordLeadSheet()));
 
 
@@ -923,11 +957,16 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             try
             {
                 mapRvPhrases = sgBuilder.buildMapRvPhrase(true);
-            } catch (SongSequenceBuilder.UserErrorException ex)
+            } catch (UserErrorGenerationException ex)
             {
-                // Notify user lightly (no blocking dialog) and make sure that a regeneration will be done on next start
+                // Pass user error to handler if one is registered
                 LOGGER.warning(ex.getMessage());
-                StatusDisplayer.getDefault().setStatusText(ex.getMessage());
+                if (userErrorExceptionHandler != null)
+                {
+                    userErrorExceptionHandler.accept(ex);
+                }
+
+                // Make sure that a regeneration will be done on next start
                 setDirty();
                 return;
             } catch (MusicGenerationException ex)
@@ -965,7 +1004,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             }
 
 
-            LOGGER.info("UpdateGenerationTask.run() <<< ENDING generation");
+            LOGGER.log(Level.FINE, "UpdateGenerationTask.run() <<< ENDING generation  nanoTime={0}", System.nanoTime());
 
         }
 
