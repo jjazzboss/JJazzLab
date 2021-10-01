@@ -45,7 +45,7 @@ import org.openide.windows.WindowManager;
         //iconBase="SET/PATH/TO/ICON/HERE",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "jlnavigator", openAtStartup = false)
+@TopComponent.Registration(mode = "jlnavigator", openAtStartup = false, position=10)
 @ActionID(category = "Window", id = "org.jjazz.notesviewer.api.NotesViewerTopComponent")
 @ActionReference(path = "Menu/Window", position = 4)
 @TopComponent.OpenActionRegistration(
@@ -54,7 +54,6 @@ import org.openide.windows.WindowManager;
 )
 public final class NotesViewerTopComponent extends TopComponent
 {
-
     private static final Logger LOGGER = Logger.getLogger(NotesViewerTopComponent.class.getSimpleName());
     private NotesViewerPanel viewer;
 
