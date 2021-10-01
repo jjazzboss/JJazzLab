@@ -52,7 +52,7 @@ import org.openide.windows.WindowManager;
 )
 public final class ArrangerTopComponent extends TopComponent
 {
-    private ArrangerPanel arrangerPanel;
+    private final ArrangerPanel arrangerPanel;
     public ArrangerTopComponent()
     {
         setName(ResUtil.getString(getClass(), "CTL_ArrangerTopComponent"));
