@@ -43,9 +43,9 @@ import org.openide.windows.WindowManager;
         //iconBase="SET/PATH/TO/ICON/HERE",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "jlnavigator", openAtStartup = true)
+@TopComponent.Registration(mode = "jlnavigator", openAtStartup = false)
 @ActionID(category = "Window", id = "org.jjazz.arrangermode.api.ArrangerTopComponent")
-@ActionReference(path = "Menu/Window", position = 500)
+@ActionReference(path = "Menu/Window", position = 5, separatorAfter = 7)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_ArrangerAction",
         preferredID = "ArrangerTopComponent"

@@ -91,7 +91,9 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
         // Listen to the current Song changes
         lookupResult = Utilities.actionsGlobalContext().lookupResult(Song.class);
         lookupResult.addLookupListener(this);
-        resultChanged(null);        
+        setEnabled(false);              // By default
+        resultChanged(null);            // Might enable the action
+      
     }
 
     @Override

@@ -489,6 +489,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         lbl_chordSymbol.setFont(chordSymbolFont);
         lbl_chordSymbol.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         org.openide.awt.Mnemonics.setLocalizedText(lbl_chordSymbol, "Bb7M"); // NOI18N
+        lbl_chordSymbol.setToolTipText(org.openide.util.NbBundle.getMessage(ArrangerPanel.class, "ArrangerPanel.lbl_chordSymbol.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_songPart, "Song Part \"A\" bar 23"); // NOI18N
 
@@ -506,6 +507,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_lowerNoteIsBass, org.openide.util.NbBundle.getMessage(ArrangerPanel.class, "ArrangerPanel.cb_lowerNoteIsBass.text")); // NOI18N
+        cb_lowerNoteIsBass.setToolTipText(org.openide.util.NbBundle.getMessage(ArrangerPanel.class, "ArrangerPanel.cb_lowerNoteIsBass.toolTipText")); // NOI18N
         cb_lowerNoteIsBass.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 
         flatHelpButton1.setHelpText(org.openide.util.NbBundle.getMessage(ArrangerPanel.class, "ArrangerPanel.flatHelpButton1.helpText")); // NOI18N

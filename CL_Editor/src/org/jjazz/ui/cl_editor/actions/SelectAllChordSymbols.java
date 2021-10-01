@@ -22,6 +22,8 @@
  */
 package org.jjazz.ui.cl_editor.actions;
 
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Logger;
@@ -30,7 +32,9 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.ui.cl_editor.api.CL_Editor;
 import org.jjazz.ui.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.ui.cl_editor.api.CL_SelectionUtilities;
-import org.jjazz.util.api.ResUtil;
+import org.jjazz.ui.cl_editor.barbox.api.BarBox;
+import org.jjazz.ui.itemrenderer.api.IR_Type;
+import org.jjazz.ui.itemrenderer.api.ItemRenderer;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -66,8 +70,22 @@ public class SelectAllChordSymbols implements ActionListener
         assert cls != null;   //NOI18N
         CL_Editor editor = CL_EditorTopComponent.get(cls).getCL_Editor();
         CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
-        selection.unselectAll(editor);
         var items = cls.getItems(CLI_ChordSymbol.class);
+        if (items.isEmpty())
+        {
+            return;
+        }
+        
+        
+        selection.unselectAll(editor);
         editor.selectItems(items, true);
+
+        // Make sure focus ends on a chord symbol
+        Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        if (!(c instanceof ItemRenderer))
+        {
+            editor.setFocusOnItem(items.get(0), IR_Type.ChordSymbol);
+        }
+
     }
 }
