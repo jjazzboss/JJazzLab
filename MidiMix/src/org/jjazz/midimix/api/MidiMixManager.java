@@ -213,10 +213,7 @@ public class MidiMixManager implements PropertyChangeListener
 
         for (RhythmVoice rv : r.getRhythmVoices())
         {
-            if (rv instanceof RhythmVoiceDelegate)
-            {
-                mm.addRhythmVoiceDelegate((RhythmVoiceDelegate) rv);
-            } else
+            if (!(rv instanceof RhythmVoiceDelegate))
             {
                 RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.Util.getProvider();
                 Instrument ins = p.findInstrument(rv);

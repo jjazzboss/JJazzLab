@@ -138,35 +138,31 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     /**
      * Store the instrumentMixes, one per Midi Channel.
      */
-    private InstrumentMix[] instrumentMixes = new InstrumentMix[MidiConst.CHANNEL_MIN + NB_AVAILABLE_CHANNELS];
+    private final InstrumentMix[] instrumentMixes = new InstrumentMix[MidiConst.CHANNEL_MIN + NB_AVAILABLE_CHANNELS];
     /**
      * Store the RhythmVoices associated to an instrumentMix, one per channel.
      */
-    private RhythmVoice[] rvKeys = new RhythmVoice[MidiConst.CHANNEL_MIN + NB_AVAILABLE_CHANNELS];
-    /**
-     * Store the optional RhythmVoiceDelegates.
-     */
-    private ArrayList<RhythmVoiceDelegate> rvDelegates = new ArrayList<>();
+    private final RhythmVoice[] rvKeys = new RhythmVoice[MidiConst.CHANNEL_MIN + NB_AVAILABLE_CHANNELS];
     /**
      * The InstrumentMixes with Solo ON
      */
-    private transient HashSet<InstrumentMix> soloedInsMixes = new HashSet<>();
+    private final transient HashSet<InstrumentMix> soloedInsMixes = new HashSet<>();
     /**
      * The channels which should be rerouted to the GM DRUMS channel, and the related saved config.
      */
-    private transient HashMap<Integer, InstrumentMix> drumsReroutedChannels = new HashMap<>();
+    private final transient HashMap<Integer, InstrumentMix> drumsReroutedChannels = new HashMap<>();
     /**
      * Saved Mute configuration on first soloed channel
      */
-    private transient boolean[] saveMuteConfiguration = new boolean[MidiConst.CHANNEL_MIN + NB_AVAILABLE_CHANNELS];
-    private transient List<UndoableEditListener> undoListeners = new ArrayList<>();
+    private final transient boolean[] saveMuteConfiguration = new boolean[MidiConst.CHANNEL_MIN + NB_AVAILABLE_CHANNELS];
+    private final transient List<UndoableEditListener> undoListeners = new ArrayList<>();
     /**
      * The file where MidiMix was saved.
      */
     private transient File file;
     private transient Song song;
     private transient boolean needSave = false;
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(MidiMix.class.getSimpleName());
 
     /**
@@ -229,7 +225,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     /**
      * Check if this MidiMix is consistent with the specified song.
      * <p>
-     * Check that al RhythmVoices of this MidiMix belong to song rhythms.
+     * Check that all RhythmVoices of this MidiMix belong to song rhythms.
      *
      * @param sg
      * @param fullCheck If true also check that all song RhythmVoices are used in this MidiMix.
@@ -243,26 +239,18 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         for (Integer channel : getUsedChannels())
         {
             RhythmVoice rvKey = getRhythmVoice(channel);
-            if (!(rvKey instanceof UserChannelRvKey)
-                    && !sgRvs.contains(rvKey))
+            if (!(rvKey instanceof UserChannelRvKey) && !sgRvs.contains(rvKey))
             {
                 throw new SongCreationException("channel=" + channel + " rvKey=" + rvKey + " sgRvs=" + sgRvs);   //NOI18N
             }
         }
 
-        for (RhythmVoiceDelegate rvd : getRhythmVoiceDelegates())
-        {
-            if (!sgRvs.contains(rvd))
-            {
-                throw new SongCreationException("rvd=" + rvd + " sgRvs=" + sgRvs);   //NOI18N
-            }
-        }
 
         if (fullCheck)
         {
             for (RhythmVoice rvKey : sgRvs)
             {
-                if (getChannel(rvKey) == -1)
+                if (!(rvKey instanceof RhythmVoiceDelegate) && getChannel(rvKey) == -1)
                 {
                     throw new SongCreationException("song rvKey=" + rvKey + " not found in MidiMix " + toString());   //NOI18N
                 }
@@ -423,66 +411,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         return index == -1 ? null : instrumentMixes[index];
     }
 
-    /**
-     * Add a RhythmVoiceDelegate to this MidiMix.
-     * <p>
-     * RhythmVoiceDelegates are used to avoid taking some "Midi channels space". See the AdaptedRhythm class for an example.
-     *
-     * @param rvd
-     * @throws IllegalArgumentException If MidiMix contains normal RhythmVoices and rvd source is not one of them.
-     */
-    public void addRhythmVoiceDelegate(RhythmVoiceDelegate rvd)
-    {
-        if (rvd == null || (getUsedChannels().size() > 0 && getChannel(rvd.getSource()) == -1))
-        {
-            throw new IllegalArgumentException("rvd=" + rvd);   //NOI18N
-        }
-        if (!rvDelegates.contains(rvd))
-        {
-            rvDelegates.add(rvd);
-        }
-    }
-
-    /**
-     * Remove a RhythmVoiceDelegate to this MidiMix.
-     *
-     * @param rvd
-     * @return True if an element was removed as a result of this call
-     */
-    public boolean removeRhythmVoiceDelegate(RhythmVoiceDelegate rvd)
-    {
-        if (rvd == null)
-        {
-            throw new IllegalArgumentException("rvd=" + rvd);   //NOI18N
-        }
-        return rvDelegates.remove(rvd);
-    }
-
-    /**
-     * Get the optional delegate for rv.
-     *
-     * @param rv
-     * @return Null if no delegate.
-     * @throws IllegalArgumentException If rv source is not a RhyhmVoice key of this MidiMix.
-     */
-    public RhythmVoiceDelegate getRhythmVoiceDelegate(RhythmVoice rv)
-    {
-        if (rv == null || getChannel(rv) == -1)
-        {
-            throw new IllegalArgumentException("rv=" + rv);   //NOI18N
-        }
-        return rvDelegates.stream().filter(rvd -> rvd.getSource() == rv).findAny().orElse(null);
-    }
-
-    /**
-     * The delegates added to this MidiMix.
-     *
-     * @return
-     */
-    public List<RhythmVoiceDelegate> getRhythmVoiceDelegates()
-    {
-        return new ArrayList<>(rvDelegates);
-    }
 
     /**
      *
@@ -1064,7 +992,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                 sb.append("\n");
             }
         }
-        sb.append(" delegates:").append(getRhythmVoiceDelegates().toString());
         return sb.toString();
     }
 
@@ -1633,14 +1560,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
         {
             if (rvKey != null && rvKey.getContainer() == r)
             {
-
-                // Need first to remove delegate
-                RhythmVoiceDelegate rvd = getRhythmVoiceDelegate(rvKey);
-                if (rvd != null)
-                {
-                    removeRhythmVoiceDelegate(rvd);
-                }
-
                 int channel = getChannel(rvKey);
                 setInstrumentMix(channel, null, null);
 
@@ -1697,8 +1616,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
     }
 
     /**
-     * RhythmVoices depend on a (potentially system dependent) rhythm, therefore it must be stored in a special way: just save
-     * rhythm serial id + RhythmVoice name, and it will be reconstructed at deserialization.
+     * RhythmVoices depend on a system dependent rhythm, therefore it must be stored in a special way: just save rhythm serial id
+     * + RhythmVoice name, and it will be reconstructed at deserialization.
      * <p>
      * MidiMix is saved with Drums rerouting disabled and all solo status OFF, but all Mute status are saved.
      */
@@ -1707,10 +1626,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
 
         private static final long serialVersionUID = -344448971122L;
         private static final String SP_USER_CHANNEL_RHYTHM_ID = "SpUserChannelRhythmID";
-        private final int spVERSION = 1;
+        private final int spVERSION = 2;
         private final InstrumentMix[] spInsMixes;
-        private RvStorage[] spKeys;
-        private List<RvStorage> spDelegates = new ArrayList<>();    // New with JJazzLab 2.1
+        private final RvStorage[] spKeys;
+        // spDelegates introduced with JJazzLab 2.1 => not used anymore with spVERSION=2        
+        private List<RvStorage> spDelegates;   // Not used anymore, but keep it for backward compatibility
 
         private SerializationProxy(MidiMix mm)
         {
@@ -1750,12 +1670,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                     // Store the RhythmVoice using a RvStorage object
                     spKeys[i] = new RvStorage(rv);
                 }
-            }
-
-            // Save the delegates
-            for (var rvd : mm.getRhythmVoiceDelegates())
-            {
-                spDelegates.add(new RvStorage(rvd));
             }
         }
 
@@ -1809,22 +1723,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Seria
                 }
             }
 
-            // Retrieve the optional RhythmVoiceDelegates
-            if (spDelegates != null)    // Can be null on older .mix files
-            {
-                for (var rvs : spDelegates)
-                {
-                    RhythmVoice rv = rvs.rebuildRhythmVoice();
-                    if (rv instanceof RhythmVoiceDelegate)
-                    {
-                        mm.addRhythmVoiceDelegate((RhythmVoiceDelegate) rv);
-                    } else
-                    {
-                        msg.append("Mix file error, can't rebuild RhythmVoiceDelegate for rhythmId=" + rvs.rhythmId + " and RhythmVoiceName=" + rvs.rvName);
-                        throw new XStreamException(msg.toString());
-                    }
-                }
-            }
+            // spDelegates are no longer used, IGNORED
 
             return mm;
         }

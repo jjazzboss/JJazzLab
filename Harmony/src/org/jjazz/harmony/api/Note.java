@@ -322,7 +322,7 @@ public class Note implements Comparable<Note>, Cloneable
     {
         return pitch / 12;
     }
-       
+
     public final Alteration getAlterationDisplay()
     {
         return alterationDisplay;
@@ -716,7 +716,7 @@ public class Note implements Comparable<Note>, Cloneable
         int index = (s.charAt(1) == '#' || s.charAt(1) == 'b') ? 2 : 1;
         String strNote = s.substring(0, index);
         String strOctave = s.substring(index);
-        int octave = Integer.parseInt(strOctave) + 1;       
+        int octave = Integer.parseInt(strOctave) + 1;
         return new Note(strNote + "!" + octave);
     }
 
@@ -763,7 +763,7 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * Create a Note from a String created with saveAsString()
+     * Create a Note from a String created with saveAsString().
      *
      * @param s
      * @return
@@ -775,14 +775,14 @@ public class Note implements Comparable<Note>, Cloneable
         checkNotNull(s);
         Note n = null;
         String strs[] = s.split(",");
-        if (strs.length == 4)
+        if (strs.length == 4 || strs.length == 3)
         {
             try
             {
                 int p = Integer.parseInt(strs[0]);
-                Alteration alt = Alteration.valueOf(strs[1]);
-                int v = Integer.parseInt(strs[2]);
-                float bd = Float.parseFloat(strs[3]);
+                Alteration alt = strs.length == 3 ? Alteration.FLAT : Alteration.valueOf(strs[1]);
+                int v = Integer.parseInt(strs[strs.length == 3 ? 1 : 2]);
+                float bd = Float.parseFloat(strs[strs.length == 3 ? 2 : 3]);
                 n = new Note(p, bd, v, alt);
             } catch (IllegalArgumentException ex)
             {
@@ -805,13 +805,22 @@ public class Note implements Comparable<Note>, Cloneable
      * Example "60,FLAT,102,2.5" means pitch=60, AlterationDisplay=FLAT, velocity=102, duration=2.5 beats
      *
      * @param n
+     * @param skipAlteration Don't save the alteration
      * @return
      * @see loadAsString(String)
      */
-    static public String saveAsString(Note n)
+    static public String saveAsString(Note n, boolean skipAlteration)
     {
         checkNotNull(n);
-        return n.pitch + "," + n.alterationDisplay + "," + n.velocity + "," + n.beatDuration;
+        String s;
+        if (skipAlteration)
+        {
+            s = n.pitch + "," + n.velocity + "," + n.beatDuration;
+        } else
+        {
+            s = n.pitch + "," + n.alterationDisplay + "," + n.velocity + "," + n.beatDuration;
+        }
+        return s;
     }
 
 

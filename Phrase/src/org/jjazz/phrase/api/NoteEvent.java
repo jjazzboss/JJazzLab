@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
@@ -44,7 +45,7 @@ public class NoteEvent extends Note implements Cloneable
 {
 
     private float position;
-    protected HashMap<String, Object> clientProperties;
+    protected Map<String, Object> clientProperties;
     private static final Logger LOGGER = Logger.getLogger(NoteEvent.class.getSimpleName());
 
     public NoteEvent(int pitch, float duration, int velocity, float posInBeats)
@@ -317,7 +318,7 @@ public class NoteEvent extends Note implements Cloneable
      */
     static public String saveAsString(NoteEvent ne)
     {
-        return Note.saveAsString(ne) + ":" + ne.position;
+        return Note.saveAsString(ne, true) + ":" + ne.position;
     }
 
     /**
