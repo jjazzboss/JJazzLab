@@ -26,7 +26,7 @@ import com.google.common.base.Objects;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
-import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -37,6 +37,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.ui.utilities.api.Utilities;
+import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 
@@ -60,79 +61,80 @@ public class PhraseBirdView extends JPanel
     private Phrase phrase;
     private FloatRange beatRange;
     private TimeSignature timeSignature;
+    private static final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);
     private static final Logger LOGGER = Logger.getLogger(PhraseBirdView.class.getSimpleName());
 
     @Override
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g);
-        if (phrase == null)
-        {
-            return;
-        }
+
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);                  
         var r = Utilities.getUsableArea(this);
-        int xMax = r.x + r.width - 1;
-        int yMax = r.y + r.height - 1;
-        int nbBars = getSizeInBars();
-        double xRatio = r.width / beatRange.size();
-        IntRange pitchRange = getViewablePitchRange(MID_RANGE, OUT_OF_RANGE_PITCH_RATIO);
-        double yRatio = (double) r.height / pitchRange.size();
 
 
-        Color c = isEnabled() ? getForeground() : getBackground().brighter();
-        g2.setColor(c);
-
-
-        // Draw a line segment for each note
-        for (NoteEvent ne : phrase)
+        if (phrase != null && !phrase.isEmpty())
         {
-            double x0 = r.x + (ne.getPositionInBeats() - beatRange.from) * xRatio;
-            double x1 = r.x + (ne.getPositionInBeats() + ne.getDurationInBeats() - beatRange.from) * xRatio;
-            double y = yMax - (getCorrectedPitch(ne.getPitch(), MID_RANGE, OUT_OF_RANGE_PITCH_RATIO) - pitchRange.from) * yRatio;
-            if (x1 - x0 < 0.7d)
+            int xMax = r.x + r.width - 1;
+            int yMax = r.y + r.height - 1;
+            int nbBars = getSizeInBars();
+            double xRatio = r.width / beatRange.size();
+            IntRange pitchRange = getViewablePitchRange(MID_RANGE, OUT_OF_RANGE_PITCH_RATIO);
+            double yRatio = (double) r.height / pitchRange.size();
+
+
+            Color c = isEnabled() ? getForeground() : getBackground().brighter();
+            g2.setColor(c);
+
+
+            // Draw a line segment for each note
+            for (NoteEvent ne : phrase)
             {
-                x1 = x0 + 0.7d;
+                double x0 = r.x + (ne.getPositionInBeats() - beatRange.from) * xRatio;
+                double x1 = r.x + (ne.getPositionInBeats() + ne.getDurationInBeats() - beatRange.from) * xRatio;
+                double y = yMax - (getCorrectedPitch(ne.getPitch(), MID_RANGE, OUT_OF_RANGE_PITCH_RATIO) - pitchRange.from) * yRatio;
+                if (x1 - x0 < 0.7d)
+                {
+                    x1 = x0 + 0.7d;
+                }
+                var line = new Line2D.Double(x0, y, x1, y);
+                g2.draw(line);
             }
-            var line = new Line2D.Double(x0, y, x1, y);
-            g2.draw(line);
-        }
 
 
-        // Paint bar gradations
-        for (int i = 1; i < nbBars; i++)
+            // Paint bar gradations
+            if (!phrase.isEmpty())
+            {
+                for (int i = 1; i < nbBars; i++)
+                {
+                    float barWidth = (float) r.width / nbBars;
+                    double x = r.x + i * barWidth - 0.5d;
+                    g2.setColor(isEnabled() ? getForeground().darker() : c);
+                    var line = new Line2D.Double(x, r.y, x, r.y + BAR_GRADATION_LENGTH - 1);
+                    g2.draw(line);
+                    line = new Line2D.Double(x, yMax, x, yMax - BAR_GRADATION_LENGTH + 1);
+                    g2.draw(line);
+                }
+            }
+        } else
         {
-            float barWidth = (float) r.width / nbBars;
-            double x = r.x + i * barWidth - 0.5d;
-            g2.setColor(isEnabled() ? getForeground().darker() : c);
-            var line = new Line2D.Double(x, r.y, x, r.y + BAR_GRADATION_LENGTH - 1);
-            g2.draw(line);
-            line = new Line2D.Double(x, yMax, x, yMax - BAR_GRADATION_LENGTH + 1);
-            g2.draw(line);
+            // Write "void" centered
+            g2.setFont(FONT);
+            Utilities.drawStringCentered(g2, this, "void");
         }
 
         g2.dispose();
     }
+
+   
 
     public Phrase getModel()
     {
         return phrase;
     }
 
-
-    @Override
-    public Dimension getPreferredSize()
-    {
-        return new Dimension(500, 50);
-//        int sizeInBars = phrase != null ? getSizeInBars() : 2;
-//        int w = (int) (PREF_BAR_WIDTH * (0.7f + 0.4f * sizeInBars));
-//        int h = PREF_HEIGHT;
-//        return new Dimension(w, h);
-    }
 
 //    @Override
 //    public Dimension getMinimumSize()

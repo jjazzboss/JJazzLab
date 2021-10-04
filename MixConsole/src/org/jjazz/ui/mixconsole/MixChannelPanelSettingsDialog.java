@@ -216,9 +216,6 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
         cb_panoramic.setEnabled(!b);
         cb_instrument.setEnabled(!b);
         spn_velocityShift.setValue(Integer.valueOf(insSet.getVelocityShift()));
-        b = midiMix.getUserChannel() != channel;
-        spn_velocityShift.setEnabled(b);
-        lbl_velocityShift.setEnabled(b);
     }
 
     private void registerModel()
@@ -460,7 +457,7 @@ public class MixChannelPanelSettingsDialog extends javax.swing.JDialog implement
         });
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_velocityShift, org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.lbl_velocityShift.text")); // NOI18N
-        lbl_velocityShift.setToolTipText(org.openide.util.NbBundle.getMessage(MixChannelPanelSettingsDialog.class, "MixChannelPanelSettingsDialog.lbl_velocityShift.toolTipText")); // NOI18N
+        lbl_velocityShift.setToolTipText(spn_velocityShift.getToolTipText());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

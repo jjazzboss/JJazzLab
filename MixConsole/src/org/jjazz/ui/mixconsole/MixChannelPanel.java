@@ -37,6 +37,7 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
+import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
 import org.jjazz.ui.flatcomponents.api.FlatIntegerVerticalSlider;
 import org.jjazz.ui.flatcomponents.api.FlatTextEditDialog;
@@ -56,7 +57,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     private Color channelColor;
     private boolean selected;
     private final PlaybackListener playbackListener;
-    private Font FONT = GeneralUISettings.getInstance().getStdCondensedFont();
+    private final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont();
     private static final Logger LOGGER = Logger.getLogger(MixChannelPanel.class.getSimpleName());
 
     /**
@@ -105,8 +106,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         knob_reverb.addPropertyChangeListener(this);
         knob_chorus.addPropertyChangeListener(this);
 
-        this.fbtn_mute.setEnabled(!model.isUserChannel());
-        this.fbtn_solo.setEnabled(!model.isUserChannel());
         this.lbl_Icon.setText(null);
 
         // Listen to UI changes
@@ -327,7 +326,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         roundedPanel.setInheritsPopupMenu(true);
         roundedPanel.setMinimumSize(new java.awt.Dimension(20, 53));
         roundedPanel.setOpaque(true);
-        roundedPanel.setThickness(1);
+        roundedPanel.setInsetsThickness(1);
 
         pnl_led_close.setOpaque(false);
         java.awt.FlowLayout flowLayout1 = new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 0);
@@ -819,10 +818,11 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         }
 
         @Override
-        public boolean isUserChannel()
+        public RhythmVoice getRhythmVoice()
         {
-            return false;
+            return null;
         }
+
 
     }
 

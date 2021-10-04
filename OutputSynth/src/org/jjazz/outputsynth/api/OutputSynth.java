@@ -54,6 +54,7 @@ import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midiconverters.api.ConverterManager;
 import org.jjazz.midiconverters.api.StdInstrumentConverter;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoice;
 
 /**
@@ -473,13 +474,20 @@ public class OutputSynth implements Serializable
      * Search a matching instrument :<br>
      * - Using custom converters<br>
      * - then search for the instrument in custom synths and compatible banks<br>
-     * - then search using the GM1 substitute, remap table, and substitute family
+     * - then search using the GM1 substitute, remap table, and substitute family<p>
+     * <p>
+     * If rv is a UserRhythmVoice, return the user instrument.
      *
      * @param rv
      * @return Can't be null. It may be the VoidInstrument for drums/percussion.
      */
     public Instrument findInstrument(RhythmVoice rv)
-    {
+    {        
+        if (rv instanceof UserRhythmVoice)
+        {
+            return getUserInstrument();
+        }
+                
         Instrument rvIns = rv.getPreferredInstrument();
         assert rvIns != null : "rv=" + rv;   //NOI18N
         InstrumentBank<?> rvInsBank = rvIns.getBank();

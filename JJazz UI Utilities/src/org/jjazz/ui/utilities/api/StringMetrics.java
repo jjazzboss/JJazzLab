@@ -46,6 +46,11 @@ public class StringMetrics
         this.font = font;
     }
 
+    public StringMetrics(Graphics2D g2)
+    {
+        this(g2, g2.getFont());
+    }
+
     /**
      * Return a rectangle in baseline relative coordinates, include the leading (interline spacing).
      *
@@ -60,7 +65,7 @@ public class StringMetrics
         }
         if (bounds == null || !text.equals(lastText))
         {
-            bounds =  font.getStringBounds(text, fontRendererContext);
+            bounds = font.getStringBounds(text, fontRendererContext);
             boundsNoLeading = null;
         }
         lastText = text;

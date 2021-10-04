@@ -31,7 +31,7 @@ import static javax.swing.Action.NAME;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
-import org.jjazz.midimix.api.UserChannelRvKey;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythm.api.Rhythm;
@@ -76,36 +76,28 @@ public class ResetChannels extends AbstractAction
         Rhythm visibleRhythm = mixConsole.getVisibleRhythm();
         Song song = mixConsole.getSong();
         assert song != null;   //NOI18N
+        
+        
         JJazzUndoManagerFinder.getDefault().get(song).startCEdit(undoText);
+        
+        
         for (Integer channel : songMidiMix.getUsedChannels())
         {
             RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
-            if (visibleRhythm == null || rv instanceof UserChannelRvKey || visibleRhythm == rv.getContainer())
+            if (visibleRhythm == null || rv instanceof UserRhythmVoice || visibleRhythm == rv.getContainer())
             {
                 InstrumentMix insMix = new InstrumentMix(songMidiMix.getInstrumentMixFromChannel(channel));
                 resetInstrument(insMix, rv);
                 resetSettings(insMix.getSettings(), rv);
-                if (rv instanceof UserChannelRvKey)
-                {
-                    songMidiMix.removeUserChannel();
-                    try
-                    {
-                        songMidiMix.addUserChannel(insMix, -1);
-                    } catch (MidiUnavailableException ex)
-                    {
-                        // Should never happen since we removed it just before
-                        Exceptions.printStackTrace(ex);
-                    }
-                } else
-                {
-                    songMidiMix.setInstrumentMix(channel, rv, insMix);
-                }
+                songMidiMix.setInstrumentMix(channel, rv, insMix);
                 songMidiMix.setDrumsReroutedChannel(false, channel);
             }
         }
+        
+        
         JJazzUndoManagerFinder.getDefault().get(song).endCEdit(undoText);
-        String s = (visibleRhythm == null) ? ResUtil.getString(getClass(), "CTL_ALL_CHANNELS_RESET") : 
-                ResUtil.getString(getClass(), "CTL_RHYTHM_CHANNELS_RESET", visibleRhythm.getName());
+        String s = (visibleRhythm == null) ? ResUtil.getString(getClass(), "CTL_ALL_CHANNELS_RESET")
+                : ResUtil.getString(getClass(), "CTL_RHYTHM_CHANNELS_RESET", visibleRhythm.getName());
         StatusDisplayer.getDefault().setStatusText(s);
     }
 
@@ -118,13 +110,13 @@ public class ResetChannels extends AbstractAction
      * Reset the instrument to default value
      *
      * @param insMix The InstrumentMix containing the instrument.
-     * @param rv     The key associated to the InstrumentMix
+     * @param rv The key associated to the InstrumentMix
      */
     static public void resetInstrument(InstrumentMix insMix, RhythmVoice rv)
     {
         Instrument ins;
         OutputSynth outSynth = OutputSynthManager.getInstance().getOutputSynth();
-        if (!(rv instanceof UserChannelRvKey))
+        if (!(rv instanceof UserRhythmVoice))
         {
             ins = outSynth.findInstrument(rv);
 

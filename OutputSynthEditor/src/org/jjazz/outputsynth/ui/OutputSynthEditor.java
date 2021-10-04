@@ -57,7 +57,7 @@ import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.synths.StdSynth;
 import org.jjazz.midi.api.ui.InstrumentTable;
-import org.jjazz.midimix.api.UserChannelRvKey;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.midisynthmanager.api.MidiSynthManager;
 import org.jjazz.musiccontrol.api.TestPlayer;
 import org.jjazz.outputsynth.api.GMRemapTable;
@@ -1152,10 +1152,10 @@ public class OutputSynthEditor extends javax.swing.JPanel implements PropertyCha
     {//GEN-HEADEREND:event_btn_userInstrumentActionPerformed
         InstrumentChooserDialog dlg = InstrumentChooserDialog.getDefault();
         dlg.preset(outputSynth,
-                UserChannelRvKey.getInstance(),
+                new UserRhythmVoice("dummyName"),
                 outputSynth.getUserInstrument(),
                 0,
-                UserChannelRvKey.getInstance().getPreferredUserChannel());
+                UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL);
         dlg.setVisible(true);
         Instrument ins = dlg.getSelectedInstrument();
         if (ins != null)

@@ -50,7 +50,7 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.midimix.api.UserChannelRvKey;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.musiccontrol.api.TestPlayer;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.ui.musiccontrolactions.api.RemoteAction;
@@ -83,7 +83,6 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
         list_actions.setCellRenderer(new RemoteActionRenderer());
 
         btn_test.setEnabled(false);
-        spn_preferredUserChannel.addChangeListener(cl -> controller.changed());
 
         JJazzMidiSystem.getInstance().getJJazzMidiInDevice().getTransmitter().setReceiver(new LastNoteDisplayer());
     }
@@ -142,8 +141,6 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
         org.jjazz.ui.utilities.api.Utilities.setRecursiveEnabled(b, pnl_soundbankFile);
         updateSoundbankText();
 
-        spn_preferredUserChannel.setValue(UserChannelRvKey.getInstance().getPreferredUserChannel() + 1);
-
         loadInProgress = false;
     }
 
@@ -175,8 +172,8 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
         openInDevice(inDevice);
         MidiDevice outDevice = list_OutDevices.getSelectedValue();
         openOutDevice(outDevice);
-        UserChannelRvKey.getInstance().setPreferredUserChannel(((Integer) spn_preferredUserChannel.getValue()) - 1);
 
+        
         RemoteController rc = RemoteController.getInstance();
         rc.setEnabled(cb_enableRemoteControl.isSelected());
         for (RemoteAction ra : rc.getRemoteActions())
@@ -291,8 +288,6 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
         jScrollPane3 = new javax.swing.JScrollPane();
         list_OutDevices = new org.jjazz.midi.api.ui.MidiOutDeviceList();
         btn_refresh = new javax.swing.JButton();
-        spn_preferredUserChannel = new org.jjazz.ui.utilities.api.WheelSpinner();
-        lbl_preferredUserChannel = new javax.swing.JLabel();
         btn_refreshIn = new javax.swing.JButton();
         jScrollPane4 = new javax.swing.JScrollPane();
         list_InDevices = new org.jjazz.midi.api.ui.MidiInDeviceList();
@@ -400,11 +395,6 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
                 btn_refreshActionPerformed(evt);
             }
         });
-
-        spn_preferredUserChannel.setModel(new javax.swing.SpinnerNumberModel(1, 1, 16, 1));
-        spn_preferredUserChannel.setToolTipText(org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.spn_preferredUserChannel.toolTipText")); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_preferredUserChannel, org.openide.util.NbBundle.getMessage(MidiPanel.class, "MidiPanel.lbl_preferredUserChannel.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_refreshIn, btn_refresh.getText());
         btn_refreshIn.setToolTipText(org.openide.util.NbBundle.getBundle(MidiPanel.class).getString("MidiPanel.btn_refreshIn.toolTipText")); // NOI18N
@@ -532,10 +522,6 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
                             .addComponent(btn_refresh))
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 334, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(lbl_OutDevices, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(spn_preferredUserChannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lbl_preferredUserChannel))
                     .addComponent(cb_midiThru)
                     .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
@@ -575,11 +561,7 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(pnl_soundbankFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(cb_midiThru)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(spn_preferredUserChannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(lbl_preferredUserChannel)))
+                        .addComponent(cb_midiThru))
                     .addComponent(pnl_remoteControl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(12, 12, 12))
         );
@@ -756,14 +738,12 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
     private javax.swing.JLabel lbl_inNote;
     private javax.swing.JLabel lbl_midiInNote;
     private javax.swing.JLabel lbl_midiMessages;
-    private javax.swing.JLabel lbl_preferredUserChannel;
     private org.jjazz.midi.api.ui.MidiInDeviceList list_InDevices;
     private org.jjazz.midi.api.ui.MidiOutDeviceList list_OutDevices;
     private javax.swing.JList<RemoteAction> list_actions;
     private org.jjazz.midi.api.ui.MidiInDeviceList midiInDeviceList1;
     private javax.swing.JPanel pnl_remoteControl;
     private javax.swing.JPanel pnl_soundbankFile;
-    private org.jjazz.ui.utilities.api.WheelSpinner spn_preferredUserChannel;
     private javax.swing.JTextField tf_midiMessages;
     private javax.swing.JTextField txtf_soundbankFile;
     // End of variables declaration//GEN-END:variables

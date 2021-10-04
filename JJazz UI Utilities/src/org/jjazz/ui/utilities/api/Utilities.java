@@ -28,6 +28,7 @@ import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
 import java.awt.Point;
@@ -39,6 +40,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
+import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.util.ArrayList;
@@ -509,6 +511,52 @@ public class Utilities
             }
         }
         return newDir;
+    }
+
+    /**
+     * Draw a string centered on component jc.
+     * <p>
+     * If string contains '\n', string will be displayed on several lines.
+     *
+     * @param g2 Used to draw the string with the default font and foreground.
+     * @param jc
+     * @param text
+     */
+    static public void drawStringCentered(Graphics2D g2, JComponent jc, String text)
+    {
+        Rectangle r = Utilities.getUsableArea(jc);
+        StringMetrics sm = new StringMetrics(g2);
+        String[] strs = text.split("\\n");
+        int nbLines = strs.length;
+        if (nbLines == 1)
+        {
+            // Single line
+            var bounds = sm.getLogicalBoundsNoLeading(text);
+            float x = (float) (r.x + (r.width - bounds.getWidth()) / 2);
+            float y = (float) (r.y + (r.height - bounds.getHeight()) / 2 - bounds.getY());  // bounds are in baseline-relative coordinates!
+            g2.drawString(text, x, y);
+            return;
+        } else
+        {
+            // Multi-line 
+            Rectangle2D[] bounds = new Rectangle2D[nbLines];
+
+            // Compute total height
+            double h = 0;
+            for (int i = 0; i < nbLines; i++)
+            {
+                bounds[i] = sm.getLogicalBounds(strs[i]);
+                h += bounds[i].getHeight();
+            }
+
+            float y = (float) (r.y + (r.height - h) / 2);
+            for (int i = 0; i < nbLines; i++)
+            {
+                float x = (float) (r.x + (r.width - bounds[i].getWidth()) / 2);
+                g2.drawString(strs[i], x, (float) (y - bounds[i].getY()));
+                y += bounds[i].getHeight();
+            }
+        }
     }
 
     /**

@@ -62,7 +62,6 @@ import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
 import org.openide.util.Exceptions;
 import org.jjazz.musiccontrol.api.playbacksession.ControlTrackProvider;
-import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.song.api.Song;
 import org.openide.awt.StatusDisplayer;

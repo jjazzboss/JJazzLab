@@ -39,7 +39,7 @@ public class RoundedPanel extends JPanel
      * Horizontal and vertical arc diameter
      */
     private int arcDiameter;
-    private int thickness;
+    private int insetsThickness;
     private boolean showBorder;
 
     /**
@@ -59,7 +59,7 @@ public class RoundedPanel extends JPanel
     {
         setOpaque(false);
         setArcDiameter(arc);
-        setThickness(thickness);
+        setInsetsThickness(thickness);
     }
 
     /**
@@ -73,7 +73,7 @@ public class RoundedPanel extends JPanel
     @Override
     public Insets getInsets()
     {
-        return new Insets(thickness, thickness, thickness, thickness);
+        return new Insets(insetsThickness, insetsThickness, insetsThickness, insetsThickness);
     }
 
     /**
@@ -90,23 +90,23 @@ public class RoundedPanel extends JPanel
     }
 
     /**
-     * @return the thickness
+     * @return the insetsThickness
      */
-    public int getThickness()
+    public int getInsetsThickness()
     {
-        return thickness;
+        return insetsThickness;
     }
 
     /**
-     * @param thickness the thickness to set
+     * @param insetsThickness the insetsThickness to set
      */
-    public void setThickness(int thickness)
+    public void setInsetsThickness(int insetsThickness)
     {
-        if (thickness < 0 || thickness > 1000)
+        if (insetsThickness < 0 || insetsThickness > 1000)
         {
-            throw new IllegalArgumentException("thickness=" + thickness);   //NOI18N
+            throw new IllegalArgumentException("thickness=" + insetsThickness);   //NOI18N
         }
-        this.thickness = thickness;
+        this.insetsThickness = insetsThickness;
         repaint();
     }
 
@@ -118,12 +118,12 @@ public class RoundedPanel extends JPanel
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setColor(getBackground());
-        g2.fillRoundRect(0, 0, width - 1, height - 1, arcDiameter, arcDiameter);
-        if (showBorder && thickness > 0)
+        g2.fillRoundRect(0, 0, width, height, arcDiameter, arcDiameter);
+        if (showBorder && insetsThickness > 0)
         {
             g2.setColor(getForeground());
-            g2.setStroke(new BasicStroke(thickness));
-            g2.drawRoundRect(0, 0, width - 1, height - 1, arcDiameter, arcDiameter);
+            g2.setStroke(new BasicStroke(insetsThickness));
+            g2.drawRoundRect(0, 0, width , height, arcDiameter, arcDiameter);
         }
     }
 

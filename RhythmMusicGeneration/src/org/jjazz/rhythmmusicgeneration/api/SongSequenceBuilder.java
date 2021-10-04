@@ -55,6 +55,7 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.rhythm.api.AdaptedRhythm;
@@ -112,6 +113,20 @@ public class SongSequenceBuilder
     }
 
     /**
+     * Built the Midi track name from the specified parameters.
+     *
+     * @param rv
+     * @param channel
+     * @return
+     */
+    static public String buildTrackName(RhythmVoice rv, int channel)
+    {
+        // First event will be the name of the track: rhythm - rhythmVoice - channel
+        String name = rv.getContainer().getName() + "-" + rv.getName() + "-Channel" + (channel + 1);
+        return name;
+    }
+
+    /**
      * Call buildMapRvPhrase() then buildSongSequence().
      *
      * @param silent If true do not show a progress dialog
@@ -144,8 +159,8 @@ public class SongSequenceBuilder
      * Build the RhythmVoice phrases for the defined context.
      * <p>
      * - Perform some checks on the context (start chord on each section start, no overlapping chord symbols) <br>
-     * - Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation.
-     * <br>
+     * - Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation.<br>
+     * - Add the user phrases if any<br>
      * - Apply on each channel possible instrument transpositions, velocity shift, mute (RP_SYS_Mute).<br>
      * - Apply the RP_SYS_DrumsMix velocity changes<br>
      * - Apply the RP_SYS_CustomPhrase changes<br>
@@ -452,6 +467,19 @@ public class SongSequenceBuilder
         }
 
 
+        // Add the user phrases, if any
+        var br = songContext.getBeatRange();
+        for (String userPhraseName : songContext.getSong().getUserPhraseNames())
+        {
+            Phrase p = songContext.getSong().getUserPhrase(userPhraseName);
+            // Adapt the phrase to the current context
+            p.slice(br.from, br.to, false, true);
+            UserRhythmVoice urv = songContext.getMidiMix().getUserRhythmVoice(userPhraseName);
+            assert urv != null : "userPhraseName=" + userPhraseName + " songContext.getMidiMix()=" + songContext.getMidiMix();
+            res.put(urv, p);
+        }
+
+
         // 
         // From here no more SongPart-based processing allowed, since the phrases for SongParts using an AdaptedRhythm have 
         // been merged into the tracks of its source rhythm.
@@ -521,27 +549,32 @@ public class SongSequenceBuilder
         }
 
 
-        // Process all these "normal" rhythms
-        for (Rhythm r : targetRhythms)
-        {         
-            for (RhythmVoice rv : r.getRhythmVoices())
-            {
+        // The final RhythmVoices to process: all targetRhythms + UserRhythmVoices
+        final List<RhythmVoice> targetRhythmVoices = new ArrayList<>();
+        targetRhythms.forEach(r -> targetRhythmVoices.addAll(r.getRhythmVoices()));
+        rvPhrases.keySet().stream()
+                .filter(rv -> rv instanceof UserRhythmVoice)
+                .forEach(rv -> targetRhythmVoices.add(rv));
 
-                Track track = res.sequence.createTrack();
 
-                // First event will be the name of the track: rhythm - rhythmVoice - channel
-                String name = rv.getContainer().getName() + "-" + rv.getName() + "-channel:" + songContext.getMidiMix().getChannel(rv) + " (0-15)";
-                MidiUtilities.addTrackNameEvent(track, name);
+        // Create the tracks
+        for (RhythmVoice rv : targetRhythmVoices)
+        {
 
-                // Fill the track
-                Phrase p = rvPhrases.get(rv);
-                p.fillTrack(track);
+            Track track = res.sequence.createTrack();
 
-                // Store the track with the RhythmVoice
-                res.mapRvTrackId.put(rv, trackId);
-                trackId++;
-            }
-        }
+            String name = buildTrackName(rv, songContext.getMidiMix().getChannel(rv));
+            MidiUtilities.addTrackNameEvent(track, name);
+
+            // Fill the track
+            Phrase p = rvPhrases.get(rv);
+            p.fillTrack(track);
+
+            // Store the track with the RhythmVoice
+            res.mapRvTrackId.put(rv, trackId);
+            trackId++;
+        }     
+
         fixEndOfTracks(songContext, res.sequence);
 
         return res;

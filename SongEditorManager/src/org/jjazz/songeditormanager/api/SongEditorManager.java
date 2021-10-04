@@ -161,6 +161,11 @@ public class SongEditorManager implements PropertyChangeListener
             JJazzUndoManagerFinder.getDefault().put(undoManager, song.getSongStructure());
 
 
+            // Connect our undoManager to the song (e.g. add/removed UserPhrase)
+            // Note that for cls/sgs this will be done in each editor's constructor
+            song.addUndoableEditListener(undoManager);
+
+
             // Create the editors
             CL_EditorTopComponent clTC = new CL_EditorTopComponent(song);
             Mode mode = WindowManager.getDefault().findMode("editor");
@@ -355,6 +360,7 @@ public class SongEditorManager implements PropertyChangeListener
     private void songEditorClosed(Song s)
     {
         s.removePropertyChangeListener(this);
+        s.removeUndoableEditListener(JJazzUndoManagerFinder.getDefault().get(s));
         mapSongEditors.remove(s);
         pcs.firePropertyChange(PROP_SONG_CLOSED, false, s); // Event used for example by RecentSongProvider
         s.close(true);  // This will trigger an "activeSong=null" event from the ActiveSongManager
@@ -406,7 +412,7 @@ public class SongEditorManager implements PropertyChangeListener
         SwingUtilities.invokeLater(r);
 
     }
-   
+
 
     private void activateSong(Song song)
     {

@@ -67,7 +67,7 @@ import org.jjazz.savablesong.api.SaveAsCapableSong;
 import org.jjazz.song.api.Song;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
-import org.jjazz.midimix.api.UserChannelRvKey;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.stubs.api.DummyRhythm;
 import org.jjazz.songeditormanager.api.SongEditorManager;
@@ -87,6 +87,9 @@ import org.jjazz.ui.flatcomponents.api.FlatButton;
 import org.jjazz.ui.mixconsole.MixChannelPanel;
 import org.jjazz.ui.mixconsole.MixChannelPanelControllerImpl;
 import org.jjazz.ui.mixconsole.MixChannelPanelModelImpl;
+import org.jjazz.ui.mixconsole.MixConsoleLayoutManager;
+import org.jjazz.ui.mixconsole.UserExtensionPanel;
+import org.jjazz.ui.mixconsole.UserExtensionPanelController;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.options.OptionsDisplayer;
@@ -166,6 +169,10 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         // UI initialization
         initComponents();
 
+
+        // Use our LayoutManager to arranger MixChannelPanels and their extensions
+        panel_mixChannels.setLayout(new MixConsoleLayoutManager());
+
         // Our renderer to show visible rhythms
         cb_viewRhythms.setRenderer(new MyRenderer());
 
@@ -174,6 +181,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         fbtn_panic.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.panic"));   //NOI18N
         fbtn_switchAllMute.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.switchallmute"));   //NOI18N
         fbtn_allSoloOff.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.allsolooff"));   //NOI18N
+        fbtn_addUserChannel.setAction(Actions.forID("MixConsole", "org.jjazz.ui.mixconsole.actions.addusertrack"));
 
 
         // Prepare our MenuBar from specified folder in layer file 
@@ -313,6 +321,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
         fbtn_panic = new org.jjazz.ui.flatcomponents.api.FlatButton();
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
+        fbtn_addUserChannel = new org.jjazz.ui.flatcomponents.api.FlatButton();
         scrollPane_mixChannelsPanel = new javax.swing.JScrollPane();
         panel_mixChannels = new javax.swing.JPanel();
 
@@ -361,6 +370,9 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         panel_MasterControls.add(fbtn_panic);
         panel_MasterControls.add(filler2);
 
+        fbtn_addUserChannel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ui/mixconsole/resources/AddUser-16x16.png"))); // NOI18N
+        panel_MasterControls.add(fbtn_addUserChannel);
+
         panel_Main.add(panel_MasterControls, java.awt.BorderLayout.PAGE_START);
 
         scrollPane_mixChannelsPanel.setBackground(new java.awt.Color(220, 220, 220));
@@ -376,6 +388,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<Rhythm> cb_viewRhythms;
+    private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_addUserChannel;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_allSoloOff;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_panic;
     private org.jjazz.ui.flatcomponents.api.FlatButton fbtn_switchAllMute;
@@ -456,7 +469,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                 {
                     // New InstrumentMix was added
                     LOGGER.fine("propertyChange() InstrumentMix added insMix=" + insMix);   //NOI18N
-                    if (getVisibleRhythm() == null || getVisibleRhythm() == rv.getContainer() || rv == UserChannelRvKey.getInstance())
+                    if (getVisibleRhythm() == null || getVisibleRhythm() == rv.getContainer() || rv instanceof UserRhythmVoice)
                     {
                         addMixChannelPanel(songMidiMix, channel);
                     }
@@ -469,7 +482,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                     {
                         removeMixChannelPanel(mcp);
                     }
-                    if (getVisibleRhythm() == null || getVisibleRhythm() == rv.getContainer() || rv == UserChannelRvKey.getInstance())
+                    if (getVisibleRhythm() == null || getVisibleRhythm() == rv.getContainer() || rv instanceof UserRhythmVoice)
                     {
                         addMixChannelPanel(songMidiMix, channel);
                     }
@@ -578,9 +591,12 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         }
 
         // Add the user channel if needed
-        if (getVisibleRhythm() != null && songMidiMix.getUserChannel() != -1)
+        if (getVisibleRhythm() != null)
         {
-            addMixChannelPanel(songMidiMix, songMidiMix.getUserChannel());
+            for (int channel : songMidiMix.getUserChannels())
+            {
+                addMixChannelPanel(songMidiMix, channel);
+            }
         }
     }
 
@@ -588,16 +604,24 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     {
         MixChannelPanel mcp;
         RhythmVoice rvKey = songMidiMix.getRhythmVoice(channel);
-        if (rvKey instanceof UserChannelRvKey)
+        if (rvKey instanceof UserRhythmVoice)
         {
             // User channel
             mcp = createMixChannelPanelForUserVoice(mm, channel);
+            insertMixChannelPanel(channel, mcp);
+            UserExtensionPanel ucep = new UserExtensionPanel(songModel, songMidiMix, (UserRhythmVoice) rvKey, new UserExtensionPanelController());
+            panel_mixChannels.add(ucep);        // Add always at the last position
         } else
         {
             // Rhythm channel
             mcp = createMixChannelPanelForRhythmVoice(mm, channel, rvKey);
+            insertMixChannelPanel(channel, mcp);
         }
-        insertMixChannelPanel(channel, mcp);
+
+
+        panel_mixChannels.revalidate();
+        panel_mixChannels.repaint();
+
         updateChannelColors();
     }
 
@@ -681,8 +705,19 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         return mcp;
     }
 
+
     private void removeMixChannelPanel(MixChannelPanel mcp)
     {
+        RhythmVoice rv = mcp.getModel().getRhythmVoice();
+        if (rv instanceof UserRhythmVoice)
+        {
+            // Need to remove the UserChannelExtenionPanel as well
+            var ucep = getUserChannelExtensionPanel((UserRhythmVoice) rv);
+            ucep.cleanup();
+            panel_mixChannels.remove(ucep);
+        }
+
+
         mcp.cleanup();
         panel_mixChannels.remove(mcp);
         panel_mixChannels.revalidate();
@@ -690,17 +725,33 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         updateChannelColors();
     }
 
+    private UserExtensionPanel getUserChannelExtensionPanel(UserRhythmVoice urv)
+    {
+        for (Component c : panel_mixChannels.getComponents())
+        {
+            if (c instanceof UserExtensionPanel)
+            {
+                var ucep = (UserExtensionPanel) c;
+                if (ucep.getUserRhythmVoice() == urv)
+                {
+                    return ucep;
+                }
+            }
+        }
+        return null;
+    }
+
 
     private void updateChannelColors()
-    {        
+    {
         Map<Rhythm, Color> mapRhythmColor = new HashMap<>();
-               
-        mapRhythmColor.put(UserChannelRvKey.getInstance().getContainer(), CHANNEL_COLOR_USER);
-        
+
+        mapRhythmColor.put(UserRhythmVoice.CONTAINER, CHANNEL_COLOR_USER);
+
         int index = 0;
         for (MixChannelPanel mcp : getMixChannelPanels())
         {
-            int channel = mcp.getModel().getChannelId();            
+            int channel = mcp.getModel().getChannelId();
             Rhythm r = songMidiMix.getRhythmVoice(channel).getContainer();
             Color c = mapRhythmColor.get(r);
             if (c == null)
@@ -742,8 +793,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             }
         }
         panel_mixChannels.add(mcp, index);
-        panel_mixChannels.revalidate();;
-        panel_mixChannels.repaint();
+
     }
 
     private void removeAllMixChannelPanels()
@@ -904,7 +954,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
      * <p>
      * Created from layer registrations the lawyer, and apply tweaking for the MixConsole.
      *
-     * @param menuBar
+     * @param layerPath
+     * @return 
      * @todo Localize File & Edit menu names
      */
     private MenuBar buildMenuBar(String layerPath)

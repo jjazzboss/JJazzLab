@@ -46,7 +46,7 @@
           <Dimension value="[20, 53]"/>
         </Property>
         <Property name="opaque" type="boolean" value="true"/>
-        <Property name="thickness" type="int" value="1"/>
+        <Property name="insetsThickness" type="int" value="1"/>
       </Properties>
 
       <Layout>

@@ -1,12 +1,11 @@
 package org.jjazz.rpcustomeditorfactoryimpl;
 
+import org.jjazz.ui.utilities.api.TextOverlayLayerUI;
 import com.google.common.base.Joiner;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -33,7 +32,6 @@ import javax.swing.JList;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import static javax.swing.TransferHandler.COPY;
-import javax.swing.plaf.LayerUI;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
@@ -53,13 +51,11 @@ import org.jjazz.song.api.SongFactory;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.ui.utilities.api.StringMetrics;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.Exceptions;
 
 
 /**
@@ -78,7 +74,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     private SongContext songContext;
     private SongPart songPart;
     private FloatRange songPartBeatRange;
-    private TextOverlayLayerUI overlayLayerUI;
+    private final TextOverlayLayerUI overlayLayerUI;
     private Map<RhythmVoice, Phrase> mapRvPhrase;
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhraseComp.class.getSimpleName());
 
@@ -417,9 +413,9 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
      */
     private File exportSequenceToMidiTempFile() throws IOException, MusicGenerationException
     {
-        LOGGER.info("exportSequenceToMidiTempFile() -- ");
+        LOGGER.fine("exportSequenceToMidiTempFile() -- ");
         // Create the temp file
-        File midiFile = File.createTempFile("JJazz", ".mid"); // throws IOException
+        File midiFile = File.createTempFile("JJazzCustomPhrase", ".mid"); // throws IOException
         midiFile.deleteOnExit();
 
 
@@ -450,9 +446,10 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         }
 
 
-        // Activate the overlay to display a message while external editor is active
+        // Activate the overlay to display a message while external editor is active       
         String msg = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.WaitForEditorQuit");
-        overlayLayerUI.setText(msg);        // This will trigger a repaint task on the EDT
+        overlayLayerUI.setText(msg);        
+        repaint();
 
 
         // Use SwingUtilites.invokeLater() to make sure this is executed AFTER the repaint task from previous "overlayLayerUI.setText(msg)"
@@ -472,6 +469,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             {
                 LOGGER.info("editCurrentPhrase() resuming from external Midi editing");
                 overlayLayerUI.setText(null);
+                repaint();
             }
 
 
@@ -631,7 +629,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
                     .addGroup(pnl_overlayLayout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(btn_remove, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 343, Short.MAX_VALUE))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 338, Short.MAX_VALUE))
                 .addContainerGap())
         );
         pnl_overlayLayout.setVerticalGroup(
@@ -753,87 +751,6 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         }
     }
 
-    /**
-     * A LayerUI that display a centered text over the view component using a semi-transparent background.
-     */
-    private class TextOverlayLayerUI extends LayerUI<JComponent>
-    {
-
-        String text;
-
-        /**
-         * Create the overlay in invisible state (text is null).
-         */
-        TextOverlayLayerUI()
-        {
-            this(null);
-        }
-
-        /**
-         * Create the overlay with the specified text.
-         */
-        TextOverlayLayerUI(String text)
-        {
-            setText(text);
-        }
-
-        /**
-         * The text to be displayed on a semi-transparent background over the view component.
-         *
-         * @param text If null nothing is shown (overlay is invisible).
-         */
-        public final void setText(String text)
-        {
-            this.text = text;
-            repaint();
-        }
-
-        /**
-         * The displayed text.
-         *
-         * @return If null it means the overlay is invisible.
-         */
-        public String getText()
-        {
-            return text;
-        }
-
-        @Override
-        public void paint(Graphics g, JComponent c)
-        {
-            super.paint(g, c);
-
-            if (text == null)
-            {
-                return;
-            }
-
-            Graphics2D g2 = (Graphics2D) g.create();
-
-            int w = c.getWidth();
-            int h = c.getHeight();
-
-
-            // Semi-transparent background
-            Color bg = c.getBackground();
-            Color newBg = new Color(bg.getRed(), bg.getGreen(), bg.getBlue(), 220);
-            g2.setColor(newBg);
-            g2.fillRect(0, 0, w, h);
-            g2.setColor(Color.WHITE);
-
-
-            // Write text
-            g2.setFont(g2.getFont().deriveFont(Font.BOLD));
-            StringMetrics sm = new StringMetrics(g2, g2.getFont());
-            var bounds = sm.getLogicalBoundsNoLeading(text);
-            int x = (w - (int) bounds.getWidth()) / 2;
-            int y = (h - (int) bounds.getHeight()) / 2;
-            y -= (int) bounds.getY();      // bounds.getY() is <0 because baseline coordinates!
-            g2.drawString(text, x, y);
-
-            g2.dispose();
-        }
-    }
 
     private class MidiFileTransferable implements Transferable
     {

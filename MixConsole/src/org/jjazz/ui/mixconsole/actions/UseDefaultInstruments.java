@@ -29,7 +29,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JMenuItem;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
-import org.jjazz.midimix.api.UserChannelRvKey;
+import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
@@ -75,7 +75,7 @@ public class UseDefaultInstruments extends AbstractAction implements Presenter.M
         for (Integer channel : songMidiMix.getUsedChannels())
         {
             RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
-            if (rhythm == null || rv instanceof UserChannelRvKey || rhythm == rv.getContainer())
+            if (rhythm == null || rv instanceof UserRhythmVoice || rhythm == rv.getContainer())
             {
                 InstrumentMix insMix = new InstrumentMix(songMidiMix.getInstrumentMixFromChannel(channel));
                 setDefaultInstrument(insMix, rv);
