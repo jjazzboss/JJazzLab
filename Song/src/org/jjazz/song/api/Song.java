@@ -49,7 +49,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
@@ -69,6 +68,7 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.undomanager.api.SimpleEdit;
+import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -202,7 +202,8 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     /**
      * Add a user phrase for the specified name.
      * <p>
-     * If a user phrase was already associated to name, it's replaced. Fire a VeotableChange PROP_VETOABLE_USER_PHRASE.
+     * If a user phrase was already associated to name, it's replaced. Saved phrase is shortened if longer than the song. Fire a
+     * VeotableChange PROP_VETOABLE_USER_PHRASE.
      * <p>
      * @param name Can't be blank.
      * @param p Can't be null.
@@ -215,9 +216,15 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
         checkArgument(!name.isBlank(), "name=%s", name);
 
 
+        // Make phrase no longer than the song
+        Phrase p2 = p.clone();
+        FloatRange beatRange = getSongStructure().getBeatRange(null);
+        p2.slice(0, beatRange.to, false, true);
+
+
         // Perform the change
         final var oldMap = new HashMap<>(mapUserPhrases);
-        mapUserPhrases.put(name, p);
+        mapUserPhrases.put(name, p2);
         final var newMap = new HashMap<>(mapUserPhrases);
 
         LOGGER.severe("addUserPhrase() REMINDER remove undoableEvent firing... ?  to be tested, see AddUserChannel");

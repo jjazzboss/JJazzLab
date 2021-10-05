@@ -24,6 +24,7 @@ package org.jjazz.phrase.api;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1018,11 +1019,14 @@ public class Phrase extends LinkedList<NoteEvent>
      * A track can use notes from different channels. Notes from a given channel can be on several tracks.
      *
      * @param tracks
-     * @return
+     * @param channels Get phrases only for the specified channels. If empty, get phrases for all channels.
+     * @return 
      */
-    static public List<Phrase> getPhrases(Track[] tracks)
+    static public List<Phrase> getPhrases(Track[] tracks, Integer... channels)
     {
         Map<Integer, Phrase> mapRes = new HashMap<>();
+        var selectedChannels = channels.length > 0 ? Arrays.asList(channels) : Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+
         for (Track track : tracks)
         {
             var trackEvents = MidiUtilities.getMidiEvents(track,
@@ -1031,13 +1035,16 @@ public class Phrase extends LinkedList<NoteEvent>
                     null);
             for (int channel : MidiUtilities.getUsedChannels(track))
             {
-                Phrase p = mapRes.get(channel);
-                if (p == null)
+                if (selectedChannels.contains(channel))
                 {
-                    p = new Phrase(channel);
-                    mapRes.put(channel, p);
+                    Phrase p = mapRes.get(channel);
+                    if (p == null)
+                    {
+                        p = new Phrase(channel);
+                        mapRes.put(channel, p);
+                    }
+                    p.add(trackEvents, 0, false);
                 }
-                p.add(trackEvents, 0, false);
             }
         }
 

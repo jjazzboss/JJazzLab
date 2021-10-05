@@ -25,10 +25,16 @@ package org.jjazz.ui.mixconsole;
 import java.beans.PropertyVetoException;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
+import javax.sound.midi.Sequence;
+import javax.sound.midi.Track;
 import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -39,6 +45,7 @@ import org.jjazz.ui.utilities.api.PleaseWaitDialog;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.awt.StatusDisplayer;
 import org.openide.util.Exceptions;
 
 /**
@@ -73,13 +80,18 @@ public class UserExtensionPanelController
 
     public void editUserPhrase()
     {
-        SongContext songContext = new SongContext(panel.getSong(), panel.getMidiMix());
+        Song song = panel.getSong();
+        RhythmVoice rv = panel.getUserRhythmVoice();
+        String name = rv.getName();
+        Phrase oldPhrase = panel.getSong().getUserPhrase(name);
+        int channel = panel.getMidiMix().getChannel(rv);
+
 
         File midiFile;
         try
         {
             // Build and store sequence
-            midiFile = exportSequenceToMidiTempFile(songContext);
+            midiFile = exportSequenceToMidiTempFile(new SongContext(panel.getSong(), panel.getMidiMix()));
         } catch (IOException | MusicGenerationException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -106,21 +118,55 @@ public class UserExtensionPanelController
                 LOGGER.info("editUserPhrase() resuming from external Midi editing");
             }
 
+            Phrase newPhrase;
+            try
+            {
+                newPhrase = importMidiFile(midiFile, channel);
+            } catch (IOException | InvalidMidiDataException ex)
+            {
+                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                LOGGER.warning("editUserPhrase() Problem importing edited Midi file. ex=" + ex.getMessage());
+                return;
+            }
 
-            importMidiFile(midiFile);
+
+            // Check we do not erase a non-empty user phrase
+            if (newPhrase.isEmpty() && !oldPhrase.isEmpty())
+            {
+                String msg = ResUtil.getString(getClass(), "UserExtensionPanelController.ConfirmEmptyPhrase");
+                NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
+                Object result = DialogDisplayer.getDefault().notify(d);
+                if (result != NotifyDescriptor.YES_OPTION)
+                {
+                    return;
+                }
+            }
+
+
+            String msg = ResUtil.getString(getClass(), "UserExtensionPanelController.NewUserPhrase", newPhrase.size());
+            StatusDisplayer.getDefault().setStatusText(msg);
+
+
+            // Do the change
+            try
+            {
+                song.addUserPhrase(name, newPhrase);
+            } catch (PropertyVetoException ex)
+            {
+                // Should never happen, we replace an existing user phrase
+                Exceptions.printStackTrace(ex);
+            }
+
         };
 
-        
+
         // Prepare the text to be shown while editing
-        RhythmVoice rv = panel.getUserRhythmVoice();
-        String track = SongSequenceBuilder.buildTrackName(rv, songContext.getMidiMix().getChannel(rv));
-        String msg = ResUtil.getString(getClass(), "UserExtensionPanelController.WaitForEditorQuit", track);
+        String msg = ResUtil.getString(getClass(), "UserExtensionPanelController.WaitForEditorQuit", channel + 1);
         var dlg = new PleaseWaitDialog(msg, runEditorTask);
-        // dlg.setUndecorated(false);
-        dlg.setVisible(true);       // Blocks
-        
-        
-        LOGGER.info("editUserPhrase() POST EDIT");
+        dlg.setVisible(true);       // Blocks until runEditorTask is complete
+
+
     }
 
     public void closePanel()
@@ -160,87 +206,32 @@ public class UserExtensionPanelController
     }
 
     /**
-     * Import phrases from the Midi file.
+     * Import phrase from the Midi file and from the specified channel notes.
      * <p>
-     * <p>
-     * Notify user if problems occur.
      *
      * @param midiFile
-     * @return True if import was successful
+     *
+     * @return Can be an empty phrase
      */
-    private boolean importMidiFile(File midiFile)
+    private Phrase importMidiFile(File midiFile, int channel) throws IOException, InvalidMidiDataException
     {
-        // Load file into a sequence
-//        Sequence sequence;
-//        try
-//        {
-//            sequence = MidiSystem.getSequence(midiFile);
-//        } catch (IOException | InvalidMidiDataException ex)
-//        {
-//            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
-//            DialogDisplayer.getDefault().notify(d);
-//            return false;
-//        }
-//
-//        // LOGGER.severe("importMidiFile() importSequence=" + MidiUtilities.toString(importSequence));
-//
-//        // Get one phrase per channel
-//        Track[] tracks = sequence.getTracks();
-//        List<Phrase> phrases = Phrase.getPhrases(tracks);
-//
-//
-//        boolean contentFound = false;
-//        List<RhythmVoice> impactedRvs = new ArrayList<>();
-//
-//
-//        // Check which phrases are relevant and if they have changed
-//        MidiMix mm = songContext.getMidiMix();
-//        for (Phrase pNew : phrases)
-//        {
-//            RhythmVoice rv = mm.getRhythmVoice(pNew.getChannel());
-//            if (rv != null)
-//            {
-//                contentFound = true;
-//                Phrase pOld = getPhrase(rv);
-//                if (!pNew.equalsLoosePosition(pOld, PHRASE_COMPARE_BEAT_WINDOW))
-//                {
-//                    // LOGGER.info("importMidiFile() setting custom phrase for rv=" + rv);
-//                    RP_SYS_CustomPhraseValue.SptPhrase sp = new RP_SYS_CustomPhraseValue.SptPhrase(pNew, songContext.getBeatRange().size(), songPart.getRhythm().getTimeSignature());
-//                    addCustomizedPhrase(rv, sp);
-//                    impactedRvs.add(rv);
-//                }
-//            }
-//        }
-//
-//
-//        // Notify user
-//        if (!contentFound)
-//        {
-//            String msg = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.NoContent", midiFile.getName());
-//            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-//            DialogDisplayer.getDefault().notify(d);
-//            LOGGER.info("importMidiFile() No relevant Midi notes found in file " + midiFile.getAbsolutePath());
-//
-//        } else if (impactedRvs.isEmpty())
-//        {
-//            String msg = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.NothingImported", midiFile.getName());
-//            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
-//            DialogDisplayer.getDefault().notify(d);
-//            LOGGER.info("importMidiFile() No new phrase found in file " + midiFile.getAbsolutePath());
-//
-//        } else
-//        {
-//            // We customized at least 1 phrase
-//            List<String> strs = impactedRvs.stream()
-//                    .map(rv -> rv.getName())
-//                    .collect(Collectors.toList());
-//            String strRvs = Joiner.on(",").join(strs);
-//            String msg = ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.CustomizedRvs", strRvs);
-//            StatusDisplayer.getDefault().setStatusText(msg);
-//            LOGGER.info("importMidiFile() Successfully set custom phrases for " + strRvs + " from Midi file " + midiFile.getAbsolutePath());
-//        }
+        Phrase res = new Phrase(channel);
 
-        return true;
+
+        // Load file into a sequence
+        Sequence sequence = MidiSystem.getSequence(midiFile);       // Throws IOException, InvalidMidiDataException
+
+        // Get our phrase
+        Track[] tracks = sequence.getTracks();
+        List<Phrase> phrases = Phrase.getPhrases(tracks, channel);
+        if (phrases.size() == 1)
+        {
+            res.addAll(phrases.get(channel));
+        }
+
+        LOGGER.severe("importMidiFile() channel=" + channel + " phrase.size()=" + res.size());
+
+        return res;
     }
 
 }

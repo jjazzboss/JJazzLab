@@ -31,6 +31,7 @@ import org.openide.windows.WindowManager;
  */
 public class PleaseWaitDialog extends javax.swing.JDialog
 {
+
     private String text;
     private Runnable task;
     private Future<?> future;
@@ -76,6 +77,7 @@ public class PleaseWaitDialog extends javax.swing.JDialog
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setAlwaysOnTop(task == null);
         setLocationByPlatform(true);
         setUndecorated(true);
         addWindowListener(new java.awt.event.WindowAdapter()

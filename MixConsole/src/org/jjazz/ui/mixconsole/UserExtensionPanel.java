@@ -23,19 +23,25 @@
 package org.jjazz.ui.mixconsole;
 
 import java.awt.Font;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyVetoException;
+import java.beans.VetoableChangeListener;
 import javax.swing.JTextField;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.flatcomponents.api.FlatTextEditDialog;
 import org.jjazz.uisettings.api.GeneralUISettings;
+import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.Utilities;
 
 /**
  * An extension of a MixChannelPanel to add specific controls for user phrase channels.
  * <p>
  */
-public class UserExtensionPanel extends javax.swing.JPanel
+public class UserExtensionPanel extends javax.swing.JPanel implements VetoableChangeListener
 {
 
     private UserRhythmVoice userRhythmVoice;
@@ -56,6 +62,7 @@ public class UserExtensionPanel extends javax.swing.JPanel
         this.controller = controller;
         this.controller.setUserExtentionPanel(this);
         this.song = song;
+        this.song.addVetoableChangeListener(this);
         this.midiMix = midiMix;
         userRhythmVoice = urv;
         if (urv != null)
@@ -63,6 +70,8 @@ public class UserExtensionPanel extends javax.swing.JPanel
             String s = Utilities.truncateWithDots(userRhythmVoice.getName(), 8);
             fbtn_name.setText(s);
         }
+
+        phraseUpdated();
     }
 
     public UserRhythmVoice getUserRhythmVoice()
@@ -82,7 +91,33 @@ public class UserExtensionPanel extends javax.swing.JPanel
 
     public void cleanup()
     {
+        song.removeVetoableChangeListener(this);
+    }
 
+    //-----------------------------------------------------------------------
+    // Implementation of the VetoableListener interface
+    //-----------------------------------------------------------------------
+    @Override
+    public void vetoableChange(PropertyChangeEvent e)
+    {
+        if (e.getSource() == song)
+        {
+            if (e.getPropertyName().equals(Song.PROP_VETOABLE_USER_PHRASE) && e.getNewValue() != null)
+            {
+                phraseUpdated();
+            }
+        }
+
+    }
+
+    //-----------------------------------------------------------------------
+    // Private methods
+    //-----------------------------------------------------------------------
+    private void phraseUpdated()
+    {
+        FloatRange beatRange = song.getSongStructure().getBeatRange(null);
+        TimeSignature ts = song.getSongStructure().getSongPart(0).getRhythm().getTimeSignature();
+        birdViewComp.setModel(song.getUserPhrase(userRhythmVoice.getName()), ts, beatRange);
     }
 
     /**
@@ -265,4 +300,6 @@ public class UserExtensionPanel extends javax.swing.JPanel
     private javax.swing.JPanel pnl_help;
     private org.jjazz.ui.flatcomponents.api.RoundedPanel roundedPanel1;
     // End of variables declaration//GEN-END:variables
+
+
 }
