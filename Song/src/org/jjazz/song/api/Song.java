@@ -88,10 +88,14 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     public static final String PROP_TAGS = "PROP_TAGS";   //NOI18N 
     public static final String PROP_TEMPO = "PROP_TEMPO";   //NOI18N 
     /**
-     * If a user phrase is removed, oldValue=name of the removed phrase and newValue=null; if it's added, oldValue=null and
-     * newValue=name of the added phrase.
+     * If a user phrase is removed: oldValue=name and newValue=null.<br>
+     * If a user phrase is added, oldValue=null and newValue=name<br>
      */
-    public static final String PROP_VETOABLE_USER_PHRASE = "PROP_VETOABLE_USER_PHRASE";   //NOI18N 
+    public static final String PROP_VETOABLE_USER_PHRASE = "PROP_VETOABLE_USER_PHRASE";   //NOI18N
+    /**
+     * An existing phrase was updated. oldValue=old phrase, newValue=name.
+     */
+    public static final String PROP_VETOABLE_USER_PHRASE_CONTENT = "PROP_VETOABLE_USER_PHRASE_CONTENT";   //NOI18N 
     /**
      * Fired when the close() method is called.
      */
@@ -200,63 +204,135 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
     }
 
     /**
-     * Add a user phrase for the specified name.
+     * Set a user phrase for the specified name.
      * <p>
-     * If a user phrase was already associated to name, it's replaced. Saved phrase is shortened if longer than the song. Fire a
-     * VeotableChange PROP_VETOABLE_USER_PHRASE.
+     * If a user phrase was already associated to name, it's replaced. Phrase is shortened if longer than the song. Fire a
+     * VeotableChange PROP_VETOABLE_USER_PHRASE if no phrase is replaced, otherwise use PROP_VETOABLE_USER_PHRASE_CONTENT.
      * <p>
      * @param name Can't be blank.
-     * @param p Can't be null.
+     * @param p Can't be null. The phrase channel is not used.
      * @throws PropertyVetoException If no Midi channel available for the user phrase
+     * @see Song#PROP_VETOABLE_USER_PHRASE
+     * @see Song#PROP_VETOABLE_USER_PHRASE_CONTENT
      */
-    public void addUserPhrase(String name, Phrase p) throws PropertyVetoException
+    public void setUserPhrase(String name, Phrase p) throws PropertyVetoException
     {
         checkNotNull(name);
         checkNotNull(p);
         checkArgument(!name.isBlank(), "name=%s", name);
 
+        
+        if (getSongStructure().getSongParts().isEmpty())
+        {
+            return;
+        }
 
+        
         // Make phrase no longer than the song
-        Phrase p2 = p.clone();
+        p = p.clone();
         FloatRange beatRange = getSongStructure().getBeatRange(null);
-        p2.slice(0, beatRange.to, false, true);
+        p.slice(0, beatRange.to, false, true);
+
+
+        final Phrase oldPhrase = mapUserPhrases.get(name) == null ? null : mapUserPhrases.get(name).clone();
+        final Phrase newPhrase = p;
 
 
         // Perform the change
         final var oldMap = new HashMap<>(mapUserPhrases);
-        mapUserPhrases.put(name, p2);
+        mapUserPhrases.put(name, newPhrase);
         final var newMap = new HashMap<>(mapUserPhrases);
 
-        LOGGER.severe("addUserPhrase() REMINDER remove undoableEvent firing... ?  to be tested, see AddUserChannel");
 
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Add user phrase")
+        // Create the undoable event        
+        UndoableEdit edit;
+        if (oldPhrase == null)
         {
-            @Override
-            public void undoBody()
+            // First time adding this user phrase
+            edit = new SimpleEdit("Add user phrase")
             {
-                mapUserPhrases = oldMap;
-                pcs.firePropertyChange(PROP_VETOABLE_USER_PHRASE, name, null);
-                fireIsModified();
-            }
+                @Override
+                public void undoBody()
+                {
+                    mapUserPhrases = oldMap;
+                    try
+                    {
+                        vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, name, null);
+                    } catch (PropertyVetoException ex)
+                    {
+                        // Should never happen
+                        Exceptions.printStackTrace(ex);
+                    }
+                    fireIsModified();
+                }
 
-            @Override
-            public void redoBody()
+                @Override
+                public void redoBody()
+                {
+                    mapUserPhrases = newMap;
+                    try
+                    {
+                        vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, null, name);
+                    } catch (PropertyVetoException ex)
+                    {
+                        // Should never happen
+                        Exceptions.printStackTrace(ex);
+                    }
+                    fireIsModified();
+                }
+            };
+
+            fireUndoableEditHappened(edit);
+            vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, null, name);          // throws PropertyVetoException
+
+        } else
+        {
+            // User phrase is updated
+            edit = new SimpleEdit("Update user phrase")
             {
-                mapUserPhrases = newMap;
-                pcs.firePropertyChange(PROP_VETOABLE_USER_PHRASE, null, name);
-                fireIsModified();
-            }
-        };
-        fireUndoableEditHappened(edit);
+                @Override
+                public void undoBody()
+                {
+                    mapUserPhrases = oldMap;
+                    try
+                    {
+                        vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE_CONTENT, newPhrase, name);
+                    } catch (PropertyVetoException ex)
+                    {
+                        // Should never happen
+                        Exceptions.printStackTrace(ex);
+                    }
+                    fireIsModified();
+                }
 
+                @Override
+                public void redoBody()
+                {
+                    mapUserPhrases = newMap;
+                    try
+                    {
+                        vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE_CONTENT, oldPhrase, name);
+                    } catch (PropertyVetoException ex)
+                    {
+                        // Should never happen
+                        Exceptions.printStackTrace(ex);
+                    }
+                    fireIsModified();
+                }
+            };
 
-        vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, null, name);          // throws PropertyVetoException
+            fireUndoableEditHappened(edit);
+            vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE_CONTENT, oldPhrase, name);          // throws PropertyVetoException
+
+        }
+
         fireIsModified();
     }
 
     /**
      * Remove the user phrase associated to name.
+     * <p>
+     * Fire a PROP_VETOABLE_USER_PHRASE event with oldValue=name and newValue=null.
      *
      * @param name
      */
@@ -284,7 +360,14 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             public void undoBody()
             {
                 mapUserPhrases = oldMap;
-                pcs.firePropertyChange(PROP_VETOABLE_USER_PHRASE, null, name);
+                try
+                {
+                    vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, null, name);
+                } catch (PropertyVetoException ex)
+                {
+                    // Should never happen
+                    Exceptions.printStackTrace(ex);
+                }
                 fireIsModified();
             }
 
@@ -292,7 +375,14 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
             public void redoBody()
             {
                 mapUserPhrases = newMap;
-                pcs.firePropertyChange(PROP_VETOABLE_USER_PHRASE, name, null);
+                try
+                {
+                    vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE, name, null);
+                } catch (PropertyVetoException ex)
+                {
+                    // Should never happen
+                    Exceptions.printStackTrace(ex);
+                }
                 fireIsModified();
             }
         };
@@ -325,7 +415,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
      * Get the user phrase associated to specified name.
      *
      * @param name
-     * @return Null if no phrase associated to name
+     * @return Null if no phrase associated to name. The Phrase channel should be ignored.
      */
     public Phrase getUserPhrase(String name)
     {
@@ -852,7 +942,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener
                     Phrase p = spMapUserPhrases.get(name);
                     try
                     {
-                        newSong.addUserPhrase(name, p);
+                        newSong.setUserPhrase(name, p);
                     } catch (PropertyVetoException ex)
                     {
                         LOGGER.warning("readResolve() Can't add user phrase for name=" + name + ". ex=" + ex.getMessage());

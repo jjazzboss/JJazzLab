@@ -24,6 +24,7 @@ package org.jjazz.musiccontrol.api.playbacksession;
 
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.VetoableChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +65,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
+import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
@@ -95,7 +97,7 @@ import org.openide.util.*;
  *
  * @todo RP Tempo factor => need update of track0 SongSequenceBuilder buildSequence
  */
-public class DynamicSongSession extends BaseSongSession implements UpdatableSongSession.UpdateProvider, SgsChangeListener, ClsChangeListener
+public class DynamicSongSession extends BaseSongSession implements UpdatableSongSession.UpdateProvider, SgsChangeListener, ClsChangeListener, VetoableChangeListener
 {
 
     /**
@@ -202,6 +204,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     {
         super.generate(silent);
 
+        getSongContext().getSong().addVetoableChangeListener(this);
         getSongContext().getSong().getChordLeadSheet().addClsChangeListener(this);
         getSongContext().getSong().getSongStructure().addSgsChangeListener(this);
     }
@@ -211,6 +214,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     {
         super.close();
 
+        getSongContext().getSong().removeVetoableChangeListener(this);
         getSongContext().getSong().getChordLeadSheet().removeClsChangeListener(this);
         getSongContext().getSong().getSongStructure().removeSgsChangeListener(this);
         sessions.remove(this);
@@ -294,6 +298,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
     {
         super.propertyChange(e);            // Important
 
+        LOGGER.log(Level.FINE, "propertyChange() -- e={0}", e);
 
         if (getState().equals(State.CLOSED) || !isUpdatable())
         {
@@ -304,7 +309,8 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
 
         // LOGGER.fine("propertyChange() e=" + e);
         boolean dirty = false;
-        boolean update = false;
+        boolean doUpdate = false;
+        boolean doDisableUpdates = false;
 
 
         if (e.getSource() == getSongContext().getMidiMix())
@@ -321,7 +327,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 case MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP:
                 case MidiMix.PROP_INSTRUMENT_TRANSPOSITION:
                 case MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT:
-                    update = true;
+                    doUpdate = true;
 
                 default:    // e.g.  case MidiMix.PROP_INSTRUMENT_MUTE:
                     // Nothing
@@ -333,7 +339,7 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             switch (e.getPropertyName())
             {
                 case PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION:
-                    update = true;
+                    doUpdate = true;
                     break;
 
                 case PlaybackSettings.PROP_CLICK_PITCH_HIGH:
@@ -350,28 +356,71 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                     if (PlaybackSettings.getInstance().isAutoUpdateEnabled())
                     {
                         // Auto-Update switched to ON: try to update to be up-to-date again
-                        update = true;
+                        doUpdate = true;
                     }
 
                 default:   // PROP_VETO_PRE_PLAYBACK, PROP_LOOPCOUNT, PROP_PLAYBACK_CLICK_ENABLED
                     // Do nothing
                     break;
             }
-        }
-
-        synchronized (this)
+        } else if (e.getSource() == getSongContext().getSong())
         {
-            // Synchonize because the UpdateGenerationTask thread might call setDirty(), so this makes sure
-            // generateUpdate() won't be called if thread called setDirty() right after "if (dirty)" was executed with dirty==false.
-            if (dirty)
+            switch (e.getPropertyName())
             {
-                setDirty();
-            } else if (update)
-            {
-                generateUpdate();
+                case Song.PROP_VETOABLE_USER_PHRASE:
+                    String name = (String) e.getNewValue();
+                    if (name != null)
+                    {
+                        // It's a new phrase, we can NOT handle it
+                        doDisableUpdates = true;
+                    } else
+                    {
+                        // It's an update, handle it
+                        doUpdate = true;                        
+                    }
+                    break;
+
+                case Song.PROP_VETOABLE_USER_PHRASE_CONTENT:
+                    // It's an update, we can handle it
+                    doUpdate = true;
+                    break;
             }
         }
+
+        LOGGER.log(Level.FINE, "propertyChange() output: dirty=" + dirty + " doUpdate=" + doUpdate + " doDisableUpdates=" + doDisableUpdates);
+
+
+        if (doDisableUpdates)
+        {
+            disableUpdates();
+        } else
+        {
+            synchronized (this)
+            {
+                // Synchonize because the UpdateGenerationTask thread might call setDirty(), so this makes sure
+                // generateUpdate() won't be called if thread called setDirty() right after "if (dirty)" was executed with dirty==false.
+                if (dirty)
+                {
+                    setDirty();
+                } else if (doUpdate)
+                {
+                    generateUpdate();
+                }
+            }
+        }
+
     }
+
+    // ==========================================================================================================
+    // VetoableChangeListener interface
+    // ==========================================================================================================
+    @Override
+    public void vetoableChange(PropertyChangeEvent e)
+    {
+        LOGGER.log(Level.FINE, "vetoableChange() -- e={0}", e);
+        propertyChange(e);
+    }
+
 
     // ==========================================================================================================
     // UpdatableSongSession.UpdateProvider interface
@@ -843,14 +892,14 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             if (generationFuture == null)
             {
                 // No generation task created yet, start one
-                LOGGER.fine("handleContext() start generation FIRST TIME");
+                LOGGER.info("handleContext() start generation FIRST TIME");
                 startGenerationTask(sgContext);
                 b = true;
 
             } else if (generationFuture.isDone())
             {
                 // There is a generation task but it is complete, restart one
-                LOGGER.fine("handleContext() start generation");
+                LOGGER.info("handleContext() start generation");
                 startGenerationTask(sgContext);
                 b = true;
 
@@ -974,6 +1023,10 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
                 // This is not normal (e.g. rhythm generation failure), notify user
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
+                return;
+            } catch (Exception e)           // To make sure we catch other programming exceptions, sometimes not seen because in thread
+            {
+                e.printStackTrace();
                 return;
             }
 

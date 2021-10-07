@@ -407,16 +407,16 @@ public class SongPartImpl implements SongPart, Serializable
         private static transient List<String> saveUnavailableRhythmIds = new ArrayList<>();
 
         private final int spVERSION = 1;
-        private String spRhythmId;
-        private String spRhythmName;
-        private TimeSignature spRhythmTs;
-        private int spStartBarIndex;
-        private String spName;
-        private int spNbBars;
-        private CLI_Section spParentSection;
-        private SmallMap<String, String> spMapRpIdValue = new SmallMap<>();
-        private SmallMap<String, String> spMapRpIdDisplayName = new SmallMap<>();        // Used to find a matching RP when rpId does not work
-        private SmallMap<String, Double> spMapRpIdPercentageValue = new SmallMap<>();   // Used as backup when RP's valueToString() does not work
+        private final String spRhythmId;
+        private final String spRhythmName;
+        private final TimeSignature spRhythmTs;
+        private final int spStartBarIndex;
+        private final String spName;
+        private final int spNbBars;
+        private final CLI_Section spParentSection;
+        private final SmallMap<String, String> spMapRpIdValue = new SmallMap<>();
+        private final SmallMap<String, String> spMapRpIdDisplayName = new SmallMap<>();        // Used to find a matching RP when rpId does not work
+        private final SmallMap<String, Double> spMapRpIdPercentageValue = new SmallMap<>();   // Used as backup when RP's valueToString() does not work
 
         @SuppressWarnings(
                 {

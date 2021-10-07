@@ -122,7 +122,7 @@ public class SongSequenceBuilder
     static public String buildTrackName(RhythmVoice rv, int channel)
     {
         // First event will be the name of the track: rhythm - rhythmVoice - channel
-        String name = rv.getContainer().getName() + "-" + rv.getName() + "-Channel" + (channel + 1);
+        String name = rv.getContainer().getName() + "-" + rv.getName() + "-Channel" + (channel + 1) + " [1-16]";
         return name;
     }
 
@@ -467,15 +467,23 @@ public class SongSequenceBuilder
         }
 
 
-        // Add the user phrases, if any
+        // Add the user phrases
         var br = songContext.getBeatRange();
         for (String userPhraseName : songContext.getSong().getUserPhraseNames())
         {
-            Phrase p = songContext.getSong().getUserPhrase(userPhraseName);
-            // Adapt the phrase to the current context
-            p.slice(br.from, br.to, false, true);
             UserRhythmVoice urv = songContext.getMidiMix().getUserRhythmVoice(userPhraseName);
             assert urv != null : "userPhraseName=" + userPhraseName + " songContext.getMidiMix()=" + songContext.getMidiMix();
+
+            // Create the phrase on the right Midi channel
+            int channel = songContext.getMidiMix().getChannel(urv);
+            Phrase p = new Phrase(channel);
+            p.add(songContext.getSong().getUserPhrase(userPhraseName));
+
+            // Adapt the phrase to the current context
+            p.slice(br.from, br.to, false, true);
+
+            LOGGER.severe("buildMapRvPhrase() Adding user phrase for name=" + userPhraseName + " p=" + p);
+
             res.put(urv, p);
         }
 
@@ -562,8 +570,9 @@ public class SongSequenceBuilder
         {
 
             Track track = res.sequence.createTrack();
+            int channel = songContext.getMidiMix().getChannel(rv);
 
-            String name = buildTrackName(rv, songContext.getMidiMix().getChannel(rv));
+            String name = buildTrackName(rv, channel);
             MidiUtilities.addTrackNameEvent(track, name);
 
             // Fill the track
@@ -573,7 +582,7 @@ public class SongSequenceBuilder
             // Store the track with the RhythmVoice
             res.mapRvTrackId.put(rv, trackId);
             trackId++;
-        }     
+        }
 
         fixEndOfTracks(songContext, res.sequence);
 

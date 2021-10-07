@@ -157,7 +157,7 @@ public class RP_SYS_CustomPhraseValue
             Phrase p = v.getCustomizedPhrase(rv);
             sb.append(rv.getName())
                     .append("%")
-                    .append(Phrase.saveAsString(p));
+                    .append(Phrase.saveAsString(p));   PROBLEM ! Use SptPhrase ??
             if (first)
             {
                 sb.append("&");
@@ -271,8 +271,8 @@ public class RP_SYS_CustomPhraseValue
     static public class SptPhrase extends Phrase
     {
 
-        private float sizeInBeats;
-        private TimeSignature timeSignature;
+        private final float sizeInBeats;
+        private final TimeSignature timeSignature;
 
         public SptPhrase(int channel, float nbBeats, TimeSignature ts)
         {
@@ -379,14 +379,14 @@ public class RP_SYS_CustomPhraseValue
                     } catch (IllegalArgumentException | ParseException ex)
                     {
                         // Nothing
-                        LOGGER.warning("loadAsString() Invalid string s=" + s + ", ex=" + ex.getMessage());
+                        LOGGER.warning("SptPhrase.loadAsString() Invalid string s=" + s + ", ex=" + ex.getMessage());
                     }
                 }
             }
 
             if (sp == null)
             {
-                throw new IllegalArgumentException("loadAsString() Invalid SptPhrase string s=" + s);
+                throw new IllegalArgumentException("SptPhrase.loadAsString() Invalid SptPhrase string s=" + s);
             }
             return sp;
         }

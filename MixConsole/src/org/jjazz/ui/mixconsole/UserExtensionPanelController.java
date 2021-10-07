@@ -25,7 +25,6 @@ package org.jjazz.ui.mixconsole;
 import java.beans.PropertyVetoException;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,14 +33,16 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.ui.mixconsole.actions.AddUserTrack;
 import org.jjazz.ui.utilities.api.PleaseWaitDialog;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -70,7 +71,7 @@ public class UserExtensionPanelController
         song.removeUserPhrase(oldName);
         try
         {
-            song.addUserPhrase(newName, p);
+            song.setUserPhrase(newName, p);
         } catch (PropertyVetoException ex)
         {
             // Should never happen since we replace an existing phrase
@@ -80,11 +81,11 @@ public class UserExtensionPanelController
 
     public void editUserPhrase()
     {
-        Song song = panel.getSong();
         RhythmVoice rv = panel.getUserRhythmVoice();
-        String name = rv.getName();
-        Phrase oldPhrase = panel.getSong().getUserPhrase(name);
         int channel = panel.getMidiMix().getChannel(rv);
+
+
+        LOGGER.info("editUserPhrase() rv=" + rv + " channel=" + channel);
 
 
         File midiFile;
@@ -113,50 +114,16 @@ public class UserExtensionPanelController
                 DialogDisplayer.getDefault().notify(d);
                 LOGGER.warning("editUserPhrase() Can't launch external Midi editor. ex=" + ex.getMessage());
                 return;
+            } catch (Exception e)    // Capture other programming exceptions, otherwise thread is just blocked
+            {
+                Exceptions.printStackTrace(e);
+                return;
             } finally
             {
                 LOGGER.info("editUserPhrase() resuming from external Midi editing");
             }
 
-            Phrase newPhrase;
-            try
-            {
-                newPhrase = importMidiFile(midiFile, channel);
-            } catch (IOException | InvalidMidiDataException ex)
-            {
-                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(d);
-                LOGGER.warning("editUserPhrase() Problem importing edited Midi file. ex=" + ex.getMessage());
-                return;
-            }
-
-
-            // Check we do not erase a non-empty user phrase
-            if (newPhrase.isEmpty() && !oldPhrase.isEmpty())
-            {
-                String msg = ResUtil.getString(getClass(), "UserExtensionPanelController.ConfirmEmptyPhrase");
-                NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
-                Object result = DialogDisplayer.getDefault().notify(d);
-                if (result != NotifyDescriptor.YES_OPTION)
-                {
-                    return;
-                }
-            }
-
-
-            String msg = ResUtil.getString(getClass(), "UserExtensionPanelController.NewUserPhrase", newPhrase.size());
-            StatusDisplayer.getDefault().setStatusText(msg);
-
-
-            // Do the change
-            try
-            {
-                song.addUserPhrase(name, newPhrase);
-            } catch (PropertyVetoException ex)
-            {
-                // Should never happen, we replace an existing user phrase
-                Exceptions.printStackTrace(ex);
-            }
+            addUserPhrase(midiFile);
 
         };
 
@@ -169,10 +136,18 @@ public class UserExtensionPanelController
 
     }
 
+
     public void closePanel()
     {
         Song song = panel.getSong();
+        String undoText = "Remove user track";
+        
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);      
+        um.startCEdit(undoText);
+        
         song.removeUserPhrase(panel.getUserRhythmVoice().getName());
+        
+        um.endCEdit(undoText);
     }
 
 
@@ -205,6 +180,52 @@ public class UserExtensionPanelController
         return midiFile;
     }
 
+    private boolean addUserPhrase(File midiFile)
+    {
+        Song song = panel.getSong();
+        RhythmVoice rv = panel.getUserRhythmVoice();
+        String name = rv.getName();
+        Phrase oldPhrase = panel.getSong().getUserPhrase(name);
+        int channel = panel.getMidiMix().getChannel(rv);
+
+
+        Phrase newPhrase;
+        try
+        {
+            newPhrase = importPhrase(midiFile, channel);
+        } catch (IOException | InvalidMidiDataException ex)
+        {
+            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            LOGGER.warning("editUserPhrase() Problem importing edited Midi file. ex=" + ex.getMessage());
+            return false;
+        } catch (Exception e)    // Capture other programming exceptions, otherwise thread is just blocked
+        {
+            Exceptions.printStackTrace(e);
+            return false;
+        }
+
+
+        // Check we do not erase a non-empty user phrase
+        if (newPhrase.isEmpty() && !oldPhrase.isEmpty())
+        {
+            String msg = ResUtil.getString(getClass(), "UserExtensionPanelController.ConfirmEmptyPhrase");
+            NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
+            Object result = DialogDisplayer.getDefault().notify(d);
+            if (result != NotifyDescriptor.YES_OPTION)
+            {
+                return false;
+            }
+        }
+
+
+        String msg = ResUtil.getString(getClass(), "UserExtensionPanelController.NewUserPhrase", newPhrase.size());
+        StatusDisplayer.getDefault().setStatusText(msg);
+
+
+        return AddUserTrack.setUserPhraseAction(song, name, newPhrase);
+    }
+
     /**
      * Import phrase from the Midi file and from the specified channel notes.
      * <p>
@@ -213,7 +234,7 @@ public class UserExtensionPanelController
      *
      * @return Can be an empty phrase
      */
-    private Phrase importMidiFile(File midiFile, int channel) throws IOException, InvalidMidiDataException
+    private Phrase importPhrase(File midiFile, int channel) throws IOException, InvalidMidiDataException
     {
         Phrase res = new Phrase(channel);
 
@@ -226,12 +247,21 @@ public class UserExtensionPanelController
         List<Phrase> phrases = Phrase.getPhrases(tracks, channel);
         if (phrases.size() == 1)
         {
-            res.addAll(phrases.get(channel));
+            res.addAll(phrases.get(0));
         }
 
-        LOGGER.severe("importMidiFile() channel=" + channel + " phrase.size()=" + res.size());
+        LOGGER.log(Level.INFO, "importPhrase() channel={0} phrase.size()={1}", new Object[]
+        {
+            channel, res.size()
+        });
 
         return res;
+    }
+
+
+    public boolean midiFileDraggedIn(File midiFile)
+    {
+        return addUserPhrase(midiFile);
     }
 
 }

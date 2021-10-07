@@ -41,7 +41,7 @@ import org.openide.util.Exceptions;
  * <p>
  * This is an immutable class except for the client properties.
  */
-public class NoteEvent extends Note implements Cloneable
+public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 {
 
     private float position;
@@ -133,6 +133,7 @@ public class NoteEvent extends Note implements Cloneable
         this(pitch, durationInBeats, velocity, ne.getPositionInBeats());
         setClientProperties(ne);
     }
+
 
     /**
      * Reset all current properties and copy all properties from ne.
@@ -251,6 +252,35 @@ public class NoteEvent extends Note implements Cloneable
             return false;
         }
         return true;
+    }
+
+    /**
+     * Compare this NoteEvent to a Note.
+     * <p>
+     * If n is not a NoteEvent, delegate to Note.compareTo(Note). If n is a NoteEvent, compare first using position, then using
+     * Note.compareTo(Note).
+     *
+     * @param n
+     * @return
+     * @see Note#compareTo(org.jjazz.harmony.api.Note)
+     */
+    @Override
+    public int compareTo​(Note n)
+    {
+        int res;
+        if (n instanceof NoteEvent)
+        {
+            NoteEvent ne = (NoteEvent) n;
+            res = Float.compare(position, ne.position);
+            if (res == 0)
+            {
+                res = super.compareTo(ne);
+            }
+        } else
+        {
+            res = super.compareTo(n);
+        }
+        return res;
     }
 
     /**

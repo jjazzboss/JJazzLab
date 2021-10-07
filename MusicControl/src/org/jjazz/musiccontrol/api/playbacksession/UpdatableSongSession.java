@@ -28,9 +28,11 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
@@ -264,7 +266,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      */
     public void updateSequence(Update update)
     {
-        LOGGER.log(Level.FINE, "updateSequence() ---- update={0} nanoTime()={1}", new Object[]
+        LOGGER.log(Level.INFO, "updateSequence() ---- update={0} nanoTime()={1}", new Object[]
         {
             update, System.nanoTime()
         });
@@ -285,32 +287,61 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         }
 
 
-        // Update sequence for each modified phrase 
-        for (RhythmVoice rv : update.getMapRvPhrases().keySet())
+        // We might have potentially modified phrases, new user phrases or deleted user phrases
+        Set<RhythmVoice> updatedRvs = update.getMapRvPhrases().keySet();
+        Set<RhythmVoice> currentRvs = currentMapRvPhrase.keySet();
+        var modifiedPhraseRvs = new HashSet<>(updatedRvs);
+        modifiedPhraseRvs.retainAll(currentRvs);
+        var newUserPhraseRvs = new HashSet<>(updatedRvs);
+        newUserPhraseRvs.removeAll(currentRvs);
+        var removedUserPhraseRvs = new HashSet<>(currentRvs);
+        removedUserPhraseRvs.removeAll(updatedRvs);
+
+
+        // It's an error if we have new user phrase passed in an update: we can only work with a constant number of RhythmVoices/tracks
+        if (!newUserPhraseRvs.isEmpty())
         {
-            var newPhrase = update.getMapRvPhrases().get(rv);
-            var oldPhrase = currentMapRvPhrase.get(rv);
-//            LOGGER.info("   rv="+rv);
-//            LOGGER.info("     oldPhrase="+oldPhrase);
-//            LOGGER.info("     newPhrase="+newPhrase);
+            throw new IllegalStateException("updatedRvs=" + updatedRvs + " currentRvs=" + currentRvs + " => newUserPhraseRvs=" + newUserPhraseRvs);
+        }
 
 
-            if (oldPhrase.equals(newPhrase))
+        // Update sequence for each modified phrase 
+        for (RhythmVoice rv : modifiedPhraseRvs)
+        {
+            var updatedPhrase = update.getMapRvPhrases().get(rv);
+            var currentPhrase = currentMapRvPhrase.get(rv);
+//            LOGGER.log(Level.INFO, "   rv={0}", rv);
+//            LOGGER.log(Level.INFO, "     currentPhrase={0}", currentPhrase);
+//            LOGGER.log(Level.INFO, "     updatedPhrase={0}", updatedPhrase);
+
+
+            if (currentPhrase.equals(updatedPhrase))
             {
                 // No change do nothing
                 continue;
             } else
             {
                 // Replace the current events
-                LOGGER.log(Level.FINE, "updateSequence()     changes detected for rv={0}, updating", rv);
-                currentMapRvPhrase.put(rv, newPhrase);
+                LOGGER.log(Level.INFO, "updateSequence()     changes detected for rv={0}, updating", rv);
+                currentMapRvPhrase.put(rv, updatedPhrase);
             }
 
 
             // Update the track
             int trackId = getOriginalRvTrackIdMap().get(rv);
-            updateTrack(trackId, newPhrase.toMidiEvents(), precountShift);
+            updateTrack(trackId, updatedPhrase.toMidiEvents(), precountShift);
 
+        }
+
+
+        // Update sequence for each removed user phrase : set an empty phrase
+        for (RhythmVoice urv : removedUserPhraseRvs)
+        {
+            LOGGER.log(Level.INFO, "    Clearing user phrase for urv={0}", urv.getName());
+            Phrase emptyPhrase = new Phrase(getSongContext().getMidiMix().getChannel(urv));
+            currentMapRvPhrase.put(urv, emptyPhrase);
+            int trackId = getOriginalRvTrackIdMap().get(urv);
+            updateTrack(trackId, emptyPhrase.toMidiEvents(), precountShift);
         }
 
 

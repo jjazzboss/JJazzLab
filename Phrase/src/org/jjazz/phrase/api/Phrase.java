@@ -23,8 +23,13 @@
 package org.jjazz.phrase.api;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,9 +38,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.ShortMessage;
@@ -52,12 +57,12 @@ import org.jjazz.util.api.LongRange;
 /**
  * A list of NoteEvents sorted by start position.
  * <p>
- * Use addOrdered() to add a NoteEvent: this will ensure NoteEvents are kept ordered by position. Use of add() methods should be
- * used for optimization only when you are sure it will not change the NoteEvents order.
+ * Use addOrdered() to add a NoteEvent: this will ensure NoteEvents are kept ordered. Use of add() methods should be used for
+ * optimization only when you are sure it will not change the NoteEvents order.
  * <p>
  * LinkedList implementation to speed up item insertion/remove rather than random access.
  */
-public class Phrase extends LinkedList<NoteEvent>
+public class Phrase extends LinkedList<NoteEvent> implements Serializable
 {
 
     /**
@@ -174,32 +179,29 @@ public class Phrase extends LinkedList<NoteEvent>
     }
 
     /**
-     * Add a NoteEvent at the correct index depending on its position.
+     * Add a NoteEvent at the correct index using NoteEvent natural ordering.
      * <p>
      * @param mne
+     * @see NoteEvent#compareTo(org.jjazz.phrase.api.NoteEvent)
      */
     public void addOrdered(NoteEvent mne)
     {
-        if (isEmpty())
-        {
-            add(mne);
+        int res = Collections.binarySearch(this, mne);
 
+        int index;
+        if (res >= 0)
+        {
+            index = res;
+            LOGGER.log(Level.WARNING, "addOrdered() Inserting mne={0} but the same NoteEvent already exists at index={2}! this={1}", new Object[]
+            {
+                mne, this, index
+            });
         } else
         {
-            // There are more chances to find the right place near the end...
-            ListIterator<NoteEvent> it = listIterator(size());
-            boolean beforeEvent = true;
-            while (it.hasPrevious() && (beforeEvent = mne.isBefore(it.previous())))
-            {
-                // Nothing
-            }
-            if (!beforeEvent)
-            {
-                // We exited the loop because we're after the next event
-                it.next();
-            }
-            it.add(mne);
+            index = -(res + 1);
         }
+
+        add(index, mne);
     }
 
     /**
@@ -1020,7 +1022,7 @@ public class Phrase extends LinkedList<NoteEvent>
      *
      * @param tracks
      * @param channels Get phrases only for the specified channels. If empty, get phrases for all channels.
-     * @return 
+     * @return
      */
     static public List<Phrase> getPhrases(Track[] tracks, Integer... channels)
     {
@@ -1051,4 +1053,42 @@ public class Phrase extends LinkedList<NoteEvent>
         return new ArrayList<>(mapRes.values());
     }
 
+
+    // --------------------------------------------------------------------- 
+    // Serialization
+    // --------------------------------------------------------------------- */
+    private Object writeReplace()
+    {
+        return new SerializationProxy(this);
+    }
+
+    private void readObject(ObjectInputStream stream) throws InvalidObjectException
+    {
+        throw new InvalidObjectException("Serialization proxy required");
+
+    }
+
+
+    /**
+     * Rely on loadFromString()/saveAsString() methods.
+     */
+    private static class SerializationProxy implements Serializable
+    {
+
+        private static final long serialVersionUID = -1823649110L;
+
+        private final int spVERSION = 1;
+        private final String spSaveString;
+
+        private SerializationProxy(Phrase p)
+        {
+            spSaveString = saveAsString(p);
+        }
+
+        private Object readResolve() throws ObjectStreamException
+        {
+            Phrase p = loadAsString(spSaveString);
+            return p;
+        }
+    }
 }

@@ -26,6 +26,7 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyVetoException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -309,8 +310,8 @@ public class SongFactory implements PropertyChangeListener
     /**
      * Return a deep copy of the specified song.
      * <p>
-     * Copy only the following variables: chordleadsheet, songStructure, name, tempo, comments, tags<br>
-     * Listeners or file are NOT copied. 
+     * Copy only the following variables: chordleadsheet, songStructure, name, tempo, comments, tags, user phrases<br>
+     * Listeners or file are NOT copied.
      *
      * @param song
      * @param register If true register the created song
@@ -341,6 +342,18 @@ public class SongFactory implements PropertyChangeListener
         s.setComments(song.getComments());
         s.setTempo(song.getTempo());
         s.setTags(song.getTags());
+        for (String name : song.getUserPhraseNames())
+        {
+            try
+            {
+                s.setUserPhrase(name, song.getUserPhrase(name));
+            } catch (PropertyVetoException ex)
+            {
+                // Should never happen as it was OK for song
+                Exceptions.printStackTrace(ex);
+            }
+        }
+
 
         // Clean the default songStructure
         SongStructure newSgs = s.getSongStructure();
@@ -386,7 +399,8 @@ public class SongFactory implements PropertyChangeListener
      * <p>
      * WARNING: Because SongStructure and ChordLeadsheet are not linked, changing them might result in inconsistent states. This
      * should be used only in special cases.<p>
-     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags. Listeners or file are NOT copied.
+     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags, user phrases. Listeners or file
+     * are NOT copied.
      *
      * @param song
      * @param register If true register the created song.
@@ -433,6 +447,18 @@ public class SongFactory implements PropertyChangeListener
         s.setComments(song.getComments());
         s.setTempo(song.getTempo());
         s.setTags(song.getTags());
+        for (String name : song.getUserPhraseNames())
+        {
+            try
+            {
+                s.setUserPhrase(name, song.getUserPhrase(name));
+            } catch (PropertyVetoException ex)
+            {
+                // Should never happen as it was OK for song
+                Exceptions.printStackTrace(ex);
+            }
+        }
+
 
         s.resetNeedSave();
         if (register)
@@ -607,7 +633,7 @@ public class SongFactory implements PropertyChangeListener
         {
             registerSong(resSong);
         }
-        
+
         return resSong;
     }
 

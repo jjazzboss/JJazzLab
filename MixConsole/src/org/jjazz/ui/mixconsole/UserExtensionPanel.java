@@ -24,15 +24,23 @@ package org.jjazz.ui.mixconsole;
 
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
+import java.io.File;
+import java.util.logging.Logger;
 import javax.swing.JTextField;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.leadsheet.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.song.api.Song;
+import org.jjazz.songstructure.api.SgsChangeListener;
+import org.jjazz.songstructure.api.event.SgsChangeEvent;
+import org.jjazz.songstructure.api.event.SptAddedEvent;
+import org.jjazz.songstructure.api.event.SptRemovedEvent;
+import org.jjazz.songstructure.api.event.SptReplacedEvent;
+import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.ui.flatcomponents.api.FlatTextEditDialog;
+import org.jjazz.ui.utilities.api.MidiFileDragInTransferHandler;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.Utilities;
@@ -41,7 +49,7 @@ import org.jjazz.util.api.Utilities;
  * An extension of a MixChannelPanel to add specific controls for user phrase channels.
  * <p>
  */
-public class UserExtensionPanel extends javax.swing.JPanel implements VetoableChangeListener
+public class UserExtensionPanel extends javax.swing.JPanel implements VetoableChangeListener, SgsChangeListener
 {
 
     private UserRhythmVoice userRhythmVoice;
@@ -49,6 +57,7 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
     private MidiMix midiMix;
     private final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont();
     private UserExtensionPanelController controller;
+    private static final Logger LOGGER = Logger.getLogger(UserExtensionPanel.class.getSimpleName());
 
     public UserExtensionPanel()
     {
@@ -63,6 +72,7 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
         this.controller.setUserExtentionPanel(this);
         this.song = song;
         this.song.addVetoableChangeListener(this);
+        this.song.getSongStructure().addSgsChangeListener(this);
         this.midiMix = midiMix;
         userRhythmVoice = urv;
         if (urv != null)
@@ -70,6 +80,10 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
             String s = Utilities.truncateWithDots(userRhythmVoice.getName(), 8);
             fbtn_name.setText(s);
         }
+
+        // By default enable the drag in transfer handler
+        setTransferHandler(new MidiFileDragInTransferHandlerImpl());
+
 
         phraseUpdated();
     }
@@ -92,6 +106,7 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
     public void cleanup()
     {
         song.removeVetoableChangeListener(this);
+        song.getSongStructure().removeSgsChangeListener(this);
     }
 
     //-----------------------------------------------------------------------
@@ -102,7 +117,12 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
     {
         if (e.getSource() == song)
         {
-            if (e.getPropertyName().equals(Song.PROP_VETOABLE_USER_PHRASE) && e.getNewValue() != null)
+            if (e.getPropertyName().equals(Song.PROP_VETOABLE_USER_PHRASE))
+            {
+                // If it's a first new phrase for name : should never happen here, this panel was created on this event already
+                // If it's a removed phrase: this panel will be removed
+                // => Do nothing
+            } else if (e.getPropertyName().equals(Song.PROP_VETOABLE_USER_PHRASE_CONTENT))
             {
                 phraseUpdated();
             }
@@ -111,14 +131,60 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
     }
 
     //-----------------------------------------------------------------------
+    // SgsChangeListener interface
+    //-----------------------------------------------------------------------
+    @Override
+    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
+    {
+        // Do nothing
+    }
+
+    @Override
+    public void songStructureChanged(SgsChangeEvent e)
+    {
+        if (e instanceof SptResizedEvent
+                || e instanceof SptAddedEvent
+                || e instanceof SptRemovedEvent
+                || e instanceof SptReplacedEvent
+                )
+        {
+            // Song size in beats is impacted, so is our birdViewComponent
+            phraseUpdated();
+        }
+    }
+
+    //-----------------------------------------------------------------------
     // Private methods
     //-----------------------------------------------------------------------
     private void phraseUpdated()
     {
+        LOGGER.fine("phraseUpdated() --");
         FloatRange beatRange = song.getSongStructure().getBeatRange(null);
         TimeSignature ts = song.getSongStructure().getSongPart(0).getRhythm().getTimeSignature();
         birdViewComp.setModel(song.getUserPhrase(userRhythmVoice.getName()), ts, beatRange);
     }
+
+
+    //-----------------------------------------------------------------------
+    // Private classes
+    //---------------------------------------------------------------------
+    private class MidiFileDragInTransferHandlerImpl extends MidiFileDragInTransferHandler
+    {
+
+        @Override
+        protected boolean isImportEnabled()
+        {
+            return isEnabled();
+        }
+
+        @Override
+        protected boolean importMidiFile(File midiFile)
+        {
+            return controller.midiFileDraggedIn(midiFile);
+        }
+
+    }
+
 
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
@@ -201,7 +267,7 @@ public class UserExtensionPanel extends javax.swing.JPanel implements VetoableCh
         jPanel2.add(pnl_edit, java.awt.BorderLayout.WEST);
 
         birdViewComp.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(61, 61, 61)));
-        birdViewComp.setForeground(new java.awt.Color(0, 153, 153));
+        birdViewComp.setForeground(new java.awt.Color(192, 115, 242));
         birdViewComp.setToolTipText(org.openide.util.NbBundle.getMessage(UserExtensionPanel.class, "UserExtensionPanel.birdViewComp.toolTipText")); // NOI18N
         birdViewComp.setOpaque(false);
 

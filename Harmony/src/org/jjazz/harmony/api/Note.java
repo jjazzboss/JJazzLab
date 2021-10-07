@@ -579,7 +579,6 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * Compare 2 objects.
      * <p>
-     * Accept Note object and String objects.
      *
      * @return True if 2 notes have same pitch, beatDuration and velocity. AlterationDisplay is ignored.
      */
@@ -615,7 +614,7 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * Use pitch, beatDuration and velocity.
+     * Uses pitch, beatDuration and velocity, alterationDisplay is ignored.
      *
      * @return
      */
@@ -630,29 +629,26 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * @param o
-     * @return True if 2 notes have the same pitch.
+     * Compare 2 notes.
+     * <p>
+     * Uses pitch, then beatDuration, then velocity. AlterationDisplay is ignored.
+     *
+     * @param n
+     * @return
      */
     @Override
-    public int compareTo(Note o)
+    public int compareTo(Note n)
     {
-        if (!(o instanceof Note))
+        int res = Integer.compare(pitch, n.pitch);
+        if (res == 0)
         {
-            throw new ClassCastException("Invalid class to be compared to a Note : " + o);
+            res = Float.compare(beatDuration, n.beatDuration);
+            if (res == 0)
+            {
+                res = Float.compare(velocity, n.velocity);
+            }
         }
-
-        int opitch = o.pitch;
-
-        if (opitch > pitch)
-        {
-            return -1;
-        } else if (opitch < pitch)
-        {
-            return 1;
-        } else
-        {
-            return 0;
-        }
+        return res;
     }
 
     /**

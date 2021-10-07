@@ -32,11 +32,12 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.song.api.Song;
 import org.jjazz.ui.mixconsole.api.MixConsole;
 import org.jjazz.ui.mixconsole.api.MixConsoleTopComponent;
+import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.util.api.ResUtil;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.Exceptions;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.ui.mixconsole.actions.addusertrack")
 @ActionRegistration(displayName = "not_used", lazy = false)
@@ -44,7 +45,7 @@ import org.openide.awt.ActionRegistration;
 public class AddUserTrack extends AbstractAction
 {
 
-    private final String undoText = ResUtil.getString(getClass(), "CTL_AddUserTrack");
+    private static final String undoText = ResUtil.getString(AddUserTrack.class, "CTL_AddUserTrack");
     private static final Logger LOGGER = Logger.getLogger(AddUserTrack.class.getSimpleName());
 
     public AddUserTrack()
@@ -64,6 +65,8 @@ public class AddUserTrack extends AbstractAction
             return;
         }
 
+
+        // Find a name not already used
         String basename = "User";
         int index = 1;
         var usedNames = song.getUserPhraseNames();
@@ -73,13 +76,45 @@ public class AddUserTrack extends AbstractAction
         }
         String name = basename + index;
 
+
+        // Perform the change
+        setUserPhraseAction(song, name, new Phrase(0));
+    }
+
+    /**
+     * The undoable action.
+     *
+     * @param song
+     * @param name
+     * @param p
+     * @return True if operation was successful
+     * @throws PropertyVetoException
+     */
+    static public boolean setUserPhraseAction(Song song, String name, Phrase p)
+    {
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
+        um.startCEdit(undoText);
+
         try
         {
-            song.addUserPhrase(name, new Phrase(0));
+            song.setUserPhrase(name, p);
         } catch (PropertyVetoException ex)
         {
-            NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(nd);
+            String msg = "Impossible to add or update user phrase " + name + ".\n" + ex.getLocalizedMessage();
+            um.handleUnsupportedEditException(undoText, msg);
+            return false;
+        } catch (Exception ex)    // Capture other programming exceptions, because method can be called from within a thread
+        {
+            String msg = "Impossible to add or update user phrase " + name + ".\n" + ex.getLocalizedMessage();            
+            um.handleUnsupportedEditException(undoText, msg);            
+            Exceptions.printStackTrace(ex);
+            return false;
         }
+
+        um.endCEdit(undoText);
+        
+        return true;
+
     }
+
 }

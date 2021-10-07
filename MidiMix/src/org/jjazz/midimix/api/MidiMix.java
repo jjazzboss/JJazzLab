@@ -1184,37 +1184,35 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         {
             if (e.getPropertyName().equals(Song.PROP_VETOABLE_USER_PHRASE))
             {
-                if (e.getNewValue() != null)
+                String name = (String) e.getNewValue();
+                if (name != null)
                 {
-                    // It's a new user phrase, or the phrase has been changed
-                    String name = (String) e.getNewValue();
-                    if (getUserRhythmVoice(name) != null)
+                    // It's a new user phrase, create an InstrumentMix
+                    int channel = getUsedChannels().contains(UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL) ? findFreeChannel(false) : UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL;
+                    if (channel == -1)
                     {
-                        // The phrase has been changed, we already have a UserRhythmVoice, nothing to do
-
-                    } else
-                    {
-                        // It's a new user phrase, create an InstrumentMix
-                        int channel = getUsedChannels().contains(UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL) ? findFreeChannel(false) : UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL;
-                        if (channel == -1)
-                        {
-                            String msg = ResUtil.getString(getClass(), "ERR_NotEnoughChannels");
-                            throw new PropertyVetoException(msg, e);
-                        }
-
-                        // Use a RhythmVoiceInstrumentProvider to get the instrument
-                        var urv = new UserRhythmVoice(name);
-                        RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.Util.getProvider();
-                        Instrument ins = p.findInstrument(urv);
-                        var insMix = new InstrumentMix(ins, new InstrumentSettings());
-                        setInstrumentMix(channel, urv, insMix);
+                        String msg = ResUtil.getString(getClass(), "ERR_NotEnoughChannels");
+                        throw new PropertyVetoException(msg, e);
                     }
 
-                } else if (e.getOldValue() != null)
+                    // Use a RhythmVoiceInstrumentProvider to get the instrument
+                    var urv = new UserRhythmVoice(name);
+                    RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.Util.getProvider();
+                    Instrument ins = p.findInstrument(urv);
+                    var insMix = new InstrumentMix(ins, new InstrumentSettings());
+                    setInstrumentMix(channel, urv, insMix);
+
+                } else
                 {
                     // User phrase was removed
-                    removeUserChannel((String) e.getOldValue());
+                    name = (String) e.getOldValue();
+                    removeUserChannel(name);
+
                 }
+            } else if (e.getPropertyName().equals(Song.PROP_VETOABLE_USER_PHRASE_CONTENT))
+            {
+                // User phrase was updated
+                // Nothing to do
             }
         }
     }
