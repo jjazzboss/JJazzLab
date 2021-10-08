@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -599,7 +600,10 @@ public class SongSequenceBuilder
     {
         if (r instanceof MusicGenerator)
         {
-            LOGGER.fine("fillRhythmTracks() calling generateMusic() for rhythm r=" + r.getName());   //NOI18N
+            LOGGER.log(Level.FINE, "fillRhythmTracks() calling generateMusic() for rhythm r={0} hashCode(r)={1}", new Object[]
+            {
+                r.getName(), Objects.hashCode(r)
+            });  
             r.loadResources();
             return ((MusicGenerator) r).generateMusic(songContext);
         } else

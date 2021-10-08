@@ -157,7 +157,7 @@ public class RP_SYS_CustomPhraseValue
             Phrase p = v.getCustomizedPhrase(rv);
             sb.append(rv.getName())
                     .append("%")
-                    .append(Phrase.saveAsString(p));   PROBLEM ! Use SptPhrase ??
+                    .append(Phrase.saveAsString(p));  
             if (first)
             {
                 sb.append("&");
