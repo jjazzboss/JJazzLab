@@ -17,7 +17,6 @@ import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.openide.util.Exceptions;
 
 /**
  * A RhythmParameter to replace one or more RhythmVoice phrases by custom phrases.
@@ -154,10 +153,9 @@ public class RP_SYS_CustomPhraseValue
         boolean first = true;
         for (RhythmVoice rv : v.getCustomizedRhythmVoices())
         {
-            Phrase p = v.getCustomizedPhrase(rv);
-            sb.append(rv.getName())
-                    .append("%")
-                    .append(Phrase.saveAsString(p));  
+            SptPhrase sp = v.getCustomizedPhrase(rv);
+            sb.append(rv.getName()).append("%").append(SptPhrase.saveAsString(sp));
+
             if (first)
             {
                 sb.append("&");
@@ -200,8 +198,8 @@ public class RP_SYS_CustomPhraseValue
                         break;
                     }
 
-                    SptPhrase p = SptPhrase.loadAsString(strs2[1]);
-                    res.mapRvPhrase.put(rv, p);
+                    SptPhrase sp = SptPhrase.loadAsString(strs2[1]);
+                    res.mapRvPhrase.put(rv, sp);
 
                 } catch (IllegalArgumentException ex)
                 {

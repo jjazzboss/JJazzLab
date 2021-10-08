@@ -366,9 +366,9 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
                 Phrase pOld = getPhrase(rv);
                 if (!pNew.equalsLoosePosition(pOld, PHRASE_COMPARE_BEAT_WINDOW))
                 {
-                    LOGGER.info("importMidiFile() setting custom phrase for rv=" + rv);
-                    LOGGER.info("importMidiFile() pOld=" + pOld);
-                    LOGGER.info("importMidiFile() pNew=" + pNew);
+//                    LOGGER.info("importMidiFile() setting custom phrase for rv=" + rv);
+//                    LOGGER.info("importMidiFile() pOld=" + pOld);
+//                    LOGGER.info("importMidiFile() pNew=" + pNew);
                     SptPhrase sp = new SptPhrase(pNew, songContext.getBeatRange().size(), songPart.getRhythm().getTimeSignature());
                     addCustomizedPhrase(rv, sp);
                     impactedRvs.add(rv);
