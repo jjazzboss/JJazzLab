@@ -10,6 +10,9 @@
     </Property>
     <Property name="opaque" type="boolean" value="false"/>
   </Properties>
+  <Events>
+    <EventHandler event="mouseDragged" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="formMouseDragged"/>
+  </Events>
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="1"/>
     <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
@@ -42,11 +45,11 @@
         </Property>
         <Property name="arcDiameter" type="int" value="20"/>
         <Property name="inheritsPopupMenu" type="boolean" value="true"/>
+        <Property name="insetsThickness" type="int" value="1"/>
         <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
           <Dimension value="[20, 53]"/>
         </Property>
         <Property name="opaque" type="boolean" value="true"/>
-        <Property name="insetsThickness" type="int" value="1"/>
       </Properties>
 
       <Layout>
@@ -268,6 +271,9 @@
           <Properties>
             <Property name="opaque" type="boolean" value="false"/>
           </Properties>
+          <Events>
+            <EventHandler event="mouseDragged" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="pnl_muteMouseDragged"/>
+          </Events>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
             <Property name="horizontalGap" type="int" value="0"/>
@@ -297,6 +303,9 @@
           <Properties>
             <Property name="opaque" type="boolean" value="false"/>
           </Properties>
+          <Events>
+            <EventHandler event="mouseDragged" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="pnl_soloMouseDragged"/>
+          </Events>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout">
             <Property name="horizontalGap" type="int" value="0"/>
@@ -392,6 +401,9 @@
                   </Border>
                 </Property>
               </Properties>
+              <Events>
+                <EventHandler event="mouseDragged" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="lbl_IconMouseDragged"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>
@@ -425,6 +437,9 @@
                   </Border>
                 </Property>
               </Properties>
+              <Events>
+                <EventHandler event="mouseDragged" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="lbl_nameMouseDragged"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>
@@ -456,6 +471,7 @@
                 <Property name="name" type="java.lang.String" value="" noResource="true"/>
               </Properties>
               <Events>
+                <EventHandler event="mouseDragged" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="fbtn_channelIdMouseDragged"/>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fbtn_channelIdActionPerformed"/>
               </Events>
             </Component>

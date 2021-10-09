@@ -27,11 +27,17 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +45,10 @@ import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Sequence;
+import javax.sound.midi.Track;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -51,6 +60,9 @@ import javax.swing.JList;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
+import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
+import static javax.swing.TransferHandler.COPY;
 import javax.swing.undo.UndoManager;
 import org.jjazz.activesong.api.ActiveSongManager;
 import org.jjazz.base.api.actions.Savable;
@@ -68,8 +80,13 @@ import org.jjazz.song.api.Song;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.midimix.api.UserRhythmVoice;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.rhythm.api.AdaptedRhythm;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.stubs.api.DummyRhythm;
+import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
+import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder.SongSequence;
+import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songeditormanager.api.SongEditorManager;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
@@ -90,6 +107,7 @@ import org.jjazz.ui.mixconsole.MixChannelPanelModelImpl;
 import org.jjazz.ui.mixconsole.MixConsoleLayoutManager;
 import org.jjazz.ui.mixconsole.UserExtensionPanel;
 import org.jjazz.ui.mixconsole.UserExtensionPanelController;
+import org.jjazz.ui.utilities.api.FileTransferable;
 import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.options.OptionsDisplayer;
@@ -169,6 +187,9 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         // UI initialization
         initComponents();
 
+
+        // Drag out handler
+        panel_mixChannels.setTransferHandler(new MidiFileDragOutTransferHandler(null));
 
         // Use our LayoutManager to arranger MixChannelPanels and their extensions
         panel_mixChannels.setLayout(new MixConsoleLayoutManager());
@@ -378,6 +399,14 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         scrollPane_mixChannelsPanel.setBackground(new java.awt.Color(220, 220, 220));
         scrollPane_mixChannelsPanel.setOpaque(false);
 
+        panel_mixChannels.setToolTipText(org.openide.util.NbBundle.getMessage(MixConsole.class, "MixConsole.panel_mixChannels.toolTipText")); // NOI18N
+        panel_mixChannels.addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+        {
+            public void mouseDragged(java.awt.event.MouseEvent evt)
+            {
+                panel_mixChannelsMouseDragged(evt);
+            }
+        });
         panel_mixChannels.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 3, 5));
         scrollPane_mixChannelsPanel.setViewportView(panel_mixChannels);
 
@@ -385,6 +414,11 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         add(panel_Main, java.awt.BorderLayout.PAGE_START);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void panel_mixChannelsMouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_panel_mixChannelsMouseDragged
+    {//GEN-HEADEREND:event_panel_mixChannelsMouseDragged
+        startDragOut(evt);
+    }//GEN-LAST:event_panel_mixChannelsMouseDragged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<Rhythm> cb_viewRhythms;
@@ -603,20 +637,24 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private void addMixChannelPanel(MidiMix mm, int channel)
     {
         MixChannelPanel mcp;
-        RhythmVoice rvKey = songMidiMix.getRhythmVoice(channel);
-        if (rvKey instanceof UserRhythmVoice)
+        RhythmVoice rv = songMidiMix.getRhythmVoice(channel);
+        if (rv instanceof UserRhythmVoice)
         {
             // User channel
             mcp = createMixChannelPanelForUserVoice(mm, channel);
             insertMixChannelPanel(channel, mcp);
-            UserExtensionPanel ucep = new UserExtensionPanel(songModel, songMidiMix, (UserRhythmVoice) rvKey, new UserExtensionPanelController());
+            UserExtensionPanel ucep = new UserExtensionPanel(songModel, songMidiMix, (UserRhythmVoice) rv, new UserExtensionPanelController());
             panel_mixChannels.add(ucep);        // Add always at the last position
         } else
         {
             // Rhythm channel
-            mcp = createMixChannelPanelForRhythmVoice(mm, channel, rvKey);
+            mcp = createMixChannelPanelForRhythmVoice(mm, channel, rv);
             insertMixChannelPanel(channel, mcp);
         }
+
+
+        // Set a transfer handler for each panel
+        mcp.setTransferHandler(new MidiFileDragOutTransferHandler(rv));      
 
 
         panel_mixChannels.revalidate();
@@ -678,7 +716,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
         mcp.setIcon(icon);
-        String txt = ResUtil.getString(getClass(), "CTL_RECOMMENDED");
+        String txt = ResUtil.getString(getClass(), "CTL_RECOMMENDED", prefIns.getFullName());
         if (!(prefIns instanceof GM1Instrument))
         {
             DrumKit kit = prefIns.getDrumKit();
@@ -950,12 +988,79 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     }
 
     /**
+     * Build an exportable sequence to a temp file.
+     *
+     * @param rv If not null export only the rv track, otherwise all tracks.
+     * @return The generated Midi temporary file.
+     * @throws IOException
+     * @throws MusicGenerationException
+     */
+    private File exportSequenceToMidiTempFile(RhythmVoice rv) throws IOException, MusicGenerationException
+    {
+        LOGGER.fine("exportSequenceToMidiTempFile() -- ");
+        assert songModel != null && songMidiMix != null : "songModel=" + songModel + " songMidiMix=" + songMidiMix;
+
+        // Create the temp file
+        File midiFile = File.createTempFile("JJazzMixConsoleDragOut", ".mid"); // throws IOException
+        midiFile.deleteOnExit();
+
+
+        // Build the sequence
+        var sgContext = new SongContext(songModel, songMidiMix);
+        SongSequence songSequence = new SongSequenceBuilder(sgContext).buildExportableSequence(true, false); // throws MusicGenerationException
+
+
+        // Keep only rv track if defined
+        if (rv != null)
+        {
+            int trackId = songSequence.mapRvTrackId.get(rv);
+
+            // Remove all tracks except trackId, need to start from last track
+            Track[] tracks = songSequence.sequence.getTracks();
+            for (int i = tracks.length - 1; i >= 0; i--)
+            {
+                if (i != trackId)
+                {
+                    songSequence.sequence.deleteTrack(tracks[i]);
+                }
+            }
+
+        } else
+        {
+            // Add click & precount tracks
+            var ps = PlaybackSettings.getInstance();
+            if (ps.isPlaybackClickEnabled())
+            {
+                ps.addClickTrack(songSequence.sequence, sgContext);
+            }
+            if (ps.isClickPrecountEnabled())
+            {
+                ps.addPrecountClickTrack(songSequence.sequence, sgContext);      // Must be done last, shift all events
+            }
+        }
+
+
+        // Write the midi file     
+        MidiSystem.write(songSequence.sequence, 1, midiFile);   // throws IOException
+
+        return midiFile;
+    }
+
+    private void startDragOut(MouseEvent evt)
+    {
+        if (SwingUtilities.isLeftMouseButton(evt))
+        {
+            panel_mixChannels.getTransferHandler().exportAsDrag(panel_mixChannels, evt, TransferHandler.COPY);
+        }
+    }
+
+    /**
      * Get MixConsole MenuBar.
      * <p>
      * Created from layer registrations the lawyer, and apply tweaking for the MixConsole.
      *
      * @param layerPath
-     * @return 
+     * @return
      * @todo Localize File & Edit menu names
      */
     private MenuBar buildMenuBar(String layerPath)
@@ -1045,6 +1150,118 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         private void showMidiOptionPanel()
         {
             OptionsDisplayer.getDefault().open("MidiPanelId");
+        }
+    }
+
+    /**
+     * Our drag'n drop support to export Midi files when dragging from this component.
+     */
+    private class MidiFileDragOutTransferHandler extends TransferHandler
+    {
+
+        RhythmVoice rv;
+
+        /**
+         * @param rv If null, export the whole sequence, otherwise only the rv track.
+         */
+        public MidiFileDragOutTransferHandler(RhythmVoice rv)
+        {
+            this.rv = rv;
+        }
+
+        @Override
+        public int getSourceActions(JComponent c)
+        {
+            LOGGER.fine("MidiFileDragOutTransferHandler.getSourceActions()  c=" + c);   //NOI18N
+
+            int res = TransferHandler.NONE;
+
+            // Make sure we'll be able to generate a song
+            if (songModel != null && songMidiMix != null)
+            {
+                if (!songModel.getSongStructure().getSongParts().isEmpty() && (rv != null || !isAllMuted(songMidiMix)))
+                {
+                    res = TransferHandler.COPY_OR_MOVE;
+                }
+            }
+
+            return res;
+        }
+
+
+        @Override
+        public Transferable createTransferable(JComponent c)
+        {
+            LOGGER.fine("MidiFileDragOutTransferHandler.createTransferable()  c=" + c);   //NOI18N
+
+            File midiFile = null;
+            try
+            {
+                midiFile = exportSequenceToMidiTempFile(rv);
+            } catch (MusicGenerationException | IOException ex)
+            {
+                NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+            }
+
+            List<File> data = midiFile == null ? null : Arrays.asList(midiFile);
+
+            Transferable t = new FileTransferable(data);
+
+            return t;
+        }
+
+        /**
+         *
+         * @param c
+         * @param data
+         * @param action
+         */
+        @Override
+        protected void exportDone(JComponent c, Transferable data, int action)
+        {
+            // Will be called if drag was initiated from this handler
+            LOGGER.fine("MidiFileDragOutTransferHandler.exportDone()  c=" + c + " data=" + data + " action=" + action);   //NOI18N
+        }
+
+        /**
+         * Overridden only to show a drag icon when dragging is still inside this component
+         *
+         * @param support
+         * @return
+         */
+        @Override
+        public boolean canImport(TransferHandler.TransferSupport support)
+        {
+            // Use copy drop icon
+            support.setDropAction(COPY);
+            return true;
+        }
+
+        /**
+         * Do nothing if we drop on ourselves.
+         *
+         * @param support
+         * @return
+         */
+        @Override
+        public boolean importData(TransferHandler.TransferSupport support)
+        {
+            return false;
+        }
+
+        private boolean isAllMuted(MidiMix mm)
+        {
+            boolean res = true;
+            for (RhythmVoice rv : mm.getRhythmVoices())
+            {
+                if (!mm.getInstrumentMixFromKey(rv).isMute())
+                {
+                    res = false;
+                    break;
+                }
+            }
+            return res;
         }
     }
 

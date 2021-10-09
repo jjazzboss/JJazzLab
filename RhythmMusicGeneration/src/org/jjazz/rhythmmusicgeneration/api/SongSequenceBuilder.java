@@ -241,10 +241,11 @@ public class SongSequenceBuilder
      *
      *
      * @param silent
+     * @param ignoreMidiMixMute If true, a track will sound even if it was muted in the context MidiMix
      * @return
      * @throws org.jjazz.rhythm.api.MusicGenerationException
      */
-    public SongSequence buildExportableSequence(boolean silent) throws MusicGenerationException
+    public SongSequence buildExportableSequence(boolean silent, boolean ignoreMidiMixMute) throws MusicGenerationException
     {
 
         var songSequence = buildAll(silent);     // throws MusicGenerationException
@@ -255,7 +256,14 @@ public class SongSequenceBuilder
         Track[] tracks = sequence.getTracks();
         Track track0 = tracks[0];
 
-
+        
+        if (!MidiUtilities.checkMidiFileTypeSupport(sequence, 1, true))
+        {
+            throw new IllegalStateException("This Java Sequence implementation does not support Midi File Type 1");
+        }
+        
+        
+        // ========== Track 0 settings =============
         // Copyright
         MidiMessage mmCopyright = MidiUtilities.getCopyrightMetaMessage("JJazzLab Midi Export file");
         MidiEvent me = new MidiEvent(mmCopyright, 0);
@@ -360,6 +368,21 @@ public class SongSequenceBuilder
             track0.add(me);
         }
 
+        // ========== RhythmVoice tracks settings =============
+
+        // Remove elements from muted tracks (don't remove the muted tracks because it would impact mapRvTrack)
+        if (!ignoreMidiMixMute)
+        {
+            for (RhythmVoice rv : midiMix.getRhythmVoices())
+            {
+                if (midiMix.getInstrumentMixFromKey(rv).isMute())
+                {
+                    Track track = sequence.getTracks()[songSequence.mapRvTrackId.get(rv)];
+                    MidiUtilities.clearTrack(track);
+                }
+            }
+        }
+
 
         // For each RhythmVoice :
         // - reset all controllers
@@ -381,7 +404,7 @@ public class SongSequenceBuilder
                 me = new MidiEvent(mm, 0);
                 track.add(me);
             }
-        }
+        }     
 
         return songSequence;
     }
@@ -483,7 +506,10 @@ public class SongSequenceBuilder
             // Adapt the phrase to the current context
             p.slice(br.from, br.to, false, true);
 
-            LOGGER.severe("buildMapRvPhrase() Adding user phrase for name=" + userPhraseName + " p=" + p);
+            LOGGER.log(Level.FINE, "buildMapRvPhrase() Adding user phrase for name={0} p={1}", new Object[]
+            {
+                userPhraseName, p
+            });
 
             res.put(urv, p);
         }
@@ -603,7 +629,7 @@ public class SongSequenceBuilder
             LOGGER.log(Level.FINE, "fillRhythmTracks() calling generateMusic() for rhythm r={0} hashCode(r)={1}", new Object[]
             {
                 r.getName(), Objects.hashCode(r)
-            });  
+            });
             r.loadResources();
             return ((MusicGenerator) r).generateMusic(songContext);
         } else

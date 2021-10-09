@@ -286,7 +286,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     }
 
     /**
-     * Return the list user phrase RhythmVoice keys.
+     * Return the subset of RhythmVoices which are UserRhythmVoices.
      *
      * @return
      */
@@ -503,7 +503,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     }
 
     /**
-     * The RhythmVoices corresponding to the non-null InstrumentMixes.
+     * Get all the RhythmVoices corresponding to the non-null InstrumentMixes.
+     * <p>
+     * Returned list includes UserRhythmVoice instances as well.
      *
      * @return
      */

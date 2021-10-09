@@ -628,6 +628,7 @@ public class PlaybackSettings
         {
             LOGGER.log(Level.SEVERE, null, ex);   //NOI18N
         }
+        
         // Next section tick
         long nextTick = tickOffset + (long) (nbNaturalBeats * MidiConst.PPQ_RESOLUTION);
         return nextTick;

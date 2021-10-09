@@ -22,6 +22,7 @@
  */
 package org.jjazz.midi.api;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -36,7 +37,10 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiAddress.BankSelectMethod;
 import org.jjazz.util.api.LongRange;
+import org.jjazz.util.api.ResUtil;
 import org.jjazz.util.api.Utilities;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
 
 /**
@@ -784,6 +788,41 @@ public class MidiUtilities
     }
 
     /**
+     * Check if the Midi sequence supports the specified Midi file type.
+     * 
+     * @param sequence
+     * @param fileType 0 or 1
+     * @param notifyUser If true and fileType is not supported, notify end user.
+     * @return True if fileType is supported 
+     */
+    static public boolean checkMidiFileTypeSupport(Sequence sequence, int fileType, boolean notifyUser)
+    {
+        checkNotNull(sequence);
+        checkArgument(fileType==0 || fileType==1, "Invalid file type=%s", fileType);
+        
+        int[] fileTypes = MidiSystem.getMidiFileTypes(sequence);
+        boolean res = false;
+        for (int type : fileTypes)
+        {
+            if (type == fileType)
+            {
+                res = true;
+                break;
+            }
+        }
+        
+        if (!res && notifyUser)
+        {
+            String msg = ResUtil.getString(MidiUtilities.class, "ERR_MidiFileTypeNotSupported", fileType);
+            LOGGER.warning(msg);   //NOI18N
+            NotifyDescriptor nd = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(nd);
+        }
+        
+        return res;
+    }
+
+    /**
      * Change the channel of ShortMessage events in the sequence.
      * <p>
      * All ShortMessages belonging to one of the fromChannels are reassigned to channel destChannel.
@@ -1144,7 +1183,7 @@ public class MidiUtilities
         }
         for (byte b : mm.getMessage())
         {
-            s.append(".").append(Integer.toHexString((int)(b &0xFF)));
+            s.append(".").append(Integer.toHexString((int) (b & 0xFF)));
         }
         return s.toString();
     }

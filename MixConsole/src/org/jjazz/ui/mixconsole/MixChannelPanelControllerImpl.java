@@ -23,7 +23,6 @@
 package org.jjazz.ui.mixconsole;
 
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import org.jjazz.instrumentchooser.spi.InstrumentChooserDialog;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
@@ -41,7 +40,6 @@ import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
-import org.openide.util.Exceptions;
 
 /**
  *
@@ -206,7 +204,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         Instrument ins = bank.getPreviousInstrument(insMix.getInstrument());
         insMix.setInstrument(ins);
     }
-
+    
     private String buildTitle()
     {
         StringBuilder title = new StringBuilder(ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.DialogTitle", channelId + 1));

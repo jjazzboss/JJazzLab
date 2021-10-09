@@ -171,7 +171,7 @@ public class UserExtensionPanelController
 
 
         // Build the sequence
-        SongSequenceBuilder.SongSequence songSequence = new SongSequenceBuilder(sgContext).buildExportableSequence(true); // throws MusicGenerationException
+        SongSequenceBuilder.SongSequence songSequence = new SongSequenceBuilder(sgContext).buildExportableSequence(true, true); // throws MusicGenerationException
 
 
         // Write the midi file     

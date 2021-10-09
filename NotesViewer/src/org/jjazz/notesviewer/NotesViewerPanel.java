@@ -130,7 +130,9 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
         // Listen to active song changes
         var asm = ActiveSongManager.getInstance();
         asm.addPropertyListener(this);
-
+        activeSongChanged(asm.getActiveSong(), asm.getActiveMidiMix());
+        
+        
         // Listen to selection changes in the current leadsheet editor
         cap = CL_ContextActionSupport.getInstance(Utilities.actionsGlobalContext());
         cap.addListener(this);

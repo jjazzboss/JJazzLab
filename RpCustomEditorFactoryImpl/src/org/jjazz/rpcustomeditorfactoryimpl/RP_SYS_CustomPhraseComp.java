@@ -425,7 +425,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
         // Build the sequence
         SongContext workContext = buildWorkContext();
-        SongSequence songSequence = new SongSequenceBuilder(workContext).buildExportableSequence(true); // throws MusicGenerationException
+        SongSequence songSequence = new SongSequenceBuilder(workContext).buildExportableSequence(true, true); // throws MusicGenerationException
 
 
         // Update the reference mapRvPhrases because the generation of some rhythms (e.g. from the YamJJazz engine) might use random items.
