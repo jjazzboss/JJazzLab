@@ -38,6 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -850,24 +851,10 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      */
     static public String saveAsString(Phrase p)
     {
-        StringBuilder sb = new StringBuilder();
-        String delimiter = "|";
-        sb.append("[");
-        sb.append(p.getChannel()).append(delimiter);
-        boolean first = true;
-        for (NoteEvent ne : p)
-        {
-            if (first)
-            {
-                first = false;
-            } else
-            {
-                sb.append(delimiter);
-            }
-            sb.append(NoteEvent.saveAsString(ne));
-        }
-        sb.append("]");
-        return sb.toString();
+        StringJoiner joiner = new StringJoiner("|", "[", "]");
+        joiner.add(String.valueOf(p.getChannel()));
+        p.forEach(ne -> joiner.add(NoteEvent.saveAsString(ne)));
+        return joiner.toString();
     }
 
     /**

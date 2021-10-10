@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.logging.Logger;
 
 /**
@@ -296,25 +297,14 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     @Override
     public String saveAsString(Set<String> value)
     {
-        String s = null;
+        String res = null;
         if (isValidValue(value))
         {
-            StringBuilder sb = new StringBuilder();
-            sb.append("[");
-            boolean first = true;
-            for (String v : value)
-            {
-                if (!first)
-                {
-                    sb.append(",");
-                }
-                sb.append(v);
-                first = false;
-            }
-            sb.append("]");
-            s = sb.toString();
+            StringJoiner joiner = new StringJoiner(",", "[", "]");
+            value.forEach(s -> joiner.add(s));
+            res = joiner.toString();
         }
-        return s;
+        return res;
     }
 
     @Override

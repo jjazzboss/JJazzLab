@@ -823,6 +823,8 @@ final class MidiPanel extends javax.swing.JPanel implements ListSelectionListene
             }
         }
 
+                        
+        
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (var mm : messages)

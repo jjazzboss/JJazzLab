@@ -1,8 +1,11 @@
 package org.jjazz.rhythm.api.rhythmparameters;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jjazz.midi.api.DrumKit;
 
 /**
@@ -146,65 +149,36 @@ public class RP_SYS_DrumsMixValue
 
     public String toDescriptionString()
     {
-        StringBuilder sb = new StringBuilder();
+        List<String> strs = new ArrayList<>();
         if (bassDrumOffset != 0)
         {
-            if (sb.length() > 0)
-            {
-                sb.append(", ");
-            }
-            sb.append("BD:").append(getPlusMinusString(bassDrumOffset));
+            strs.add("BD:" + getPlusMinusString(bassDrumOffset));
         }
         if (snareOffset != 0)
         {
-            if (sb.length() > 0)
-            {
-                sb.append(", ");
-            }
-            sb.append("SN:").append(getPlusMinusString(snareOffset));
+            strs.add("SD:" + getPlusMinusString(snareOffset));
         }
         if (hiHatOffset != 0)
         {
-            if (sb.length() > 0)
-            {
-                sb.append(", ");
-            }
-            sb.append("HH:").append(getPlusMinusString(hiHatOffset));
+            strs.add("HH:" + getPlusMinusString(hiHatOffset));
         }
         if (tomsOffset != 0)
         {
-            if (sb.length() > 0)
-            {
-                sb.append(", ");
-            }
-            sb.append("TO:").append(getPlusMinusString(tomsOffset));
+            strs.add("TO:" + getPlusMinusString(tomsOffset));
         }
         if (cymbalsOffset != 0)
         {
-            if (sb.length() > 0)
-            {
-                sb.append(", ");
-            }
-            sb.append("CY:").append(getPlusMinusString(cymbalsOffset));
+            strs.add("CY:" + getPlusMinusString(cymbalsOffset));
         }
         if (crashOffset != 0)
         {
-            if (sb.length() > 0)
-            {
-                sb.append(", ");
-            }
-            sb.append("CR:").append(getPlusMinusString(crashOffset));
+            strs.add("CR:" + getPlusMinusString(crashOffset));
         }
         if (percOffset != 0)
         {
-            if (sb.length() > 0)
-            {
-                sb.append(", ");
-            }
-            sb.append("OT:").append(getPlusMinusString(percOffset));
+            strs.add("OT:" + getPlusMinusString(percOffset));
         }
-
-        return sb.toString();
+        return strs.stream().collect(Collectors.joining(","));
     }
 
     /**

@@ -375,7 +375,6 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
                 ne = new NoteEvent(n.getPitch(), n.getDurationInBeats(), n.getVelocity(), pos);
             } catch (IllegalArgumentException ex)
             {
-                // Nothing
                 LOGGER.warning("loadAsString() Invalid string s=" + s + ", ex=" + ex.getMessage());
             }
         }

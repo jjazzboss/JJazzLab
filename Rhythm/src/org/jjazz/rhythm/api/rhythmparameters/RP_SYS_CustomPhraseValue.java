@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jjazz.harmony.api.TimeSignature;
@@ -149,19 +150,14 @@ public class RP_SYS_CustomPhraseValue
      */
     static public String saveAsString(RP_SYS_CustomPhraseValue v)
     {
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
+        StringJoiner joiner = new StringJoiner("&");
         for (RhythmVoice rv : v.getCustomizedRhythmVoices())
         {
             SptPhrase sp = v.getCustomizedPhrase(rv);
-            sb.append(rv.getName()).append("%").append(SptPhrase.saveAsString(sp));
-
-            if (first)
-            {
-                sb.append("&");
-            }
+            String s = rv.getName() + "%" + SptPhrase.saveAsString(sp);
+            joiner.add(s);
         }
-        return sb.toString();
+        return joiner.toString();
     }
 
     /**
@@ -186,19 +182,19 @@ public class RP_SYS_CustomPhraseValue
         String strs[] = s.split("&");
         for (String str : strs)
         {
-            String strs2[] = str.split("%");
-            if (strs2.length == 2)
+            String subStrs[] = str.split("%");
+            if (subStrs.length == 2)
             {
                 try
                 {
-                    RhythmVoice rv = r.getRhythmVoices().stream().filter(rvi -> rvi.getName().equals(strs2[0])).findAny().orElse(null);
+                    RhythmVoice rv = r.getRhythmVoices().stream().filter(rvi -> rvi.getName().equals(subStrs[0])).findAny().orElse(null);
                     if (rv == null)
                     {
                         res = null;
                         break;
                     }
 
-                    SptPhrase sp = SptPhrase.loadAsString(strs2[1]);
+                    SptPhrase sp = SptPhrase.loadAsString(subStrs[1]);
                     res.mapRvPhrase.put(rv, sp);
 
                 } catch (IllegalArgumentException ex)
@@ -324,26 +320,12 @@ public class RP_SYS_CustomPhraseValue
          */
         static public String saveAsString(SptPhrase sp)
         {
-            StringBuilder sb = new StringBuilder();
-            String delimiter = "|";
-            sb.append("[");
-            sb.append(sp.getChannel()).append(delimiter);
-            sb.append(sp.getSizeInBeats()).append(delimiter);
-            sb.append(sp.getTimeSignature()).append(delimiter);
-            boolean first = true;
-            for (NoteEvent ne : sp)
-            {
-                if (first)
-                {
-                    first = false;
-                } else
-                {
-                    sb.append(delimiter);
-                }
-                sb.append(NoteEvent.saveAsString(ne));
-            }
-            sb.append("]");
-            return sb.toString();
+            StringJoiner joiner = new StringJoiner("|", "[", "]");
+            joiner.add(String.valueOf(sp.getChannel()));
+            joiner.add(String.valueOf(sp.getSizeInBeats()));
+            joiner.add(String.valueOf(sp.getTimeSignature()));
+            sp.forEach(ne -> joiner.add(NoteEvent.saveAsString(ne)));
+            return joiner.toString();
         }
 
         /**

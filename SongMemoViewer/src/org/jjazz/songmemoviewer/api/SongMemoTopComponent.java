@@ -45,7 +45,7 @@ import org.openide.windows.WindowManager;
         //iconBase="SET/PATH/TO/ICON/HERE",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "explorer", openAtStartup = true, position = 500)
+@TopComponent.Registration(mode = "explorer", openAtStartup = false, position = 500)
 @ActionID(category = "Window", id = "org.jjazz.songnotesviewer.api.SongNotesTopComponent")
 @ActionReference(path = "Menu/Window", position = 1)
 @TopComponent.OpenActionRegistration(

@@ -44,7 +44,7 @@ import org.openide.windows.TopComponent;
         //iconBase="SET/PATH/TO/ICON/HERE", 
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "explorer", openAtStartup = true, position = 100)
+@TopComponent.Registration(mode = "explorer", openAtStartup = true, position = 1)
 @ActionID(category = "Window", id = "org.jjazz.ui.mixconsole.api.MixConsoleTopComponent")
 // @ActionReference(path = "Menu/Window", position = 120)      Useless if not closable
 @TopComponent.OpenActionRegistration(

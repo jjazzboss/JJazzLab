@@ -266,7 +266,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      */
     public void updateSequence(Update update)
     {
-        LOGGER.log(Level.INFO, "updateSequence() ---- update={0} nanoTime()={1}", new Object[]
+        LOGGER.log(Level.FINE, "updateSequence() ---- update={0} nanoTime()={1}", new Object[]
         {
             update, System.nanoTime()
         });
@@ -322,7 +322,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             } else
             {
                 // Replace the current events
-                LOGGER.log(Level.INFO, "updateSequence()     changes detected for rv={0}, updating", rv);
+                LOGGER.log(Level.FINE, "updateSequence()     changes detected for rv={0}, updating", rv);
                 currentMapRvPhrase.put(rv, updatedPhrase);
             }
 

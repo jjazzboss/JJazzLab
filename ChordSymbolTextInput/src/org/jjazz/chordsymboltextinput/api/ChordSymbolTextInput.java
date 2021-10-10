@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.ChordLeadSheet;
@@ -399,13 +400,9 @@ public class ChordSymbolTextInput
      */
     public static String toStringNoPosition(List<? extends CLI_ChordSymbol> items)
     {
-        StringBuilder str = new StringBuilder();
-        for (CLI_ChordSymbol item : items)
-        {
-            String space = (str.length() == 0) ? "" : " ";
-            str.append(space).append(toString(item, PositionDisplay.NO));
-        }
-        return str.toString();
+        return items.stream()
+                .map(item -> toString(item, PositionDisplay.NO))
+                .collect(Collectors.joining(" "));        
     }
 
     /**

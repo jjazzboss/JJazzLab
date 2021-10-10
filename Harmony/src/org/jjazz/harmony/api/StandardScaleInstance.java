@@ -29,6 +29,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -147,18 +148,9 @@ public class StandardScaleInstance implements Serializable
 
     public String toNoteString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[");
-        for (Note n : getNotes())
-        {
-            if (sb.length() > 1)
-            {
-                sb.append(",");
-            }
-            sb.append(n.toRelativeNoteString());
-        }
-        sb.append("]");
-        return sb.toString();
+        return getNotes().stream()
+                .map( n -> n.toRelativeNoteString())
+                .collect(Collectors.joining(",", "[", "]"));
     }
 
     @Override

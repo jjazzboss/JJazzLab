@@ -27,7 +27,9 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
@@ -509,13 +511,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         {
             return "-";
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append(strs.get(0));
-        for (int i = 1; i < strs.size(); i++)
-        {
-            sb.append(" - ").append(strs.get(i));
-        }
-        return sb.toString();
+        return strs.stream().collect(Collectors.joining(" - "));
     }
 
     /**

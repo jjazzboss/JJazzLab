@@ -462,14 +462,10 @@ public class Chord implements Cloneable
     @Override
     public int hashCode()
     {
-        StringBuilder sb = new StringBuilder();
-
-        for (Note n : notes)
-        {
-            sb.append(n.getPitch());
-        }
-
-        return sb.hashCode();
+        String s= notes.stream()
+                .map(n -> String.valueOf(n.getPitch()))
+                .collect(Collectors.joining());
+        return s.hashCode();
     }
 
     @Override
