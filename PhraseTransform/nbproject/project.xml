@@ -3,11 +3,19 @@
     <type>org.netbeans.modules.apisupport.project</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
-            <code-name-base>org.jjazz.phrasetransformer</code-name-base>
+            <code-name-base>org.jjazz.phrasetransform</code-name-base>
             <suite-component/>
             <module-dependencies>
                 <dependency>
                     <code-name-base>org.jjazz.harmony</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.1</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.jjazz.midi</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -46,8 +54,19 @@
                         <specification-version>1.0</specification-version>
                     </run-dependency>
                 </dependency>
+                <dependency>
+                    <code-name-base>org.openide.util.lookup</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>8.46</specification-version>
+                    </run-dependency>
+                </dependency>
             </module-dependencies>
-            <public-packages/>
+            <public-packages>
+                <package>org.jjazz.phrasetransformer.api</package>
+                <package>org.jjazz.phrasetransformer.spi</package>
+            </public-packages>
         </data>
     </configuration>
 </project>

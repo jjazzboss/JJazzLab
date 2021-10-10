@@ -892,14 +892,14 @@ public class DynamicSongSession extends BaseSongSession implements UpdatableSong
             if (generationFuture == null)
             {
                 // No generation task created yet, start one
-                LOGGER.info("handleContext() start generation FIRST TIME");
+                LOGGER.fine("handleContext() start generation FIRST TIME");
                 startGenerationTask(sgContext);
                 b = true;
 
             } else if (generationFuture.isDone())
             {
                 // There is a generation task but it is complete, restart one
-                LOGGER.info("handleContext() start generation");
+                LOGGER.fine("handleContext() start generation");
                 startGenerationTask(sgContext);
                 b = true;
 

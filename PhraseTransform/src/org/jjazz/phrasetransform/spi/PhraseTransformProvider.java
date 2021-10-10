@@ -20,22 +20,16 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.phrasetransformer.api;
+package org.jjazz.phrasetransform.spi;
 
-import org.jjazz.phrase.api.Phrase;
+import java.util.List;
+import org.jjazz.phrasetransform.api.PhraseTransform;
 
 /**
- * A class to transform a phrase into another one.
+ * A provider for PhraseTransform instances.
  */
-public interface PhraseTransformer
+public interface PhraseTransformProvider
 {
-    /**
-     * Transform the specified phrase to create another one.
-     * @param p
-     * @return 
-     */
-    public Phrase transform(Phrase p);
-    
-    public boolean accepts(Phrase p);
-    
+
+    public List<PhraseTransform> getTransforms();
 }

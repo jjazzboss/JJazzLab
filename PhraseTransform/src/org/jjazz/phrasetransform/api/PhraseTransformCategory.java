@@ -20,48 +20,34 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.phrasetransformer.api;
-
-import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.song.api.Song;
-import org.jjazz.util.api.IntRange;
+package org.jjazz.phrasetransform.api;
 
 /**
- * The context associated to a phrase to be transformed.
+ * Possible categories for PhraseTransforms.
  */
-public class PhraseContext
+public enum PhraseTransformCategory
 {
-    private TimeSignature timeSignature;
-    private IntRange barRange;
-    private RhythmVoice rhythmVoice;
-    private Song song;
+    DEFAULT("Default", "Default category"),
+    DRUMS("Drums", "For drums instruments"), 
+    PERCUSSION("Percussion", "For percussion instruments -not drums");
 
-    public PhraseContext(TimeSignature timeSignature, Song song, IntRange barRange, RhythmVoice rhythmVoice)
+    private final String displayName;
+    private final String description;
+
+    PhraseTransformCategory(String displayName, String description)
     {
-        this.timeSignature = timeSignature;
-        this.barRange = barRange;
-        this.rhythmVoice = rhythmVoice;
-        this.song = song;
+        this.displayName = displayName;
+        this.description = description;
     }
 
-    public TimeSignature getTimeSignature()
+    public String getDisplayName()
     {
-        return timeSignature;
+        return displayName;
     }
 
-    public IntRange getBarRange()
+    public String getDescription()
     {
-        return barRange;
+        return description;
     }
 
-    public RhythmVoice getRhythmVoice()
-    {
-        return rhythmVoice;
-    }
-
-    public Song getSong()
-    {
-        return song;
-    }
 }

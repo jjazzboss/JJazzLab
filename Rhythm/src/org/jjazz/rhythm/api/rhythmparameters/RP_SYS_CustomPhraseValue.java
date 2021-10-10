@@ -2,7 +2,6 @@ package org.jjazz.rhythm.api.rhythmparameters;
 
 import com.google.common.base.Joiner;
 import static com.google.common.base.Preconditions.checkNotNull;
-import java.text.ParseException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,9 +12,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.phrase.api.NoteEvent;
-import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 
@@ -26,7 +23,7 @@ public class RP_SYS_CustomPhraseValue
 {
 
     private Rhythm rhythm;
-    private Map<RhythmVoice, SptPhrase> mapRvPhrase = new HashMap<>();
+    private Map<RhythmVoice, SizedPhrase> mapRvSizedPhrase = new HashMap<>();
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhraseValue.class.getSimpleName());
 
 
@@ -46,8 +43,8 @@ public class RP_SYS_CustomPhraseValue
         this(value.getRhythm());
         for (var rv : value.getCustomizedRhythmVoices())
         {
-            SptPhrase p = (SptPhrase) value.getCustomizedPhrase(rv).clone();
-            mapRvPhrase.put(rv, p);
+            SizedPhrase sp = (SizedPhrase) value.getCustomizedPhrase(rv).clone();
+            mapRvSizedPhrase.put(rv, sp);
         }
     }
 
@@ -63,7 +60,7 @@ public class RP_SYS_CustomPhraseValue
      * @param sp
      * @return
      */
-    public RP_SYS_CustomPhraseValue getCopyPlus(RhythmVoice rv, SptPhrase sp)
+    public RP_SYS_CustomPhraseValue getCopyPlus(RhythmVoice rv, SizedPhrase sp)
     {
         checkNotNull(sp);
         if (!rhythm.getRhythmVoices().contains(rv))
@@ -71,8 +68,8 @@ public class RP_SYS_CustomPhraseValue
             throw new IllegalArgumentException("rhythm=" + rhythm + " rv=" + rv + " sp=" + sp);
         }
         RP_SYS_CustomPhraseValue res = new RP_SYS_CustomPhraseValue(rhythm);
-        res.mapRvPhrase = (Map<RhythmVoice, SptPhrase>) ((HashMap) mapRvPhrase).clone();
-        res.mapRvPhrase.put(rv, sp);
+        res.mapRvSizedPhrase = (Map<RhythmVoice, SizedPhrase>) ((HashMap) mapRvSizedPhrase).clone();
+        res.mapRvSizedPhrase.put(rv, sp);
         return res;
 
     }
@@ -89,8 +86,8 @@ public class RP_SYS_CustomPhraseValue
     {
         RP_SYS_CustomPhraseValue res = new RP_SYS_CustomPhraseValue(rhythm);
 //        res.mapRvPhrase = (Map<RhythmVoice, SptPhrase>) ((HashMap) mapRvPhrase).clone();
-        res.mapRvPhrase = (Map<RhythmVoice, SptPhrase>) ((HashMap) mapRvPhrase).clone();
-        res.mapRvPhrase.remove(minusRv);
+        res.mapRvSizedPhrase = (Map<RhythmVoice, SizedPhrase>) ((HashMap) mapRvSizedPhrase).clone();
+        res.mapRvSizedPhrase.remove(minusRv);
         return res;
     }
 
@@ -110,9 +107,9 @@ public class RP_SYS_CustomPhraseValue
      * @param rv
      * @return Null if no customized phrase for rv
      */
-    public SptPhrase getCustomizedPhrase(RhythmVoice rv)
+    public SizedPhrase getCustomizedPhrase(RhythmVoice rv)
     {
-        return mapRvPhrase.get(rv).clone();
+        return mapRvSizedPhrase.get(rv).clone();
     }
 
     /**
@@ -122,7 +119,7 @@ public class RP_SYS_CustomPhraseValue
      */
     public Set<RhythmVoice> getCustomizedRhythmVoices()
     {
-        return new HashSet<>(mapRvPhrase.keySet());
+        return new HashSet<>(mapRvSizedPhrase.keySet());
     }
 
     /**
@@ -132,7 +129,7 @@ public class RP_SYS_CustomPhraseValue
      */
     public String toDescriptionString()
     {
-        List<String> strs = mapRvPhrase.keySet().stream()
+        List<String> strs = mapRvSizedPhrase.keySet().stream()
                 .sorted(Comparator.comparingInt(RhythmVoice::getPreferredChannel))
                 .map(rv -> rv.getName())
                 .collect(Collectors.toList());
@@ -142,7 +139,7 @@ public class RP_SYS_CustomPhraseValue
     /**
      * Save the specified object state as a string.
      * <p>
-     * Example "Bass%[PhraseString]&Piano%[PhraseString]" means 2 RhythmVoices/Phrases. "" means no custom phrase.
+     * Example "Bass%[SizedPhraseString]&Piano%[SizedPhraseString]" means 2 RhythmVoices/Phrases. "" means no custom phrase.
      *
      * @param v
      * @return
@@ -153,8 +150,8 @@ public class RP_SYS_CustomPhraseValue
         StringJoiner joiner = new StringJoiner("&");
         for (RhythmVoice rv : v.getCustomizedRhythmVoices())
         {
-            SptPhrase sp = v.getCustomizedPhrase(rv);
-            String s = rv.getName() + "%" + SptPhrase.saveAsString(sp);
+            SizedPhrase sp = v.getCustomizedPhrase(rv);
+            String s = rv.getName() + "%" + SizedPhrase.saveAsString(sp);
             joiner.add(s);
         }
         return joiner.toString();
@@ -194,8 +191,8 @@ public class RP_SYS_CustomPhraseValue
                         break;
                     }
 
-                    SptPhrase sp = SptPhrase.loadAsString(subStrs[1]);
-                    res.mapRvPhrase.put(rv, sp);
+                    SizedPhrase sp = SizedPhrase.loadAsString(subStrs[1]);
+                    res.mapRvSizedPhrase.put(rv, sp);
 
                 } catch (IllegalArgumentException ex)
                 {
@@ -234,7 +231,7 @@ public class RP_SYS_CustomPhraseValue
             return false;
         }
         final RP_SYS_CustomPhraseValue other = (RP_SYS_CustomPhraseValue) obj;
-        if (!Objects.equals(this.mapRvPhrase, other.mapRvPhrase))
+        if (!Objects.equals(this.mapRvSizedPhrase, other.mapRvSizedPhrase))
         {
             return false;
         }
@@ -245,7 +242,7 @@ public class RP_SYS_CustomPhraseValue
     public int hashCode()
     {
         int hash = 7;
-        hash = 11 * hash + Objects.hashCode(this.mapRvPhrase);
+        hash = 11 * hash + Objects.hashCode(this.mapRvSizedPhrase);
         return hash;
     }
 
@@ -257,126 +254,10 @@ public class RP_SYS_CustomPhraseValue
     }
 
     // ===================================================================================
-    // public  classes
-    // ===================================================================================  
-    /**
-     * A phrase with 2 additional fields.
-     */
-    static public class SptPhrase extends Phrase
-    {
-
-        private final float sizeInBeats;
-        private final TimeSignature timeSignature;
-
-        public SptPhrase(int channel, float nbBeats, TimeSignature ts)
-        {
-            super(channel);
-            sizeInBeats = nbBeats;
-            timeSignature = ts;
-        }
-
-        public SptPhrase(Phrase p, float nbBeats, TimeSignature ts)
-        {
-            super(p.getChannel());
-            add(p);
-            sizeInBeats = nbBeats;
-            timeSignature = ts;
-        }
-
-
-        @Override
-        public SptPhrase clone()
-        {
-            Phrase p = super.clone();
-            return new SptPhrase(p, getSizeInBeats(), getTimeSignature());
-        }
-
-        /**
-         * @return the sizeInBeats
-         */
-        public float getSizeInBeats()
-        {
-            return sizeInBeats;
-        }
-
-        /**
-         * @return the timeSignature
-         */
-        public TimeSignature getTimeSignature()
-        {
-            return timeSignature;
-        }
-
-
-        /**
-         * Save the specified SptPhrase as a string.
-         * <p>
-         * Example "[8|12|4/4|NoteEventStr0|NoteEventStr1]" means a Phrase for channel 8, size=12 natural beats, in 4/4, with 2
-         * NoteEvents.
-         *
-         * @param sp
-         * @return
-         * @see loadAsString(String)
-         */
-        static public String saveAsString(SptPhrase sp)
-        {
-            StringJoiner joiner = new StringJoiner("|", "[", "]");
-            joiner.add(String.valueOf(sp.getChannel()));
-            joiner.add(String.valueOf(sp.getSizeInBeats()));
-            joiner.add(String.valueOf(sp.getTimeSignature()));
-            sp.forEach(ne -> joiner.add(NoteEvent.saveAsString(ne)));
-            return joiner.toString();
-        }
-
-        /**
-         * Create a SptPhrase from the specified string.
-         * <p>
-         *
-         * @param s
-         * @return
-         * @throws IllegalArgumentException If s is not a valid string.
-         * @see saveAsString(SptPhrase)
-         */
-        static public SptPhrase loadAsString(String s) throws IllegalArgumentException
-        {
-            SptPhrase sp = null;
-            if (s.length() >= 10 && s.charAt(0) == '[' && s.charAt(s.length() - 1) == ']')    // minimum string is e.g. [2|1|4/4|]
-            {
-                String[] strs = s.substring(1, s.length() - 1).split("\\|");
-                if (strs.length >= 3)
-                {
-                    try
-                    {
-                        int channel = Integer.parseInt(strs[0]);
-                        float sizeInBeats = Float.parseFloat(strs[1]);
-                        TimeSignature ts = TimeSignature.parse(strs[2]);
-                        sp = new SptPhrase(channel, sizeInBeats, ts);
-                        for (int i = 3; i < strs.length; i++)
-                        {
-                            NoteEvent ne = NoteEvent.loadAsString(strs[i]);
-                            sp.addOrdered(ne);
-                        }
-                    } catch (IllegalArgumentException | ParseException ex)
-                    {
-                        // Nothing
-                        LOGGER.warning("SptPhrase.loadAsString() Invalid string s=" + s + ", ex=" + ex.getMessage());
-                    }
-                }
-            }
-
-            if (sp == null)
-            {
-                throw new IllegalArgumentException("SptPhrase.loadAsString() Invalid SptPhrase string s=" + s);
-            }
-            return sp;
-        }
-
-    }
-    // ===================================================================================
     // Private methods
     // ===================================================================================   
     // ===================================================================================
-    // Private classes
+    // Inner classes
     // ===================================================================================   
 
 

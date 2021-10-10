@@ -32,7 +32,7 @@ public enum Family
 {
     Piano("piano"), Chromatic_Percussion("cperc"), Organ("orgn"), Guitar("guit"), Bass("bass"), Strings("violn"), Ensemble("strgs"), Brass("brass"), Reed("reed"), Pipe("wind"), Synth_Lead("lead"), Synth_Pad("pad"), Synth_Effects("synfx"), Ethnic("ethnc"), Percussive("perc"), Sound_Effects("sndfx");
 
-    private String shortName;
+    private final String shortName;
 
     private Family(String shortName)
     {

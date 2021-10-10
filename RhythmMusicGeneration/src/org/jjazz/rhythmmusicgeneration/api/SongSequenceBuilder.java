@@ -59,13 +59,13 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
+import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue.SptPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMix;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMixValue;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
@@ -806,7 +806,7 @@ public class SongSequenceBuilder
     }
 
     /**
-     * Replace phrases bu custom phrases depending on the RP_SYS_CustomPhrase value.
+     * Replace phrases by custom phrases depending on the RP_SYS_CustomPhrase value.
      *
      * @param context
      * @param rvPhrases
@@ -837,8 +837,8 @@ public class SongSequenceBuilder
 
 
                 // Get the custom phrase, starts at beat 0
-                SptPhrase spCustom = rpValue.getCustomizedPhrase(rv);
-                float sizeInBeats = spCustom.getSizeInBeats();
+                SizedPhrase spCustom = rpValue.getCustomizedPhrase(rv);
+                float sizeInBeats = spCustom.getBeatRange().size();
                 TimeSignature ts = spCustom.getTimeSignature();
 
 

@@ -58,8 +58,8 @@ import org.jjazz.util.api.LongRange;
 /**
  * A list of NoteEvents sorted by start position.
  * <p>
- * Use addOrdered() to add a NoteEvent: this will ensure NoteEvents are kept ordered. Use of add() methods should be used for
- * optimization only when you are sure it will not change the NoteEvents order.
+ * Use addOrdered() to add a NoteEvent: this will ensure NoteEvents are kept ordered. Use of other add() methods should be used for
+ * optimization only when you are sure it will not break the NoteEvents order.
  * <p>
  * LinkedList implementation to speed up item insertion/remove rather than random access.
  */
@@ -86,20 +86,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         this.channel = channel;
     }
 
-    /**
-     * Should be used only when caller is sure that added NoteEvent has the last position.
-     * <p>
-     * Otherwise use addOrdered().
-     *
-     * @param ne
-     * @return
-     */
-    @Override
-    public boolean add(NoteEvent ne)
-    {
-        return super.add(ne);
-    }
-
+  
     /**
      * Add a clone of each p's events to this phrase.
      *
@@ -696,15 +683,6 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     {
         StringBuilder sb = new StringBuilder();
         sb.append("Phrase[ch=").append(channel).append("] size=").append(size()).append(" notes=").append(super.toString());
-//      if (events.size() >= 1)
-//      {
-//         sb.append(" ne[0]=").append(events.get(0));
-//      }
-//      if (events.size() > 1)
-//      {
-//         int lastIndex = events.size() - 1;
-//         sb.append(" ... ne[").append(lastIndex).append("]=").append(events.get(lastIndex));
-//      }
         return sb.toString();
     }
 

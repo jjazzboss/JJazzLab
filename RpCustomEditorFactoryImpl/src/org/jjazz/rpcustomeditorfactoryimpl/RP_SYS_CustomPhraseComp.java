@@ -39,13 +39,13 @@ import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue.SptPhrase;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder.SongSequence;
 import org.jjazz.song.api.Song;
@@ -240,7 +240,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         list_rhythmVoicesValueChanged(null);
     }
 
-    private void addCustomizedPhrase(RhythmVoice rv, SptPhrase sp)
+    private void addCustomizedPhrase(RhythmVoice rv, SizedPhrase sp)
     {
         uiValue = uiValue.getCopyPlus(rv, sp);
         fireUiValueChanged();
@@ -369,7 +369,8 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 //                    LOGGER.info("importMidiFile() setting custom phrase for rv=" + rv);
 //                    LOGGER.info("importMidiFile() pOld=" + pOld);
 //                    LOGGER.info("importMidiFile() pNew=" + pNew);
-                    SptPhrase sp = new SptPhrase(pNew, songContext.getBeatRange().size(), songPart.getRhythm().getTimeSignature());
+                    SizedPhrase sp = new SizedPhrase(pNew.getChannel(),  songContext.getBeatRange(), songPart.getRhythm().getTimeSignature());
+                    sp.add(pNew);
                     addCustomizedPhrase(rv, sp);
                     impactedRvs.add(rv);
                 }
