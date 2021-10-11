@@ -23,6 +23,7 @@
 package org.jjazz.phrase.api;
 
 import com.google.common.base.Preconditions;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -359,10 +360,10 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      *
      * @param s
      * @return
-     * @throws IllegalArgumentException If s is not a valid string.
+     * @throws ParseException If s is not a valid string.
      * @see saveAsString(NoteEvent)
      */
-    static public NoteEvent loadAsString(String s) throws IllegalArgumentException
+    static public NoteEvent loadAsString(String s) throws ParseException
     {
         NoteEvent ne = null;
         String[] strs = s.split(":");
@@ -373,15 +374,15 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
                 Note n = Note.loadAsString(strs[0]);
                 float pos = Float.parseFloat(strs[1]);
                 ne = new NoteEvent(n.getPitch(), n.getDurationInBeats(), n.getVelocity(), pos);
-            } catch (IllegalArgumentException ex)
+            } catch (IllegalArgumentException | ParseException ex)   // Will catch NumberFormatException too
             {
-                LOGGER.warning("loadAsString() Invalid string s=" + s + ", ex=" + ex.getMessage());
+                LOGGER.warning("loadAsString() Catched ex=" + ex.getMessage());
             }
         }
 
         if (ne == null)
         {
-            throw new IllegalArgumentException("loadAsString() Invalid NoteEvent string s=" + s);
+            throw new ParseException("NoteEvent.loadAsString() Invalid NoteEvent string s=" + s, 0);
         }
         return ne;
     }

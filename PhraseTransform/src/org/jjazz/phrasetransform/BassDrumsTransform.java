@@ -22,12 +22,13 @@
  */
 package org.jjazz.phrasetransform;
 
-import java.util.List;
+import java.util.Objects;
 import javax.swing.Icon;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransformCategory;
 import org.jjazz.phrasetransform.api.PhraseTransform;
+import org.jjazz.phrasetransform.api.PtProperties;
 
 /**
  *
@@ -35,6 +36,9 @@ import org.jjazz.phrasetransform.api.PhraseTransform;
  */
 public class BassDrumsTransform implements PhraseTransform
 {
+
+    PtProperties properties;
+    String uniqueId;
 
     @Override
     public SizedPhrase transform(SizedPhrase inPhrase, Instrument ins)
@@ -47,6 +51,19 @@ public class BassDrumsTransform implements PhraseTransform
     {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    @Override
+    public int hashCode()
+    {
+        return PhraseTransform.hashCode(this);
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        return PhraseTransform.equals(this, obj);
+    }
+
 
     @Override
     public String getUniqueId()
@@ -73,21 +90,9 @@ public class BassDrumsTransform implements PhraseTransform
     }
 
     @Override
-    public List<String> getPropertyKeys()
+    public PtProperties getProperties()
     {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public void setProperty(String key, String value)
-    {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public String getProperty(String key)
-    {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
 }

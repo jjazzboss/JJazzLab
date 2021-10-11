@@ -2,11 +2,13 @@ package org.jjazz.rhythm.api.rhythmparameters;
 
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.text.ParseException;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.util.api.ResUtil;
+import org.openide.util.Exceptions;
 
 /**
  * A RhythmParameter to replace one or more generated Phrases by custom Phrases.
@@ -76,7 +78,13 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
     @Override
     public RP_SYS_CustomPhraseValue loadFromString(String s)
     {
-        return RP_SYS_CustomPhraseValue.loadFromString(rhythm, s);
+        try
+        {
+            return RP_SYS_CustomPhraseValue.loadFromString(rhythm, s);
+        } catch (ParseException ex)
+        {
+            return null;
+        }
     }
 
     @Override
@@ -114,18 +122,18 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
         Preconditions.checkArgument(isCompatibleWith(rp), "rp=%s is not compatible with this=%s", rp, this);
         Preconditions.checkNotNull(value);
 
-        
+
         RP_SYS_CustomPhraseValue rpValue = (RP_SYS_CustomPhraseValue) value;
         RP_SYS_CustomPhraseValue res = getDefaultValue();
         var rvs = getRhythm().getRhythmVoices();
-        
-        
-        for (RhythmVoice rpRv : rpValue.getCustomizedRhythmVoices())        
+
+
+        for (RhythmVoice rpRv : rpValue.getCustomizedRhythmVoices())
         {
             RhythmVoice rv = rvs.stream()
                     .filter(rvi -> rvi.getType().equals(rpRv.getType()))
                     .findAny().orElse(null);
-            if (rv!=null)
+            if (rv != null)
             {
                 res = res.getCopyPlus(rv, rpValue.getCustomizedPhrase(rpRv));
                 rvs.remove(rv);     // Do not reuse this phrase
@@ -140,7 +148,7 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
     {
         return value.toString();
     }
-    
+
     @Override
     public String toString()
     {

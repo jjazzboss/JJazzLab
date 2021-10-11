@@ -170,11 +170,11 @@ public class SongPartImpl implements SongPart, Serializable
     }
 
     /**
-     * Change the value for a given RhythmParameter. 
-     * 
+     * Change the value for a given RhythmParameter.
+     * <p>
      * Fire a PropertyChangeEvent with OldValue=rp, NewValue=vp.
      *
-     * @param rp 
+     * @param rp
      * @param value Must be a valid value for rp
      */
     public <T> void setRPValue(RhythmParameter<T> rp, T value)
@@ -243,18 +243,18 @@ public class SongPartImpl implements SongPart, Serializable
             throw new IllegalArgumentException("r=" + r + " newRhythm=" + newRhythm + " cliSection=" + cliSection);   //NOI18N
         }
 
-        
+
         SongPartImpl newSpt = new SongPartImpl(newRhythm, newStartBarIndex, newNbBars, cliSection);
         newSpt.setContainer(container);
         newSpt.setName(name);
 
-        
+
         // Update the values for compatible RhythmParameters
         for (RhythmParameter<?> newRp : newRhythm.getRhythmParameters())
         {
             RhythmParameter crp = RhythmParameter.findFirstCompatibleRp(getRhythm().getRhythmParameters(), newRp);
             if (crp != null)
-            {                
+            {
                 Object crpValue = getRPValue(crp);
                 Object newRpValue = newRp.convertValue(crp, crpValue);
                 if (newRpValue != null)
@@ -375,8 +375,6 @@ public class SongPartImpl implements SongPart, Serializable
     // -------------------------------------------------------------------------------------------
     // Private methods
     // -------------------------------------------------------------------------------------------
- 
-    
 
     // --------------------------------------------------------------------- 
     // Serialization
@@ -506,7 +504,9 @@ public class SongPartImpl implements SongPart, Serializable
                     }
                     if (newValue == null)
                     {
-                        LOGGER.warning("readResolve() Could not restore value of rhythm parameter " + newRp.getId() + " from savedRpStringValue=" + savedRpStringValue);
+                        LOGGER.warning("readResolve() Could not restore value of rhythm parameter " + newRp.getId()
+                                + " from savedRpStringValue=" + savedRpStringValue + ". Using default value instead.");
+                        newValue = newRp.getDefaultValue();
                     }
                     newSpt.setRPValue(newRp, newValue);
                 } else if (!saveUnavailableRhythmIds.contains(spRhythmId))

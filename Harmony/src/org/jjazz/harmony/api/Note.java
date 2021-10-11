@@ -763,10 +763,10 @@ public class Note implements Comparable<Note>, Cloneable
      *
      * @param s
      * @return
-     * @throws IllegalArgumentException If s is not valid
+     * @throws ParseException If s is not valid
      * @see saveAsString(Note)
      */
-    static public Note loadAsString(String s) throws IllegalArgumentException
+    static public Note loadAsString(String s) throws ParseException
     {
         checkNotNull(s);
         Note n = null;
@@ -780,16 +780,16 @@ public class Note implements Comparable<Note>, Cloneable
                 int v = Integer.parseInt(strs[strs.length == 3 ? 1 : 2]);
                 float bd = Float.parseFloat(strs[strs.length == 3 ? 2 : 3]);
                 n = new Note(p, bd, v, alt);
-            } catch (IllegalArgumentException ex)
+            } catch (IllegalArgumentException ex) // Will catch NumberFormatException too
             {
                 // nothing
-                LOGGER.warning("loadAsString() Invalid string s=" + s + ", ex=" + ex.getMessage());
+                LOGGER.warning("loadAsString() Catched ex=" + ex.getMessage());
             }
         }
 
         if (n == null)
         {
-            throw new IllegalArgumentException("loadAsString() Invalid Note string s=" + s);
+            throw new ParseException("Note.loadAsString() Invalid Note string s=" + s, 0);
         }
 
         return n;

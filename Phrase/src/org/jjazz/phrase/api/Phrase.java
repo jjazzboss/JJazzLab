@@ -27,6 +27,7 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,12 +55,13 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.LongRange;
+import org.openide.util.Exceptions;
 
 /**
  * A list of NoteEvents sorted by start position.
  * <p>
- * Use addOrdered() to add a NoteEvent: this will ensure NoteEvents are kept ordered. Use of other add() methods should be used for
- * optimization only when you are sure it will not break the NoteEvents order.
+ * Use addOrdered() to add a NoteEvent: this will ensure NoteEvents are kept ordered. Use of other add() methods should be used
+ * for optimization only when you are sure it will not break the NoteEvents order.
  * <p>
  * LinkedList implementation to speed up item insertion/remove rather than random access.
  */
@@ -86,7 +88,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         this.channel = channel;
     }
 
-  
+
     /**
      * Add a clone of each p's events to this phrase.
      *
@@ -841,10 +843,10 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      *
      * @param s
      * @return
-     * @throws IllegalArgumentException If s is not a valid string.
+     * @throws ParseException If s is not a valid string.
      * @see saveAsString(Phrase)
      */
-    static public Phrase loadAsString(String s) throws IllegalArgumentException
+    static public Phrase loadAsString(String s) throws ParseException
     {
         Phrase p = null;
         if (s.length() >= 4 && s.charAt(0) == '[' && s.charAt(s.length() - 1) == ']')    // minimum string is e.g. [2|]
@@ -859,17 +861,17 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
                     NoteEvent ne = NoteEvent.loadAsString(strs[i]);
                     p.addOrdered(ne);
                 }
-            } catch (IllegalArgumentException ex)
+            } catch (IllegalArgumentException | ParseException ex)       // Will catch NumberFormatException too
             {
                 // Nothing
-                LOGGER.warning("loadAsString() Invalid string s=" + s + ", ex=" + ex.getMessage());
+                LOGGER.warning("loadAsString() Catched ex=" + ex.getMessage());
             }
 
         }
 
         if (p == null)
         {
-            throw new IllegalArgumentException("loadAsString() Invalid Phrase string s=" + s);
+            throw new ParseException("Phrase.loadAsString() Invalid Phrase string s=" + s, 0);
         }
         return p;
     }
@@ -1052,7 +1054,14 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
 
         private Object readResolve() throws ObjectStreamException
         {
-            Phrase p = loadAsString(spSaveString);
+            Phrase p;
+            try
+            {
+                p = loadAsString(spSaveString);
+            } catch (ParseException ex)
+            {
+                throw new InvalidObjectException(ex.getMessage());
+            }
             return p;
         }
     }

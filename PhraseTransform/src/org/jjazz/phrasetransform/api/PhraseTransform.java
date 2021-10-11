@@ -22,7 +22,11 @@
  */
 package org.jjazz.phrasetransform.api;
 
-import java.util.List;
+import com.google.common.base.Objects;
+import static com.google.common.base.Preconditions.checkNotNull;
+import java.text.ParseException;
+import java.util.Properties;
+import java.util.StringJoiner;
 import javax.swing.Icon;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.phrase.api.SizedPhrase;
@@ -31,7 +35,10 @@ import org.jjazz.phrase.api.SizedPhrase;
  * Transform a phrase into another one.
  */
 public interface PhraseTransform
-{        
+{
+
+    public static final String DELIMITER = "#";
+
     /**
      * Transform the specified phrase to create another one.
      *
@@ -52,6 +59,8 @@ public interface PhraseTransform
 
     /**
      * A unique id associated to this transform class.
+     * <p>
+     * IMPORTANT: character DELIMITER is forbidden here! (used as a separator in saveAsString()/loadFromString())
      *
      * @return
      */
@@ -84,33 +93,21 @@ public interface PhraseTransform
     }
 
     /**
-     * Get the supported property keys.
+     * Get the PhraseTransform properties.
      *
-     * @return
+     * @return Can't be null (but can be empty)
      */
-    public List<String> getPropertyKeys();
+    default public PtProperties getProperties()
+    {
+        return new PtProperties(new Properties());
+    }
+
 
     /**
-     * Set (or reset) the property for key.
-     *
-     * @param key
-     * @param value Use null to reset the property to its default value.
-     */
-    public void setProperty(String key, String value);
-
-    /**
-     * Get a property value.
-     *
-     * @param key
-     * @return Can be null.
-     */
-    public String getProperty(String key);
-
-      /**
      * Show a modal dialog to modify the user settings of this PhraseTransform.
      * <p>
- The PhraseTransform is responsible for the persistence of its settings. The method does nothing if hasUserSettings() returns
- false.
+     * The PhraseTransform is responsible for the persistence of its settings. The method does nothing if hasUserSettings()
+     * returns false.
      *
      * @see hasUserSettings()
      */
@@ -128,6 +125,95 @@ public interface PhraseTransform
     default public boolean hasUserSettings()
     {
         return false;
+    }
+
+    /**
+     * Helper method to implement PhraseTransform subclass equals(Object) method.
+     * <p>
+     * 2 PhraseTransforms are equal when they have same uniqueId and same property/value pairs.
+     *
+     * @param pt1
+     * @param o2
+     * @return
+     */
+    static public boolean equals(PhraseTransform pt1, Object o2)
+    {
+        if (!(o2 instanceof PhraseTransform))
+        {
+            return false;
+        }
+
+        PhraseTransform pt2 = (PhraseTransform) o2;
+
+        if (!pt1.getUniqueId().equals(pt2.getUniqueId()))
+        {
+            return false;
+        }
+
+        return pt1.getProperties().equals(pt2.getProperties());
+    }
+
+    /**
+     * Helper method to implement PhraseTransform subclass hashCode() method.
+     * <p>
+     * Rely on uniqueId and properties.
+     *
+     * @param pt
+     * @return
+     */
+    static public int hashCode(PhraseTransform pt)
+    {
+        return Objects.hashCode(pt.getUniqueId(), pt.getProperties());
+    }
+
+    /**
+     * A string like "uniqueId#prop1=value1,prop=value2".
+     * <p>
+     * If no property set, return "uniqueId#"
+     *
+     * @param pt
+     * @return
+     * @see PhraseTransform#loadFromString(java.lang.String)
+     */
+    static public String saveAsString(PhraseTransform pt)
+    {
+        String res = pt.getUniqueId() + DELIMITER + pt.getProperties().saveAsString(pt.getProperties().getNonDefaultValueProperties());
+        return res;
+    }
+
+
+    /**
+     * Try to get a PhraseTransform instance from the specified save string.
+     *
+     * @param s
+     * @return Null if not found.
+     * @throws java.text.ParseException
+     * @see PhraseTransform#saveAsString(PhraseTransform)
+     */
+    static public PhraseTransform loadFromString(String s) throws ParseException
+    {
+        checkNotNull(s);
+        PhraseTransform res = null;
+        var ptm = PhraseTransformManager.getDefault();
+
+        String strs[] = s.split(DELIMITER);
+
+        if (strs.length == 1)
+        {
+            res = ptm.getPhraseTransform(strs[0].trim());
+            
+        } else if (strs.length == 2)
+        {
+            res = ptm.getPhraseTransform(strs[0].trim());
+            res.getProperties().setPropertiesFromString(strs[1].trim());
+            
+        } else
+        {
+            throw new ParseException("Invalid PhraseTransform string s=" + s, 0);
+        }
+
+        return res;
+
     }
 
 }

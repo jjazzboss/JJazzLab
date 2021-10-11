@@ -28,6 +28,7 @@ import org.jjazz.midi.api.Instrument;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransformCategory;
 import org.jjazz.phrasetransform.api.PhraseTransform;
+import org.jjazz.phrasetransform.api.PtProperties;
 
 /**
  *
@@ -46,6 +47,18 @@ public class OpenHiHatTransform implements PhraseTransform
     public int getFitScore(SizedPhrase inPhrase, Instrument ins)
     {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return PhraseTransform.hashCode(this);
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        return PhraseTransform.equals(this, obj);
     }
 
     @Override
@@ -73,21 +86,10 @@ public class OpenHiHatTransform implements PhraseTransform
     }
 
     @Override
-    public List<String> getPropertyKeys()
+    public PtProperties getProperties()
     {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public void setProperty(String key, String value)
-    {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 
-    @Override
-    public String getProperty(String key)
-    {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
 }

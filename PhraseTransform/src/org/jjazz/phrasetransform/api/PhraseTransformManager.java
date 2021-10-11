@@ -69,6 +69,22 @@ public interface PhraseTransformManager
      */
     public List<PhraseTransform> getPhraseTransforms();
 
+
+    /**
+     * Get a specified PhraseTransform instance.
+     *
+     * @param uniqueId
+     * @return Can be null
+     */
+    public default PhraseTransform getPhraseTransform(String uniqueId)
+    {
+        var res = getPhraseTransforms().stream()
+                .filter(pt -> pt.getUniqueId().equals(uniqueId))
+                .findAny()
+                .orElse(null);
+        return res;
+    }
+
     /**
      * Get the PhraseTransform which match the specified category.
      *
@@ -85,8 +101,9 @@ public interface PhraseTransformManager
     /**
      * Get the available PhraseTransforms sorted by "fit score".
      *
-     * @return First PhraseTransform is the most adapted to the specified parameters, last PhraseTransform is the less
- adapted.
+     * @param inPhrase
+     * @param ins
+     * @return First PhraseTransform is the most adapted to the specified parameters, last PhraseTransform is the less adapted.
      * @see PhraseTransform#getFitScore(org.jjazz.phrase.api.SizedPhrase, org.jjazz.midi.api.Instrument)
      */
     default public List<PhraseTransform> getRecommendedPhraseTransforms(SizedPhrase inPhrase, Instrument ins)

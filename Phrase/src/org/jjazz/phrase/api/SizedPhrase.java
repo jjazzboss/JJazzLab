@@ -37,9 +37,11 @@ import org.jjazz.util.api.FloatRange;
  */
 public class SizedPhrase extends Phrase
 {
+
     private final FloatRange beatRange;
     private final TimeSignature timeSignature;
     private static final Logger LOGGER = Logger.getLogger(SizedPhrase.class.getSimpleName());
+
     /**
      * Create an empty sized phrase.
      *
@@ -56,7 +58,7 @@ public class SizedPhrase extends Phrase
         this.timeSignature = ts;
     }
 
-  
+
     /**
      * Overridden to check NoteEvent position.
      * <p>
@@ -151,8 +153,8 @@ public class SizedPhrase extends Phrase
     {
         return timeSignature;
     }
-    
-      /**
+
+    /**
      * Save the specified SizedPhrase as a string.
      * <p>
      * Example "[8|12.0|16.0|4/4|NoteEventStr0|NoteEventStr1]" means a Phrase for channel 8, beatRange=12-16, in 4/4, with 2
@@ -179,13 +181,13 @@ public class SizedPhrase extends Phrase
      *
      * @param s
      * @return
-     * @throws IllegalArgumentException If s is not a valid string.
+     * @throws ParseException If s is not a valid string.
      * @see saveAsString(SizedPhrase)
      */
-    static public SizedPhrase loadAsString(String s) throws IllegalArgumentException
+    static public SizedPhrase loadAsString(String s) throws ParseException
     {
         SizedPhrase sp = null;
-        if (s.charAt(0) == '[' && s.charAt(s.length() - 1) == ']')  
+        if (s.charAt(0) == '[' && s.charAt(s.length() - 1) == ']')
         {
             String[] strs = s.substring(1, s.length() - 1).split("\\|");    // "[8|12.0|16.0|4/4|NoteEventStr0|NoteEventStr1]"
             if (strs.length >= 4)
@@ -212,7 +214,7 @@ public class SizedPhrase extends Phrase
 
         if (sp == null)
         {
-            throw new IllegalArgumentException("loadAsString() Invalid SptPhrase string s=" + s);
+            throw new ParseException("SizedPhrase.loadAsString() Invalid SizedPhrase string s=" + s, 0);
         }
         return sp;
     }
@@ -243,5 +245,5 @@ public class SizedPhrase extends Phrase
         }
     }
 
-  
+
 }

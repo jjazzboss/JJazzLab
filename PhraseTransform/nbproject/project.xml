@@ -7,6 +7,14 @@
             <suite-component/>
             <module-dependencies>
                 <dependency>
+                    <code-name-base>org.jjazz.guava</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.jjazz.harmony</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -64,8 +72,8 @@
                 </dependency>
             </module-dependencies>
             <public-packages>
-                <package>org.jjazz.phrasetransformer.api</package>
-                <package>org.jjazz.phrasetransformer.spi</package>
+                <package>org.jjazz.phrasetransform.api</package>
+                <package>org.jjazz.phrasetransform.spi</package>
             </public-packages>
         </data>
     </configuration>

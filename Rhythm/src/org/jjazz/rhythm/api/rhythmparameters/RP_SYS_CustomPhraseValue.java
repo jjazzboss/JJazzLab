@@ -2,6 +2,7 @@ package org.jjazz.rhythm.api.rhythmparameters;
 
 import com.google.common.base.Joiner;
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.text.ParseException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -163,10 +164,10 @@ public class RP_SYS_CustomPhraseValue
      * @param r
      * @param s
      * @return
-     * @throws IllegalArgumentException If s is invalid
+     * @throws ParseException If s is invalid
      * @see saveAsString(RP_SYS_CustomPhraseValue)
      */
-    static public RP_SYS_CustomPhraseValue loadFromString(Rhythm r, String s) throws IllegalArgumentException
+    static public RP_SYS_CustomPhraseValue loadFromString(Rhythm r, String s) throws ParseException
     {
         checkNotNull(s);
         checkNotNull(r);
