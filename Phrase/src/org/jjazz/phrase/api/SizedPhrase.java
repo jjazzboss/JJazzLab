@@ -58,6 +58,14 @@ public class SizedPhrase extends Phrase
         this.timeSignature = ts;
     }
 
+    public SizedPhrase(SizedPhrase sp)
+    {
+        super(sp.getChannel());
+        this.beatRange = sp.getBeatRange();
+        this.timeSignature = sp.getTimeSignature();
+        add(sp);
+    }
+
 
     /**
      * Overridden to check NoteEvent position.

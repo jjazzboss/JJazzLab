@@ -22,9 +22,8 @@
  */
 package org.jjazz.phrasetransform;
 
-import java.util.Objects;
-import javax.swing.Icon;
 import org.jjazz.midi.api.Instrument;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransformCategory;
 import org.jjazz.phrasetransform.api.PhraseTransform;
@@ -43,13 +42,25 @@ public class BassDrumsTransform implements PhraseTransform
     @Override
     public SizedPhrase transform(SizedPhrase inPhrase, Instrument ins)
     {
-        return inPhrase;
+        SizedPhrase res = new SizedPhrase(inPhrase);
+        for (var ne : res)
+        {
+            var newNe = new NoteEvent(ne, ne.getPitch() - 1, 0.3f, 70);
+            res.addOrdered(newNe);
+        }
+        return res;
     }
 
     @Override
     public int getFitScore(SizedPhrase inPhrase, Instrument ins)
     {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return 100;
+    }
+
+    @Override
+    public String getName()
+    {
+        return "bass drums doubler";
     }
 
     @Override
@@ -74,25 +85,13 @@ public class BassDrumsTransform implements PhraseTransform
     @Override
     public PhraseTransformCategory getCategory()
     {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return PhraseTransformCategory.DRUMS;
     }
 
     @Override
     public String getDescription()
     {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Icon getIcon()
-    {
-        return PhraseTransform.super.getIcon(); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public PtProperties getProperties()
-    {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return "Add double-bass drums";
     }
 
 }

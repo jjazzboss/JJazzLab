@@ -906,8 +906,8 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * Get a phrase with random notes at random positions.
      *
      * @param channel
-     * @param nbBars
-     * @param nbNotes
+     * @param nbBars Number of 4/4 bars.
+     * @param nbNotes Number of random notes to generate.
      * @return
      */
     static public Phrase getRandomPhrase(int channel, int nbBars, int nbNotes)

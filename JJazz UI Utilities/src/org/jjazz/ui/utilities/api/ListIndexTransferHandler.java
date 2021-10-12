@@ -27,11 +27,14 @@ import java.util.StringJoiner;
 import javax.swing.*;
 
 /**
- ** A TransferHandler to reorder items in a DefaultListModel. * * This differs from a typical TransferHandler which normally
- * transfers the data. * this handler transfers the "indexes" of the items to be moved. This approach * should work for any Object
- * that is contained in the ListModel.
+ * A TransferHandler to reorder items in a DefaultListModel.
+ * <p>
+ * This differs from a typical TransferHandler which normally transfers the data. This handler transfers the "indexes" of the
+ * items to be moved. This approach should work for any Object that is contained in the ListModel.
+ * 
+ * Copied from Stackoverflow.
  */
-class ListIndexTransferHandler extends TransferHandler
+public class ListIndexTransferHandler extends TransferHandler
 {
 
     private static final String DELIMITER = ",";
@@ -47,8 +50,7 @@ class ListIndexTransferHandler extends TransferHandler
     {
         //  If we can't handle the import, bail now.
 
-        if (!canImport(info)
-                || !info.isDrop())
+        if (!canImport(info) || !info.isDrop())
         {
             return false;
         }

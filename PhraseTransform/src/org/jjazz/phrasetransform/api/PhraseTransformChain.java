@@ -74,6 +74,7 @@ public class PhraseTransformChain extends ArrayList<PhraseTransform>
      *
      * @param chain
      * @return
+     * @see PhraseTransformChain#loadFromString(java.lang.String)
      */
     static public String saveAsString(PhraseTransformChain chain)
     {
@@ -82,6 +83,14 @@ public class PhraseTransformChain extends ArrayList<PhraseTransform>
         return joiner.toString();
     }
 
+    /**
+     * Create a PhraseTransformChain instance from a save string.
+     *
+     * @param s
+     * @return
+     * @throws ParseException
+     * @see PhraseTransformChain#saveAsString(org.jjazz.phrasetransform.api.PhraseTransformChain)
+     */
     static public PhraseTransformChain loadFromString(String s) throws ParseException
     {
         checkNotNull(s);

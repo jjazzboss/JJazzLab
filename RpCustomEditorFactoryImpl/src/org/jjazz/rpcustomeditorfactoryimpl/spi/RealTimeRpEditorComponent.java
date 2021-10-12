@@ -89,7 +89,10 @@ public abstract class RealTimeRpEditorComponent<E> extends JComponent
      *
      * @return If null a default title will be generated.
      */
-    public abstract String getTitle();
+    public String getTitle()
+    {
+        return null;
+    }
 
     /**
      * If component supports resizing.

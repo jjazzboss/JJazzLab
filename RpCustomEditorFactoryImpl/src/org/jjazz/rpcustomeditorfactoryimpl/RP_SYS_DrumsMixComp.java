@@ -125,6 +125,9 @@ public class RP_SYS_DrumsMixComp extends RealTimeRpEditorComponent<RP_SYS_DrumsM
         return null;
     }
 
+    // ===================================================================================
+    // PropertyChangeListener interface
+    // ===================================================================================
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {

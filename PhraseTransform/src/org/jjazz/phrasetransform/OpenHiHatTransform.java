@@ -22,13 +22,14 @@
  */
 package org.jjazz.phrasetransform;
 
-import java.util.List;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import org.jjazz.midi.api.Instrument;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransformCategory;
 import org.jjazz.phrasetransform.api.PhraseTransform;
-import org.jjazz.phrasetransform.api.PtProperties;
+import org.netbeans.api.annotations.common.StaticResource;
 
 /**
  *
@@ -37,16 +38,34 @@ import org.jjazz.phrasetransform.api.PtProperties;
 public class OpenHiHatTransform implements PhraseTransform
 {
 
+    @StaticResource(relative = true)
+    private static final String ICON_PATH = "resources/OpenHiHatTransformIcon.gif";
+    private static final Icon ICON = new ImageIcon(OpenHiHatTransform.class.getResource(ICON_PATH));
+
     @Override
     public SizedPhrase transform(SizedPhrase inPhrase, Instrument ins)
     {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        SizedPhrase res = new SizedPhrase(inPhrase);
+
+        for (var ne : res)
+        {
+            var newNe = new NoteEvent(ne, ne.getPitch() + 3);
+            res.addOrdered(newNe);
+        }
+
+        return res;
     }
 
     @Override
     public int getFitScore(SizedPhrase inPhrase, Instrument ins)
     {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return 90;
+    }
+
+    @Override
+    public String getName()
+    {
+        return "hi-hat 16th";
     }
 
     @Override
@@ -70,26 +89,18 @@ public class OpenHiHatTransform implements PhraseTransform
     @Override
     public PhraseTransformCategory getCategory()
     {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return PhraseTransformCategory.PERCUSSION;
     }
 
     @Override
     public String getDescription()
     {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return "Make hi-hat 16th notes";
     }
 
     @Override
     public Icon getIcon()
     {
-        return PhraseTransform.super.getIcon(); //To change body of generated methods, choose Tools | Templates.
+        return ICON;
     }
-
-    @Override
-    public PtProperties getProperties()
-    {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-
 }

@@ -26,7 +26,6 @@ import com.google.common.base.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
 import java.util.Properties;
-import java.util.StringJoiner;
 import javax.swing.Icon;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.phrase.api.SizedPhrase;
@@ -34,7 +33,7 @@ import org.jjazz.phrase.api.SizedPhrase;
 /**
  * Transform a phrase into another one.
  */
-public interface PhraseTransform
+public interface PhraseTransform extends Comparable<PhraseTransform>
 {
 
     public static final String DELIMITER = "#";
@@ -76,11 +75,36 @@ public interface PhraseTransform
     public PhraseTransformCategory getCategory();
 
     /**
+     * The name of the PhraseTransform.
+     *
+     * @return
+     */
+    public String getName();
+
+
+    /**
      * Describes what this transform does.
      *
      * @return Can't be null
      */
     public String getDescription();
+
+    /**
+     * Compare using alphabetical order first on category, then on name.
+     *
+     * @param pt
+     * @return
+     */
+    @Override
+    default public int compareTo​(PhraseTransform pt)
+    {
+        int res = getCategory().getDisplayName().compareTo(pt.getCategory().getDisplayName());
+        if (res == 0)
+        {
+            res = getName().compareTo(pt.getName());
+        }
+        return res;
+    }
 
     /**
      * An optional 16pix-height icon representing this transform.
@@ -201,12 +225,12 @@ public interface PhraseTransform
         if (strs.length == 1)
         {
             res = ptm.getPhraseTransform(strs[0].trim());
-            
+
         } else if (strs.length == 2)
         {
             res = ptm.getPhraseTransform(strs[0].trim());
             res.getProperties().setPropertiesFromString(strs[1].trim());
-            
+
         } else
         {
             throw new ParseException("Invalid PhraseTransform string s=" + s, 0);

@@ -63,6 +63,15 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
+                    <code-name-base>org.netbeans.api.annotations.common</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <release-version>1</release-version>
+                        <specification-version>1.40</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.openide.util.lookup</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -73,6 +82,8 @@
             </module-dependencies>
             <public-packages>
                 <package>org.jjazz.phrasetransform.api</package>
+                <package>org.jjazz.phrasetransform.api.rps</package>
+                <package>org.jjazz.phrasetransform.api.ui</package>
                 <package>org.jjazz.phrasetransform.spi</package>
             </public-packages>
         </data>

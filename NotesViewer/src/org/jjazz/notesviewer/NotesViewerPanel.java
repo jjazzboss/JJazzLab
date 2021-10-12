@@ -83,9 +83,9 @@ public class NotesViewerPanel extends javax.swing.JPanel implements PropertyChan
     private MidiMix midiMixPlaybackMode, midiMixSelectionMode;
     private final NotesViewerListener noteListener;
     private final Font chordSymbolFont;
-    private HashMap<NotesViewer, FlatButton> mapViewerButton = new HashMap<>();
-    private CL_ContextActionSupport cap;
-    private int saveInitalTooltipDelay = 500;
+    private final HashMap<NotesViewer, FlatButton> mapViewerButton = new HashMap<>();
+    private final CL_ContextActionSupport cap;
+    private final int saveInitalTooltipDelay = 500;
 
     private static final Logger LOGGER = Logger.getLogger(NotesViewerPanel.class.getSimpleName());
 
