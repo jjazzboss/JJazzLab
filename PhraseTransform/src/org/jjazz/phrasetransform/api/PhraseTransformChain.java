@@ -25,6 +25,7 @@ package org.jjazz.phrasetransform.api;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.StringJoiner;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.phrase.api.SizedPhrase;
@@ -38,6 +39,11 @@ public class PhraseTransformChain extends ArrayList<PhraseTransform>
     public PhraseTransformChain()
     {
 
+    }
+
+    public PhraseTransformChain(List<PhraseTransform> pts)
+    {
+        addAll(pts);
     }
 
     public PhraseTransformChain(PhraseTransformChain chain)

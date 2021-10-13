@@ -35,7 +35,7 @@ import org.netbeans.api.annotations.common.StaticResource;
  *
  * @author Jerome
  */
-public class OpenHiHatTransform implements PhraseTransform
+public class OpenHiHatTransform implements PhraseTransform 
 {
 
     @StaticResource(relative = true)
@@ -49,7 +49,7 @@ public class OpenHiHatTransform implements PhraseTransform
 
         for (var ne : res)
         {
-            var newNe = new NoteEvent(ne, ne.getPitch() + 3);
+            var newNe = new NoteEvent(ne, ne.getPitch() + 3, (float) Math.random() * 2f, 80);
             res.addOrdered(newNe);
         }
 
