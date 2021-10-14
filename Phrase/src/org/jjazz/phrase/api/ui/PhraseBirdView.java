@@ -151,7 +151,6 @@ public class PhraseBirdView extends JPanel
      */
     public void setModel(Phrase model, TimeSignature ts, FloatRange beatRange)
     {
-        checkNotNull(model);
         checkNotNull(ts);
         checkNotNull(beatRange);
         checkArgument(!beatRange.isEmpty(), "beatRange is empty");

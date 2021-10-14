@@ -30,6 +30,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequencer;
 import javax.swing.AbstractAction;
@@ -186,7 +187,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     {
         if (evt.getSource() == editor && evt.getPropertyName().equals(RealTimeRpEditorComponent.PROP_EDITED_RP_VALUE))
         {
-            LOGGER.fine("propertyChange() evt=" + evt);
+            LOGGER.log(Level.FINE, "propertyChange() evt={0}", evt);
             if (tbtn_hear.isSelected() && !tbtn_compare.isSelected())
             {
                 updateRpValueInPreviewContext((E) evt.getNewValue());

@@ -10,6 +10,8 @@ import org.jjazz.util.api.ResUtil;
 /**
  * A RhythmParameter to increase/decrease individual pitches in a drums track (snare, bass drum, toms, etc.).
  * <p>
+ * Note: When you create an AdaptedRhythm for a Rhythm which uses RP_SYS_DrumsMix, you can directly reuse the RP_SYS_DrumsMix
+ * instance in the AdaptedRhythm, SongSequenceBuilder.buildRvMapPhrase() expects this.
  */
 public class RP_SYS_DrumsMix implements RhythmParameter<RP_SYS_DrumsMixValue>
 {
@@ -130,7 +132,6 @@ public class RP_SYS_DrumsMix implements RhythmParameter<RP_SYS_DrumsMixValue>
                 .findAny()
                 .orElse(null);
     }
-
 
 
 }

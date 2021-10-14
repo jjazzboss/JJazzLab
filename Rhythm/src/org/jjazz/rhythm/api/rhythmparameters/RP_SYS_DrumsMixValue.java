@@ -178,7 +178,7 @@ public class RP_SYS_DrumsMixValue
         {
             strs.add("OT:" + getPlusMinusString(percOffset));
         }
-        return strs.stream().collect(Collectors.joining(","));
+        return strs.stream().collect(Collectors.joining(", "));
     }
 
     /**

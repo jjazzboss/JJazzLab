@@ -116,7 +116,7 @@ public class RP_SYS_PhraseTransform implements RhythmParameter<RP_SYS_PhraseTran
      * @param r
      * @return Can be null if not found
      */
-    static public RP_SYS_PhraseTransform RP_SYS_PhraseTransformRp(Rhythm r)
+    static public RP_SYS_PhraseTransform getPhraseTransformRp(Rhythm r)
     {
         checkNotNull(r);
         return (RP_SYS_PhraseTransform) r.getRhythmParameters()

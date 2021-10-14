@@ -50,6 +50,7 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
 import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.MidiConst;
@@ -60,6 +61,8 @@ import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.phrasetransform.api.rps.RP_SYS_PhraseTransform;
+import org.jjazz.phrasetransform.api.rps.RP_SYS_PhraseTransformValue;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -163,14 +166,16 @@ public class SongSequenceBuilder
      * - Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation.<br>
      * - Add the user phrases if any<br>
      * - Apply on each channel possible instrument transpositions, velocity shift, mute (RP_SYS_Mute).<br>
-     * - Apply the RP_SYS_DrumsMix velocity changes<br>
+     * - Apply the RP_SYS_DrumsMix velocity changes. Note that it is expected that, if there is an AdaptedRhythm for a Rhythm which
+     * uses RP_SYS_DrumsMix, the AdaptedRhythm reuses the same RP_SYS_DrumsMix instance.<br>
      * - Apply the RP_SYS_CustomPhrase changes<br>
+     * - Apply the RP_SYS_PhraseTransform changes<br>
      * - Apply drums rerouting if needed <br>
      * <p>
      * Phrases for RhythmVoiceDelegates are merged into the phrases of the source RhythmVoices.
      *
      * @param silent If true do not show a progress dialog
-     * @return
+     * @return The returned phrases always start at beat/bar 0 (i.e phrases are shifted if context start bar is not bar 0).
      * @throws MusicGenerationException
      */
     public Map<RhythmVoice, Phrase> buildMapRvPhrase(boolean silent) throws MusicGenerationException
@@ -202,11 +207,12 @@ public class SongSequenceBuilder
      * <p>
      * If songContext range start bar is &gt; 0, the Midi events are shifted to start at sequence tick 0.
      *
-     * @param rvPhrases The RhythmVoice phrases such as produced by buildMapRvPhrase(boolean).
+     * @param rvPhrases The RhythmVoice phrases such as produced by buildMapRvPhrase(boolean), must start at beat 0.
      * @param silent If true do not show a progress dialog
      * @return A Sequence containing accompaniment tracks for the songContext, including time signature change Midi meta events
      * and JJazz custom Midi controller messages (MidiConst.CTRL_CHG_JJAZZ_TEMPO_FACTOR) for tempo factor changes.
      * @throws MusicGenerationException
+     * @see #buildMapRvPhrase(boolean)
      */
     public SongSequence buildSongSequence(Map<RhythmVoice, Phrase> rvPhrases, boolean silent) throws MusicGenerationException
     {
@@ -256,13 +262,13 @@ public class SongSequenceBuilder
         Track[] tracks = sequence.getTracks();
         Track track0 = tracks[0];
 
-        
+
         if (!MidiUtilities.checkMidiFileTypeSupport(sequence, 1, true))
         {
             throw new IllegalStateException("This Java Sequence implementation does not support Midi File Type 1");
         }
-        
-        
+
+
         // ========== Track 0 settings =============
         // Copyright
         MidiMessage mmCopyright = MidiUtilities.getCopyrightMetaMessage("JJazzLab Midi Export file");
@@ -404,7 +410,7 @@ public class SongSequenceBuilder
                 me = new MidiEvent(mm, 0);
                 track.add(me);
             }
-        }     
+        }
 
         return songSequence;
     }
@@ -441,7 +447,7 @@ public class SongSequenceBuilder
         {
 
             // Generate the phrase
-            Map<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r);                   // Possible MusicGenerationException here
+            Map<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r);                       // Possible MusicGenerationException here
 
             if (songContext.getUniqueRhythms().size() > 1)
             {
@@ -454,16 +460,16 @@ public class SongSequenceBuilder
         }
 
 
-        // Handle muted instruments via the SongPart's RP_SYS_Mute parameter
-        processMutedInstruments(songContext, res);
-
-
-        // Handle the RP_SYS_DrumsMix changes
-        processDrumsMixSettings(songContext, res);
-
-
         // Handle the RP_SYS_CustomPhrase changes
         processCustomPhrases(songContext, res);
+
+
+        // Handle the RP_SYS_PhraseTransform changes
+        processPhraseTransforms(songContext, res);
+
+
+        // Handle muted instruments via the SongPart's RP_SYS_Mute parameter
+        processMutedInstruments(songContext, res);
 
 
         // Merge the phrases from delegate RhythmVoices to the source phrase, then remove the delegate phrases        
@@ -491,6 +497,16 @@ public class SongSequenceBuilder
         }
 
 
+        // Handle the RP_SYS_DrumsMix changes : must be DONE after the merge of the phrases for RhythmVoiceDelegates.
+        // RP_SYS_DrumsMix rp is directly reused by AdaptedRhythm instances, so RP_SYS_DrumsMix.getRhythmVoice() returns
+        // the rhythm voice of the source rhythm. 
+        processDrumsMixSettings(songContext, res);
+
+        // 
+        // From here no more SongPart-based processing allowed, since the phrases for SongParts using an AdaptedRhythm have 
+        // been merged into the tracks of its source rhythm.
+        // 
+
         // Add the user phrases
         var br = songContext.getBeatRange();
         for (String userPhraseName : songContext.getSong().getUserPhraseNames())
@@ -498,10 +514,12 @@ public class SongSequenceBuilder
             UserRhythmVoice urv = songContext.getMidiMix().getUserRhythmVoice(userPhraseName);
             assert urv != null : "userPhraseName=" + userPhraseName + " songContext.getMidiMix()=" + songContext.getMidiMix();
 
+
             // Create the phrase on the right Midi channel
             int channel = songContext.getMidiMix().getChannel(urv);
             Phrase p = new Phrase(channel);
             p.add(songContext.getSong().getUserPhrase(userPhraseName));
+
 
             // Adapt the phrase to the current context
             p.slice(br.from, br.to, false, true);
@@ -515,10 +533,6 @@ public class SongSequenceBuilder
         }
 
 
-        // 
-        // From here no more SongPart-based processing allowed, since the phrases for SongParts using an AdaptedRhythm have 
-        // been merged into the tracks of its source rhythm.
-        // 
         // Handle instrument settings which impact the phrases: transposition, velocity shift, ...
         processInstrumentsSettings(songContext, res);
 
@@ -752,7 +766,6 @@ public class SongSequenceBuilder
      * Change some note velocities depending on the RP_SYS_DrumsMix value for each SongPart.
      *
      * @param context
-     * @param context
      * @param rvPhrases
      */
     private void processDrumsMixSettings(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
@@ -874,6 +887,64 @@ public class SongSequenceBuilder
 
                 // Update the current phrase
                 p.add(spCustom);
+            }
+        }
+    }
+
+    /**
+     * Transform rhythm phrases depending on the RP_SYS_PhraseTransform value.
+     *
+     * @param context
+     * @param rvPhrases
+     */
+    private void processPhraseTransforms(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
+    {
+        LOGGER.log(Level.FINE, "processPhraseTransforms() -- context={0}", context);
+        for (SongPart spt : context.getSongParts())
+        {
+            FloatRange sptBeatRange = context.getSptBeatRange(spt);
+
+
+            // Get the RhythmParameter
+            Rhythm r = spt.getRhythm();
+            RP_SYS_PhraseTransform rpCustomPhrase = RP_SYS_PhraseTransform.getPhraseTransformRp(r);
+            if (rpCustomPhrase == null)
+            {
+                continue;
+            }
+
+
+            // Get the RP value and transform phrases as needed
+            RP_SYS_PhraseTransformValue rpValue = spt.getRPValue(rpCustomPhrase);
+            LOGGER.log(Level.FINE, "processPhraseTransforms() rpValue={0}", rpValue);
+            for (RhythmVoice rv : rpValue.getChainRhythmVoices())
+            {
+                Instrument ins;
+                if (rv instanceof RhythmVoiceDelegate)
+                {
+                    ins = context.getMidiMix().getInstrumentMixFromKey(((RhythmVoiceDelegate) rv).getSource()).getInstrument();
+                } else
+                {
+                    ins = context.getMidiMix().getInstrumentMixFromKey(rv).getInstrument();
+                }
+
+
+                // Keep the slice only for the current songpart
+                Phrase p = rvPhrases.get(rv);
+                Phrase tp = p.clone();
+                tp.slice(sptBeatRange.from, sptBeatRange.to, false, true);
+
+
+                // Make it a SizedPhrase and transform it
+                SizedPhrase inSp = new SizedPhrase(tp.getChannel(), sptBeatRange, r.getTimeSignature());
+                inSp.add(tp);
+                var chain = rpValue.getTransformChain(rv);
+                var outSp = chain.transform(inSp, ins);
+
+
+                // Replace the old song part phrase by the transformed one
+                p.split(sptBeatRange, true, false);
+                p.add(outSp);
             }
         }
     }

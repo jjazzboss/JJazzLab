@@ -134,7 +134,7 @@ public class RP_SYS_CustomPhraseValue
                 .sorted(Comparator.comparingInt(RhythmVoice::getPreferredChannel))
                 .map(rv -> rv.getName())
                 .collect(Collectors.toList());
-        return Joiner.on(",").join(strs);
+        return Joiner.on(", ").join(strs);
     }
 
     /**

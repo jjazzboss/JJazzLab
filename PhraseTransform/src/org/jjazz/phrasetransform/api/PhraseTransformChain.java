@@ -54,13 +54,15 @@ public class PhraseTransformChain extends ArrayList<PhraseTransform>
     /**
      * Run all the transforms in the chain.
      *
+     *
      * @param inPhrase
      * @param ins
      * @return
+     * @throws IllegalStateException If a transformed phrase has a different beat range than inPhrase.
      */
     public SizedPhrase transform(SizedPhrase inPhrase, Instrument ins)
     {
-        SizedPhrase sp = inPhrase;
+        SizedPhrase sp = new SizedPhrase(inPhrase);
         for (var pt : this)
         {
             sp = pt.transform(sp, ins);

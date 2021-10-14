@@ -505,7 +505,7 @@ public class SongPartImpl implements SongPart, Serializable
                     if (newValue == null)
                     {
                         LOGGER.warning("readResolve() Could not restore value of rhythm parameter " + newRp.getId()
-                                + " from savedRpStringValue=" + savedRpStringValue + ". Using default value instead.");
+                                + " from savedRpStringValue='" + savedRpStringValue + "'. Using default value instead.");
                         newValue = newRp.getDefaultValue();
                     }
                     newSpt.setRPValue(newRp, newValue);

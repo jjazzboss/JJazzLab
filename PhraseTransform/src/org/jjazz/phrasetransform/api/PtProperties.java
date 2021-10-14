@@ -48,6 +48,13 @@ public class PtProperties extends Properties
         super(defaultProperties);
     }
 
+    public PtProperties getCopy()
+    {
+        PtProperties res = new PtProperties(defaults);
+        res.putAll(this);
+        return res;
+    }
+
 
     /**
      * Overridden to allow setting a value only for a supported key.

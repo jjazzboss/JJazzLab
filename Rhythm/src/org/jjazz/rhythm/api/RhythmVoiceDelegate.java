@@ -80,6 +80,6 @@ public class RhythmVoiceDelegate extends RhythmVoice
     @Override
     public String toString()
     {
-        return "Rv[" + getName() + ", r=" + getContainer() + ", srcRhtm=" + rvSource.getContainer() + "]";
+        return "Rvd[" + getName() + ", r=" + getContainer() + "]";
     }
 }

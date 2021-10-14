@@ -22,6 +22,7 @@
  */
 package org.jjazz.phrasetransform;
 
+import java.util.Properties;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import org.jjazz.midi.api.Instrument;
@@ -29,27 +30,30 @@ import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransformCategory;
 import org.jjazz.phrasetransform.api.PhraseTransform;
+import org.jjazz.phrasetransform.api.PtProperties;
 import org.netbeans.api.annotations.common.StaticResource;
 
 /**
  *
  * @author Jerome
  */
-public class OpenHiHatTransform implements PhraseTransform 
+public class OpenHiHatTransform implements PhraseTransform
 {
 
     @StaticResource(relative = true)
     private static final String ICON_PATH = "resources/OpenHiHatTransformIcon.gif";
     private static final Icon ICON = new ImageIcon(OpenHiHatTransform.class.getResource(ICON_PATH));
 
+    private PtProperties properties = new PtProperties(new Properties());
+
     @Override
     public SizedPhrase transform(SizedPhrase inPhrase, Instrument ins)
     {
-        SizedPhrase res = new SizedPhrase(inPhrase);
+        SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature());
 
-        for (var ne : res)
+        for (var ne : inPhrase)
         {
-            var newNe = new NoteEvent(ne, ne.getPitch() + 3, (float) Math.random() * 2f, 80);
+            var newNe = new NoteEvent(ne, ne.getPitch() + 4, ne.getDurationInBeats() * 0.9f, (int)(ne.getVelocity() * 0.8f));
             res.addOrdered(newNe);
         }
 
@@ -59,7 +63,7 @@ public class OpenHiHatTransform implements PhraseTransform
     @Override
     public int getFitScore(SizedPhrase inPhrase, Instrument ins)
     {
-        return 90;
+        return ins.getDrumKit() != null ? 90 : 0;
     }
 
     @Override
@@ -78,6 +82,20 @@ public class OpenHiHatTransform implements PhraseTransform
     public boolean equals(Object obj)
     {
         return PhraseTransform.equals(this, obj);
+    }
+
+    @Override
+    public PtProperties getProperties()
+    {
+        return properties;
+    }
+
+    @Override
+    public OpenHiHatTransform getCopy()
+    {
+        OpenHiHatTransform res = new OpenHiHatTransform();
+        res.properties = properties.getCopy();
+        return res;
     }
 
     @Override

@@ -22,6 +22,7 @@
  */
 package org.jjazz.phrasetransform;
 
+import java.util.Properties;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
@@ -36,16 +37,16 @@ import org.jjazz.phrasetransform.api.PtProperties;
 public class BassDrumsTransform implements PhraseTransform
 {
 
-    PtProperties properties;
-    String uniqueId;
+    private PtProperties properties = new PtProperties(new Properties());
 
     @Override
     public SizedPhrase transform(SizedPhrase inPhrase, Instrument ins)
     {
-        SizedPhrase res = new SizedPhrase(inPhrase);
-        for (var ne : res)
+        SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature());
+        for (var ne : inPhrase)
         {
-            var newNe = new NoteEvent(ne, ne.getPitch() - 1, 0.3f, 70);
+            float dur = ne.getDurationInBeats();
+            var newNe = new NoteEvent(ne, ne.getPitch(), dur / 2, 120);
             res.addOrdered(newNe);
         }
         return res;
@@ -55,6 +56,20 @@ public class BassDrumsTransform implements PhraseTransform
     public int getFitScore(SizedPhrase inPhrase, Instrument ins)
     {
         return 100;
+    }
+
+    @Override
+    public PtProperties getProperties()
+    {
+        return properties;
+    }
+
+    @Override
+    public BassDrumsTransform getCopy()
+    {
+        BassDrumsTransform res = new BassDrumsTransform();
+        res.properties = properties.getCopy();
+        return res;
     }
 
     @Override
@@ -69,12 +84,18 @@ public class BassDrumsTransform implements PhraseTransform
         return PhraseTransform.hashCode(this);
     }
 
+
     @Override
     public boolean equals(Object obj)
     {
         return PhraseTransform.equals(this, obj);
     }
 
+    @Override
+    public boolean hasUserSettings()
+    {
+        return true;
+    }
 
     @Override
     public String getUniqueId()

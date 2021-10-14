@@ -25,8 +25,6 @@ package org.jjazz.phrasetransform;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import org.jjazz.midi.api.Instrument;
-import org.jjazz.phrase.api.SizedPhrase;
 import org.openide.util.Lookup;
 import org.jjazz.phrasetransform.spi.PhraseTransformProvider;
 import org.jjazz.phrasetransform.api.PhraseTransform;
@@ -67,7 +65,7 @@ public class PhraseTransformManagerImpl implements PhraseTransformManager
         {
             refresh();
         }
-        return transforms;
+        return new ArrayList<>(transforms);
     }
 
 

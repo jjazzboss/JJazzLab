@@ -1,16 +1,21 @@
 package org.jjazz.phrasetransform.api.rps;
 
+import com.google.common.base.Joiner;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jjazz.phrasetransform.api.PhraseTransformChain;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 
 /**
  * A RhythmParamter to transform YamJJazzRhythm source phrases.
@@ -114,7 +119,11 @@ public class RP_SYS_PhraseTransformValue
 
     public String toDescriptionString()
     {
-        return mapRvChain.keySet().toString();
+        List<String> strs = mapRvChain.keySet().stream()
+                .sorted(Comparator.comparingInt(RhythmVoice::getPreferredChannel))
+                .map(rv -> rv instanceof RhythmVoiceDelegate ? ((RhythmVoiceDelegate) rv).getSource().getName() : rv.getName())
+                .collect(Collectors.toList());
+        return Joiner.on(", ").join(strs);
     }
 
     /**
@@ -140,6 +149,7 @@ public class RP_SYS_PhraseTransformValue
     /**
      * Create an object from a string.
      *
+     * @param r
      * @param s Example "rv1%[PTuniqueId1#prop1=value1,prop2=value2|PTuniqueId2#|PTuniqueId3#prop1=value1]%%%rv2%[PTuniqueId2#]"
      * @return Can be null
      * @see saveAsString()
@@ -148,7 +158,10 @@ public class RP_SYS_PhraseTransformValue
     {
         checkNotNull(s);
         RP_SYS_PhraseTransformValue res = new RP_SYS_PhraseTransformValue(r);
-
+        if (s.isBlank())
+        {
+            return res;
+        }
 
         String[] strs = s.split("%%%");
 

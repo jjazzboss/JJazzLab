@@ -23,8 +23,10 @@
 package org.jjazz.phrasetransform.api.ui;
 
 import java.awt.Component;
+import java.awt.image.BufferedImage;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import org.jjazz.phrasetransform.api.PhraseTransform;
@@ -46,10 +48,13 @@ public class PhraseTransformListCellRenderer extends DefaultListCellRenderer
         label.setText(text);
         label.setToolTipText(pt.getDescription());
         Icon icon = pt.getIcon();
-        if (icon != null)
+        if (icon == null)
         {
-            setIcon(icon);
+            // Create a dummy icon for alignment purpose
+            BufferedImage bufferedImage = new BufferedImage(PhraseTransform.ICON_SIZE.width, PhraseTransform.ICON_SIZE.height, BufferedImage.TYPE_INT_ARGB);
+            icon = new ImageIcon(bufferedImage);
         }
+        label.setIcon(icon);
         return label;
     }
 

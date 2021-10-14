@@ -33,6 +33,7 @@ import javax.swing.JList;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import static javax.swing.TransferHandler.COPY;
+import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
@@ -43,6 +44,7 @@ import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
@@ -145,7 +147,10 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         setMapRvPhrase(null);
 
 
-        LOGGER.info("preset() -- rpValue=" + rpValue + " songPart=" + songPart);
+        LOGGER.log(Level.FINE, "preset() -- rpValue={0} songPart={1}", new Object[]
+        {
+            rpValue, songPart
+        });
 
 
         list_rhythmVoices.setListData(rpValue.getRhythm().getRhythmVoices().toArray(new RhythmVoice[0]));
@@ -369,7 +374,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 //                    LOGGER.info("importMidiFile() setting custom phrase for rv=" + rv);
 //                    LOGGER.info("importMidiFile() pOld=" + pOld);
 //                    LOGGER.info("importMidiFile() pNew=" + pNew);
-                    SizedPhrase sp = new SizedPhrase(pNew.getChannel(),  songContext.getBeatRange(), songPart.getRhythm().getTimeSignature());
+                    SizedPhrase sp = new SizedPhrase(pNew.getChannel(), songContext.getBeatRange(), songPart.getRhythm().getTimeSignature());
                     sp.add(pNew);
                     addCustomizedPhrase(rv, sp);
                     impactedRvs.add(rv);
@@ -501,7 +506,39 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     {
         return list_rhythmVoices.getSelectedValue();
     }
+    
+    
+  /**
+     * Manage the cases RhythmVoice or RhythmVoiceDelegate.
+     *
+     * @param rv
+     * @return
+     */
+    private int getChannel(RhythmVoice rv)
+    {
+        if (rv instanceof RhythmVoiceDelegate)
+        {
+            rv = ((RhythmVoiceDelegate) rv).getSource();
+        }
+        int channel = songContext.getMidiMix().getChannel(rv);
+        return channel;
+    }
 
+    /**
+     * Manage the cases RhythmVoice or RhythmVoiceDelegate.
+     *
+     * @param rv
+     * @return
+     */
+    private Instrument getInstrument(RhythmVoice rv)
+    {
+        if (rv instanceof RhythmVoiceDelegate)
+        {
+            rv = ((RhythmVoiceDelegate) rv).getSource();
+        }
+        Instrument ins = songContext.getMidiMix().getInstrumentMixFromKey(rv).getInstrument();
+        return ins;
+    }
 
     private void setAllTransferHandlers(TransferHandler th)
     {
@@ -609,7 +646,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         );
         birdViewComponentLayout.setVerticalGroup(
             birdViewComponentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 46, Short.MAX_VALUE)
+            .addGap(0, 39, Short.MAX_VALUE)
         );
 
         lbl_phraseInfo.setFont(lbl_phraseInfo.getFont().deriveFont(lbl_phraseInfo.getFont().getSize()-1f));
@@ -668,9 +705,9 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             .addGroup(pnl_overlayLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnl_overlayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_edit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                    .addComponent(btn_edit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
                 .addGroup(pnl_overlayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnl_overlayLayout.createSequentialGroup()
                         .addComponent(lbl_rhythmVoice)
@@ -680,7 +717,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
                     .addGroup(pnl_overlayLayout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(btn_remove, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 338, Short.MAX_VALUE))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE))
                 .addContainerGap())
         );
         pnl_overlayLayout.setVerticalGroup(
@@ -694,13 +731,13 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
                         .addComponent(lbl_rhythmVoice)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnl_overlayLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 183, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 169, Short.MAX_VALUE)
                     .addGroup(pnl_overlayLayout.createSequentialGroup()
                         .addComponent(birdViewComponent, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_remove, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 102, Short.MAX_VALUE)))
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 95, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -800,11 +837,15 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             RhythmVoice rv = (RhythmVoice) value;
             int channel = -1;
+            String s = rv.getName() + " [" + channel + "]";
             if (songContext != null)
             {
-                channel = songContext.getMidiMix().getChannel(rv) + 1;
+                channel = getChannel(rv) + 1;
+                var ins = getInstrument(rv);
+                String name = (rv instanceof RhythmVoiceDelegate) ? ((RhythmVoiceDelegate) rv).getSource().getName() : rv.getName();
+                s = "[" + (channel + 1) + "] " + ins.getPatchName() + " / " + name;
             }
-            lbl.setText(rv.getName() + " [" + channel + "]");
+            lbl.setText(s);
             Font f = lbl.getFont();
             String tooltip = "Midi channel " + channel;
             if (uiValue != null && uiValue.getCustomizedRhythmVoices().contains(rv))

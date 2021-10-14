@@ -24,6 +24,7 @@ package org.jjazz.phrasetransform.api;
 
 import com.google.common.base.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.awt.Dimension;
 import java.text.ParseException;
 import java.util.Properties;
 import javax.swing.Icon;
@@ -37,6 +38,7 @@ public interface PhraseTransform extends Comparable<PhraseTransform>
 {
 
     public static final String DELIMITER = "#";
+    public static final Dimension ICON_SIZE = new Dimension(32, 16);
 
     /**
      * Transform the specified phrase to create another one.
@@ -90,6 +92,13 @@ public interface PhraseTransform extends Comparable<PhraseTransform>
     public String getDescription();
 
     /**
+     * Get a copy of this PhraseTransform instance.
+     *
+     * @return
+     */
+    public PhraseTransform getCopy();
+
+    /**
      * Compare using alphabetical order first on category, then on name.
      *
      * @param pt
@@ -107,7 +116,7 @@ public interface PhraseTransform extends Comparable<PhraseTransform>
     }
 
     /**
-     * An optional 16pix-height icon representing this transform.
+     * An optional 32x16 icon representing this transform.
      *
      * @return Can be null
      */
@@ -121,10 +130,8 @@ public interface PhraseTransform extends Comparable<PhraseTransform>
      *
      * @return Can't be null (but can be empty)
      */
-    default public PtProperties getProperties()
-    {
-        return new PtProperties(new Properties());
-    }
+    public PtProperties getProperties();
+  
 
 
     /**

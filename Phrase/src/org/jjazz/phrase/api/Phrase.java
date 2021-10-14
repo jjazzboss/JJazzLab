@@ -55,7 +55,6 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.LongRange;
-import org.openide.util.Exceptions;
 
 /**
  * A list of NoteEvents sorted by start position.
@@ -182,7 +181,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         if (res >= 0)
         {
             index = res;
-            LOGGER.log(Level.WARNING, "addOrdered() Inserting mne={0} but the same NoteEvent already exists at index={2}! this={1}", new Object[]
+            LOGGER.log(Level.WARNING, "addOrdered() Inserting mne={0} but the same NoteEvent already exists at index={2}. this={1}", new Object[]
             {
                 mne, this, index
             });
@@ -455,6 +454,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * @param endPos
      * @param keepLeft
      * @param cutRight
+     * @see #split(org.jjazz.util.api.FloatRange, boolean, boolean)
      */
     public void slice(float startPos, float endPos, boolean keepLeft, boolean cutRight)
     {
@@ -515,6 +515,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * @param range
      * @param cutLeft
      * @param keepRight
+     * @see #slice(float, float, boolean, boolean)
      */
     public void split(FloatRange range, boolean cutLeft, boolean keepRight)
     {

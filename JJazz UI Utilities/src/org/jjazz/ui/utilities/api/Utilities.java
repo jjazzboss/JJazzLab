@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -146,6 +147,23 @@ public class Utilities
         y = Math.max(y, 0);
 
         dialog.setLocation(x + rScreen.x, y + rScreen.y);
+    }
+
+    /**
+     * Convert a JList default list model into a normal list.
+     *
+     * @param <T>
+     * @param listModel
+     * @return
+     */
+    public static <T> List<T> getListModelAsList(DefaultListModel<T> listModel)
+    {
+        List<T> pts = new ArrayList<>();
+        for (int i = 0; i < listModel.size(); i++)
+        {
+            pts.add(listModel.get(i));
+        }
+        return pts;
     }
 
     /**

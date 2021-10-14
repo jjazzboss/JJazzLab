@@ -30,20 +30,25 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.Instrument;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransform;
@@ -52,11 +57,16 @@ import org.jjazz.phrasetransform.api.PhraseTransformManager;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_PhraseTransform;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_PhraseTransformValue;
 import org.jjazz.phrasetransform.api.ui.PhraseTransformListCellRenderer;
+import org.jjazz.rhythm.api.AdaptedRhythm;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorComponent;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.util.api.FloatRange;
+import org.jjazz.ui.utilities.api.Utilities;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 
 /**
  * A RP editor component for RP_SYS_PhraseTransformValue.
@@ -65,13 +75,17 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
 {
 
     private static final DataFlavor PT_DATA_FLAVOR = new DataFlavor(PhraseTransform.class, "Phrase Transformer");
-    private RP_SYS_PhraseTransform rp;
+    private final RP_SYS_PhraseTransform rp;
     private RP_SYS_PhraseTransformValue lastValue;
-    private RP_SYS_PhraseTransformValue editedValue;
+    private RP_SYS_PhraseTransformValue uiValue;
     private SongContext songContext;
     private SongPart songPart;
+    private TimeSignature timeSignature;
     private List<RhythmVoice> rhythmVoices;
     private final DefaultListModel<PhraseTransform> list_transformChainModel = new DefaultListModel<>();
+    private RvComboBoxModel cmb_RhythmVoicesModel;
+    private final HashMap<RhythmVoice, SizedPhrase> mapRvPhrase = new HashMap<>();
+    private static final Logger LOGGER = Logger.getLogger(RP_SYS_PhraseTransformComp.class.getSimpleName());  //NOI18N
 
     /**
      * Creates new form RP_SYS_DrumsTransformerComp
@@ -86,7 +100,12 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         // Update JLists
         list_transformChain.setModel(list_transformChainModel);
         list_transformChain.setTransferHandler(new TransformChainListTransferHandler());
-        list_allTransforms.setTransferHandler(new TransformChainListTransferHandler());
+        list_transformChain.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DELETE"), "RemoveTransform");   //NOI18N
+        list_transformChain.getActionMap().put("RemoveTransform", new DeleteAction());   //NOI18N
+
+
+        list_availableTransforms.setTransferHandler(new TransformChainListTransferHandler());
+
 
         list_transformChainModel.addListDataListener(this);
         cmb_rhythmVoices.addActionListener(this);
@@ -103,7 +122,17 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
     public void setEnabled(boolean b)
     {
         super.setEnabled(b);
-        // TODO IMPLEMENT!
+        list_transformChain.setEnabled(b);
+
+        if (uiValue != null)
+        {
+            // Update UI
+            updateUI(getCurrentRhythmVoice(), uiValue);
+            list_transformChainSelectionChanged();
+            lbl_transformList.setEnabled(b);
+            hlp_area.setEnabled(b);
+            lbl_arrows.setEnabled(b);
+        }
     }
 
 
@@ -111,51 +140,79 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
     public void preset(RP_SYS_PhraseTransformValue rpValue, SongContext sgContext)
     {
         checkNotNull(sgContext);
+
+        LOGGER.info("preset() -- rpValue=" + rpValue + " sgContext=" + sgContext);
+
         songContext = sgContext;
         songPart = songContext.getSongParts().get(0);
-        rhythmVoices = songContext.getMidiMix().getRhythmVoices();
+        rhythmVoices = songPart.getRhythm().getRhythmVoices();
+        timeSignature = songPart.getRhythm().getTimeSignature();
         assert !rhythmVoices.isEmpty();
+        mapRvPhrase.clear();
 
 
-        // Update the list of available transforms
-        List<PhraseTransform> allTransforms = PhraseTransformManager.getDefault().getPhraseTransforms();
-        allTransforms.sort(null);
-        DefaultListModel dlm = new DefaultListModel();
-        dlm.addAll(allTransforms);
-        list_allTransforms.setModel(dlm);
+        uiValue = new RP_SYS_PhraseTransformValue(rpValue);
+        lastValue = new RP_SYS_PhraseTransformValue(uiValue);
 
 
         // Update the RhythmVoices combo box and select the first transformed rhythm voice
         cmb_rhythmVoices.removeActionListener(this);
-        DefaultComboBoxModel cmb_model = new DefaultComboBoxModel(rhythmVoices.toArray(new RhythmVoice[0]));
-        cmb_rhythmVoices.setModel(cmb_model);
+        cmb_RhythmVoicesModel = new RvComboBoxModel();
+        cmb_RhythmVoicesModel.addAll(rhythmVoices);
+        cmb_rhythmVoices.setModel(cmb_RhythmVoicesModel);
         var transformedRvs = rpValue.getChainRhythmVoices();
-        RhythmVoice trv = rhythmVoices.stream()
+        RhythmVoice startRv = rhythmVoices.stream()
                 .filter(rv -> transformedRvs.contains(rv))
                 .findAny()
                 .orElse(null);
-        cmb_rhythmVoices.setSelectedItem(trv != null ? trv : rhythmVoices.get(0));
+        if (startRv == null)
+        {
+            startRv = rhythmVoices.get(0);
+        }
+        cmb_rhythmVoices.setSelectedItem(startRv);
         cmb_rhythmVoices.addActionListener(this);
 
 
-        setEditedRpValue(rpValue);
+        updateAvailableTransformsList(startRv);
 
+
+        // Start a task to get the generated phrases 
+        Runnable task = () ->
+        {
+            StaticSongSession tmpSession = StaticSongSession.getSession(songContext, false, false, false, false, 0, null);
+            if (tmpSession.getState().equals(PlaybackSession.State.NEW))
+            {
+                try
+                {
+                    tmpSession.generate(true);          // This can block for some time, possibly a few seconds on slow computers/complex rhythms              
+                } catch (MusicGenerationException ex)
+                {
+                    NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
+                    DialogDisplayer.getDefault().notify(d);
+                    return;
+                }
+            }
+
+            // Retrieve the data
+            setMapRvPhrase(tmpSession.getRvPhraseMap());        // Will call UpdateUI(rpValue)
+            tmpSession.close();
+        };
+        new Thread(task).start();
 
     }
 
     @Override
     public void setEditedRpValue(RP_SYS_PhraseTransformValue rpValue)
     {
-        lastValue = editedValue;
-        editedValue = new RP_SYS_PhraseTransformValue(rpValue);
-
-        updateChainUI();
+        lastValue = uiValue;
+        uiValue = new RP_SYS_PhraseTransformValue(rpValue);
+        updateUI(getCurrentRhythmVoice(), uiValue);
     }
 
     @Override
     public RP_SYS_PhraseTransformValue getEditedRpValue()
     {
-        return editedValue;
+        return uiValue;
     }
 
     @Override
@@ -174,13 +231,14 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
 
     // ===============================================================================
     // ActionListener interface
-    // ===============================================================================  
+    // ===============================================================================
     @Override
     public void actionPerformed(ActionEvent ae)
     {
         if (ae.getSource() == cmb_rhythmVoices)
         {
-            updateChainUI();
+            updateAvailableTransformsList(getCurrentRhythmVoice());
+            updateUI(getCurrentRhythmVoice(), uiValue);
         }
     }
 
@@ -191,80 +249,139 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
     @Override
     public void intervalAdded(ListDataEvent e)
     {
-        list_transformChanged();
+        list_transformChainChanged();
     }
 
     @Override
     public void intervalRemoved(ListDataEvent e)
     {
-        list_transformChanged();
+        list_transformChainChanged();
     }
 
     @Override
     public void contentsChanged(ListDataEvent e)
     {
-        list_transformChanged();
+        list_transformChainChanged();
     }
 
 
     // ===============================================================================
     // Private methods
     // ===============================================================================    
-    private void list_transformChanged()
+    /**
+     * Called when list_transformChain was directly modified by user.
+     */
+    private void list_transformChainChanged()
     {
-        RhythmVoice rv = getCurrentRhythmVoice();
-        editedValue.setTransformChain(rv, new PhraseTransformChain(getChainListModelAsList()));
-        updateChainUI();
+        // Update uiValue from list_transformChain model
+        lastValue = new RP_SYS_PhraseTransformValue(uiValue);
+        List<PhraseTransform> pts = Utilities.getListModelAsList(list_transformChainModel);
+        var chain = new PhraseTransformChain(pts);
+        uiValue.setTransformChain(getCurrentRhythmVoice(), chain);
+
+
+        updateUI(getCurrentRhythmVoice(), uiValue);
+
+        fireUiValueChanged();
     }
 
-    private List<PhraseTransform> getChainListModelAsList()
+
+    /**
+     * Called by thread started from preset() when phrases are ready.
+     * <p>
+     *
+     * @param map A map generated by SongSequenceBuilder, with no RhythmVoiceDelegate since they have been processed
+     */
+    private synchronized void setMapRvPhrase(Map<RhythmVoice, Phrase> map)
     {
-        List<PhraseTransform> res = new ArrayList<>();
-        for (int i = 0; i < list_transformChainModel.size(); i++)
+        LOGGER.info("setMapRvPhrase() -- map=" + map);
+
+        for (var rv : map.keySet())
         {
-            res.add(list_transformChainModel.get(i));
+            Phrase p = map.get(rv);     // Phrase always start at bar 0
+            int channel = getChannel(rv);
+            SizedPhrase sp = new SizedPhrase(channel, songContext.getBeatRange().getTransformed(-songContext.getBeatRange().from), timeSignature);
+            sp.add(p);
+            mapRvPhrase.put(rv, sp);
         }
-        return res;
+
+        // Refresh the birdviews
+        updateUI(getCurrentRhythmVoice(), uiValue);
     }
 
-    private SizedPhrase getInPhrase(RhythmVoice rv)
+
+    /**
+     * Synchronized because mapRvPhrase is filled by a thread run by preset().
+     * <p>
+     * Manage the case of RhythmVoice and RhythmVoiceDelegates.
+     *
+     * @param rv
+     * @param sp
+     */
+    private synchronized SizedPhrase getInPhrase(RhythmVoice rv)
     {
-        // For TEST
-        int channel = songContext.getMidiMix().getChannel(rv);
-        SizedPhrase res = new SizedPhrase(channel, new FloatRange(0, 8), TimeSignature.FOUR_FOUR);
-        res.add(Phrase.getRandomPhrase(channel, 2, 4));
-        return res;
+        if (rv instanceof RhythmVoiceDelegate)
+        {
+            rv = ((RhythmVoiceDelegate) rv).getSource();
+        }
+        SizedPhrase sp = mapRvPhrase.get(rv);
+        if (sp == null)
+        {
+            sp = new SizedPhrase(getChannel(rv), songContext.getBeatRange().getTransformed(-songContext.getBeatRange().from), timeSignature);
+        }
+        return sp;
+    }
+
+    private void updateAvailableTransformsList(RhythmVoice rv)
+    {
+        List<PhraseTransform> pts = PhraseTransformManager.getDefault().getRecommendedPhraseTransforms(getInPhrase(rv), getInstrument(rv), true);
+        DefaultListModel dlm = new DefaultListModel();
+        dlm.addAll(pts);
+        list_availableTransforms.setModel(dlm);
     }
 
     /**
-     * Chain has changed (because added/removed PhraseTransform, or because RhythmVoice has changed), we need to update
-     * chain-related UI
+     * Update the UI to reflect the specified RP value for rv.
      */
-    private void updateChainUI()
+    private synchronized void updateUI(RhythmVoice rv, RP_SYS_PhraseTransformValue rpValue)
     {
-        RhythmVoice rv = getCurrentRhythmVoice();
-        Instrument ins = songContext.getMidiMix().getInstrumentMixFromKey(rv).getInstrument();
-        var transformChain = editedValue.getTransformChain(rv);
+        var transformChain = rpValue.getTransformChain(rv);
 
 
-        // Update the list transform chain, don't generate events because it's not user-triggered
-        list_transformChainModel.removeListDataListener(this);
-        list_transformChainModel.clear();
-        if (transformChain != null)
+        // Update the list transform chain if required
+        var pts = Utilities.getListModelAsList(list_transformChainModel);
+        if (!pts.equals(transformChain))
         {
-            list_transformChainModel.addAll(transformChain);
+            // NOTE: we don't want to generate list change events because it's not user-triggered
+            list_transformChainModel.removeListDataListener(this);
+            list_transformChainModel.clear();
+            if (transformChain != null)
+            {
+                list_transformChainModel.addAll(transformChain);
+            }
+            list_transformChainModel.addListDataListener(this);
+        } else
+        {
+            LOGGER.info("updateAvailableTransformsList() transformChain unchanged");
         }
-        list_transformChainModel.addListDataListener(this);
 
 
         // Update the birdviews
         SizedPhrase inPhrase = getInPhrase(rv);
         birdview_inPhrase.setModel(inPhrase, inPhrase.getTimeSignature(), inPhrase.getBeatRange());
-
-        SizedPhrase outPhrase = transformChain == null ? inPhrase : transformChain.transform(inPhrase, ins);
+        SizedPhrase outPhrase = (transformChain == null) ? inPhrase : transformChain.transform(inPhrase, getInstrument(rv));
         birdview_outPhrase.setModel(outPhrase, outPhrase.getTimeSignature(), outPhrase.getBeatRange());
 
+
+        // Update the clear button
+        btn_clearChain.setEnabled(list_transformChain.isEnabled() && !list_transformChainModel.isEmpty());
+
+
+        // Make sure cmb is repaint
+        cmb_RhythmVoicesModel.triggerRepaint();
+
     }
+
 
     private RhythmVoice getCurrentRhythmVoice()
     {
@@ -272,10 +389,77 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         return rv;
     }
 
+    /**
+     * Manage the cases RhythmVoice or RhythmVoiceDelegate.
+     *
+     * @param rv
+     * @return
+     */
+    private int getChannel(RhythmVoice rv)
+    {
+        if (rv instanceof RhythmVoiceDelegate)
+        {
+            rv = ((RhythmVoiceDelegate) rv).getSource();
+        }
+        int channel = songContext.getMidiMix().getChannel(rv);
+        return channel;
+    }
+
+    /**
+     * Manage the cases RhythmVoice or RhythmVoiceDelegate.
+     *
+     * @param rv
+     * @return
+     */
+    private Instrument getInstrument(RhythmVoice rv)
+    {
+        if (rv instanceof RhythmVoiceDelegate)
+        {
+            rv = ((RhythmVoiceDelegate) rv).getSource();
+        }
+        Instrument ins = songContext.getMidiMix().getInstrumentMixFromKey(rv).getInstrument();
+        return ins;
+    }
+
+    private void list_transformChainSelectionChanged()
+    {
+        var pt = list_transformChain.getSelectedValue();
+        btn_ptSettings.setEnabled(list_transformChain.isEnabled() && pt != null && pt.hasUserSettings());
+    }
+
+    private void fireUiValueChanged()
+    {
+        firePropertyChange(PROP_EDITED_RP_VALUE, lastValue, uiValue);
+        lastValue = uiValue;
+    }
 
     // ===============================================================================
     // Inner classes
     // ===============================================================================    
+    private class DeleteAction extends AbstractAction
+    {
+
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            int index = list_transformChain.getSelectedIndex();
+            if (index != -1)
+            {
+                list_transformChainModel.remove(index);
+            }
+        }
+
+    }
+
+    private class RvComboBoxModel extends DefaultComboBoxModel
+    {
+
+        public void triggerRepaint()
+        {
+            fireContentsChanged(this, 0, this.getSize() - 1);
+        }
+    }
+
     private class RhythmVoiceRenderer extends BasicComboBoxRenderer
     {
 
@@ -285,14 +469,16 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
             JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             RhythmVoice rv = (RhythmVoice) value;
 
-            if (value != null)
+            if (rv != null)
             {
-                String text = rv.getName();
-                if (songContext != null)
+                int channel = getChannel(rv);
+                var ins = getInstrument(rv);
+                String name = (rv instanceof RhythmVoiceDelegate) ? ((RhythmVoiceDelegate) rv).getSource().getName() : rv.getName();
+                String text = "[" + (channel + 1) + "] " + ins.getPatchName() + " / " + name;
+
+                if (uiValue != null && uiValue.getTransformChain(rv) != null)
                 {
-                    int channel = songContext.getMidiMix().getChannel(rv);
-                    var ins = songContext.getMidiMix().getInstrumentMixFromKey(rv).getInstrument();
-                    text = "[" + (channel + 1) + "] " + ins.getPatchName() + " / " + rv.getName();
+                    text += " *";
                 }
 
                 label.setText(text);
@@ -362,8 +548,8 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
 
     /**
      * Supported use cases:<br>
-     * - drag and drop from list_allTransforms to list_transformChain : add<br>
-     * - drag and drop from list_transformChain to list_allTransforms : remove<br>
+     * - drag and drop from list_availableTransforms to list_transformChain : add<br>
+     * - drag and drop from list_transformChain to list_availableTransforms : remove<br>
      * - drag and drop from list_transformChain to list_transformChain : reorder<br>
      */
     private class TransformChainListTransferHandler extends TransferHandler
@@ -372,7 +558,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         @Override
         public boolean canImport(TransferHandler.TransferSupport info)
         {
-            return info.isDataFlavorSupported(PT_DATA_FLAVOR);
+            return list_transformChain.isEnabled() && info.isDataFlavorSupported(PT_DATA_FLAVOR);
         }
 
         /**
@@ -422,63 +608,67 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
 
 
             JList destList = (JList) info.getComponent();
-            if (srcList == list_allTransforms && destList == list_allTransforms)
+            if (srcList == list_availableTransforms && destList == list_availableTransforms)
             {
                 // No import, do nothing
                 return false;
 
-            } else if (srcList == list_transformChain && destList == list_allTransforms)
+            } else if (srcList == list_transformChain && destList == list_availableTransforms)
             {
-                // Import but do nothing, exportDone will remove the element from list_transformChain
+                // Just remove the moved element
+                DefaultListModel listModel = (DefaultListModel) list_transformChain.getModel();
+                listModel.remove(srcIndex);
                 return true;
 
-            } else  //  srcList == list_transformChain && destList == list_transformChain
+            } else if (srcList == list_availableTransforms && destList == list_transformChain)
             {
-                // Update transform chain
+                // Add a new element in the chain
                 DefaultListModel listModel = (DefaultListModel) list_transformChain.getModel();
                 JList.DropLocation dl = (JList.DropLocation) info.getDropLocation();
                 if (dl.isInsert())
                 {
                     // Add
-                    listModel.add(dl.getIndex(), srcPt);
+                    listModel.add(dl.getIndex(), srcPt.getCopy());
                 } else
                 {
                     // Replace existing
-                    listModel.set(dl.getIndex(), srcPt);
+                    listModel.set(dl.getIndex(), srcPt.getCopy());
+                }
+                return true;
+            } else
+            {
+                // Reorder the chain
+                DefaultListModel listModel = (DefaultListModel) list_transformChain.getModel();
+
+                // Remove the moved element
+                listModel.remove(srcIndex);
+
+                JList.DropLocation dl = (JList.DropLocation) info.getDropLocation();
+                int destIndex = dl.getIndex();
+                if (srcIndex < destIndex)
+                {
+                    // We removed the source element which was before destIndex
+                    destIndex--;
+                }
+
+                if (dl.isInsert())
+                {
+                    // Add
+                    listModel.add(destIndex, srcPt);
+                } else
+                {
+                    // Replace existing
+                    listModel.set(destIndex, srcPt);
                 }
                 return true;
 
             }
         }
 
-        /**
-         * Remove the items moved from list_tranformChain.
-         */
         @Override
         protected void exportDone(JComponent jc, Transferable data, int action)
         {
-            JList srcList = (JList) jc;
-            if (srcList == list_allTransforms)
-            {
-                return;
-            }
-            assert srcList == list_transformChain;
-
-
-            if (action == TransferHandler.MOVE)
-            {
-                PtData ptData;
-                try
-                {
-                    ptData = (PtData) data.getTransferData(PT_DATA_FLAVOR);
-                } catch (UnsupportedFlavorException | IOException ex)
-                {
-                    return;
-                }
-                DefaultListModel listModel = (DefaultListModel) srcList.getModel();
-                listModel.remove(ptData.srcPtIndex);
-            }
-
+            // Nothing
         }
     }
 
@@ -491,41 +681,57 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
     private void initComponents()
     {
 
-        jLabel1 = new javax.swing.JLabel();
+        lbl_allTransforms = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        list_allTransforms = new javax.swing.JList<>();
+        list_availableTransforms = new javax.swing.JList<>();
         jScrollPane2 = new javax.swing.JScrollPane();
         list_transformChain = new javax.swing.JList<>();
-        jLabel2 = new javax.swing.JLabel();
+        lbl_transformList = new javax.swing.JLabel();
         btn_clearChain = new javax.swing.JButton();
         btn_ptSettings = new javax.swing.JButton();
-        jPanel1 = new javax.swing.JPanel();
-        lbl_rightArrow = new javax.swing.JLabel();
+        pnl_arrows = new javax.swing.JPanel();
+        lbl_arrows = new javax.swing.JLabel();
         birdview_outPhrase = new org.jjazz.phrase.api.ui.PhraseBirdView();
         birdview_inPhrase = new org.jjazz.phrase.api.ui.PhraseBirdView();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel3 = new javax.swing.JLabel();
+        pnl_downArrow = new javax.swing.JPanel();
+        lbl_downArrow = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        hlp_area = new org.jjazz.ui.utilities.api.HelpTextArea();
         cmb_rhythmVoices = new javax.swing.JComboBox<>();
         jLabel4 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.jLabel1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_allTransforms, org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.lbl_allTransforms.text")); // NOI18N
 
-        list_allTransforms.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        list_allTransforms.setCellRenderer(new PhraseTransformListCellRenderer());
-        list_allTransforms.setDragEnabled(true);
-        list_allTransforms.setDropMode(javax.swing.DropMode.ON);
-        jScrollPane1.setViewportView(list_allTransforms);
+        list_availableTransforms.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        list_availableTransforms.setCellRenderer(new PhraseTransformListCellRenderer());
+        list_availableTransforms.setDragEnabled(true);
+        list_availableTransforms.setDropMode(javax.swing.DropMode.ON);
+        list_availableTransforms.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
+                list_availableTransformsMouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(list_availableTransforms);
 
         list_transformChain.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         list_transformChain.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.list_transformChain.toolTipText")); // NOI18N
         list_transformChain.setCellRenderer(new PhraseTransformListCellRenderer());
         list_transformChain.setDragEnabled(true);
         list_transformChain.setDropMode(javax.swing.DropMode.ON_OR_INSERT);
+        list_transformChain.addListSelectionListener(new javax.swing.event.ListSelectionListener()
+        {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt)
+            {
+                list_transformChainValueChanged(evt);
+            }
+        });
         jScrollPane2.setViewportView(list_transformChain);
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.jLabel2.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_transformList, org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.lbl_transformList.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_clearChain, org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.btn_clearChain.text")); // NOI18N
         btn_clearChain.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.btn_clearChain.toolTipText")); // NOI18N
@@ -541,11 +747,13 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         btn_ptSettings.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.btn_ptSettings.toolTipText")); // NOI18N
         btn_ptSettings.setEnabled(false);
 
-        lbl_rightArrow.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/RightArrow.png"))); // NOI18N
-        lbl_rightArrow.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.lbl_rightArrow.toolTipText")); // NOI18N
-        jPanel1.add(lbl_rightArrow);
+        pnl_arrows.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 5));
 
-        birdview_outPhrase.setBorder(birdview_inPhrase.getBorder());
+        lbl_arrows.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/CompareArrows-OFF.png"))); // NOI18N
+        lbl_arrows.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.lbl_arrows.toolTipText")); // NOI18N
+        pnl_arrows.add(lbl_arrows);
+
+        birdview_outPhrase.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(153, 153, 153)));
         birdview_outPhrase.setForeground(new java.awt.Color(255, 0, 51));
 
         javax.swing.GroupLayout birdview_outPhraseLayout = new javax.swing.GroupLayout(birdview_outPhrase);
@@ -556,10 +764,10 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         );
         birdview_outPhraseLayout.setVerticalGroup(
             birdview_outPhraseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 70, Short.MAX_VALUE)
+            .addGap(0, 44, Short.MAX_VALUE)
         );
 
-        birdview_inPhrase.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(153, 153, 153)));
+        birdview_inPhrase.setBorder(birdview_outPhrase.getBorder());
         birdview_inPhrase.setForeground(new java.awt.Color(102, 204, 255));
 
         javax.swing.GroupLayout birdview_inPhraseLayout = new javax.swing.GroupLayout(birdview_inPhrase);
@@ -570,24 +778,30 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         );
         birdview_inPhraseLayout.setVerticalGroup(
             birdview_inPhraseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 70, Short.MAX_VALUE)
+            .addGap(0, 45, Short.MAX_VALUE)
         );
 
-        jPanel2.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
+        pnl_downArrow.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/arrow-down-16x16.gif"))); // NOI18N
-        jPanel2.add(jLabel3);
+        lbl_downArrow.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/DownArrow-14x14.png"))); // NOI18N
+        pnl_downArrow.add(lbl_downArrow);
 
         jScrollPane3.setBorder(null);
 
-        helpTextArea1.setColumns(20);
-        helpTextArea1.setRows(5);
-        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.helpTextArea1.text")); // NOI18N
-        jScrollPane3.setViewportView(helpTextArea1);
+        hlp_area.setColumns(20);
+        hlp_area.setRows(5);
+        hlp_area.setText(org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.hlp_area.text")); // NOI18N
+        jScrollPane3.setViewportView(hlp_area);
 
         cmb_rhythmVoices.setRenderer(new RhythmVoiceRenderer());
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel4, org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.jLabel4.text")); // NOI18N
+
+        jLabel5.setFont(jLabel5.getFont().deriveFont(jLabel5.getFont().getSize()-2f));
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel5, org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.jLabel5.text")); // NOI18N
+
+        jLabel3.setFont(jLabel3.getFont().deriveFont(jLabel3.getFont().getSize()-2f));
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.jLabel3.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -597,33 +811,36 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(birdview_inPhrase, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(birdview_outPhrase, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pnl_downArrow, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jLabel1))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(pnl_arrows, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(lbl_allTransforms))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 176, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lbl_transformList))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(6, 6, 6)
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 217, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 247, Short.MAX_VALUE)
+                                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                                     .addGroup(layout.createSequentialGroup()
                                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(btn_ptSettings)
-                                            .addComponent(btn_clearChain))
-                                        .addGap(0, 0, Short.MAX_VALUE))))))
+                                            .addComponent(btn_clearChain)
+                                            .addComponent(btn_ptSettings))
+                                        .addGap(0, 81, Short.MAX_VALUE))))))
+                    .addComponent(jLabel5)
+                    .addComponent(jLabel3)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cmb_rhythmVoices, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(319, 319, 319)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(cmb_rhythmVoices, javax.swing.GroupLayout.PREFERRED_SIZE, 317, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
 
@@ -638,39 +855,66 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
                     .addComponent(jLabel4))
                 .addGap(19, 19, 19)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2))
+                    .addComponent(lbl_allTransforms)
+                    .addComponent(lbl_transformList))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btn_clearChain))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_ptSettings)
+                            .addComponent(pnl_arrows, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(btn_clearChain)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btn_ptSettings)))
                         .addGap(18, 18, 18)
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(5, 5, 5)))
-                .addGap(18, 18, 18)
+                        .addComponent(jScrollPane3))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 215, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel5)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(birdview_inPhrase, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(pnl_downArrow, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(birdview_outPhrase, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGap(14, 14, 14))
         );
-
-        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {birdview_inPhrase, birdview_outPhrase});
-
     }// </editor-fold>//GEN-END:initComponents
 
     private void btn_clearChainActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_clearChainActionPerformed
     {//GEN-HEADEREND:event_btn_clearChainActionPerformed
-        editedValue.setTransformChain((RhythmVoice) cmb_rhythmVoices.getSelectedItem(), null);
-        updateChainUI();
+        lastValue = new RP_SYS_PhraseTransformValue(uiValue);
+        uiValue.setTransformChain((RhythmVoice) cmb_rhythmVoices.getSelectedItem(), null);
+        fireUiValueChanged();
+
+        updateUI(getCurrentRhythmVoice(), uiValue);
     }//GEN-LAST:event_btn_clearChainActionPerformed
+
+    private void list_transformChainValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_list_transformChainValueChanged
+    {//GEN-HEADEREND:event_list_transformChainValueChanged
+        if (evt.getValueIsAdjusting())
+        {
+            return;
+        }
+
+        list_transformChainSelectionChanged();
+
+    }//GEN-LAST:event_list_transformChainValueChanged
+
+    private void list_availableTransformsMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_list_availableTransformsMouseClicked
+    {//GEN-HEADEREND:event_list_availableTransformsMouseClicked
+        if (evt.getClickCount() == 2 && list_transformChain.isEnabled())
+        {
+            var pt = list_availableTransforms.getSelectedValue();
+            if (pt != null)
+            {
+                list_transformChainModel.addElement(pt.getCopy());
+            }
+        }
+    }//GEN-LAST:event_list_availableTransformsMouseClicked
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -679,19 +923,21 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
     private javax.swing.JButton btn_clearChain;
     private javax.swing.JButton btn_ptSettings;
     private javax.swing.JComboBox<RhythmVoice> cmb_rhythmVoices;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
+    private org.jjazz.ui.utilities.api.HelpTextArea hlp_area;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JLabel lbl_rightArrow;
-    private javax.swing.JList<PhraseTransform> list_allTransforms;
+    private javax.swing.JLabel lbl_allTransforms;
+    private javax.swing.JLabel lbl_arrows;
+    private javax.swing.JLabel lbl_downArrow;
+    private javax.swing.JLabel lbl_transformList;
+    private javax.swing.JList<PhraseTransform> list_availableTransforms;
     private javax.swing.JList<PhraseTransform> list_transformChain;
+    private javax.swing.JPanel pnl_arrows;
+    private javax.swing.JPanel pnl_downArrow;
     // End of variables declaration//GEN-END:variables
 
 

@@ -8,7 +8,6 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.util.api.ResUtil;
-import org.openide.util.Exceptions;
 
 /**
  * A RhythmParameter to replace one or more generated Phrases by custom Phrases.
