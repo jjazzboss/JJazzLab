@@ -53,6 +53,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.util.api.ResUtil;
 import org.jjazz.song.api.Song;
+import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.ui.ss_editor.api.SS_Editor;
 import org.jjazz.ui.ss_editor.api.SS_EditorTopComponent;
 import org.openide.util.Exceptions;
@@ -118,11 +119,11 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
                 Exceptions.printStackTrace(ex);
                 return;
             }
-            SongContext sgContext = new SongContext(song, mm, spt.getBarRange());
+            SongPartContext sptContext = new SongPartContext(song, mm, spt);
             Object value = spt.getRPValue(rp);
             var dlgEditor = factory.getEditor((RhythmParameter) rp);
             assert dlgEditor != null : "rp=" + rp;
-            dlgEditor.preset(value, sgContext);
+            dlgEditor.preset(value, sptContext);
 
 
             // Set location

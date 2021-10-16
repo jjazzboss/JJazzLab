@@ -62,13 +62,13 @@ public class RhythmVoiceDelegate extends RhythmVoice
 
     private RhythmVoiceDelegate(Rhythm container, RhythmVoice rvSource)
     {
-        super(container, rvSource.getType(), "delegateOf(" + rvSource.getName() + ")", rvSource.getPreferredInstrument(), rvSource.getPreferredChannel());
+        super(container, rvSource.getType(), rvSource.getName(), rvSource.getPreferredInstrument(), rvSource.getPreferredChannel());
         this.rvSource = rvSource;
     }
 
     private RhythmVoiceDelegate(Rhythm container, RhythmVoice rvSource, boolean forDrums)
     {
-        super(rvSource.getDrumKit(), container, rvSource.getType(), "delegateOf(" + rvSource.getName() + ")", rvSource.getPreferredInstrument(), rvSource.getPreferredChannel());
+        super(rvSource.getDrumKit(), container, rvSource.getType(), rvSource.getName(), rvSource.getPreferredInstrument(), rvSource.getPreferredChannel());
         this.rvSource = rvSource;
     }
 
@@ -80,6 +80,6 @@ public class RhythmVoiceDelegate extends RhythmVoice
     @Override
     public String toString()
     {
-        return "Rvd[" + getName() + ", r=" + getContainer() + "]";
+        return "RvD[" + getName() + ", r=" + getContainer() + "]";
     }
 }

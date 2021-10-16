@@ -380,7 +380,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     }
 
     /**
-     * @param rvKey
+     * @param rvKey If it's a RhythmVoiceDelegate, return the channel associated to its source RhythmVoice.
      * @return The InstrumentMix associated to rvKey. Null if no InstrumentMix found.
      */
     public InstrumentMix getInstrumentMixFromKey(RhythmVoice rvKey)
@@ -388,6 +388,10 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         if (rvKey == null)
         {
             return null;
+        }
+        if (rvKey instanceof RhythmVoiceDelegate)
+        {
+            rvKey = ((RhythmVoiceDelegate) rvKey).getSource();
         }
         int index = Arrays.asList(rvKeys).indexOf(rvKey);
         return index == -1 ? null : instrumentMixes[index];
@@ -433,7 +437,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     /**
      * Get the Midi channel associated to the specified RhythmVoice.
      *
-     * @param rvKey
+     * @param rvKey If it's a RhythmVoiceDelegate, return the channel associated to its source RhythmVoice.
      * @return -1 if key not found.
      */
     public int getChannel(RhythmVoice rvKey)
@@ -441,6 +445,10 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         if (rvKey == null)
         {
             throw new IllegalArgumentException("key=" + rvKey);   //NOI18N
+        }
+        if (rvKey instanceof RhythmVoiceDelegate)
+        {
+            rvKey = ((RhythmVoiceDelegate) rvKey).getSource();
         }
         return Arrays.asList(rvKeys).indexOf(rvKey);
     }

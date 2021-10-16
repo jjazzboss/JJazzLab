@@ -37,6 +37,7 @@ import org.jjazz.midimix.api.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.song.api.Song;
+import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.spteditor.api.RpEditor;
 import org.jjazz.util.api.ResUtil;
@@ -96,7 +97,7 @@ public class RpEditorCustom extends RpEditorComponent
         strValue = Utilities.truncateWithDots(strValue, 20);
         if (strValue.isBlank())
         {
-            strValue = "edit";   
+            strValue = "edit";
         }
         btn_edit.setText(strValue);
         String strDesc = rp.getValueDescription(value);
@@ -126,10 +127,10 @@ public class RpEditorCustom extends RpEditorComponent
             Exceptions.printStackTrace(ex);
             return;
         }
-        SongContext sgContext = new SongContext(songModel, mm, songPart.getBarRange());
+        SongPartContext sptContext = new SongPartContext(songModel, mm, songPart);
         var dlgEditor = RpCustomEditorFactory.findFactory(rp).getEditor(rp);
         assert dlgEditor != null : "rp=" + rp;
-        dlgEditor.preset(value, sgContext);
+        dlgEditor.preset(value, sptContext);
 
 
         // Set location

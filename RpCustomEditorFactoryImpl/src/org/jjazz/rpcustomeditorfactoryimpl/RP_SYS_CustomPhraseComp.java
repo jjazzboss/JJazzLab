@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -41,6 +42,7 @@ import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.StaticSongSession;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -50,9 +52,11 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder.SongSequence;
+import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorDialog;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.util.api.FloatRange;
@@ -75,11 +79,9 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     private final RP_SYS_CustomPhrase rp;
     private RP_SYS_CustomPhraseValue lastValue;
     private RP_SYS_CustomPhraseValue uiValue;
-    private SongContext songContext;
-    private SongPart songPart;
-    private FloatRange songPartBeatRange;
+    private SongPartContext songPartContext;
     private final TextOverlayLayerUI overlayLayerUI;
-    private Map<RhythmVoice, Phrase> mapRvPhrase;
+    private final Map<RhythmVoice, Phrase> mapRvPhrase = new HashMap<>();
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhraseComp.class.getSimpleName());
 
     public RP_SYS_CustomPhraseComp(RP_SYS_CustomPhrase rp)
@@ -111,7 +113,8 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     @Override
     public String getTitle()
     {
-        String txt = "\"" + songPart.getName() + "\" - bars " + (songPart.getBarRange().from + 1) + "..." + (songPart.getBarRange().to + 1);
+        var spt = songPartContext.getSongPart();
+        String txt = "\"" + spt.getName() + "\" - bars " + (spt.getBarRange().from + 1) + "..." + (spt.getBarRange().to + 1);
         return ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.DialogTitle", txt);
     }
 
@@ -127,44 +130,49 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         super.setEnabled(b);
 
         // Update our UI
-        list_rhythmVoices.setEnabled(b);
+        lbl_phraseInfo.setEnabled(b);
+        lbl_rhythmVoice.setEnabled(b);
+        hlp_area.setEnabled(b);
         btn_edit.setEnabled(b);
         btn_remove.setEnabled(b);
-        birdViewComponent.setEnabled(b);
     }
 
 
     @Override
-    public void preset(RP_SYS_CustomPhraseValue rpValue, SongContext sgContext)
+    public void preset(RP_SYS_CustomPhraseValue rpValue, SongPartContext sptContext)
     {
         checkNotNull(rpValue);
-        checkNotNull(sgContext);
+        checkNotNull(sptContext);
+        mapRvPhrase.clear();
 
 
-        songContext = sgContext;
-        songPart = songContext.getSongParts().get(0);
-        songPartBeatRange = songContext.getSptBeatRange(songPart);
-        setMapRvPhrase(null);
+        songPartContext = sptContext;
+        var spt = songPartContext.getSongPart();
 
 
-        LOGGER.log(Level.FINE, "preset() -- rpValue={0} songPart={1}", new Object[]
+        LOGGER.log(Level.FINE, "preset() -- rpValue={0} spt={1}", new Object[]
         {
-            rpValue, songPart
+            rpValue, spt
         });
+
+
+        uiValue = new RP_SYS_CustomPhraseValue(rpValue);
+        lastValue = new RP_SYS_CustomPhraseValue(uiValue);
 
 
         list_rhythmVoices.setListData(rpValue.getRhythm().getRhythmVoices().toArray(new RhythmVoice[0]));
         list_rhythmVoices.setSelectedIndex(0);
-        Rhythm r = songPart.getRhythm();
+        Rhythm r = spt.getRhythm();
         var rpVariation = RP_STD_Variation.getVariationRp(r);
-        String strVariation = rpVariation == null ? "" : "/" + songPart.getRPValue(rpVariation).toString();
+        String strVariation = rpVariation == null ? "" : "/" + spt.getRPValue(rpVariation).toString();
         lbl_phraseInfo.setText(r.getName() + strVariation);
 
 
         // Start a task to generate the phrases 
         Runnable task = () ->
         {
-            StaticSongSession tmpSession = StaticSongSession.getSession(songContext, false, false, false, false, 0, null);
+            SongContext workContext = RealTimeRpEditorDialog.buildPreviewContext(songPartContext, rp, rp.getDefaultValue());
+            StaticSongSession tmpSession = StaticSongSession.getSession(workContext, false, false, false, false, 0, null);
             if (tmpSession.getState().equals(PlaybackSession.State.NEW))
             {
                 try
@@ -179,27 +187,22 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             }
 
             // Retrieve the data
-            setMapRvPhrase(tmpSession.getRvPhraseMap());
+            setMapRvPhrase(tmpSession.getRvPhraseMap());        // This will refresh the UI
             tmpSession.close();
-
 
         };
 
         new Thread(task).start();
 
-
-        setEditedRpValue(rpValue);
     }
 
     @Override
     public void setEditedRpValue(RP_SYS_CustomPhraseValue rpValue)
     {
-        uiValue = rpValue;
-        lastValue = uiValue;
+        lastValue = new RP_SYS_CustomPhraseValue(uiValue);
+        uiValue = new RP_SYS_CustomPhraseValue(rpValue);
 
-
-        // Update UI
-        list_rhythmVoicesValueChanged(null);
+        refreshUI();
     }
 
     @Override
@@ -211,6 +214,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     @Override
     public void cleanup()
     {
+
     }
 
     @Override
@@ -222,27 +226,53 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     // ===================================================================================
     // Private methods
     // ===================================================================================
+
     /**
+     * Called by thread started from preset() when phrases are ready.
+     * <p>
+     *
+     * @param map A map generated by SongSequenceBuilder, with no RhythmVoiceDelegate since they have been processed
+     */
+    private synchronized void setMapRvPhrase(Map<RhythmVoice, Phrase> map)
+    {
+        LOGGER.log(Level.FINE, "setMapRvPhrase() -- map={0}", map);
+
+        mapRvPhrase.clear();
+        for (var rv : map.keySet())
+        {
+            Phrase p = map.get(rv);     // Phrase always start at bar 0
+            mapRvPhrase.put(rv, p);
+        }
+
+        // Refresh the birdview
+        list_rhythmVoicesValueChanged(null);
+    }
+
+    /**
+     * Manage the case of a RhythmVoice or RhythmVoiceDelegate
      *
      * @param rv
      * @return Can be null!
      */
     private synchronized Phrase getPhrase(RhythmVoice rv)
     {
-        if (mapRvPhrase == null || uiValue == null)
+        if (mapRvPhrase.isEmpty() || uiValue == null)
         {
             return null;
         }
-        Phrase p = isCustomizedPhrase(rv) ? uiValue.getCustomizedPhrase(rv) : mapRvPhrase.get(rv);
+        Phrase p = null;
+        if (isCustomizedPhrase(rv))
+        {
+            p = uiValue.getCustomizedPhrase(rv);
+        } else if (rv instanceof RhythmVoiceDelegate)
+        {
+            p = mapRvPhrase.get(((RhythmVoiceDelegate) rv).getSource());
+        } else
+        {
+            p = mapRvPhrase.get(rv);
+        }
+
         return p;
-    }
-
-    private synchronized void setMapRvPhrase(Map<RhythmVoice, Phrase> map)
-    {
-        mapRvPhrase = map;
-
-        // Refresh the birdview
-        list_rhythmVoicesValueChanged(null);
     }
 
     private void addCustomizedPhrase(RhythmVoice rv, SizedPhrase sp)
@@ -261,13 +291,13 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
     private void forceListRepaint()
     {
-        list_rhythmVoices.repaint(list_rhythmVoices.getCellBounds(0, songPart.getRhythm().getRhythmVoices().size() - 1));
+        list_rhythmVoices.repaint(list_rhythmVoices.getCellBounds(0, songPartContext.getSongPart().getRhythm().getRhythmVoices().size() - 1));
     }
 
     private void fireUiValueChanged()
     {
         firePropertyChange(PROP_EDITED_RP_VALUE, lastValue, uiValue);
-        lastValue = uiValue;
+        lastValue = new RP_SYS_CustomPhraseValue(uiValue);
         refreshUI();
 
     }
@@ -287,16 +317,15 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             if (p != null)
             {
                 // Computed phrases are shifted to start at 0.
-                FloatRange beatRange0 = songPartBeatRange.getTransformed(-songPartBeatRange.from);
-                birdViewComponent.setModel(p, songPart.getRhythm().getTimeSignature(), beatRange0);
+                FloatRange fr = songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from);
+                birdViewComponent.setModel(p, songPartContext.getSongPart().getRhythm().getTimeSignature(), fr);
                 birdViewComponent.setForeground(isCustom ? PHRASE_COMP_CUSTOMIZED_FOREGROUND : PHRASE_COMP_FOREGROUND);
             }
-            btn_remove.setEnabled(isCustom);
-            btn_edit.setEnabled(true);
+            btn_remove.setEnabled(isEnabled() && isCustom);
+            btn_edit.setEnabled(isEnabled());
             String txt = isCustom ? " [" + ResUtil.getString(getClass(), "RP_SYS_CustomPhraseComp.Customized") + "]" : "";
             lbl_rhythmVoice.setText(rv.getName() + txt);
-            MidiMix mm = songContext.getMidiMix();
-            int channel = mm.getChannel(rv) + 1;
+            int channel = getChannel(rv) + 1;
             lbl_rhythmVoice.setToolTipText("Midi channel " + channel);
         } else
         {
@@ -314,15 +343,15 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     private SongContext buildWorkContext()
     {
         // Get a song copy which uses the edited RP value
-        Song songCopy = SongFactory.getInstance().getCopy(songContext.getSong(), false);
+        Song songCopy = SongFactory.getInstance().getCopy(songPartContext.getSong(), false);
         SongStructure ss = songCopy.getSongStructure();
-        SongPart spt = ss.getSongPart(songContext.getBarRange().from);
+        SongPart spt = ss.getSongPart(songPartContext.getBarRange().from);
 
         // Apply the RP value
         ss.setRhythmParameterValue(spt, rp, uiValue);
 
         // Create the new context
-        SongContext res = new SongContext(songCopy, songContext.getMidiMix(), songContext.getBarRange());
+        SongContext res = new SongContext(songCopy, songPartContext.getMidiMix(), songPartContext.getBarRange());
         return res;
     }
 
@@ -361,20 +390,27 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
 
         // Check which phrases are relevant and if they have changed
-        MidiMix mm = songContext.getMidiMix();
+        MidiMix mm = songPartContext.getMidiMix();
         for (Phrase pNew : phrases)
         {
             RhythmVoice rv = mm.getRhythmVoice(pNew.getChannel());
             if (rv != null && !(rv instanceof UserRhythmVoice))
             {
                 contentFound = true;
+                Rhythm r = songPartContext.getSongPart().getRhythm();
+                if (r instanceof AdaptedRhythm)
+                {
+                    // We need to use the original RhythmVoiceDelegate
+                    rv = getRhythmVoiceDelegate((AdaptedRhythm) r, rv);
+                }
+
                 Phrase pOld = getPhrase(rv);
                 if (!pNew.equalsLoosePosition(pOld, PHRASE_COMPARE_BEAT_WINDOW))
                 {
 //                    LOGGER.info("importMidiFile() setting custom phrase for rv=" + rv);
 //                    LOGGER.info("importMidiFile() pOld=" + pOld);
 //                    LOGGER.info("importMidiFile() pNew=" + pNew);
-                    SizedPhrase sp = new SizedPhrase(pNew.getChannel(), songContext.getBeatRange(), songPart.getRhythm().getTimeSignature());
+                    SizedPhrase sp = new SizedPhrase(pNew.getChannel(), songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), r.getTimeSignature());
                     sp.add(pNew);
                     addCustomizedPhrase(rv, sp);
                     impactedRvs.add(rv);
@@ -411,6 +447,22 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         }
 
         return true;
+    }
+
+    /**
+     * Find the RhythmVoiceDelegate for the specified rv.
+     *
+     * @param ar
+     * @param rv
+     * @return
+     */
+    private RhythmVoiceDelegate getRhythmVoiceDelegate(AdaptedRhythm ar, final RhythmVoice rv)
+    {
+        var res = ar.getRhythmVoices().stream()
+                .filter(rvi -> ((RhythmVoiceDelegate) rvi).getSource() == rv)
+                .findAny().orElse(null);
+        assert res != null : "ar=" + ar + " rv=" + rv;
+        return (RhythmVoiceDelegate) res;
     }
 
 
@@ -500,50 +552,28 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
     /**
      *
-     * @return Can be null.
+     * @return Can be null, can be a RhythmVoiceDelegate
      */
     private RhythmVoice getCurrentRhythmVoice()
     {
         return list_rhythmVoices.getSelectedValue();
     }
-    
-    
-  /**
-     * Manage the cases RhythmVoice or RhythmVoiceDelegate.
-     *
-     * @param rv
-     * @return
-     */
+
+
     private int getChannel(RhythmVoice rv)
     {
-        if (rv instanceof RhythmVoiceDelegate)
-        {
-            rv = ((RhythmVoiceDelegate) rv).getSource();
-        }
-        int channel = songContext.getMidiMix().getChannel(rv);
-        return channel;
+        return songPartContext.getMidiMix().getChannel(rv);
     }
 
-    /**
-     * Manage the cases RhythmVoice or RhythmVoiceDelegate.
-     *
-     * @param rv
-     * @return
-     */
     private Instrument getInstrument(RhythmVoice rv)
     {
-        if (rv instanceof RhythmVoiceDelegate)
-        {
-            rv = ((RhythmVoiceDelegate) rv).getSource();
-        }
-        Instrument ins = songContext.getMidiMix().getInstrumentMixFromKey(rv).getInstrument();
-        return ins;
+        return songPartContext.getMidiMix().getInstrumentMixFromKey(rv).getInstrument();
     }
 
     private void setAllTransferHandlers(TransferHandler th)
     {
         setTransferHandler(th);
-        helpTextArea1.setTransferHandler(th);
+        hlp_area.setTransferHandler(th);
     }
 
 
@@ -573,7 +603,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         birdViewComponent = new org.jjazz.phrase.api.ui.PhraseBirdView();
         lbl_phraseInfo = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        helpTextArea1 = new org.jjazz.ui.utilities.api.HelpTextArea();
+        hlp_area = new org.jjazz.ui.utilities.api.HelpTextArea();
         btn_remove = new org.jjazz.ui.utilities.api.SmallFlatDarkLafButton();
         btn_edit = new org.jjazz.ui.utilities.api.SmallFlatDarkLafButton();
 
@@ -662,17 +692,17 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
         jScrollPane2.setBorder(null);
 
-        helpTextArea1.setColumns(20);
-        helpTextArea1.setRows(3);
-        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(RP_SYS_CustomPhraseComp.class, "RP_SYS_CustomPhraseComp.helpTextArea1.text")); // NOI18N
-        helpTextArea1.addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+        hlp_area.setColumns(20);
+        hlp_area.setRows(3);
+        hlp_area.setText(org.openide.util.NbBundle.getMessage(RP_SYS_CustomPhraseComp.class, "RP_SYS_CustomPhraseComp.hlp_area.text")); // NOI18N
+        hlp_area.addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
         {
             public void mouseDragged(java.awt.event.MouseEvent evt)
             {
-                helpTextArea1MouseDragged(evt);
+                hlp_areaMouseDragged(evt);
             }
         });
-        jScrollPane2.setViewportView(helpTextArea1);
+        jScrollPane2.setViewportView(hlp_area);
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_remove, org.openide.util.NbBundle.getMessage(RP_SYS_CustomPhraseComp.class, "RP_SYS_CustomPhraseComp.btn_remove.text")); // NOI18N
         btn_remove.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_CustomPhraseComp.class, "RP_SYS_CustomPhraseComp.btn_remove.toolTipText")); // NOI18N
@@ -795,10 +825,10 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         startDragOut(evt);
     }//GEN-LAST:event_birdViewComponentMouseDragged
 
-    private void helpTextArea1MouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_helpTextArea1MouseDragged
-    {//GEN-HEADEREND:event_helpTextArea1MouseDragged
+    private void hlp_areaMouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_hlp_areaMouseDragged
+    {//GEN-HEADEREND:event_hlp_areaMouseDragged
         startDragOut(evt);
-    }//GEN-LAST:event_helpTextArea1MouseDragged
+    }//GEN-LAST:event_hlp_areaMouseDragged
 
     private void lbl_phraseInfoMouseDragged(java.awt.event.MouseEvent evt)//GEN-FIRST:event_lbl_phraseInfoMouseDragged
     {//GEN-HEADEREND:event_lbl_phraseInfoMouseDragged
@@ -811,7 +841,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     private org.jjazz.phrase.api.ui.PhraseBirdView birdViewComponent;
     private org.jjazz.ui.utilities.api.SmallFlatDarkLafButton btn_edit;
     private org.jjazz.ui.utilities.api.SmallFlatDarkLafButton btn_remove;
-    private org.jjazz.ui.utilities.api.HelpTextArea helpTextArea1;
+    private org.jjazz.ui.utilities.api.HelpTextArea hlp_area;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lbl_phraseInfo;
@@ -838,12 +868,11 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
             RhythmVoice rv = (RhythmVoice) value;
             int channel = -1;
             String s = rv.getName() + " [" + channel + "]";
-            if (songContext != null)
+            if (songPartContext != null)
             {
                 channel = getChannel(rv) + 1;
                 var ins = getInstrument(rv);
-                String name = (rv instanceof RhythmVoiceDelegate) ? ((RhythmVoiceDelegate) rv).getSource().getName() : rv.getName();
-                s = "[" + (channel + 1) + "] " + ins.getPatchName() + " / " + name;
+                s = "[" + (channel + 1) + "] " + ins.getPatchName() + " / " + rv.getName();
             }
             lbl.setText(s);
             Font f = lbl.getFont();

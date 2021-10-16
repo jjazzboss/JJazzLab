@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
@@ -57,12 +58,12 @@ import org.jjazz.phrasetransform.api.PhraseTransformManager;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_PhraseTransform;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_PhraseTransformValue;
 import org.jjazz.phrasetransform.api.ui.PhraseTransformListCellRenderer;
-import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorComponent;
 import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.openide.DialogDisplayer;
@@ -78,8 +79,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
     private final RP_SYS_PhraseTransform rp;
     private RP_SYS_PhraseTransformValue lastValue;
     private RP_SYS_PhraseTransformValue uiValue;
-    private SongContext songContext;
-    private SongPart songPart;
+    private SongPartContext songPartContext;
     private TimeSignature timeSignature;
     private List<RhythmVoice> rhythmVoices;
     private final DefaultListModel<PhraseTransform> list_transformChainModel = new DefaultListModel<>();
@@ -137,16 +137,15 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
 
 
     @Override
-    public void preset(RP_SYS_PhraseTransformValue rpValue, SongContext sgContext)
+    public void preset(RP_SYS_PhraseTransformValue rpValue, SongPartContext sptContext)
     {
-        checkNotNull(sgContext);
+        checkNotNull(sptContext);
 
-        LOGGER.info("preset() -- rpValue=" + rpValue + " sgContext=" + sgContext);
+        LOGGER.info("preset() -- rpValue=" + rpValue + " sptContext=" + sptContext);
 
-        songContext = sgContext;
-        songPart = songContext.getSongParts().get(0);
-        rhythmVoices = songPart.getRhythm().getRhythmVoices();
-        timeSignature = songPart.getRhythm().getTimeSignature();
+        songPartContext = sptContext;
+        rhythmVoices = songPartContext.getSongPart().getRhythm().getRhythmVoices();
+        timeSignature = songPartContext.getSongPart().getRhythm().getTimeSignature();
         assert !rhythmVoices.isEmpty();
         mapRvPhrase.clear();
 
@@ -179,7 +178,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         // Start a task to get the generated phrases 
         Runnable task = () ->
         {
-            StaticSongSession tmpSession = StaticSongSession.getSession(songContext, false, false, false, false, 0, null);
+            StaticSongSession tmpSession = StaticSongSession.getSession(songPartContext, false, false, false, false, 0, null);
             if (tmpSession.getState().equals(PlaybackSession.State.NEW))
             {
                 try
@@ -294,13 +293,13 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
      */
     private synchronized void setMapRvPhrase(Map<RhythmVoice, Phrase> map)
     {
-        LOGGER.info("setMapRvPhrase() -- map=" + map);
+        LOGGER.log(Level.FINE, "setMapRvPhrase() -- map={0}", map);
 
         for (var rv : map.keySet())
         {
             Phrase p = map.get(rv);     // Phrase always start at bar 0
             int channel = getChannel(rv);
-            SizedPhrase sp = new SizedPhrase(channel, songContext.getBeatRange().getTransformed(-songContext.getBeatRange().from), timeSignature);
+            SizedPhrase sp = new SizedPhrase(channel, songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), timeSignature);
             sp.add(p);
             mapRvPhrase.put(rv, sp);
         }
@@ -327,7 +326,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         SizedPhrase sp = mapRvPhrase.get(rv);
         if (sp == null)
         {
-            sp = new SizedPhrase(getChannel(rv), songContext.getBeatRange().getTransformed(-songContext.getBeatRange().from), timeSignature);
+            sp = new SizedPhrase(getChannel(rv), songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from), timeSignature);
         }
         return sp;
     }
@@ -360,10 +359,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
                 list_transformChainModel.addAll(transformChain);
             }
             list_transformChainModel.addListDataListener(this);
-        } else
-        {
-            LOGGER.info("updateAvailableTransformsList() transformChain unchanged");
-        }
+        } 
 
 
         // Update the birdviews
@@ -389,36 +385,14 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         return rv;
     }
 
-    /**
-     * Manage the cases RhythmVoice or RhythmVoiceDelegate.
-     *
-     * @param rv
-     * @return
-     */
     private int getChannel(RhythmVoice rv)
     {
-        if (rv instanceof RhythmVoiceDelegate)
-        {
-            rv = ((RhythmVoiceDelegate) rv).getSource();
-        }
-        int channel = songContext.getMidiMix().getChannel(rv);
-        return channel;
+        return songPartContext.getMidiMix().getChannel(rv);
     }
 
-    /**
-     * Manage the cases RhythmVoice or RhythmVoiceDelegate.
-     *
-     * @param rv
-     * @return
-     */
     private Instrument getInstrument(RhythmVoice rv)
     {
-        if (rv instanceof RhythmVoiceDelegate)
-        {
-            rv = ((RhythmVoiceDelegate) rv).getSource();
-        }
-        Instrument ins = songContext.getMidiMix().getInstrumentMixFromKey(rv).getInstrument();
-        return ins;
+        return songPartContext.getMidiMix().getInstrumentMixFromKey(rv).getInstrument();
     }
 
     private void list_transformChainSelectionChanged()
@@ -473,8 +447,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
             {
                 int channel = getChannel(rv);
                 var ins = getInstrument(rv);
-                String name = (rv instanceof RhythmVoiceDelegate) ? ((RhythmVoiceDelegate) rv).getSource().getName() : rv.getName();
-                String text = "[" + (channel + 1) + "] " + ins.getPatchName() + " / " + name;
+                String text = "[" + (channel + 1) + "] " + ins.getPatchName() + " / " + rv.getName();
 
                 if (uiValue != null && uiValue.getTransformChain(rv) != null)
                 {

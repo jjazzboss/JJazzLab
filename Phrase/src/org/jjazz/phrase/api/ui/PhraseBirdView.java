@@ -36,6 +36,7 @@ import javax.swing.JPanel;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.ui.utilities.api.HSLColor;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.util.api.FloatRange;
@@ -61,6 +62,7 @@ public class PhraseBirdView extends JPanel
     private Phrase phrase;
     private FloatRange beatRange;
     private TimeSignature timeSignature;
+    private boolean showVelocity = true;
     private static final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);
     private static final Logger LOGGER = Logger.getLogger(PhraseBirdView.class.getSimpleName());
 
@@ -71,7 +73,7 @@ public class PhraseBirdView extends JPanel
 
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);                  
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         var r = Utilities.getUsableArea(this);
 
 
@@ -85,10 +87,6 @@ public class PhraseBirdView extends JPanel
             double yRatio = (double) r.height / pitchRange.size();
 
 
-            Color c = isEnabled() ? getForeground() : getBackground().brighter();
-            g2.setColor(c);
-
-
             // Draw a line segment for each note
             for (NoteEvent ne : phrase)
             {
@@ -100,6 +98,7 @@ public class PhraseBirdView extends JPanel
                     x1 = x0 + 0.7d;
                 }
                 var line = new Line2D.Double(x0, y, x1, y);
+                g2.setColor(getNoteColor(ne));
                 g2.draw(line);
             }
 
@@ -111,7 +110,7 @@ public class PhraseBirdView extends JPanel
                 {
                     float barWidth = (float) r.width / nbBars;
                     double x = r.x + i * barWidth - 0.5d;
-                    g2.setColor(isEnabled() ? getForeground().darker() : c);
+                    g2.setColor(isEnabled() ? getForeground().darker() : getForeground());
                     var line = new Line2D.Double(x, r.y, x, r.y + BAR_GRADATION_LENGTH - 1);
                     g2.draw(line);
                     line = new Line2D.Double(x, yMax, x, yMax - BAR_GRADATION_LENGTH + 1);
@@ -128,7 +127,6 @@ public class PhraseBirdView extends JPanel
         g2.dispose();
     }
 
-   
 
     public Phrase getModel()
     {
@@ -136,11 +134,25 @@ public class PhraseBirdView extends JPanel
     }
 
 
-//    @Override
-//    public Dimension getMinimumSize()
-//    {
-//        return new Dimension(20, 10);
-//    }
+    /**
+     *
+     * @return If true use different color nuances depending on velocity.
+     */
+    public boolean isShowVelocity()
+    {
+        return showVelocity;
+    }
+
+    /**
+     * If true use different color nuances depending on velocity.
+     *
+     * @param showVelocity the showVelocity to set
+     */
+    public void setShowVelocity(boolean showVelocity)
+    {
+        this.showVelocity = showVelocity;
+        repaint();
+    }
 
     /**
      * Set the Phrase model.
@@ -246,5 +258,32 @@ public class PhraseBirdView extends JPanel
         int nbLowNotes = midRange.from <= HARD_LOW ? 0 : Math.round((midRange.from - HARD_LOW) / (float) outOfRangePitchRatio) + 1;
         int nbHighNotes = midRange.to >= HARD_HIGH ? 0 : Math.round((HARD_HIGH - midRange.to) / (float) outOfRangePitchRatio) + 1;
         return new IntRange(midRange.from - nbLowNotes, midRange.to + nbHighNotes);
+    }
+
+    private Color getNoteColor(NoteEvent ne)
+    {
+        Color res;
+        if (!isEnabled())
+        {
+            res = getBackground().brighter();
+        } else if (!isShowVelocity())
+        {
+            res = getForeground();
+        } else
+        {
+            // Make color vary depending on velocity
+            // Use a luminance variation centered around velocity=64
+            int v = ne.getVelocity();
+            HSLColor hsl = new HSLColor(getForeground());
+            float lum = hsl.getLuminance();
+            int lumMaxDelta = 20;
+            float lumDelta = (v - 64) * lumMaxDelta / 64;
+            lum += lumDelta;
+            lum = Math.min(100f, lum);
+            lum = Math.max(0f, lum);
+            res = hsl.adjustLuminance(lum);
+        }
+
+        return res;
     }
 }

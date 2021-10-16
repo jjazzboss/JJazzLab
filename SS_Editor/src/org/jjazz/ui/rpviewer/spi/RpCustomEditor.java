@@ -25,7 +25,7 @@ package org.jjazz.ui.rpviewer.spi;
 import java.beans.PropertyChangeListener;
 import javax.swing.JDialog;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.songcontext.api.SongPartContext;
 import org.openide.windows.WindowManager;
 
 /**
@@ -53,9 +53,9 @@ public abstract class RpCustomEditor<E> extends JDialog implements PropertyChang
      *
      *
      * @param rpValue The RhythmParameter value
-     * @param sgContext The bar range must correspond to a single SongPart (a single RhythmParameter value).
+     * @param sptContext 
      */
-    public abstract void preset(E rpValue, SongContext sgContext);
+    public abstract void preset(E rpValue, SongPartContext sptContext);
 
 
     /**

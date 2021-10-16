@@ -187,16 +187,16 @@
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
-            <Component class="org.jjazz.ui.utilities.api.HelpTextArea" name="helpTextArea1">
+            <Component class="org.jjazz.ui.utilities.api.HelpTextArea" name="hlp_area">
               <Properties>
                 <Property name="columns" type="int" value="20"/>
                 <Property name="rows" type="int" value="3"/>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RP_SYS_CustomPhraseComp.helpTextArea1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                  <ResourceString bundle="org/jjazz/rpcustomeditorfactoryimpl/Bundle.properties" key="RP_SYS_CustomPhraseComp.hlp_area.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                 </Property>
               </Properties>
               <Events>
-                <EventHandler event="mouseDragged" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="helpTextArea1MouseDragged"/>
+                <EventHandler event="mouseDragged" listener="java.awt.event.MouseMotionListener" parameters="java.awt.event.MouseEvent" handler="hlp_areaMouseDragged"/>
               </Events>
             </Component>
           </SubComponents>

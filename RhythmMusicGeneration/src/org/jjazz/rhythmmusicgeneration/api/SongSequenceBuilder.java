@@ -166,8 +166,8 @@ public class SongSequenceBuilder
      * - Ask each used rhythm in the song to produce music (one Phrase per RhythmVoice) via its MusicGenerator implementation.<br>
      * - Add the user phrases if any<br>
      * - Apply on each channel possible instrument transpositions, velocity shift, mute (RP_SYS_Mute).<br>
-     * - Apply the RP_SYS_DrumsMix velocity changes. Note that it is expected that, if there is an AdaptedRhythm for a Rhythm which
-     * uses RP_SYS_DrumsMix, the AdaptedRhythm reuses the same RP_SYS_DrumsMix instance.<br>
+     * - Apply the RP_SYS_DrumsMix velocity changes. Note that it is expected that, if there is an AdaptedRhythm for a Rhythm
+     * which uses RP_SYS_DrumsMix, the AdaptedRhythm reuses the same RP_SYS_DrumsMix instance.<br>
      * - Apply the RP_SYS_CustomPhrase changes<br>
      * - Apply the RP_SYS_PhraseTransform changes<br>
      * - Apply drums rerouting if needed <br>
@@ -724,7 +724,8 @@ public class SongSequenceBuilder
     /**
      * For each SongPart remove notes for muted RhythmVoices depending on the RP_SYS_Mute value.<br>
      *
-     * @param rvPhrases
+     * @param context
+     * @param rvPhrases Keys can include RhythmVoiceDelegates
      */
     private void processMutedInstruments(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
     {
@@ -766,7 +767,7 @@ public class SongSequenceBuilder
      * Change some note velocities depending on the RP_SYS_DrumsMix value for each SongPart.
      *
      * @param context
-     * @param rvPhrases
+     * @param rvPhrases Keys can NOT contain RhythmVoiceDelegates
      */
     private void processDrumsMixSettings(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
     {
@@ -822,7 +823,7 @@ public class SongSequenceBuilder
      * Replace phrases by custom phrases depending on the RP_SYS_CustomPhrase value.
      *
      * @param context
-     * @param rvPhrases
+     * @param rvPhrases Keys can include RhythmVoiceDelegates
      */
     private void processCustomPhrases(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
     {
@@ -830,6 +831,7 @@ public class SongSequenceBuilder
         {
             FloatRange sptBeatRange = context.getSptBeatRange(spt);
 
+            
             // Get the RhythmParameter
             Rhythm r = spt.getRhythm();
             RP_SYS_CustomPhrase rpCustomPhrase = RP_SYS_CustomPhrase.getCustomPhraseRp(r);
@@ -895,7 +897,7 @@ public class SongSequenceBuilder
      * Transform rhythm phrases depending on the RP_SYS_PhraseTransform value.
      *
      * @param context
-     * @param rvPhrases
+     * @param rvPhrases Keys can include RhythmVoiceDelegates
      */
     private void processPhraseTransforms(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
     {
@@ -919,14 +921,7 @@ public class SongSequenceBuilder
             LOGGER.log(Level.FINE, "processPhraseTransforms() rpValue={0}", rpValue);
             for (RhythmVoice rv : rpValue.getChainRhythmVoices())
             {
-                Instrument ins;
-                if (rv instanceof RhythmVoiceDelegate)
-                {
-                    ins = context.getMidiMix().getInstrumentMixFromKey(((RhythmVoiceDelegate) rv).getSource()).getInstrument();
-                } else
-                {
-                    ins = context.getMidiMix().getInstrumentMixFromKey(rv).getInstrument();
-                }
+                Instrument ins = context.getMidiMix().getInstrumentMixFromKey(rv).getInstrument();
 
 
                 // Keep the slice only for the current songpart

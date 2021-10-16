@@ -22,6 +22,7 @@
  */
 package org.jjazz.rpcustomeditorfactoryimpl.api;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorComponent;
 import java.awt.BorderLayout;
 import java.awt.DefaultKeyboardFocusManager;
@@ -48,7 +49,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ui.rpviewer.spi.RpCustomEditor;
@@ -70,13 +71,13 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 {
 
     public static final int DEFAULT_PREVIEW_MAX_NB_BARS = 64;
-    private int previewMaxNbBars = DEFAULT_PREVIEW_MAX_NB_BARS;
+    private static int previewMaxNbBars = DEFAULT_PREVIEW_MAX_NB_BARS;
     private final RealTimeRpEditorComponent<E> editor;
     private boolean exitOk;
     private UpdatableSongSession session;
-    private SongContext songContextOriginal;
-    private SongContext previewContext;
-    private E rpValueOriginal;
+    private SongPartContext songPartContextOriginal;
+    private SongPartContext songPartContextpreview;
+    private final E rpValueReference;
     private E saveRpValue;
     private GlobalKeyActionListener globalKeyListener;
     private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());  //NOI18N
@@ -91,6 +92,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
         pnl_editor.add(editor, BorderLayout.CENTER);
         pack();
+
+        rpValueReference = getRhythmParameter().getDefaultValue();
     }
 
     @Override
@@ -100,31 +103,31 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     }
 
     @Override
-    public void preset(E rpValue, SongContext sgContext)
+    public void preset(E rpValue, SongPartContext sptContext)
     {
-        if (rpValue == null || sgContext == null || sgContext.getSongParts().size() > 1)
+        if (rpValue == null || sptContext == null || sptContext.getSongParts().size() > 1)
         {
-            throw new IllegalArgumentException("rpValue=" + rpValue + " sgContext=" + sgContext);
+            throw new IllegalArgumentException("rpValue=" + rpValue + " sptContext=" + sptContext);
         }
 
-        LOGGER.fine("preset() -- rpValue=" + rpValue + " sgContext=" + sgContext);
+        LOGGER.fine("preset() -- rpValue=" + rpValue + " sptContext=" + sptContext);
 
-        songContextOriginal = sgContext;
-        rpValueOriginal = rpValue;
+        songPartContextOriginal = sptContext;
 
-        var spt0 = sgContext.getSongParts().get(0);
-        if (!spt0.getRhythm().getRhythmParameters().contains(editor.getRhythmParameter()))
+
+        var spt = sptContext.getSongPart();
+        if (!spt.getRhythm().getRhythmParameters().contains(editor.getRhythmParameter()))
         {
-            throw new IllegalArgumentException("rpValue=" + rpValue + " sgContext=" + sgContext + " spt0=" + spt0 + " getRhythmParameter()=" + getRhythmParameter());
+            throw new IllegalArgumentException("rpValue=" + rpValue + " sptContext=" + sptContext + " spt=" + spt + " getRhythmParameter()=" + getRhythmParameter());
         }
 
 
         // Reset UI
         editor.setEnabled(true);
         fbtn_reset.setEnabled(true);
-        editor.preset(rpValue, sgContext);
+        editor.preset(rpValue, sptContext);
         String title = editor.getTitle();
-        setTitle(title == null ? buildDefaultTitle(spt0) : title);
+        setTitle(title == null ? buildDefaultTitle(spt) : title);
         fbtn_ok.requestFocusInWindow();
         tbtn_hear.setSelected(false);
         tbtn_compare.setSelected(false);
@@ -179,6 +182,48 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         this.previewMaxNbBars = previewMaxNbBars;
     }
 
+    /**
+     * Create a preview SongContext which uses the specified rhythm parameter value.
+     *
+     * @param rpValue
+     * @return
+     */
+    static public <T> SongPartContext buildPreviewContext(SongPartContext sptContext, RhythmParameter<T> rp, T rpValue)
+    {
+        checkArgument(sptContext.getSongParts().size() == 1, "sptContext=%s, rp=%s, rpValue=%s", sptContext, rp, rpValue);
+        
+        // Get a song copy which uses the edited RP value        
+        Song songCopy = SongFactory.getInstance().getCopy(sptContext.getSong(), false);
+        SongStructure ss = songCopy.getSongStructure();
+        ChordLeadSheet cls = songCopy.getChordLeadSheet();
+        SongPart spt = ss.getSongPart(sptContext.getBarRange().from);
+
+
+        // Make sure SongPart size does not exceed maxNbBars 
+        CLI_Section section = spt.getParentSection();
+        IntRange sectionRange = cls.getSectionRange(section);
+        if (sectionRange.size() > previewMaxNbBars)
+        {
+            // Shorten the section
+            try
+            {
+                cls.setSize(sectionRange.from + previewMaxNbBars);
+            } catch (UnsupportedEditException ex)
+            {
+                // We're removing a section, should never happen
+                Exceptions.printStackTrace(ex);
+            }
+        }
+
+        // Apply the RP value
+        ss.setRhythmParameterValue(spt, rp, rpValue);
+
+
+        // Create the new context
+        SongPartContext res = new SongPartContext(songCopy, sptContext.getMidiMix(), spt);
+        return res;
+    }
+
     // ======================================================================================
     // PropertyChangeListener interface
     // ======================================================================================
@@ -220,47 +265,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
 
     /**
-     * Create a preview SongContext where the previewed SongPart is no longer than maxNbBars and it uses the specified rhythm
-     * parameter value.
-     *
-     * @param rpValue
-     * @return
-     */
-    private SongContext buildPreviewContext(E rpValue)
-    {
-        // Get a song copy which uses the edited RP value
-        Song songCopy = SongFactory.getInstance().getCopy(songContextOriginal.getSong(), false);
-        SongStructure ss = songCopy.getSongStructure();
-        ChordLeadSheet cls = songCopy.getChordLeadSheet();
-        SongPart spt = ss.getSongPart(songContextOriginal.getBarRange().from);
-
-
-        // Make sure SongPart size does not exceed maxNbBars 
-        CLI_Section section = spt.getParentSection();
-        IntRange sectionRange = cls.getSectionRange(section);
-        if (sectionRange.size() > previewMaxNbBars)
-        {
-            // Shorten the section
-            try
-            {
-                cls.setSize(sectionRange.from + previewMaxNbBars);
-            } catch (UnsupportedEditException ex)
-            {
-                // We're removing a section, should never happen
-                Exceptions.printStackTrace(ex);
-            }
-        }
-
-        // Apply the RP value
-        ss.setRhythmParameterValue(spt, (RhythmParameter) editor.getRhythmParameter(), rpValue);
-
-
-        // Create the new context
-        SongContext res = new SongContext(songCopy, songContextOriginal.getMidiMix(), spt.getBarRange());
-        return res;
-    }
-
-    /**
      * Start playback.
      */
     private void startPlayback()
@@ -272,12 +276,12 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         }
 
         // Build song context with the original RP value or edited one
-        E rpValue = tbtn_compare.isSelected() ? rpValueOriginal : editor.getEditedRpValue();
-        previewContext = buildPreviewContext(rpValue);
+        E rpValue = tbtn_compare.isSelected() ? rpValueReference : editor.getEditedRpValue();
+        songPartContextpreview = buildPreviewContext(songPartContextOriginal, getRhythmParameter(), rpValue);
 
 
         // DynamicSongSession automatically generates updates if a RhythmParameter value changes
-        var dynSession = DynamicSongSession.getSession(previewContext,
+        var dynSession = DynamicSongSession.getSession(songPartContextpreview,
                 true,
                 false,
                 false,
@@ -326,8 +330,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
      */
     private void updateRpValueInPreviewContext(E rpValue)
     {
-        SongStructure ss = previewContext.getSong().getSongStructure();
-        SongPart spt = ss.getSongPart(songContextOriginal.getBarRange().from);
+        SongStructure ss = songPartContextpreview.getSong().getSongStructure();
+        SongPart spt = ss.getSongPart(songPartContextOriginal.getBarRange().from);
         ss.setRhythmParameterValue(spt, (RhythmParameter) editor.getRhythmParameter(), rpValue);
     }
 
@@ -509,7 +513,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         if (tbtn_compare.isSelected())
         {
             saveRpValue = editor.getEditedRpValue();
-            editor.setEditedRpValue(rpValueOriginal);
+            editor.setEditedRpValue(rpValueReference);
             editor.setEnabled(false);
         } else
         {
@@ -547,9 +551,9 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
 
     private void formWindowOpened(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowOpened
     {//GEN-HEADEREND:event_formWindowOpened
-        if (songContextOriginal == null)
+        if (songPartContextOriginal == null)
         {
-            throw new IllegalStateException("songContextOriginal is null: preset() must be called before making dialog visible");
+            throw new IllegalStateException("songPartContextOriginal is null: preset() must be called before making dialog visible");
         }
 
         // If song was already playing, directly switch to the preview mode
@@ -617,7 +621,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
             boolean b = false;
             if (e.getID() == KeyEvent.KEY_RELEASED && e.getKeyChar() == ' ')
             {
-                LOGGER.severe("postProcessKeyEvent() e=" + e);
+                // LOGGER.severe("postProcessKeyEvent() e=" + e);
                 tbtn_hear.doClick();
                 b = true;
             }

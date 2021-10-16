@@ -5,7 +5,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMix;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMixValue;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
 import org.jjazz.util.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -20,7 +20,7 @@ public class RP_SYS_DrumsMixComp extends RealTimeRpEditorComponent<RP_SYS_DrumsM
 
     private RP_SYS_DrumsMix rp;
     private RP_SYS_DrumsMixValue lastValue;
-    private SongContext songContext;
+    private SongPartContext songPartContext;
 
     public RP_SYS_DrumsMixComp(RP_SYS_DrumsMix rp)
     {
@@ -55,19 +55,19 @@ public class RP_SYS_DrumsMixComp extends RealTimeRpEditorComponent<RP_SYS_DrumsM
     }
 
     @Override
-    public void preset(RP_SYS_DrumsMixValue rpValue, SongContext sgContext)
+    public void preset(RP_SYS_DrumsMixValue rpValue, SongPartContext sgContext)
     {
         setEditedRpValue(rpValue);
-        songContext = sgContext;
+        songPartContext = sgContext;
 
 
         String strChannel = "Channel drums";
-        if (songContext != null)
+        if (songPartContext != null)
         {
             // Check muted drums
             var rvDrums = rp.getRhythmVoice();
             String msg = null;
-            if (songContext.getMidiMix().getInstrumentMixFromKey(rvDrums).isMute())
+            if (songPartContext.getMidiMix().getInstrumentMixFromKey(rvDrums).isMute())
             {
                 msg = ResUtil.getString(getClass(), "ERR_DrumsTrackIsMuted");
                 NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);

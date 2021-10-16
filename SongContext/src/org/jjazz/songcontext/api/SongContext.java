@@ -50,7 +50,7 @@ public class SongContext
     private Song song;
     private MidiMix mix;
     private IntRange barRange;
-    private List<SongPart> songParts;
+    protected List<SongPart> songParts;
     private FloatRange beatRange;
     private LongRange tickRange;
 

@@ -25,6 +25,7 @@ package org.jjazz.rpcustomeditorfactoryimpl.spi;
 import javax.swing.JComponent;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.songcontext.api.SongPartContext;
 
 /**
  * A JComponent to be used as a RhythmParameter value editor by the RealTimeRpEditorDialog.
@@ -58,9 +59,9 @@ public abstract class RealTimeRpEditorComponent<E> extends JComponent
      * Initialize the editor for the specified context.
      *
      * @param rpValue Can not be null.
-     * @param sgContext The sgContext will contain only 1 SongPart for a rhythm which uses the target RhythmParameter
+     * @param sptContext
      */
-    public abstract void preset(E rpValue, SongContext sgContext);
+    public abstract void preset(E rpValue, SongPartContext sptContext);
 
     /**
      * Change the edited value to rpValue.
