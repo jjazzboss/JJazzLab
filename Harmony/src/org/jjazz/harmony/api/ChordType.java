@@ -111,8 +111,7 @@ final public class ChordType
      * @param i13 An integer -1, 0 or 1 that represent the status (flat,natural or sharp) of degree 13. Use NOT_PRESENT constant
      * if a degree is not present.
      */
-    protected ChordType(String b, String e, Family f, int i9, int i3, int i11, int i5, int i13,
-            int i7)
+    protected ChordType(String b, String e, Family f, int i9, int i3, int i11, int i5, int i13, int i7)
     {
         if ((b == null) || (e == null) || !checkDegree(i9) || !checkDegree(i3) || !checkDegree(i11)
                 || !checkDegree(i5) || !checkDegree(i13) || !checkDegree(i7))

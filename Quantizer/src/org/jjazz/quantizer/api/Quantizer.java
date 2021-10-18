@@ -22,6 +22,9 @@
  */
 package org.jjazz.quantizer.api;
 
+import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import java.beans.PropertyChangeListener;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
@@ -35,27 +38,6 @@ public class Quantizer
 
     private static Quantizer INSTANCE;
     private Quantization qValue;
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);   
-
-    /**
-     * All possible valid positions within one beat.
-     */
-    private static float[] QPOINTS_ONE_QUARTER_BEAT = new float[]
-    {
-        0f, .25f, .5f, .75f, 1f
-    };
-    private static float[] QPOINTS_ONE_THIRD_BEAT = new float[]
-    {
-        0f, 1f / 3f, 2f / 3f, 1f
-    };
-    private static float[] QPOINTS_HALF_BEAT = new float[]
-    {
-        0f, .5f, 1f
-    };
-    private static float[] QPOINTS_BEAT = new float[]
-    {
-        0f, 1f
-    };
 
     public static Quantizer getInstance()
     {
@@ -112,22 +94,48 @@ public class Quantizer
                 newPos = quantizeHalfBar(pos, ts, maxBarIndex, false);      // Half-bar straight
                 break;
             case BEAT:
-                newPos = quantizeStandard(pos, ts, maxBarIndex, QPOINTS_BEAT);
-                break;
             case HALF_BEAT:
-                newPos = quantizeStandard(pos, ts, maxBarIndex, QPOINTS_HALF_BEAT);
-                break;
             case ONE_THIRD_BEAT:
-                newPos = quantizeStandard(pos, ts, maxBarIndex, QPOINTS_ONE_THIRD_BEAT);
-                break;
             case ONE_QUARTER_BEAT:
-                newPos = quantizeStandard(pos, ts, maxBarIndex, QPOINTS_ONE_QUARTER_BEAT);
+                newPos = quantizeStandard(pos, ts, maxBarIndex, q.getBeats());
                 break;
+
             default:
                 throw new IllegalStateException("quantization=" + q);   //NOI18N
         }
 
         return newPos;
+    }
+
+    /**
+     * Quantize beatPos using the specified quantization setting.
+     *
+     * @param q
+     * @param beatPos
+     * @return
+     */
+    static public float quantize(Quantization q, float beatPos)
+    {
+        checkNotNull(q);
+        checkArgument(beatPos >= 0, "q=%s beatPos=%s", q, beatPos);
+        float res;
+        switch (q)
+        {
+            case OFF:
+            case HALF_BAR:
+                res = beatPos;
+                break;
+            case BEAT:
+            case HALF_BEAT:
+            case ONE_THIRD_BEAT:
+            case ONE_QUARTER_BEAT:
+                res = quantizeStandard(beatPos, q.getBeats());
+                break;
+            default:
+                throw new IllegalStateException("quantization=" + q);   //NOI18N
+        }
+
+        return res;
     }
 
     public void setQuantizationValue(Quantization q)
@@ -160,16 +168,7 @@ public class Quantizer
         return q;
     }
 
-    public void addPropertyListener(PropertyChangeListener l)
-    {
-        pcs.addPropertyChangeListener(l);
-    }
-
-    public void removePropertyListener(PropertyChangeListener l)
-    {
-        pcs.removePropertyChangeListener(l);
-    }
-
+ 
     // ====================================================================================
     // Private methods
     // ====================================================================================    
@@ -236,6 +235,34 @@ public class Quantizer
         }
 
         return newPos;
+    }
+
+    private static float quantizeStandard(float beatPos, float[] qPoints)
+    {
+        float res = beatPos;
+        float beatInt = (float) Math.floor(beatPos);
+        float beatDecimal = beatPos - beatInt;
+        int nbPoints = qPoints.length;
+
+        for (int i = 0; i < (nbPoints - 1); i++)
+        {
+            if (beatDecimal == qPoints[i] || beatDecimal == qPoints[i + 1])
+            {
+                // Already quantized
+                break;
+            }
+            if (beatDecimal < qPoints[i + 1])
+            {
+                // beat is in the range of these 2 values
+                float lower = qPoints[i];
+                float upper = qPoints[i + 1];
+                beatDecimal = (beatDecimal < ((lower + upper) / 2)) ? lower : upper;
+                res = beatInt + beatDecimal;
+                break;
+            }
+        }
+
+        return res;
     }
 
 }

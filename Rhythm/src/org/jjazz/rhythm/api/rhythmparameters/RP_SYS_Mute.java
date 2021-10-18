@@ -125,18 +125,7 @@ public class RP_SYS_Mute extends RP_StringSet
     static private HashMap<String, RhythmVoice> getMuteValuesMap(Rhythm r)
     {
         var res = new HashMap<String, RhythmVoice>();
-        for (var rv : r.getRhythmVoices())
-        {
-            String key;
-            if (rv instanceof RhythmVoiceDelegate)
-            {
-                key = ((RhythmVoiceDelegate) rv).getSource().getName();
-            } else
-            {
-                key = rv.getName();
-            }
-            res.put(key, rv);
-        }
+        r.getRhythmVoices().forEach(rv -> res.put(rv.getName(), rv));
         return res;
     }
 

@@ -74,10 +74,12 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_DrumsMixValue;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
+import org.jjazz.songcontext.api.SongPartContext;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.util.api.FloatRange;
+import org.jjazz.util.api.IntRange;
 import org.jjazz.util.api.ResUtil;
 
 /**
@@ -904,8 +906,9 @@ public class SongSequenceBuilder
         LOGGER.log(Level.FINE, "processPhraseTransforms() -- context={0}", context);
         for (SongPart spt : context.getSongParts())
         {
-            FloatRange sptBeatRange = context.getSptBeatRange(spt);
-
+            FloatRange sptBeatRange = context.getSptBeatRange(spt);     // Might be smaller than spt.getBeatRange()
+            IntRange sptBarRange = context.getSptBarRange(spt);         // Might be smaller than spt.getBarRange()
+            SongPartContext sptContext = new SongPartContext(context.getSong(), context.getMidiMix(), sptBarRange);
 
             // Get the RhythmParameter
             Rhythm r = spt.getRhythm();
@@ -921,8 +924,6 @@ public class SongSequenceBuilder
             LOGGER.log(Level.FINE, "processPhraseTransforms() rpValue={0}", rpValue);
             for (RhythmVoice rv : rpValue.getChainRhythmVoices())
             {
-                Instrument ins = context.getMidiMix().getInstrumentMixFromKey(rv).getInstrument();
-
 
                 // Keep the slice only for the current songpart
                 Phrase p = rvPhrases.get(rv);
@@ -934,7 +935,7 @@ public class SongSequenceBuilder
                 SizedPhrase inSp = new SizedPhrase(tp.getChannel(), sptBeatRange, r.getTimeSignature());
                 inSp.add(tp);
                 var chain = rpValue.getTransformChain(rv);
-                var outSp = chain.transform(inSp, ins);
+                var outSp = chain.transform(inSp, sptContext);
 
 
                 // Replace the old song part phrase by the transformed one

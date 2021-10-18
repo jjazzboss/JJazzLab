@@ -61,10 +61,12 @@ import org.jjazz.phrasetransform.api.ui.PhraseTransformListCellRenderer;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
+import static org.jjazz.rpcustomeditorfactoryimpl.RP_SYS_CustomPhraseComp.PHRASE_COMP_CUSTOMIZED_FOREGROUND;
+import static org.jjazz.rpcustomeditorfactoryimpl.RP_SYS_CustomPhraseComp.PHRASE_COMP_FOREGROUND;
+import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorDialog;
 import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorComponent;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songcontext.api.SongPartContext;
-import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -141,7 +143,10 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
     {
         checkNotNull(sptContext);
 
-        LOGGER.info("preset() -- rpValue=" + rpValue + " sptContext=" + sptContext);
+        LOGGER.log(Level.FINE, "preset() -- rpValue={0} sptContext={1}", new Object[]
+        {
+            rpValue, sptContext
+        });
 
         songPartContext = sptContext;
         rhythmVoices = songPartContext.getSongPart().getRhythm().getRhythmVoices();
@@ -178,7 +183,8 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         // Start a task to get the generated phrases 
         Runnable task = () ->
         {
-            StaticSongSession tmpSession = StaticSongSession.getSession(songPartContext, false, false, false, false, 0, null);
+            SongContext workContext = RealTimeRpEditorDialog.buildPreviewContext(songPartContext, rp, rp.getDefaultValue());
+            StaticSongSession tmpSession = StaticSongSession.getSession(workContext, false, false, false, false, 0, null);
             if (tmpSession.getState().equals(PlaybackSession.State.NEW))
             {
                 try
@@ -333,7 +339,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
 
     private void updateAvailableTransformsList(RhythmVoice rv)
     {
-        List<PhraseTransform> pts = PhraseTransformManager.getDefault().getRecommendedPhraseTransforms(getInPhrase(rv), getInstrument(rv), true);
+        List<PhraseTransform> pts = PhraseTransformManager.getDefault().getRecommendedPhraseTransforms(getInPhrase(rv), songPartContext, true);
         DefaultListModel dlm = new DefaultListModel();
         dlm.addAll(pts);
         list_availableTransforms.setModel(dlm);
@@ -359,14 +365,14 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
                 list_transformChainModel.addAll(transformChain);
             }
             list_transformChainModel.addListDataListener(this);
-        } 
+        }
 
 
         // Update the birdviews
         SizedPhrase inPhrase = getInPhrase(rv);
-        birdview_inPhrase.setModel(inPhrase, inPhrase.getTimeSignature(), inPhrase.getBeatRange());
-        SizedPhrase outPhrase = (transformChain == null) ? inPhrase : transformChain.transform(inPhrase, getInstrument(rv));
+        SizedPhrase outPhrase = (transformChain == null) ? inPhrase : transformChain.transform(inPhrase, songPartContext);
         birdview_outPhrase.setModel(outPhrase, outPhrase.getTimeSignature(), outPhrase.getBeatRange());
+        birdview_outPhrase.setForeground(transformChain != null ? PHRASE_COMP_CUSTOMIZED_FOREGROUND : PHRASE_COMP_FOREGROUND);
 
 
         // Update the clear button
@@ -598,15 +604,24 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
                 // Add a new element in the chain
                 DefaultListModel listModel = (DefaultListModel) list_transformChain.getModel();
                 JList.DropLocation dl = (JList.DropLocation) info.getDropLocation();
-                if (dl.isInsert())
+                try
                 {
-                    // Add
-                    listModel.add(dl.getIndex(), srcPt.getCopy());
-                } else
+                    if (dl.isInsert())
+                    {
+                        // Add
+                        listModel.add(dl.getIndex(), srcPt.getCopy());
+                    } else
+                    {
+                        // Replace existing
+                        listModel.set(dl.getIndex(), srcPt.getCopy());
+                    }
+                } catch (Exception ex)
                 {
-                    // Replace existing
-                    listModel.set(dl.getIndex(), srcPt.getCopy());
+                    // Catch programming exception to log them, because they are not shown otherwise (because of java transferhandler mechanism?)
+                    ex.printStackTrace();
+                    return false;
                 }
+
                 return true;
             } else
             {
@@ -665,14 +680,10 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         pnl_arrows = new javax.swing.JPanel();
         lbl_arrows = new javax.swing.JLabel();
         birdview_outPhrase = new org.jjazz.phrase.api.ui.PhraseBirdView();
-        birdview_inPhrase = new org.jjazz.phrase.api.ui.PhraseBirdView();
-        pnl_downArrow = new javax.swing.JPanel();
-        lbl_downArrow = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         hlp_area = new org.jjazz.ui.utilities.api.HelpTextArea();
         cmb_rhythmVoices = new javax.swing.JComboBox<>();
         jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_allTransforms, org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.lbl_allTransforms.text")); // NOI18N
@@ -727,7 +738,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         pnl_arrows.add(lbl_arrows);
 
         birdview_outPhrase.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(153, 153, 153)));
-        birdview_outPhrase.setForeground(new java.awt.Color(255, 0, 51));
+        birdview_outPhrase.setForeground(new java.awt.Color(102, 153, 255));
 
         javax.swing.GroupLayout birdview_outPhraseLayout = new javax.swing.GroupLayout(birdview_outPhrase);
         birdview_outPhrase.setLayout(birdview_outPhraseLayout);
@@ -737,27 +748,8 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         );
         birdview_outPhraseLayout.setVerticalGroup(
             birdview_outPhraseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 44, Short.MAX_VALUE)
+            .addGap(0, 69, Short.MAX_VALUE)
         );
-
-        birdview_inPhrase.setBorder(birdview_outPhrase.getBorder());
-        birdview_inPhrase.setForeground(new java.awt.Color(102, 204, 255));
-
-        javax.swing.GroupLayout birdview_inPhraseLayout = new javax.swing.GroupLayout(birdview_inPhrase);
-        birdview_inPhrase.setLayout(birdview_inPhraseLayout);
-        birdview_inPhraseLayout.setHorizontalGroup(
-            birdview_inPhraseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-        birdview_inPhraseLayout.setVerticalGroup(
-            birdview_inPhraseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 45, Short.MAX_VALUE)
-        );
-
-        pnl_downArrow.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
-
-        lbl_downArrow.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/rpcustomeditorfactoryimpl/resources/DownArrow-14x14.png"))); // NOI18N
-        pnl_downArrow.add(lbl_downArrow);
 
         jScrollPane3.setBorder(null);
 
@@ -770,9 +762,6 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel4, org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.jLabel4.text")); // NOI18N
 
-        jLabel5.setFont(jLabel5.getFont().deriveFont(jLabel5.getFont().getSize()-2f));
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel5, org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.jLabel5.text")); // NOI18N
-
         jLabel3.setFont(jLabel3.getFont().deriveFont(jLabel3.getFont().getSize()-2f));
         org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.jLabel3.text")); // NOI18N
 
@@ -783,9 +772,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(birdview_inPhrase, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(birdview_outPhrase, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(pnl_downArrow, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -808,7 +795,6 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
                                             .addComponent(btn_clearChain)
                                             .addComponent(btn_ptSettings))
                                         .addGap(0, 81, Short.MAX_VALUE))))))
-                    .addComponent(jLabel5)
                     .addComponent(jLabel3)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel4)
@@ -841,19 +827,13 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
                                 .addComponent(btn_ptSettings)))
                         .addGap(18, 18, 18)
                         .addComponent(jScrollPane3))
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 215, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 188, Short.MAX_VALUE)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(birdview_inPhrase, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pnl_downArrow, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
+                .addGap(18, 18, 18)
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(birdview_outPhrase, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(14, 14, 14))
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -891,7 +871,6 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.phrase.api.ui.PhraseBirdView birdview_inPhrase;
     private org.jjazz.phrase.api.ui.PhraseBirdView birdview_outPhrase;
     private javax.swing.JButton btn_clearChain;
     private javax.swing.JButton btn_ptSettings;
@@ -899,18 +878,15 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
     private org.jjazz.ui.utilities.api.HelpTextArea hlp_area;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JLabel lbl_allTransforms;
     private javax.swing.JLabel lbl_arrows;
-    private javax.swing.JLabel lbl_downArrow;
     private javax.swing.JLabel lbl_transformList;
     private javax.swing.JList<PhraseTransform> list_availableTransforms;
     private javax.swing.JList<PhraseTransform> list_transformChain;
     private javax.swing.JPanel pnl_arrows;
-    private javax.swing.JPanel pnl_downArrow;
     // End of variables declaration//GEN-END:variables
 
 

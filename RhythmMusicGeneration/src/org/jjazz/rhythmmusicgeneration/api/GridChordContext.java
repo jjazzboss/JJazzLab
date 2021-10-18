@@ -22,8 +22,11 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import org.jjazz.phrase.api.Grid;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.phrase.api.Grid;
+import org.jjazz.rhythmmusicgeneration.api.ChordSequence;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 

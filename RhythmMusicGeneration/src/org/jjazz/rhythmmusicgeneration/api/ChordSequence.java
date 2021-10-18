@@ -32,7 +32,6 @@ import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.leadsheet.chordleadsheet.api.item.Position;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 

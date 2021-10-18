@@ -27,8 +27,8 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
-import org.jjazz.midi.api.Instrument;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.songcontext.api.SongPartContext;
 
 /**
  * A chain of PhraseTransforms.
@@ -56,16 +56,16 @@ public class PhraseTransformChain extends ArrayList<PhraseTransform>
      *
      *
      * @param inPhrase
-     * @param ins
+     * @param context
      * @return
      * @throws IllegalStateException If a transformed phrase has a different beat range than inPhrase.
      */
-    public SizedPhrase transform(SizedPhrase inPhrase, Instrument ins)
+    public SizedPhrase transform(SizedPhrase inPhrase, SongPartContext context)
     {
         SizedPhrase sp = new SizedPhrase(inPhrase);
         for (var pt : this)
         {
-            sp = pt.transform(sp, ins);
+            sp = pt.transform(sp, context);
 
             if (!sp.getBeatRange().equals(inPhrase.getBeatRange()))
             {

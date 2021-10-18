@@ -36,7 +36,6 @@ import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.ChordType;
 import org.jjazz.harmony.api.Degree;
 import org.jjazz.harmony.api.Note;
-import org.jjazz.harmony.api.ScaleManager;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.leadsheet.chordleadsheet.api.item.ExtChordSymbol;
@@ -232,6 +231,7 @@ public class Phrases
      * @param pSrc The source phrase
      * @param ecsDest The destination extended chord symbol.
      * @return A new phrase with destination notes.
+     * @todo Optimize!!
      */
     static public Phrase fitChordPhrase2ChordSymbol(SourcePhrase pSrc, ExtChordSymbol ecsDest)
     {

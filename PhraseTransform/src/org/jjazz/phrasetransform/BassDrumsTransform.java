@@ -29,6 +29,7 @@ import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransformCategory;
 import org.jjazz.phrasetransform.api.PhraseTransform;
 import org.jjazz.phrasetransform.api.PtProperties;
+import org.jjazz.songcontext.api.SongPartContext;
 
 /**
  *
@@ -40,7 +41,7 @@ public class BassDrumsTransform implements PhraseTransform
     private PtProperties properties = new PtProperties(new Properties());
 
     @Override
-    public SizedPhrase transform(SizedPhrase inPhrase, Instrument ins)
+    public SizedPhrase transform(SizedPhrase inPhrase,  SongPartContext context)
     {
         SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature());
         for (var ne : inPhrase)
@@ -53,7 +54,7 @@ public class BassDrumsTransform implements PhraseTransform
     }
 
     @Override
-    public int getFitScore(SizedPhrase inPhrase, Instrument ins)
+    public int getFitScore(SizedPhrase inPhrase,  SongPartContext context)
     {
         return 100;
     }

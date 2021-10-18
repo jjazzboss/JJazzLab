@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.PhraseTransformManagerImpl;
+import org.jjazz.songcontext.api.SongPartContext;
 import org.openide.util.Lookup;
 
 /**
@@ -102,23 +103,23 @@ public interface PhraseTransformManager
      * Get the available PhraseTransforms sorted by "fit score" for the specified parameters.
      *
      * @param inPhrase
-     * @param ins
+     * @param context
      * @param exclude0score if true PhraseTransforms with a fit score==0 are ignored.
      * @return First PhraseTransform is the most adapted to the specified parameters (highest fit score, last PhraseTransform is
      * the less adapted.
      * @see PhraseTransform#getFitScore(org.jjazz.phrase.api.SizedPhrase, org.jjazz.midi.api.Instrument)
      */
-    default public List<PhraseTransform> getRecommendedPhraseTransforms(SizedPhrase inPhrase, Instrument ins, boolean exclude0score)
+    default public List<PhraseTransform> getRecommendedPhraseTransforms(SizedPhrase inPhrase, SongPartContext context, boolean exclude0score)
     {
         var pts = getPhraseTransforms();
 
-        
+
         // Compute score for all transforms
         HashMap<PhraseTransform, Integer> mapPtScore = new HashMap<>();
         for (var it = pts.iterator(); it.hasNext();)
         {
             var pt = it.next();
-            int score = pt.getFitScore(inPhrase, ins);
+            int score = pt.getFitScore(inPhrase, context);
             if (score == 0 && exclude0score)
             {
                 it.remove();
@@ -128,7 +129,7 @@ public interface PhraseTransformManager
             }
         }
 
-        
+
         // Sort
         pts.sort((pt1, pt2) -> Integer.compare(mapPtScore.get(pt2), mapPtScore.get(pt1)));
         return pts;

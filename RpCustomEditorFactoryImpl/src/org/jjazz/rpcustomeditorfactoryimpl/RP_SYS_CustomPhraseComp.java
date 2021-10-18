@@ -74,8 +74,8 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
 
     private static final float PHRASE_COMPARE_BEAT_WINDOW = 0.01f;
     private static final Color PHRASE_COMP_FOCUSED_BORDER_COLOR = new Color(131, 42, 21);
-    private static final Color PHRASE_COMP_CUSTOMIZED_FOREGROUND = new Color(255, 102, 102);
-    private static final Color PHRASE_COMP_FOREGROUND = new Color(102, 153, 255);
+    public static final Color PHRASE_COMP_CUSTOMIZED_FOREGROUND = new Color(255, 102, 102);
+    public static final Color PHRASE_COMP_FOREGROUND = new Color(102, 153, 255);
     private final RP_SYS_CustomPhrase rp;
     private RP_SYS_CustomPhraseValue lastValue;
     private RP_SYS_CustomPhraseValue uiValue;

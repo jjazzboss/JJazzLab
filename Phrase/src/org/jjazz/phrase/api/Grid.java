@@ -20,10 +20,8 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.rhythmmusicgeneration.api;
+package org.jjazz.phrase.api;
 
-import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.NoteEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,9 +31,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.rhythm.api.Feel;
-import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.util.api.FloatRange;
 import org.jjazz.util.api.IntRange;
 import org.openide.util.Exceptions;
@@ -46,7 +43,7 @@ import org.openide.util.Exceptions;
  * The class assigns notes in fixed-sized "cells" (eg 4 cells per beats=1/16) which can then be directly accessed or modified
  * using the cell index.
  * <p>
- * To accomodate real time playing, notes starting just before a cell are included in that cell.
+ * To accomodate real time playing, notes starting just before a cell are included in that cell, see PRE_CELL_BEAT_WINDOW.
  * <p>
  * The refresh() method must be called whenever the phrase is modified outside this Grid object.
  */
@@ -89,7 +86,7 @@ public class Grid implements Cloneable
     {
         if (p == null || beatRange == null || beatRange.from < 0 || nbCellsPerBeat < 1 || beatRange.from % 1 != 0 || beatRange.to % 1 != 0)
         {
-            throw new IllegalArgumentException(   //NOI18N
+            throw new IllegalArgumentException( //NOI18N
                     "p=" + p + " beatRange=" + beatRange + " nbCellsPerBeat=" + nbCellsPerBeat + " filter=" + filter);
         }
         this.phrase = p;
@@ -108,7 +105,7 @@ public class Grid implements Cloneable
     }
 
     @Override
-    public Grid clone() 
+    public Grid clone()
     {
         Grid newGrid = null;
         try
@@ -840,16 +837,18 @@ public class Grid implements Cloneable
 
 
     /**
-     * Get the recommended nb of cells for the specified rhythm.
+     * Get the recommended nb of cells for the specified parameters.
      *
-     * @param r
+     * @param ts
+     * @param isTernary
      * @return 3 or 4
      */
-    static public int getRecommendedNbCellsPerBeat(Rhythm r)
+    static public int getRecommendedNbCellsPerBeat(TimeSignature ts, boolean isTernary)
     {
-        int res = (r.getTimeSignature().getLower() == 8 || r.getFeatures().getFeel().equals(Feel.TERNARY)) ? 3 : 4;
+        int res = (ts.getLower() == 8 || isTernary) ? 3 : 4;
         return res;
     }
+
 
     // =================================================================================
     // Private methods

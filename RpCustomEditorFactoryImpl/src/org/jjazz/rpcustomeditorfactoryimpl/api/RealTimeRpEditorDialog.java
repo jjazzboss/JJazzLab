@@ -131,9 +131,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         fbtn_ok.requestFocusInWindow();
         tbtn_hear.setSelected(false);
         tbtn_compare.setSelected(false);
-        String tt = ResUtil.getString(getClass(), "RealTimeRpEditorDialog.tbtn_compare.toolTipText") + ": " + rpValue.toString();
-        tbtn_compare.setToolTipText(tt);
-
     }
 
     /**

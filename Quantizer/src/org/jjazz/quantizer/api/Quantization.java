@@ -22,16 +22,33 @@
  */
 package org.jjazz.quantizer.api;
 
-import java.util.List;
-
 public enum Quantization
 {
-    HALF_BAR, // For example beat 0-2 for 4/4, 0-1.5 for a waltz
-    BEAT, // This is the "natural beat", beat 0-1-2-3 for 4/4, every 3 eighth note in 12/8.
-    HALF_BEAT,
-    ONE_THIRD_BEAT,
-    ONE_QUARTER_BEAT,
-    OFF;    // No quantization
+    HALF_BAR(), // For example beat 0-2 for 4/4, 0-1.5 for a waltz
+    BEAT(0f, 1f), // This is the "natural beat", beat 0-1-2-3 for 4/4, every 3 eighth note in 12/8.
+    HALF_BEAT(0f, 0.5f, 1f),
+    ONE_THIRD_BEAT(0f, 1f / 3, 2f / 3, 1f),
+    ONE_QUARTER_BEAT(0f, .25f, .5f, .75f, 1f),
+    OFF();    // No quantization
+
+    private final float[] beats;
+
+    private Quantization(float... beats)
+    {
+        this.beats = beats;
+    }
+
+    /**
+     * An array of the quantized values within a beat.
+     * <p>
+     * Example: [0, 1/3, 2/3, 1]
+     *
+     * @return An empty array for OFF and HALF_BAR.
+     */
+    public float[] getBeats()
+    {
+        return beats;
+    }
 
     /**
      *

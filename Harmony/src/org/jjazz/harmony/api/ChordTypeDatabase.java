@@ -52,11 +52,11 @@ public class ChordTypeDatabase
     }
 
     private static ChordTypeDatabase INSTANCE;
-    private List<ChordType> chordTypes = new ArrayList<>();
-    private HashMap<ChordType, String> mapCtDefaultAliases = new HashMap<>();
+    private final List<ChordType> chordTypes = new ArrayList<>();
+    private final HashMap<ChordType, String> mapCtDefaultAliases = new HashMap<>();
     private HashMap<String, ChordType> mapAliasCt = new HashMap<>(450);     // Try to avoid rehash
-    private HashMap<String, Integer> mapExtensionIndex = new HashMap<>();
-    private HashMap<String, Integer> mapExtensionIndexIgnoreCase = new HashMap<>(40);
+    private final HashMap<String, Integer> mapExtensionIndex = new HashMap<>();
+    private final HashMap<String, Integer> mapExtensionIndexIgnoreCase = new HashMap<>(40);
 
     private static Preferences prefs = NbPreferences.forModule(ChordTypeDatabase.class);
     private static final Logger LOGGER = Logger.getLogger(ChordTypeDatabase.class.getSimpleName());
@@ -145,7 +145,7 @@ public class ChordTypeDatabase
         addBuiltin("13", "sus", SUS, ":713sus:sus713:sus13:13sus4:134:", 0, NP, 0, 0, 0, -1);
         addBuiltin("7", "susb9", SUS, ":7sus-9:7sus4b9:sus7b9:sus7-9:7b9sus:7b9sus4:", -1, NP, 0, 0, NP, -1);
         addBuiltin("13", "susb9", SUS, ":13sus-9:sus13b9:sus13-9:", -1, NP, 0, 0, 0, -1);
-
+        
         buildAliasMap();
         // LOGGER.severe("DEBUG DUMP AliasMap=============");
         // mapAliasCt.keySet().stream().forEach(s -> LOGGER.severe(s + " -> " + mapAliasCt.get(s)));

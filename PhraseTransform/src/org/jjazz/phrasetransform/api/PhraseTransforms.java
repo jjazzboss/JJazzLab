@@ -20,33 +20,32 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.phrasetransform;
+package org.jjazz.phrasetransform.api;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.openide.util.lookup.ServiceProvider;
-import org.jjazz.phrasetransform.spi.PhraseTransformProvider;
-import org.jjazz.phrasetransform.api.PhraseTransform;
+import static com.google.common.base.Preconditions.checkNotNull;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.songcontext.api.SongPartContext;
 
 /**
- *
+ * Various helper methods about PhraseTransforms.
  */
-@ServiceProvider(service=PhraseTransformProvider.class)
-public class DefaultPhraseTransformProvider implements PhraseTransformProvider
+public class PhraseTransforms
 {
 
-    List<PhraseTransform> transforms = new ArrayList<>();
-    public DefaultPhraseTransformProvider()
+    static public Instrument getInstrument(SizedPhrase sp, SongPartContext context)
     {
-        transforms.add(new OpenHiHatTransform());
-        transforms.add(new BassDrumsTransform());
-        transforms.add(new SwingTransform());
+        checkNotNull(sp);
+        checkNotNull(context);
+        return context.getMidiMix().getInstrumentMixFromChannel(sp.getChannel()).getInstrument();
     }
-            
-    @Override
-    public List<PhraseTransform> getTransforms()
+
+    static public RhythmVoice getRhythmVoice(SizedPhrase sp, SongPartContext context)
     {
-        return new ArrayList<>(transforms);
+        checkNotNull(sp);
+        checkNotNull(context);
+        return context.getMidiMix().getRhythmVoice(sp.getChannel());
     }
-    
+
 }

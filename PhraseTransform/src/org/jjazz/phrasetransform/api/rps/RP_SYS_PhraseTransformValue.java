@@ -3,6 +3,7 @@ package org.jjazz.phrasetransform.api.rps;
 import com.google.common.base.Joiner;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +19,7 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 
 /**
- * A RhythmParamter to transform YamJJazzRhythm source phrases.
+ * A RhythmParameter to transform YamJJazzRhythm one or more source phrases.
  */
 public class RP_SYS_PhraseTransformValue
 {
@@ -119,11 +120,20 @@ public class RP_SYS_PhraseTransformValue
 
     public String toDescriptionString()
     {
-        List<String> strs = mapRvChain.keySet().stream()
-                .sorted(Comparator.comparingInt(RhythmVoice::getPreferredChannel))
-                .map(rv -> rv instanceof RhythmVoiceDelegate ? ((RhythmVoiceDelegate) rv).getSource().getName() : rv.getName())
-                .collect(Collectors.toList());
-        return Joiner.on(", ").join(strs);
+        StringJoiner joiner1 = new StringJoiner(", ");
+        List<RhythmVoice> sortedRvs = new ArrayList<>(mapRvChain.keySet());
+        sortedRvs.sort(Comparator.comparingInt(RhythmVoice::getPreferredChannel));
+
+        for (var rv : sortedRvs)
+        {
+            StringJoiner joiner2 = new StringJoiner(">", "[", "]");
+            String name = rv.getName();
+            var chain = mapRvChain.get(rv);
+            chain.forEach(pt -> joiner2.add(pt.getName()));
+            joiner1.add(name + "=" + joiner2.toString());
+        }
+
+        return joiner1.toString();
     }
 
     /**

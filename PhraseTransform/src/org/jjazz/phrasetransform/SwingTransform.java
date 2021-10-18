@@ -1,3 +1,4 @@
+
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
@@ -25,53 +26,122 @@ package org.jjazz.phrasetransform;
 import java.util.Properties;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import org.jjazz.midi.api.Instrument;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransformCategory;
 import org.jjazz.phrasetransform.api.PhraseTransform;
 import org.jjazz.phrasetransform.api.PtProperties;
+import org.jjazz.quantizer.api.Quantization;
+import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.util.api.FloatRange;
 import org.netbeans.api.annotations.common.StaticResource;
 
 /**
  *
  * @author Jerome
  */
-public class OpenHiHatTransform implements PhraseTransform
+public class SwingTransform implements PhraseTransform
 {
 
-    @StaticResource(relative = true)
-    private static final String ICON_PATH = "resources/OpenHiHatTransformIcon.gif";
-    private static final Icon ICON = new ImageIcon(OpenHiHatTransform.class.getResource(ICON_PATH));
+    /**
+     * A float value between 0 and 1, 0.3 being the standard value for swing.
+     */
+    public static final String PROP_AMOUNT = "amount";
+    /**
+     * 0.5f means 8th note swing, 0.25f means 16th note swing.
+     */
+    public static final String PROP_SWING_UNIT = "swing unit";
 
-    private PtProperties properties = new PtProperties(new Properties());
+    @StaticResource(relative = true)
+    private static final String ICON_PATH = "resources/SwingTransformer-48x24.png";
+    private static final Icon ICON = new ImageIcon(SwingTransform.class.getResource(ICON_PATH));
+
+    private float swingThreshold;
+
+    private PtProperties properties;
+
+    public SwingTransform()
+    {
+        Properties defaults = new Properties();
+        defaults.setProperty(PROP_AMOUNT, String.valueOf(1 / 3f));
+        defaults.setProperty(PROP_SWING_UNIT, String.valueOf(0.5f));
+        properties = new PtProperties(defaults);
+    }
 
     @Override
     public SizedPhrase transform(SizedPhrase inPhrase, SongPartContext context)
     {
         SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature());
 
+        
+        // Prepare data
+        FloatRange fr = inPhrase.getBeatRange();
+        float swingUnit = getSwingUnit();
+        Quantization q = swingUnit == 0.5f ? Quantization.HALF_BEAT : Quantization.ONE_QUARTER_BEAT;
+        float shift = swingUnit * getSwingAmount();
+
+        
+        // Analyze each note
         for (var ne : inPhrase)
         {
-            var newNe = new NoteEvent(ne, ne.getPitch() + 4, ne.getDurationInBeats() * 0.9f, (int) (ne.getVelocity() * 0.8f));
+            float newDur = ne.getDurationInBeats();
+            float newPos = Quantizer.quantize(q, ne.getPositionInBeats());
+            if (newPos >= fr.to)
+            {
+                continue;
+            }
+                        
+            boolean makeItSwing = Math.round(newPos / swingUnit) % 2 == 1;
+
+            
+            if (makeItSwing)
+            {
+                newPos += shift;
+                if (!fr.contains(newPos + newDur, false))
+                {
+                    newDur = fr.to - newPos - 0.1f;
+                }
+            }
+            var newNe = new NoteEvent(ne, newDur, newPos);
             res.addOrdered(newNe);
         }
 
         return res;
     }
 
+    /**
+     * 0.5f means 8th note swing, 0.25f means 16th note swing.
+     *
+     * @return 0.5 or 0.25.
+     */
+    public float getSwingUnit()
+    {
+        return properties.getPropertyAsFloat(PROP_SWING_UNIT);
+    }
+
+    /**
+     * A value between 0f and 1f.
+     *
+     * @return
+     */
+    public float getSwingAmount()
+    {
+        return properties.getPropertyAsFloat(PROP_AMOUNT);
+    }
+
+
     @Override
     public int getFitScore(SizedPhrase inPhrase, SongPartContext context)
     {
-        Instrument ins = context.getMidiMix().getInstrumentMixFromChannel(inPhrase.getChannel()).getInstrument();
-        return ins.getDrumKit() != null ? 90 : 0;
+        return 100;
     }
+
 
     @Override
     public String getName()
     {
-        return "hi-hat 16th";
+        return "Swing";
     }
 
     @Override
@@ -93,9 +163,9 @@ public class OpenHiHatTransform implements PhraseTransform
     }
 
     @Override
-    public OpenHiHatTransform getCopy()
+    public SwingTransform getCopy()
     {
-        OpenHiHatTransform res = new OpenHiHatTransform();
+        SwingTransform res = new SwingTransform();
         res.properties = properties.getCopy();
         return res;
     }
@@ -103,19 +173,19 @@ public class OpenHiHatTransform implements PhraseTransform
     @Override
     public String getUniqueId()
     {
-        return "OpenHiHatTransformID";
+        return "SwingTransformID";
     }
 
     @Override
     public PhraseTransformCategory getCategory()
     {
-        return PhraseTransformCategory.PERCUSSION;
+        return PhraseTransformCategory.DEFAULT;
     }
 
     @Override
     public String getDescription()
     {
-        return "Make hi-hat 16th notes";
+        return "Swing a binary phrase";
     }
 
     @Override
