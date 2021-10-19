@@ -1,3 +1,4 @@
+
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
@@ -25,36 +26,55 @@ package org.jjazz.phrasetransform;
 import java.util.Properties;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import org.jjazz.midi.api.Instrument;
+import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.DrumKit.KeyMap;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransformCategory;
 import org.jjazz.phrasetransform.api.PhraseTransform;
+import org.jjazz.phrasetransform.api.PhraseTransforms;
 import org.jjazz.phrasetransform.api.PtProperties;
 import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 
 /**
  *
- * @author Jerome
+ * Closed hi-hat -> open hi-hat
  */
 public class OpenHiHatTransform implements PhraseTransform
 {
 
-    @StaticResource(relative = true)
-    private static final String ICON_PATH = "resources/OpenHiHatTransformIcon.gif";
-    private static final Icon ICON = new ImageIcon(OpenHiHatTransform.class.getResource(ICON_PATH));
 
-    private PtProperties properties = new PtProperties(new Properties());
+    @StaticResource(relative = true)
+    private static final String ICON_PATH = "resources/OpenHiHatTransformer-48x24.png";
+    private static final Icon ICON = new ImageIcon(OpenHiHatTransform.class.getResource(ICON_PATH));
+    private final PtProperties properties;
+
+    public OpenHiHatTransform()
+    {
+        properties = new PtProperties(new Properties());
+    }
 
     @Override
     public SizedPhrase transform(SizedPhrase inPhrase, SongPartContext context)
     {
         SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature());
 
+
+        KeyMap keyMap = PhraseTransforms.getInstrument(inPhrase, context).getDrumKit().getKeyMap();
+        var srcPitches = keyMap.getKeys(DrumKit.Subset.HI_HAT_CLOSED);
+        int destPitch = keyMap.getKeys(DrumKit.Subset.HI_HAT_OPEN).get(0);
+
+
         for (var ne : inPhrase)
         {
-            var newNe = new NoteEvent(ne, ne.getPitch() + 4, ne.getDurationInBeats() * 0.9f, (int) (ne.getVelocity() * 0.8f));
+            int pitch = ne.getPitch();
+            if (srcPitches.contains(pitch))
+            {
+                pitch = destPitch;
+            }
+            var newNe = new NoteEvent(ne, destPitch);
             res.addOrdered(newNe);
         }
 
@@ -64,14 +84,26 @@ public class OpenHiHatTransform implements PhraseTransform
     @Override
     public int getFitScore(SizedPhrase inPhrase, SongPartContext context)
     {
-        Instrument ins = context.getMidiMix().getInstrumentMixFromChannel(inPhrase.getChannel()).getInstrument();
-        return ins.getDrumKit() != null ? 90 : 0;
+        DrumKit kit = PhraseTransforms.getRhythmVoice(inPhrase, context).getDrumKit();
+        int res = 0;
+        if (kit != null)
+        {
+            KeyMap keyMap = PhraseTransforms.getInstrument(inPhrase, context).getDrumKit().getKeyMap();
+            var srcPitches = keyMap.getKeys(DrumKit.Subset.HI_HAT_CLOSED);
+            var destPitches = keyMap.getKeys(DrumKit.Subset.HI_HAT_OPEN);
+            if (!srcPitches.isEmpty() && !destPitches.isEmpty())
+            {
+                res = 100;
+            }
+        }
+        return res;
     }
+
 
     @Override
     public String getName()
     {
-        return "hi-hat 16th";
+        return "Open Hi-Hat";
     }
 
     @Override
@@ -86,18 +118,11 @@ public class OpenHiHatTransform implements PhraseTransform
         return PhraseTransform.equals(this, obj);
     }
 
-    @Override
-    public PtProperties getProperties()
-    {
-        return properties;
-    }
 
     @Override
     public OpenHiHatTransform getCopy()
     {
-        OpenHiHatTransform res = new OpenHiHatTransform();
-        res.properties = properties.getCopy();
-        return res;
+        return this;
     }
 
     @Override
@@ -109,18 +134,24 @@ public class OpenHiHatTransform implements PhraseTransform
     @Override
     public PhraseTransformCategory getCategory()
     {
-        return PhraseTransformCategory.PERCUSSION;
+        return PhraseTransformCategory.DRUMS;
     }
 
     @Override
     public String getDescription()
     {
-        return "Make hi-hat 16th notes";
+        return ResUtil.getString(getClass(), "OpenHiHatTransformDesc");
     }
 
     @Override
     public Icon getIcon()
     {
         return ICON;
+    }
+
+    @Override
+    public PtProperties getProperties()
+    {
+        return properties;
     }
 }

@@ -115,15 +115,25 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
         return getRhythm().getTimeSignature().equals(rpCustom.getRhythm().getTimeSignature());
     }
 
+    /**
+     * Reuse a custom phrase when there is a matching RhythmVoice (same type).
+     *
+     * @param <T>
+     * @param rp
+     * @param value
+     * @return
+     */
     @Override
     public <T> RP_SYS_CustomPhraseValue convertValue(RhythmParameter<T> rp, T value)
     {
         Preconditions.checkArgument(isCompatibleWith(rp), "rp=%s is not compatible with this=%s", rp, this);
         Preconditions.checkNotNull(value);
 
-
-        RP_SYS_CustomPhraseValue rpValue = (RP_SYS_CustomPhraseValue) value;
+        
         RP_SYS_CustomPhraseValue res = getDefaultValue();
+
+        
+        RP_SYS_CustomPhraseValue rpValue = (RP_SYS_CustomPhraseValue) value;
         var rvs = getRhythm().getRhythmVoices();
 
 

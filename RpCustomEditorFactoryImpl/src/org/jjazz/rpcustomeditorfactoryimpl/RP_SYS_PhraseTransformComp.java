@@ -129,7 +129,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         if (uiValue != null)
         {
             // Update UI
-            updateUI(getCurrentRhythmVoice(), uiValue);
+            updateUI(uiValue);
             list_transformChainSelectionChanged();
             lbl_transformList.setEnabled(b);
             hlp_area.setEnabled(b);
@@ -211,7 +211,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
     {
         lastValue = uiValue;
         uiValue = new RP_SYS_PhraseTransformValue(rpValue);
-        updateUI(getCurrentRhythmVoice(), uiValue);
+        updateUI(uiValue);
     }
 
     @Override
@@ -243,7 +243,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         if (ae.getSource() == cmb_rhythmVoices)
         {
             updateAvailableTransformsList(getCurrentRhythmVoice());
-            updateUI(getCurrentRhythmVoice(), uiValue);
+            updateUI(uiValue);
         }
     }
 
@@ -273,21 +273,24 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
     // ===============================================================================
     // Private methods
     // ===============================================================================    
+    private void updateUiValue(PhraseTransformChain chain)
+    {
+        var rv = getCurrentRhythmVoice();
+        lastValue = uiValue;
+        uiValue = uiValue.getUpdatedTransformChain(rv, chain);
+        updateUI(uiValue);
+        fireUiValueChanged();
+    }
+
     /**
      * Called when list_transformChain was directly modified by user.
      */
     private void list_transformChainChanged()
     {
         // Update uiValue from list_transformChain model
-        lastValue = new RP_SYS_PhraseTransformValue(uiValue);
         List<PhraseTransform> pts = Utilities.getListModelAsList(list_transformChainModel);
         var chain = new PhraseTransformChain(pts);
-        uiValue.setTransformChain(getCurrentRhythmVoice(), chain);
-
-
-        updateUI(getCurrentRhythmVoice(), uiValue);
-
-        fireUiValueChanged();
+        updateUiValue(chain);
     }
 
 
@@ -311,7 +314,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         }
 
         // Refresh the birdviews
-        updateUI(getCurrentRhythmVoice(), uiValue);
+        updateUI(uiValue);
     }
 
 
@@ -346,10 +349,11 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
     }
 
     /**
-     * Update the UI to reflect the specified RP value for rv.
+     * Update the UI to reflect the specified RP value for the current rhythm voice.
      */
-    private synchronized void updateUI(RhythmVoice rv, RP_SYS_PhraseTransformValue rpValue)
+    private synchronized void updateUI(RP_SYS_PhraseTransformValue rpValue)
     {
+        var rv = getCurrentRhythmVoice();
         var transformChain = rpValue.getTransformChain(rv);
 
 
@@ -839,11 +843,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
 
     private void btn_clearChainActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_clearChainActionPerformed
     {//GEN-HEADEREND:event_btn_clearChainActionPerformed
-        lastValue = new RP_SYS_PhraseTransformValue(uiValue);
-        uiValue.setTransformChain((RhythmVoice) cmb_rhythmVoices.getSelectedItem(), null);
-        fireUiValueChanged();
-
-        updateUI(getCurrentRhythmVoice(), uiValue);
+        updateUiValue(null);
     }//GEN-LAST:event_btn_clearChainActionPerformed
 
     private void list_transformChainValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_list_transformChainValueChanged

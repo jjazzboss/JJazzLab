@@ -1,6 +1,5 @@
 package org.jjazz.phrasetransform.api.rps;
 
-import com.google.common.base.Joiner;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -12,11 +11,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jjazz.phrasetransform.api.PhraseTransformChain;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 
 /**
  * A RhythmParameter to transform YamJJazzRhythm one or more source phrases.
@@ -47,21 +44,24 @@ public class RP_SYS_PhraseTransformValue
     }
 
     /**
-     * Set a PhraseTransformChain for the specified RhythmVoice.
+     * Return a copy of this object with the specified chain associated to rv.
      *
      * @param rv
      * @param chain If null or if chain is empty, no chain is associated to rv.
+     * @return
      */
-    public void setTransformChain(RhythmVoice rv, PhraseTransformChain chain)
+    public RP_SYS_PhraseTransformValue getUpdatedTransformChain(RhythmVoice rv, PhraseTransformChain chain)
     {
         checkNotNull(rv);
+        var res = new RP_SYS_PhraseTransformValue(this);
         if (chain == null || chain.isEmpty())
         {
-            mapRvChain.remove(rv);
+            res.mapRvChain.remove(rv);
         } else
         {
-            mapRvChain.put(rv, new PhraseTransformChain(chain));
+            res.mapRvChain.put(rv, new PhraseTransformChain(chain));
         }
+        return res;
     }
 
     /**

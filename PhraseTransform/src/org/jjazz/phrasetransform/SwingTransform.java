@@ -35,6 +35,7 @@ import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.util.api.FloatRange;
+import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 
 /**
@@ -185,7 +186,7 @@ public class SwingTransform implements PhraseTransform
     @Override
     public String getDescription()
     {
-        return "Swing a binary phrase";
+         return ResUtil.getString(getClass(), "SwingTransformDesc");
     }
 
     @Override

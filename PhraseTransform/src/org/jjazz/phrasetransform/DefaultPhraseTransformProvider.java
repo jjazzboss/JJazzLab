@@ -39,7 +39,6 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
     public DefaultPhraseTransformProvider()
     {
         transforms.add(new OpenHiHatTransform());
-        transforms.add(new BassDrumsTransform());
         transforms.add(new SwingTransform());
     }
             

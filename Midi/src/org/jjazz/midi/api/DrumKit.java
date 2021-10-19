@@ -92,7 +92,7 @@ public class DrumKit implements Serializable
         public boolean isContaining(KeyMap otherKeyMap);
 
         /**
-         * The isntrument name, e.g. "Kick" for the given key.
+         * The isntrument name, eg "Kick" for the given key.
          *
          * @param pitch
          * @return Can be null if pitch is not used by this DrumKitKeyMap.

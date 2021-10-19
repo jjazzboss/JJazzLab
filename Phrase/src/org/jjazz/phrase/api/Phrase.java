@@ -181,7 +181,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
         if (res >= 0)
         {
             index = res;
-            LOGGER.log(Level.WARNING, "addOrdered() Inserting mne={0} but the same NoteEvent already exists at index={2}. this={1}", new Object[]
+            LOGGER.log(Level.FINE, "addOrdered() Inserting mne={0} but the same NoteEvent already exists at index={2}. this={1}", new Object[]
             {
                 mne, this, index
             });
