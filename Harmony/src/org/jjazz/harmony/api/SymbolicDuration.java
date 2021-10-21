@@ -24,36 +24,29 @@ package org.jjazz.harmony.api;
 
 public enum SymbolicDuration
 {
-    UNKNOWN(-1, 0.0F),
-    SIXTEENTH(0, 0.25F),
-    EIGHTH_TRIPLET(1, 0.33F),
-    EIGHTH(2, 0.5F),
-    QUARTER_TRIPLET(3, 0.66F),
-    EIGHTH_DOTTED(4, 0.75F),
-    QUARTER(5, 1.0F),
-    HALF_TRIPLET(6, 1.33F),
-    QUARTER_DOTTED(7, 1.5F),
-    HALF(8, 2.0F),
-    WHOLE_TRIPLET(9, 2.66F),
-    HALF_DOTTED(10, 3.0F),
-    WHOLE(11, 4.0F),
-    WHOLE_DOTTED(12, 6.0F);
-    private int index;
-    private float beatDuration;
+    UNKNOWN(0.0F),
+    SIXTEENTH(0.25F),
+    EIGHTH_TRIPLET(0.3333F),
+    EIGHTH(0.5F),
+    QUARTER_TRIPLET(0.6666F),
+    EIGHTH_DOTTED(0.75F),
+    QUARTER(1.0F),
+    HALF_TRIPLET(1.3333F),
+    QUARTER_DOTTED(1.5F),
+    HALF(2.0F),
+    WHOLE_TRIPLET(2.6666F),
+    HALF_DOTTED(3.0F),
+    WHOLE(4.0F),
+    WHOLE_DOTTED(6.0F);
+    private final float beatDuration;
 
-    SymbolicDuration(int ind, float d)
+    SymbolicDuration(float d)
     {
-        index = ind;
         if (d < 0)
         {
-            throw new IllegalArgumentException("ind=" + ind + " d=" + d);   //NOI18N
+            throw new IllegalArgumentException("d=" + d);   //NOI18N
         }
         beatDuration = d;
-    }
-
-    public int getIndex()
-    {
-        return index;
     }
 
     public float getBeatDuration()

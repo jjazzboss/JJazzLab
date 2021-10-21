@@ -168,10 +168,24 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
     }
 
     @Override
-    public List<Integer> getKeys(DrumKit.Subset subset)
+    public List<Integer> getKeys(DrumKit.Subset subset, DrumKit.Subset... otherSubsets)
     {
-        var res = mapSubsetPitches.get(subset);
-        return res == null ? Collections.emptyList() : res;
+        var res = new ArrayList<Integer>();
+
+        var subsets = new ArrayList<DrumKit.Subset>();
+        subsets.add(subset);
+        subsets.addAll(Arrays.asList(otherSubsets));
+
+        for (DrumKit.Subset ss : subsets)
+        {
+            var pitches = mapSubsetPitches.get(ss);
+            if (pitches != null)
+            {
+                res.addAll(pitches);
+            }
+        }
+
+        return res;
     }
 
     /**

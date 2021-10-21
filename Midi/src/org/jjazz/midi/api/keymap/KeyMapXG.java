@@ -89,7 +89,7 @@ public class KeyMapXG implements DrumKit.KeyMap
         addNote("LOW FLOOR TOM", 41, DrumKit.Subset.TOM);
         addNote("CLOSED HI HAT", 42, DrumKit.Subset.HI_HAT, DrumKit.Subset.HI_HAT_CLOSED);
         addNote("HIGH FLOOR TOM", 43, DrumKit.Subset.TOM);
-        addNote("PEDAL HI HAT", 44, DrumKit.Subset.HI_HAT);
+        addNote("PEDAL HI HAT", 44, DrumKit.Subset.HI_HAT_PEDAL, DrumKit.Subset.HI_HAT);
         addNote("LOW TOM", 45, DrumKit.Subset.TOM);
         addNote("OPEN HI HAT", 46, DrumKit.Subset.HI_HAT, DrumKit.Subset.HI_HAT_OPEN);
         addNote("LOW MID TOM", 47, DrumKit.Subset.TOM);
@@ -171,11 +171,25 @@ public class KeyMapXG implements DrumKit.KeyMap
     }
 
 
-    @Override
-    public List<Integer> getKeys(DrumKit.Subset subset)
+     @Override
+    public List<Integer> getKeys(DrumKit.Subset subset, DrumKit.Subset... otherSubsets)
     {
-        var res = mapSubsetPitches.get(subset);
-        return res == null ? Collections.emptyList() : res;
+        var res = new ArrayList<Integer>();
+
+        var subsets = new ArrayList<DrumKit.Subset>();
+        subsets.add(subset);
+        subsets.addAll(Arrays.asList(otherSubsets));
+
+        for (DrumKit.Subset ss : subsets)
+        {
+            var pitches = mapSubsetPitches.get(ss);
+            if (pitches != null)
+            {
+                res.addAll(pitches);
+            }
+        }
+
+        return res;
     }
 
     /**

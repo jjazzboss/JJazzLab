@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List; 
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
@@ -244,15 +244,34 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
         {
             return false;
         }
-        if (ne.getPositionInBeats() < getPositionInBeats() - beatWindow || ne.getPositionInBeats() > getPositionInBeats() + beatWindow)
-        {
-            return false;
-        }
+
         if (ne.getDurationInBeats() < getDurationInBeats() - 2 * beatWindow || ne.getDurationInBeats() > getDurationInBeats() + 2 * beatWindow)
         {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Test if this note is near the specified position.
+     * <p>
+     * A "near" position means in the interval [posInBeats-nearWindow;posInBeats+nearWindow[.
+     *
+     * @param posInBeats
+     * @param nearWindow
+     * @return
+     */
+    public boolean isNear(float posInBeats, float nearWindow)
+    {
+        boolean res = true;
+        if (getPositionInBeats() < posInBeats - nearWindow)
+        {
+            res = false;
+        } else if (getPositionInBeats() >= posInBeats + nearWindow)
+        {
+            res = false;
+        }
+        return res;
     }
 
     /**

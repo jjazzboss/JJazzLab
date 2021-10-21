@@ -66,7 +66,7 @@ import org.jjazz.util.api.LongRange;
  */
 public class Phrase extends LinkedList<NoteEvent> implements Serializable
 {
-
+         
     /**
      * NoteEvent client property set when new NoteEvents are created from existing ones.
      */
@@ -697,6 +697,30 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
             LOGGER.info(ne.toString());   //NOI18N
         }
     }
+
+    /**
+     * Count for each used pitch the number of notes which match the specified predicate.
+     *
+     * @param tester
+     * @return The number of matching notes for each pitch present in the phrase.
+     */
+    public Map<Integer, Integer> countPitches(Predicate<NoteEvent> tester)
+    {
+        var resMap = new HashMap<Integer, Integer>();
+                
+        for (var ne : this)
+        {
+            if (tester.test(ne))
+            {
+                Integer n = resMap.get(ne.getPitch());
+                resMap.put(ne.getPitch(), n == null ? 1 : n + 1);
+            }
+        }
+
+        return resMap;
+    }
+    
+    
 
     /**
      * Remove overlapped notes with identical pitch.

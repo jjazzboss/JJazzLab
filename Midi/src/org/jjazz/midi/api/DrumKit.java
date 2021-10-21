@@ -50,7 +50,8 @@ public class DrumKit implements Serializable
         BASS, // All bass drums
         SNARE, // All snare
         HI_HAT, // All Hi-Hats
-        HI_HAT_CLOSED, HI_HAT_OPEN, 
+        HI_HAT_PEDAL,
+        HI_HAT_CLOSED, HI_HAT_OPEN,
         TOM,
         CRASH,
         CYMBAL,
@@ -112,9 +113,10 @@ public class DrumKit implements Serializable
          * <p>
          *
          * @param subset
+         * @param otherSubsets
          * @return Can be an empty list.
          */
-        public List<Integer> getKeys(Subset subset);
+        public List<Integer> getKeys(Subset subset, Subset... otherSubsets);
 
     }
 

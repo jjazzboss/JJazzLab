@@ -376,7 +376,8 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         SizedPhrase inPhrase = getInPhrase(rv);
         SizedPhrase outPhrase = (transformChain == null) ? inPhrase : transformChain.transform(inPhrase, songPartContext);
         birdview_outPhrase.setModel(outPhrase, outPhrase.getTimeSignature(), outPhrase.getBeatRange());
-        birdview_outPhrase.setForeground(transformChain != null ? PHRASE_COMP_CUSTOMIZED_FOREGROUND : PHRASE_COMP_FOREGROUND);
+        // birdview_outPhrase.setForeground(transformChain != null ? PHRASE_COMP_CUSTOMIZED_FOREGROUND : PHRASE_COMP_FOREGROUND);
+        birdview_outPhrase.setForeground(transformChain != null ? PHRASE_COMP_FOREGROUND : PHRASE_COMP_FOREGROUND);
 
 
         // Update the clear button

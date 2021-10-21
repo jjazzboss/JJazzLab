@@ -40,10 +40,10 @@ public class KeyMapGM implements DrumKit.KeyMap
 
     private static KeyMapGM INSTANCE;
     private final KeyRange range = new KeyRange(35, 81);
-    private HashMap<String, Integer> mapNamePitch = new HashMap<>();
-    private HashMap<Integer, String> mapPitchName = new HashMap<>();
-    private HashMap<Subset, List<Integer>> mapSubsetPitches = new HashMap<>();
-    private ArrayList<Integer> accentPitches = new ArrayList<>();
+    private final HashMap<String, Integer> mapNamePitch = new HashMap<>();
+    private final HashMap<Integer, String> mapPitchName = new HashMap<>();
+    private final HashMap<Subset, List<Integer>> mapSubsetPitches = new HashMap<>();
+    private final ArrayList<Integer> accentPitches = new ArrayList<>();
 
     public static KeyMapGM getInstance()
     {
@@ -68,7 +68,7 @@ public class KeyMapGM implements DrumKit.KeyMap
         addNote("LOW FLOOR TOM", 41, Subset.TOM);
         addNote("CLOSED HI HAT", 42, Subset.HI_HAT, Subset.HI_HAT_CLOSED);
         addNote("HIGH FLOOR TOM", 43, Subset.TOM);
-        addNote("PEDAL HI HAT", 44, Subset.HI_HAT);
+        addNote("PEDAL HI HAT", 44, Subset.HI_HAT_PEDAL, Subset.HI_HAT);
         addNote("LOW TOM", 45, Subset.TOM);
         addNote("OPEN HI HAT", 46, Subset.HI_HAT, Subset.HI_HAT_OPEN);
         addNote("LOW MID TOM", 47, Subset.TOM);
@@ -141,10 +141,24 @@ public class KeyMapGM implements DrumKit.KeyMap
     }
 
     @Override
-    public List<Integer> getKeys(Subset subset)
+    public List<Integer> getKeys(Subset subset, Subset... otherSubsets)
     {
-        var res = mapSubsetPitches.get(subset);
-        return res == null ? Collections.emptyList() : res;
+        var res = new ArrayList<Integer>();
+
+        var subsets = new ArrayList<Subset>();
+        subsets.add(subset);
+        subsets.addAll(Arrays.asList(otherSubsets));
+
+        for (Subset ss : subsets)
+        {
+            var pitches = mapSubsetPitches.get(ss);
+            if (pitches != null)
+            {
+                res.addAll(pitches);
+            }
+        }
+
+        return res;
     }
 
     @Override
