@@ -66,7 +66,7 @@ import org.jjazz.util.api.LongRange;
  */
 public class Phrase extends LinkedList<NoteEvent> implements Serializable
 {
-         
+
     /**
      * NoteEvent client property set when new NoteEvents are created from existing ones.
      */
@@ -699,28 +699,32 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     }
 
     /**
-     * Count for each used pitch the number of notes which match the specified predicate.
+     * Get notes matching the specified tester and return them per pitch.
      *
      * @param tester
-     * @return The number of matching notes for each pitch present in the phrase.
+     * @return The matching notes grouped per pitch.
      */
-    public Map<Integer, Integer> countPitches(Predicate<NoteEvent> tester)
+    public Map<Integer, List<NoteEvent>> getNotesPerPitch(Predicate<NoteEvent> tester)
     {
-        var resMap = new HashMap<Integer, Integer>();
-                
+        var resMap = new HashMap<Integer, List<NoteEvent>>();
+
         for (var ne : this)
         {
             if (tester.test(ne))
             {
-                Integer n = resMap.get(ne.getPitch());
-                resMap.put(ne.getPitch(), n == null ? 1 : n + 1);
+                List<NoteEvent> nes = resMap.get(ne.getPitch());
+                if (nes == null)
+                {
+                    nes = new ArrayList<>();
+                    resMap.put(ne.getPitch(), nes);
+                }
+                nes.add(ne);
             }
         }
 
         return resMap;
     }
-    
-    
+
 
     /**
      * Remove overlapped notes with identical pitch.
@@ -1057,6 +1061,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
     private void readObject(ObjectInputStream stream) throws InvalidObjectException
     {
         throw new InvalidObjectException("Serialization proxy required");
+
 
     }
 

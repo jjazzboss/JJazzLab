@@ -196,6 +196,9 @@
         </Property>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_ptSettingsActionPerformed"/>
+      </Events>
     </Component>
     <Container class="javax.swing.JPanel" name="pnl_arrows">
 

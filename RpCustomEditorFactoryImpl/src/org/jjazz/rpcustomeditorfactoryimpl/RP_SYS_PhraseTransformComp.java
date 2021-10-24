@@ -29,6 +29,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +56,7 @@ import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransform;
 import org.jjazz.phrasetransform.api.PhraseTransformChain;
 import org.jjazz.phrasetransform.api.PhraseTransformManager;
+import org.jjazz.phrasetransform.api.PtProperties;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_PhraseTransform;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_PhraseTransformValue;
 import org.jjazz.phrasetransform.api.ui.PhraseTransformListCellRenderer;
@@ -414,8 +416,8 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
 
     private void fireUiValueChanged()
     {
+        LOGGER.severe("fireUiValueChanged() -- lastvalue=" + lastValue + " uiValue=" + uiValue);
         firePropertyChange(PROP_EDITED_RP_VALUE, lastValue, uiValue);
-        lastValue = uiValue;
     }
 
     // ===============================================================================
@@ -735,6 +737,13 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         org.openide.awt.Mnemonics.setLocalizedText(btn_ptSettings, org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.btn_ptSettings.text")); // NOI18N
         btn_ptSettings.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.btn_ptSettings.toolTipText")); // NOI18N
         btn_ptSettings.setEnabled(false);
+        btn_ptSettings.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_ptSettingsActionPerformed(evt);
+            }
+        });
 
         pnl_arrows.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 5));
 
@@ -869,6 +878,29 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
             }
         }
     }//GEN-LAST:event_list_availableTransformsMouseClicked
+
+    private void btn_ptSettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_ptSettingsActionPerformed
+    {//GEN-HEADEREND:event_btn_ptSettingsActionPerformed
+        var pt = list_transformChain.getSelectedValue();
+        assert pt != null && pt.hasUserSettings();
+
+        // Listen to properties changes while dialog is shown.
+        PropertyChangeListener listener = e ->
+        {
+            updateUI(uiValue);
+            fireUiValueChanged();
+        };
+        pt.getProperties().addPropertyChangeListener(listener);
+
+        // Save lastValue to make sure uiValue will be different from lastValue if a property is changed
+        lastValue = new RP_SYS_PhraseTransformValue(uiValue);
+
+        // Show the dialog
+        pt.showUserSettingsDialog(btn_ptSettings);
+
+        // Stop listening
+        pt.getProperties().removePropertyChangeListener(listener);
+    }//GEN-LAST:event_btn_ptSettingsActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -80,7 +80,7 @@ public interface PhraseTransformManager
     public default PhraseTransform getPhraseTransform(String uniqueId)
     {
         var res = getPhraseTransforms().stream()
-                .filter(pt -> pt.getUniqueId().equals(uniqueId))
+                .filter(pt -> pt.getInfo().getUniqueId().equals(uniqueId))
                 .findAny()
                 .orElse(null);
         return res;
@@ -95,7 +95,7 @@ public interface PhraseTransformManager
     default public List<PhraseTransform> getPhraseTransforms(PhraseTransformCategory category)
     {
         return getPhraseTransforms().stream()
-                .filter(pt -> pt.getCategory().equals(category))
+                .filter(pt -> pt.getInfo().getCategory().equals(category))
                 .collect(Collectors.toList());
     }
 

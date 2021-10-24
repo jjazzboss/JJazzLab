@@ -16,7 +16,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 
 /**
- * A RhythmParameter to transform YamJJazzRhythm one or more source phrases.
+ * A RhythmParameter to transform one or more source phrases.
  */
 public class RP_SYS_PhraseTransformValue
 {
@@ -32,10 +32,21 @@ public class RP_SYS_PhraseTransformValue
         rhythm = r;
     }
 
-    public RP_SYS_PhraseTransformValue(RP_SYS_PhraseTransformValue v)
+    /**
+     * Create a deep copy of the specified value.
+     *
+     * @param value
+     */
+    public RP_SYS_PhraseTransformValue(RP_SYS_PhraseTransformValue value)
     {
-        rhythm = v.getRhythm();
-        mapRvChain.putAll(v.mapRvChain);
+        rhythm = value.getRhythm();
+
+        for (var rv : value.mapRvChain.keySet())
+        {
+            var chain = value.mapRvChain.get(rv);
+            assert chain != null;
+            mapRvChain.put(rv, chain.deepClone());
+        }
     }
 
     public Rhythm getRhythm()

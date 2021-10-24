@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import org.jjazz.phrase.api.CyclicPositions;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.phrasetransform.spi.PhraseTransformProvider;
 import org.jjazz.phrasetransform.api.PhraseTransform;
@@ -56,13 +57,14 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
 
     public DefaultPhraseTransformProvider()
     {
-        int o = HiHatRideAccentTransform.ACCENT_OFFSET;
         transforms.add(new OpenHiHatTransform());
         transforms.add(new SwingTransform());
-        transforms.add(new HiHatRideAccentTransform("Accent1", ACCENT1_ICON, o, 0.5f));
-        transforms.add(new HiHatRideAccentTransform("Accent2", ACCENT2_ICON, o, 0f));
-        transforms.add(new HiHatRideAccentTransform("Accent3", ACCENT3_ICON, o, 0.25f));
-        transforms.add(new HiHatRideAccentTransform("Accent4", ACCENT4_ICON, o, 0.75f));
+        
+        
+        transforms.add(new AddAccentTransform("Accent1", ACCENT1_ICON, new CyclicPositions(0.5f, 0f, 1f)));
+        transforms.add(new AddAccentTransform("Accent2", ACCENT2_ICON, 0f));
+        transforms.add(new AddAccentTransform("Accent3", ACCENT3_ICON, 0.25f));
+        transforms.add(new AddAccentTransform("Accent4", ACCENT4_ICON, 0.75f));
     }
 
     @Override

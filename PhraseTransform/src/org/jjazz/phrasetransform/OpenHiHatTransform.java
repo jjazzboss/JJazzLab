@@ -49,11 +49,24 @@ public class OpenHiHatTransform implements PhraseTransform
     @StaticResource(relative = true)
     private static final String ICON_PATH = "resources/OpenHiHatTransformer-48x24.png";
     private static final Icon ICON = new ImageIcon(OpenHiHatTransform.class.getResource(ICON_PATH));
+    private final Info info;
     private final PtProperties properties;
 
     public OpenHiHatTransform()
     {
+        info = new Info("OpenHiHatId",
+                "Open Hi-Hat",
+                ResUtil.getString(getClass(), "OpenHiHatTransformDesc"),
+                PhraseTransformCategory.DRUMS,
+                ICON);
+
         properties = new PtProperties(new Properties());
+    }
+
+    @Override
+    public Info getInfo()
+    {
+        return info;
     }
 
     @Override
@@ -74,7 +87,7 @@ public class OpenHiHatTransform implements PhraseTransform
             {
                 pitch = destPitch;
             }
-            var newNe = new NoteEvent(ne, destPitch);
+            var newNe = new NoteEvent(ne, pitch);
             res.addOrdered(newNe);
         }
 
@@ -101,12 +114,6 @@ public class OpenHiHatTransform implements PhraseTransform
 
 
     @Override
-    public String getName()
-    {
-        return "Open Hi-Hat";
-    }
-
-    @Override
     public int hashCode()
     {
         return PhraseTransform.hashCode(this);
@@ -124,31 +131,7 @@ public class OpenHiHatTransform implements PhraseTransform
     {
         return this;
     }
-
-    @Override
-    public String getUniqueId()
-    {
-        return "OpenHiHatTransformID";
-    }
-
-    @Override
-    public PhraseTransformCategory getCategory()
-    {
-        return PhraseTransformCategory.DRUMS;
-    }
-
-    @Override
-    public String getDescription()
-    {
-        return ResUtil.getString(getClass(), "OpenHiHatTransformDesc");
-    }
-
-    @Override
-    public Icon getIcon()
-    {
-        return ICON;
-    }
-
+   
     @Override
     public PtProperties getProperties()
     {

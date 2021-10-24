@@ -57,13 +57,20 @@ public class SwingTransform implements PhraseTransform
     @StaticResource(relative = true)
     private static final String ICON_PATH = "resources/SwingTransformer-48x24.png";
     private static final Icon ICON = new ImageIcon(SwingTransform.class.getResource(ICON_PATH));
-
+    private final Info info;
     private float swingThreshold;
 
     private PtProperties properties;
 
     public SwingTransform()
     {
+        info = new Info("SwingId",
+                "Swing",
+                ResUtil.getString(getClass(), "SwingTransformDesc"),
+                 PhraseTransformCategory.DRUMS,
+                ICON);
+
+
         Properties defaults = new Properties();
         defaults.setProperty(PROP_AMOUNT, String.valueOf(1 / 3f));
         defaults.setProperty(PROP_SWING_UNIT, String.valueOf(0.5f));
@@ -71,18 +78,24 @@ public class SwingTransform implements PhraseTransform
     }
 
     @Override
+    public Info getInfo()
+    {
+        return info;
+    }
+
+    @Override
     public SizedPhrase transform(SizedPhrase inPhrase, SongPartContext context)
     {
         SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature());
 
-        
+
         // Prepare data
         FloatRange fr = inPhrase.getBeatRange();
         float swingUnit = getSwingUnit();
         Quantization q = swingUnit == 0.5f ? Quantization.HALF_BEAT : Quantization.ONE_QUARTER_BEAT;
         float shift = swingUnit * getSwingAmount();
 
-        
+
         // Analyze each note
         for (var ne : inPhrase)
         {
@@ -92,10 +105,10 @@ public class SwingTransform implements PhraseTransform
             {
                 continue;
             }
-                        
+
             boolean makeItSwing = Math.round(newPos / swingUnit) % 2 == 1;
 
-            
+
             if (makeItSwing)
             {
                 newPos += shift;
@@ -138,13 +151,6 @@ public class SwingTransform implements PhraseTransform
         return 100;
     }
 
-
-    @Override
-    public String getName()
-    {
-        return "Swing";
-    }
-
     @Override
     public int hashCode()
     {
@@ -170,28 +176,5 @@ public class SwingTransform implements PhraseTransform
         res.properties = properties.getCopy();
         return res;
     }
-
-    @Override
-    public String getUniqueId()
-    {
-        return "SwingTransformID";
-    }
-
-    @Override
-    public PhraseTransformCategory getCategory()
-    {
-        return PhraseTransformCategory.DEFAULT;
-    }
-
-    @Override
-    public String getDescription()
-    {
-         return ResUtil.getString(getClass(), "SwingTransformDesc");
-    }
-
-    @Override
-    public Icon getIcon()
-    {
-        return ICON;
-    }
+ 
 }

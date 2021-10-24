@@ -24,11 +24,13 @@ package org.jjazz.phrasetransform.api;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.beans.PropertyChangeListener;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
+import javax.swing.event.SwingPropertyChangeSupport;
 
 /**
  * Special properties for PhraseTransformer.
@@ -37,6 +39,10 @@ import java.util.stream.Collectors;
  */
 public class PtProperties extends Properties
 {
+
+    public static final String PROP_PROPERTY = "PropProp";
+
+    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
 
     /**
      * Create a properties object.
@@ -68,7 +74,10 @@ public class PtProperties extends Properties
     public Object setProperty​(String key, String value) throws IllegalArgumentException
     {
         checkArgument(defaults.get(key) != null && !key.contains("=") && !value.contains("="), "key=%s, value=%s", key, value);
-        return super.setProperty(key, value);
+        Object oldValue = getProperty(key);
+        Object res = super.setProperty(key, value);
+        pcs.firePropertyChange(PROP_PROPERTY, oldValue, value);
+        return res;
     }
 
     /**
@@ -157,5 +166,16 @@ public class PtProperties extends Properties
             }
         }
     }
+
+    public synchronized void addPropertyChangeListener(PropertyChangeListener listener)
+    {
+        pcs.addPropertyChangeListener(listener);
+    }
+
+    public synchronized void removePropertyChangeListener(PropertyChangeListener listener)
+    {
+        pcs.removePropertyChangeListener(listener);
+    }
+
 
 }

@@ -23,7 +23,9 @@
 package org.jjazz.phrasetransform.api;
 
 import com.google.common.base.Objects;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.text.ParseException;
 import javax.swing.Icon;
@@ -31,13 +33,21 @@ import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.songcontext.api.SongPartContext;
 
 /**
- * Transform a phrase into another one.
+ * An object which can transform a phrase into another one.
  */
 public interface PhraseTransform extends Comparable<PhraseTransform>
 {
 
-    public static final String SAVE_STRING_DELIMITER = "#";
     public static final Dimension ICON_SIZE = new Dimension(48, 24);
+    public static final String SAVE_STRING_DELIMITER = "#";
+
+
+    /**
+     * Get the information for this transform.
+     *
+     * @return
+     */
+    public Info getInfo();
 
     /**
      * Transform inPhrase into another phrase.
@@ -68,38 +78,6 @@ public interface PhraseTransform extends Comparable<PhraseTransform>
      */
     public int getFitScore(SizedPhrase inPhrase, SongPartContext context);
 
-    /**
-     * A unique id associated to this transform class.
-     * <p>
-     * IMPORTANT: character SAVE_STRING_DELIMITER is forbidden here! (used as a separator in saveAsString()/loadFromString())
-     *
-     * @return
-     */
-    public String getUniqueId();
-
-    /**
-     * The category of this transform.
-     * <p>
-     * Used to group PhraseTransforms in the user interface.
-     *
-     * @return Can't be null
-     */
-    public PhraseTransformCategory getCategory();
-
-    /**
-     * The name of the PhraseTransform.
-     *
-     * @return
-     */
-    public String getName();
-
-     
-    /**
-     * Describes what this transform does.
-     *
-     * @return Can't be null
-     */
-    public String getDescription();
 
     /**
      * Get a copy of this PhraseTransform instance.
@@ -117,26 +95,14 @@ public interface PhraseTransform extends Comparable<PhraseTransform>
     @Override
     default public int compareTo​(PhraseTransform pt)
     {
-        int res = getCategory().getDisplayName().compareTo(pt.getCategory().getDisplayName());
+        int res = getInfo().getCategory().getDisplayName().compareTo(pt.getInfo().getCategory().getDisplayName());
         if (res == 0)
         {
-            res = getName().compareTo(pt.getName());
+            res = getInfo().getName().compareTo(pt.getInfo().getName());
         }
         return res;
     }
 
-    /**
-     * An optional icon representing this transform.
-     * <p>
-     * Icon size must be ICON_SIZE.
-     *
-     * @return Can be null
-     * @see #ICON_SIZE
-     */
-    default public Icon getIcon()
-    {
-        return null;
-    }
 
     /**
      * Get the PhraseTransform properties.
@@ -152,9 +118,10 @@ public interface PhraseTransform extends Comparable<PhraseTransform>
      * The PhraseTransform is responsible for the persistence of its settings. The method does nothing if hasUserSettings()
      * returns false.
      *
+     * @param anchor The anchor component to adjust dialog location.
      * @see hasUserSettings()
      */
-    default public void showUserSettingsDialog()
+    default public void showUserSettingsDialog(Component anchor)
     {
         // Nothing
     }
@@ -188,7 +155,7 @@ public interface PhraseTransform extends Comparable<PhraseTransform>
 
         PhraseTransform pt2 = (PhraseTransform) o2;
 
-        if (!pt1.getUniqueId().equals(pt2.getUniqueId()))
+        if (!pt1.getInfo().getUniqueId().equals(pt2.getInfo().getUniqueId()))
         {
             return false;
         }
@@ -206,7 +173,7 @@ public interface PhraseTransform extends Comparable<PhraseTransform>
      */
     static public int hashCode(PhraseTransform pt)
     {
-        return Objects.hashCode(pt.getUniqueId(), pt.getProperties());
+        return Objects.hashCode(pt.getInfo().getUniqueId(), pt.getProperties());
     }
 
     /**
@@ -221,7 +188,7 @@ public interface PhraseTransform extends Comparable<PhraseTransform>
      */
     static public String saveAsString(PhraseTransform pt)
     {
-        String res = pt.getUniqueId() + SAVE_STRING_DELIMITER + pt.getProperties().saveAsString(pt.getProperties().getNonDefaultValueProperties());
+        String res = pt.getInfo().getUniqueId() + SAVE_STRING_DELIMITER + pt.getProperties().saveAsString(pt.getProperties().getNonDefaultValueProperties());
         return res;
     }
 
@@ -258,6 +225,111 @@ public interface PhraseTransform extends Comparable<PhraseTransform>
 
         return res;
 
+    }
+
+
+    /**
+     * Descriptive info of a PhraseTransform.
+     */
+    static public class Info
+    {
+
+        private final Icon icon;
+        private final String id;
+        private final String name;
+        private final String description;
+        private final PhraseTransformCategory category;
+
+        public Info(String id, String name, String description, PhraseTransformCategory category, Icon icon)
+        {
+            checkArgument(id != null && !id.isBlank(), "id=%s", id);
+            checkArgument(name != null && !name.isBlank(), "name=%s" + name);
+            checkArgument(description != null && !description.isBlank(), "description=%s" + description);
+            checkNotNull(category);
+
+            this.id = id;
+            this.name = name;
+            this.description = description;
+            this.category = category;
+            this.icon = icon;
+
+        }
+
+        /**
+         * The name of the PhraseTransform.
+         *
+         * @return
+         */
+        public String getName()
+        {
+            return name;
+        }
+
+        @Override
+        public boolean equals(Object obj)
+        {
+            if (!(obj instanceof Info))
+            {
+                return false;
+            }
+            var info = (Info) obj;
+            return id.equals(info.id);
+        }
+
+        @Override
+        public int hashCode()
+        {
+            int hash = 5;
+            hash = 73 * hash + java.util.Objects.hashCode(this.id);
+            return hash;
+        }
+
+        /**
+         * A unique id associated to this transform class.
+         * <p>
+         * IMPORTANT: character SAVE_STRING_DELIMITER is forbidden here! (used as a separator in saveAsString()/loadFromString())
+         *
+         * @return
+         */
+        public String getUniqueId()
+        {
+            return id;
+        }
+
+        /**
+         * The category of this transform.
+         * <p>
+         * Used to group PhraseTransforms in the user interface.
+         *
+         * @return Can't be null
+         */
+        public PhraseTransformCategory getCategory()
+        {
+            return category;
+        }
+
+        /**
+         * Describes what this transform does.
+         *
+         * @return Can't be null
+         */
+        public String getDescription()
+        {
+            return description;
+        }
+
+        /**
+         * An optional icon representing this transform.
+         * <p>
+         * Icon size must be ICON_SIZE.
+         *
+         * @return Can be null
+         * @see #ICON_SIZE
+         */
+        public Icon getIcon()
+        {
+            return icon;
+        }
     }
 
 }

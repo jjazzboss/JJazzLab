@@ -229,7 +229,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     {
         if (evt.getSource() == editor && evt.getPropertyName().equals(RealTimeRpEditorComponent.PROP_EDITED_RP_VALUE))
         {
-            LOGGER.log(Level.FINE, "propertyChange() evt={0}", evt);
+            LOGGER.log(Level.SEVERE, "propertyChange() evt={0}", evt);
             if (tbtn_hear.isSelected() && !tbtn_compare.isSelected())
             {
                 updateRpValueInPreviewContext((E) evt.getNewValue());

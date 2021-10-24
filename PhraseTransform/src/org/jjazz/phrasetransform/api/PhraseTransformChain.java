@@ -27,6 +27,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.logging.Logger;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.songcontext.api.SongPartContext;
 
@@ -36,19 +37,36 @@ import org.jjazz.songcontext.api.SongPartContext;
 public class PhraseTransformChain extends ArrayList<PhraseTransform>
 {
 
+    private static final Logger LOGGER = Logger.getLogger(PhraseTransformChain.class.getSimpleName());
+
     public PhraseTransformChain()
     {
 
     }
 
+    /**
+     * Create a chain with the specified PhraseTransforms.
+     *
+     * @param pts
+     */
     public PhraseTransformChain(List<PhraseTransform> pts)
     {
         addAll(pts);
     }
 
-    public PhraseTransformChain(PhraseTransformChain chain)
+    /**
+     * Perform a deep clone of this chain (PhraseTransforms are cloned too).
+     *
+     * @return
+     */
+    public PhraseTransformChain deepClone()
     {
-        super(chain);
+        var res = new PhraseTransformChain();
+        for (var pt : this)
+        {
+            res.add(pt.getCopy());
+        }
+        return res;
     }
 
     /**
@@ -119,7 +137,13 @@ public class PhraseTransformChain extends ArrayList<PhraseTransform>
         for (String str : strs)
         {
             PhraseTransform pt = PhraseTransform.loadFromString(str.trim());
-            res.add(pt);
+            if (pt == null)
+            {
+                LOGGER.warning("loadFromString() No PhraseTransform found for str=" + str + " (s=" + s + ")");
+            } else
+            {
+                res.add(pt);
+            }
         }
 
         return res;

@@ -162,6 +162,7 @@ public class SizedPhrase extends Phrase
         return timeSignature;
     }
 
+
     /**
      * Save the specified SizedPhrase as a string.
      * <p>

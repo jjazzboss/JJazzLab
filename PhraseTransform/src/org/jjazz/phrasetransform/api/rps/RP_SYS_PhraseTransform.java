@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
 import org.jjazz.util.api.ResUtil;
 
 /**
@@ -99,7 +98,7 @@ public class RP_SYS_PhraseTransform implements RhythmParameter<RP_SYS_PhraseTran
     }
 
     /**
-     * Reuse each value TransformPhrase for which there is a matching RhythmVoice (same type).
+     * Reuse each value for which there is a matching RhythmVoice (same type).
      *
      * @param <T>
      * @param rp
