@@ -271,19 +271,20 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * <p>
      * New phrase contains clones of the filtered NoteEvents.
      *
-     * @param predicate
+     * @param tester
      * @return
      */
-    public Phrase getFilteredPhrase(Predicate<NoteEvent> predicate)
+    public Phrase getFilteredPhrase(Predicate<NoteEvent> tester)
     {
         Phrase res = new Phrase(channel);
-        stream().filter(predicate)
+        stream()
+                .filter(tester)
                 .forEach(ne -> res.add(ne.clone()));      // Don't need addOrdered here
         return res;
     }
 
     /**
-     * Return a new Phrase with filtered notes processed by the specified mapper.
+     * Return a new Phrase with only filtered notes processed by the specified mapper.
      * <p>
      * Notes of the returned phrase will have their PARENT_NOTE client property set to:<br>
      * - source note's PARENT_NOTE client property if this property is not null, or<br>
@@ -293,7 +294,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      * @param mapper
      * @return
      */
-    public Phrase getProcessedPhrase(Predicate<NoteEvent> tester, Function<NoteEvent, NoteEvent> mapper)
+    public Phrase getFilteredAndMappedPhrase(Predicate<NoteEvent> tester, Function<NoteEvent, NoteEvent> mapper)
     {
         Phrase res = new Phrase(channel);
         for (NoteEvent ne : this)
@@ -346,7 +347,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      */
     public Phrase getVelocityProcessedPhrase(Function<Integer, Integer> f)
     {
-        return getProcessedPhrase(ne -> true, ne ->
+        return getFilteredAndMappedPhrase(ne -> true, ne ->
         {
             int v = MidiUtilities.limit(f.apply(ne.getVelocity()));
             NoteEvent newNe = new NoteEvent(ne, ne.getPitch(), ne.getDurationInBeats(), v);
@@ -384,7 +385,7 @@ public class Phrase extends LinkedList<NoteEvent> implements Serializable
      */
     public Phrase getPitchProcessedPhrase(Function<Integer, Integer> f)
     {
-        return getProcessedPhrase(ne -> true, ne ->
+        return getFilteredAndMappedPhrase(ne -> true, ne ->
         {
             int p = MidiUtilities.limit(f.apply(ne.getPitch()));
             NoteEvent newNe = new NoteEvent(ne, p, ne.getDurationInBeats(), ne.getVelocity());

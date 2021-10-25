@@ -26,26 +26,32 @@ import org.jjazz.phrasetransform.api.PtProperties;
 import org.jjazz.ui.flatcomponents.api.FlatIntegerKnob;
 
 /**
- *
- * @author Jerome
+ * A generic knob for one integer property between 0 and 127.
  */
-public class HiHatRideAccentSettingsPanel extends javax.swing.JPanel
+public class GenericSettingsPanel extends javax.swing.JPanel
 {
 
     private PtProperties ptProperties;
+    private final String property;
 
     /**
-     * Creates new form HiHatRideAccentSettingsPanel
+     * 
+     * @param propName The property name to represent
+     * @param displayName Its name
+     * @param usePanoramicKnob If true use panoramic-type know
      */
-    public HiHatRideAccentSettingsPanel()
+    public GenericSettingsPanel(String propName, String displayName, boolean usePanoramicKnob)
     {
+        property = propName;
         initComponents();
+        lbl_name.setText(displayName);
+        knob_offset.setPanoramicType(usePanoramicKnob);
     }
 
     public void preset(PtProperties ptProperties)
     {
         this.ptProperties = ptProperties;
-        knob_offset.setValue(ptProperties.getPropertyAsInteger(AddAccentTransform.PROP_STRENGTH));
+        knob_offset.setValue(ptProperties.getPropertyAsInteger(property));
     }
 
     /**
@@ -60,7 +66,7 @@ public class HiHatRideAccentSettingsPanel extends javax.swing.JPanel
         jPanel1 = new javax.swing.JPanel();
         knob_offset = new org.jjazz.ui.flatcomponents.api.FlatIntegerKnob();
         jPanel2 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
+        lbl_name = new javax.swing.JLabel();
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
@@ -91,9 +97,9 @@ public class HiHatRideAccentSettingsPanel extends javax.swing.JPanel
 
         jPanel2.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(HiHatRideAccentSettingsPanel.class, "HiHatRideAccentSettingsPanel.jLabel1.text")); // NOI18N
-        jLabel1.setAlignmentX(0.5F);
-        jPanel2.add(jLabel1);
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_name, "property"); // NOI18N
+        lbl_name.setAlignmentX(0.5F);
+        jPanel2.add(lbl_name);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -102,7 +108,7 @@ public class HiHatRideAccentSettingsPanel extends javax.swing.JPanel
             .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 60, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -122,16 +128,16 @@ public class HiHatRideAccentSettingsPanel extends javax.swing.JPanel
         {
             if (evt.getPropertyName().equals(FlatIntegerKnob.PROP_VALUE))
             {
-                ptProperties.setProperty(AddAccentTransform.PROP_STRENGTH, knob_offset.getValue());
+                ptProperties.setProperty(property, knob_offset.getValue());
             }
         }
     }//GEN-LAST:event_knob_offsetPropertyChange
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private org.jjazz.ui.flatcomponents.api.FlatIntegerKnob knob_offset;
+    private javax.swing.JLabel lbl_name;
     // End of variables declaration//GEN-END:variables
 }

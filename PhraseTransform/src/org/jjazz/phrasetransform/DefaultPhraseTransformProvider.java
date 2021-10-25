@@ -26,10 +26,13 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.CyclicPositions;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.phrasetransform.spi.PhraseTransformProvider;
 import org.jjazz.phrasetransform.api.PhraseTransform;
+import org.jjazz.phrasetransform.api.PhraseTransformCategory;
+import org.jjazz.util.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 
 /**
@@ -59,18 +62,90 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
     {
         transforms.add(new OpenHiHatTransform());
         transforms.add(new SwingTransform());
-        
-        
-        transforms.add(new AddAccentTransform("Accent1", ACCENT1_ICON, new CyclicPositions(0.5f, 0f, 1f)));
-        transforms.add(new AddAccentTransform("Accent2", ACCENT2_ICON, 0f));
-        transforms.add(new AddAccentTransform("Accent3", ACCENT3_ICON, 0.25f));
-        transforms.add(new AddAccentTransform("Accent4", ACCENT4_ICON, 0.75f));
+
+
+        transforms.add(getAccent1());
+        transforms.add(getAccent2());
+        transforms.add(getAccent3());
+        transforms.add(getAccent4());
     }
 
     @Override
     public List<PhraseTransform> getTransforms()
     {
         return new ArrayList<>(transforms);
+    }
+
+    // =================================================================================
+    // Private methods
+    // =================================================================================
+
+    private DrumsAccentsTransform getAccent1()
+    {
+        PhraseTransform.Info info = new PhraseTransform.Info("Accent1_16Id",
+                ResUtil.getString(getClass(), "Accent1_16_name"),
+                ResUtil.getString(getClass(), "Accent1_16_desc"),
+                PhraseTransformCategory.DRUMS,
+                ACCENT1_ICON
+        );
+
+        DrumsAccentsTransform t = new DrumsAccentsTransform(info,
+                new CyclicPositions(0, 0, 1),
+                DrumKit.Subset.HI_HAT, DrumKit.Subset.CYMBAL
+        );
+
+        return t;
+    }
+
+    private DrumsAccentsTransform getAccent2()
+    {
+        PhraseTransform.Info info = new PhraseTransform.Info("Accent2_16Id",
+                ResUtil.getString(getClass(), "Accent2_16_name"),
+                ResUtil.getString(getClass(), "Accent2_16_desc"),
+                PhraseTransformCategory.DRUMS,
+                ACCENT2_ICON
+        );
+
+        DrumsAccentsTransform t = new DrumsAccentsTransform(info,
+                new CyclicPositions(0.25f, 0, 1),
+                DrumKit.Subset.HI_HAT, DrumKit.Subset.CYMBAL
+        );
+
+        return t;
+    }
+
+    private DrumsAccentsTransform getAccent3()
+    {
+        PhraseTransform.Info info = new PhraseTransform.Info("Accent3_16Id",
+                ResUtil.getString(getClass(), "Accent3_16_name"),
+                ResUtil.getString(getClass(), "Accent3_16_desc"),
+                PhraseTransformCategory.DRUMS,
+                ACCENT3_ICON
+        );
+
+        DrumsAccentsTransform t = new DrumsAccentsTransform(info,
+                new CyclicPositions(0.5f, 0, 1),
+                DrumKit.Subset.HI_HAT, DrumKit.Subset.CYMBAL
+        );
+
+        return t;
+    }
+
+    private DrumsAccentsTransform getAccent4()
+    {
+        PhraseTransform.Info info = new PhraseTransform.Info("Accent4_16Id",
+                ResUtil.getString(getClass(), "Accent4_16_name"),
+                ResUtil.getString(getClass(), "Accent4_16_desc"),
+                PhraseTransformCategory.DRUMS,
+                ACCENT4_ICON
+        );
+
+        DrumsAccentsTransform t = new DrumsAccentsTransform(info,
+                new CyclicPositions(0.75f, 0, 1),
+                DrumKit.Subset.HI_HAT, DrumKit.Subset.CYMBAL
+        );
+
+        return t;
     }
 
 }

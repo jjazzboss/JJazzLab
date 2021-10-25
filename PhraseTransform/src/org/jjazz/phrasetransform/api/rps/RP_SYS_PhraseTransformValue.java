@@ -140,7 +140,7 @@ public class RP_SYS_PhraseTransformValue
             StringJoiner joiner2 = new StringJoiner(">", "[", "]");
             String name = rv.getName();
             var chain = mapRvChain.get(rv);
-            chain.forEach(pt -> joiner2.add(pt.getName()));
+            chain.forEach(pt -> joiner2.add(pt.getInfo().getName()));
             joiner1.add(name + "=" + joiner2.toString());
         }
 

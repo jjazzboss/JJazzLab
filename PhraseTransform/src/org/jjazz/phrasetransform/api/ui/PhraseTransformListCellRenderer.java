@@ -44,10 +44,10 @@ public class PhraseTransformListCellRenderer extends DefaultListCellRenderer
     {
         JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
         PhraseTransform pt = (PhraseTransform) value;
-        String text = pt.getCategory().getDisplayName() + "/" + pt.getName();
+        String text = pt.getInfo().getCategory().getDisplayName() + "/" + pt.getInfo().getName();
         label.setText(text);
-        label.setToolTipText(pt.getDescription());
-        Icon icon = pt.getIcon();
+        label.setToolTipText(pt.getInfo().getDescription());
+        Icon icon = pt.getInfo().getIcon();
         if (icon == null)
         {
             // Create a dummy icon for alignment purpose
