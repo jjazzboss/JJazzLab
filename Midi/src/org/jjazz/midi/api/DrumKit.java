@@ -27,8 +27,11 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashMap;
 import org.jjazz.midi.api.keymap.KeyRange;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.keymap.KeyMapGM;
@@ -109,14 +112,13 @@ public class DrumKit implements Serializable
         public int getKey(String noteName);
 
         /**
-         * Get the notes of the given subset.
+         * Get the notes of the given subset(s).
          * <p>
          *
-         * @param subset
-         * @param otherSubsets
+         * @param subsets
          * @return Can be an empty list.
          */
-        public List<Integer> getKeys(Subset subset, Subset... otherSubsets);
+        public List<Integer> getKeys(Subset... subsets);
 
     }
 
@@ -165,6 +167,30 @@ public class DrumKit implements Serializable
     public KeyMap getKeyMap()
     {
         return map;
+    }
+
+    /**
+     * Get a map which provide the subset corresponding to a pitch for this DrumKit.
+     *
+     * @param subsets Limit the map values to these subsets only. If no value specified, use all the possible Subsets values.
+     * @return
+     */
+    public Map<Integer, Subset> getSubsetPitches(Subset... subsets)
+    {
+        Map<Integer, Subset> res = new HashMap<>();
+        if (subsets.length == 0)
+        {
+            subsets = Subset.values();
+        }
+        for (var subset : subsets)
+        {
+            for (int pitch : getKeyMap().getKeys(subset))
+            {
+                assert res.get(pitch) == null : "subset=" + subset + " pitch=" + pitch + " res.get(pitch)=" + res.get(pitch);
+                res.put(pitch, subset);
+            }
+        }
+        return res;
     }
 
     @Override

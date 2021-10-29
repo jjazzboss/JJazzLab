@@ -25,14 +25,10 @@ package org.jjazz.phrasetransform;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Component;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.swing.BorderFactory;
-import javax.swing.JDialog;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.CyclicPositions;
@@ -44,7 +40,6 @@ import org.jjazz.phrasetransform.api.PtProperties;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.ui.utilities.api.Utilities;
 import org.jjazz.util.api.ResUtil;
-import org.openide.windows.WindowManager;
 
 /**
  * Change velocity of specific drums notes which match cyclic positions.
@@ -168,22 +163,9 @@ public class DrumsAccentsTransform implements PhraseTransform
     @Override
     public void showUserSettingsDialog(Component anchor)
     {
-        JDialog dlg = new JDialog(WindowManager.getDefault().getMainWindow(), true);
         String text = ResUtil.getString(getClass(), "AccentStrength");
-        GenericSettingsPanel panel = new GenericSettingsPanel(PROP_VELOCITY_OFFSET, text, false);
-        panel.setBorder(BorderFactory.createEtchedBorder());
-        panel.preset(properties);
-        dlg.add(panel);
-        dlg.addMouseMotionListener(new MouseAdapter()
-        {
-            @Override
-            public void mouseExited(MouseEvent me)
-            {
-                dlg.setVisible(false);
-            }
-        });
-        dlg.pack();
-        Utilities.setDialogLocationRelativeTo(dlg, anchor, 10, 0.5, 1);
+        GenericSettingsDialog dlg = new GenericSettingsDialog(properties, getInfo().getName(), PROP_VELOCITY_OFFSET, text, true);
+        Utilities.setDialogLocationRelativeTo(dlg, anchor, 0, 0.5, 0.5);
         dlg.setVisible(true);
         dlg.dispose();
     }

@@ -40,6 +40,7 @@ public interface PhraseTransform extends Comparable<PhraseTransform>
 
     public static final Dimension ICON_SIZE = new Dimension(48, 24);
     public static final String SAVE_STRING_DELIMITER = "#";
+    public static final String HIDDEN_ID_TOKEN = "hidden";
 
 
     /**
@@ -287,7 +288,9 @@ public interface PhraseTransform extends Comparable<PhraseTransform>
         /**
          * A unique id associated to this transform class.
          * <p>
-         * IMPORTANT: character SAVE_STRING_DELIMITER is forbidden here! (used as a separator in saveAsString()/loadFromString())
+         * IMPORTANT: <br>
+         * - If Id contains string "hidden", then it is not available to user<br>
+         * - character SAVE_STRING_DELIMITER is forbidden here! (used as a separator in saveAsString()/loadFromString())
          *
          * @return
          */

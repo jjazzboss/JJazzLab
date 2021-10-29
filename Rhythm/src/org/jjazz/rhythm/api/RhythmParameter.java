@@ -146,10 +146,10 @@ public interface RhythmParameter<E>
      *
      * @param <T> A RhythmParameter value
      * @param rp A compatible RhythmParameter
-     * @param value The value to convert
-     * @return The value converted for this RhythmParameter. Can't be null.
+     * @param rpValue The value to convert
+     * @return The rpValue converted for this RhythmParameter. Can't be null.
      * @throws IllegalArgumentException If rp is not a compatible with this RhythmParameter.
      */
-    <T> E convertValue(RhythmParameter<T> rp, T value);
+    <T> E convertValue(RhythmParameter<T> rp, T rpValue);
 
 }

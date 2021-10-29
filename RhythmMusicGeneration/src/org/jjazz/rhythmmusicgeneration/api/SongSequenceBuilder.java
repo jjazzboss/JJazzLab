@@ -61,6 +61,8 @@ import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.api.OutputSynthManager;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
+import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransformValue;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_PhraseTransform;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_PhraseTransformValue;
 import org.jjazz.rhythm.api.AdaptedRhythm;
@@ -465,10 +467,11 @@ public class SongSequenceBuilder
         // Handle the RP_SYS_CustomPhrase changes
         processCustomPhrases(songContext, res);
 
+        // Handle the RP_SYS_DrumsTransform changes
+        processDrumsTransforms(songContext, res);
 
         // Handle the RP_SYS_PhraseTransform changes
         processPhraseTransforms(songContext, res);
-
 
         // Handle muted instruments via the SongPart's RP_SYS_Mute parameter
         processMutedInstruments(songContext, res);
@@ -502,7 +505,7 @@ public class SongSequenceBuilder
         // Handle the RP_SYS_DrumsMix changes : must be DONE after the merge of the phrases for RhythmVoiceDelegates.
         // RP_SYS_DrumsMix rp is directly reused by AdaptedRhythm instances, so RP_SYS_DrumsMix.getRhythmVoice() returns
         // the rhythm voice of the source rhythm. 
-        processDrumsMixSettings(songContext, res);
+        // processDrumsMixSettings(songContext, res);
 
         // 
         // From here no more SongPart-based processing allowed, since the phrases for SongParts using an AdaptedRhythm have 
@@ -833,7 +836,7 @@ public class SongSequenceBuilder
         {
             FloatRange sptBeatRange = context.getSptBeatRange(spt);
 
-            
+
             // Get the RhythmParameter
             Rhythm r = spt.getRhythm();
             RP_SYS_CustomPhrase rpCustomPhrase = RP_SYS_CustomPhrase.getCustomPhraseRp(r);
@@ -942,6 +945,61 @@ public class SongSequenceBuilder
                 p.split(sptBeatRange, true, false);
                 p.add(outSp);
             }
+        }
+    }
+
+    /**
+     * Transform the drums phrase depending on the RP_SYS_DrumsTransform value.
+     *
+     * @param context
+     * @param rvPhrases Keys can include RhythmVoiceDelegates
+     */
+    private void processDrumsTransforms(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
+    {
+        LOGGER.log(Level.FINE, "processDrumsTransforms() -- context={0}", context);
+
+
+        for (SongPart spt : context.getSongParts())
+        {
+            FloatRange sptBeatRange = context.getSptBeatRange(spt);     // Might be smaller than spt.getBeatRange()
+            IntRange sptBarRange = context.getSptBarRange(spt);         // Might be smaller than spt.getBarRange()
+            SongPartContext sptContext = new SongPartContext(context.getSong(), context.getMidiMix(), sptBarRange);
+
+
+            // Get the RhythmParameter
+            Rhythm r = spt.getRhythm();
+            RP_SYS_DrumsTransform rpDrumsTransform = RP_SYS_DrumsTransform.getDrumsTransformRp(r);
+            if (rpDrumsTransform == null)
+            {
+                continue;
+            }
+
+
+            // Get the RP value and transform phrases as needed
+            RP_SYS_DrumsTransformValue rpValue = spt.getRPValue(rpDrumsTransform);
+            RhythmVoice rvDrums = rpValue.getRhythmVoice();
+            LOGGER.log(Level.FINE, "processDrumsTransforms() rpValue={0} rvDrums={1}", new Object[]
+            {
+                rpValue, rvDrums
+            });
+
+
+            // Keep the slice only for the current songpart
+            Phrase p = rvPhrases.get(rvDrums);
+            Phrase tp = p.clone();
+            tp.slice(sptBeatRange.from, sptBeatRange.to, false, true);
+
+
+            // Make it a SizedPhrase and transform it
+            SizedPhrase inSp = new SizedPhrase(tp.getChannel(), sptBeatRange, r.getTimeSignature());
+            inSp.add(tp);
+            var chain = rpValue.getTransformChain(false);
+            var outSp = chain.transform(inSp, sptContext);
+
+
+            // Replace the old song part phrase by the transformed one
+            p.split(sptBeatRange, true, false);
+            p.add(outSp);
         }
     }
 

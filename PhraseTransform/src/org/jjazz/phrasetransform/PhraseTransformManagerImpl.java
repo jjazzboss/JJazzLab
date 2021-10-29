@@ -31,8 +31,7 @@ import org.jjazz.phrasetransform.api.PhraseTransform;
 import org.jjazz.phrasetransform.api.PhraseTransformManager;
 
 /**
- *
- * Manage the PhraseTransforms.
+ * Manage the available PhraseTransforms on the system.
  */
 public class PhraseTransformManagerImpl implements PhraseTransformManager
 {

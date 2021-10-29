@@ -225,7 +225,7 @@ public class HSLColor
     /**
      * Get the Luminance value.
      *
-     * @return the Luminance value.
+     * @return the Luminance value [0-100]
      */
     public float getLuminance()
     {
@@ -245,7 +245,7 @@ public class HSLColor
     /**
      * Get the Saturation value.
      *
-     * @return the Saturation value.
+     * @return the Saturation value [0-100]
      */
     public float getSaturation()
     {

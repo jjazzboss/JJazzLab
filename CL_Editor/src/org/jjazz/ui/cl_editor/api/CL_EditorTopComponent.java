@@ -26,6 +26,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -128,7 +129,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         {
             actions.add(null);   // Separator         
         }
-        actions.addAll(Arrays.asList(super.getActions())); // Get the standard builtin actions Close, Close All, Close Other      
+        Collections.addAll(actions, super.getActions()); // Get the standard builtin actions Close, Close All, Close Other      
         return actions.toArray(new Action[0]);
     }
 

@@ -696,7 +696,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
         org.openide.awt.Mnemonics.setLocalizedText(lbl_allTransforms, org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.lbl_allTransforms.text")); // NOI18N
 
         list_availableTransforms.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        list_availableTransforms.setCellRenderer(new PhraseTransformListCellRenderer());
+        list_availableTransforms.setCellRenderer(new PhraseTransformListCellRenderer(false));
         list_availableTransforms.setDragEnabled(true);
         list_availableTransforms.setDropMode(javax.swing.DropMode.ON);
         list_availableTransforms.addMouseListener(new java.awt.event.MouseAdapter()
@@ -710,7 +710,7 @@ public class RP_SYS_PhraseTransformComp extends RealTimeRpEditorComponent<RP_SYS
 
         list_transformChain.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         list_transformChain.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_PhraseTransformComp.class, "RP_SYS_PhraseTransformComp.list_transformChain.toolTipText")); // NOI18N
-        list_transformChain.setCellRenderer(new PhraseTransformListCellRenderer());
+        list_transformChain.setCellRenderer(new PhraseTransformListCellRenderer(false));
         list_transformChain.setDragEnabled(true);
         list_transformChain.setDropMode(javax.swing.DropMode.ON_OR_INSERT);
         list_transformChain.addListSelectionListener(new javax.swing.event.ListSelectionListener()

@@ -38,13 +38,24 @@ import org.jjazz.phrasetransform.api.PhraseTransform;
 public class PhraseTransformListCellRenderer extends DefaultListCellRenderer
 {
 
+    private boolean useCategory;
+
+    public PhraseTransformListCellRenderer(boolean useCategory)
+    {
+        this.useCategory = useCategory;
+    }
+
     @Override
     @SuppressWarnings(value = "rawtypes")
     public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
     {
         JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
         PhraseTransform pt = (PhraseTransform) value;
-        String text = pt.getInfo().getCategory().getDisplayName() + "/" + pt.getInfo().getName();
+        String text = pt.getInfo().getName();
+        if (useCategory)
+        {
+            text = pt.getInfo().getCategory().getDisplayName() + "/" + text;
+        }
         label.setText(text);
         label.setToolTipText(pt.getInfo().getDescription());
         Icon icon = pt.getInfo().getIcon();

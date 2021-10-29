@@ -26,8 +26,9 @@ import java.util.*;
 import org.jjazz.ui.cl_editor.barrenderer.api.BarRendererFactory;
 
 /**
- * A BarBoxConfig defines the BarRenderer types supported by a BarBox. It also says which BarRenderer types are active for one
- * BarBox.
+ * A BarBoxConfig defines the BarRenderer types supported by a BarBox.
+ * <p>
+ * It also says which BarRenderer types are active for one BarBox.
  */
 public class BarBoxConfig
 {
@@ -35,11 +36,11 @@ public class BarBoxConfig
     /**
      * The supported BarRenderer types.
      */
-    private ArrayList<BarRendererFactory.Type> supportedBarRenderers = new ArrayList<>();
+    private final ArrayList<BarRendererFactory.Type> supportedBarRenderers = new ArrayList<>();
     /**
      * The currently active BarRenderer types.
      */
-    private ArrayList<BarRendererFactory.Type> activeBarRenderers = new ArrayList<>();
+    private final ArrayList<BarRendererFactory.Type> activeBarRenderers = new ArrayList<>();
 
     /**
      * Create a config with all BarRendererFactories active by default.
@@ -90,6 +91,7 @@ public class BarBoxConfig
      * Return true if bbc has the same supported BarRenderers (order is not taken into account).
      *
      * @param bbc
+     * @return
      */
     public boolean hasSameSupportedBarRenderers(BarBoxConfig bbc)
     {

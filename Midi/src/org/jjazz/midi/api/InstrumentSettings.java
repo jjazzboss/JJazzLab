@@ -29,6 +29,7 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiMessage;
@@ -134,10 +135,10 @@ public class InstrumentSettings implements Serializable
     public MidiMessage[] getAllMidiMessages(int channel)
     {
         ArrayList<MidiMessage> res = new ArrayList<>();
-        res.addAll(Arrays.asList(getVolumeMidiMessages(channel)));
-        res.addAll(Arrays.asList(getPanoramicMidiMessages(channel)));
-        res.addAll(Arrays.asList(getReverbMidiMessages(channel)));
-        res.addAll(Arrays.asList(getChorusMidiMessages(channel)));
+        Collections.addAll(res, getVolumeMidiMessages(channel));
+        Collections.addAll(res, getPanoramicMidiMessages(channel));
+        Collections.addAll(res, getReverbMidiMessages(channel));
+        Collections.addAll(res, getChorusMidiMessages(channel));
         return res.toArray(new MidiMessage[0]);
     }
 

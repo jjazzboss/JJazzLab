@@ -77,7 +77,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private UpdatableSongSession session;
     private SongPartContext songPartContextOriginal;
     private SongPartContext songPartContextpreview;
-    private final E rpValueReference;
+    private final E rpDefaultValue;
     private E saveRpValue;
     private GlobalKeyActionListener globalKeyListener;
     private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());  //NOI18N
@@ -93,7 +93,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         pnl_editor.add(editor, BorderLayout.CENTER);
         pack();
 
-        rpValueReference = getRhythmParameter().getDefaultValue();
+        rpDefaultValue = getRhythmParameter().getDefaultValue();
     }
 
     @Override
@@ -229,7 +229,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     {
         if (evt.getSource() == editor && evt.getPropertyName().equals(RealTimeRpEditorComponent.PROP_EDITED_RP_VALUE))
         {
-            LOGGER.log(Level.SEVERE, "propertyChange() evt={0}", evt);
+            LOGGER.log(Level.FINE, "propertyChange() evt={0}", evt);
             if (tbtn_hear.isSelected() && !tbtn_compare.isSelected())
             {
                 updateRpValueInPreviewContext((E) evt.getNewValue());
@@ -273,7 +273,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         }
 
         // Build song context with the original RP value or edited one
-        E rpValue = tbtn_compare.isSelected() ? rpValueReference : editor.getEditedRpValue();
+        E rpValue = tbtn_compare.isSelected() ? rpDefaultValue : editor.getEditedRpValue();
         songPartContextpreview = buildPreviewContext(songPartContextOriginal, getRhythmParameter(), rpValue);
 
 
@@ -510,7 +510,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         if (tbtn_compare.isSelected())
         {
             saveRpValue = editor.getEditedRpValue();
-            editor.setEditedRpValue(rpValueReference);
+            editor.setEditedRpValue(rpDefaultValue);
             editor.setEnabled(false);
         } else
         {

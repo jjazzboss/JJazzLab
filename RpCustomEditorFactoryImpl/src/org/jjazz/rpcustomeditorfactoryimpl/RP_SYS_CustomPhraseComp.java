@@ -81,7 +81,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     private RP_SYS_CustomPhraseValue uiValue;
     private SongPartContext songPartContext;
     private final TextOverlayLayerUI overlayLayerUI;
-    private final Map<RhythmVoice, Phrase> mapRvPhrase = new HashMap<>();
+    private final Map<RhythmVoice, SizedPhrase> mapRvPhrase = new HashMap<>();
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhraseComp.class.getSimpleName());
 
     public RP_SYS_CustomPhraseComp(RP_SYS_CustomPhrase rp)
@@ -241,7 +241,11 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         for (var rv : map.keySet())
         {
             Phrase p = map.get(rv);     // Phrase always start at bar 0
-            mapRvPhrase.put(rv, p);
+            SizedPhrase sp = new SizedPhrase(getChannel(rv),
+                    songPartContext.getBeatRange(),
+                    songPartContext.getSongPart().getRhythm().getTimeSignature());
+            sp.add(p);
+            mapRvPhrase.put(rv, sp);
         }
 
         // Refresh the birdview
@@ -254,25 +258,25 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
      * @param rv
      * @return Can be null!
      */
-    private synchronized Phrase getPhrase(RhythmVoice rv)
+    private synchronized SizedPhrase getPhrase(RhythmVoice rv)
     {
         if (mapRvPhrase.isEmpty() || uiValue == null)
         {
             return null;
         }
-        Phrase p = null;
+        SizedPhrase sp = null;
         if (isCustomizedPhrase(rv))
         {
-            p = uiValue.getCustomizedPhrase(rv);
+            sp = uiValue.getCustomizedPhrase(rv);
         } else if (rv instanceof RhythmVoiceDelegate)
         {
-            p = mapRvPhrase.get(((RhythmVoiceDelegate) rv).getSource());
+            sp = mapRvPhrase.get(((RhythmVoiceDelegate) rv).getSource());
         } else
         {
-            p = mapRvPhrase.get(rv);
+            sp = mapRvPhrase.get(rv);
         }
 
-        return p;
+        return sp;
     }
 
     private void addCustomizedPhrase(RhythmVoice rv, SizedPhrase sp)
@@ -312,7 +316,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         RhythmVoice rv = getCurrentRhythmVoice();
         if (rv != null)
         {
-            Phrase p = getPhrase(rv);
+            SizedPhrase p = getPhrase(rv);
             boolean isCustom = isCustomizedPhrase(rv);
             if (p != null)
             {

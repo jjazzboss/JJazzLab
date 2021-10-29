@@ -141,17 +141,13 @@ public class KeyMapGM implements DrumKit.KeyMap
     }
 
     @Override
-    public List<Integer> getKeys(Subset subset, Subset... otherSubsets)
+    public List<Integer> getKeys(Subset... subsets)
     {
         var res = new ArrayList<Integer>();
 
-        var subsets = new ArrayList<Subset>();
-        subsets.add(subset);
-        subsets.addAll(Arrays.asList(otherSubsets));
-
-        for (Subset ss : subsets)
+        for (Subset subset : subsets)
         {
-            var pitches = mapSubsetPitches.get(ss);
+            var pitches = mapSubsetPitches.get(subset);
             if (pitches != null)
             {
                 res.addAll(pitches);

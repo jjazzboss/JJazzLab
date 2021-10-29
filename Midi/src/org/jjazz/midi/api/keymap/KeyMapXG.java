@@ -171,18 +171,14 @@ public class KeyMapXG implements DrumKit.KeyMap
     }
 
 
-     @Override
-    public List<Integer> getKeys(DrumKit.Subset subset, DrumKit.Subset... otherSubsets)
+    @Override
+    public List<Integer> getKeys(DrumKit.Subset... subsets)
     {
         var res = new ArrayList<Integer>();
 
-        var subsets = new ArrayList<DrumKit.Subset>();
-        subsets.add(subset);
-        subsets.addAll(Arrays.asList(otherSubsets));
-
-        for (DrumKit.Subset ss : subsets)
+        for (DrumKit.Subset subset : subsets)
         {
-            var pitches = mapSubsetPitches.get(ss);
+            var pitches = mapSubsetPitches.get(subset);
             if (pitches != null)
             {
                 res.addAll(pitches);

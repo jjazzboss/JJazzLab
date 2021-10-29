@@ -45,9 +45,10 @@ public class PhraseTransformChain extends ArrayList<PhraseTransform>
     }
 
     /**
-     * Create a chain with the specified PhraseTransforms.
+     * Create a chain which directly reuse the specified PhraseTransforms.
      *
-     * @param pts
+     * @param pts The PhraseTransforms to be added in this chain (no copy is done).
+     * @see #deepClone() 
      */
     public PhraseTransformChain(List<PhraseTransform> pts)
     {
@@ -55,7 +56,7 @@ public class PhraseTransformChain extends ArrayList<PhraseTransform>
     }
 
     /**
-     * Perform a deep clone of this chain (PhraseTransforms are cloned too).
+     * Perform a deep clone of this chain : PhraseTransforms are cloned too.
      *
      * @return
      */

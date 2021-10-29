@@ -28,6 +28,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.CyclicPositions;
+import org.jjazz.phrasetransform.api.DrumsMixTransform;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.phrasetransform.spi.PhraseTransformProvider;
 import org.jjazz.phrasetransform.api.PhraseTransform;
@@ -43,16 +44,16 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
 {
 
     @StaticResource(relative = true)
-    private static final String ACCENT1_ICON_PATH = "resources/Accent8-2-Transformer-48x24.png";
+    private static final String ACCENT1_ICON_PATH = "resources/Accent16-1-Transformer-48x24.png";
     private static final Icon ACCENT1_ICON = new ImageIcon(OpenHiHatTransform.class.getResource(ACCENT1_ICON_PATH));
     @StaticResource(relative = true)
-    private static final String ACCENT2_ICON_PATH = "resources/Accent16-1-Transformer-48x24.png";
+    private static final String ACCENT2_ICON_PATH = "resources/Accent16-2-Transformer-48x24.png";
     private static final Icon ACCENT2_ICON = new ImageIcon(OpenHiHatTransform.class.getResource(ACCENT2_ICON_PATH));
     @StaticResource(relative = true)
-    private static final String ACCENT3_ICON_PATH = "resources/Accent16-2-Transformer-48x24.png";
+    private static final String ACCENT3_ICON_PATH = "resources/Accent16-3-Transformer-48x24.png";
     private static final Icon ACCENT3_ICON = new ImageIcon(OpenHiHatTransform.class.getResource(ACCENT3_ICON_PATH));
     @StaticResource(relative = true)
-    private static final String ACCENT4_ICON_PATH = "resources/Accent16-3-Transformer-48x24.png";
+    private static final String ACCENT4_ICON_PATH = "resources/Accent16-4-Transformer-48x24.png";
     private static final Icon ACCENT4_ICON = new ImageIcon(OpenHiHatTransform.class.getResource(ACCENT4_ICON_PATH));
 
 
@@ -61,13 +62,15 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
     public DefaultPhraseTransformProvider()
     {
         transforms.add(new OpenHiHatTransform());
-        transforms.add(new SwingTransform());
-
+        transforms.add(new RideToHiHatTransform());
+        transforms.add(new HiHatToRideTransform());
 
         transforms.add(getAccent1());
         transforms.add(getAccent2());
         transforms.add(getAccent3());
         transforms.add(getAccent4());
+
+        transforms.add(new DrumsMixTransform());    // Hidden transform
     }
 
     @Override

@@ -13,7 +13,6 @@ import org.jjazz.midi.api.DrumKit;
  */
 public class RP_SYS_DrumsMixValue
 {
-
     private int bassDrumOffset;
     private int snareOffset;
     private int hiHatOffset;

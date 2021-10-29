@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -96,7 +97,7 @@ public final class ImportSongAction implements ActionListener
         {
             for (FileNameExtensionFilter filter : importer.getSupportedFileTypes())
             {
-                allExtensions.addAll(Arrays.asList(filter.getExtensions()));
+                Collections.addAll(allExtensions, filter.getExtensions());
             }
         }
         if (allExtensions.size() > 1)

@@ -25,7 +25,6 @@ package org.jjazz.phrasetransform.api;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.jjazz.midi.api.Instrument;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.PhraseTransformManagerImpl;
 import org.jjazz.songcontext.api.SongPartContext;
@@ -120,7 +119,7 @@ public interface PhraseTransformManager
         {
             var pt = it.next();
             int score = pt.getFitScore(inPhrase, context);
-            if (score == 0 && exclude0score)
+            if (pt.getInfo().getUniqueId().contains(PhraseTransform.HIDDEN_ID_TOKEN) || (score == 0 && exclude0score))
             {
                 it.remove();
             } else

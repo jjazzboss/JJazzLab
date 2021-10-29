@@ -31,6 +31,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jjazz.harmony.api.TimeSignature;
@@ -54,7 +55,8 @@ public class PhraseBirdView extends JPanel
     public static final int MIN_WIDTH = 30;
     public static final int PREF_HEIGHT = 30;
     public static final int PREF_BAR_WIDTH = 10;
-    public static final int BAR_GRADATION_LENGTH = 3;
+    public static final int BAR_GRADATION_LENGTH = 7;
+    public static final int BEAT_GRADATION_LENGTH = 3;
     private static final IntRange MID_RANGE = new IntRange(36, 84);
     private static final int OUT_OF_RANGE_PITCH_RATIO = 4;
 
@@ -63,8 +65,25 @@ public class PhraseBirdView extends JPanel
     private FloatRange beatRange;
     private TimeSignature timeSignature;
     private boolean showVelocity = true;
+    private float markerPos = -1;
     private static final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(10f);
     private static final Logger LOGGER = Logger.getLogger(PhraseBirdView.class.getSimpleName());
+
+    /**
+     * Set the position of the marker.
+     *
+     * @param pos If -1, marker is not shown.
+     */
+    public void setMarkerPosition(float pos)
+    {
+        markerPos = pos;
+        repaint();
+    }
+
+    public float getMarkerPosition()
+    {
+        return markerPos;
+    }
 
     @Override
     public void paintComponent(Graphics g)
@@ -103,18 +122,45 @@ public class PhraseBirdView extends JPanel
             }
 
 
-            // Paint bar gradations
             if (!phrase.isEmpty())
             {
-                for (int i = 1; i < nbBars; i++)
+                // Paint bar gradations                
+                final float STEP = 2;
+                int nbBeats = (int) beatRange.size();
+                float beatWidth = (float) r.width / nbBeats;
+                HSLColor cBackground = new HSLColor(getBackground());
+                float lum = cBackground.getLuminance();
+                lum = Math.min(100, lum + STEP);
+                Color cBeat = cBackground.adjustLuminance(lum);
+                lum = Math.min(100, lum + 2 * STEP);
+                Color cBar = cBackground.adjustLuminance(lum);
+
+                for (int i = 0; i < nbBeats; i++)
                 {
-                    float barWidth = (float) r.width / nbBars;
-                    double x = r.x + i * barWidth - 0.5d;
-                    g2.setColor(isEnabled() ? getForeground().darker() : getForeground());
-                    var line = new Line2D.Double(x, r.y, x, r.y + BAR_GRADATION_LENGTH - 1);
+                    double x = r.x + i * beatWidth - 0.5d;
+                    Color c = (i % timeSignature.getNbNaturalBeats()) == 0 ? cBar : cBeat;
+                    g2.setColor(c);
+                    var line = new Line2D.Double(x, r.y, x, yMax);
                     g2.draw(line);
-                    line = new Line2D.Double(x, yMax, x, yMax - BAR_GRADATION_LENGTH + 1);
-                    g2.draw(line);
+                }
+
+
+                // Paint marker 
+                if (beatRange.contains(markerPos, true))
+                {
+                    final float SIZE = 5;
+                    lum = Math.min(100, lum + 2 * STEP);
+                    Color cMarker = cBackground.adjustLuminance(lum);
+                    double x = r.x + (markerPos - beatRange.from) * beatWidth - 0.5d;
+
+                    g2.setColor(cMarker);
+                    var triangle = new Path2D.Float();
+                    triangle.moveTo(x - SIZE, r.y);
+                    triangle.lineTo(x + SIZE, r.y);
+                    triangle.lineTo(x, r.y + 2 * SIZE);
+                    triangle.lineTo(x - SIZE, r.y);
+
+                    g2.fill(triangle);
                 }
             }
         } else
