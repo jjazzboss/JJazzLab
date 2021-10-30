@@ -164,7 +164,7 @@ public class DrumsAccentsTransform implements PhraseTransform
     public void showUserSettingsDialog(Component anchor)
     {
         String text = ResUtil.getString(getClass(), "AccentStrength");
-        GenericSettingsDialog dlg = new GenericSettingsDialog(properties, getInfo().getName(), PROP_VELOCITY_OFFSET, text, true);
+        GenericSettingsDialog dlg = new GenericSettingsDialog(properties, getInfo().getName(), PROP_VELOCITY_OFFSET, text, -63, 64,true);
         Utilities.setDialogLocationRelativeTo(dlg, anchor, 0, 0.5, 0.5);
         dlg.setVisible(true);
         dlg.dispose();

@@ -201,8 +201,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
     {
         lastValue = new RP_SYS_CustomPhraseValue(uiValue);
         uiValue = new RP_SYS_CustomPhraseValue(rpValue);
-
-        refreshUI();
+        fireUiValueChanged();
     }
 
     @Override
@@ -242,7 +241,7 @@ public class RP_SYS_CustomPhraseComp extends RealTimeRpEditorComponent<RP_SYS_Cu
         {
             Phrase p = map.get(rv);     // Phrase always start at bar 0
             SizedPhrase sp = new SizedPhrase(getChannel(rv),
-                    songPartContext.getBeatRange(),
+                    songPartContext.getBeatRange().getTransformed(-songPartContext.getBeatRange().from),
                     songPartContext.getSongPart().getRhythm().getTimeSignature());
             sp.add(p);
             mapRvPhrase.put(rv, sp);

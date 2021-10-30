@@ -40,23 +40,22 @@ import org.netbeans.api.annotations.common.StaticResource;
 
 /**
  *
- * Ride to Hi-Hat
+ * Snare to rimshot.
  */
-public class RideToHiHatTransform implements PhraseTransform
+public class RimShotToSnareTransform implements PhraseTransform
 {
 
-
     @StaticResource(relative = true)
-    private static final String ICON_PATH = "resources/Ride2HiHat-Transformer-48x24.png";
-    private static final Icon ICON = new ImageIcon(RideToHiHatTransform.class.getResource(ICON_PATH));
+    private static final String ICON_PATH = "resources/Rimshot2Snare-Transformer-48x24.png";
+    private static final Icon ICON = new ImageIcon(RimShotToSnareTransform.class.getResource(ICON_PATH));
     private final Info info;
     private final PtProperties properties;
 
-    public RideToHiHatTransform()
+    public RimShotToSnareTransform()
     {
-        info = new Info("Ride2HiHatId",
-                ResUtil.getString(getClass(), "Ride2hiHatTransformName"),
-                ResUtil.getString(getClass(), "Ride2hiHatTransformDesc"),
+        info = new Info("Snare2RimshotId",
+                ResUtil.getString(getClass(), "Rimshot2SnareTransformName"),
+                ResUtil.getString(getClass(), "Rimshot2SnareTransformDesc"),
                 PhraseTransformCategory.DRUMS,
                 ICON);
 
@@ -76,12 +75,12 @@ public class RideToHiHatTransform implements PhraseTransform
 
 
         KeyMap keyMap = PhraseTransforms.getInstrument(inPhrase, context).getDrumKit().getKeyMap();
-        var srcPitches = keyMap.getKeys(DrumKit.Subset.CYMBAL);
+        var srcPitches = keyMap.getKeys(DrumKit.Subset.SNARE_RIMSHOT, DrumKit.Subset.SNARE_HANDCLAP);
         if (srcPitches.isEmpty())
         {
             return res;
         }
-        var destPitches = keyMap.getKeys(DrumKit.Subset.HI_HAT_CLOSED);
+        var destPitches = keyMap.getKeys(DrumKit.Subset.SNARE_DEFAULT);
         if (destPitches.isEmpty())
         {
             return res;
@@ -124,7 +123,7 @@ public class RideToHiHatTransform implements PhraseTransform
 
 
     @Override
-    public RideToHiHatTransform getCopy()
+    public RimShotToSnareTransform getCopy()
     {
         return this;
     }

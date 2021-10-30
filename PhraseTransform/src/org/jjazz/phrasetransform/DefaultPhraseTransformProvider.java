@@ -64,6 +64,8 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
         transforms.add(new OpenHiHatTransform());
         transforms.add(new RideToHiHatTransform());
         transforms.add(new HiHatToRideTransform());
+        transforms.add(new SnareToRimShotTransform());
+        transforms.add(new RimShotToSnareTransform());
 
         transforms.add(getAccent1());
         transforms.add(getAccent2());

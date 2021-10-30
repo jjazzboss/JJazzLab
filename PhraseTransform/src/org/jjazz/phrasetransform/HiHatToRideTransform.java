@@ -55,7 +55,7 @@ public class HiHatToRideTransform implements PhraseTransform
     public HiHatToRideTransform()
     {
         info = new Info("HiHat2RideId",
-                "Hi-Hat to Ride",
+                ResUtil.getString(getClass(), "HiHat2RideTransformName"),
                 ResUtil.getString(getClass(), "HiHat2RideTransformDesc"),
                 PhraseTransformCategory.DRUMS,
                 ICON);

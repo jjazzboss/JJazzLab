@@ -22,6 +22,7 @@
  */
 package org.jjazz.rpcustomeditorfactoryimpl;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -61,6 +62,8 @@ import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransformValue;
 import org.jjazz.phrasetransform.api.ui.PhraseTransformListCellRenderer;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import static org.jjazz.rpcustomeditorfactoryimpl.RP_SYS_CustomPhraseComp.PHRASE_COMP_FOREGROUND;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorDialog;
 import org.jjazz.rpcustomeditorfactoryimpl.spi.RealTimeRpEditorComponent;
@@ -188,7 +191,12 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
 
 
             // Retrieve the original phrase
-            Phrase p = tmpSession.getRvPhraseMap().get(rp.getRhythmVoice());
+            RhythmVoice rv = rp.getRhythmVoice();
+            if (rv instanceof RhythmVoiceDelegate)
+            {
+                rv = ((RhythmVoiceDelegate) rv).getSource();
+            }
+            Phrase p = tmpSession.getRvPhraseMap().get(rv);
             setOriginalPhrase(p);
             tmpSession.close();
         };
@@ -201,12 +209,11 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     {
         lastValue = uiValue;
         uiValue = new RP_SYS_DrumsTransformValue(rpValue);
-
-        // We don't want to generate change events because it's not user-triggered        
+        fireUiValueChanged();
 
         // Update the mix part
         var mix = uiValue.getDrumsMixTransform();
-        unregisterKnobs();
+        unregisterKnobs();          // We don't want to generate change events because it's not user-triggered        
         knb_bassDrum.setValue(mix.getBassDrumOffset());
         knb_snare.setValue(mix.getSnareOffset());
         knb_toms.setValue(mix.getTomsOffset());
@@ -219,7 +226,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
 
         // Update the transform part        
         var transformChainNoMix = uiValue.getTransformChain(true);
-        list_transformChainModel.removeListDataListener(this);
+        list_transformChainModel.removeListDataListener(this);  // We don't want to generate change events because it's not user-triggered        
         list_transformChainModel.clear();
         if (transformChainNoMix != null)
         {
@@ -381,7 +388,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
      * Called by thread started from preset() when phrases are ready.
      * <p>
      *
-     * @param The original drums phrase Can be null if no drums track available (for example after song part rhythm was changed)
+     * @param The original drums phrase Can be null if no drums track available for the current variation
      */
     private synchronized void setOriginalPhrase(Phrase p)
     {
@@ -470,6 +477,25 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     private int getChannel()
     {
         return songPartContext.getMidiMix().getChannel(rp.getRhythmVoice());
+    }
+
+    private void showTransformUserSettings(PhraseTransform pt)
+    {
+        checkArgument(pt != null && pt.hasUserSettings(), "pt=%s", pt);
+
+        // Listen to properties changes while dialog is shown.
+        PropertyChangeListener listener = e ->
+        {
+            uiUpdatedByUser();
+        };
+        pt.getProperties().addPropertyChangeListener(listener);
+
+
+        // Show the dialog
+        pt.showUserSettingsDialog(btn_ptSettings);      // Blocks
+
+        // Stop listening
+        pt.getProperties().removePropertyChangeListener(listener);
     }
 
     private void list_transformChainSelectionChanged()
@@ -772,6 +798,13 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         list_transformChain.setCellRenderer(new PhraseTransformListCellRenderer(false));
         list_transformChain.setDragEnabled(true);
         list_transformChain.setDropMode(javax.swing.DropMode.ON_OR_INSERT);
+        list_transformChain.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseClicked(java.awt.event.MouseEvent evt)
+            {
+                list_transformChainMouseClicked(evt);
+            }
+        });
         list_transformChain.addListSelectionListener(new javax.swing.event.ListSelectionListener()
         {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt)
@@ -1137,13 +1170,12 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(pnl_arrows, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(btn_ptSettings)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btn_remove)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btn_clear)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 26, Short.MAX_VALUE)
+                            .addComponent(btn_ptSettings))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
+                        .addComponent(btn_remove)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_clear)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(flatHelpButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
@@ -1186,22 +1218,13 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     private void btn_ptSettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_ptSettingsActionPerformed
     {//GEN-HEADEREND:event_btn_ptSettingsActionPerformed
         var pt = list_transformChain.getSelectedValue();
-        assert pt != null && pt.hasUserSettings();
-
-        // Listen to properties changes while dialog is shown.
-        PropertyChangeListener listener = e ->
+        if (pt != null && pt.hasUserSettings())
         {
-            uiUpdatedByUser();
-        };
-        pt.getProperties().addPropertyChangeListener(listener);
-
-
-        // Show the dialog
-        pt.showUserSettingsDialog(btn_ptSettings);      // Blocks
-
-        // Stop listening
-        pt.getProperties().removePropertyChangeListener(listener);
+            showTransformUserSettings(pt);
+        }
     }//GEN-LAST:event_btn_ptSettingsActionPerformed
+
+
 
     private void btn_removeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_removeActionPerformed
     {//GEN-HEADEREND:event_btn_removeActionPerformed
@@ -1218,6 +1241,18 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         var insMix = mm.getInstrumentMixFromKey(rp.getRhythmVoice());
         insMix.setSolo(tbtn_solo.isSelected());
     }//GEN-LAST:event_tbtn_soloActionPerformed
+
+    private void list_transformChainMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_list_transformChainMouseClicked
+    {//GEN-HEADEREND:event_list_transformChainMouseClicked
+        if (evt.getClickCount() == 2)
+        {
+            var pt = list_transformChain.getSelectedValue();
+            if (pt != null && pt.hasUserSettings())
+            {
+                showTransformUserSettings(pt);
+            }
+        }
+    }//GEN-LAST:event_list_transformChainMouseClicked
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -24,10 +24,10 @@ package org.jjazz.midi.api.keymap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.DrumKit.Subset;
 
 /**
  * The XG PopLatin key map.
@@ -61,7 +61,7 @@ public class KeyMapXG_PopLatin implements DrumKit.KeyMap
         addNote("Cajon Tip", 15);
         addNote("Claves High", 16);
         addNote("Claves Low", 17);
-        addNote("Hand Clap", 18);
+        addNote("Hand Clap", 18, Subset.SNARE, Subset.SNARE_HANDCLAP);
         // No 19    
         addNote("Finger Snap", 20);
         addNote("Castanet", 21);

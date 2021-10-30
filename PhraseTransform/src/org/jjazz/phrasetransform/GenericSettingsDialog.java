@@ -40,25 +40,32 @@ public class GenericSettingsDialog extends javax.swing.JDialog implements Proper
     private final String property;
     private final String displayName;
 
+
     /**
-     *
-     * @param property
-     * @param displayName
-     * @param usePanoramicKnob
+     * 
+     * @param ptProperties The properties we modify
+     * @param dialogTitle 
+     * @param property The proprerty name we read/write
+     * @param propertyDisplayName The display name of the property
+     * @param minPropertyValue 
+     * @param maxPropertyValue
+     * @param usePanoramicKnob 
      */
-    public GenericSettingsDialog(PtProperties ptProperties, String dlgTitle, String property, String displayName, boolean usePanoramicKnob)
+    public GenericSettingsDialog(PtProperties ptProperties, String dialogTitle, String property, String propertyDisplayName, int minPropertyValue, int maxPropertyValue, boolean usePanoramicKnob)
     {
         super(WindowManager.getDefault().getMainWindow(), true);
         checkNotNull(ptProperties);
         checkNotNull(property);
-        checkNotNull(displayName);
+        checkNotNull(propertyDisplayName);
 
-        this.displayName = displayName;
+        this.displayName = propertyDisplayName;
 
         initComponents();
 
         this.ptProperties = ptProperties;
         knob.setPanoramicType(usePanoramicKnob);
+        knob.setMinValue(minPropertyValue);
+        knob.setMaxValue(maxPropertyValue);
         knob.setValue(ptProperties.getPropertyAsInteger(property));
         this.property = property;
 
@@ -66,7 +73,7 @@ public class GenericSettingsDialog extends javax.swing.JDialog implements Proper
         Utilities.installEscapeKeyAction(this, () -> exit());
         
         knob.addPropertyChangeListener(this);        
-        pnl_main.setToolTipText(dlgTitle);
+        pnl_main.setToolTipText(dialogTitle);
     }
 
     @Override

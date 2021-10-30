@@ -24,10 +24,10 @@ package org.jjazz.midi.api.keymap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midi.api.DrumKit.Subset;
 
 /**
  * The Yamaha XG standard Drum Map.
@@ -40,7 +40,7 @@ public class KeyMapXG implements DrumKit.KeyMap
     private static KeyMapXG INSTANCE;
     private HashMap<String, Integer> mapNamePitch = new HashMap<>();
     private HashMap<Integer, String> mapPitchName = new HashMap<>();
-    private HashMap<DrumKit.Subset, List<Integer>> mapSubsetPitches = new HashMap<>();
+    private HashMap<Subset, List<Integer>> mapSubsetPitches = new HashMap<>();
 
     private final KeyRange range = new KeyRange(13, 84);
 
@@ -70,41 +70,41 @@ public class KeyMapXG implements DrumKit.KeyMap
         addNote("Metronome Bell", 22);
         addNote("Seq Click Low", 23);
         addNote("Seq Click High", 24);
-        addNote("Brush Tap", 25, DrumKit.Subset.SNARE);
-        addNote("Brush Swirl Low", 26, DrumKit.Subset.SNARE);
-        addNote("Brush Slap", 27, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
-        addNote("Brush Tap Swirl", 28, DrumKit.Subset.SNARE);
-        addNote("Snare Roll", 29, DrumKit.Subset.SNARE);
+        addNote("Brush Tap", 25, Subset.SNARE);
+        addNote("Brush Swirl Low", 26, Subset.SNARE);
+        addNote("Brush Slap", 27, Subset.ACCENT, Subset.SNARE);
+        addNote("Brush Tap Swirl", 28, Subset.SNARE);
+        addNote("Snare Roll", 29, Subset.SNARE);
         addNote("Castanets", 30);
-        addNote("Snare Soft", 31, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
+        addNote("Snare Soft", 31, Subset.ACCENT, Subset.SNARE, Subset.SNARE_DRUM);
         addNote("Stick", 32);
-        addNote("Kick Soft", 33, DrumKit.Subset.ACCENT, DrumKit.Subset.BASS);
-        addNote("Rim Shot Open", 34, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
-        addNote("ACOUSTIC BASS DRUM", 35, DrumKit.Subset.ACCENT, DrumKit.Subset.BASS);
-        addNote("BASS DRUM 1", 36, DrumKit.Subset.ACCENT, DrumKit.Subset.BASS);
-        addNote("SIDE STICK", 37, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
-        addNote("ACOUSTIC SNARE", 38, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
-        addNote("HAND CLAP", 39, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
-        addNote("ELECTRIC SNARE", 40, DrumKit.Subset.ACCENT, DrumKit.Subset.SNARE);
-        addNote("LOW FLOOR TOM", 41, DrumKit.Subset.TOM);
-        addNote("CLOSED HI HAT", 42, DrumKit.Subset.HI_HAT, DrumKit.Subset.HI_HAT_CLOSED);
-        addNote("HIGH FLOOR TOM", 43, DrumKit.Subset.TOM);
-        addNote("PEDAL HI HAT", 44, DrumKit.Subset.HI_HAT_PEDAL, DrumKit.Subset.HI_HAT);
-        addNote("LOW TOM", 45, DrumKit.Subset.TOM);
-        addNote("OPEN HI HAT", 46, DrumKit.Subset.HI_HAT, DrumKit.Subset.HI_HAT_OPEN);
-        addNote("LOW MID TOM", 47, DrumKit.Subset.TOM);
-        addNote("HI MID TOM", 48, DrumKit.Subset.TOM);
-        addNote("CRASH CYMBAL 1", 49, DrumKit.Subset.CRASH);
-        addNote("HIGH TOM", 50, DrumKit.Subset.TOM);
-        addNote("RIDE CYMBAL 1", 51, DrumKit.Subset.CYMBAL);
-        addNote("CHINESE CYMBAL", 52, DrumKit.Subset.CRASH);
-        addNote("RIDE BELL", 53, DrumKit.Subset.CYMBAL);
+        addNote("Kick Soft", 33, Subset.ACCENT, Subset.BASS);
+        addNote("Rim Shot Open", 34, Subset.ACCENT, Subset.SNARE, Subset.SNARE_RIMSHOT);
+        addNote("ACOUSTIC BASS DRUM", 35, Subset.ACCENT, Subset.BASS);
+        addNote("BASS DRUM 1", 36, Subset.ACCENT, Subset.BASS, Subset.BASS_DEFAULT);
+        addNote("SIDE STICK", 37, Subset.ACCENT, Subset.SNARE, Subset.SNARE_RIMSHOT);
+        addNote("ACOUSTIC SNARE", 38, Subset.ACCENT, Subset.SNARE, Subset.SNARE_DRUM);
+        addNote("HAND CLAP", 39, Subset.ACCENT, Subset.SNARE, Subset.SNARE_HANDCLAP);
+        addNote("ELECTRIC SNARE", 40, Subset.ACCENT, Subset.SNARE, Subset.SNARE_DRUM, Subset.SNARE_DEFAULT);
+        addNote("LOW FLOOR TOM", 41, Subset.TOM);
+        addNote("CLOSED HI HAT", 42, Subset.HI_HAT, Subset.HI_HAT_CLOSED);
+        addNote("HIGH FLOOR TOM", 43, Subset.TOM);
+        addNote("PEDAL HI HAT", 44, Subset.HI_HAT_PEDAL, Subset.HI_HAT);
+        addNote("LOW TOM", 45, Subset.TOM);
+        addNote("OPEN HI HAT", 46, Subset.HI_HAT, Subset.HI_HAT_OPEN);
+        addNote("LOW MID TOM", 47, Subset.TOM);
+        addNote("HI MID TOM", 48, Subset.TOM);
+        addNote("CRASH CYMBAL 1", 49, Subset.CRASH);
+        addNote("HIGH TOM", 50, Subset.TOM);
+        addNote("RIDE CYMBAL 1", 51, Subset.CYMBAL);
+        addNote("CHINESE CYMBAL", 52, Subset.CRASH);
+        addNote("RIDE BELL", 53, Subset.CYMBAL);
         addNote("TAMBOURINE", 54);
-        addNote("SPLASH CYMBAL", 55, DrumKit.Subset.CRASH);
+        addNote("SPLASH CYMBAL", 55, Subset.CRASH);
         addNote("COWBELL", 56);
-        addNote("CRASH CYMBAL 2", 57, DrumKit.Subset.CRASH);
+        addNote("CRASH CYMBAL 2", 57, Subset.CRASH);
         addNote("VIBRASLAP", 58);
-        addNote("RIDE CYMBAL 2", 59, DrumKit.Subset.CYMBAL);
+        addNote("RIDE CYMBAL 2", 59, Subset.CYMBAL);
         addNote("HI BONGO", 60);
         addNote("LOW BONGO", 61);
         addNote("MUTE HI CONGA", 62);
@@ -172,11 +172,11 @@ public class KeyMapXG implements DrumKit.KeyMap
 
 
     @Override
-    public List<Integer> getKeys(DrumKit.Subset... subsets)
+    public List<Integer> getKeys(Subset... subsets)
     {
         var res = new ArrayList<Integer>();
 
-        for (DrumKit.Subset subset : subsets)
+        for (Subset subset : subsets)
         {
             var pitches = mapSubsetPitches.get(subset);
             if (pitches != null)
@@ -194,7 +194,7 @@ public class KeyMapXG implements DrumKit.KeyMap
      * @param pitch
      * @param subsets If empty assign to Subset.PERCUSSION by default
      */
-    private void addNote(String name, int pitch, DrumKit.Subset... subsets)
+    private void addNote(String name, int pitch, Subset... subsets)
     {
         if (pitch < 0 || pitch > 127 || name == null || name.trim().isEmpty())
         {
@@ -210,9 +210,9 @@ public class KeyMapXG implements DrumKit.KeyMap
         var workSubsets = new ArrayList<>(Arrays.asList(subsets));
         if (workSubsets.isEmpty())
         {
-            workSubsets.add(DrumKit.Subset.PERCUSSION);
+            workSubsets.add(Subset.PERCUSSION);
         }
-        for (DrumKit.Subset subset : workSubsets)
+        for (Subset subset : workSubsets)
         {
             var notes = mapSubsetPitches.get(subset);
             if (notes == null)

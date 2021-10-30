@@ -55,7 +55,7 @@ public class OpenHiHatTransform implements PhraseTransform
     public OpenHiHatTransform()
     {
         info = new Info("OpenHiHatId",
-                "Open Hi-Hat",
+                ResUtil.getString(getClass(), "OpenHiHatTransformName"),
                 ResUtil.getString(getClass(), "OpenHiHatTransformDesc"),
                 PhraseTransformCategory.DRUMS,
                 ICON);
@@ -131,7 +131,7 @@ public class OpenHiHatTransform implements PhraseTransform
     {
         return this;
     }
-   
+
     @Override
     public PtProperties getProperties()
     {

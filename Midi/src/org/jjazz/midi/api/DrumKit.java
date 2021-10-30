@@ -27,7 +27,6 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import org.jjazz.midi.api.keymap.KeyRange;
 import java.util.List;
@@ -51,7 +50,12 @@ public class DrumKit implements Serializable
     public enum Subset
     {
         BASS, // All bass drums
-        SNARE, // All snare
+        BASS_DEFAULT, // Default bass
+        SNARE, // All snares
+        SNARE_DEFAULT,  // the default snare
+        SNARE_RIMSHOT,  // only rimshots
+        SNARE_HANDCLAP, // onlu hand claps
+        SNARE_DRUM,     // snare drums except rimshots
         HI_HAT, // All Hi-Hats
         HI_HAT_PEDAL,
         HI_HAT_CLOSED, HI_HAT_OPEN,

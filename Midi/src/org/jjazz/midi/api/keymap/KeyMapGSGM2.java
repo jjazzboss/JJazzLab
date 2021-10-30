@@ -24,7 +24,6 @@ package org.jjazz.midi.api.keymap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import org.jjazz.midi.api.DrumKit;
@@ -39,10 +38,10 @@ public class KeyMapGSGM2 implements KeyMap
 
     public static final String NAME = "GS_GM2";
     private static KeyMapGSGM2 INSTANCE;
-    private HashMap<String, Integer> mapNamePitch = new HashMap<>();
-    private HashMap<Integer, String> mapPitchName = new HashMap<>();
+    private final HashMap<String, Integer> mapNamePitch = new HashMap<>();
+    private final HashMap<Integer, String> mapPitchName = new HashMap<>();
     private final KeyRange range = new KeyRange(22, 87);
-    private HashMap<DrumKit.Subset, List<Integer>> mapSubsetPitches = new HashMap<>();
+    private final HashMap<DrumKit.Subset, List<Integer>> mapSubsetPitches = new HashMap<>();
 
     public static KeyMapGSGM2 getInstance()
     {
@@ -60,7 +59,7 @@ public class KeyMapGSGM2 implements KeyMap
     {
         addNote("Beep 1", 22);       // SC-88 pro only
         addNote("Beep 2", 23);       // SC-88 pro only
-        addNote("Concert Snare", 24, Subset.ACCENT, Subset.SNARE);    // SC-88 pro only
+        addNote("Concert Snare", 24, Subset.ACCENT, Subset.SNARE, Subset.SNARE_DRUM);    // SC-88 pro only
         addNote("SNARE ROLL", 25, Subset.SNARE);
         addNote("FINGER SNAP", 26);
         addNote("HIGH Q", 27);
@@ -72,11 +71,11 @@ public class KeyMapGSGM2 implements KeyMap
         addNote("Metronome Click", 33);
         addNote("Metronome Bell", 34);
         addNote("ACOUSTIC BASS DRUM", 35, Subset.ACCENT, Subset.BASS);
-        addNote("BASS DRUM 1", 36, Subset.ACCENT, Subset.BASS);
-        addNote("SIDE STICK", 37, Subset.ACCENT, Subset.SNARE);
-        addNote("ACOUSTIC SNARE", 38, Subset.ACCENT, Subset.SNARE);
-        addNote("HAND CLAP", 39, Subset.ACCENT, Subset.SNARE);
-        addNote("ELECTRIC SNARE", 40, Subset.ACCENT, Subset.SNARE);
+        addNote("BASS DRUM 1", 36, Subset.ACCENT, Subset.BASS, Subset.BASS_DEFAULT);
+        addNote("SIDE STICK", 37, Subset.ACCENT, Subset.SNARE, Subset.SNARE_RIMSHOT);
+        addNote("ACOUSTIC SNARE", 38, Subset.ACCENT, Subset.SNARE, Subset.SNARE_DRUM);
+        addNote("HAND CLAP", 39, Subset.ACCENT, Subset.SNARE, Subset.SNARE_HANDCLAP);
+        addNote("ELECTRIC SNARE", 40, Subset.ACCENT, Subset.SNARE, Subset.SNARE_DRUM, Subset.SNARE_DEFAULT);
         addNote("LOW FLOOR TOM", 41, Subset.TOM);
         addNote("CLOSED HI HAT", 42, Subset.HI_HAT, Subset.HI_HAT_CLOSED);
         addNote("HIGH FLOOR TOM", 43, Subset.TOM);
