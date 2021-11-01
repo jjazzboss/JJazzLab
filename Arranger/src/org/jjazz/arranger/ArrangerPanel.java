@@ -166,6 +166,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         kbdComponent.setEnabled(b);
         updateSptUI();
     }
+    
     // ================================================================================    
     // PropertyChangeListener interface
     // ================================================================================   
