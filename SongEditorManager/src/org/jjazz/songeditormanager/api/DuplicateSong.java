@@ -35,7 +35,7 @@ import org.openide.awt.ActionRegistration;
 @ActionRegistration(displayName = "#CTL_DuplicateSong", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/Tools", position = 10),
+            @ActionReference(path = "Menu/Edit", position = 2115),
             @ActionReference(path = "Actions/CL_EditorTopComponent", position = 110),
             @ActionReference(path = "Actions/RL_EditorTopComponent", position = 110),
             @ActionReference(path = "Shortcuts", name = "D-D")

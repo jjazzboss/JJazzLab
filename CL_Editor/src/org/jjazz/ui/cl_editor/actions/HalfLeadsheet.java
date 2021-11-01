@@ -45,7 +45,7 @@ import org.openide.awt.ActionRegistration;
 @ActionRegistration(displayName = "#CTL_HalfLeadsheet", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/Tools", position = 110)
+            @ActionReference(path = "Menu/Edit", position = 2100, separatorBefore=2099)
         })
 public class HalfLeadsheet implements ActionListener
 {

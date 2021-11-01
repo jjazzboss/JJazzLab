@@ -44,7 +44,7 @@ import org.openide.awt.ActionRegistration;
 @ActionRegistration(displayName = "#CTL_DoubleLeadsheet", lazy = true)
 @ActionReferences(
         { 
-            @ActionReference(path = "Menu/Tools", position = 150)
+            @ActionReference(path = "Menu/Edit", position = 2110)
         })
 public class DoubleLeadsheet implements ActionListener
 {
